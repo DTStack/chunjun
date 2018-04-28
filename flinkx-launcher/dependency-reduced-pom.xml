@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>flinkx-all</artifactId>
+    <groupId>com.dtstack.flinkx</groupId>
+    <version>1.6</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>flinkx-launcher</artifactId>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer />
+                <transformer />
+                <transformer />
+                <transformer>
+                  <resource>reference.conf</resource>
+                </transformer>
+                <transformer>
+                  <resource>core-default.xml</resource>
+                </transformer>
+                <transformer>
+                  <resource>core-site.xml</resource>
+                </transformer>
+                <transformer>
+                  <resource>yarn-default.xml</resource>
+                </transformer>
+                <transformer>
+                  <resource>mapred-default.xml</resource>
+                </transformer>
+                <transformer>
+                  <resource>mapred-site.xml</resource>
+                </transformer>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy>
+                  <fileset>
+                    <include />
+                  </fileset>
+                </copy>
+                <copy>
+                  <fileset>
+                    <include />
+                  </fileset>
+                </copy>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+

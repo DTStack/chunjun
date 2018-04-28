@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.dtstack.flinkx</groupId>
+    <artifactId>flinkx-all</artifactId>
+    <packaging>pom</packaging>
+    <version>1.6</version>
+
+    <modules>
+        <module>flinkx-core</module>
+        <module>flinkx-rdb</module>
+        <module>flinkx-es</module>
+        <module>flinkx-ftp</module>
+        <module>flinkx-odps</module>
+        <module>flinkx-examples</module>
+        <module>flinkx-mysql</module>
+        <module>flinkx-hbase</module>
+        <module>flinkx-hdfs</module>
+        <module>flinkx-oracle</module>
+        <module>flinkx-tests</module>
+        <module>flinkx-sqlserver</module>
+        <module>flinkx-launcher</module>
+    </modules>
+
+    <properties>
+        <scala.binary.version>2.10</scala.binary.version>
+        <flink.version>1.4.0</flink.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <reportOutputDirectory>javadocs</reportOutputDirectory>
+                    <destDir>flinkx-java-docs</destDir>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

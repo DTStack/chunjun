@@ -1,0 +1,116 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.hbase.writer;
+
+import com.dtstack.flinkx.hbase.HbaseConfigConstants;
+import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import org.apache.commons.lang.StringUtils;
+import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The Builder class of HbaseOutputFormatBuilder
+ *
+ * Company: www.dtstack.com
+ * @author huyifan.zju@163.com
+ */
+public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
+
+    private HbaseOutputFormat format;
+
+    public void setTableName(String tableName) {
+        format.tableName = tableName;
+    }
+
+    public void setHbaseConfig(Map<String,String> hbaseConfig) {
+        format.hbaseConfig = hbaseConfig;
+    }
+
+    public void setColumnTypes(List<String> columnTypes) {
+        format.columnTypes = columnTypes;
+    }
+
+    public void setColumnNames(List<String> columnNames) {
+        format.columnNames = columnNames;
+    }
+
+    public void setRowkeyColumnIndices(List<Integer> rowkeyColumnIndices) {
+        format.rowkeyColumnIndices = rowkeyColumnIndices;
+    }
+
+    public void setRowkeyColumnTypes(List<String> rowkeyColumnTypes) {
+        format.rowkeyColumnTypes = rowkeyColumnTypes;
+    }
+
+    public void setRowkeyColumnValues(List<String> rowkeyColumnValues) {
+        format.rowkeyColumnValues = rowkeyColumnValues;
+    }
+
+    public void setVersionColumnIndex(Integer versionColumnIndex) {
+        format.versionColumnIndex = versionColumnIndex;
+    }
+
+    public void setVersionColumnValues(String versionColumnValue) {
+        format.versionColumnValue = versionColumnValue;
+    }
+
+    public void setEncoding(String encoding) {
+        if(StringUtils.isEmpty(encoding)) {
+            format.encoding = HbaseConfigConstants.DEFAULT_ENCODING;
+        } else {
+            format.encoding = encoding;
+        }
+    }
+
+    public void setWriteBufferSize(Long writeBufferSize) {
+        if(writeBufferSize == null || writeBufferSize.longValue() == 0L) {
+            format.writeBufferSize = HbaseConfigConstants.DEFAULT_WRITE_BUFFER_SIZE;
+        } else {
+            format.writeBufferSize = writeBufferSize;
+        }
+    }
+
+    public void setNullMode(String nullMode) {
+        if(StringUtils.isEmpty(nullMode)) {
+            format.nullMode = HbaseConfigConstants.DEFAULT_NULL_MODE;
+        } else {
+            format.nullMode = nullMode;
+        }
+    }
+
+    public void setWalFlag(Boolean walFlag) {
+        if(walFlag == null) {
+            format.walFlag = false;
+        } else {
+            format.walFlag = walFlag;
+        }
+    }
+
+    @Override
+    protected void checkFormat() {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(format.tableName));
+        Preconditions.checkNotNull(format.hbaseConfig);
+        Preconditions.checkNotNull(format.columnNames);
+        Preconditions.checkNotNull(format.columnTypes);
+        Preconditions.checkNotNull(format.rowkeyColumnIndices);
+        Preconditions.checkNotNull(format.rowkeyColumnTypes);
+        Preconditions.checkNotNull(format.rowkeyColumnValues);
+    }
+}

@@ -1,0 +1,428 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.hbase.writer;
+
+import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hbase.HbaseHelper;
+import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import org.apache.commons.lang3.Validate;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.types.Row;
+import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The Hbase Implementation of OutputFormat
+ *
+ * Company: www.dtstack.com
+ * @author huyifan.zju@163.com
+ */
+public class HbaseOutputFormat extends RichOutputFormat {
+
+    private String jobName = "defaultJobName";
+
+    protected Map<String,String> hbaseConfig;
+
+    protected String tableName;
+
+    protected String encoding;
+
+    protected String nullMode;
+
+    protected boolean walFlag;
+
+    protected long writeBufferSize;
+
+    protected List<String> columnTypes;
+
+    protected List<String> columnNames;
+
+    protected List<Integer> rowkeyColumnIndices;
+
+    protected List<String> rowkeyColumnTypes;
+
+    protected List<String> rowkeyColumnValues;
+
+    protected Integer versionColumnIndex;
+
+    protected String versionColumnValue;
+
+    private Connection connection;
+
+    private BufferedMutator bufferedMutator;
+
+    @Override
+    public void configure(Configuration parameters) {
+        LOG.info("HbaseOutputFormat configure start");
+
+        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
+        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
+
+        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
+            hConfiguration.set(entry.getKey(), entry.getValue());
+        }
+
+        try {
+            connection = ConnectionFactory.createConnection(hConfiguration);
+            bufferedMutator = connection.getBufferedMutator(
+                    new BufferedMutatorParams(TableName.valueOf(tableName))
+                            .pool(HTable.getDefaultExecutor(hConfiguration))
+                            .writeBufferSize(writeBufferSize));
+        } catch (Exception e) {
+            HbaseHelper.closeBufferedMutator(bufferedMutator);
+            HbaseHelper.closeConnection(connection);
+            throw new IllegalArgumentException(e);
+        }
+
+        LOG.info("HbaseOutputFormat configure end");
+    }
+
+    @Override
+    public void openInternal(int taskNumber, int numTasks) throws IOException {
+    }
+
+    @Override
+    public void writeSingleRecordInternal(Row record) throws WriteRecordException {
+        int i = 0;
+        try {
+            byte[] rowkey = getRowkey(record);
+            Put put;
+            if(versionColumnIndex == null) {
+                put = new Put(rowkey);
+                if(!walFlag) {
+                    put.setDurability(Durability.SKIP_WAL);
+                }
+            } else {
+                long timestamp = getVersion(record);
+                put = new Put(rowkey,timestamp);
+            }
+
+            for (; i < record.getArity(); ++i) {
+                String type = columnTypes.get(i);
+                ColumnType columnType = ColumnType.getByTypeName(type);
+                String name =columnNames.get(i);
+                String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
+                String[] cfAndQualifier = name.split(":");
+
+                Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
+                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
+                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
+
+                byte[] columnBytes = getColumnByte(columnType,record.getField(i));
+                //columnBytes 为null忽略这列
+                if(null != columnBytes){
+                    put.addColumn(Bytes.toBytes(
+                            cfAndQualifier[0]),
+                            Bytes.toBytes(cfAndQualifier[1]),
+                            columnBytes);
+                }else{
+                    continue;
+                }
+            }
+
+            bufferedMutator.mutate(put);
+        } catch(Exception ex) {
+            if(i < record.getArity()) {
+                throw new WriteRecordException(recordConvertDetailErrorMessage(i, record), ex, i, record);
+            }
+            throw new WriteRecordException(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    protected String recordConvertDetailErrorMessage(int pos, Row row) {
+        return "\nHbaseOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        throw new IllegalArgumentException();
+    }
+
+    private byte[] getRowkey(Row record) {
+        byte[] rowkeyBuffer  = {};
+        for(int i = 0; i < rowkeyColumnIndices.size(); ++i) {
+            Integer index = rowkeyColumnIndices.get(i);
+            String type =  rowkeyColumnTypes.get(i);
+            ColumnType columnType = ColumnType.getByTypeName(type);
+            if(index == -1) {
+                String value = rowkeyColumnValues.get(i);
+                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
+            } else {
+                if(index >= record.getArity()) {
+                    throw new IllegalArgumentException("index of rowkeyColumn out of range");
+                }
+                byte[] value = getColumnByte(columnType,record.getField(index));
+                rowkeyBuffer = Bytes.add(rowkeyBuffer, value);
+            }
+        }
+        return rowkeyBuffer;
+    }
+
+    public long getVersion(Row record){
+        int index = versionColumnIndex.intValue();
+        long timestamp;
+        if(index == -1){
+            //指定时间作为版本
+            timestamp = Long.valueOf(versionColumnValue);
+            if(timestamp < 0){
+                throw new IllegalArgumentException("Illegal timestamp to construct versionClumn: " + timestamp);
+            }
+        }else{
+            //指定列作为版本,long/doubleColumn直接record.aslong, 其它类型尝试用yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss SSS去format
+            if(index >= record.getArity()){
+                throw new IllegalArgumentException("version column index out of range: " + index);
+            }
+            if(record.getField(index)  == null){
+                throw new IllegalArgumentException("null verison column!");
+            }
+            SimpleDateFormat df_senconds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat df_ms = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+            Object column = record.getField(index);
+            if(column instanceof Long){
+                Long longValue = (Long) column;
+                timestamp = longValue;
+            } else if (column instanceof Double){
+                Double doubleValue = (Double) column;
+                timestamp = doubleValue.longValue();
+            } else if (column instanceof String){
+                Date date;
+                try{
+
+                    date = df_ms.parse((String) column);
+                }catch (ParseException e){
+                    try {
+                        date = df_senconds.parse((String) column);
+                    } catch (ParseException e1) {
+                        LOG.info(String.format("您指定第[%s]列作为hbase写入版本,但在尝试用yyyy-MM-dd HH:mm:ss 和 yyyy-MM-dd HH:mm:ss SSS 去解析为Date时均出错,请检查并修改",index));
+                        throw new RuntimeException(e1);
+                    }
+                }
+                timestamp = date.getTime();
+            } else if (column instanceof Date) {
+                timestamp = ((Date) column).getTime();
+            } else {
+                throw new RuntimeException("rowkey类型不兼容: " + column.getClass());
+            }
+        }
+        return timestamp;
+    }
+
+    public byte[] getValueByte(ColumnType columnType, String value){
+        byte[] bytes;
+        if(value != null){
+            switch (columnType) {
+                case INT:
+                    bytes = Bytes.toBytes(Integer.parseInt(value));
+                    break;
+                case LONG:
+                    bytes = Bytes.toBytes(Long.parseLong(value));
+                    break;
+                case DOUBLE:
+                    bytes = Bytes.toBytes(Double.parseDouble(value));
+                    break;
+                case FLOAT:
+                    bytes = Bytes.toBytes(Float.parseFloat(value));
+                    break;
+                case SHORT:
+                    bytes = Bytes.toBytes(Short.parseShort(value));
+                    break;
+                case BOOLEAN:
+                    bytes = Bytes.toBytes(Boolean.parseBoolean(value));
+                    break;
+                case STRING:
+                    bytes = value.getBytes(Charset.forName(encoding));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported column type: " + columnType);
+            }
+        }else{
+            bytes = HConstants.EMPTY_BYTE_ARRAY;
+        }
+        return  bytes;
+    }
+
+    public byte[] getColumnByte(ColumnType columnType, Object column){
+        byte[] bytes;
+        if(column != null){
+            switch (columnType) {
+                case INT:
+                    Integer intValue = null;
+                    if(column instanceof Integer) {
+                        intValue = (Integer) column;
+                    } else if(column instanceof Long) {
+                        intValue = Integer.valueOf(((Long)column).intValue());
+                    } else if(column instanceof Double) {
+                        intValue = ((Double) column).intValue();
+                    } else if(column instanceof Float) {
+                        intValue = ((Float) column).intValue();
+                    } else if(column instanceof  Short) {
+                        intValue = ((Short) column).intValue();
+                    } else if(column instanceof  Boolean) {
+                        intValue = ((Boolean) column).booleanValue() ? 1 : 0;
+                    } else if(column instanceof String) {
+                        intValue = Integer.valueOf((String) column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to INT");
+                    }
+                    bytes = Bytes.toBytes(intValue);
+                    break;
+                case LONG:
+                    Long longValue = null;
+                    if(column instanceof Integer) {
+                        longValue = ((Integer)column).longValue();
+                    } else if(column instanceof Long) {
+                        longValue = (Long) column;
+                    } else if(column instanceof Double) {
+                        longValue = ((Double) column).longValue();
+                    } else if(column instanceof Float) {
+                        longValue = ((Float) column).longValue();
+                    } else if(column instanceof  Short) {
+                        longValue = ((Short) column).longValue();
+                    } else if(column instanceof  Boolean) {
+                        longValue = ((Boolean) column).booleanValue() ? 1L : 0L;
+                    } else if(column instanceof String) {
+                        longValue = Long.valueOf((String) column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to LONG");
+                    }
+                    bytes = Bytes.toBytes(longValue);
+                    break;
+                case DOUBLE:
+                    Double doubleValue = null;
+                    if(column instanceof Integer) {
+                        doubleValue = ((Integer)column).doubleValue();
+                    } else if(column instanceof Long) {
+                        doubleValue = ((Long) column).doubleValue();
+                    } else if(column instanceof Double) {
+                        doubleValue = (Double) column;
+                    } else if(column instanceof Float) {
+                        doubleValue = ((Float) column).doubleValue();
+                    } else if(column instanceof  Short) {
+                        doubleValue = ((Short) column).doubleValue();
+                    } else if(column instanceof  Boolean) {
+                        doubleValue = ((Boolean) column).booleanValue() ? 1.0 : 0.0;
+                    } else if(column instanceof String) {
+                        doubleValue = Double.valueOf((String) column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
+                    }
+                    bytes = Bytes.toBytes(doubleValue);
+                    break;
+                case FLOAT:
+                    Float floatValue = null;
+                    if(column instanceof Integer) {
+                        floatValue = ((Integer)column).floatValue();
+                    } else if(column instanceof Long) {
+                        floatValue = ((Long) column).floatValue();
+                    } else if(column instanceof Double) {
+                        floatValue = ((Double) column).floatValue();
+                    } else if(column instanceof Float) {
+                        floatValue = (Float) column;
+                    } else if(column instanceof  Short) {
+                        floatValue = ((Short) column).floatValue();
+                    } else if(column instanceof  Boolean) {
+                        floatValue = ((Boolean) column).booleanValue() ? 1.0f : 0.0f;
+                    } else if(column instanceof String) {
+                        floatValue = Float.valueOf((String) column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
+                    }
+                    bytes = Bytes.toBytes(floatValue);
+                    break;
+                case SHORT:
+                    Short shortValue = null;
+                    if(column instanceof Integer) {
+                        shortValue = ((Integer)column).shortValue();
+                    } else if(column instanceof Long) {
+                        shortValue = ((Long) column).shortValue();
+                    } else if(column instanceof Double) {
+                        shortValue = ((Double) column).shortValue();
+                    } else if(column instanceof Float) {
+                        shortValue = ((Float) column).shortValue();
+                    } else if(column instanceof  Short) {
+                        shortValue = (Short) column;
+                    } else if(column instanceof  Boolean) {
+                        shortValue = ((Boolean) column).booleanValue() ? (short) 1 : (short) 0 ;
+                    } else if(column instanceof String) {
+                        shortValue = Short.valueOf((String) column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
+                    }
+                    bytes = Bytes.toBytes(shortValue);
+                    break;
+                case BOOLEAN:
+                    Boolean booleanValue = null;
+                    if(column instanceof Integer) {
+                        booleanValue = (Integer)column == 0 ? false : true;
+                    } else if(column instanceof Long) {
+                        booleanValue = (Long) column == 0L ? false : true;
+                    } else if(column instanceof Double) {
+                        booleanValue = (Double) column == 0.0 ? false : true;
+                    } else if(column instanceof Float) {
+                        booleanValue = (Float) column == 0.0f ? false : true;
+                    } else if(column instanceof  Short) {
+                        booleanValue =  (Short) column == 0 ? false : true;
+                    } else if(column instanceof  Boolean) {
+                        booleanValue = (Boolean) column;
+                    } else if(column instanceof String) {
+                        booleanValue = Boolean.valueOf((String)column);
+                    } else {
+                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
+                    }
+                    bytes = Bytes.toBytes(booleanValue);
+                    break;
+                case STRING:
+                    String stringValue = String.valueOf(column);
+                    bytes = this.getValueByte(columnType, stringValue);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported column type: " + columnType);
+            }
+        }else{
+            switch (nullMode.toUpperCase()){
+                case "SKIP":
+                    bytes =  null;
+                    break;
+                case "EMPTY":
+                    bytes = HConstants.EMPTY_BYTE_ARRAY;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported null mode: " + nullMode);
+            }
+        }
+        return  bytes;
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        HbaseHelper.closeBufferedMutator(bufferedMutator);
+        HbaseHelper.closeConnection(connection);
+    }
+
+}

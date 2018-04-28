@@ -1,0 +1,214 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.es.reader;
+
+import com.dtstack.flinkx.es.EsUtil;
+import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.reader.ByteRateLimiter;
+import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
+import org.apache.flink.api.common.io.statistics.BaseStatistics;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.types.Row;
+import org.elasticsearch.client.RestHighLevelClient;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * InputFormat for Elasticsearch
+ *
+ * Company: www.dtstack.com
+ * @author huyifan.zju@163.com
+ */
+public class EsInputFormat extends RichInputFormat {
+
+    protected String address;
+
+    protected String query;
+
+    protected List<String> columnValues;
+
+    protected List<String> columnTypes;
+
+    protected List<String> columnNames;
+
+    private int batch = 2;
+
+    private int from;
+
+    private int to;
+
+    private int size;
+
+    private int pos = 0;
+
+    private transient RestHighLevelClient client;
+
+    private List<Map<String, Object>> resultList;
+
+
+    @Override
+    public void configure(Configuration configuration) {
+        client = EsUtil.getClient(address);
+    }
+
+    @Override
+    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
+        return null;
+    }
+
+    @Override
+    public InputSplit[] createInputSplits(int splitNum) throws IOException {
+        long cnt = EsUtil.searchCount(client, query);
+        if (cnt < splitNum) {
+            EsInputSplit[] splits = new EsInputSplit[0];
+            splits[0] = new EsInputSplit(0, (int)cnt);
+            return splits;
+        }
+
+        List<EsInputSplit> splitList = new ArrayList<>();
+        int size = (int) (cnt / splitNum);
+
+        for(int i = 0; i < splitNum - 1; ++i) {
+            splitList.add(new EsInputSplit(i*size, size));
+        }
+
+        int lastFrom = (splitNum - 1) * size;
+        int lastSize = (int) (cnt - (splitNum - 1) * size);
+        splitList.add(new EsInputSplit(lastFrom, lastSize));
+
+        return splitList.toArray(new EsInputSplit[splitNum]);
+    }
+
+
+    @Override
+    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+        return new DefaultInputSplitAssigner(inputSplits);
+    }
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        EsInputSplit esInputSplit = (EsInputSplit) inputSplit;
+        from = esInputSplit.getFrom();
+        size = esInputSplit.getSize();
+        to = from + size;
+        loadNextBatch();
+
+        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
+            this.byteRateLimiter.start();
+        }
+    }
+
+    private void loadNextBatch() {
+        int range = batch;
+        if (from + range > to) {
+            range = to - from;
+        }
+        resultList = EsUtil.searchContent(client, query, from, range);
+        from += range;
+        pos = 0;
+    }
+
+    @Override
+    public boolean reachedEnd() throws IOException {
+        if(pos >= resultList.size()) {
+            if(from >= to) {
+                return true;
+            }
+            loadNextBatch();
+        }
+        return false;
+    }
+
+    @Override
+    public Row nextRecordInternal(Row row) throws IOException {
+        Map<String,Object> thisRecord = resultList.get(pos);
+        pos++;
+        return EsUtil.jsonMapToRow(thisRecord, columnNames, columnTypes, columnValues);
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        if(client != null) {
+            client.close();
+        }
+    }
+
+
+    public static EsInputFormatBuilder buildEsInputFormat() {
+        return new EsInputFormatBuilder();
+    }
+
+    public static class EsInputFormatBuilder {
+        private EsInputFormat format;
+
+        private EsInputFormatBuilder() {
+            format = new EsInputFormat();
+        }
+
+        public EsInputFormatBuilder setAddress(String address) {
+            format.address = address;
+            return this;
+        }
+
+        public EsInputFormatBuilder setQuery(String query) {
+            format.query = query;
+            return this;
+        }
+
+        public EsInputFormatBuilder setColumnNames(String query) {
+            format.query = query;
+            return this;
+        }
+
+        public EsInputFormatBuilder setColumnNames(List<String> columnNames) {
+            format.columnNames = columnNames;
+            return this;
+        }
+
+        public EsInputFormatBuilder setColumnValues(List<String> columnValues) {
+            format.columnValues = columnValues;
+            return this;
+        }
+
+        public EsInputFormatBuilder setColumnTypes(List<String> columnTypes) {
+            format.columnTypes = columnTypes;
+            return this;
+        }
+
+        public EsInputFormatBuilder setBytes(long bytes) {
+            format.bytes = bytes;
+            return this;
+        }
+
+        public EsInputFormatBuilder setMonitorUrls(String monitorUrls) {
+            format.monitorUrls = monitorUrls;
+            return this;
+        }
+
+        public EsInputFormat finish() {
+            return format;
+        }
+    }
+}

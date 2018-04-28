@@ -1,0 +1,86 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.hdfs.reader;
+
+import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The Builder of HdfsInputFormat
+ *
+ * Company: www.dtstack.com
+ * @author huyifan.zju@163.com
+ */
+public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
+    private HdfsInputFormat format;
+
+    public HdfsInputFormatBuilder(String type) {
+        switch(type.toUpperCase()) {
+            case "TEXT":
+                format = new HdfsTextInputFormat();
+                break;
+            case "ORC":
+                format = new HdfsOrcInputFormat();
+                break;
+        }
+        super.format = format;
+    }
+
+    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+        format.hadoopConfig = hadoopConfig;
+    }
+
+    public void setColumnIndex(List<Integer> columnIndex) {
+        format.columnIndex = columnIndex;
+    }
+
+    public void setColumnValue(List<String> columnValue) {
+        format.columnValue = columnValue;
+    }
+
+    public void setColumnName(List<String> columnName) {
+        format.columnName = columnName;
+    }
+
+
+    public void setColumnType(List<String> columnType) {
+        format.columnType = columnType;
+    }
+
+    public void setInputPaths(String inputPaths) {
+        format.inputPath = inputPaths;
+    }
+
+    public void setDelimiter(String delimiter) {
+        if(delimiter == null) {
+            delimiter = "\\001";
+        }
+        format.delimiter = delimiter;
+    }
+
+    public void setDefaultFs(String defaultFs) {
+        format.defaultFS = defaultFs;
+    }
+
+    @Override
+    protected void checkFormat() {
+
+    }
+}
