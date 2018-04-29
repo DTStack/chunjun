@@ -109,11 +109,6 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <copy todir="${basedir}/../bin/">
-                                    <fileset dir="bin/">
-                                        <include name="flinkx" />
-                                    </fileset>
-                                </copy>
                             </tasks>
                         </configuration>
                     </execution>
