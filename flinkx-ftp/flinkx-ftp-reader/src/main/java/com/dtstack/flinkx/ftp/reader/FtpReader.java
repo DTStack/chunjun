@@ -56,7 +56,7 @@ public class FtpReader extends DataReader {
     private List<String> columnValue;
 
 
-    protected FtpReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public FtpReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         path = readerConfig.getParameter().getStringVal(KEY_PATH);

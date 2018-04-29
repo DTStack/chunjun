@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+JAVA_RUN=java
+JAR_DIR=lib/flinkx-launcher-1.6.jar
+CLASS_NAME=com.dtstack.flinkx.launcher.Launcher
+
+echo "flinkx starting ..."
+$JAVA_RUN -cp $JAR_DIR $CLASS_NAME $@
