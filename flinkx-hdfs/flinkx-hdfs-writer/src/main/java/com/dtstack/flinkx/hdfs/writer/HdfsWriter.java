@@ -110,21 +110,7 @@ public class HdfsWriter extends DataWriter {
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
         } else {
-            String pattern = "\\\\(\\d{3})";
-
-            Pattern r = Pattern.compile(pattern);
-            while(true) {
-                Matcher m = r.matcher(fieldDelimiter);
-                if(!m.find()) {
-                    break;
-                }
-                String num = m.group(1);
-                int x = Integer.parseInt(num, 8);
-                fieldDelimiter = m.replaceFirst(String.valueOf((char)x));
-            }
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\t","\t");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\r","\r");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\n","\n");
+            fieldDelimiter = com.dtstack.flinkx.util.StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
