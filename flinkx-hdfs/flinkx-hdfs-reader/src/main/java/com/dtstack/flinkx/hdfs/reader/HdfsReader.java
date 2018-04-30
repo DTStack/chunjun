@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -63,21 +64,7 @@ public class HdfsReader extends DataReader {
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
         } else {
-            String pattern = "\\\\(\\d{3})";
-
-            Pattern r = Pattern.compile(pattern);
-            while(true) {
-                Matcher m = r.matcher(fieldDelimiter);
-                if(!m.find()) {
-                    break;
-                }
-                String num = m.group(1);
-                int x = Integer.parseInt(num, 8);
-                fieldDelimiter = m.replaceFirst(String.valueOf((char)x));
-            }
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\t","\t");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\r","\r");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\n","\n");
+            fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
         List columns = readerConfig.getParameter().getColumn();

@@ -145,6 +145,9 @@ public class FtpOutputFormat extends RichOutputFormat {
             os = null;
             s.close();
         }
+        if(ftpHandler != null) {
+            ftpHandler.logoutFtpServer();
+        }
     }
 
 }
