@@ -275,7 +275,7 @@ public class SFtpHandler implements FtpHandler {
                 for(int i = 0; i < vector.size(); ++i) {
                     ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
                     String strName = le.getFilename();
-                    if(!strName.equals(".") && !strName.equals("src/main")) {
+                    if(!strName.equals(".") && !strName.equals("src/main") && !strName.equals("..")) {
                         String filePath = dir + strName;
                         deleteAllFilesInDir(filePath);
                     }

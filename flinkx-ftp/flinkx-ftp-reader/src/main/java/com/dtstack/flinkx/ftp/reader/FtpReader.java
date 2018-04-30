@@ -93,7 +93,6 @@ public class FtpReader extends DataReader {
                     columnType.add((String) sm.get("type"));
                     columnValue.add((String) sm.get("value"));
                 }
-                System.out.println("init column finished");
             } else if (!columns.get(0).equals("*") || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }

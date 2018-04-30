@@ -20,8 +20,7 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.FtpConfigKeys;
+import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -32,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
+import static com.dtstack.flinkx.ftp.FtpConfigKeys.*;
 
 /**
  * The Writer Plugin of Ftp
@@ -58,39 +59,25 @@ public class FtpWriter extends DataWriter{
     public FtpWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        this.protocol = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_PROTOCOL);
-        this.host = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_HOST);
-        if(FtpConfigConstants.SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
-            port = writerConfig.getParameter().getIntVal(FtpConfigKeys.KEY_PORT, FtpConfigConstants.DEFAULT_SFTP_PORT);
+        host = writerConfig.getParameter().getStringVal(KEY_HOST);
+        protocol = writerConfig.getParameter().getStringVal(KEY_PROTOCOL, DEFAULT_FTP_PROTOCOL);
+
+        if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
+            port = writerConfig.getParameter().getIntVal(KEY_PORT, DEFAULT_SFTP_PORT);
         } else {
-            port = writerConfig.getParameter().getIntVal(FtpConfigKeys.KEY_PORT, FtpConfigConstants.DEFAULT_FTP_PORT);
+            port = writerConfig.getParameter().getIntVal(KEY_PORT, DEFAULT_FTP_PORT);
         }
-        this.username = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_USERNAME);
-        this.password = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_PASSWORD);
-        this.writeMode = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_WRITE_MODE);
-        this.encoding = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_ENCODING);
-        this.connectPattern = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_CONNECT_PATTERN, FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN);
-        this.path = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_PATH);
-        this.fieldDelimiter = writerConfig.getParameter().getStringVal(FtpConfigKeys.KEY_FIELD_DELIMITER);
 
-        if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
-            fieldDelimiter = "\001";
-        } else {
-            String pattern = "\\\\(\\d{3})";
+        username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
+        password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
+        writeMode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
+        encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
+        connectPattern = writerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN, DEFAULT_FTP_CONNECT_PATTERN);
+        path = writerConfig.getParameter().getStringVal(KEY_PATH);
 
-            Pattern r = Pattern.compile(pattern);
-            while(true) {
-                Matcher m = r.matcher(fieldDelimiter);
-                if(!m.find()) {
-                    break;
-                }
-                String num = m.group(1);
-                int x = Integer.parseInt(num, 8);
-                fieldDelimiter = m.replaceFirst(String.valueOf((char)x));
-            }
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\t","\t");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\r","\r");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\n","\n");
+        fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
+        if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
+            fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
         List columns = writerConfig.getParameter().getColumn();
