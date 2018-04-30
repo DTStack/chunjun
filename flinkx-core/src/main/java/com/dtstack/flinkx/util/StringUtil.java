@@ -39,26 +39,32 @@ import static com.dtstack.flinkx.common.ColumnType.valueOf;
  */
 public class StringUtil {
 
-    public static String convertDelimiter(String in) {
-        System.out.println("input_delimiter=" + in);
-        String line = in;
-
-        line = line.replaceAll("\\\\t", "\t");
-        line = line.replaceAll("\\\\n", "\n");
-        line = line.replaceAll("\\\\r", "\r");
-
+    /**
+     * Handle the escaped escape charactor.
+     *
+     * e.g. Turnning \\t into \t, etc.
+     *
+     * @param str The String to convert
+     * @return the converted String
+     */
+    public static String convertRegularExpr (String str) {
         String pattern = "\\\\(\\d{3})";
 
         Pattern r = Pattern.compile(pattern);
         while(true) {
-            Matcher m = r.matcher(line);
-            if(!m.find())
+            Matcher m = r.matcher(str);
+            if(!m.find()) {
                 break;
+            }
             String num = m.group(1);
             int x = Integer.parseInt(num, 8);
-            line = m.replaceFirst(String.valueOf((char)x));
+            str = m.replaceFirst(String.valueOf((char)x));
         }
-        return line;
+        str = str.replaceAll("\\\\t","\t");
+        str = str.replaceAll("\\\\r","\r");
+        str = str.replaceAll("\\\\n","\n");
+
+        return str;
     }
 
     public static Object string2col(String str, String type) {

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -62,7 +63,7 @@ public class FtpReader extends DataReader {
         path = readerConfig.getParameter().getStringVal(KEY_PATH);
         host = readerConfig.getParameter().getStringVal(KEY_HOST);
         connectPattern = readerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN);
-        protocol = readerConfig.getParameter().getStringVal(KEY_PROTOCOL);
+        protocol = readerConfig.getParameter().getStringVal(KEY_PROTOCOL, DEFAULT_FTP_PROTOCOL);
 
         if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
             port = readerConfig.getParameter().getIntVal(KEY_PORT, FtpConfigConstants.DEFAULT_SFTP_PORT);
@@ -70,30 +71,14 @@ public class FtpReader extends DataReader {
             port = readerConfig.getParameter().getIntVal(KEY_PORT, FtpConfigConstants.DEFAULT_FTP_PORT);
         }
 
-        this.fieldDelimiter = readerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
-        if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
-            fieldDelimiter = "\001";
-        } else {
-            String pattern = "\\\\(\\d{3})";
-
-            Pattern r = Pattern.compile(pattern);
-            while(true) {
-                Matcher m = r.matcher(fieldDelimiter);
-                if(!m.find()) {
-                    break;
-                }
-                String num = m.group(1);
-                int x = Integer.parseInt(num, 8);
-                fieldDelimiter = m.replaceFirst(String.valueOf((char)x));
-            }
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\t","\t");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\r","\r");
-            fieldDelimiter = fieldDelimiter.replaceAll("\\\\n","\n");
+        fieldDelimiter = readerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
+        if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
+            fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
-        this.username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
-        this.password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        this.encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING);
+        username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
+        password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
+        encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING);
 
         List columns = readerConfig.getParameter().getColumn();
         if(columns != null && columns.size() > 0) {

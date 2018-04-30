@@ -42,7 +42,9 @@ public class StandardFtpHandler implements FtpHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(StandardFtpHandler.class);
 
-    FTPClient ftpClient = null;
+    private static final String DISCONNECT_FAIL_MESSAGE = "Failed to disconnect from ftp server";
+
+    private FTPClient ftpClient = null;
 
 
     @Override
@@ -61,7 +63,6 @@ public class StandardFtpHandler implements FtpHandler {
                 ftpClient.enterLocalPassiveMode();
             } else if ("PORT".equals(connectMode)) {
                 ftpClient.enterLocalActiveMode();
-                // ftpClient.enterRemoteActiveMode(host, port);
             }
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
@@ -83,19 +84,16 @@ public class StandardFtpHandler implements FtpHandler {
     public void logoutFtpServer() {
         if (ftpClient.isConnected()) {
             try {
-                //todo ftpClient.completePendingCommand();//打开流操作之后必须，原因还需要深究
                 ftpClient.logout();
             } catch (IOException e) {
-                String message = "与ftp服务器断开连接失败";
-                LOG.error(message);
+                LOG.error(DISCONNECT_FAIL_MESSAGE);
                 throw new RuntimeException(e);
             }finally {
                 if(ftpClient.isConnected()){
                     try {
                         ftpClient.disconnect();
                     } catch (IOException e) {
-                        String message = "与ftp服务器断开连接失败";
-                        LOG.error(message);
+                        LOG.error(DISCONNECT_FAIL_MESSAGE);
                         throw new RuntimeException(e);
                     }
                 }

@@ -159,6 +159,9 @@ public class SFtpHandler implements FtpHandler {
 
     @Override
     public List<String> getFiles(String path) {
+        if(StringUtils.isBlank(path)) {
+            path = "/";
+        }
         List<String> sources = new ArrayList<>();
         if(isDirExist(path)) {
             if(path.equals(".") || path.equals("src/main")) {
@@ -172,7 +175,7 @@ public class SFtpHandler implements FtpHandler {
                 for(int i = 0; i < vector.size(); ++i) {
                     ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
                     String strName = le.getFilename();
-                    if(!strName.equals(".") && !strName.equals("src/main")) {
+                    if(!strName.equals(".") && !strName.equals("src/main") && !strName.equals("..")) {
                         String filePath = path + strName;
                         sources.addAll(getFiles(filePath));
                     }
