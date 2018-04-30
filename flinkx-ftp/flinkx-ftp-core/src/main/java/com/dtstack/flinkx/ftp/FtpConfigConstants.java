@@ -36,4 +36,10 @@ public class FtpConfigConstants {
 
     public static final String SFTP_PROTOCOL = "sftp";
 
+    public static final String STANDARD_FTP_PROTOCOL = "ftp";
+
+    public static final String DEFAULT_FTP_PROTOCOL = STANDARD_FTP_PROTOCOL;
+
+    public static final String DEFAULT_FIELD_DELIMITER = ",";
+
 }

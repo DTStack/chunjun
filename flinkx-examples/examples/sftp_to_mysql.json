@@ -15,10 +15,10 @@
                 "reader": {
                     "name": "ftpreader",
                     "parameter": {
-                        "protocol": "ftp",
+                        "protocol": "sftp",
                         "host": "node01" ,
-                        "port": 21,
-                        "username": "test1",
+                        "port": 22,
+                        "username": "mysftp",
                         "password": "oh1986mygod",
                         "column": [
                             {
@@ -26,9 +26,13 @@
                             },
                             {
                                 "index": 1
+                            },
+                            {
+                                "value": "youcan",
+                                "type": "string"
                             }
                         ],
-                        "path": "/",
+                        "path": "/upload",
                         "encoding": "UTF-8",
                         "fieldDelimiter": "\\t"
                     }
@@ -38,7 +42,8 @@
                         "password": "abc123",
                         "column": [
                             "col1",
-                            "col2"
+                            "col2",
+                            "col3"
                         ],
                         "connection": [
                             {

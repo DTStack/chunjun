@@ -114,6 +114,8 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public void openInternal(InputSplit split) throws IOException {
+
+
         FtpInputSplit inputSplit = (FtpInputSplit)split;
         List<String> paths = inputSplit.getPaths();
         FtpSeqInputStream is = new FtpSeqInputStream(ftpHandler, paths);
@@ -135,7 +137,7 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         row = new Row(columnIndex.size());
-        String fields[] = line.split(delimiter);
+        String[] fields = line.split(delimiter);
         for(int i = 0; i < columnIndex.size(); ++i) {
             Integer index = columnIndex.get(i);
             String val = columnValue.get(i);
