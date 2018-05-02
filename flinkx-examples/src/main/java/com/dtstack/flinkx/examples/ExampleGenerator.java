@@ -22,6 +22,10 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -34,7 +38,7 @@ import java.util.Properties;
 public class ExampleGenerator {
     private static final String OPTION_CONF_DIR = "c";
     private static final String OPTION_TEMPLATE_DIR = "t";
-    private static final String DEFAULT_CONF_DIR;
+    private static final String DEFAULT_CONF_DIR = null;
     private static final String DEFAULT_TEMPLATE_DIR;
     private Properties substituteMap = new Properties();
     private String confDir;
@@ -46,7 +50,6 @@ public class ExampleGenerator {
     }
 
     static {
-        DEFAULT_CONF_DIR = "";
         DEFAULT_TEMPLATE_DIR = "";
     }
 
@@ -55,8 +58,27 @@ public class ExampleGenerator {
 
     }
 
-    private void initVarMap() {
+    private void initVarMap() throws IOException {
+        if(confDir == null || confDir.trim().length() == 0) {
+            substituteMap.load(getClass().getResourceAsStream("/examples.conf"));
+        } else {
+            File dir = new File(confDir);
+            if(dir.exists() && dir.isDirectory()) {
+                File[] confFiles = dir.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().endsWith(".jar");
+                    }
+                });
+                for(File confFile : confFiles) {
+                    substituteMap.load(new FileInputStream(confFile));
+                }
+            }
+        }
 
+        if(templateDir == null || templateDir.trim().length() == 0) {
+            
+        }
     }
 
     private String substituteVars(String str) {
@@ -69,8 +91,8 @@ public class ExampleGenerator {
         options.addOption(OPTION_TEMPLATE_DIR, true, "Task template directory");
         BasicParser parser = new BasicParser();
         CommandLine cmdLine = parser.parse(options, args);
-        String confDir = cmdLine.getOptionValue(OPTION_CONF_DIR, DEFAULT_CONF_DIR);
-        String templateDir = cmdLine.getOptionValue(OPTION_CONF_DIR, DEFAULT_TEMPLATE_DIR);
+        String confDir = cmdLine.getOptionValue(OPTION_CONF_DIR);
+        String templateDir = cmdLine.getOptionValue(OPTION_CONF_DIR);
         return new ExampleGenerator(confDir,templateDir);
     }
 
