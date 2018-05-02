@@ -94,10 +94,6 @@ public class MyLocalEnvironment extends ExecutionEnvironment {
 
         Plan p = createProgramPlan(jobName);
 
-        // Session management is disabled, revert this commit to enable
-        //p.setJobId(jobID);
-        //p.setSessionTimeout(sessionTimeout);
-
         JobExecutionResult result = executor.executePlan(p);
 
         this.lastJobExecutionResult = result;
@@ -130,7 +126,6 @@ public class MyLocalEnvironment extends ExecutionEnvironment {
         }
 
         // create a new local executor
-        //executor = PlanExecutor.createLocalExecutor(configuration);
         executor = new MyLocalExecutor(configuration);
         executor.setPrintStatusDuringExecution(getConfig().isSysoutLoggingEnabled());
         executor.setClasspaths(classpaths);
