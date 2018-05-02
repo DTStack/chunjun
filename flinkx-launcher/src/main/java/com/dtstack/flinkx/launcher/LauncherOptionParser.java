@@ -51,6 +51,7 @@ public class LauncherOptionParser {
         options.addOption(OPTION_JOB, true, "Job description json file");
         options.addOption(OPTION_FLINK_CONF_DIR, true, "Flink configuration directory");
         options.addOption(OPTION_PLUGIN_ROOT, true, "FlinkX plugin root");
+        options.addOption(OPTION_YARN_CONF_DIR, true, "Yarn and hadoop configuration directory");
 
         try {
             CommandLine cl = parser.parse(options, args);
@@ -76,6 +77,11 @@ public class LauncherOptionParser {
             String flinkConfDir = cl.getOptionValue(OPTION_FLINK_CONF_DIR);
             if(StringUtils.isNotBlank(flinkConfDir)) {
                 properties.put(OPTION_FLINK_CONF_DIR, flinkConfDir);
+            }
+
+            String yarnConfDir = cl.getOptionValue(OPTION_YARN_CONF_DIR);
+            if(StringUtils.isNotBlank(yarnConfDir)) {
+                properties.put(OPTION_YARN_CONF_DIR, yarnConfDir);
             }
 
         } catch (Exception e) {

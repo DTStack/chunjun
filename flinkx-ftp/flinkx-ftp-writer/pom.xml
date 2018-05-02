@@ -54,7 +54,6 @@ under the License.
                                 <excludes>
                                     <exclude>com.dtstack.flinkx:flinkx-core</exclude>
                                     <exclude>com.google.code.gson:*</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
                                     <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
