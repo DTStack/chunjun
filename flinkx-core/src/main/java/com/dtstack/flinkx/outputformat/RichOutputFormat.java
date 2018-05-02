@@ -307,6 +307,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         }
 
         if(errorLimiter != null) {
+            errorLimiter.acquire();
             errorLimiter.stop();
         }
 
