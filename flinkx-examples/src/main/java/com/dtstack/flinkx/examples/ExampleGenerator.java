@@ -20,7 +20,6 @@ package com.dtstack.flinkx.examples;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import java.io.BufferedReader;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -49,8 +47,6 @@ public class ExampleGenerator {
     private static final String OPTION_CONF_DIR = "c";
     private static final String OPTION_TEMPLATE_DIR = "t";
     private static final String OPTION_OUTPUT_DIR = "o";
-    private static final String DEFAULT_CONF_DIR = null;
-    private static final String DEFAULT_TEMPLATE_DIR;
     private Properties substituteMap = new Properties();
     private String confDir;
     private String templateDir;
@@ -63,11 +59,15 @@ public class ExampleGenerator {
         this.outputDir = outputDir;
     }
 
-    static {
-        DEFAULT_TEMPLATE_DIR = "";
-    }
-
     public void generate() throws IOException {
+        File dir = new File(outputDir);
+        if(!dir.exists()) {
+            dir.mkdir();
+        } else if(!dir.isDirectory()) {
+            dir.delete();
+            dir.mkdir();
+        }
+
         initVarMap();
 
         initTempList();
