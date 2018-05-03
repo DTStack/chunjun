@@ -142,8 +142,9 @@ public class HbaseHelper {
 
     public static void closeBufferedMutator(BufferedMutator bufferedMutator){
         try {
-            if(null != bufferedMutator)
+            if(null != bufferedMutator){
                 bufferedMutator.close();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

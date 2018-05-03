@@ -74,8 +74,9 @@ public class DTClassLoader extends URLClassLoader {
             try {
                 clazz = findClass(name);
                 if (clazz != null) {
-                    if (resolve)
+                    if (resolve){
                         resolveClass(clazz);
+                    }
                     return (clazz);
                 }
             } catch (ClassNotFoundException e) {
@@ -86,8 +87,9 @@ public class DTClassLoader extends URLClassLoader {
             try {
                 clazz = Class.forName(name, false, parent);
                 if (clazz != null) {
-                    if (resolve)
+                    if (resolve){
                         resolveClass(clazz);
+                    }
                     return (clazz);
                 }
             } catch (ClassNotFoundException e) {
