@@ -88,6 +88,9 @@ public class HiveUtil {
 
     public static void addPartitionsIfNotExists(Connection dbConn, String table, String partition) throws SQLException {
         List<String> partitionCols = getPartitionCols(dbConn, table);
+        if(partitionCols == null || partitionCols.size() == 0) {
+            return;
+        }
         List<String> partitions = showPartitions(dbConn, table);
         for(String part : partitions) {
             if(isSamePartition(part, partition)) {
