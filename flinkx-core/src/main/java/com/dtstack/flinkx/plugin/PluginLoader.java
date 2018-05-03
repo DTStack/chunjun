@@ -22,7 +22,6 @@ import com.dtstack.flinkx.loader.DTClassLoader;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.flink.util.Preconditions;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
