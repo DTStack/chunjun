@@ -114,7 +114,7 @@
 },
 {
   "type": "string",
-  "value": "yesyoucan"  //HdfsReader内部生成alibaba的字符串字段作为当前字段
+  "value": "yesyoucan"  //HdfsReader内部生成yesyoucan的字符串字段作为当前字段
 }
 		```
 

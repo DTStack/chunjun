@@ -55,13 +55,13 @@ public class OdpsOutputFormat extends RichOutputFormat {
 
     protected Map<String,String> odpsConfig;
 
-    private Odps odps;
+    private transient Odps odps;
 
-    private TableTunnel tunnel;
+    private transient TableTunnel tunnel;
 
-    private TableTunnel.UploadSession session;
+    private transient TableTunnel.UploadSession session;
 
-    private TunnelBufferedWriter recordWriter;
+    private transient TunnelBufferedWriter recordWriter;
 
     @Override
     public void configure(Configuration configuration) {

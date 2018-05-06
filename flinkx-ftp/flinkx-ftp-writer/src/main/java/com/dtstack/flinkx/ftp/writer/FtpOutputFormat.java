@@ -76,9 +76,9 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
-    private FtpHandler ftpHandler;
+    private transient FtpHandler ftpHandler;
 
-    private OutputStream os;
+    private transient OutputStream os;
 
     @Override
     public void configure(Configuration parameters) {

@@ -74,17 +74,17 @@ public class OdpsInputFormat extends RichInputFormat {
 
     protected long stepCount;
 
-    private Odps odps;
+    private transient Odps odps;
 
-    private TableTunnel.DownloadSession downloadSession;
+    private transient TableTunnel.DownloadSession downloadSession;
 
-    private TableTunnel tunnel;
+    private transient TableTunnel tunnel;
 
-    private RecordReader recordReader;
+    private transient RecordReader recordReader;
 
-    private Record record;
+    private transient Record record;
 
-    private Table table;
+    private transient Table table;
 
 
     @Override

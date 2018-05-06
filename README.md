@@ -26,7 +26,7 @@
 
 * 单机模式：对应Flink集群的单机模式
 * standalone模式：对应Flink集群的分布式模式
-* yarn模式：对应Flink集群的yarn模式(开发中)
+* yarn模式：对应Flink集群的yarn模式
 
 ### 3.2 执行环境
 
