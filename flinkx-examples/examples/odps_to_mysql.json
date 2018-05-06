@@ -12,35 +12,37 @@
     },
     "content": [
       {
-        "reader": {
-          "name": "mysqlreader",
+        "writer": {
+          "name": "mysqlwriter",
           "parameter": {
+            "writeMode": "insert",
             "username": "dtstack",
             "password": "abc123",
             "column": [
-                "col1",
-                "col2"
+              "c1",
+              "c2"
             ],
-            // "splitPk": "col1",
+            "batchSize": 1,
+            "session": [
+              "set session sql_mode='ANSI'"
+            ],
             "connection": [
-                {
-                    "table": [
-                        "tb2"
-                    ],
-                    "jdbcUrl": [
-                        "jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true"
-                    ]
-                }
+              {
+                "jdbcUrl": "jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true",
+                "table": [
+                  "tb3"
+                ]
+              }
             ]
           }
         },
-        "writer": {
-          "name": "odpswriter",
+        "reader": {
+          "name": "odpsreader",
           "parameter": {
             "odpsConfig": {
-                "accessId": "${odps.accessId}",
-                "accessKey": "${odps.accessKey}",
-                "project": "${odps.project}"
+              "accessId": "${odps.accessId}",
+              "accessKey": "${odps.accessKey}",
+              "project": "${odps.project}"
             },
             "table": "tb252",
             "partition": "pt='xxooxx'",
