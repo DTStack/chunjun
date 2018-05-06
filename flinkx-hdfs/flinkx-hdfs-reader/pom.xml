@@ -58,6 +58,7 @@ under the License.
                                 <excludes>
                                     <!--from com.dtstack.flinkx:core-->
                                     <exclude>com.dtstack.flinkx:flinkx-core</exclude>
+                                    <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
                                     <!--reader do not exclude gson-->
                                     <!--from org.apache.flink:*-->
                                     <exclude>org.apache.flink:*</exclude>
