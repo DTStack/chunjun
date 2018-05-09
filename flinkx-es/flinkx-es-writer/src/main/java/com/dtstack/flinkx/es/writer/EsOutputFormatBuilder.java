@@ -39,22 +39,25 @@ public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
         format.address = address;
     }
 
-    public void setIndexColumnIndices(List<Integer> indexColumnIndices) {
-        format.indexColumnIndices = indexColumnIndices;
+    public void setIdColumnIndices(List<Integer> idColumnIndices) {
+        format.idColumnIndices = idColumnIndices;
     }
 
-    public void setIndexColumnTypes(List<String> indexColumnTypes) {
-        format.indexColumnTypes = indexColumnTypes;
+    public void setIdColumnTypes(List<String> idColumnTypes) {
+        format.idColumnTypes = idColumnTypes;
     }
 
-    public void setIndexColumnValues(List<String> indexColumnValues) {
-        format.indexColumnValues = indexColumnValues;
+    public void setIdColumnValues(List<String> idColumnValues) {
+        format.idColumnValues = idColumnValues;
     }
 
     public void setType(String type) {
         format.type = type;
     }
 
+    public void setIndex(String index) {
+        format.index = index;
+    }
 
     public void setColumnNames(List<String> columnNames) {
         format.columnNames = columnNames;

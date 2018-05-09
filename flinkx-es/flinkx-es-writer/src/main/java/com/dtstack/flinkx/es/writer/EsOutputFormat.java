@@ -22,6 +22,7 @@ import com.dtstack.flinkx.es.EsUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -40,11 +41,13 @@ public class EsOutputFormat extends RichOutputFormat {
 
     protected String address;
 
-    protected List<Integer> indexColumnIndices;
+    protected List<Integer> idColumnIndices;
 
-    protected List<String> indexColumnValues;
+    protected List<String> idColumnValues;
 
-    protected List<String> indexColumnTypes;
+    protected List<String> idColumnTypes;
+
+    protected String index;
 
     protected String type;
 
@@ -52,9 +55,9 @@ public class EsOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
-    private RestHighLevelClient client;
+    private transient RestHighLevelClient client;
 
-    private BulkRequest bulkRequest;
+    private transient BulkRequest bulkRequest;
 
 
     @Override
@@ -70,7 +73,9 @@ public class EsOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        IndexRequest request = new IndexRequest(getIndex(row), type);
+        String id = getId(row);
+        IndexRequest request = StringUtils.isBlank(id) ? new IndexRequest(index, type) : new IndexRequest(index, type, id);
+        request = request.source(EsUtil.rowToJsonMap(row, columnNames, columnTypes));
         try {
             client.index(request);
         } catch (Exception ex) {
@@ -82,8 +87,8 @@ public class EsOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         bulkRequest = new BulkRequest();
         for(Row row : rows) {
-            String index = getIndex(row);
-            IndexRequest request = new IndexRequest(index, type);
+            String id = getId(row);
+            IndexRequest request = StringUtils.isBlank(id) ? new IndexRequest(index, type) : new IndexRequest(index, type, id);
             request = request.source(EsUtil.rowToJsonMap(row, columnNames, columnTypes));
             bulkRequest.add(request);
             client.bulk(bulkRequest);
@@ -97,15 +102,19 @@ public class EsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private String getIndex(Row record) throws WriteRecordException {
+
+    private String getId(Row record) throws WriteRecordException {
+        if(idColumnIndices == null || idColumnIndices.size() == 0) {
+            return null;
+        }
         StringBuilder sb = new StringBuilder();
         int i = 0;
         try {
-            for(; i < indexColumnIndices.size(); ++i) {
-                Integer index = indexColumnIndices.get(i);
-                String type =  indexColumnTypes.get(i);
+            for(; i < idColumnIndices.size(); ++i) {
+                Integer index = idColumnIndices.get(i);
+                String type =  idColumnTypes.get(i);
                 if(index == -1) {
-                    String value = indexColumnValues.get(i);
+                    String value = idColumnValues.get(i);
                     sb.append(value);
                 } else {
                     sb.append(StringUtil.col2string(record.getField(index), type));

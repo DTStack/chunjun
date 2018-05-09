@@ -43,7 +43,7 @@ import java.util.List;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
 /**
- * InputFormat to read data from a database and generate Rows.
+ * InputFormat for reading data from a database and generate Rows.
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com

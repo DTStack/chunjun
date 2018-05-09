@@ -311,6 +311,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             errorLimiter.stop();
         }
 
+        LOG.info("subtask[" + taskNumber + "] close() finished");
+
     }
 
     public void closeInternal() throws IOException {

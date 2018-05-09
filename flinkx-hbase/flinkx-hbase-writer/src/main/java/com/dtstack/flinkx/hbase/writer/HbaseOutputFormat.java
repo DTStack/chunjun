@@ -72,9 +72,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected String versionColumnValue;
 
-    private Connection connection;
+    private transient Connection connection;
 
-    private BufferedMutator bufferedMutator;
+    private transient BufferedMutator bufferedMutator;
 
     @Override
     public void configure(Configuration parameters) {

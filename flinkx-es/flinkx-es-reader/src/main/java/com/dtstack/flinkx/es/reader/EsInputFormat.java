@@ -113,11 +113,6 @@ public class EsInputFormat extends RichInputFormat {
         size = esInputSplit.getSize();
         to = from + size;
         loadNextBatch();
-
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     private void loadNextBatch() {
@@ -155,60 +150,4 @@ public class EsInputFormat extends RichInputFormat {
         }
     }
 
-
-    public static EsInputFormatBuilder buildEsInputFormat() {
-        return new EsInputFormatBuilder();
-    }
-
-    public static class EsInputFormatBuilder {
-        private EsInputFormat format;
-
-        private EsInputFormatBuilder() {
-            format = new EsInputFormat();
-        }
-
-        public EsInputFormatBuilder setAddress(String address) {
-            format.address = address;
-            return this;
-        }
-
-        public EsInputFormatBuilder setQuery(String query) {
-            format.query = query;
-            return this;
-        }
-
-        public EsInputFormatBuilder setColumnNames(String query) {
-            format.query = query;
-            return this;
-        }
-
-        public EsInputFormatBuilder setColumnNames(List<String> columnNames) {
-            format.columnNames = columnNames;
-            return this;
-        }
-
-        public EsInputFormatBuilder setColumnValues(List<String> columnValues) {
-            format.columnValues = columnValues;
-            return this;
-        }
-
-        public EsInputFormatBuilder setColumnTypes(List<String> columnTypes) {
-            format.columnTypes = columnTypes;
-            return this;
-        }
-
-        public EsInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public EsInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public EsInputFormat finish() {
-            return format;
-        }
-    }
 }
