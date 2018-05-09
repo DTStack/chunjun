@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.reader.DataReader;
+import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -44,11 +45,15 @@ public class EsReader extends DataReader {
     protected List<String> columnValue;
     protected List<String> columnName;
 
-    protected EsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public EsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
-        query = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_QUERY);
+
+        Object queryMap = readerConfig.getParameter().getVal(EsConfigKeys.KEY_QUERY);
+        if(queryMap != null) {
+            query = new Gson().toJson(queryMap);
+        }
 
         List columns = readerConfig.getParameter().getColumn();
         if(columns != null && columns.size() > 0) {

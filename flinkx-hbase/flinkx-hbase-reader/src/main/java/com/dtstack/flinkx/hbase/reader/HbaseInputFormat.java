@@ -63,11 +63,11 @@ public class HbaseInputFormat extends RichInputFormat {
     protected String encoding;
     protected int scanCacheSize;
     protected int scanBatchSize;
-    private Connection connection;
-    private Scan scan;
-    private Table table;
-    private ResultScanner resultScanner;
-    private Result next;
+    private transient Connection connection;
+    private transient Scan scan;
+    private transient Table table;
+    private transient ResultScanner resultScanner;
+    private transient Result next;
 
     @Override
     public void configure(Configuration configuration) {
