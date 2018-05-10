@@ -80,7 +80,6 @@
                                     <exclude>org.xerial.snappy:snappy-java</exclude>=
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <exclude>io.netty:*</exclude>
                                     <exclude>org.javassist:*</exclude>
                                     <exclude>org.apache.commons:*</exclude>
                                     <exclude>org.apache.avro:avro</exclude>

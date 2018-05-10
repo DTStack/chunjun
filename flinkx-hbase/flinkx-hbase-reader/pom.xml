@@ -16,6 +16,20 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-core</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-auth</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -36,9 +50,6 @@
                                 <excludes>
                                     <!--from com.dtstack.flinkx:core-->
                                     <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <!--reader do not exclude gson-->
-                                    <!--<exclude>com.google.code.gson:*</exclude>-->
-
                                     <!--from org.apache.flink:*-->
                                     <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
