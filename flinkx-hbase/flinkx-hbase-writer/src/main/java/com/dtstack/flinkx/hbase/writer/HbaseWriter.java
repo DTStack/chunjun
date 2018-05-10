@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -79,6 +80,7 @@ public class HbaseWriter extends DataWriter {
             }
         }
 
+
         List rowkeyColumns = (List) writerConfig.getParameter().getVal(KEY_ROW_KEY_COLUMN);
         if(rowkeyColumns != null || rowkeyColumns.size() != 0) {
             rowkeyColumnIndices = new ArrayList<>();
@@ -86,7 +88,7 @@ public class HbaseWriter extends DataWriter {
             rowkeyColumnValues = new ArrayList<>();
             for(int i = 0; i < rowkeyColumns.size(); ++i) {
                 Map<String,Object> sm = (Map) rowkeyColumns.get(i);
-                rowkeyColumnIndices.add(((Integer) sm.get(KEY_ROW_KEY_COLUMN_INDEX)).intValue());
+                rowkeyColumnIndices.add(ValueUtil.getInt(sm.get(KEY_ROW_KEY_COLUMN_INDEX)));
                 rowkeyColumnTypes.add((String) sm.get(KEY_ROW_KEY_COLUMN_TYPE));
                 rowkeyColumnValues.add((String) sm.get(KEY_ROW_KEY_COLUMN_VALUE));
             }
