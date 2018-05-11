@@ -108,6 +108,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 String rowData = column.toString();
                 switch (columnType) {
                     case TINYINT:
+                        if(rowData.equalsIgnoreCase("true")) {
+                            rowData = "1";
+                        } else if(rowData.equalsIgnoreCase("false")) {
+                            rowData = "0";
+                        }
                         recordList.add(Byte.valueOf(rowData));
                         break;
                     case SMALLINT:

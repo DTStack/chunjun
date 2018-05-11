@@ -92,6 +92,11 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
                 switch (columnType) {
                     case TINYINT:
+                        if(rowData.equalsIgnoreCase("true")) {
+                            rowData = "1";
+                        } else if(rowData.equalsIgnoreCase("false")) {
+                            rowData = "0";
+                        }
                         sb.append(Byte.valueOf(rowData));
                         break;
                     case SMALLINT:
