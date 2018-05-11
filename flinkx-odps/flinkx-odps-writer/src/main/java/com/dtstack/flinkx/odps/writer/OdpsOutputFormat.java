@@ -120,6 +120,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         record.setString(i, rowData);
                         break;
                     case DATE:
+                    case DATETIME:
                     case TIMESTAMP:
                         record.setDatetime(i, DateUtil.columnToTimestamp(column));
                         break;
