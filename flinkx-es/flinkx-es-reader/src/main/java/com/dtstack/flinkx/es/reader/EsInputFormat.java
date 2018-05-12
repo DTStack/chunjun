@@ -97,6 +97,9 @@ public class EsInputFormat extends RichInputFormat {
         int lastSize = (int) (cnt - (splitNum - 1) * size);
         splitList.add(new EsInputSplit(lastFrom, lastSize));
 
+        if(client != null) {
+            client.close();
+        }
         return splitList.toArray(new EsInputSplit[splitNum]);
     }
 

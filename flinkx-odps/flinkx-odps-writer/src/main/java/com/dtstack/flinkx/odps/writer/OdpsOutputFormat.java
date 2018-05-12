@@ -19,18 +19,22 @@
 package com.dtstack.flinkx.odps.writer;
 
 import com.aliyun.odps.Odps;
+import com.aliyun.odps.Table;
 import com.aliyun.odps.data.Record;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.aliyun.odps.tunnel.TunnelException;
 import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.odps.OdpsConfigKeys;
+import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -70,6 +74,23 @@ public class OdpsOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    protected boolean needWaitBeforeOpenInternal() {
+        return false;
+    }
+
+    @Override
+    protected void beforeOpenInternal() {
+        if(taskNumber == 0) {
+            Table table = OdpsUtil.getTable(odps, projectName, tableName);
+            boolean truncate = false;
+            if(writeMode != null && writeMode.equalsIgnoreCase("overwrite")) {
+                truncate = true;
+            }
+            OdpsUtil.checkTable(odps, table, partition, truncate);
+        }
+    }
+
+    @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
         session = OdpsUtil.createMasterTunnelUpload(tunnel, projectName, tableName, partition);
         try {
@@ -101,8 +122,14 @@ public class OdpsOutputFormat extends RichOutputFormat {
         try {
             for (; i < row.getArity(); ++i) {
                 Object column = row.getField(i);
+
+                if(column == null) {
+                    continue;
+                }
+
                 ColumnType columnType = ColumnType.valueOf(columnTypes[i].toUpperCase());
                 String rowData = column.toString();
+
                 switch (columnType) {
                     case BOOLEAN:
                         record.setBoolean(i, Boolean.valueOf(rowData));
@@ -120,6 +147,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         record.setString(i, rowData);
                         break;
                     case DATE:
+                    case DATETIME:
                     case TIMESTAMP:
                         record.setDatetime(i, DateUtil.columnToTimestamp(column));
                         break;
