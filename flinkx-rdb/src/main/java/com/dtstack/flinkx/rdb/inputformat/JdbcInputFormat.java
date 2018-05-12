@@ -187,21 +187,28 @@ public class JdbcInputFormat extends RichInputFormat {
 
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if (dbURL.startsWith("jdbc:oracle")) {
-                    if(obj != null && (obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
-                        obj = resultSet.getTimestamp(pos + 1);
+                if(obj != null) {
+                    if (dbURL.startsWith("jdbc:oracle")) {
+                        if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                            obj = resultSet.getTimestamp(pos + 1);
+                        }
                     }
-                }
-                else if(dbURL.startsWith("jdbc:mysql")) {
-                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
-                        if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
-                            java.util.Date date = (java.util.Date) obj;
-                            String year = DateUtil.dateToYearString(date);
-                            System.out.println(year);
-                            obj = year;
+                    else if(dbURL.startsWith("jdbc:mysql")) {
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
+                                java.util.Date date = (java.util.Date) obj;
+                                String year = DateUtil.dateToYearString(date);
+                                System.out.println(year);
+                                obj = year;
+                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("tinyint")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
+                            }
                         }
                     }
                 }
+
                 row.setField(pos, obj);
             }
 

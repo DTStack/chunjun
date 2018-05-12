@@ -158,10 +158,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         fields = inspector.getAllStructFieldRefs();
     }
 
-    public static HdfsOrcInputFormatBuilder buildHdfsOrcInputFormat() {
-        return new HdfsOrcInputFormatBuilder();
-    }
-
     private int name2index(String columnName) {
         int i = 0;
         for(; i < fullColNames.length; ++i) {
@@ -193,64 +189,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
         }
         return row;
-    }
-
-    public static class HdfsOrcInputFormatBuilder {
-
-        private HdfsOrcInputFormat format;
-
-        private HdfsOrcInputFormatBuilder() {
-            format = new HdfsOrcInputFormat();
-        }
-
-        public HdfsOrcInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
-            format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setColumnIndex(List<Integer> columnIndex) {
-            format.columnIndex = columnIndex;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setColumnValue(List<String> columnValue) {
-            format.columnValue = columnValue;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setColumnType(List<String> columnType) {
-            format.columnType = columnType;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setColumnName(List<String> columnName) {
-            format.columnName = columnName;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setInputPaths(String inputPath) {
-            format.inputPath = inputPath;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public HdfsOrcInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFS = defaultFs;
-            return this;
-        }
-
-        public HdfsOrcInputFormat finish() {
-            return format;
-        }
     }
 
     static class HdfsOrcInputSplit implements InputSplit {
