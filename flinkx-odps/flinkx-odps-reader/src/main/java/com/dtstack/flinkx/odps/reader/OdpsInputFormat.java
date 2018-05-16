@@ -91,7 +91,8 @@ public class OdpsInputFormat extends RichInputFormat {
     public void configure(Configuration configuration) {
         odps = OdpsUtil.initOdps(odpsConfig);
         table = OdpsUtil.getTable(odps, projectName, tableName);
-        isPartitioned = OdpsUtil.isPartitionedTable(table);
+        //isPartitioned = OdpsUtil.isPartitionedTable(table);
+        isPartitioned = StringUtils.isNotBlank(partition) ? true : false;
     }
 
     @Override
