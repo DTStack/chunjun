@@ -204,6 +204,10 @@ public class JdbcInputFormat extends RichInputFormat {
                                 if(obj instanceof Boolean) {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
+                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
                             }
                         }
                     }
