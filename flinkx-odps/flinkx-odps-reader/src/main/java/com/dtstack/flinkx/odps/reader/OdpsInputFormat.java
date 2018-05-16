@@ -153,10 +153,6 @@ public class OdpsInputFormat extends RichInputFormat {
 
         recordReader = OdpsUtil.getRecordReader(downloadSession, startIndex, stepCount, compress);
 
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     @Override
@@ -173,7 +169,11 @@ public class OdpsInputFormat extends RichInputFormat {
             String val = columnValue.get(i);
             String type = columnType.get(i);
             if(StringUtils.isNotEmpty(colName)) {
-                row.setField(i, record.get(colName));
+                Object field = record.get(colName);
+                if(field instanceof byte[]) {
+                    field = new String((byte[]) field);
+                }
+                row.setField(i, field);
             } else if(val != null && type != null) {
                 Object col = StringUtil.string2col(val,type);
                 row.setField(i, col);
