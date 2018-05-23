@@ -83,13 +83,14 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
 
     protected PreparedStatement prepareSingleTemplates() throws SQLException {
+        if(fullColumn == null || fullColumn.size() == 0) {
+            fullColumn = column;
+        }
+
         String singleSql = null;
         if (mode == null || mode.length() == 0 || mode.equalsIgnoreCase("INSERT")) {
             singleSql = databaseInterface.getInsertStatement(column, table);
         } else if (mode.equalsIgnoreCase("REPLACE")) {
-            if(fullColumn == null || fullColumn.size() == 0) {
-
-            }
             singleSql = databaseInterface.getReplaceStatement(column, fullColumn, table, updateKey);
         } else if (mode.equalsIgnoreCase("UPDATE")) {
             singleSql = databaseInterface.getUpsertStatement(column, table, updateKey);
@@ -104,6 +105,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     protected PreparedStatement prepareMultipleTemplates(int batchSize) throws SQLException {
+        if(fullColumn == null || fullColumn.size() == 0) {
+            fullColumn = column;
+        }
+
         String multipleSql = null;
         if (mode == null || mode.length() == 0 || mode.equalsIgnoreCase("INSERT")) {
             multipleSql = databaseInterface.getMultiInsertStatement(column, table, batchSize);
