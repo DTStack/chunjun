@@ -21,17 +21,8 @@ package com.dtstack.flinkx.sqlserver.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.sqlserver.SqlServerDatabaseMeta;
-import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * SQLServer reader plugin
@@ -44,36 +35,6 @@ public class SqlserverReader extends JdbcDataReader {
     public SqlserverReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new SqlServerDatabaseMeta());
-    }
-
-    @Override
-    protected List<String> descColumnTypes() {
-        List<String> ret = new ArrayList<>();
-        ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-        DriverManager.setLoginTimeout(10);
-        Connection conn = null;
-
-        try {
-            conn = DriverManager.getConnection(dbUrl, username, password);
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(table));
-            ResultSetMetaData rd = rs.getMetaData();
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                ret.add(rd.getColumnTypeName(i+1));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if(conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return ret;
     }
 
 }
