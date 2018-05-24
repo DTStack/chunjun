@@ -192,8 +192,7 @@ public class JdbcInputFormat extends RichInputFormat {
                         if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
                             obj = resultSet.getTimestamp(pos + 1);
                         }
-                    }
-                    else if(dbURL.startsWith("jdbc:mysql")) {
+                    } else if(dbURL.startsWith("jdbc:mysql")) {
                         if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                             if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
                                 java.util.Date date = (java.util.Date) obj;
@@ -205,6 +204,14 @@ public class JdbcInputFormat extends RichInputFormat {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
                             } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
+                            }
+                        }
+                    } else if(dbURL.startsWith("jdbc:sqlserver")) {
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
                                 if(obj instanceof Boolean) {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
