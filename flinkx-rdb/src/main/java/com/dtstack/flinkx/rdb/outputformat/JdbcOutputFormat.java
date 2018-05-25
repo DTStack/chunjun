@@ -243,7 +243,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected void beforeWriteRecords()  {
-        if(taskNumber == 1) {
+        if(taskNumber == 0) {
             DBUtil.executeBatch(dbConn, preSql);
         }
     }
@@ -256,7 +256,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     @Override
     protected void beforeCloseInternal() {
         // 执行postsql
-        if(taskNumber ==1) {
+        if(taskNumber == 0) {
             DBUtil.executeBatch(dbConn, postSql);
         }
     }
