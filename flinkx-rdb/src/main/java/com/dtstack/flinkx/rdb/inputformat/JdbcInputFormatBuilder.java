@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.rdb.DatabaseInterface;
+
 import java.util.List;
 
 /**
@@ -61,6 +63,14 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setPassword(String password) {
         format.password = password;
+    }
+
+    public void setTable(String table) {
+        format.table = table;
+    }
+
+    public void setDatabaseInterface(DatabaseInterface databaseInterface) {
+        format.databaseInterface = databaseInterface;
     }
 
     @Override

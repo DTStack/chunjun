@@ -172,7 +172,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
             if(fullColumn == null || column.contains(col)) {
                 list.add(prefixLeft + col + "=" + prefixRight + col);
             } else {
-                list.add("null");
+                list.add(prefixLeft + col + "=null");
             }
         }
         return StringUtils.join(list, ",");

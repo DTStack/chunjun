@@ -99,8 +99,8 @@ public class OdpsUtil {
         }
 
         Odps odps = new Odps(account);
-        odps.getRestClient().setConnectTimeout(3);
-        odps.getRestClient().setReadTimeout(3);
+        odps.getRestClient().setConnectTimeout(10);
+        odps.getRestClient().setReadTimeout(60);
         odps.getRestClient().setRetryTimes(2);
         odps.setDefaultProject(defaultProject);
         odps.setEndpoint(odpsServer);
