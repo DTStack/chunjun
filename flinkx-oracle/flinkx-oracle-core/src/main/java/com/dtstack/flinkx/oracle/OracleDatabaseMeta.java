@@ -30,6 +30,10 @@ import java.util.List;
  */
 public class OracleDatabaseMeta extends BaseDatabaseMeta {
     @Override
+    public String quoteTable(String table) {
+        return table;
+    }
+    @Override
     public String getDatabaseType() {
         return "oracle";
     }

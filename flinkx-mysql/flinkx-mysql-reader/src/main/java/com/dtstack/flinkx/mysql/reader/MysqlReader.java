@@ -55,7 +55,7 @@ public class MysqlReader extends JdbcDataReader {
         try {
             conn = DriverManager.getConnection(dbUrl, username, password);
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("desc " + databaseInterface.getStartQuote() + table + databaseInterface.getEndQuote());
+            ResultSet rs = stmt.executeQuery("desc " + databaseInterface.quoteTable(table));
             while(rs.next()) {
                 String typeName = rs.getString(2);
                 int index = typeName.indexOf("(");

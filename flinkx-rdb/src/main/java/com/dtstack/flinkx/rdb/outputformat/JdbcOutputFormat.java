@@ -263,7 +263,13 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
         Map<String, List<String>> map = new HashMap<>();
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
+        String schema = null;
+        String[] arr = table.split("\\.");
+        if(arr.length == 2 && dbURL.startsWith("jdbc:oracle"))  {
+            schema = arr[0];
+            table = arr[1];
+        }
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, table, true, false);
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
             if(!map.containsKey(indexName)) {
