@@ -22,10 +22,10 @@
         <module>flinkx-oracle</module>
         <module>flinkx-tests</module>
         <module>flinkx-sqlserver</module>
-        <module>flinkx-launcher</module>
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
         <module>flinkx-postgresql</module>
+        <module>flinkx-launcher</module>
     </modules>
 
     <properties>
