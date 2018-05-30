@@ -164,7 +164,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
         try {
             Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(table));
+            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -253,22 +253,37 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     protected List<String> probeFullColumns(String table, Connection dbConn) throws SQLException {
+        String schema =null;
+        if(dbURL.startsWith("jdbc:oracle")) {
+            String[] parts = table.split("\\.");
+            if(parts.length == 2) {
+                schema = parts[0].toUpperCase();
+                table = parts[1];
+            }
+        }
+
         List<String> ret = new ArrayList<>();
-        ResultSet rs = dbConn.getMetaData().getColumns(null, null, table, null);
+        ResultSet rs = dbConn.getMetaData().getColumns(null, schema, table, null);
         while(rs.next()) {
             ret.add(rs.getString("COLUMN_NAME"));
         }
         return ret;
     }
 
+
+
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
-        Map<String, List<String>> map = new HashMap<>();
-        String schema = null;
-        String[] arr = table.split("\\.");
-        if(arr.length == 2 && dbURL.startsWith("jdbc:oracle"))  {
-            schema = arr[0];
-            table = arr[1];
+        String schema =null;
+
+        if(dbURL.startsWith("jdbc:oracle")) {
+            String[] parts = table.split("\\.");
+            if(parts.length == 2) {
+                schema = parts[0].toUpperCase();
+                table = parts[1];
+            }
         }
+
+        Map<String, List<String>> map = new HashMap<>();
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, table, true, false);
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");

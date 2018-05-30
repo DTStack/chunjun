@@ -31,6 +31,10 @@ import java.util.List;
 public class OracleDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public String quoteTable(String table) {
+        String[] part = table.split("\\.");
+        if(part.length == 2) {
+            table = part[0] + "." + getStartQuote() + part[1] + getEndQuote();
+        }
         return table;
     }
     @Override

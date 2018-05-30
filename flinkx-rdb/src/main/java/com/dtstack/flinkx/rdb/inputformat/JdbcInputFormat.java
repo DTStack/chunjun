@@ -103,7 +103,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
         try {
             Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(table));
+            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));

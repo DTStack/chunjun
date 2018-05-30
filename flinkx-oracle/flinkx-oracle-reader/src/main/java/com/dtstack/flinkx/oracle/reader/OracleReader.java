@@ -42,22 +42,4 @@ public class OracleReader extends JdbcDataReader {
         setDatabaseInterface(new OracleDatabaseMeta());
     }
 
-    @Override
-    protected List<String> descColumnTypes() {
-        List<String> ret = new ArrayList<>();
-
-        try (Connection conn = getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement("select DATA_TYPE from DBA_TAB_COLUMNS where TABLE_NAME=?");
-            stmt.setObject(1, table.toUpperCase());
-            ResultSet rs = stmt.executeQuery();
-            while(rs.next()) {
-                ret.add(rs.getString(1));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return ret;
-    }
-
 }
