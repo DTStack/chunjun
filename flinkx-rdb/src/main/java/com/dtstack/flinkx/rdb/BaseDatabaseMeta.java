@@ -68,7 +68,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parts.length; ++i) {
             if(i != 0) {
-                sb.append(",");
+                sb.append(".");
             }
             sb.append(getStartQuote() + parts[i] + getEndQuote());
         }
