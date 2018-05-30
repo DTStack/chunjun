@@ -99,7 +99,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
                 + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ");";
+                + quoteColumns(column, "T2") + ")";
     }
 
     @Override
