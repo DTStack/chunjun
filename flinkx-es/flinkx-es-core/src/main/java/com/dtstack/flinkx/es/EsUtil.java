@@ -134,8 +134,12 @@ public class EsUtil {
                     currMap = (Map<String, Object>) currMap.get(key);
                 }
                 String key = parts[parts.length - 1];
-                Object value = StringUtil.col2string(row.getField(i), types.get(i));
-                currMap.put(key, value);
+                Object col = row.getField(i);
+                if(col != null) {
+                    Object value = StringUtil.col2string(col, types.get(i));
+                    currMap.put(key, value);
+                }
+
             }
         } catch(Exception ex) {
             String msg = "EsUtil.rowToJsonMap Writing record error: when converting field[" + i + "] in Row(" + row + ")";
