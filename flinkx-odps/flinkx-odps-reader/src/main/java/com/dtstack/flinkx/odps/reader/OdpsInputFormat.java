@@ -127,7 +127,9 @@ public class OdpsInputFormat extends RichInputFormat {
             long startIndex = pair.getLeft().longValue();
             long stepCount = pair.getRight().longValue();
             OdpsInputSplit split = new OdpsInputSplit(session.getId(), startIndex, stepCount);
-            splits.add(split);
+            if(startIndex < stepCount) {
+                splits.add(split);
+            }
         }
 
         return splits.toArray(new OdpsInputSplit[splits.size()]);
