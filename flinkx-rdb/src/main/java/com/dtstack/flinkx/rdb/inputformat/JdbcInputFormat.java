@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -79,6 +80,8 @@ public class JdbcInputFormat extends RichInputFormat {
     protected Object[][] parameterValues;
 
     protected int columnCount;
+
+    protected TypeConverterInterface typeConverter;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -209,6 +212,10 @@ public class JdbcInputFormat extends RichInputFormat {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
                             }
+                        }
+                    } else if(dbURL.startsWith("jdbc:postgresql")){
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                         }
                     }
                 }

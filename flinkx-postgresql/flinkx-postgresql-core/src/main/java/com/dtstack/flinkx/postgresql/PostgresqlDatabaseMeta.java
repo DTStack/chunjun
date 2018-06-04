@@ -9,6 +9,7 @@ import java.util.List;
  * @date 2018/5/25 11:26
  */
 public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
+
     @Override
     protected String makeMultipleValues(int nCols, int batchSize) {
         return null;
@@ -41,11 +42,13 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSQLQueryColumnFields(List<String> column, String table) {
-        return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
+        String sql = "select attrelid ::regclass as table_name, attname as col_name, atttypid ::regtype as col_type from pg_attribute \n" +
+                "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
+        return String.format(sql,table);
     }
 
     @Override
     public String getSplitFilter(String columnName) {
-        return null;
+        return String.format("%s mod ? = ?", getStartQuote() + columnName + getEndQuote());
     }
 }

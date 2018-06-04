@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+
 import java.util.List;
 
 /**
@@ -61,6 +63,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setPassword(String password) {
         format.password = password;
+    }
+
+    public void setTypeConverter(TypeConverterInterface converter){
+        format.typeConverter = converter;
     }
 
     @Override
