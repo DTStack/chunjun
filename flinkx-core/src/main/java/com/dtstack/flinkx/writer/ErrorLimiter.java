@@ -25,7 +25,6 @@ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -109,7 +108,6 @@ public class ErrorLimiter {
         } else {
             return;
         }
-
 
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     }
