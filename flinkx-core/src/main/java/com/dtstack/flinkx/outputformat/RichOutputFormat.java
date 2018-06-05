@@ -279,40 +279,41 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     public void close() throws IOException {
         LOG.info("subtask[" + taskNumber + "] close()");
 
-        if(rows.size() != 0) {
-            writeRecordInternal();
+        try{
+            if(rows.size() != 0) {
+                writeRecordInternal();
+            }
+
+            if(needWaitBeforeCloseInternal()) {
+                Latch latch = newLatch("#3");
+                beforeCloseInternal();
+                latch.addOne();
+                System.out.println("hyf latch add one: task# " + taskNumber);
+                latch.waitUntil(numTasks);
+                System.out.println("hyf waitUtil end");
+            }
+
+            closeInternal();
+
+            if(needWaitAfterCloseInternal()) {
+                Latch latch = newLatch("#4");
+                latch.addOne();
+                latch.waitUntil(numTasks);
+            }
+        }finally {
+            afterCloseInternal();
+
+            if(dirtyDataManager != null) {
+                dirtyDataManager.close();
+            }
+
+            if(errorLimiter != null) {
+                errorLimiter.acquire();
+                errorLimiter.stop();
+            }
+
+            LOG.info("subtask[" + taskNumber + "] close() finished");
         }
-
-        if(needWaitBeforeCloseInternal()) {
-            Latch latch = newLatch("#3");
-            beforeCloseInternal();
-            latch.addOne();
-            System.out.println("hyf latch add one: task# " + taskNumber);
-            latch.waitUntil(numTasks);
-            System.out.println("hyf waitUtil end");
-        }
-
-        closeInternal();
-
-        if(needWaitAfterCloseInternal()) {
-            Latch latch = newLatch("#4");
-            latch.addOne();
-            latch.waitUntil(numTasks);
-        }
-
-        afterCloseInternal();
-
-        if(dirtyDataManager != null) {
-            dirtyDataManager.close();
-        }
-
-        if(errorLimiter != null) {
-            errorLimiter.acquire();
-            errorLimiter.stop();
-        }
-
-        LOG.info("subtask[" + taskNumber + "] close() finished");
-
     }
 
     public void closeInternal() throws IOException {

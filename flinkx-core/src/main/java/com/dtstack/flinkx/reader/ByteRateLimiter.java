@@ -94,10 +94,9 @@ public class ByteRateLimiter {
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
             LOG.info("monitor_url=" + url);
-            try {
-                InputStream inputStream = new URL(url).openStream();
+            try(InputStream inputStream = new URL(url).openStream()) {
                 break;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
@@ -172,7 +171,7 @@ public class ByteRateLimiter {
                                 break;
 
                             }
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
 

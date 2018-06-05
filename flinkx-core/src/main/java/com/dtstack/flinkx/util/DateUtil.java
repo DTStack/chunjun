@@ -56,7 +56,9 @@ public class DateUtil {
 
 
     public static java.sql.Date columnToDate(Object column) {
-        if(column instanceof String) {
+        if(column == null) {
+            return null;
+        } else if(column instanceof String) {
             return new java.sql.Date(stringToDate((String)column).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
@@ -78,7 +80,9 @@ public class DateUtil {
     }
 
     public static java.sql.Timestamp columnToTimestamp(Object column) {
-        if(column instanceof String) {
+        if (column == null) {
+            return null;
+        } else if(column instanceof String) {
             return new java.sql.Timestamp(stringToDate((String)column).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
@@ -99,7 +103,7 @@ public class DateUtil {
     }
 
     public static Date stringToDate(String strDate)  {
-        if(strDate == null) {
+        if(strDate == null || strDate.trim().length() == 0) {
             return null;
         }
 

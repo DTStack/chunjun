@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.util.ClassUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,12 +38,15 @@ public class DBUtil {
 
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        DriverManager.setLoginTimeout(10);
-        if (username == null) {
-            dbConn = DriverManager.getConnection(url);
-        } else {
-            dbConn = DriverManager.getConnection(url, username, password);
+        synchronized (ClassUtil.lock_str){
+            DriverManager.setLoginTimeout(10);
+            if (username == null) {
+                dbConn = DriverManager.getConnection(url);
+            } else {
+                dbConn = DriverManager.getConnection(url, username, password);
+            }
         }
+
         return dbConn;
     }
 

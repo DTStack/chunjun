@@ -86,12 +86,17 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void close() throws IOException {
-        closeInternal();
-        if(byteRateLimiter != null) {
-            byteRateLimiter.stop();
-            byteRateLimiter = null;
+        try{
+            closeInternal();
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }finally {
+            if(byteRateLimiter != null) {
+                byteRateLimiter.stop();
+                byteRateLimiter = null;
+            }
+            LOG.info("subtask input close finished");
         }
-        LOG.info("subtask input close finished");
     }
 
     protected abstract  void closeInternal() throws IOException;

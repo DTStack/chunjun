@@ -44,39 +44,4 @@ public class MysqlReader extends JdbcDataReader {
         setDatabaseInterface(new MySqlDatabaseMeta());
     }
 
-    @Override
-    protected List<String> descColumnTypes() {
-        List<String> ret = new ArrayList<>();
-
-        ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-        DriverManager.setLoginTimeout(10);
-        Connection conn = null;
-
-        try {
-            conn = DriverManager.getConnection(dbUrl, username, password);
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("desc " + databaseInterface.getStartQuote() + table + databaseInterface.getEndQuote());
-            while(rs.next()) {
-                String typeName = rs.getString(2);
-                int index = typeName.indexOf("(");
-                if(index != -1) {
-                    typeName = typeName.substring(0, index);
-                }
-                ret.add(typeName);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if(conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return ret;
-    }
-
 }
