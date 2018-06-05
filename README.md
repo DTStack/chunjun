@@ -26,7 +26,7 @@
 
 * 单机模式：对应Flink集群的单机模式
 * standalone模式：对应Flink集群的分布式模式
-* yarn模式：对应Flink集群的yarn模式(开发中)
+* yarn模式：对应Flink集群的yarn模式
 
 ### 3.2 执行环境
 
@@ -53,7 +53,7 @@ mvn clean package -Dmaven.test.skip
 	* 描述：执行模式，也就是flink集群的工作模式
 		* local: 本地模式
 		* standalone: 独立部署模式的flink集群
-		* yarn: yarn模式的flink集群（暂不支持）
+		* yarn: yarn模式的flink集群
 	* 必选：否
 	* 默认值：local
 
@@ -71,6 +71,11 @@ mvn clean package -Dmaven.test.skip
 	* 描述：flink配置文件所在的目录（单机模式下不需要），如/hadoop/flink-1.4.0/conf
 	* 必选：否
 	* 默认值：无
+	
+* **yarnconf**
+	* 描述：Hadoop配置文件（包括hdfs和yarn）所在的目录（单机模式下不需要），如/hadoop/etc/hadoop
+	* 必选：否
+	* 默认值：无
 
 #### 3.4.2 启动数据同步任务
 * **以本地模式启动数据同步任务**
@@ -78,10 +83,16 @@ mvn clean package -Dmaven.test.skip
 ```
 bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json -plugin /Users/softfly/company/flink-data-transfer/plugins
 ```
-* **以分布式模式启动数据同步任务**
+* **以standalone模式启动数据同步任务**
 
 ```
 bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -plugin /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf
+```
+
+* **以yarn模式启动数据同步任务**
+
+```
+bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -plugin /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop
 ```
 
 ## 4 数据同步任务模版
@@ -139,7 +150,7 @@ setting包括speed、errorLimit和dirty三部分，分别描述限速、错误�
 #### 4.1.3 dirty
 
 ```
-			"dirty": {
+		"dirty": {
                 "path": "/tmp",
                 "hadoopConfig": {
                     "fs.default.name": "hdfs://ns1",

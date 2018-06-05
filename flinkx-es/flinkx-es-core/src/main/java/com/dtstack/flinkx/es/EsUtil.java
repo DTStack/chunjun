@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.es;
 
+import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -70,6 +71,7 @@ public class EsUtil {
         if(StringUtils.isNotBlank(query)) {
             QueryBuilder qb = QueryBuilders.wrapperQuery(query);
             sourceBuilder.query(qb);
+            searchRequest.source(sourceBuilder);
         }
 
         try {
@@ -115,7 +117,7 @@ public class EsUtil {
         return row;
     }
 
-    public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) {
+    public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) throws WriteRecordException {
         Preconditions.checkArgument(row.getArity() == fields.size());
         Map<String,Object> jsonMap = new HashMap<>();
         int i = 0;
@@ -132,12 +134,16 @@ public class EsUtil {
                     currMap = (Map<String, Object>) currMap.get(key);
                 }
                 String key = parts[parts.length - 1];
-                Object value = StringUtil.col2string(row.getField(i), types.get(i));
-                currMap.put(key, value);
+                Object col = row.getField(i);
+                if(col != null) {
+                    Object value = StringUtil.col2string(col, types.get(i));
+                    currMap.put(key, value);
+                }
+
             }
         } catch(Exception ex) {
-            String msg = "row2string error: when converting field[" + fields.get(i) + "] in Row(" + row + ")";
-            throw new RuntimeException(msg, ex);
+            String msg = "EsUtil.rowToJsonMap Writing record error: when converting field[" + i + "] in Row(" + row + ")";
+            throw new WriteRecordException(msg, ex, i, row);
         }
 
         return jsonMap;

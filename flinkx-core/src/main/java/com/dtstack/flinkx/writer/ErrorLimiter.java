@@ -25,7 +25,6 @@ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -45,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 public class ErrorLimiter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErrorLimiter.class);
-    private double samplePeriod = 1;
+    private double samplePeriod = 2;
     private ScheduledExecutorService scheduledExecutorService;
     private final int maxErrors;
     private final double maxErrorRatio;
@@ -96,10 +95,9 @@ public class ErrorLimiter {
         int j = 0;
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
-            try {
-                InputStream inputStream = new URL(url).openStream();
-                break;
-            } catch (IOException e) {
+            try (InputStream inputStream = new URL(url).openStream()){
+                 break;
+            } catch (Exception e) {
                 e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
@@ -110,7 +108,6 @@ public class ErrorLimiter {
         } else {
             return;
         }
-
 
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     }
@@ -140,7 +137,7 @@ public class ErrorLimiter {
                                     }
                                 }
                             }
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         break;

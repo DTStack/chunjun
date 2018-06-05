@@ -38,10 +38,6 @@
                                     <exclude>com.dtstack.flinkx:flinkx-core</exclude>
                                     <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
                                     <!--reader do not exclude gson-->
-                                    <!--<exclude>com.google.code.gson:*</exclude>-->
-                                    <exclude>ch.qos.logback:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
-
                                     <!--from org.apache.flink:*-->
                                     <exclude>org.apache.flink:flink-core</exclude>
                                     <exclude>org.apache.flink:flink-annotations</exclude>
@@ -54,7 +50,6 @@
                                     <exclude>org.apache.flink:flink-java</exclude>
                                     <exclude>org.apache.flink:flink-hadoop-compatibility_2.11</exclude>
                                     <exclude>org.apache.flink:flink-shaded-hadoop2</exclude>
-
                                     <exclude>org.apache.commons:commons-lang3</exclude>
                                     <exclude>com.esotericsoftware.kryo:*</exclude>
                                     <exclude>com.esotericsoftware.minlog:*</exclude>
@@ -66,7 +61,6 @@
                                     <exclude>org.codehaus.jackson:jackson-core-asl</exclude>
                                     <exclude>org.codehaus.jackson:jackson-mapper-asl</exclude>
                                     <exclude>com.thoughtworks.paranamer:paranamer</exclude>
-                                    <exclude>org.slf4j:slf4j-log4j12</exclude>
                                     <exclude>log4j:log4j</exclude>
                                     <exclude>com.google.code.findbugs:jsr305</exclude>
                                     <exclude>org.apache.flink:force-shading</exclude>
@@ -97,7 +91,6 @@
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
                                     <exclude>org.javassist:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
                                     <exclude>org.apache.commons:*</exclude>
                                     <exclude>org.apache.avro:avro</exclude>
                                     <exclude>com.google.protobuf:protobuf-java</exclude>
@@ -105,7 +98,6 @@
                                     <exclude>org.clapper:grizzled-slf4j_2.11</exclude>
                                     <exclude>com.github.scopt:scopt_2.11</exclude>
                                     <exclude>com.fasterxml.jackson.core:*</exclude>
-                                    <exclude>commons-cli:commons-cli:*</exclude>
                                     <exclude>commons-cli:commons-cli:*</exclude>
                                     <exclude>com.twitter:*</exclude>
                                     <exclude>com.typesafe:*</exclude>

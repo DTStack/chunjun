@@ -42,6 +42,8 @@ public class EsWriter extends DataWriter {
 
     private String address;
 
+    private String index;
+
     private String type;
 
     private int bulkAction;
@@ -50,17 +52,18 @@ public class EsWriter extends DataWriter {
 
     private List<String> columnNames;
 
-    private List<Integer> indexColumnIndices;
+    private List<Integer> idColumnIndices;
 
-    private List<String> indexColumnTypes;
+    private List<String> idColumnTypes;
 
-    private List<String> indexColumnValues;
+    private List<String> idColumnValues;
 
     public EsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         address = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
         type = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
+        index = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         bulkAction = writerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BULK_ACTION, DEFAULT_BULK_ACTION);
 
         List columns = writerConfig.getParameter().getColumn();
@@ -74,25 +77,28 @@ public class EsWriter extends DataWriter {
             }
         }
 
-        List indexColumns = (List) writerConfig.getParameter().getVal(EsConfigKeys.KEY_INDEX_COLUMN);
-        if(indexColumns != null || indexColumns.size() != 0) {
-            indexColumnIndices = new ArrayList<>();
-            indexColumnTypes = new ArrayList<>();
-            indexColumnValues = new ArrayList<>();
-            for(int i = 0; i < indexColumns.size(); ++i) {
-                Map<String,Object> sm = (Map) indexColumns.get(i);
-                Object ind = sm.get(EsConfigKeys.KEY_INDEX_COLUMN_INDEX);
-                if(ind instanceof Double) {
-                    indexColumnIndices.add(((Double) ind).intValue());
+        List idColumns = (List) writerConfig.getParameter().getVal(EsConfigKeys.KEY_ID_COLUMN);
+        if( idColumns != null &&  idColumns.size() != 0) {
+            idColumnIndices = new ArrayList<>();
+            idColumnTypes = new ArrayList<>();
+            idColumnValues = new ArrayList<>();
+            for(int i = 0; i <  idColumns.size(); ++i) {
+                Map<String,Object> sm =
+                        (Map)  idColumns.get(i);
+                Object ind = sm.get(EsConfigKeys.KEY_ID_COLUMN_INDEX);
+                if(ind == null) {
+                    idColumnIndices.add(-1);
+                } else if(ind instanceof Double) {
+                    idColumnIndices.add(((Double) ind).intValue());
                 } else if (ind instanceof Integer) {
-                    indexColumnIndices.add(((Integer) ind).intValue());
+                    idColumnIndices.add(((Integer) ind).intValue());
                 } else if (ind instanceof Long) {
-                    indexColumnIndices.add(((Long) ind).intValue());
+                    idColumnIndices.add(((Long) ind).intValue());
                 } else if(ind instanceof String) {
-                    indexColumnIndices.add(Integer.valueOf((String) ind));
+                    idColumnIndices.add(Integer.valueOf((String) ind));
                 }
-                indexColumnTypes.add((String) sm.get(EsConfigKeys.KEY_INDEX_COLUMN_TYPE));
-                indexColumnValues.add((String) sm.get(EsConfigKeys.KEY_INDEX_COLUMN_VALUE));
+                idColumnTypes.add((String) sm.get(EsConfigKeys.KEY_ID_COLUMN_TYPE));
+                idColumnValues.add((String) sm.get(EsConfigKeys.KEY_ID_COLUMN_VALUE));
             }
         }
 
@@ -102,13 +108,14 @@ public class EsWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         EsOutputFormatBuilder builder = new EsOutputFormatBuilder();
         builder.setAddress(address);
+        builder.setIndex(index);
         builder.setType(type);
         builder.setBatchInterval(bulkAction);
         builder.setColumnNames(columnNames);
         builder.setColumnTypes(columnTypes);
-        builder.setIndexColumnIndices(indexColumnIndices);
-        builder.setIndexColumnTypes(indexColumnTypes);
-        builder.setIndexColumnValues(indexColumnValues);
+        builder.setIdColumnIndices(idColumnIndices);
+        builder.setIdColumnTypes(idColumnTypes);
+        builder.setIdColumnValues(idColumnValues);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setDirtyPath(dirtyPath);

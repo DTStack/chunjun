@@ -7,56 +7,71 @@
     "job": {
         "setting": {
             "speed": {
-                 "channel": 4
+                 "channel": 3,
+                 "bytes": 0
             },
             "errorLimit": {
-                "record": 0,
-                "percentage": 10
+                "record": 10000,
+                "percentage": 100
+            },
+            "dirty": {
+                "path": "/tmp",
+                "hadoopConfig": {
+                    "fs.default.name": "hdfs://ns1",
+                    "dfs.nameservices": "ns1",
+                    "dfs.ha.namenodes.ns1": "nn1,nn2",
+                    "dfs.namenode.rpc-address.ns1.nn1": "node02:9000",
+                    "dfs.namenode.rpc-address.ns1.nn2": "node03:9000",
+                    "dfs.ha.automatic-failover.enabled": "true",
+                    "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                    "fs.hdfs.impl.disable.cache": "true"
+                }
             }
         },
         "content": [
             {
-              "reader": {
-                "parameter": {
-                  "password": "abc123"
-                  	"column": [
-                    "col1",
-                    "col2"
-                  ],
-                  "where": "id > 1",
-                  "connection": [
-                    {
-                      "jdbcUrl": [
-                        "jdbc:mysql://172.16.8.104:3306/test?charset=utf8"
-                      ],
-                      "table": [
-                        "tb2"
-                      ]
-                    }
-                  ],
-                  "splitPk": "col1",
-                  "username": "dtstack"
-                },
-                "name": "mysqlreader"
-              },
-               "writer": {
-                    "name": "sqlserverwriter",
+                "reader": {
+                    "name": "mysqlreader",
                     "parameter": {
-                        "batchSize": 2048,
-                        "username": "sa",
-                        "password": "Dtstack201610!",
+                        "username": "dtstack",
+                        "password": "abc123",
                         "column": [
                             "id",
-                            "v"
+                            "v1"
                         ],
-                        "preSql": [],
-                        "postSql": [],
-                        "writeMode": "replace",
+                        "where": "id > 1",
                         "connection": [
                             {
-                                "jdbcUrl": "jdbc:sqlserver://172.16.10.46:1433;DatabaseName=dq",
                                 "table": [
-                                    "tb1"
+                                    "sb9"
+                                ],
+                                "jdbcUrl": [
+                                    "jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true"
+                                ]
+                            }
+                        ],
+                        "splitPk": "id"
+                    }
+                },
+               "writer": {
+                    "name": "mysqlwriter",
+                    "parameter": {
+                        "writeMode": "insert",
+                        "username": "dtstack",
+                        "password": "abc123",
+                        "column": [
+                            "c1",
+                            "c2"
+                        ],
+                        "batchSize": 1,
+                        "session": [
+                            "set session sql_mode='ANSI'"
+                        ],
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true",
+                                "table": [
+                                    "tb3"
                                 ]
                             }
                         ]

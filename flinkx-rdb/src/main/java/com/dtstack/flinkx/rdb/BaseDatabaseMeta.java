@@ -68,7 +68,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parts.length; ++i) {
             if(i != 0) {
-                sb.append(",");
+                sb.append(".");
             }
             sb.append(getStartQuote() + parts[i] + getEndQuote());
         }
@@ -99,7 +99,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
                 + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ");";
+                + quoteColumns(column, "T2") + ")";
     }
 
     @Override
@@ -172,7 +172,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
             if(fullColumn == null || column.contains(col)) {
                 list.add(prefixLeft + col + "=" + prefixRight + col);
             } else {
-                list.add("null");
+                list.add(prefixLeft + col + "=null");
             }
         }
         return StringUtils.join(list, ",");

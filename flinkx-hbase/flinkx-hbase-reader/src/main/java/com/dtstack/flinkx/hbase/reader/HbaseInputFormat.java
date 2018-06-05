@@ -23,6 +23,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -63,15 +64,31 @@ public class HbaseInputFormat extends RichInputFormat {
     protected String encoding;
     protected int scanCacheSize;
     protected int scanBatchSize;
-    private Connection connection;
-    private Scan scan;
-    private Table table;
-    private ResultScanner resultScanner;
-    private Result next;
+    private transient Connection connection;
+    private transient Scan scan;
+    private transient Table table;
+    private transient ResultScanner resultScanner;
+    private transient Result next;
 
     @Override
     public void configure(Configuration configuration) {
-        connection = HbaseHelper.getHbaseConnection(hbaseConfig);
+        LOG.info("HbaseOutputFormat configure start");
+
+        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
+        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
+
+        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
+            hConfiguration.set(entry.getKey(), entry.getValue());
+        }
+
+        try {
+            connection = ConnectionFactory.createConnection(hConfiguration);
+        } catch (Exception e) {
+            HbaseHelper.closeConnection(connection);
+            throw new IllegalArgumentException(e);
+        }
+
+        LOG.info("HbaseOutputFormat configure end");
     }
 
     @Override

@@ -74,24 +74,25 @@ public class OdpsInputFormat extends RichInputFormat {
 
     protected long stepCount;
 
-    private Odps odps;
+    private transient Odps odps;
 
-    private TableTunnel.DownloadSession downloadSession;
+    private transient TableTunnel.DownloadSession downloadSession;
 
-    private TableTunnel tunnel;
+    private transient TableTunnel tunnel;
 
-    private RecordReader recordReader;
+    private transient RecordReader recordReader;
 
-    private Record record;
+    private transient Record record;
 
-    private Table table;
+    private transient Table table;
 
 
     @Override
     public void configure(Configuration configuration) {
         odps = OdpsUtil.initOdps(odpsConfig);
         table = OdpsUtil.getTable(odps, projectName, tableName);
-        isPartitioned = OdpsUtil.isPartitionedTable(table);
+        //isPartitioned = OdpsUtil.isPartitionedTable(table);
+        isPartitioned = StringUtils.isNotBlank(partition) ? true : false;
     }
 
     @Override
@@ -126,7 +127,9 @@ public class OdpsInputFormat extends RichInputFormat {
             long startIndex = pair.getLeft().longValue();
             long stepCount = pair.getRight().longValue();
             OdpsInputSplit split = new OdpsInputSplit(session.getId(), startIndex, stepCount);
-            splits.add(split);
+            if(startIndex < stepCount) {
+                splits.add(split);
+            }
         }
 
         return splits.toArray(new OdpsInputSplit[splits.size()]);
@@ -152,10 +155,6 @@ public class OdpsInputFormat extends RichInputFormat {
 
         recordReader = OdpsUtil.getRecordReader(downloadSession, startIndex, stepCount, compress);
 
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     @Override
@@ -172,7 +171,11 @@ public class OdpsInputFormat extends RichInputFormat {
             String val = columnValue.get(i);
             String type = columnType.get(i);
             if(StringUtils.isNotEmpty(colName)) {
-                row.setField(i, record.get(colName));
+                Object field = record.get(colName);
+                if(field instanceof byte[]) {
+                    field = new String((byte[]) field);
+                }
+                row.setField(i, field);
             } else if(val != null && type != null) {
                 Object col = StringUtil.string2col(val,type);
                 row.setField(i, col);

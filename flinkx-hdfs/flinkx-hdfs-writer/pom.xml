@@ -35,12 +35,6 @@ under the License.
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-jdbc</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-core</artifactId>
             <version>1.6</version>
@@ -68,9 +62,6 @@ under the License.
                                     <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
                                     <!--writer must exclude gson-->
                                     <exclude>com.google.code.gson:*</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
-
                                     <!--from org.apache.flink:*-->
                                     <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>

@@ -25,16 +25,17 @@ public class EsDemo {
     public static void test1() throws Exception {
         RestHighLevelClient client = new RestHighLevelClient(
                 RestClient.builder(
-                        new HttpHost("study", 9200, "http"),
-                        new HttpHost("study", 9201, "http")));
+                        new HttpHost("rdos1", 9200, "http"),
+                        new HttpHost("rdos2", 9200, "http")));
 
         IndexRequest request = new IndexRequest(
-                "nani",
-                "doc");
+                "nani222",
+                "doc222",
+                "id2");
 
         String jsonString = "{" +
-                "\"user\":\"xxxx\"," +
-                "\"postDate\":\"2013-01-30\"," +
+                "\"user\":\"user2\"," +
+                "\"postDate\":\"2014-01-30\"," +
                 "\"message\":\"trying out Elasticsearch\"" +
                 "}";
 
@@ -76,7 +77,7 @@ public class EsDemo {
                         new HttpHost("localhost", 9201, "http")));
 
         UpdateRequest request = new UpdateRequest(
-                "nani1",
+                "nani250",
                 "doc",
                 "2");
 
@@ -135,12 +136,10 @@ public class EsDemo {
         SearchRequest searchRequest = new SearchRequest();
         SearchResponse resp =  client.search(searchRequest);
         resp.getAggregations();
-
-
     }
 
     public static void main(String[] args) throws Exception {
-        test4();
+        test1();
     }
 
 

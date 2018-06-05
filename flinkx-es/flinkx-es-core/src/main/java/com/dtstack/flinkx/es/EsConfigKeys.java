@@ -30,6 +30,8 @@ public class EsConfigKeys {
 
     public static final String KEY_QUERY = "query";
 
+    public static final String KEY_INDEX = "index";
+
     public static final String KEY_TYPE = "type";
 
     public static final String KEY_BULK_ACTION = "bulkAction";
@@ -38,12 +40,12 @@ public class EsConfigKeys {
 
     public static final String KEY_COLUMN_TYPE = "type";
 
-    public static final String KEY_INDEX_COLUMN = "indexColumn";
+    public static final String KEY_ID_COLUMN = "idColumn";
 
-    public static final String KEY_INDEX_COLUMN_INDEX = "index";
+    public static final String KEY_ID_COLUMN_INDEX = "index";
 
-    public static final String KEY_INDEX_COLUMN_TYPE = "type";
+    public static final String KEY_ID_COLUMN_TYPE = "type";
 
-    public static final String KEY_INDEX_COLUMN_VALUE = "value";
+    public static final String KEY_ID_COLUMN_VALUE = "value";
 
 }

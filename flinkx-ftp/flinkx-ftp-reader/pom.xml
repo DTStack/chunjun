@@ -54,8 +54,6 @@ under the License.
                             <artifactSet>
                                 <excludes>
                                     <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
                                     <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>

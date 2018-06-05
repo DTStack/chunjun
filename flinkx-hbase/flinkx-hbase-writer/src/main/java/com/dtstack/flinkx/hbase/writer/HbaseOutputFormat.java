@@ -72,9 +72,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected String versionColumnValue;
 
-    private Connection connection;
+    private transient Connection connection;
 
-    private BufferedMutator bufferedMutator;
+    private transient BufferedMutator bufferedMutator;
 
     @Override
     public void configure(Configuration parameters) {
@@ -170,11 +170,11 @@ public class HbaseOutputFormat extends RichOutputFormat {
             Integer index = rowkeyColumnIndices.get(i);
             String type =  rowkeyColumnTypes.get(i);
             ColumnType columnType = ColumnType.getByTypeName(type);
-            if(index == -1) {
+            if(index == null) {
                 String value = rowkeyColumnValues.get(i);
                 rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
             } else {
-                if(index >= record.getArity()) {
+                if(index >= record.getArity() || index < 0) {
                     throw new IllegalArgumentException("index of rowkeyColumn out of range");
                 }
                 byte[] value = getColumnByte(columnType,record.getField(index));
@@ -185,9 +185,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
     }
 
     public long getVersion(Row record){
-        int index = versionColumnIndex.intValue();
+        Integer index = versionColumnIndex.intValue();
         long timestamp;
-        if(index == -1){
+        if(index == null){
             //指定时间作为版本
             timestamp = Long.valueOf(versionColumnValue);
             if(timestamp < 0){
@@ -195,7 +195,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
             }
         }else{
             //指定列作为版本,long/doubleColumn直接record.aslong, 其它类型尝试用yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss SSS去format
-            if(index >= record.getArity()){
+            if(index >= record.getArity() || index < 0){
                 throw new IllegalArgumentException("version column index out of range: " + index);
             }
             if(record.getField(index)  == null){

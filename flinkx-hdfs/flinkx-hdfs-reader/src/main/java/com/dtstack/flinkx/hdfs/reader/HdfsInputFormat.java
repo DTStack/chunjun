@@ -51,13 +51,13 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected String delimiter;
 
-    protected RecordReader recordReader;
+    protected transient RecordReader recordReader;
 
     protected String charsetName = "UTF-8"; // 目前只支持UTF-8
 
-    protected JobConf conf;
+    protected transient JobConf conf;
 
-    protected org.apache.hadoop.mapred.InputFormat inputFormat;
+    protected transient org.apache.hadoop.mapred.InputFormat inputFormat;
 
     protected Object key;
 

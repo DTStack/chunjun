@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -35,15 +36,18 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
 /**
- * InputFormat to read data from a database and generate Rows.
+ * InputFormat for reading data from a database and generate Rows.
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
@@ -51,6 +55,8 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 public class JdbcInputFormat extends RichInputFormat {
 
     protected static final long serialVersionUID = 1L;
+
+    protected DatabaseInterface databaseInterface;
 
     protected String username;
 
@@ -80,6 +86,8 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int columnCount;
 
+    protected String table;
+
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -88,6 +96,23 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration configuration) {
 
+    }
+
+    private List<String> analyzeTable() {
+        List<String> ret = new ArrayList<>();
+
+        try {
+            Statement stmt = dbConn.createStatement();
+            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            ResultSetMetaData rd = rs.getMetaData();
+            for(int i = 0; i < rd.getColumnCount(); ++i) {
+                ret.add(rd.getColumnTypeName(i+1));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return ret;
     }
 
     @Override
@@ -140,6 +165,10 @@ public class JdbcInputFormat extends RichInputFormat {
             resultSet = statement.executeQuery();
             hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();
+
+            if(descColumnTypeList == null) {
+                descColumnTypeList = analyzeTable();
+            }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
@@ -187,21 +216,39 @@ public class JdbcInputFormat extends RichInputFormat {
 
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if (dbURL.startsWith("jdbc:oracle")) {
-                    if(obj != null && (obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
-                        obj = resultSet.getTimestamp(pos + 1);
-                    }
-                }
-                else if(dbURL.startsWith("jdbc:mysql")) {
-                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
-                        if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
-                            java.util.Date date = (java.util.Date) obj;
-                            String year = DateUtil.dateToYearString(date);
-                            System.out.println(year);
-                            obj = year;
+                if(obj != null) {
+                    if (dbURL.startsWith("jdbc:oracle")) {
+                        if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                            obj = resultSet.getTimestamp(pos + 1);
+                        }
+                    } else if(dbURL.startsWith("jdbc:mysql")) {
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
+                                java.util.Date date = (java.util.Date) obj;
+                                String year = DateUtil.dateToYearString(date);
+                                System.out.println(year);
+                                obj = year;
+                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("tinyint")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
+                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
+                            }
+                        }
+                    } else if(dbURL.startsWith("jdbc:sqlserver")) {
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                                if(obj instanceof Boolean) {
+                                    obj = ((Boolean) obj ? 1 : 0);
+                                }
+                            }
                         }
                     }
                 }
+
                 row.setField(pos, obj);
             }
 

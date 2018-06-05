@@ -35,6 +35,10 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
 
     private HbaseOutputFormat format;
 
+    public HbaseOutputFormatBuilder() {
+        super.format = format = new HbaseOutputFormat();
+    }
+
     public void setTableName(String tableName) {
         format.tableName = tableName;
     }

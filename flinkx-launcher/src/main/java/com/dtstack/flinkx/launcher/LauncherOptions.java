@@ -38,4 +38,6 @@ public class LauncherOptions {
 
     public static final String OPTION_PLUGIN_ROOT = "plugin";
 
+    public static final String OPTION_YARN_CONF_DIR = "yarnconf";
+
 }
