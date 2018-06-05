@@ -28,12 +28,13 @@ public class ClassUtil {
 
     public synchronized static void forName(String clazz, ClassLoader classLoader)  {
         try {
-            Class<?> driverClass = classLoader.loadClass(clazz);
+            Class<?> driverClass = Class.forName(clazz);
             driverClass.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
 
     public synchronized static void forName(String clazz) {
         try {
