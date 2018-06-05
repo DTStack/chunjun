@@ -28,7 +28,7 @@ public class ClassUtil {
 
     public synchronized static void forName(String clazz, ClassLoader classLoader)  {
         try {
-            Class<?> driverClass = Class.forName(clazz);
+            Class<?> driverClass = Class.forName(clazz, true, classLoader);
             driverClass.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
