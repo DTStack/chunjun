@@ -72,6 +72,18 @@ public class MongodbUtil {
     public static MongoCollection<Document> getCollection(Map<String,String> config,String database, String collection){
         MongoClient client = getMongoClient(config);
         MongoDatabase db = client.getDatabase(database);
+
+        boolean exist = false;
+        for (String name : db.listCollectionNames()) {
+            if(name.equals(collection)){
+                exist = true;
+            }
+        }
+
+        if(!exist){
+            throw new RuntimeException("can not find collection '" + collection + "' from database '" + database + "'.");
+        }
+
         return db.getCollection(collection);
     }
 
