@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 public class ErrorLimiter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErrorLimiter.class);
-    private double samplePeriod = 1;
+    private double samplePeriod = 2;
     private ScheduledExecutorService scheduledExecutorService;
     private final int maxErrors;
     private final double maxErrorRatio;
