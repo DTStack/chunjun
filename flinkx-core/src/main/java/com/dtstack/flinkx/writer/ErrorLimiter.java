@@ -96,10 +96,9 @@ public class ErrorLimiter {
         int j = 0;
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
-            try {
-                InputStream inputStream = new URL(url).openStream();
-                break;
-            } catch (IOException e) {
+            try (InputStream inputStream = new URL(url).openStream()){
+                 break;
+            } catch (Exception e) {
                 e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
@@ -140,7 +139,7 @@ public class ErrorLimiter {
                                     }
                                 }
                             }
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         break;

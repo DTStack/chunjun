@@ -48,11 +48,11 @@ public class MetricLatch extends Latch {
         int j = 0;
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
-            try {
-                new URL(requestUrl).openStream();
+            try(InputStream inputStream = new URL(requestUrl).openStream()) {
                 flag = true;
                 break;
-            } catch (IOException e) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return flag;
@@ -68,10 +68,10 @@ public class MetricLatch extends Latch {
                         return Integer.valueOf((String )accumulator.get("value"));
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 return -1;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             return -1;
         }
         return -1;
