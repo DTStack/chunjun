@@ -6,7 +6,7 @@ package com.dtstack.flinkx.mongodb;
  */
 public class MongodbConfigKeys {
 
-    public final static String KEY_HOST_PORTS = "host_ports";
+    public final static String KEY_HOST_PORTS = "hostPorts";
 
     public final static String KEY_USERNAME = "username";
 
@@ -21,4 +21,10 @@ public class MongodbConfigKeys {
     public final static String KEY_COLUMN_TYPE = "type";
 
     public final static String KEY_FILTER = "filter";
+
+    public final static String KEY_MODE = "writeMode";
+
+    public final static String KEY_UPDATE_COLUMN = "updateColumn";
+
+    public final static String KEY_FILTER_COLUMN = "filterColumn";
 }

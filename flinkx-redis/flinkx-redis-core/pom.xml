@@ -11,5 +11,13 @@
 
     <artifactId>flinkx-redis-core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-core</artifactId>
+            <version>1.6</version>
+        </dependency>
 
+
+    </dependencies>
 </project>

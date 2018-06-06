@@ -77,20 +77,14 @@ public class MongodbInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(columnNames.size());
-
-        Document doc = cursor.next();
-        for (int i = 0; i < columnNames.size(); i++) {
-            row.setField(i,doc.getOrDefault(columnNames.get(i),null));
-        }
-
-        return row;
+        return MongodbUtil.convertDocTORow(cursor.next(),columnNames);
     }
 
     @Override
     protected void closeInternal() throws IOException {
         if (cursor != null){
             cursor.close();
+            MongodbUtil.close();
         }
     }
 
