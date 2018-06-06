@@ -52,7 +52,6 @@ public class HiveUtil {
 
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         Connection dbConn = null;
-        DriverManager.setLoginTimeout(10);
         ClassUtil.forName("org.apache.hive.jdbc.HiveDriver", HiveUtil.class.getClassLoader());
         if (username == null) {
             dbConn = DriverManager.getConnection(url);

@@ -252,7 +252,6 @@ public class JdbcDataReader extends DataReader {
 
         try {
             ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            DriverManager.setLoginTimeout(10);
             connection = DriverManager.getConnection(dbUrl, username, password);
         } catch (Throwable e) {
             throw new RuntimeException(e);
