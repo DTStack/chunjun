@@ -145,7 +145,6 @@ public class JdbcDataWriter extends DataWriter {
     protected Connection getConnection() {
         try {
             ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            DriverManager.setLoginTimeout(10);
             connection = DriverManager.getConnection(dbUrl, username, password);
         } catch (Throwable e) {
             throw new RuntimeException(e);
