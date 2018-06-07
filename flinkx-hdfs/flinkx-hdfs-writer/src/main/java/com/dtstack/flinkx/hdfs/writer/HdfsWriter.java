@@ -97,8 +97,7 @@ public class HdfsWriter extends DataWriter {
             password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
 
             if(StringUtil.isNotEmpty(partition)) {
-                try {
-                    Connection dbConn = HiveUtil.getConnection(dbUrl, username, password);
+                try (Connection dbConn = HiveUtil.getConnection(dbUrl, username, password);){
                     HiveUtil.addPartitionsIfNotExists(dbConn, table, partition);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);

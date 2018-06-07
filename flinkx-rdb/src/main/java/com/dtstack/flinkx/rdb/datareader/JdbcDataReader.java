@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -242,10 +243,9 @@ public class JdbcDataReader extends DataReader {
     }
 
     protected Connection getConnection() {
-
         try {
             ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            connection = DriverManager.getConnection(dbUrl, username, password);
+            connection = DBUtil.getConnection(dbUrl, username, password);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

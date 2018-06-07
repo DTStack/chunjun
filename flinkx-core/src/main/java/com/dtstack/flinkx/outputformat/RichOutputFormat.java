@@ -283,7 +283,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
-
             if(needWaitBeforeCloseInternal()) {
                 Latch latch = newLatch("#3");
                 beforeCloseInternal();
@@ -292,26 +291,24 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 latch.waitUntil(numTasks);
                 System.out.println("hyf waitUtil end");
             }
-
-            closeInternal();
-
-            if(needWaitAfterCloseInternal()) {
-                Latch latch = newLatch("#4");
-                latch.addOne();
-                latch.waitUntil(numTasks);
-            }
         }finally {
-            afterCloseInternal();
-
-            if(dirtyDataManager != null) {
-                dirtyDataManager.close();
+            try{
+                closeInternal();
+                if(needWaitAfterCloseInternal()) {
+                    Latch latch = newLatch("#4");
+                    latch.addOne();
+                    latch.waitUntil(numTasks);
+                }
+                afterCloseInternal();
+            }finally {
+                if(dirtyDataManager != null) {
+                    dirtyDataManager.close();
+                }
+                if(errorLimiter != null) {
+                    errorLimiter.acquire();
+                    errorLimiter.stop();
+                }
             }
-
-            if(errorLimiter != null) {
-                errorLimiter.acquire();
-                errorLimiter.stop();
-            }
-
             LOG.info("subtask[" + taskNumber + "] close() finished");
         }
     }
