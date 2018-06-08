@@ -262,41 +262,8 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        LOG.info("-------invoke close fun------------");
-
-        //called once per inputFormat (on stop)
-        LOG.info("-----------close input format--------");
-        try {
-            if(statement != null) {
-                statement.close();
-            }
-        } catch (SQLException se) {
-            LOG.error("Inputformat Statement couldn't be closed - " + se.getMessage());
-        } finally {
-            statement = null;
-        }
-
-        try {
-            if(dbConn != null) {
-                dbConn.close();
-            }
-        } catch (SQLException se) {
-            LOG.error("Inputformat couldn't be closed - " + se.getMessage());
-        } finally {
-            dbConn = null;
-        }
-
+        DBUtil.closeDBResources(resultSet,statement,dbConn);
         parameterValues = null;
-
-        if(resultSet == null) {
-            return;
-        }
-        try {
-            resultSet.close();
-        } catch (SQLException se) {
-            LOG.error("Inputformat ResultSet couldn't be closed - " + se.getMessage());
-        }
-
     }
 
 }

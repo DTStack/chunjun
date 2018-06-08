@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.hadoop.shaded.com.google.common.collect.Sets;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,19 +44,15 @@ public class HiveUtil {
     private static String COMMA = ",";
     private static String ASSIGN = "=";
     private static String SINGLE_QUOTE = "'";
+    private static String hiveDriverClass = "org.apache.hive.jdbc.HiveDriver";
 
     private static String quotedString(String str) {
         return QUOTE + str + QUOTE;
     }
 
     public static Connection getConnection(String url, String username, String password) throws SQLException {
-        Connection dbConn = null;
-        ClassUtil.forName("org.apache.hive.jdbc.HiveDriver", HiveUtil.class.getClassLoader());
-        if (username == null) {
-            dbConn = DriverManager.getConnection(url);
-        } else {
-            dbConn = DriverManager.getConnection(url, username, password);
-        }
+        ClassUtil.forName(hiveDriverClass, HiveUtil.class.getClassLoader());
+        Connection dbConn = DBUtil.getConnection(url, username, password);
         return dbConn;
     }
 
@@ -145,6 +140,4 @@ public class HiveUtil {
         }
         return partitions;
     }
-
-
 }

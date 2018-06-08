@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -29,7 +30,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +145,7 @@ public class JdbcDataWriter extends DataWriter {
     protected Connection getConnection() {
         try {
             ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            connection = DriverManager.getConnection(dbUrl, username, password);
+            connection = DBUtil.getConnection(dbUrl, username, password);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
