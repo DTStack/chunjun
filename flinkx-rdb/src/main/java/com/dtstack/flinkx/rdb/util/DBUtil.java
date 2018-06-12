@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.SysUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,15 +32,20 @@ import java.sql.Statement;
 import java.sql.DatabaseMetaData;
 
 /**
- * @Company: www.dtstack.com
- * @author sishu.yss
+ *
+ * Utilities for relational database connection and sql execution
+ * company: www.dtstack.com
+ * @author huyifan_zju@
  */
 public class DBUtil {
 
-    public static Connection getConnection(String url, String username, String password) throws SQLException {
+    private static int MAX_RETRY_TIMES = 3;
+
+    private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
             DriverManager.setLoginTimeout(10);
+
             if (username == null) {
                 dbConn = DriverManager.getConnection(url);
             } else {
@@ -49,6 +55,28 @@ public class DBUtil {
 
         return dbConn;
     }
+
+    public static Connection getConnection(String url, String username, String password) throws SQLException {
+        Connection dbConn = getConnectionInternal(url, username, password);
+        boolean failed = true;
+        if (url.startsWith("jdbc:mysql")) {
+            for(int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
+                try {
+                    dbConn.createStatement().execute("select 111");
+                    failed = false;
+                } catch(SQLException e) {
+                    if(i == MAX_RETRY_TIMES) {
+                        throw e;
+                    } else {
+                        SysUtil.sleep(3000);
+                    }
+                }
+            }
+        }
+
+        return dbConn;
+    }
+
 
     public static List<Map<String,Object>> executeQuery(Connection connection, String sql) {
         List<Map<String,Object>> result = com.google.common.collect.Lists.newArrayList();
