@@ -106,6 +106,13 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         return row;
     }
 
+    @Override
+    public boolean reachedEnd() throws IOException {
+        key = new LongWritable();
+        value = new Text();
+        return isFileEmpty || !recordReader.next(key, value);
+    }
+
 
     public static class HdfsTextInputFormatBuilder {
 
