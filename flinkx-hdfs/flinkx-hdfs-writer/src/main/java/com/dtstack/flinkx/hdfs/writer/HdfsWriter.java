@@ -87,25 +87,6 @@ public class HdfsWriter extends DataWriter {
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
 
-        /**FIXME init hive config: should be put in hivewriter **/
-        List<WriterConfig.ParameterConfig.ConnectionConfig> connectionConfig = writerConfig.getParameter().getConnection();
-        if(connectionConfig != null && connectionConfig.size() != 0) {
-            partition =writerConfig.getParameter().getStringVal(KEY_PARTITION);
-            dbUrl = connectionConfig.get(0).getJdbcUrl();
-            table = connectionConfig.get(0).getTable().get(0);
-            username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
-            password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
-
-            if(StringUtil.isNotEmpty(partition)) {
-                try (Connection dbConn = HiveUtil.getConnection(dbUrl, username, password);){
-                    HiveUtil.addPartitionsIfNotExists(dbConn, table, partition);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-        }
-
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
         } else {
