@@ -33,6 +33,18 @@ public class MongodbUtil {
 
     private static final Integer DEFAULT_PORT = 27017;
 
+    private static final Integer ONE_SECOND = 1000;
+
+    private static final Integer CONNECTIONS_PER_HOST = 100;
+
+    private static final Integer THREADS_FOR_CONNECTION_MULTIPLIER = 100;
+
+    private static final Integer CONNECT_TIMEOUT = 10 * ONE_SECOND;
+
+    private static final Integer MAX_WAIT_TIME = 5 * ONE_SECOND;
+
+    private static  final Integer SOCKET_TIMEOUT = 0;
+
     private static MongoClient mongoClient;
 
     /**
@@ -164,11 +176,11 @@ public class MongodbUtil {
 
     private static MongoClientOptions getOption(){
         MongoClientOptions.Builder build = new MongoClientOptions.Builder();
-        build.connectionsPerHost(100);
-        build.threadsAllowedToBlockForConnectionMultiplier(100);
-        build.connectTimeout(10000);
-        build.maxWaitTime(5000);
-        build.socketTimeout(0);
+        build.connectionsPerHost(CONNECTIONS_PER_HOST);
+        build.threadsAllowedToBlockForConnectionMultiplier(THREADS_FOR_CONNECTION_MULTIPLIER);
+        build.connectTimeout(CONNECT_TIMEOUT);
+        build.maxWaitTime(MAX_WAIT_TIME);
+        build.socketTimeout(SOCKET_TIMEOUT);
         build.writeConcern(WriteConcern.UNACKNOWLEDGED);
         return build.build();
     }
