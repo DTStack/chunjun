@@ -38,11 +38,12 @@ public class JedisFactory {
         this.properties = properties;
     }
 
-    public JedisCommands getJedis(ClusterModel model){
+    public JedisCommands getJedis(){
+        ClusterModel model = ClusterModel.getClusterModel(Integer.parseInt(properties.getProperty(KEY_MODEL)));
         JedisCommands jedisCommands;
         switch (model){
             case STANDALONE:
-                jedisCommands = getJedis();
+                jedisCommands = getStandalongJedis();
                 break;
             case SHARDED:
                 throw new RuntimeException("Shared mode is not supported at this time");
@@ -78,7 +79,7 @@ public class JedisFactory {
         return hostAndPorts;
     }
 
-    private Jedis getJedis(){
+    private Jedis getStandalongJedis(){
         if (jedisPool == null){
             String host = properties.getProperty(KEY_HOST,DEFAULT_HOST);
             int port = Integer.parseInt(properties.getProperty(KEY_PORT,DEFAULT_PORT));

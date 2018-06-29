@@ -18,13 +18,13 @@ public enum ClusterModel {
         return model;
     }
 
-    public ClusterModel getClusterModel(int model){
+    public static ClusterModel getClusterModel(int model){
         for (ClusterModel clusterModel : ClusterModel.values()) {
             if(clusterModel.getModel() == model){
                 return clusterModel;
             }
         }
 
-        return null;
+        return STANDALONE;
     }
 }
