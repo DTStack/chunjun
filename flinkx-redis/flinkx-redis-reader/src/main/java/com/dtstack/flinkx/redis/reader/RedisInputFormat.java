@@ -1,17 +1,34 @@
 package com.dtstack.flinkx.redis.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.redis.ClusterModel;
+import com.dtstack.flinkx.redis.JedisFactory;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import redis.clients.jedis.JedisCommands;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author jiangbo
  * @date 2018/6/6 17:18
  */
 public class RedisInputFormat extends RichInputFormat {
+
+    protected Properties properties;
+
+    private JedisCommands jedis;
+
+    private JedisFactory jedisFactory;
+
+    @Override
+    public void configure(Configuration parameters) {
+        jedisFactory = new JedisFactory(properties);
+        jedis = jedisFactory.getJedis();
+    }
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
 
@@ -24,12 +41,7 @@ public class RedisInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-
-    }
-
-    @Override
-    public void configure(Configuration parameters) {
-
+        jedisFactory.close(jedis);
     }
 
     @Override

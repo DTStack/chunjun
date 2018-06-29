@@ -1,6 +1,9 @@
 package com.dtstack.flinkx.redis.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.redis.ClusterModel;
+
+import java.util.Properties;
 
 /**
  * @author jiangbo
@@ -9,6 +12,10 @@ import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 public class RedisInputFormatBuilder extends RichInputFormatBuilder {
 
     private RedisInputFormat format;
+
+    public void setProperties(Properties properties) {
+        format.properties = properties;
+    }
 
     @Override
     protected void checkFormat() {
