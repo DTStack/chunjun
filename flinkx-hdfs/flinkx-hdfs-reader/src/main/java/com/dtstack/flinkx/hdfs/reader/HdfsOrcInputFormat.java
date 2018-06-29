@@ -83,7 +83,10 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 }
 
                 if(reader == null) {
-                    throw new RuntimeException("orcfile dir is empty!");
+                    //throw new RuntimeException("orcfile dir is empty!");
+                    LOG.error("orc file {} is empty!", inputPath);
+                    isFileEmpty = true;
+                    return;
                 }
 
             } else {
@@ -149,6 +152,11 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
+
+        if(isFileEmpty){
+            return;
+        }
+
         numReadCounter = getRuntimeContext().getLongCounter("numRead");
         HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();

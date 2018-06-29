@@ -63,6 +63,8 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected Object value;
 
+    protected boolean isFileEmpty = false;
+
     /**
      * configure anything else
      */
@@ -91,7 +93,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return !recordReader.next(key, value);
+        return isFileEmpty || !recordReader.next(key, value);
     }
 
     @Override

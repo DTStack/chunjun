@@ -223,6 +223,10 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Ftp写入插件](docs/ftpwriter.md)
 * [Odps写入插件](docs/odpswriter.md)
 
+## 6.招聘信息
+
+https://m.zhipin.com/weijd/v2/job/cc4eb187ea8b3ae51nJ82d-4ElI~?date8=20180609&sid=self_jd&from=singlemessage&isappinstalled=0
+
 
 
 

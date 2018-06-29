@@ -64,9 +64,6 @@
                             "c2"
                         ],
                         "batchSize": 1,
-                        "session": [
-                            "set session sql_mode='ANSI'"
-                        ],
                         "connection": [
                             {
                                 "jdbcUrl": "jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true",

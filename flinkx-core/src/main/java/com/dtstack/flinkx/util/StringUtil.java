@@ -82,6 +82,7 @@ public class StringUtil {
             case INT:
                 ret = Integer.valueOf(str);
                 break;
+            case MEDIUMINT:
             case BIGINT:
                 ret = Long.valueOf(str);
                 break;

@@ -117,6 +117,11 @@ public class ErrorLimiter {
     }
 
     public void start() {
+
+        if(scheduledExecutorService == null) {
+            return;
+        }
+
         scheduledExecutorService.scheduleAtFixedRate(
                 () -> {
                     Gson gson = new Gson();
