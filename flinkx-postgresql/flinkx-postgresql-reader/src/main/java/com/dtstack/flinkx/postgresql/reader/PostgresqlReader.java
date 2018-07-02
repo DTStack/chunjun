@@ -4,6 +4,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -26,13 +27,10 @@ public class PostgresqlReader extends JdbcDataReader {
     @Override
     public List<String> descColumnTypes(){
         List<String> columnType = new ArrayList<>();
-
-        ClassUtil.forName(databaseInterface.getDriverClass(),this.getClass().getClassLoader());
-        DriverManager.setLoginTimeout(10);
-        Connection conn = null;
-
+        Connection conn;
         try{
-            conn = DriverManager.getConnection(dbUrl,username,password);
+            ClassUtil.forName(databaseInterface.getDriverClass(),getClass().getClassLoader());
+            conn = DBUtil.getConnection(dbUrl,username,password);
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryColumnFields(null,table));
 
@@ -44,16 +42,9 @@ public class PostgresqlReader extends JdbcDataReader {
                 }
             }
 
+            DBUtil.closeDBResources(rs,stmt,conn);
         } catch (Exception e){
             throw new RuntimeException(e);
-        } finally {
-            if(conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
 
         return columnType;
