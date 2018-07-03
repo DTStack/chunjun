@@ -11,6 +11,8 @@ import org.apache.flink.types.Row;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
@@ -45,6 +47,8 @@ public class RedisOutputFormat extends RichOutputFormat {
 
     private Jedis jedis;
 
+    private static SimpleDateFormat sdf = new SimpleDateFormat();
+
     private static final int CRITICAL_TIME = 60 * 60 * 24 * 30;
 
     @Override
@@ -58,6 +62,7 @@ public class RedisOutputFormat extends RichOutputFormat {
         properties.put(KEY_DB,database);
 
         jedis = JedisUtil.getJedis(properties);
+        sdf.applyPattern(dateFormat);
     }
 
     @Override
@@ -67,6 +72,7 @@ public class RedisOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        processTimeFormat(row);
         String key = concatKey(row);
         String[] values = getValues(row);
 
@@ -92,6 +98,14 @@ public class RedisOutputFormat extends RichOutputFormat {
             jedis.expireAt(key,expireTime);
         } else {
             jedis.expire(key,(int)expireTime);
+        }
+    }
+
+    private void processTimeFormat(Row row){
+        for (int i = 0; i < row.getArity(); i++) {
+            if(row.getField(i) instanceof Date){
+                row.setField(i,sdf.format((Date)row.getField(i)));
+            }
         }
     }
 

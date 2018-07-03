@@ -13,7 +13,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>flinkx-redis-core</module>
-        <module>flinkx-redis-reader</module>
         <module>flinkx-redis-writer</module>
     </modules>
 
