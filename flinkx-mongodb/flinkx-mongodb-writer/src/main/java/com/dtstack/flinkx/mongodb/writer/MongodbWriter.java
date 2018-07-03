@@ -9,9 +9,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.KEY_COLLECTION;

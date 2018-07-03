@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.redis.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
-import com.dtstack.flinkx.redis.ClusterModel;
 
 import java.util.Properties;
 

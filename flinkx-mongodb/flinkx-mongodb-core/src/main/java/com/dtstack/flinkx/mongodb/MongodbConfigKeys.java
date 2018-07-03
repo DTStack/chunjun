@@ -16,13 +16,11 @@ public class MongodbConfigKeys {
 
     public final static String KEY_COLLECTION = "collectionName";
 
-    public final static String KEY_COLUMN_NAME = "name";
-
-    public final static String KEY_COLUMN_TYPE = "type";
-
     public final static String KEY_FILTER = "filter";
 
     public final static String KEY_MODE = "writeMode";
 
     public final static String KEY_REPLACE_KEY = "replaceKey";
+
+    public final static String KEY_BATCH_SIZE = "batchSize";
 }

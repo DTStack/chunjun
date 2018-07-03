@@ -13,10 +13,6 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
 
     private MongodbOutputFormat format;
 
-    protected List<String> filterColumns;
-
-    protected List<String> updateColumns;
-
     public MongodbOutputFormatBuilder() {
         super.format = format = new MongodbOutputFormat();
     }

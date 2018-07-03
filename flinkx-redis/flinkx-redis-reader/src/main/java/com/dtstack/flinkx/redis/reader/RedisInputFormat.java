@@ -1,8 +1,6 @@
 package com.dtstack.flinkx.redis.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.redis.ClusterModel;
-import com.dtstack.flinkx.redis.JedisFactory;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
