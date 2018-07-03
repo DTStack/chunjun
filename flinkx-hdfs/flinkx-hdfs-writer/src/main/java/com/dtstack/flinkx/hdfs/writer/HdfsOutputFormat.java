@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
@@ -129,9 +130,19 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
             for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
                 conf.set(entry.getKey(), entry.getValue());
             }
+        } else {
+            org.apache.hadoop.conf.Configuration configuration = HdfsUtil.getConfiguration();
+            configuration.forEach(c ->{
+                conf.set(c.getKey(),c.getValue());
+            });
         }
 
-        conf.set("fs.default.name", defaultFS);
+        if (StringUtils.isEmpty(defaultFS)){
+            conf.set("fs.default.name",HdfsUtil.getDefaultFs());
+        } else {
+            conf.set("fs.default.name", defaultFS);
+        }
+
         conf.set("fs.hdfs.impl.disable.cache", "true");
         fs = FileSystem.get(conf);
         Path dir = new Path(outputFilePath);
