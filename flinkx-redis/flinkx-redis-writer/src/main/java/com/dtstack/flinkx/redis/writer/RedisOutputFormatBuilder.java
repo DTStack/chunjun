@@ -16,7 +16,7 @@ public class RedisOutputFormatBuilder extends RichOutputFormatBuilder {
     private RedisOutputFormat format;
 
     public RedisOutputFormatBuilder() {
-        format = new RedisOutputFormat();
+        super.format = format = new RedisOutputFormat();
     }
 
     public void setHostPort(String hostPort) {
