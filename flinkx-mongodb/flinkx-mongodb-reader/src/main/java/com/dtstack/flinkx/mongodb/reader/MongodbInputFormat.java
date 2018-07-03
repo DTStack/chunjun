@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
@@ -36,9 +37,7 @@ public class MongodbInputFormat extends RichInputFormat {
 
     protected String collectionName;
 
-    protected List<String> columnNames;
-
-    protected List<String> columnTypes;
+    protected List<Column> columns;
 
     protected Bson filter;
 
@@ -77,7 +76,7 @@ public class MongodbInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        return MongodbUtil.convertDocTORow(cursor.next(),columnNames);
+        return MongodbUtil.convertDocTORow(cursor.next(),columns);
     }
 
     @Override

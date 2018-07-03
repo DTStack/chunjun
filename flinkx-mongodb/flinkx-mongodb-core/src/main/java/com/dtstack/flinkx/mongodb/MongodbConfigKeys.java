@@ -14,7 +14,7 @@ public class MongodbConfigKeys {
 
     public final static String KEY_DATABASE = "database";
 
-    public final static String KEY_COLLECTION = "collection";
+    public final static String KEY_COLLECTION = "collectionName";
 
     public final static String KEY_COLUMN_NAME = "name";
 
@@ -24,7 +24,5 @@ public class MongodbConfigKeys {
 
     public final static String KEY_MODE = "writeMode";
 
-    public final static String KEY_UPDATE_COLUMN = "updateColumn";
-
-    public final static String KEY_FILTER_COLUMN = "filterColumn";
+    public final static String KEY_REPLACE_KEY = "replaceKey";
 }

@@ -2,6 +2,7 @@ package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -31,15 +32,9 @@ public class MongodbWriter extends DataWriter {
 
     protected String collection;
 
-    protected List<String> columnNames;
+    protected List<Column> columns;
 
-    protected List<String> columnTypes;
-
-    protected List<String> filterColumns;
-
-    protected List<String> updateColumns;
-
-    protected String mode;
+    protected String replaceKey;
 
     public MongodbWriter(DataTransferConfig config) {
         super(config);
@@ -51,25 +46,8 @@ public class MongodbWriter extends DataWriter {
         database = writerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = writerConfig.getParameter().getStringVal(KEY_COLLECTION);
         mode = writerConfig.getParameter().getStringVal(KEY_MODE);
-        filterColumns = (List)writerConfig.getParameter().getVal(KEY_FILTER_COLUMN);
-        updateColumns = (List)writerConfig.getParameter().getVal(KEY_UPDATE_COLUMN);
-        columnNames = new ArrayList<>();
-        columnTypes = new ArrayList<>();
-
-        List column = writerConfig.getParameter().getColumn();
-        if(column != null && column.size() > 0){
-            for (Object colObj : column) {
-                if(colObj instanceof Map){
-                    Map<String,String> col = (Map<String,String>) colObj;
-                    columnNames.add(col.get(KEY_COLUMN_NAME));
-                    columnTypes.add(col.get(KEY_COLUMN_TYPE));
-                } else if(colObj instanceof String){
-                    columnNames.add(String.valueOf(colObj));
-                }
-            }
-        } else {
-            throw new IllegalArgumentException("column argument error");
-        }
+        replaceKey = writerConfig.getParameter().getStringVal(KEY_REPLACE_KEY);
+        columns = writerConfig.getParameter().getColumn();
     }
 
     @Override
@@ -81,11 +59,9 @@ public class MongodbWriter extends DataWriter {
         builder.setPassword(password);
         builder.setDatabase(database);
         builder.setCollection(collection);
-        builder.setColumnNames(columnNames);
-        builder.setColumnTypes(columnTypes);
         builder.setMode(mode);
-        builder.setFilterColumns(filterColumns);
-        builder.setUpdateColumns(updateColumns);
+        builder.setColumns(columns);
+        builder.setReplaceKey(replaceKey);
 
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);

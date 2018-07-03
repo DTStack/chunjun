@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.mongodb.Column;
 
 import java.util.List;
 import java.util.Map;
@@ -37,12 +38,8 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         format.collectionName = collection;
     }
 
-    public void setColumnNames(List<String> names){
-        format.columnNames = names;
-    }
-
-    public void setColumnTypes(List<String> types){
-        format.columnTypes = types;
+    public void setColumns(List<Column> columns){
+        format.columns = columns;
     }
 
     public void setFilter(Map filter){

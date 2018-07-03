@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.writer.WriteMode;
@@ -33,13 +34,9 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     protected String collectionName;
 
-    protected List<String> columnNames;
+    protected List<Column> columns;
 
-    protected List<String> columnTypes;
-
-    protected List<String> filterColumns;
-
-    protected List<String> updateColumns;
+    protected String replaceKey;
 
     protected String mode = WriteMode.INSERT.getMode();
 
@@ -65,8 +62,8 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        Document doc = MongodbUtil.convertRowToDoc(row,columnNames,updateColumns);
-        Document filter = getFilter(row);
+        Document doc = MongodbUtil.convertRowToDoc(row,columns);
+        Document filter = new Document(replaceKey,doc.getString(replaceKey));
 
         if(WriteMode.INSERT.getMode().equals(mode)){
             collection.insertOne(doc);
@@ -82,7 +79,7 @@ public class MongodbOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         List<Document> documents = new ArrayList<>(rows.size());
         for (Row row : rows) {
-            documents.add(MongodbUtil.convertRowToDoc(row,columnNames,null));
+            documents.add(MongodbUtil.convertRowToDoc(row,columns));
         }
 
         if(WriteMode.INSERT.getMode().equals(mode)){
@@ -98,13 +95,5 @@ public class MongodbOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         super.closeInternal();
         MongodbUtil.close();
-    }
-
-    private Document getFilter(Row row){
-        Document filter = new Document();
-        for (int i = 0; i < filterColumns.size(); i++) {
-            filter.put(filterColumns.get(i),row.getField(i));
-        }
-        return filter;
     }
 }

@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.mongodb.writer;
 
+import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 
 import java.util.List;
@@ -40,24 +41,16 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
         format.collectionName = collection;
     }
 
-    public void setColumnNames(List<String> names){
-        format.columnNames = names;
-    }
-
-    public void setColumnTypes(List<String> types){
-        format.columnTypes = types;
+    public void setColumns(List<Column> columns){
+        format.columns = columns;
     }
 
     public void setMode(String mode){
         format.mode = mode;
     }
 
-    public void setFilterColumns(List<String> filterColumns) {
-        this.format.filterColumns = filterColumns;
-    }
-
-    public void setUpdateColumns(List<String> updateColumns) {
-        this.format.updateColumns = updateColumns;
+    public void setReplaceKey(String replaceKey){
+        format.replaceKey = replaceKey;
     }
 
     @Override

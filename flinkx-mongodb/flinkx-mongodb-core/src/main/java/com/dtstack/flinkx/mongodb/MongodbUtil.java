@@ -1,10 +1,12 @@
 package com.dtstack.flinkx.mongodb;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -27,9 +29,7 @@ public class MongodbUtil {
 
     private static final String HOST_SPLIT_REGEX = ",\\s*";
 
-    private static final String COLUMN_NAME_SPLIT_REGEX = "\\.";
-
-    private static Pattern HOST_PORT_PATTERN = Pattern.compile("(?<host>(\\d{0,3}\\.){3}\\d{0,3})(:(?<port>\\d+))*");
+    private static Pattern HOST_PORT_PATTERN = Pattern.compile("(?<host>.*):(?<port>\\d+)*");
 
     private static final Integer DEFAULT_PORT = 27017;
 
@@ -110,43 +110,68 @@ public class MongodbUtil {
         }
     }
 
-    public static Row convertDocTORow(Document doc,List<String> columnNames){
-        Row row = new Row(columnNames.size());
-
-        for (int i = 0; i < columnNames.size(); i++) {
-            String name = columnNames.get(i);
-            if(name.matches(COLUMN_NAME_SPLIT_REGEX)){
-                String[] parts = name.split(COLUMN_NAME_SPLIT_REGEX);
-                Document current = doc;
-                for (int j = 0; j < parts.length - 1; j++) {
-                    if (current.containsKey(parts[j])){
-                        current = (Document) doc.get(parts[j]);
-                    } else {
-                        break;
-                    }
+    public static Row convertDocTORow(Document doc,List<Column> columns){
+        Row row = new Row(columns.size());
+        for (int i = 0; i < columns.size(); i++) {
+            Column col= columns.get(i);
+            Object colVal = getSpecifiedTypeVal(doc,col.getName(),col.getType());
+            if (col.getSplitter() != null && col.getSplitter().length() > 0){
+                if(colVal instanceof List){
+                    colVal = StringUtils.join((List)colVal,col.getSplitter());
                 }
-
-                row.setField(i,current.getOrDefault(parts[parts.length - 1],null));
-            } else {
-                row.setField(i,doc.getOrDefault(name,null));
             }
+
+            row.setField(i,colVal);
         }
 
         return row;
     }
 
-    public static Document convertRowToDoc(Row row,List<String> columnNames,List<String> updateColumns) throws WriteRecordException {
+    public static Document convertRowToDoc(Row row,List<Column> columns) throws WriteRecordException {
         Document doc = new Document();
-        if(updateColumns == null || updateColumns.size() == 0){
-            for (int i = 0; i < columnNames.size(); i++) {
-                doc.append(columnNames.get(i),row.getField(i));
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            Object val = row.getField(i);
+            if (StringUtils.isNotEmpty(column.getSplitter())){
+                val = String.valueOf(val).split(column.getSplitter());
             }
-        } else {
-            for (int i = 0; i < updateColumns.size(); i++) {
-                doc.append(updateColumns.get(i),row.getField(i));
-            }
+
+            doc.append(column.getName(),val);
         }
+
         return doc;
+    }
+
+    private static Object getSpecifiedTypeVal(Document doc,String key,String type){
+        if (!doc.containsKey(key)){
+            return null;
+        }
+
+        Object val;
+        switch (type.toLowerCase()){
+            case "string" :
+                val = doc.getString(key);
+                break;
+            case "int" :
+                val = doc.getInteger(key);
+                break;
+            case "long" :
+                val = doc.getLong(key);
+                break;
+            case "double" :
+                val = doc.getDouble(key);
+                break;
+            case "bool" :
+                val = doc.getBoolean(key);
+                break;
+            case "date" :
+                val = doc.getDate(key);
+                break;
+            default:
+                val = doc.get(key);
+        }
+
+        return val;
     }
 
     /**
