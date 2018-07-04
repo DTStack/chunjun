@@ -1,5 +1,8 @@
 package com.dtstack.flinkx.redis;
 
+import com.dtstack.flinkx.util.ClassUtil;
+import org.apache.commons.pool2.PooledObjectFactory;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.*;
 
 import java.util.Properties;
@@ -31,9 +34,13 @@ public class JedisUtil {
     public static Jedis getJedis(Properties properties){
         if (jedisPool == null){
             String hostPortStr = properties.getProperty(KEY_HOST_PORT,DEFAULT_HOST);
+            String port = null;
+            String host = null;
             Matcher matcher = PATTERN.matcher(hostPortStr);
-            String host = matcher.group("host");
-            String port = matcher.group("port");
+            if(matcher.find()){
+                host = matcher.group("host");
+                port = matcher.group("port");
+            }
             port = port == null ? DEFAULT_PORT : port;
 
             int timeOut = (Integer) properties.getOrDefault(KEY_TIMEOUT,TIMEOUT);

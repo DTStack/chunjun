@@ -93,7 +93,7 @@
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
                                     <exclude>org.javassist:*</exclude>
-                                    <exclude>org.apache.commons:*</exclude>
+                                    <!--<exclude>org.apache.commons:*</exclude>-->
                                     <exclude>org.apache.avro:avro</exclude>
                                     <exclude>com.google.protobuf:protobuf-java</exclude>
                                     <exclude>org.uncommons.maths:uncommons-maths</exclude>
