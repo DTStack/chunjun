@@ -6,6 +6,7 @@ import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.mongodb.client.MongoCollection;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -63,15 +64,20 @@ public class MongodbOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         Document doc = MongodbUtil.convertRowToDoc(row,columns);
-        Document filter = new Document(replaceKey,doc.getString(replaceKey));
 
         if(WriteMode.INSERT.getMode().equals(mode)){
             collection.insertOne(doc);
-        } else if(WriteMode.UPDATE.getMode().equals(mode)) {
-            doc = new Document("$set",doc);
-            collection.updateOne(filter,doc);
-        } else if(WriteMode.REPLACE.getMode().equals(mode)){
-            collection.replaceOne(filter,doc);
+        } else if(WriteMode.REPLACE.getMode().equals(mode) || WriteMode.UPDATE.getMode().equals(mode)){
+            if(StringUtils.isEmpty(replaceKey)){
+                throw new IllegalArgumentException("ReplaceKey cannot be empty when the write mode is replace");
+            }
+
+            if(!doc.containsKey(replaceKey)){
+                throw new IllegalArgumentException("Cannot find replaceKey in the input fields");
+            }
+
+            Document filter = new Document(replaceKey,doc.get(replaceKey));
+            collection.findOneAndReplace(filter,doc);
         }
     }
 
