@@ -119,7 +119,9 @@ public class RedisOutputFormat extends RichOutputFormat {
             values.add(row.getField(i));
         }
 
-        keyIndexes.forEach(i -> values.remove(i));
+        for (Integer keyIndex : keyIndexes) {
+            values.remove((int)keyIndex);
+        }
 
         return values;
     }
