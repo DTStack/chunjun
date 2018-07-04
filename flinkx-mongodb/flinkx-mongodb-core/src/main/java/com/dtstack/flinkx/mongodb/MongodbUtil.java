@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -54,14 +55,14 @@ public class MongodbUtil {
      */
     public static MongoClient getMongoClient(Map<String,String> config){
         try{
-            if(mongoClient != null){
+            if(mongoClient == null){
                 MongoClientOptions options = getOption();
                 List<ServerAddress> serverAddress = getServerAddress(config.get(KEY_HOST_PORTS));
                 String username = config.get(KEY_USERNAME);
                 String password = config.get(KEY_PASSWORD);
                 String database = config.get(KEY_DATABASE);
 
-                if(username == null){
+                if(StringUtils.isEmpty(username)){
                     mongoClient = new MongoClient(serverAddress,options);
                 } else {
                     MongoCredential credential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
@@ -90,9 +91,11 @@ public class MongodbUtil {
         MongoDatabase db = client.getDatabase(database);
 
         boolean exist = false;
-        for (String name : db.listCollectionNames()) {
-            if(name.equals(collection)){
+        MongoIterable<String> iterable = db.listCollectionNames();
+        while (iterable.iterator().hasNext()){
+            if (iterable.iterator().next().equals(collection)){
                 exist = true;
+                break;
             }
         }
 

@@ -34,10 +34,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -235,6 +232,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private void fillUploadStmt(PreparedStatement upload, int k, Object field, String type) throws SQLException {
         if(type.equals("DATE")) {
+            if (field instanceof Timestamp){
+                field = new java.sql.Date(((Timestamp) field).getTime());
+            }
             upload.setDate(k, (java.sql.Date) field);
         } else if(type.equals("TIMESTAMP")) {
             upload.setTimestamp(k, (Timestamp) field);

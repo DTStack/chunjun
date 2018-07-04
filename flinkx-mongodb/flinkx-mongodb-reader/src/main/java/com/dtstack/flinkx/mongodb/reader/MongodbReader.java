@@ -31,9 +31,9 @@ public class MongodbReader extends DataReader {
 
     protected String collection;
 
-    protected List<Column> columns;
+    protected List<Column> columns = new ArrayList<>();
 
-    protected Map filter;
+    protected String filter;
 
     public MongodbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -44,8 +44,12 @@ public class MongodbReader extends DataReader {
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
         database = readerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = readerConfig.getParameter().getStringVal(KEY_COLLECTION);
-        filter = (Map)readerConfig.getParameter().getVal(KEY_FILTER);
-        columns = readerConfig.getParameter().getColumn();
+        filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
+
+        for (Object item : readerConfig.getParameter().getColumn()) {
+            Map<String,String> colMap = (Map<String,String>)item;
+            columns.add(new Column(colMap.get(KEY_NAME),colMap.get(KEY_TYPE),colMap.get(KEY_SPLITTER)));
+        }
     }
 
     @Override

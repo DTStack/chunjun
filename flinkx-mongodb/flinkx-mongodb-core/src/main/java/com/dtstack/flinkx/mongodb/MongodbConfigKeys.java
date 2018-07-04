@@ -22,5 +22,9 @@ public class MongodbConfigKeys {
 
     public final static String KEY_REPLACE_KEY = "replaceKey";
 
-    public final static String KEY_BATCH_SIZE = "batchSize";
+    public final static String KEY_NAME = "name";
+
+    public final static String KEY_TYPE = "type";
+
+    public final static String KEY_SPLITTER = "splitter";
 }

@@ -42,8 +42,8 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         format.columns = columns;
     }
 
-    public void setFilter(Map filter){
-        format.filterMap = filter;
+    public void setFilter(String filter){
+        format.filterJson = filter;
     }
 
     @Override

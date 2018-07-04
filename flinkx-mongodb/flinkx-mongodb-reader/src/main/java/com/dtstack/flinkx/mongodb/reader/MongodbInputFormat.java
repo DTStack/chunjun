@@ -3,10 +3,12 @@ package com.dtstack.flinkx.mongodb.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -39,9 +41,9 @@ public class MongodbInputFormat extends RichInputFormat {
 
     protected List<Column> columns;
 
-    protected Bson filter;
+    protected String filterJson;
 
-    protected Map filterMap;
+    private Bson filter;
 
     private MongoCollection<Document> collection;
 
@@ -115,10 +117,8 @@ public class MongodbInputFormat extends RichInputFormat {
     }
 
     private void buildFilter(){
-        if(filterMap != null && !filterMap.isEmpty()){
-            BasicDBObject basicDBObject = new BasicDBObject();
-            basicDBObject.putAll(filterMap);
-            filter = basicDBObject;
+        if(StringUtils.isNotEmpty(filterJson)){
+            filter = BasicDBObject.parse(filterJson);
         }
     }
 }
