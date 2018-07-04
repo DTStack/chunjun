@@ -13,6 +13,8 @@ import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -136,7 +138,7 @@ public class MongodbUtil {
             Column column = columns.get(i);
             Object val = row.getField(i);
             if (StringUtils.isNotEmpty(column.getSplitter())){
-                val = String.valueOf(val).split(column.getSplitter());
+                val = Arrays.asList(String.valueOf(val).split(column.getSplitter()));
             }
 
             doc.append(column.getName(),val);

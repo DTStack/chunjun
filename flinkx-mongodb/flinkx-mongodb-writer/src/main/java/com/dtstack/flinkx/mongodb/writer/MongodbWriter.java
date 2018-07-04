@@ -9,7 +9,9 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.KEY_COLLECTION;
@@ -30,7 +32,7 @@ public class MongodbWriter extends DataWriter {
 
     protected String collection;
 
-    protected List<Column> columns;
+    protected List<Column> columns = new ArrayList<>();
 
     protected String replaceKey;
 
@@ -45,7 +47,11 @@ public class MongodbWriter extends DataWriter {
         collection = writerConfig.getParameter().getStringVal(KEY_COLLECTION);
         mode = writerConfig.getParameter().getStringVal(KEY_MODE);
         replaceKey = writerConfig.getParameter().getStringVal(KEY_REPLACE_KEY);
-        columns = writerConfig.getParameter().getColumn();
+
+        for (Object item : writerConfig.getParameter().getColumn()) {
+            Map<String,String> colMap = (Map<String,String>)item;
+            columns.add(new Column(colMap.get(KEY_NAME),colMap.get(KEY_TYPE),colMap.get(KEY_SPLITTER)));
+        }
     }
 
     @Override
