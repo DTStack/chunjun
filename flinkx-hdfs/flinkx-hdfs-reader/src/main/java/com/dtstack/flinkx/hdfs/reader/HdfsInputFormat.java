@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
@@ -80,20 +78,10 @@ public abstract class HdfsInputFormat extends RichInputFormat {
             for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
                 conf.set(entry.getKey(), entry.getValue());
             }
-        } else {
-            org.apache.hadoop.conf.Configuration configuration = HdfsUtil.getConfiguration();
-            configuration.forEach(c ->{
-                conf.set(c.getKey(),c.getValue());
-            });
         }
-
-        if (StringUtils.isEmpty(defaultFS)){
-            conf.set("fs.default.name",HdfsUtil.getDefaultFs());
-        } else {
-            conf.set("fs.default.name", defaultFS);
-        }
-
+        conf.set("fs.default.name", defaultFS);
         conf.set("fs.hdfs.impl.disable.cache", "true");
+
         configureAnythingElse();
     }
 
