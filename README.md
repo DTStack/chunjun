@@ -211,6 +211,8 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Elasticsearch读取插件](docs/esreader.md)
 * [Ftp读取插件](docs/ftpreader.md)
 * [Odps读取插件](docs/odpsreader.md)
+* [PostgreSQL读取插件](docs/postgresqlreader.md)
+* [MongoDB读取插件](docs/mongodbreader.md)
 
 ### 5.2 写入插件
 
@@ -222,6 +224,9 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Elasticsearch写入插件](docs/eswriter.md)
 * [Ftp写入插件](docs/ftpwriter.md)
 * [Odps写入插件](docs/odpswriter.md)
+* [PostgreSQL写入插件](docs/postgresqlwriter.md)
+* [MongoDB写入插件](docs/mongodbwriter.md)
+* [Redis写入插件](docs/rediswriter.md)
 
 ## 6.招聘信息
 
