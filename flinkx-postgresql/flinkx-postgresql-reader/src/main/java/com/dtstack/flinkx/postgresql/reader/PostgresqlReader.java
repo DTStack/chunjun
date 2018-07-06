@@ -23,30 +23,4 @@ public class PostgresqlReader extends JdbcDataReader {
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
     }
-
-    @Override
-    public List<String> descColumnTypes(){
-        List<String> columnType = new ArrayList<>();
-        Connection conn;
-        try{
-            ClassUtil.forName(databaseInterface.getDriverClass(),getClass().getClassLoader());
-            conn = DBUtil.getConnection(dbUrl,username,password);
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryColumnFields(null,table));
-
-            while(rs.next()){
-                String colName = rs.getString(2);
-                String typeName = rs.getString(3);
-                if(column.contains(colName)){
-                    columnType.add(typeName);
-                }
-            }
-
-            DBUtil.closeDBResources(rs,stmt,conn);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
-
-        return columnType;
-    }
 }
