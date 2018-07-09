@@ -117,7 +117,7 @@ public abstract class StreamExecutionEnvironment {
     /**
      * The environment of the context (local by default, cluster if invoked through command line).
      */
-    private static StreamExecutionEnvironmentFactory contextEnvironmentFactory;
+    private static ThreadLocal<StreamExecutionEnvironmentFactory> contextEnvironmentFactory = new ThreadLocal<>();
 
     /** The default parallelism used when creating a local environment. */
     private static int defaultLocalParallelism = Runtime.getRuntime().availableProcessors();
@@ -1593,8 +1593,8 @@ public abstract class StreamExecutionEnvironment {
      * executed.
      */
     public static StreamExecutionEnvironment getExecutionEnvironment() {
-        if (contextEnvironmentFactory != null) {
-            return contextEnvironmentFactory.createExecutionEnvironment();
+        if (contextEnvironmentFactory.get() != null) {
+            return contextEnvironmentFactory.get().createExecutionEnvironment();
         }
 
         // because the streaming project depends on "flink-clients" (and not the other way around)
@@ -1794,11 +1794,11 @@ public abstract class StreamExecutionEnvironment {
     // --------------------------------------------------------------------------------------------
 
     protected static void initializeContextEnvironment(StreamExecutionEnvironmentFactory ctx) {
-        contextEnvironmentFactory = ctx;
+        contextEnvironmentFactory.set(ctx);
     }
 
     protected static void resetContextEnvironment() {
-        contextEnvironmentFactory = null;
+        contextEnvironmentFactory.remove();
     }
 
     /**

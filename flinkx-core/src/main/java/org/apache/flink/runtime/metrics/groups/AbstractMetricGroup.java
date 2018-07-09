@@ -127,6 +127,14 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
     }
 
     /**
+     * Enters all variables specific to this {@link AbstractMetricGroup} and their associated values into the map.
+     *
+     * @param variables map to enter variables and their values into
+     */
+    protected void putVariables(Map<String, String> variables) {
+    }
+
+    /**
      * Returns the logical scope of this group, for example
      * {@code "taskmanager.job.task"}.
      *
@@ -357,7 +365,7 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
         // add the metric only if the group is still open
         synchronized (this) {
             if (!closed) {
-                // immediately put without a 'contains' check to optimize the common case (no collition)
+                // immediately put without a 'contains' check to optimize the common case (no collision)
                 // collisions are resolved later
                 Metric prior = metrics.put(name, metric);
 
@@ -393,11 +401,20 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
 
     @Override
     public MetricGroup addGroup(int name) {
-        return addGroup(String.valueOf(name));
+        return addGroup(String.valueOf(name), ChildType.GENERIC);
     }
 
     @Override
     public MetricGroup addGroup(String name) {
+        return addGroup(name, ChildType.GENERIC);
+    }
+
+    @Override
+    public MetricGroup addGroup(String key, String value) {
+        return addGroup(key, ChildType.KEY).addGroup(value, ChildType.VALUE);
+    }
+
+    private AbstractMetricGroup<?> addGroup(String name, ChildType childType) {
         synchronized (this) {
             if (!closed) {
                 // adding a group with the same name as a metric creates problems in many reporters/dashboards
@@ -408,7 +425,7 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
                             name + "'. Metric might not get properly reported. " + Arrays.toString(scopeComponents));
                 }
 
-                AbstractMetricGroup newGroup = new GenericMetricGroup(registry, this, name);
+                AbstractMetricGroup newGroup = createChildGroup(name, childType);
                 AbstractMetricGroup prior = groups.put(name, newGroup);
                 if (prior == null) {
                     // no prior group with that name
@@ -426,5 +443,26 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
                 return closedGroup;
             }
         }
+    }
+
+    protected GenericMetricGroup createChildGroup(String name, ChildType childType) {
+        switch (childType) {
+            case KEY:
+                return new GenericKeyMetricGroup(registry, this, name);
+            default:
+                return new GenericMetricGroup(registry, this, name);
+        }
+    }
+
+    /**
+     * Enum for indicating which child group should be created.
+     * `KEY` is used to create {@link GenericKeyMetricGroup}.
+     * `VALUE` is used to create {@link GenericValueMetricGroup}.
+     * `GENERIC` is used to create {@link GenericMetricGroup}.
+     */
+    protected enum ChildType {
+        KEY,
+        VALUE,
+        GENERIC
     }
 }
