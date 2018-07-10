@@ -94,7 +94,11 @@ public class MetricLatch extends Latch {
         }
 
         if(!checkMonitorRoots()) {
-            throw new RuntimeException("Invalid monitors");
+            String msg = "";
+            if(monitorRoots != null && monitorRoots.length >= 1) {
+                msg = monitorRoots[0];
+            }
+            throw new RuntimeException("Invalid monitors: " + msg);
         }
     }
 

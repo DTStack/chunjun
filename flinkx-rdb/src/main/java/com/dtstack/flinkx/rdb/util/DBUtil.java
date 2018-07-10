@@ -72,7 +72,7 @@ public class DBUtil {
                         dbConn.close();
                     }
 
-                    if (i == MAX_RETRY_TIMES) {
+                    if (i == MAX_RETRY_TIMES - 1) {
                         throw e;
                     } else {
                         SysUtil.sleep(3000);
