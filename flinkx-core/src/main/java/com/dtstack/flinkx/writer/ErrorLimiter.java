@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.writer;
 
+import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -95,7 +96,7 @@ public class ErrorLimiter {
         int j = 0;
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
-            try (InputStream inputStream = new URL(url).openStream()){
+            try (InputStream inputStream = URLUtil.open(url)){
                  break;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -127,7 +128,7 @@ public class ErrorLimiter {
                     Gson gson = new Gson();
                     for(int index = 0; index < monitorUrls.length; ++index) {
                         String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
-                        try(InputStream inputStream = new URL(requestUrl).openStream() ) {
+                        try(InputStream inputStream = URLUtil.open(requestUrl) ) {
                             try(Reader rd = new InputStreamReader(inputStream)) {
                                 Map<String,Object> map = gson.fromJson(rd, Map.class);
                                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
