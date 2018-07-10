@@ -25,11 +25,11 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         if(doubleTypes.contains(typeName)){
             data = Double.parseDouble(String.valueOf(data));
         } else if(bitTypes.contains(typeName)){
-            data = ((Boolean) data ? 1 : 0);
+            //
         } else if(stringTypes.contains(typeName)){
             data = String.valueOf(data);
         } else if(byteTypes.contains(typeName)){
-            // TODO support byte type later
+            data = Byte.valueOf(String.valueOf(data));
         }
 
         return data;

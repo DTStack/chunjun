@@ -19,6 +19,7 @@ package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -84,6 +85,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private List<String> columnType = new ArrayList<>();
 
+    protected TypeConverterInterface typeConverter;
 
     protected PreparedStatement prepareSingleTemplates() throws SQLException {
         if(fullColumn == null || fullColumn.size() == 0) {
@@ -181,6 +183,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 field = DateUtil.columnToDate(field);
             } else if(type.equalsIgnoreCase("TIMESTAMP")){
                 field = DateUtil.columnToTimestamp(field);
+            }
+        } else if(dbURL.startsWith("jdbc:postgresql")){
+            if(columnType != null && columnType.size() != 0) {
+                field = typeConverter.convert(field,columnType.get(index));
             }
         }
         return field;
