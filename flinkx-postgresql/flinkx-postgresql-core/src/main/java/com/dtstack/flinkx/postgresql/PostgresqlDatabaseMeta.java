@@ -4,6 +4,7 @@ import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,8 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     private String makeUpdateKey(Map<String,List<String>> updateKey){
-        return StringUtils.join(updateKey.get("postgresql_all_pkey"),",");
+        Iterator<Map.Entry<String,List<String>>> it = updateKey.entrySet().iterator();
+        return StringUtils.join(it.next().getValue(),",");
     }
 
     @Override
