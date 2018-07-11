@@ -94,10 +94,12 @@ public class RedisOutputFormat extends RichOutputFormat {
             jedis.hset(key,String.valueOf(fieldValue.get(0)),String.valueOf(fieldValue.get(1)));
         }
 
-        if (expireTime > CRITICAL_TIME){
-            jedis.expireAt(key,expireTime);
-        } else {
-            jedis.expire(key,(int)expireTime);
+        if(expireTime > 0){
+            if (expireTime > CRITICAL_TIME){
+                jedis.expireAt(key,expireTime);
+            } else {
+                jedis.expire(key,(int)expireTime);
+            }
         }
     }
 
