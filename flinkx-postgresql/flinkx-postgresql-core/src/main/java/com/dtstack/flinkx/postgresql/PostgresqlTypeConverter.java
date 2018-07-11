@@ -19,6 +19,8 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
 
     private List<String> doubleTypes = Arrays.asList("money");
 
+    private List<String> intTypes = Arrays.asList("int","int2","int4","int8");
+
     @Override
     public Object convert(Object data,String typeName) {
         if (data == null){
@@ -33,6 +35,10 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
             data = String.valueOf(data);
         } else if(byteTypes.contains(typeName)){
             data = Byte.valueOf(String.valueOf(data));
+        } else if(intTypes.contains(typeName)){
+            if(data instanceof String){
+                data = Integer.parseInt(data.toString());
+            }
         }
 
         return data;

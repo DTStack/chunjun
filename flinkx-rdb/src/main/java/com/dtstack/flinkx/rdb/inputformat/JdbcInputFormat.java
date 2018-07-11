@@ -82,6 +82,8 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected TypeConverterInterface typeConverter;
 
+    protected List<String> column;
+
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -100,7 +102,9 @@ public class JdbcInputFormat extends RichInputFormat {
             ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
-                ret.add(rd.getColumnTypeName(i+1));
+                if (column.contains(rd.getColumnName(i+1))){
+                    ret.add(rd.getColumnTypeName(i+1));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

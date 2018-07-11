@@ -144,6 +144,7 @@ public class JdbcDataReader extends DataReader {
         builder.setTable(table);
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
+        builder.setColumn(column);
 
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
             final int channels = numPartitions;

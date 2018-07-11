@@ -78,6 +78,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.typeConverter = converter;
     }
 
+    public void setColumn(List<String> column){
+        format.column = column;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.username == null) {
