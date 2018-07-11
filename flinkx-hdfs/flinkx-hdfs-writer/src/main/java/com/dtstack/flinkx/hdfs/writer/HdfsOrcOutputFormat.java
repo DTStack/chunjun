@@ -72,7 +72,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
         for(String columnType : fullColumnTypes) {
-            ColumnType type = ColumnType.valueOf(columnType.toUpperCase());
+            columnType = columnType.toUpperCase();
+            if(columnType.startsWith("DECIMAL")) {
+                columnType = "DECIMAL";
+            }
+            ColumnType type = ColumnType.valueOf(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
         this.inspector = ObjectInspectorFactory
