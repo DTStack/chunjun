@@ -87,6 +87,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
+    private final static String DATE_REGEX = "(?i)date";
+
+    private final static String TIMESTAMP_REGEX = "(?i)timestamp";
+
     protected PreparedStatement prepareSingleTemplates() throws SQLException {
         if(fullColumn == null || fullColumn.size() == 0) {
             fullColumn = column;
@@ -237,12 +241,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     private void fillUploadStmt(PreparedStatement upload, int k, Object field, String type) throws SQLException {
-        if(type.equals("DATE")) {
+        if(type.matches(DATE_REGEX)) {
             if (field instanceof Timestamp){
                 field = new java.sql.Date(((Timestamp) field).getTime());
             }
             upload.setDate(k, (java.sql.Date) field);
-        } else if(type.equals("TIMESTAMP")) {
+        } else if(type.matches(TIMESTAMP_REGEX)) {
             upload.setTimestamp(k, (Timestamp) field);
         } else {
             upload.setObject(k, field);

@@ -21,6 +21,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
 
     @Override
     public Object convert(Object data,String typeName) {
+        if (data == null){
+            return null;
+        }
 
         if(doubleTypes.contains(typeName)){
             data = Double.parseDouble(String.valueOf(data));
