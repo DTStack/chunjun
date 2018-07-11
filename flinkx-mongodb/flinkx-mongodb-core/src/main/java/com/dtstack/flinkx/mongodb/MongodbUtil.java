@@ -92,19 +92,6 @@ public class MongodbUtil {
         MongoClient client = getMongoClient(config);
         MongoDatabase db = client.getDatabase(database);
 
-        boolean exist = false;
-        MongoIterable<String> iterable = db.listCollectionNames();
-        while (iterable.iterator().hasNext()){
-            if (iterable.iterator().next().equals(collection)){
-                exist = true;
-                break;
-            }
-        }
-
-        if(!exist){
-            throw new RuntimeException("can not find collection '" + collection + "' from database '" + database + "'.");
-        }
-
         return db.getCollection(collection);
     }
 
