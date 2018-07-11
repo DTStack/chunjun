@@ -1,8 +1,11 @@
 package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -12,17 +15,59 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     protected String makeMultipleValues(int nCols, int batchSize) {
-        return null;
+        String value = makeValues(nCols);
+        return StringUtils.repeat(value, ",", batchSize);
     }
 
     @Override
     protected String makeValues(int nCols) {
-        return null;
+        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
     }
 
     @Override
     protected String makeValues(List<String> column) {
-        return null;
+        throw new UnsupportedOperationException();
+    }
+
+    private String makeUpdatePart (List<String> column) {
+        List<String> updateList = new ArrayList<>();
+        for(String col : column) {
+            String quotedCol = quoteColumn(col);
+            updateList.add(quotedCol + "=EXCLUDED." + quotedCol);
+        }
+        return StringUtils.join(updateList, ",");
+    }
+
+    private String makeUpdateKey(Map<String,List<String>> updateKey){
+        return StringUtils.join(updateKey.get("postgresql_all_pkey"),",");
+    }
+
+    @Override
+    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") VALUES "
+                + makeValues(column.size())
+                + "ON CONFLICT(" + makeUpdateKey(updateKey)
+                + ") DO UPDATE SET " + makeUpdatePart(column) ;
+    }
+
+    @Override
+    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") VALUES "
+                + makeMultipleValues(column.size(), batchSize)
+                + "ON CONFLICT(" + makeUpdateKey(updateKey)
+                + ") DO UPDATE SET " + makeUpdatePart(column) ;
+    }
+
+    @Override
+    public String getStartQuote() {
+        return "";
+    }
+
+    @Override
+    public String getEndQuote() {
+        return "";
     }
 
     @Override
