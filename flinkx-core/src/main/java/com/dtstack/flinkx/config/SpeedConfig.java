@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,6 +37,13 @@ public class SpeedConfig extends AbstractConfig {
 
     public SpeedConfig(Map<String, Object> map) {
         super(map);
+    }
+
+    public static SpeedConfig defaultConfig(){
+        Map<String, Object> map = new HashMap<>(2);
+        map.put("bytes",1048576);
+        map.put("channel",1);
+        return new SpeedConfig(map);
     }
 
     public long getBytes() {
