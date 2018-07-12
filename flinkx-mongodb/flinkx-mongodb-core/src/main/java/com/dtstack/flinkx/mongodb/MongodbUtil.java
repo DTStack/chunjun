@@ -13,6 +13,7 @@ import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -123,7 +124,7 @@ public class MongodbUtil {
         Document doc = new Document();
         for (int i = 0; i < columns.size(); i++) {
             Column column = columns.get(i);
-            Object val = row.getField(i);
+            Object val = convertField(row.getField(i));
             if (StringUtils.isNotEmpty(column.getSplitter())){
                 val = Arrays.asList(String.valueOf(val).split(column.getSplitter()));
             }
@@ -132,6 +133,14 @@ public class MongodbUtil {
         }
 
         return doc;
+    }
+
+    private static Object convertField(Object val){
+        if(val instanceof BigDecimal){
+           val = ((BigDecimal) val).doubleValue();
+        }
+
+        return val;
     }
 
     private static Object getSpecifiedTypeVal(Document doc,String key,String type){
