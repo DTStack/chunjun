@@ -41,8 +41,8 @@ public class SpeedConfig extends AbstractConfig {
 
     public static SpeedConfig defaultConfig(){
         Map<String, Object> map = new HashMap<>(2);
-        map.put("bytes",1048576);
-        map.put("channel",1);
+        map.put("bytes",DEFAULT_SPEED_BYTES);
+        map.put("channel",DEFAULT_NUM_CHANNALS);
         return new SpeedConfig(map);
     }
 
