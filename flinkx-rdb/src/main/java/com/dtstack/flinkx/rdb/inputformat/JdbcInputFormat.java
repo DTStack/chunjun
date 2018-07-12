@@ -33,9 +33,9 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Date;
+import java.util.*;
+
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
 /**
@@ -101,10 +101,14 @@ public class JdbcInputFormat extends RichInputFormat {
             Statement stmt = dbConn.createStatement();
             ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
+
+            Map<String,String> nameTypeMap = new HashMap<>();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
-                if (column.contains(rd.getColumnName(i+1))){
-                    ret.add(rd.getColumnTypeName(i+1));
-                }
+                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            }
+
+            for (String col : column) {
+                ret.add(nameTypeMap.get(col));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
