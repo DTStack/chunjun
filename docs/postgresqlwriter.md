@@ -102,8 +102,8 @@
 * **writeMode**
 
 	* 描述：控制写入数据到目标表采用 `insert into` 或者 `insert into .... on conflict(id) do update set ..` 语句。<br />
-	        (注：PostgreSQL 9.5之前的版本不支持`insert into .... on conflict(id) do update set ..`语法，
-	        因此如果PostgreSQL的版本小于9.5，PostgreSQLWriter插件的update和replace模式将无法使用)
+	        
+	        注：PostgreSQL 9.5之前的版本不支持`insert into .... on conflict(id) do update set ..`语法，因此如果PostgreSQL的版本小于9.5，PostgreSQLWriter插件的update和replace模式将无法使用
 
 	* 必选：是 <br />
 	
@@ -113,7 +113,7 @@
 
 * **batchSize**
 
-	* 描述：一次性批量提交的记录数大小，该值可以极大减少FlinkX与Mysql的网络交互次数，并提升整体吞吐量。但是该值设置过大可能会造成FlinkX运行进程OOM情况。<br />
+	* 描述：一次性批量提交的记录数大小，该值可以极大减少FlinkX与PostgreSQL的网络交互次数，并提升整体吞吐量。但是该值设置过大可能会造成FlinkX运行进程OOM情况。<br />
 
 	* 必选：否 <br />
 
