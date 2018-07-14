@@ -45,7 +45,7 @@ public class JedisUtil {
 
             int timeOut = (Integer) properties.getOrDefault(KEY_TIMEOUT,TIMEOUT);
             String password = properties.getProperty(KEY_PASSWORD);
-            int db = Integer.parseInt(properties.getProperty(KEY_DB,DEFAULT_DB)) ;
+            int db = Integer.parseInt(properties.getOrDefault(KEY_DB,DEFAULT_DB).toString()) ;
 
             jedisPool = new JedisPool(getConfig(), host, Integer.valueOf(port),timeOut, password, db);
         }
