@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -55,6 +56,8 @@ public class JdbcDataReader extends DataReader {
 
     protected DatabaseInterface databaseInterface;
 
+    protected TypeConverterInterface typeConverter;
+
     protected String dbUrl;
 
     protected String username;
@@ -77,6 +80,9 @@ public class JdbcDataReader extends DataReader {
         this.databaseInterface = databaseInterface;
     }
 
+    public void setTypeConverterInterface(TypeConverterInterface typeConverter) {
+        this.typeConverter = typeConverter;
+    }
 
     public JdbcDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
 
@@ -137,6 +143,8 @@ public class JdbcDataReader extends DataReader {
         builder.setDescColumnTypeList(descColumnTypes());
         builder.setTable(table);
         builder.setDatabaseInterface(databaseInterface);
+        builder.setTypeConverter(typeConverter);
+        builder.setColumn(column);
 
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
             final int channels = numPartitions;

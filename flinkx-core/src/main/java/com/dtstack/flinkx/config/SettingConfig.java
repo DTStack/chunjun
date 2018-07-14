@@ -34,9 +34,9 @@ public class SettingConfig extends AbstractConfig {
 
     public static final String KEY_DIRTY_CONFIG = "dirty";
 
-    private SpeedConfig speed;
+    private SpeedConfig speed = SpeedConfig.defaultConfig();
 
-    private ErrorLimitConfig errorLimit;
+    private ErrorLimitConfig errorLimit = ErrorLimitConfig.defaultConfig();
 
     private DirtyConfig dirty;
 

@@ -19,6 +19,8 @@ package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +82,10 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setFullColumn(List<String> fullColumn) {
         format.fullColumn = fullColumn;
+    }
+
+    public void setTypeConverter(TypeConverterInterface typeConverter ){
+        format.typeConverter = typeConverter;
     }
 
     @Override

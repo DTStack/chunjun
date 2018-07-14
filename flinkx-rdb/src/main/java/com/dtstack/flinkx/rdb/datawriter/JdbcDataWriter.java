@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.writer.DataWriter;
@@ -55,8 +56,13 @@ public class JdbcDataWriter extends DataWriter {
     protected int batchSize;
     protected Map<String,List<String>> updateKey;
     protected List<String> fullColumn;
+    protected TypeConverterInterface typeConverter;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
+
+    public void setTypeConverterInterface(TypeConverterInterface typeConverter) {
+        this.typeConverter = typeConverter;
+    }
 
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
@@ -134,6 +140,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setColumn(column);
         builder.setFullColumn(fullColumn);
         builder.setUpdateKey(updateKey);
+        builder.setTypeConverter(typeConverter);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

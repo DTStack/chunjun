@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.reader;
 
+import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -33,6 +35,7 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +70,6 @@ public class ByteRateLimiter {
 
     private ScheduledExecutorService scheduledExecutorService;
 
-
     public ByteRateLimiter(RuntimeContext runtimeContext, String monitors, double expectedBytePerSecond, double samplePeriod) {
 
         Preconditions.checkNotNull(runtimeContext);
@@ -94,7 +96,7 @@ public class ByteRateLimiter {
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
             LOG.info("monitor_url=" + url);
-            try(InputStream inputStream = new URL(url).openStream()) {
+            try (InputStream inputStream = URLUtil.open(url)){
                 break;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -138,7 +140,7 @@ public class ByteRateLimiter {
                 () -> {
                     for (int index = 0; index < 1; ++index) {
                         String requestUrl = monitorUrls[index] + "/jobs/" + this.jobId + "/vertices/" + this.taskId;
-                        try (InputStream inputStream = new URL(requestUrl).openStream()) {
+                        try (InputStream inputStream = URLUtil.open(requestUrl)) {
                             try (Reader rd = new InputStreamReader(inputStream)) {
                                 Map<String, Object> map = gson.fromJson(rd, Map.class);
                                 double thisWriteBytes = 0;

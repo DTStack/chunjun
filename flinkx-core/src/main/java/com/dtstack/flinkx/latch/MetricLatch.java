@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.latch;
 
+import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -28,6 +30,7 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Distributed implementation of Latch
@@ -48,7 +51,7 @@ public class MetricLatch extends Latch {
         int j = 0;
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
-            try(InputStream inputStream = new URL(requestUrl).openStream()) {
+            try(InputStream inputStream = URLUtil.open(requestUrl)) {
                 flag = true;
                 break;
             } catch (Exception e) {
@@ -59,7 +62,7 @@ public class MetricLatch extends Latch {
     }
 
     private int getIntMetricVal(String requestUrl) {
-        try(InputStream inputStream = new URL(requestUrl).openStream() ) {
+        try(InputStream inputStream = URLUtil.open(requestUrl)) {
             try(Reader rd = new InputStreamReader(inputStream)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");

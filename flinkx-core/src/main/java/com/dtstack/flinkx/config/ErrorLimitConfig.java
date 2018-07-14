@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -37,6 +38,13 @@ public class ErrorLimitConfig extends AbstractConfig {
 
     public ErrorLimitConfig(Map<String, Object> map) {
         super(map);
+    }
+
+    public static ErrorLimitConfig defaultConfig(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("record",DEFAULT_ERROR_RECORD_LIMIT);
+        map.put("percentage",DEFAULT_ERROR_PERCENTAGE_LIMIT);
+        return new ErrorLimitConfig(map);
     }
 
     public int getRecord() {
