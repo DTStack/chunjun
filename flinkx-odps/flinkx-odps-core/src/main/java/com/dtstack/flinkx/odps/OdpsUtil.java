@@ -354,7 +354,7 @@ public class OdpsUtil {
             runSqlTask(odps, addPart.toString());
         } catch (Exception e) {
             throw new RuntimeException(String.format("添加 ODPS 目的表的分区失败. 错误发生在添加 ODPS 的项目:%s 的表:%s 的分区:%s. 请联系 ODPS 管理员处理.",
-                            table.getProject(), table.getName(), partition), e);
+                      table.getProject(), table.getName(), partition), e);
         }
     }
 
@@ -368,7 +368,7 @@ public class OdpsUtil {
             runSqlTask(odps, dropPart.toString());
         } catch (Exception e) {
             throw new RuntimeException(String.format("Drop  ODPS 目的表分区失败. 错误发生在项目:%s 的表:%s 的分区:%s .请联系 ODPS 管理员处理.",
-                            table.getProject(), table.getName(), partition), e);
+                    table.getProject(), table.getName(), partition), e);
         }
     }
 

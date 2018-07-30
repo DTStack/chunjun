@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -31,19 +32,10 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Array;
-import java.sql.Connection;
+import java.sql.*;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
 /**
@@ -88,6 +80,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected String table;
 
+    protected TypeConverterInterface typeConverter;
+
+    protected List<String> column;
+
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -105,8 +101,14 @@ public class JdbcInputFormat extends RichInputFormat {
             Statement stmt = dbConn.createStatement();
             ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
+
+            Map<String,String> nameTypeMap = new HashMap<>();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
-                ret.add(rd.getColumnTypeName(i+1));
+                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            }
+
+            for (String col : column) {
+                ret.add(nameTypeMap.get(col));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -245,6 +247,10 @@ public class JdbcInputFormat extends RichInputFormat {
                                     obj = ((Boolean) obj ? 1 : 0);
                                 }
                             }
+                        }
+                    } else if(dbURL.startsWith("jdbc:postgresql")){
+                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                            obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                         }
                     }
                 }

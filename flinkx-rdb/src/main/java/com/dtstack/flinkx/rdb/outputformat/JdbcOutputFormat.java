@@ -19,6 +19,7 @@ package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -34,10 +35,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -87,6 +85,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private List<String> columnType = new ArrayList<>();
 
+    protected TypeConverterInterface typeConverter;
+
+    private final static String DATE_REGEX = "(?i)date";
+
+    private final static String TIMESTAMP_REGEX = "(?i)timestamp";
 
     protected PreparedStatement prepareSingleTemplates() throws SQLException {
         if(fullColumn == null || fullColumn.size() == 0) {
@@ -185,6 +188,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
             } else if(type.equalsIgnoreCase("TIMESTAMP")){
                 field = DateUtil.columnToTimestamp(field);
             }
+        } else if(dbURL.startsWith("jdbc:postgresql")){
+            if(columnType != null && columnType.size() != 0) {
+                field = typeConverter.convert(field,columnType.get(index));
+            }
         }
         return field;
     }
@@ -234,9 +241,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     private void fillUploadStmt(PreparedStatement upload, int k, Object field, String type) throws SQLException {
-        if(type.equals("DATE")) {
+        if(type.matches(DATE_REGEX)) {
+            if (field instanceof Timestamp){
+                field = new java.sql.Date(((Timestamp) field).getTime());
+            }
             upload.setDate(k, (java.sql.Date) field);
-        } else if(type.equals("TIMESTAMP")) {
+        } else if(type.matches(TIMESTAMP_REGEX)) {
             upload.setTimestamp(k, (Timestamp) field);
         } else {
             upload.setObject(k, field);
