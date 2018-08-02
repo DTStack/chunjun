@@ -50,10 +50,6 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.queryTemplate = query;
     }
 
-    public void setDescColumnTypeList(List<String> columnTypeList) {
-        format.descColumnTypeList = columnTypeList;
-    }
-
     public void setParameterValues(Object[][] parameterValues) {
         format.parameterValues = parameterValues;
     }

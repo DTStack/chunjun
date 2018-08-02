@@ -94,29 +94,6 @@ public class JdbcInputFormat extends RichInputFormat {
 
     }
 
-    private List<String> analyzeTable() {
-        List<String> ret = new ArrayList<>();
-
-        try {
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
-            ResultSetMetaData rd = rs.getMetaData();
-
-            Map<String,String> nameTypeMap = new HashMap<>();
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
-            }
-
-            for (String col : column) {
-                ret.add(nameTypeMap.get(col));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return ret;
-    }
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
@@ -127,36 +104,7 @@ public class JdbcInputFormat extends RichInputFormat {
             if (inputSplit != null && parameterValues != null) {
                 for (int i = 0; i < parameterValues[inputSplit.getSplitNumber()].length; i++) {
                     Object param = parameterValues[inputSplit.getSplitNumber()][i];
-                    if (param instanceof String) {
-                        statement.setString(i + 1, (String) param);
-                    } else if (param instanceof Long) {
-                        statement.setLong(i + 1, (Long) param);
-                    } else if (param instanceof Integer) {
-                        statement.setInt(i + 1, (Integer) param);
-                    } else if (param instanceof Double) {
-                        statement.setDouble(i + 1, (Double) param);
-                    } else if (param instanceof Boolean) {
-                        statement.setBoolean(i + 1, (Boolean) param);
-                    } else if (param instanceof Float) {
-                        statement.setFloat(i + 1, (Float) param);
-                    } else if (param instanceof BigDecimal) {
-                        statement.setBigDecimal(i + 1, (BigDecimal) param);
-                    } else if (param instanceof Byte) {
-                        statement.setByte(i + 1, (Byte) param);
-                    } else if (param instanceof Short) {
-                        statement.setShort(i + 1, (Short) param);
-                    } else if (param instanceof Date) {
-                        statement.setDate(i + 1, (Date) param);
-                    } else if (param instanceof Time) {
-                        statement.setTime(i + 1, (Time) param);
-                    } else if (param instanceof Timestamp) {
-                        statement.setTimestamp(i + 1, (Timestamp) param);
-                    } else if (param instanceof Array) {
-                        statement.setArray(i + 1, (Array) param);
-                    } else {
-                        //extends with other types if needed
-                        throw new IllegalArgumentException("open() failed. Parameter " + i + " of type " + param.getClass() + " is not handled (yet)." );
-                    }
+                    DBUtil.setParameterValue(param,statement,i);
                 }
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
@@ -169,7 +117,7 @@ public class JdbcInputFormat extends RichInputFormat {
             columnCount = resultSet.getMetaData().getColumnCount();
 
             if(descColumnTypeList == null) {
-                descColumnTypeList = analyzeTable();
+                descColumnTypeList = DBUtil.analyzeTable(dbConn,databaseInterface,table,column);
             }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -216,47 +164,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 return null;
             }
 
-            for (int pos = 0; pos < row.getArity(); pos++) {
-                Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if (dbURL.startsWith("jdbc:oracle")) {
-                        if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
-                            obj = resultSet.getTimestamp(pos + 1);
-                        }
-                    } else if(dbURL.startsWith("jdbc:mysql")) {
-                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
-                            if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
-                                java.util.Date date = (java.util.Date) obj;
-                                String year = DateUtil.dateToYearString(date);
-                                System.out.println(year);
-                                obj = year;
-                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("tinyint")) {
-                                if(obj instanceof Boolean) {
-                                    obj = ((Boolean) obj ? 1 : 0);
-                                }
-                            } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
-                                if(obj instanceof Boolean) {
-                                    obj = ((Boolean) obj ? 1 : 0);
-                                }
-                            }
-                        }
-                    } else if(dbURL.startsWith("jdbc:sqlserver")) {
-                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
-                            if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
-                                if(obj instanceof Boolean) {
-                                    obj = ((Boolean) obj ? 1 : 0);
-                                }
-                            }
-                        }
-                    } else if(dbURL.startsWith("jdbc:postgresql")){
-                        if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
-                            obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
-                        }
-                    }
-                }
-
-                row.setField(pos, obj);
-            }
+            DBUtil.getRow(dbURL,row,descColumnTypeList,resultSet,typeConverter);
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();
