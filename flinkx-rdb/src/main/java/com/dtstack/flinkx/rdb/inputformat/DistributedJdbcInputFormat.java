@@ -187,7 +187,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                 closeCurrentSource();
                 openNextSource();
             }catch (SQLException e){
-                throw new IOException("open source error:" + currentSource.getJdbcUrl());
+                throw new IOException("open source error:" + currentSource.getJdbcUrl(),e);
             }
         }
 
