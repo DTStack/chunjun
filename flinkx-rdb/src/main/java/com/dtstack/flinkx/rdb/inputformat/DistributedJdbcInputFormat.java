@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
@@ -11,6 +12,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,9 +36,9 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected List<String> descColumnTypeList;
 
-    protected List<DistributedJdbcInputSplit.DataSource> sourceList;
+    protected List<DataSource> sourceList;
 
-    private transient DistributedJdbcInputSplit.DataSource currentSource;
+    private transient DataSource currentSource;
 
     private transient int sourceIndex;
 
@@ -81,8 +83,8 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         LOG.info("JdbcInputFormat[" + jobName + "]open: end");
     }
 
-    private void openNextSource() throws Exception{
-        for (DistributedJdbcInputSplit.DataSource dataSource : sourceList) {
+    private void openNextSource() throws SQLException{
+        for (DataSource dataSource : sourceList) {
             if(!dataSource.isFinished()){
                 sourceIndex = sourceList.indexOf(dataSource);
                 currentSource = dataSource;
@@ -119,19 +121,16 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         if(descColumnTypeList == null) {
             descColumnTypeList = DBUtil.analyzeTable(currentConn,databaseInterface,currentSource.getTable(),column);
         }
+
+        LOG.info("open source:" + currentSource.getJdbcUrl() + ",table:" + currentSource.getTable());
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         row = new Row(columnCount);
         try{
-            if (!hasNext){
-                closeCurrentSource();
-                openNextSource();
-
-                if(!hasNext){
-                    return null;
-                }
+            if(!hasNext){
+                return null;
             }
 
             DBUtil.getRow(currentSource.getJdbcUrl(),row,descColumnTypeList,currentResultSet,typeConverter);
@@ -162,12 +161,12 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         int partNum = sourceList.size() / numPartitions;
         for (int j = 0; j < numPartitions; j++) {
             DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-            split.setSourceList(sourceList.subList(j * partNum,(j + 1) * partNum));
+            split.setSourceList(new ArrayList<>(sourceList.subList(j * partNum,(j + 1) * partNum)));
             inputSplits[j] = split;
         }
 
         if(partNum * numPartitions < sourceList.size()){
-            List<DistributedJdbcInputSplit.DataSource> sourceLeft = sourceList.subList(numPartitions * partNum,sourceList.size());
+            List<DataSource> sourceLeft = new ArrayList<>(sourceList.subList(numPartitions * partNum,sourceList.size()));
             Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
             for (int i = 0; i < sourceLeft.size(); i++) {
                 if (splitKey != null && splitKey.length() > 0){
@@ -183,6 +182,15 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
+        if (!hasNext){
+            try{
+                closeCurrentSource();
+                openNextSource();
+            }catch (SQLException e){
+                throw new IOException("open source error:" + currentSource.getJdbcUrl());
+            }
+        }
+
         return !hasNext;
     }
 }

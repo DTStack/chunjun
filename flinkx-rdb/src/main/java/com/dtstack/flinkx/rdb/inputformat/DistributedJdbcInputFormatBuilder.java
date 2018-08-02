@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 
@@ -42,7 +43,7 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.splitKey = splitKey;
     }
 
-    public void setSourceList(List<DistributedJdbcInputSplit.DataSource> sourceList){
+    public void setSourceList(List<DataSource> sourceList){
         format.sourceList = sourceList;
     }
 
