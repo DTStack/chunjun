@@ -10,10 +10,11 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class DistributedJdbcInputFormat extends RichInputFormat {
@@ -171,13 +172,20 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
             if(partNum * numPartitions < sourceList.size()){
                 List<DataSource> sourceLeft = new ArrayList<>(sourceList.subList(numPartitions * partNum,sourceList.size()));
-                Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
-                for (int i = 0; i < sourceLeft.size(); i++) {
-                    if (splitKey != null && splitKey.length() > 0){
-                        sourceLeft.get(i).setSplitByKey(true);
-                        sourceLeft.get(i).setParameterValues(parmeter[i]);
+                if(splitKey == null || splitKey.length() == 0){
+                    for (int i = 0; i < sourceLeft.size(); i++) {
+                        inputSplits[i].addSource(sourceLeft.get(i));
                     }
-                    inputSplits[i].addSource(sourceLeft.get(i));
+                } else {
+                    Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
+                    for (int j = 0; j < numPartitions; j++){
+                        List<DataSource> sourceLeftSplit = deepCopyList(sourceLeft);
+                        for (int i = 0; i < sourceLeftSplit.size(); i++) {
+                            sourceLeftSplit.get(i).setSplitByKey(true);
+                            sourceLeftSplit.get(i).setParameterValues(parmeter[j]);
+                        }
+                        inputSplits[j].addSource(sourceLeftSplit);
+                    }
                 }
             }
         } else {
@@ -188,11 +196,12 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
                 DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-                split.setSourceList(new ArrayList<>(sourceList));
-                for (int i = 0; i < split.getSourceList().size(); i++) {
-                    split.getSourceList().get(i).setSplitByKey(true);
-                    split.getSourceList().get(i).setParameterValues(parmeter[i]);
+                List<DataSource> sourceCopy = deepCopyList(sourceList);
+                for (int i = 0; i < sourceCopy.size(); i++) {
+                    sourceCopy.get(i).setSplitByKey(true);
+                    sourceCopy.get(i).setParameterValues(parmeter[j]);
                 }
+                split.setSourceList(sourceCopy);
                 inputSplits[j] = split;
             }
         }
@@ -212,5 +221,21 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         }
 
         return !hasNext;
+    }
+
+    public <T> List<T> deepCopyList(List<T> src) throws IOException{
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(byteOut);
+            out.writeObject(src);
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+            ObjectInputStream in = new ObjectInputStream(byteIn);
+            List<T> dest = (List<T>) in.readObject();
+
+            return dest;
+        } catch (Exception e){
+            throw new IOException(e);
+        }
     }
 }

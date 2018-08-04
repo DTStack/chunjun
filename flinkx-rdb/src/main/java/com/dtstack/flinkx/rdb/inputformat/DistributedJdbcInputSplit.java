@@ -14,13 +14,20 @@ public class DistributedJdbcInputSplit extends GenericInputSplit {
         super(partitionNumber, totalNumberOfPartitions);
     }
 
+    public void addSource(List<DataSource> sourceLeft){
+        if (sourceList == null){
+            this.sourceList = new ArrayList<>();
+        }
+
+        this.sourceList.addAll(sourceLeft);
+    }
+
     public void addSource(DataSource source){
         if (sourceList == null){
             this.sourceList = new ArrayList<>();
-            this.sourceList.add(source);
-        } else {
-            this.sourceList.add(source);
         }
+
+        this.sourceList.add(source);
     }
 
     public List<DataSource> getSourceList() {
