@@ -18,11 +18,11 @@
 package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
-import org.apache.flink.api.java.io.jdbc.split.ParameterValuesProvider;
 import org.apache.flink.types.Row;
 
 import java.io.Serializable;

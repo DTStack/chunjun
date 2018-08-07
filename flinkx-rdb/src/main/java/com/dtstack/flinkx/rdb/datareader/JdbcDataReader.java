@@ -29,22 +29,17 @@ import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.io.jdbc.split.ParameterValuesProvider;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The Reader plugin for any database that can be connected via JDBC.

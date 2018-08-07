@@ -53,6 +53,38 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        
+
+        boolean hasGlobalCountInfo = true;
+        if(format.username == null || format.password == null){
+            hasGlobalCountInfo = false;
+        }
+
+        if (format.sourceList == null || format.sourceList.size() == 0){
+            throw new IllegalArgumentException("One or more data sources must be specified");
+        }
+
+        String jdbcPrefix = null;
+
+        for (DataSource dataSource : format.sourceList) {
+            if(!hasGlobalCountInfo && (dataSource.getUserName() == null || dataSource.getPassword() == null)){
+                throw new IllegalArgumentException("Must specify a global account or specify an account for each data source");
+            }
+
+            if (dataSource.getTable() == null || dataSource.getTable().length() == 0){
+                throw new IllegalArgumentException("table name cannot be empty");
+            }
+
+            if (dataSource.getJdbcUrl() == null || dataSource.getJdbcUrl().length() == 0 ){
+                throw new IllegalArgumentException("'jdbcUrl' cannot be empty");
+            }
+
+            if(jdbcPrefix == null){
+                jdbcPrefix = dataSource.getJdbcUrl().split("//")[0];
+            }
+
+            if(!dataSource.getJdbcUrl().startsWith(jdbcPrefix)){
+                throw new IllegalArgumentException("Multiple data sources must be of the same type");
+            }
+        }
     }
 }
