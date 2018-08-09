@@ -35,6 +35,7 @@
                         <artifactSet>
                             <excludes>
                                 <!--from com.dtstack.flinkx:core-->
+                                <exclude>org.slf4j:slf4j-api</exclude>
                                 <exclude>com.dtstack.flinkx:flinkx-core</exclude>
                                 <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
                                 <!--from org.apache.flink:*-->
