@@ -14,6 +14,7 @@
     <properties>
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.4.0</flink.version>
+        <dev.path>${basedir}/../dev</dev.path>
     </properties>
 
     <dependencies>
