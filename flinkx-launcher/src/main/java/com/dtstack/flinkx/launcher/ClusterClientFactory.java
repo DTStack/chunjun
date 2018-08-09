@@ -26,7 +26,6 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.core.fs.FileSystem;
-import org.apache.flink.runtime.fs.hdfs.HadoopFsFactory;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterClient;
 import org.apache.flink.yarn.YarnClusterDescriptor;
@@ -34,11 +33,9 @@ import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -146,6 +143,7 @@ public class ClusterClientFactory {
                     confField.setAccessible(true);
                     haYarnConf(yarnConf);
                     confField.set(clusterDescriptor, yarnConf);
+
                     YarnClusterClient clusterClient = clusterDescriptor.retrieve(applicationId);
                     clusterClient.setDetached(true);
                     return clusterClient;
