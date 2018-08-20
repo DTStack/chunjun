@@ -204,6 +204,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 ### 5.1 读取插件
 
 * [MySQL读取插件](docs/mysqlreader.md)
+* [MySQL分库分表读取插件](docs/mysqldreader.md)
 * [Oracle读取插件](docs/oraclereader.md)
 * [SQLServer读取插件](docs/sqlserverreader.md)
 * [HDFS读取插件](docs/hdfsreader.md)
