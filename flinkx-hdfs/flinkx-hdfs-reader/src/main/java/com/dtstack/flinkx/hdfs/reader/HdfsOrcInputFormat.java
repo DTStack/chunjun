@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -103,7 +104,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             int endIndex = typeStruct.lastIndexOf(">");
             typeStruct = typeStruct.substring(startIndex, endIndex);
 
-            String[] cols = typeStruct.split(",");
+            String[] cols = StringUtil.splitIgnoreQuotaBrackets(typeStruct,",");
 
             fullColNames = new String[cols.length];
             fullColTypes = new String[cols.length];

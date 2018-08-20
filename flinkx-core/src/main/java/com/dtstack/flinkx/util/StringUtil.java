@@ -189,4 +189,14 @@ public class StringUtil {
         return sb.toString();
     }
 
+    /**
+     * Split the string according to the specified separator,ignore separators in quotes and parentheses
+     * @param str String to be split
+     * @param delimter Separator
+     * @return Result array
+     */
+    public static String[] splitIgnoreQuotaBrackets(String str, String delimter){
+        String splitPatternStr = delimter + "(?![^()]*+\\))(?![^{}]*+})(?![^\\[\\]]*+\\])(?=(?:[^\"]|\"[^\"]*\")*$)";
+        return str.split(splitPatternStr);
+    }
 }
