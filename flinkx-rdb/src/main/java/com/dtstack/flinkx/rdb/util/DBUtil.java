@@ -23,6 +23,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.flink.types.Row;
 
 import java.io.Serializable;
@@ -47,6 +48,9 @@ public class DBUtil {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
             DriverManager.setLoginTimeout(10);
+
+            // telnet
+            TelnetUtil.telnet(url);
 
             if (username == null) {
                 dbConn = DriverManager.getConnection(url);

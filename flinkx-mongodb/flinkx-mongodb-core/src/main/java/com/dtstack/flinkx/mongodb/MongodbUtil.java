@@ -1,12 +1,11 @@
 package com.dtstack.flinkx.mongodb;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +176,7 @@ public class MongodbUtil {
     /**
      * parse server address from hostPorts string
      */
-    private static List<ServerAddress> getServerAddress(String hostPorts){
+    private static List<ServerAddress> getServerAddress(String hostPorts) {
         List<ServerAddress> addresses = Lists.newArrayList();
 
         for (String hostPort : hostPorts.split(HOST_SPLIT_REGEX)) {
@@ -191,6 +189,8 @@ public class MongodbUtil {
                 String host = matcher.group("host");
                 String portStr = matcher.group("port");
                 int port = portStr == null ? DEFAULT_PORT : Integer.parseInt(portStr);
+
+                TelnetUtil.telnet(host,port);
 
                 ServerAddress serverAddress = new ServerAddress(host,port);
                 addresses.add(serverAddress);

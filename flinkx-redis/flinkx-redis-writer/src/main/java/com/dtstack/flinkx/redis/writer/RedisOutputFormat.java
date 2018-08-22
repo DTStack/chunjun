@@ -62,6 +62,7 @@ public class RedisOutputFormat extends RichOutputFormat {
         properties.put(KEY_DB,database);
 
         jedis = JedisUtil.getJedis(properties);
+
         sdf.applyPattern(dateFormat);
     }
 
