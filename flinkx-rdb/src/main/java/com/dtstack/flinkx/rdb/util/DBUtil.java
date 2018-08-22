@@ -317,7 +317,8 @@ public class DBUtil {
     }
 
     public static String formatJdbcUrl(String pluginName,String dbUrl){
-        if(pluginName.equalsIgnoreCase("mysqlreader")) {
+        if(pluginName.equalsIgnoreCase("mysqlreader")
+                || pluginName.equalsIgnoreCase("mysqldreader")) {
             String[] splits = dbUrl.split("\\?");
 
             Map<String,String> paramMap = new HashMap<String,String>();
