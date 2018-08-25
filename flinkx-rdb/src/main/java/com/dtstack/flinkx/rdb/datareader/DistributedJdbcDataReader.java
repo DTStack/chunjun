@@ -33,6 +33,8 @@ public class DistributedJdbcDataReader extends DataReader {
 
     protected String splitKey;
 
+    protected String pluginName;
+
     private List<ReaderConfig.ParameterConfig.ConnectionConfig> connectionConfigs;
 
     private static String DISTRIBUTED_TAG = "d";
@@ -47,6 +49,7 @@ public class DistributedJdbcDataReader extends DataReader {
         column = readerConfig.getParameter().getColumn();
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         connectionConfigs = readerConfig.getParameter().getConnection();
+        pluginName = readerConfig.getName();
     }
 
     @Override
@@ -75,7 +78,7 @@ public class DistributedJdbcDataReader extends DataReader {
                     ? username : connectionConfig.getUsername();
             String curPassword = (connectionConfig.getPassword() == null || connectionConfig.getPassword().length() == 0)
                     ? password : connectionConfig.getPassword();
-            String curJdbcUrl = DBUtil.formatJdbcUrl(databaseInterface.getDatabaseType(),connectionConfig.getJdbcUrl().get(0));
+            String curJdbcUrl = DBUtil.formatJdbcUrl(pluginName,connectionConfig.getJdbcUrl().get(0));
             for (String table : connectionConfig.getTable()) {
                 DataSource source = new DataSource();
                 source.setTable(table);
