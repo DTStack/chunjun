@@ -115,8 +115,9 @@ public class JdbcInputFormat extends RichInputFormat {
                     LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
                 }
             }
-            statement.setFetchSize(1000);
-            statement.setQueryTimeout(1000);
+
+            statement.setFetchSize(databaseInterface.getFetchSize());
+            statement.setQueryTimeout(databaseInterface.getQueryTimeout());
             resultSet = statement.executeQuery();
             hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();

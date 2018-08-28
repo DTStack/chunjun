@@ -63,4 +63,7 @@ public interface DatabaseInterface {
 
     String getSplitFilter(String columnName);
 
+    int getFetchSize();
+
+    int getQueryTimeout();
 }
