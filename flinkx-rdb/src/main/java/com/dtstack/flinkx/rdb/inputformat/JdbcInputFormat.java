@@ -99,6 +99,11 @@ public class JdbcInputFormat extends RichInputFormat {
         try {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
+
+            if(drivername.equalsIgnoreCase("org.postgresql.Driver")){
+                dbConn.setAutoCommit(false);
+            }
+
             statement = dbConn.prepareStatement(queryTemplate, resultSetType, resultSetConcurrency);
 
             if (inputSplit != null && parameterValues != null) {

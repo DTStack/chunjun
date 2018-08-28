@@ -29,6 +29,7 @@ import org.apache.hadoop.hive.common.type.HiveDecimal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 
 /**
@@ -101,7 +102,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                         sb.append(Integer.valueOf(rowData));
                         break;
                     case BIGINT:
-                        sb.append(Long.valueOf(rowData));
+                        sb.append(new BigInteger(rowData));
                         break;
                     case FLOAT:
                         sb.append(Float.valueOf(rowData));
