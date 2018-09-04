@@ -102,7 +102,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                         sb.append(Integer.valueOf(rowData));
                         break;
                     case BIGINT:
-                        sb.append(new BigInteger(rowData));
+                        BigInteger data = new BigInteger(rowData);
+                        if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                            sb.append(data);
+                        } else {
+                            sb.append(rowData);
+                        }
                         break;
                     case FLOAT:
                         sb.append(Float.valueOf(rowData));

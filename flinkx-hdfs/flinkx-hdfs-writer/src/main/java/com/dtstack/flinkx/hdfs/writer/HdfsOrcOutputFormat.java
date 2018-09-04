@@ -122,7 +122,12 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                         recordList.add(Integer.valueOf(rowData));
                         break;
                     case BIGINT:
-                        recordList.add(new BigInteger(rowData));
+                        BigInteger data = new BigInteger(rowData);
+                        if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                            recordList.add(data);
+                        } else {
+                            recordList.add(Long.valueOf(rowData));
+                        }
                         break;
                     case FLOAT:
                         recordList.add(Float.valueOf(rowData));
