@@ -184,18 +184,17 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         for(int i = 0; i < columnIndex.size(); ++i) {
             Integer index = columnIndex.get(i);
             String val = columnValue.get(i);
+            String type = columnType.get(i);
             if(index != null) {
                 Object col = inspector.getStructFieldData(value, fields.get(index));
                 if (col != null) {
                     col = HdfsUtil.getWritableValue(col);
                 }
-                row.setField(i, col);
+                row.setField(i, HdfsUtil.string2col(String.valueOf(col),type));
             } else if(val != null) {
-                String type = columnType.get(i);
                 Object col = HdfsUtil.string2col(val,type);
                 row.setField(i, col);
             }
-
         }
         return row;
     }

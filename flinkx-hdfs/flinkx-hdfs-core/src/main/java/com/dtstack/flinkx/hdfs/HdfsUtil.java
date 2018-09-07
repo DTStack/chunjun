@@ -85,7 +85,7 @@ public class HdfsUtil {
     public static Object string2col(String str, String type) {
 
         Preconditions.checkNotNull(type);
-        ColumnType columnType = valueOf(type.toUpperCase());
+        ColumnType columnType = ColumnType.fromString(type.toUpperCase());
         Object ret;
         switch(columnType) {
             case TINYINT:
@@ -104,6 +104,7 @@ public class HdfsUtil {
                 ret = Float.valueOf(str);
                 break;
             case DOUBLE:
+            case DECIMAL:
                 ret = Double.valueOf(str);
                 break;
             case STRING:
