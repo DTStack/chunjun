@@ -76,12 +76,14 @@ public class DirtyDataManager {
         config.set("fs.hdfs.impl.disable.cache", "true");
     }
 
-    public void writeData(Row row, WriteRecordException ex) {
+    public String writeData(Row row, WriteRecordException ex) {
         String content = RowUtil.rowToJson(row, fieldNames);
-        String line = StringUtils.join(new String[]{content,retrieveCategory(ex), gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
+        String errorType = retrieveCategory(ex);
+        String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
         try {
             bw.write(line);
             bw.write(LINE_DELIMITER);
+            return errorType;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

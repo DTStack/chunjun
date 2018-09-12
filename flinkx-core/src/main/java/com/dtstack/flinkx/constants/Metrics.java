@@ -28,6 +28,14 @@ public class Metrics {
 
     public static String NUM_ERRORS = "nErrors";
 
+    public static String NUM_NULL_ERRORS = "nullErrors";
+
+    public static String NUM_DUPLICATE_ERRORS = "duplicateErrors";
+
+    public static String NUM_CONVERSION_ERRORS = "conversionErrors";
+
+    public static String NUM_OTHER_ERRORS = "otherErrors";
+
     public static String NUM_WRITES = "numWrite";
 
     public static String JOB_NAME = "<job_name>";

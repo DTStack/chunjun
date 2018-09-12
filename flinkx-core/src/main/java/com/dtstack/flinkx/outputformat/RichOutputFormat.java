@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
@@ -71,6 +72,18 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     /** 错误记录数 */
     protected IntCounter errCounter;
+
+    /** Number of null pointer errors */
+    protected IntCounter nullErrCounter;
+
+    /** Number of primary key conflict errors */
+    protected IntCounter duplicateErrCounter;
+
+    /** Number of type conversion errors */
+    protected IntCounter conversionErrCounter;
+
+    /** Number of other errors */
+    protected IntCounter otherErrCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
@@ -152,6 +165,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         //错误记录数
         errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+
         //总记录数
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
 
@@ -232,7 +250,16 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             }
 
             if(dirtyDataManager != null) {
-                dirtyDataManager.writeData(row, e);
+                String errorType = dirtyDataManager.writeData(row, e);
+                if (ERR_NULL_POINTER.equals(errorType)){
+                    nullErrCounter.add(1);
+                } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
+                    conversionErrCounter.add(1);
+                } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
+                    duplicateErrCounter.add(1);
+                } else {
+                    otherErrCounter.add(1);
+                }
             }
 
             LOG.error(e.getMessage());
