@@ -66,6 +66,7 @@ public class DistributedJdbcDataReader extends DataReader {
         builder.setSourceList(buildConnections());
         builder.setNumPartitions(numPartitions);
         builder.setSplitKey(splitKey);
+        builder.setWhere(where);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());
