@@ -16,37 +16,32 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.stream.reader;
+package com.dtstack.flinkx.stream.writer;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import org.apache.flink.types.Row;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
 
 /**
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamInputFormatBuilder extends RichInputFormatBuilder {
+public class StreamOutputFormat extends RichOutputFormat {
 
-    private StreamInputFormat format;
-
-    public StreamInputFormatBuilder() {
-        super.format = format = new StreamInputFormat();
-    }
-
-    public void setSliceRecordCount(long sliceRecordCount){
-        format.sliceRecordCount = sliceRecordCount;
-    }
-
-    public void setColumns(List<Map<String,Object>> columns){
-        format.columns = columns;
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        // do nothing
     }
 
     @Override
-    protected void checkFormat() {
-        if (format.columns == null || format.columns.size() == 0){
-            throw new IllegalArgumentException("columns can not be empty");
-        }
+    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        // do nothing
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        // do nothing
     }
 }

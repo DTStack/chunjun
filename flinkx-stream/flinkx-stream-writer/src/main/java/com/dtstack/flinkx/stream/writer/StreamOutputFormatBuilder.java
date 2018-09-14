@@ -16,37 +16,24 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.stream.reader;
+package com.dtstack.flinkx.stream.writer;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
-
-import java.util.List;
-import java.util.Map;
+import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 
 /**
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamInputFormatBuilder extends RichInputFormatBuilder {
+public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
 
-    private StreamInputFormat format;
+    private StreamOutputFormat format;
 
-    public StreamInputFormatBuilder() {
-        super.format = format = new StreamInputFormat();
-    }
-
-    public void setSliceRecordCount(long sliceRecordCount){
-        format.sliceRecordCount = sliceRecordCount;
-    }
-
-    public void setColumns(List<Map<String,Object>> columns){
-        format.columns = columns;
+    public StreamOutputFormatBuilder() {
+        super.format = format = new StreamOutputFormat();
     }
 
     @Override
     protected void checkFormat() {
-        if (format.columns == null || format.columns.size() == 0){
-            throw new IllegalArgumentException("columns can not be empty");
-        }
+
     }
 }

@@ -1,7 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -10,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * @Company: www.dtstack.com
  * @author jiangbo
- * @date 2018/09/13 20:00
  */
 public class StreamInputFormat extends RichInputFormat {
 
@@ -29,25 +48,23 @@ public class StreamInputFormat extends RichInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         staticData = new Row(columns.size());
         for (int i = 0; i < columns.size(); i++) {
-            staticData.setField(i,columns.get(i).get("val"));
+            staticData.setField(i,columns.get(i).get("value"));
         }
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        System.out.println(row.toString());
-        recordRead++;
         return staticData;
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return recordRead > sliceRecordCount ;
+        return ++recordRead > sliceRecordCount ;
     }
 
     @Override
     protected void closeInternal() throws IOException {
-
+        recordRead = 0;
     }
 
     @Override
@@ -57,6 +74,11 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
+        InputSplit[] inputSplits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            inputSplits[i] = new GenericInputSplit(i,minNumSplits);
+        }
+
+        return inputSplits;
     }
 }
