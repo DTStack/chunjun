@@ -51,6 +51,10 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.numPartitions = numPartitions;
     }
 
+    public void setWhere(String where){
+        format.where = where;
+    }
+
     @Override
     protected void checkFormat() {
 
