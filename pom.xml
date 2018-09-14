@@ -26,6 +26,7 @@
         <module>flinkx-mongodb</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-launcher</module>
+        <module>flinkx-stream</module>
     </modules>
 
     <properties>
