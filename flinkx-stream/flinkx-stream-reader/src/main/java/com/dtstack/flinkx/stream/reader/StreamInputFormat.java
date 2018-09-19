@@ -59,7 +59,7 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return ++recordRead > sliceRecordCount ;
+        return ++recordRead > sliceRecordCount && sliceRecordCount > 0;
     }
 
     @Override
