@@ -56,7 +56,7 @@ public class LauncherOptionParser {
 
     private BasicParser parser = new BasicParser();
 
-    private static LauncherOptions launcherOptions = new LauncherOptions();
+    private LauncherOptions launcherOptions = new LauncherOptions();
 
     public LauncherOptionParser(String[] args) {
         options.addOption(OPTION_MODE, true, "Running mode");
@@ -105,12 +105,12 @@ public class LauncherOptionParser {
         }
     }
 
-    public static LauncherOptions getLauncherOptions(){
+    public LauncherOptions getLauncherOptions(){
         return launcherOptions;
     }
 
     private void printUsage() {
-
+        System.out.print(options.toString());
     }
 
 }
