@@ -208,9 +208,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     }
 
     protected void writeSingleRecord(Row row) {
-        // 总记录数加1
-        numWriteCounter.add(1);
-
         // 若错误数超过限制,则抛异常而退出
         if(errorLimiter != null) {
             errorLimiter.acquire();
@@ -218,6 +215,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         try {
             writeSingleRecordInternal(row);
+
+            // 总记录数加1
+            numWriteCounter.add(1);
         } catch(WriteRecordException e) {
             errCounter.add(1);
             String errMsg = e.getMessage();
