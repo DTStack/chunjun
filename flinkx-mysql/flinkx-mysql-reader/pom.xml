@@ -35,6 +35,7 @@
                         <artifactSet>
                             <excludes>
                                 <!--from com.dtstack.flinkx:core-->
+                                <exclude>org.slf4j:slf4j-api</exclude>
                                 <exclude>com.dtstack.flinkx:flinkx-core</exclude>
                                 <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
                                 <!--from org.apache.flink:*-->
@@ -63,7 +64,7 @@
                                 <exclude>org.codehaus.jackson:jackson-mapper-asl</exclude>
                                 <exclude>com.thoughtworks.paranamer:paranamer</exclude>
                                 <!--<exclude>org.slf4j:slf4j-log4j12</exclude>-->
-                                <!--<exclude>log4j:log4j</exclude>-->
+                                <exclude>log4j:log4j</exclude>
                                 <exclude>com.google.code.findbugs:jsr305</exclude>
                                 <exclude>org.apache.flink:force-shading</exclude>
                                 <exclude>xmlenc:xmlenc</exclude>

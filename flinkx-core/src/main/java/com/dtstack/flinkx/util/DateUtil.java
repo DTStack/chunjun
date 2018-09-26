@@ -59,6 +59,9 @@ public class DateUtil {
         if(column == null) {
             return null;
         } else if(column instanceof String) {
+            if (((String) column).length() == 0){
+                return null;
+            }
             return new java.sql.Date(stringToDate((String)column).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
@@ -83,6 +86,9 @@ public class DateUtil {
         if (column == null) {
             return null;
         } else if(column instanceof String) {
+            if (((String) column).length() == 0){
+                return null;
+            }
             return new java.sql.Timestamp(stringToDate((String)column).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;

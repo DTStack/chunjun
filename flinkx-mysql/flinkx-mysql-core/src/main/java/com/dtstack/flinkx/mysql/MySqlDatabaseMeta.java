@@ -136,4 +136,13 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public int getFetchSize(){
+        return 1000;
+    }
+
+    @Override
+    public int getQueryTimeout(){
+        return 1000;
+    }
 }

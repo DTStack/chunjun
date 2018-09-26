@@ -59,6 +59,10 @@ under the License.
                     <artifactId>calcite-avatica</artifactId>
                     <groupId>org.apache.calcite</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>derby</artifactId>
+                    <groupId>org.apache.derby</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 

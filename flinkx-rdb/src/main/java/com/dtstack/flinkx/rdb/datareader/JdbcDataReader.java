@@ -29,22 +29,17 @@ import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.io.jdbc.split.ParameterValuesProvider;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.io.Serializable;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The Reader plugin for any database that can be connected via JDBC.
@@ -85,48 +80,17 @@ public class JdbcDataReader extends DataReader {
     }
 
     public JdbcDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         dbUrl = readerConfig.getParameter().getConnection().get(0).getJdbcUrl().get(0);
-
-        if(readerConfig.getName().equalsIgnoreCase("mysqlreader")) {
-            String[] splits = dbUrl.split("\\?");
-
-            Map<String,String> paramMap = new HashMap<String,String>();
-            if(splits.length > 1) {
-                String[] pairs = splits[1].split("&");
-                for(String pair : pairs) {
-                    String[] leftRight = pair.split("=");
-                    paramMap.put(leftRight[0], leftRight[1]);
-                }
-            }
-            paramMap.put("useCursorFetch", "true");
-
-
-            StringBuffer sb = new StringBuffer(splits[0]);
-            if(paramMap.size() != 0) {
-                sb.append("?");
-                int index = 0;
-                for(Map.Entry<String,String> entry : paramMap.entrySet()) {
-                    if(index != 0) {
-                        sb.append("&");
-                    }
-                    sb.append(entry.getKey() + "=" + entry.getValue());
-                    index++;
-                }
-            }
-
-            dbUrl = sb.toString();
-        }
+        dbUrl = DBUtil.formatJdbcUrl(readerConfig.getName(),dbUrl);
         username = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_USER_NAME);
         password = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_PASSWORD);
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
         where = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_WHERE);
         column = readerConfig.getParameter().getColumn();
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
-
     }
 
     @Override
@@ -135,39 +99,26 @@ public class JdbcDataReader extends DataReader {
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
-        builder.setQuery(getQuerySql());
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
-        builder.setDescColumnTypeList(descColumnTypes());
         builder.setTable(table);
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
         builder.setColumn(column);
 
+        boolean isSplitByKey = false;
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
-            final int channels = numPartitions;
-            ParameterValuesProvider provider = new ParameterValuesProvider() {
-                @Override
-                public Serializable[][] getParameterValues() {
-                    Integer[][] parameters = new Integer[channels][];
-                    for(int i = 0; i < channels; ++i) {
-                        parameters[i] = new Integer[2];
-                        parameters[i][0] = channels;
-                        parameters[i][1] = i;
-                    }
-                    return parameters;
-                }
-            };
-
-            builder.setParameterValues(provider.getParameterValues());
-
+            builder.setParameterValues(DBUtil.getParameterValues(numPartitions));
+            isSplitByKey = true;
         }
+
+        String query = DBUtil.getQuerySql(databaseInterface,table,column,splitKey,where,isSplitByKey);
+        builder.setQuery(query);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
-
     }
 
 
@@ -218,38 +169,6 @@ public class JdbcDataReader extends DataReader {
         }
     }
 
-
-    /**
-     * Build query sql including needed columns
-     * query filters and partitioning filters
-     * @return sql
-     */
-    protected String getQuerySql() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(databaseInterface.quoteColumns(column)).append(" FROM ");
-        sb.append(databaseInterface.quoteTable(table));
-
-        StringBuilder filter = new StringBuilder();
-
-        if(numPartitions != 1 && splitKey != null && splitKey.trim().length() != 0) {
-            filter.append(databaseInterface.getSplitFilter(splitKey));
-        }
-
-        if(where != null && where.trim().length() != 0) {
-            if(filter.length() > 0) {
-                filter.append(" AND ");
-            }
-            filter.append(where);
-        }
-
-        if(filter.length() != 0) {
-            sb.append(" WHERE ").append(filter);
-        }
-
-        System.out.println(sb);
-        return sb.toString();
-    }
-
     protected Connection getConnection() {
         try {
             ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
@@ -261,9 +180,4 @@ public class JdbcDataReader extends DataReader {
         return connection;
 
     }
-
-    protected List<String> descColumnTypes() {
-        return null;
-    }
-
 }

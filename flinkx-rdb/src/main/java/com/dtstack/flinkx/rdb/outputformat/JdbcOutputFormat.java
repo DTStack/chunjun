@@ -47,8 +47,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
-
     protected String username;
 
     protected String password;

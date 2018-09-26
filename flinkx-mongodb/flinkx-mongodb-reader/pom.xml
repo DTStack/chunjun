@@ -103,6 +103,7 @@
                                     <exclude>commons-cli:commons-cli:*</exclude>
                                     <exclude>com.twitter:*</exclude>
                                     <exclude>com.typesafe:*</exclude>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

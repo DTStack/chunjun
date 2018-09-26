@@ -96,6 +96,7 @@
                                     <exclude>com.google.protobuf:protobuf-java</exclude>
                                     <exclude>org.uncommons.maths:uncommons-maths</exclude>
                                     <exclude>org.clapper:grizzled-slf4j_2.11</exclude>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
                                     <exclude>com.github.scopt:scopt_2.11</exclude>
                                     <exclude>com.fasterxml.jackson.core:*</exclude>
                                     <exclude>commons-cli:commons-cli:*</exclude>

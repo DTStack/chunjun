@@ -98,4 +98,14 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     public String getSplitFilter(String columnName) {
         return String.format(" mod(%s,?) = ?", getStartQuote() + columnName + getEndQuote());
     }
+
+    @Override
+    public int getFetchSize(){
+        return 1000;
+    }
+
+    @Override
+    public int getQueryTimeout(){
+        return 1000;
+    }
 }

@@ -21,6 +21,7 @@ package com.dtstack.flinkx.es;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
@@ -55,6 +56,7 @@ public class EsUtil {
         String[] addr = address.split(",");
         for(String add : addr) {
             String[] pair = add.split(":");
+            TelnetUtil.telnet(pair[0], Integer.valueOf(pair[1]));
             httpHostList.add(new HttpHost(pair[0], Integer.valueOf(pair[1]), "http"));
         }
         RestHighLevelClient client = new RestHighLevelClient(

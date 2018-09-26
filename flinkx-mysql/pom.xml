@@ -16,6 +16,7 @@
         <module>flinkx-mysql-reader</module>
         <module>flinkx-mysql-writer</module>
         <module>flinkx-mysql-core</module>
+        <module>flinkx-mysql-dreader</module>
     </modules>
 
 </project>

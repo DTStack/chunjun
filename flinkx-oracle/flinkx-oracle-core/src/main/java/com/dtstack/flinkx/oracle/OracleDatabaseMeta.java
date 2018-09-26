@@ -94,4 +94,13 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
         return sb.toString();
     }
 
+    @Override
+    public int getFetchSize(){
+        return 1000;
+    }
+
+    @Override
+    public int getQueryTimeout(){
+        return 1000;
+    }
 }

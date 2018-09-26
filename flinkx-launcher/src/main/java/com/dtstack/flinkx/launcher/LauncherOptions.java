@@ -26,18 +26,113 @@ package com.dtstack.flinkx.launcher;
  */
 public class LauncherOptions {
 
-    public static final String OPTION_MODE = "mode";
+      private String mode;
 
-    public static final String OPTION_JOB = "job";
+      private String job;
 
-    public static final String OPTION_MONITOR = "monitor";
+      private String monitor;
 
-    public static final String OPTION_JOB_ID = "jobid";
+      private String jobid;
 
-    public static final String OPTION_FLINK_CONF_DIR = "flinkconf";
+      private String flinkconf;
 
-    public static final String OPTION_PLUGIN_ROOT = "plugin";
+      private String plugin;
 
-    public static final String OPTION_YARN_CONF_DIR = "yarnconf";
+      private String yarnconf;
 
+      private int parallelism = 1;
+
+    private int priority = 1;
+
+      private String queue;
+
+      private String flinkLibJar;
+
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(int parallelism) {
+        this.parallelism = parallelism;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getJob() {
+        return job;
+    }
+
+    public void setJob(String job) {
+        this.job = job;
+    }
+
+    public String getMonitor() {
+        return monitor;
+    }
+
+    public void setMonitor(String monitor) {
+        this.monitor = monitor;
+    }
+
+    public String getJobid() {
+        return jobid;
+    }
+
+    public void setJobid(String jobid) {
+        this.jobid = jobid;
+    }
+
+    public String getFlinkconf() {
+        return flinkconf;
+    }
+
+    public void setFlinkconf(String flinkconf) {
+        this.flinkconf = flinkconf;
+    }
+
+    public String getPlugin() {
+        return plugin;
+    }
+
+    public void setPlugin(String plugin) {
+        this.plugin = plugin;
+    }
+
+    public String getYarnconf() {
+        return yarnconf;
+    }
+
+    public void setYarnconf(String yarnconf) {
+        this.yarnconf = yarnconf;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public void setQueue(String queue) {
+        this.queue = queue;
+    }
+
+    public String getFlinkLibJar() {
+        return flinkLibJar;
+    }
+
+    public void setFlinkLibJar(String flinkLibJar) {
+        this.flinkLibJar = flinkLibJar;
+    }
 }

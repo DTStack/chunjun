@@ -17,19 +17,22 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.ParameterValuesProvider;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.flink.types.Row;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.DatabaseMetaData;
 
 /**
  *
@@ -45,6 +48,9 @@ public class DBUtil {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
             DriverManager.setLoginTimeout(10);
+
+            // telnet
+            TelnetUtil.telnet(url);
 
             if (username == null) {
                 dbConn = DriverManager.getConnection(url);
@@ -167,5 +173,186 @@ public class DBUtil {
             keyMap.get(pkName).add(columnName);
         }
         return keyMap;
+    }
+
+    public static Object[][] getParameterValues(final int channels){
+        ParameterValuesProvider provider = new ParameterValuesProvider() {
+            @Override
+            public Serializable[][] getParameterValues() {
+                Integer[][] parameters = new Integer[channels][];
+                for(int i = 0; i < channels; ++i) {
+                    parameters[i] = new Integer[2];
+                    parameters[i][0] = channels;
+                    parameters[i][1] = i;
+                }
+                return parameters;
+            }
+        };
+
+        return provider.getParameterValues();
+    }
+
+    public static List<String> analyzeTable(Connection dbConn,DatabaseInterface databaseInterface,
+                                            String table,List<String> column) {
+        List<String> ret = new ArrayList<>();
+
+        try {
+            Statement stmt = dbConn.createStatement();
+            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            ResultSetMetaData rd = rs.getMetaData();
+
+            Map<String,String> nameTypeMap = new HashMap<>();
+            for(int i = 0; i < rd.getColumnCount(); ++i) {
+                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            }
+
+            for (String col : column) {
+                ret.add(nameTypeMap.get(col));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return ret;
+    }
+
+    public static void setParameterValue(Object param,PreparedStatement statement,int i) throws SQLException{
+        if (param instanceof String) {
+            statement.setString(i + 1, (String) param);
+        } else if (param instanceof Long) {
+            statement.setLong(i + 1, (Long) param);
+        } else if (param instanceof Integer) {
+            statement.setInt(i + 1, (Integer) param);
+        } else if (param instanceof Double) {
+            statement.setDouble(i + 1, (Double) param);
+        } else if (param instanceof Boolean) {
+            statement.setBoolean(i + 1, (Boolean) param);
+        } else if (param instanceof Float) {
+            statement.setFloat(i + 1, (Float) param);
+        } else if (param instanceof BigDecimal) {
+            statement.setBigDecimal(i + 1, (BigDecimal) param);
+        } else if (param instanceof Byte) {
+            statement.setByte(i + 1, (Byte) param);
+        } else if (param instanceof Short) {
+            statement.setShort(i + 1, (Short) param);
+        } else if (param instanceof Date) {
+            statement.setDate(i + 1, (Date) param);
+        } else if (param instanceof Time) {
+            statement.setTime(i + 1, (Time) param);
+        } else if (param instanceof Timestamp) {
+            statement.setTimestamp(i + 1, (Timestamp) param);
+        } else if (param instanceof Array) {
+            statement.setArray(i + 1, (Array) param);
+        } else {
+            //extends with other types if needed
+            throw new IllegalArgumentException("open() failed. Parameter " + i + " of type " + param.getClass() + " is not handled (yet)." );
+        }
+    }
+
+    public static void getRow(String dbURL,Row row,List<String> descColumnTypeList,ResultSet resultSet,
+                              TypeConverterInterface typeConverter) throws SQLException{
+        for (int pos = 0; pos < row.getArity(); pos++) {
+            Object obj = resultSet.getObject(pos + 1);
+            if(obj != null) {
+                if (dbURL.startsWith("jdbc:oracle")) {
+                    if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                        obj = resultSet.getTimestamp(pos + 1);
+                    }
+                } else if(dbURL.startsWith("jdbc:mysql")) {
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
+                            java.util.Date date = (java.util.Date) obj;
+                            String year = DateUtil.dateToYearString(date);
+                            System.out.println(year);
+                            obj = year;
+                        } else if(descColumnTypeList.get(pos).equalsIgnoreCase("tinyint")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        }
+                    }
+                } else if(dbURL.startsWith("jdbc:sqlserver")) {
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        }
+                    }
+                } else if(dbURL.startsWith("jdbc:postgresql")){
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
+                    }
+                }
+            }
+
+            row.setField(pos, obj);
+        }
+    }
+
+    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<String> column,
+                                     String splitKey,String where,boolean isSplitByKey) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ").append(databaseInterface.quoteColumns(column)).append(" FROM ");
+        sb.append(databaseInterface.quoteTable(table));
+
+        StringBuilder filter = new StringBuilder();
+
+        if(isSplitByKey) {
+            filter.append(databaseInterface.getSplitFilter(splitKey));
+        }
+
+        if(where != null && where.trim().length() != 0) {
+            if(filter.length() > 0) {
+                filter.append(" AND ");
+            }
+            filter.append(where);
+        }
+
+        if(filter.length() != 0) {
+            sb.append(" WHERE ").append(filter);
+        }
+
+        return sb.toString();
+    }
+
+    public static String formatJdbcUrl(String pluginName,String dbUrl){
+        if(pluginName.equalsIgnoreCase("mysqlreader")
+                || pluginName.equalsIgnoreCase("mysqldreader")
+                || pluginName.equalsIgnoreCase("postgresqlreader")){
+            String[] splits = dbUrl.split("\\?");
+
+            Map<String,String> paramMap = new HashMap<String,String>();
+            if(splits.length > 1) {
+                String[] pairs = splits[1].split("&");
+                for(String pair : pairs) {
+                    String[] leftRight = pair.split("=");
+                    paramMap.put(leftRight[0], leftRight[1]);
+                }
+            }
+            paramMap.put("useCursorFetch", "true");
+
+
+            StringBuffer sb = new StringBuffer(splits[0]);
+            if(paramMap.size() != 0) {
+                sb.append("?");
+                int index = 0;
+                for(Map.Entry<String,String> entry : paramMap.entrySet()) {
+                    if(index != 0) {
+                        sb.append("&");
+                    }
+                    sb.append(entry.getKey() + "=" + entry.getValue());
+                    index++;
+                }
+            }
+
+            dbUrl = sb.toString();
+        }
+
+        return dbUrl;
     }
 }

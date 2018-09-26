@@ -38,6 +38,7 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -121,7 +122,12 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                         recordList.add(Integer.valueOf(rowData));
                         break;
                     case BIGINT:
-                        recordList.add(Long.valueOf(rowData));
+                        BigInteger data = new BigInteger(rowData);
+                        if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                            recordList.add(data);
+                        } else {
+                            recordList.add(Long.valueOf(rowData));
+                        }
                         break;
                     case FLOAT:
                         recordList.add(Float.valueOf(rowData));

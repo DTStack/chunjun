@@ -197,4 +197,13 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
                 + StringUtils.repeat("?", ",", column.size()) + ")";
     }
 
+    @Override
+    public int getFetchSize(){
+        return 1000;
+    }
+
+    @Override
+    public int getQueryTimeout(){
+        return 1000;
+    }
 }

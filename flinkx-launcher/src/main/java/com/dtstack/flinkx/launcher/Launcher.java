@@ -29,9 +29,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import static com.dtstack.flinkx.launcher.ClusterMode.MODE_LOCAL;
-import static com.dtstack.flinkx.launcher.LauncherOptions.*;
 
 /**
  * FlinkX commandline Launcher
@@ -41,14 +38,14 @@ import static com.dtstack.flinkx.launcher.LauncherOptions.*;
  */
 public class Launcher {
 
-    private static List<String> initFlinkxArgList(Properties props) {
+    private static List<String> initFlinkxArgList(LauncherOptions launcherOptions) {
         List<String> argList = new ArrayList<>();
         argList.add("-job");
-        argList.add((String) props.get(OPTION_JOB));
+        argList.add(launcherOptions.getJob());
         argList.add("-jobid");
-        argList.add((String) props.get(OPTION_JOB_ID));
+        argList.add(launcherOptions.getJobid());
         argList.add("-pluginRoot");
-        argList.add((String) props.get(OPTION_PLUGIN_ROOT));
+        argList.add(launcherOptions.getPlugin());
         return argList;
     }
 
@@ -80,28 +77,25 @@ public class Launcher {
 
 
     public static void main(String[] args) throws Exception {
-        Properties properties = new LauncherOptionParser(args).getProperties();
-        String mode = (String) properties.get(OPTION_MODE);
-        List<String> argList = initFlinkxArgList(properties);
-
-        if(mode.equals(MODE_LOCAL)) {
+        LauncherOptions launcherOptions = new LauncherOptionParser(args).getLauncherOptions();
+        String mode = launcherOptions.getMode();
+        List<String> argList = initFlinkxArgList(launcherOptions);
+        if(mode.equals(ClusterMode.local.name())) {
             String[] localArgs = argList.toArray(new String[argList.size()]);
             com.dtstack.flinkx.Main.main(localArgs);
         } else {
-            ClusterClient clusterClient = ClusterClientFactory.createClusterClient(properties);
+            ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
             String monitor = clusterClient.getWebInterfaceURL();
             argList.add("-monitor");
             argList.add(monitor);
-            String pluginRoot = properties.getProperty(OPTION_PLUGIN_ROOT);
-            String content = properties.getProperty(OPTION_JOB);
+            String pluginRoot = launcherOptions.getPlugin();
+            String content = launcherOptions.getJob();
             File jarFile = new File(pluginRoot + File.separator + "flinkx.jar");
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
             String[] remoteArgs = argList.toArray(new String[argList.size()]);
             PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
-            clusterClient.run(program, 1);
+            clusterClient.run(program, launcherOptions.getParallelism());
             clusterClient.shutdown();
         }
-
     }
-
 }

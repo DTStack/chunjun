@@ -94,7 +94,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
                 if(index >= fields.length) {
                     row.setField(i, null);
                 } else {
-                    row.setField(i, fields[index]);
+                    row.setField(i, HdfsUtil.string2col(fields[index],columnType.get(i)));
                 }
             } else if(val != null) {
                 String type = columnType.get(i);

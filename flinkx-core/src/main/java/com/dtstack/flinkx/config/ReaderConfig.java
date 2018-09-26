@@ -96,6 +96,8 @@ public class ReaderConfig extends AbstractConfig {
 
             public static final String KEY_TABLE_LIST = "table";
             public static final String KEY_JDBC_URL_LIST = "jdbcUrl";
+            public static final String KEY_JDBC_USERNAME = "username";
+            public static final String KEY_JDBC_PASSWORD = "password";
 
             public ConnectionConfig(Map<String, Object> map) {
                 super(map);
@@ -115,6 +117,22 @@ public class ReaderConfig extends AbstractConfig {
 
             public void setJdbcUrl(List<String> jdbcUrl) {
                 setVal(KEY_JDBC_URL_LIST, jdbcUrl);
+            }
+
+            public void setUsername(String username){
+                setVal(KEY_JDBC_USERNAME,username);
+            }
+
+            public String getUsername(){
+                return (String)getVal(KEY_JDBC_USERNAME);
+            }
+
+            public void setPassword(String password){
+                setVal(KEY_JDBC_PASSWORD,password);
+            }
+
+            public String getPassword(){
+                return (String)getVal(KEY_JDBC_PASSWORD);
             }
         }
 
