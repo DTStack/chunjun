@@ -19,7 +19,6 @@
 package org.apache.flink.runtime.util;
 
 import org.apache.flink.configuration.ConfigConstants;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.io.Text;
@@ -29,7 +28,7 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
 import java.util.Collection;
 
 /**
@@ -41,6 +40,8 @@ public class HadoopUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HadoopUtils.class);
 
     private static final Text HDFS_DELEGATION_TOKEN_KIND = new Text("HDFS_DELEGATION_TOKEN");
+
+    public static final String HADOOP_CONF_BYTES = "hadoop.conf.bytes";
 
     public static Configuration getHadoopConfiguration(org.apache.flink.configuration.Configuration flinkConfiguration) {
 
@@ -120,5 +121,65 @@ public class HadoopUtils {
             }
         }
         return false;
+    }
+
+    public static Configuration deserializeHadoopConf(byte[] bytes) {
+        Configuration hadoopConf = new Configuration();
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        DataInputStream datain = new DataInputStream(in);
+        try {
+            hadoopConf.readFields(datain);
+            return hadoopConf;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if(datain != null) {
+                try {
+                    datain.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            if(in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static byte[] serializeHadoopConf(Configuration hadoopConf)  {
+        ByteArrayOutputStream out =  new ByteArrayOutputStream();
+        DataOutputStream dataout = new DataOutputStream(out);
+        try {
+            hadoopConf.write(dataout);
+            return out.toByteArray();
+        } catch(IOException ex) {
+            return null;
+        } finally {
+
+            if(dataout != null) {
+                try {
+                    dataout.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            if(out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        }
+
     }
 }

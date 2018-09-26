@@ -19,13 +19,12 @@
 package com.dtstack.flinkx.launcher;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.StandaloneClusterClient;
-import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterClient;
 import org.apache.flink.yarn.YarnClusterDescriptor;
@@ -33,18 +32,13 @@ import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.Field;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-
-import static com.dtstack.flinkx.launcher.LauncherOptions.OPTION_MODE;
 
 /**
  * The Factory of ClusterClient
@@ -54,18 +48,20 @@ import static com.dtstack.flinkx.launcher.LauncherOptions.OPTION_MODE;
  */
 public class ClusterClientFactory {
 
-    public static ClusterClient createClusterClient(Properties props) {
-        String clientType = props.getProperty(OPTION_MODE);
-        if(clientType.equals(ClusterMode.MODE_STANDALONE)) {
-            return createStandaloneClient(props);
-        } else if(clientType.equals(ClusterMode.MODE_YARN)) {
-            return createYarnClient(props);
+    public static ClusterClient createClusterClient(LauncherOptions launcherOptions) {
+        String clientType = launcherOptions.getMode();
+        if(ClusterMode.standalone.name().equals(clientType)) {
+            return createStandaloneClient(launcherOptions);
+        } else if(ClusterMode.yarn.name().equals(clientType)) {
+            return createYarnClient(launcherOptions);
+        }else if(ClusterMode.yarnPer.name().equals(clientType)){
+            return createPerYarnClient(launcherOptions);
         }
         throw new IllegalArgumentException("Unsupported cluster client type: ");
     }
 
-    public static StandaloneClusterClient createStandaloneClient(Properties props) {
-        String flinkConfDir = props.getProperty(LauncherOptions.OPTION_FLINK_CONF_DIR);
+    private static StandaloneClusterClient createStandaloneClient(LauncherOptions launcherOptions) {
+        String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
         StandaloneClusterDescriptor descriptor = new StandaloneClusterDescriptor(config);
         StandaloneClusterClient clusterClient = descriptor.retrieve(null);
@@ -73,33 +69,25 @@ public class ClusterClientFactory {
         return clusterClient;
     }
 
-    public static YarnClusterClient createYarnClient(Properties props) {
-        String flinkConfDir = props.getProperty(LauncherOptions.OPTION_FLINK_CONF_DIR);
-        Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
-        String yarnConfDir = props.getProperty(LauncherOptions.OPTION_YARN_CONF_DIR);
-        org.apache.hadoop.conf.Configuration yarnConf = new YarnConfiguration();
+    private static YarnClusterClient createPerYarnClient(LauncherOptions launcherOptions) {
+        YarnClusterClient cluster = null;
+        try {
+            Configuration flinkConf = FlinkUtil.getFlinkConfiguration(launcherOptions.getFlinkconf());
+            ClusterSpecification clusterSpecification = FlinkUtil.createDefaultClusterSpecification(flinkConf,launcherOptions.getPriority());
+            AbstractYarnClusterDescriptor descriptor = FlinkUtil.createPerJobClusterDescriptor(flinkConf,FlinkUtil.getYarnConfiguration(flinkConf,launcherOptions.getYarnconf()),launcherOptions.getFlinkLibJar(),launcherOptions.getQueue());
+            cluster = descriptor.deploySessionCluster(clusterSpecification);
+        } catch (Exception e){
+            throw new RuntimeException("Couldn't deploy Yarn session cluster" + e.getMessage());
+        }
+        return cluster;
+    }
+
+        private static YarnClusterClient createYarnClient(LauncherOptions launcherOptions) {
+        Configuration config = FlinkUtil.getFlinkConfiguration(launcherOptions.getFlinkconf());
+        String yarnConfDir = launcherOptions.getYarnconf();
         if(StringUtils.isNotBlank(yarnConfDir)) {
             try {
-
-                config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
-                FileSystem.initialize(config);
-
-                File dir = new File(yarnConfDir);
-                if(dir.exists() && dir.isDirectory()) {
-                    File[] xmlFileList = new File(yarnConfDir).listFiles(new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            if(name.endsWith(".xml"))
-                                return true;
-                            return false;
-                        }
-                    });
-                    if(xmlFileList != null) {
-                        for(File xmlFile : xmlFileList) {
-                            yarnConf.addResource(xmlFile.toURI().toURL());
-                        }
-                    }
-
+                    org.apache.hadoop.conf.Configuration yarnConf = FlinkUtil.getYarnConfiguration(config,yarnConfDir);
                     YarnClient yarnClient = YarnClient.createYarnClient();
                     yarnClient.init(yarnConf);
                     yarnClient.start();
@@ -147,13 +135,10 @@ public class ClusterClientFactory {
                     YarnClusterClient clusterClient = clusterDescriptor.retrieve(applicationId);
                     clusterClient.setDetached(true);
                     return clusterClient;
-                }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
-
 
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
@@ -177,31 +162,4 @@ public class ClusterClientFactory {
         }
         return yarnConf;
     }
-
-    private static org.apache.hadoop.conf.Configuration getYarnConf(String yarnConfDir) {
-        org.apache.hadoop.conf.Configuration yarnConf = new YarnConfiguration();
-        try {
-
-            File dir = new File(yarnConfDir);
-            if(dir.exists() && dir.isDirectory()) {
-                File[] xmlFileList = new File(yarnConfDir).listFiles(new FilenameFilter() {
-                    @Override
-                    public boolean accept(File dir, String name) {
-                        if(name.endsWith(".xml"))
-                            return true;
-                        return false;
-                    }
-                });
-                if(xmlFileList != null) {
-                    for(File xmlFile : xmlFileList) {
-                        yarnConf.addResource(xmlFile.toURI().toURL());
-                    }
-                }
-            }
-        } catch(Exception e) {
-            throw new RuntimeException(e);
-        }
-        return yarnConf;
-    }
-
 }
