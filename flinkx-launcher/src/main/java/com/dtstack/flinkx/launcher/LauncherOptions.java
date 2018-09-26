@@ -42,7 +42,7 @@ public class LauncherOptions {
 
       private int parallelism = 1;
 
-      private int priority = 1;
+    private int priority = 1;
 
       private String queue;
 
