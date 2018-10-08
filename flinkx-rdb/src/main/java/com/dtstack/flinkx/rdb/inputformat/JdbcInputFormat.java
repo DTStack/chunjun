@@ -44,6 +44,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
+@Deprecated
 public class JdbcInputFormat extends RichInputFormat {
 
     protected static final long serialVersionUID = 1L;

@@ -30,6 +30,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
+@Deprecated
 public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
