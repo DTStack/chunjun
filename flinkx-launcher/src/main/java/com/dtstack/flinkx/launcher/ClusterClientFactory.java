@@ -54,7 +54,7 @@ public class ClusterClientFactory {
             return createStandaloneClient(launcherOptions);
         } else if(ClusterMode.yarn.name().equals(clientType)) {
             return createYarnClient(launcherOptions);
-        }else if(ClusterMode.yarnPer.name().equals(clientType)){
+        }else if(ClusterMode.yarnPer.name().equals(clientType)){//start yarn-session
             return createPerYarnClient(launcherOptions);
         }
         throw new IllegalArgumentException("Unsupported cluster client type: ");
