@@ -79,6 +79,14 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.where = where;
     }
 
+    public void setFetchSize(int fetchSize){
+        format.fetchSize = fetchSize;
+    }
+
+    public void setQueryTimeOut(int queryTimeOut){
+        format.queryTimeOut = queryTimeOut;
+    }
+
     @Override
     protected void checkFormat() {
 

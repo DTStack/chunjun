@@ -59,6 +59,10 @@ public class DistributedJdbcDataReader extends DataReader {
 
     protected String pluginName;
 
+    protected int fetchSize;
+
+    protected int queryTimeOut;
+
     private List<ReaderConfig.ParameterConfig.ConnectionConfig> connectionConfigs;
 
     private static String DISTRIBUTED_TAG = "d";
@@ -73,6 +77,8 @@ public class DistributedJdbcDataReader extends DataReader {
         column = readerConfig.getParameter().getColumn();
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         connectionConfigs = readerConfig.getParameter().getConnection();
+        fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,databaseInterface.getFetchSize());
+        queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,databaseInterface.getQueryTimeout());
         pluginName = readerConfig.getName();
     }
 
@@ -91,6 +97,8 @@ public class DistributedJdbcDataReader extends DataReader {
         builder.setNumPartitions(numPartitions);
         builder.setSplitKey(splitKey);
         builder.setWhere(where);
+        builder.setFetchSize(fetchSize);
+        builder.setQueryTimeOut(queryTimeOut);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());

@@ -85,6 +85,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected List<String> column;
 
+    protected int fetchSize;
+
+    protected int queryTimeOut;
+
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -117,8 +121,8 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             }
 
-            statement.setFetchSize(databaseInterface.getFetchSize());
-            statement.setQueryTimeout(databaseInterface.getQueryTimeout());
+            statement.setFetchSize(fetchSize);
+            statement.setQueryTimeout(queryTimeOut);
             resultSet = statement.executeQuery();
             hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();

@@ -85,6 +85,10 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected TypeConverterInterface typeConverter;
 
+    protected int fetchSize;
+
+    protected int queryTimeOut;
+
     public DistributedJdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -138,8 +142,8 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             }
         }
 
-        currentStatement.setFetchSize(1000);
-        currentStatement.setQueryTimeout(1000);
+        currentStatement.setFetchSize(fetchSize);
+        currentStatement.setQueryTimeout(queryTimeOut);
         currentResultSet = currentStatement.executeQuery();
         hasNext = currentResultSet.next();
         columnCount = currentResultSet.getMetaData().getColumnCount();
