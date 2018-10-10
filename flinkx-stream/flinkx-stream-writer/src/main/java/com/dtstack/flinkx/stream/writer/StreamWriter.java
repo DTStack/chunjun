@@ -26,6 +26,8 @@ import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 /**
+ * This write plugin is used to test the performance of the read plugin, and the plugin directly discards the read data.
+ *
  * @Company: www.dtstack.com
  * @author jiangbo
  */

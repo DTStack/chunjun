@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Read plugin for reading static data
+ *
  * @Company: www.dtstack.com
  * @author jiangbo
  */
