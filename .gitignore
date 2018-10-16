@@ -6,3 +6,6 @@ target/
 lib/
 jobs/
 nohup.out
+flinkconf/
+hadoopconf/
+test/
