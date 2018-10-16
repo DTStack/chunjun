@@ -19,8 +19,6 @@
 package com.dtstack.flinkx.launcher;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.client.deployment.ClusterRetrieveException;
-import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
@@ -38,8 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.flink.client.program.rest.RestClusterClient;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.flink.client.program.StandaloneClusterClient;
 
 /**
  * The Factory of ClusterClient
@@ -49,7 +47,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationId;
  */
 public class ClusterClientFactory {
 
-    public static ClusterClient createClusterClient(LauncherOptions launcherOptions) throws ClusterRetrieveException {
+    public static ClusterClient createClusterClient(LauncherOptions launcherOptions) throws Exception {
         String clientType = launcherOptions.getMode();
         if(ClusterMode.standalone.name().equals(clientType)) {
             return createStandaloneClient(launcherOptions);
@@ -59,11 +57,10 @@ public class ClusterClientFactory {
         throw new IllegalArgumentException("Unsupported cluster client type: ");
     }
 
-    private static RestClusterClient createStandaloneClient(LauncherOptions launcherOptions) throws ClusterRetrieveException {
+    private static ClusterClient createStandaloneClient(LauncherOptions launcherOptions) throws Exception {
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
-        StandaloneClusterDescriptor descriptor = new StandaloneClusterDescriptor(config);
-        RestClusterClient clusterClient = descriptor.retrieve(null);
+        StandaloneClusterClient clusterClient = new StandaloneClusterClient(config);
         clusterClient.setDetached(true);
         return clusterClient;
     }
