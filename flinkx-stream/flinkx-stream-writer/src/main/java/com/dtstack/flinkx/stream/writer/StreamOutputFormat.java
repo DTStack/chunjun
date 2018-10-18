@@ -25,6 +25,8 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 
 /**
+ * OutputFormat for stream writer
+ *
  * @Company: www.dtstack.com
  * @author jiangbo
  */

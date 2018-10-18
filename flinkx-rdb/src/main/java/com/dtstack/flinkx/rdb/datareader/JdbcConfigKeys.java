@@ -34,4 +34,8 @@ public class JdbcConfigKeys {
 
     public static final String KEY_WHERE = "where";
 
+    public static final String KEY_FETCH_SIZE = "fetchSize";
+
+    public static final String KEY_QUERY_TIME_OUT = "queryTimeOut";
+
 }

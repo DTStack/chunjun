@@ -30,6 +30,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
+@Deprecated
 public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
@@ -76,6 +77,14 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setColumn(List<String> column){
         format.column = column;
+    }
+
+    public void setFetchSize(int fetchSize){
+        format.fetchSize = fetchSize;
+    }
+
+    public void setQueryTimeOut(int queryTimeOut){
+        format.queryTimeOut = queryTimeOut;
     }
 
     @Override

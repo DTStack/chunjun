@@ -71,6 +71,10 @@ public class JdbcDataReader extends DataReader {
 
     protected String splitKey;
 
+    protected int fetchSize;
+
+    protected int queryTimeOut;
+
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
     }
@@ -90,6 +94,8 @@ public class JdbcDataReader extends DataReader {
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
         where = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_WHERE);
         column = readerConfig.getParameter().getColumn();
+        fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
+        queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
     }
 
@@ -107,6 +113,8 @@ public class JdbcDataReader extends DataReader {
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
         builder.setColumn(column);
+        builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
+        builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
 
         boolean isSplitByKey = false;
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
