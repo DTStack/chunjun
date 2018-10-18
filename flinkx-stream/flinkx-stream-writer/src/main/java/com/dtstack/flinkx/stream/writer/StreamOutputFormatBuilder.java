@@ -21,6 +21,8 @@ package com.dtstack.flinkx.stream.writer;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 
 /**
+ * The builder of StreamOutputFormat
+ *
  * @Company: www.dtstack.com
  * @author jiangbo
  */

@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -17,6 +35,12 @@ import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The Reader plugin for multiple databases that can be connected via JDBC.
+ *
+ * @Company: www.dtstack.com
+ * @author jiangbo
+ */
 public class DistributedJdbcDataReader extends DataReader {
 
     protected DatabaseInterface databaseInterface;
@@ -35,6 +59,10 @@ public class DistributedJdbcDataReader extends DataReader {
 
     protected String pluginName;
 
+    protected int fetchSize;
+
+    protected int queryTimeOut;
+
     private List<ReaderConfig.ParameterConfig.ConnectionConfig> connectionConfigs;
 
     private static String DISTRIBUTED_TAG = "d";
@@ -49,6 +77,8 @@ public class DistributedJdbcDataReader extends DataReader {
         column = readerConfig.getParameter().getColumn();
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         connectionConfigs = readerConfig.getParameter().getConnection();
+        fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,databaseInterface.getFetchSize());
+        queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,databaseInterface.getQueryTimeout());
         pluginName = readerConfig.getName();
     }
 
@@ -67,6 +97,8 @@ public class DistributedJdbcDataReader extends DataReader {
         builder.setNumPartitions(numPartitions);
         builder.setSplitKey(splitKey);
         builder.setWhere(where);
+        builder.setFetchSize(fetchSize);
+        builder.setQueryTimeOut(queryTimeOut);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());
