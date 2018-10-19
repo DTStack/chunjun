@@ -141,10 +141,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
                     + "One can only write new files under directories");
         }
 
-        // delete tmp dir
-        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-        fs.delete(tmpDir, true);
-
         configInternal();
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
