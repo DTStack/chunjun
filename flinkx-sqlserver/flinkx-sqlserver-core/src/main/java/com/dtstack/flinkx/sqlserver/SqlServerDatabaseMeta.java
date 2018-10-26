@@ -37,7 +37,7 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getDriverClass() {
-        return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        return "net.sourceforge.jtds.jdbc.Driver";
     }
 
     @Override
