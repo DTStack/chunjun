@@ -20,10 +20,17 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -40,6 +47,8 @@ import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
  * @author huyifan.zju@163.com
  */
 public class HdfsWriter extends DataWriter {
+
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected String defaultFS;
 
@@ -76,6 +85,12 @@ public class HdfsWriter extends DataWriter {
 
     protected String table;
 
+    protected static final String DATA_SUBDIR = ".data";
+
+    protected static final String FINISHED_SUBDIR = ".finished";
+
+    protected static final String SP = "/";
+
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -109,6 +124,48 @@ public class HdfsWriter extends DataWriter {
         fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
+
+        deleteTempDir();
+    }
+
+    public void deleteTempDir() throws RuntimeException{
+        FileSystem fs = null;
+        try {
+            Configuration conf = new Configuration();
+            if(hadoopConfig != null) {
+                for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
+                    conf.set(entry.getKey(), entry.getValue());
+                }
+            }
+
+            conf.set("fs.default.name", defaultFS);
+            conf.set("fs.hdfs.impl.disable.cache", "true");
+            fs = FileSystem.get(conf);
+
+            String outputFilePath;
+            if(StringUtils.isNotBlank(fileName)) {
+                outputFilePath = path + SP + fileName;
+            } else {
+                outputFilePath = path;
+            }
+
+            // delete tmp dir
+            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+            fs.delete(tmpDir, true);
+            fs.delete(finishedDir, true);
+        } catch (Exception e){
+            LOG.error("delete temp dir error:",e);
+            throw new RuntimeException(e);
+        } finally {
+            if (fs != null){
+                try {
+                    fs.close();
+                } catch (Exception e){
+                    LOG.error("close filesystem error:",e);
+                }
+            }
+        }
     }
 
     @Override

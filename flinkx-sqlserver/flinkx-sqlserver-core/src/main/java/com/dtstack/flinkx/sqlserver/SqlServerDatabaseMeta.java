@@ -52,7 +52,7 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilter(String columnName) {
-        return String.format("%s %% ? = ?", getStartQuote() + columnName + getEndQuote());
+        return String.format("%s %% ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
     }
 
     @Override

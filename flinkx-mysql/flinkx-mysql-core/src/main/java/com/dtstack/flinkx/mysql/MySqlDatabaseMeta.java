@@ -105,7 +105,7 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilter(String columnName) {
-        return String.format("%s mod ? = ?", getStartQuote() + columnName + getEndQuote());
+        return String.format("%s mod ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
     }
 
     @Override

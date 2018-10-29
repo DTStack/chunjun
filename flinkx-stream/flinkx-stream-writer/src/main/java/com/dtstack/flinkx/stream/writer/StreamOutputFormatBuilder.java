@@ -34,6 +34,10 @@ public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
+    public void setPrint(boolean print){
+        format.print = print;
+    }
+
     @Override
     protected void checkFormat() {
 

@@ -33,13 +33,17 @@ import org.apache.flink.types.Row;
  */
 public class StreamWriter extends DataWriter {
 
+    protected boolean print;
+
     public StreamWriter(DataTransferConfig config) {
         super(config);
+        print = config.getJob().getContent().get(0).getWriter().getParameter().getBooleanVal("print",false);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
+        builder.setPrint(print);
 
         OutputFormatSinkFunction formatSinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);

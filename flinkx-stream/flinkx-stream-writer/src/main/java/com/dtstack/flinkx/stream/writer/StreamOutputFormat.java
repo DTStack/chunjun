@@ -32,6 +32,8 @@ import java.io.IOException;
  */
 public class StreamOutputFormat extends RichOutputFormat {
 
+    protected boolean print;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         // do nothing
@@ -39,11 +41,17 @@ public class StreamOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        // do nothing
+        if (print){
+            System.out.println(row);
+        }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        // do nothing
+        if (print){
+            for (Row row : rows) {
+                System.out.println(row);
+            }
+        }
     }
 }
