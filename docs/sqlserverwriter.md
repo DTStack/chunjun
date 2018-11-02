@@ -54,7 +54,7 @@
                         "writeMode": "replace",
                         "connection": [
                             {
-                                "jdbcUrl": "jdbc:sqlserver://172.16.10.46:1433;DatabaseName=dq",
+                                "jdbcUrl": "jdbc:jtds:sqlserver://172.16.10.46:1433;DatabaseName=dq",
                                 "table": [
                                     "tb1"
                                 ]

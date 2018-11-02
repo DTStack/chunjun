@@ -52,18 +52,4 @@ public class TelnetUtil {
 
         telnet(host,port);
     }
-
-    public static void main(String[] args) throws Exception{
-        String url = "jdbc:hive2://172.16.8.104:3306/test?code=true";
-        telnet(url);
-
-        url = "jdbc:sqlserver://localhost:1433;databaseName=AdventureWorks;user=MyUserName;password=*****;";
-        telnet(url);
-
-        url = "jdbc:oracle:thin:@127.0.0.1:1521:dbName";
-        telnet(url);
-
-        url = "jdbc:oracle:thin:@//127.0.0.1:1521:dbName";
-        telnet(url);
-    }
 }

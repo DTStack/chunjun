@@ -275,7 +275,7 @@ public class DBUtil {
                             }
                         }
                     }
-                } else if(dbURL.startsWith("jdbc:sqlserver")) {
+                } else if(dbURL.startsWith("jdbc:jtds:sqlserver")) {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
                             if(obj instanceof Boolean) {
