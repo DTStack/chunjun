@@ -43,9 +43,9 @@ public abstract class DataWriter {
 
     protected PluginLoader pluginLoader;
 
-    protected int errors;
+    protected Integer errors;
 
-    protected double errorRatio;
+    protected Double errorRatio;
 
     protected String dirtyPath;
 
@@ -72,8 +72,11 @@ public abstract class DataWriter {
     public DataWriter(DataTransferConfig config) {
         this.monitorUrls = config.getMonitorUrls();
         this.errors = config.getJob().getSetting().getErrorLimit().getRecord();
-        double percentage = config.getJob().getSetting().getErrorLimit().getPercentage();
-        this.errorRatio = percentage / 100.0;
+        Double percentage = config.getJob().getSetting().getErrorLimit().getPercentage();
+        if(percentage != null){
+            this.errorRatio = percentage / 100.0;
+        }
+
         DirtyConfig dirtyConfig =  config.getJob().getSetting().getDirty();
         if(dirtyConfig != null) {
             String dirtyPath = dirtyConfig.getPath();

@@ -91,63 +91,66 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                 String rowData = column.toString();
                 ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
 
-                switch (columnType) {
-                    case TINYINT:
-                        sb.append(Byte.valueOf(rowData));
-                        break;
-                    case SMALLINT:
-                        sb.append(Short.valueOf(rowData));
-                        break;
-                    case INT:
-                        sb.append(Integer.valueOf(rowData));
-                        break;
-                    case BIGINT:
-                        BigInteger data = new BigInteger(rowData);
-                        if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
-                            sb.append(data);
-                        } else {
-                            sb.append(Long.valueOf(rowData));
-                        }
-                        break;
-                    case FLOAT:
-                        sb.append(Float.valueOf(rowData));
-                        break;
-                    case DOUBLE:
-                        sb.append(Double.valueOf(rowData));
-                        break;
-                    case DECIMAL:
-                        sb.append(HiveDecimal.create(new BigDecimal(rowData)));
-                        break;
-                    case STRING:
-                    case VARCHAR:
-                    case CHAR:
-                        sb.append(rowData);
-                        break;
-                    case BOOLEAN:
-                        sb.append(Boolean.valueOf(rowData));
-                        break;
-                    case DATE:
-                        if(column instanceof Date) {
-                            sb.append(DateUtil.dateToString((Date)column));
-                        } else {
-                            Date d = DateUtil.columnToDate(column);
-                            String s = DateUtil.dateToString(d);
-                            sb.append(s);
-                        }
-                        break;
-                    case TIMESTAMP:
-                        if(column instanceof Date) {
-                            sb.append(DateUtil.timestampToString((Date)column));
-                        } else {
-                            Date d = DateUtil.columnToTimestamp(column);
-                            String s = DateUtil.timestampToString(d);
-                            sb.append(s);
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported column type: " + columnType);
+                if(rowData == null || rowData.length() == 0){
+                    sb.append("");
+                } else {
+                    switch (columnType) {
+                        case TINYINT:
+                            sb.append(Byte.valueOf(rowData));
+                            break;
+                        case SMALLINT:
+                            sb.append(Short.valueOf(rowData));
+                            break;
+                        case INT:
+                            sb.append(Integer.valueOf(rowData));
+                            break;
+                        case BIGINT:
+                            BigInteger data = new BigInteger(rowData);
+                            if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                                sb.append(data);
+                            } else {
+                                sb.append(Long.valueOf(rowData));
+                            }
+                            break;
+                        case FLOAT:
+                            sb.append(Float.valueOf(rowData));
+                            break;
+                        case DOUBLE:
+                            sb.append(Double.valueOf(rowData));
+                            break;
+                        case DECIMAL:
+                            sb.append(HiveDecimal.create(new BigDecimal(rowData)));
+                            break;
+                        case STRING:
+                        case VARCHAR:
+                        case CHAR:
+                            sb.append(rowData);
+                            break;
+                        case BOOLEAN:
+                            sb.append(Boolean.valueOf(rowData));
+                            break;
+                        case DATE:
+                            if(column instanceof Date) {
+                                sb.append(DateUtil.dateToString((Date)column));
+                            } else {
+                                Date d = DateUtil.columnToDate(column);
+                                String s = DateUtil.dateToString(d);
+                                sb.append(s);
+                            }
+                            break;
+                        case TIMESTAMP:
+                            if(column instanceof Date) {
+                                sb.append(DateUtil.timestampToString((Date)column));
+                            } else {
+                                Date d = DateUtil.columnToTimestamp(column);
+                                String s = DateUtil.timestampToString(d);
+                                sb.append(s);
+                            }
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unsupported column type: " + columnType);
+                    }
                 }
-
             }
 
             bytes = sb.toString().getBytes(this.charsetName);

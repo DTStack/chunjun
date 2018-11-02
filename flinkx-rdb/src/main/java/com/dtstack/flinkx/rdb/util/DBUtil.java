@@ -280,7 +280,7 @@ public class DBUtil {
                             }
                         }
                     }
-                } else if(dbURL.startsWith("jdbc:sqlserver")) {
+                } else if(dbURL.startsWith("jdbc:jtds:sqlserver")) {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
                             if(obj instanceof Boolean) {
@@ -339,9 +339,13 @@ public class DBUtil {
                     paramMap.put(leftRight[0], leftRight[1]);
                 }
             }
-            paramMap.put("useCursorFetch", "true");
-            paramMap.put("rewriteBatchedStatements", "true");
 
+            paramMap.put("useCursorFetch", "true");
+
+            if(pluginName.equalsIgnoreCase("mysqlreader")
+                    || pluginName.equalsIgnoreCase("mysqldreader")){
+                paramMap.put("zeroDateTimeBehavior","convertToNull");
+            }
 
             StringBuffer sb = new StringBuffer(splits[0]);
             if(paramMap.size() != 0) {

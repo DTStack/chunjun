@@ -5,15 +5,22 @@
 ```
 {
     "job": {
-        "setting": {
-            "speed": {
-                 "channel": 4
+       "setting": {
+		"speed": {
+                 "channel": 3,
+                 "bytes": 0
+            }，
+		"errorLimit": {
+                "record": 10000,
+                "percentage": 100
             },
-            "errorLimit": {
-                "record": 0,
-                "percentage": 10
+		"dirty": {
+                "path": "/tmp",
+                "hadoopConfig": {
+
+                }
             }
-        },
+	},
         "content": [
             {
               "reader": {
@@ -52,7 +59,7 @@
                         "writeMode": "replace",
                         "connection": [
                             {
-                                "jdbcUrl": "jdbc:sqlserver://172.16.10.46:1433;DatabaseName=dq",
+                                "jdbcUrl": "jdbc:jtds:sqlserver://172.16.10.46:1433;DatabaseName=dq",
                                 "table": [
                                     "tb1"
                                 ]

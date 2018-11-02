@@ -89,10 +89,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected ErrorLimiter errorLimiter;
 
     /** 错误阈值 */
-    protected int errors;
+    protected Integer errors;
 
     /** 错误比例阈值 */
-    protected double errorRatio;
+    protected Double errorRatio;
 
     /** 任务名 */
     protected String jobName = "defaultJobName";
@@ -185,7 +185,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         //启动错误限制
         if(StringUtils.isNotBlank(monitorUrl)) {
-            if(errors > 0) {
+            if(errors != null || errorRatio != null) {
                 errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 1);
                 errorLimiter.start();
             }

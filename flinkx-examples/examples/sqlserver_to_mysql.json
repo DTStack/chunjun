@@ -41,7 +41,7 @@
                   "tb1"
                 ],
                 "jdbcUrl": [
-                  "jdbc:sqlserver://172.16.10.46:1433;DatabaseName=dq"
+                  "jdbc:jtds:sqlserver://172.16.10.46:1433;DatabaseName=dq"
                 ]
               }
             ],
