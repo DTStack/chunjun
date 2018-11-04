@@ -190,7 +190,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 if (col != null) {
                     col = HdfsUtil.getWritableValue(col);
                 }
-                row.setField(i, HdfsUtil.string2col(String.valueOf(col),type));
+                row.setField(i, col);
             } else if(val != null) {
                 Object col = HdfsUtil.string2col(val,type);
                 row.setField(i, col);

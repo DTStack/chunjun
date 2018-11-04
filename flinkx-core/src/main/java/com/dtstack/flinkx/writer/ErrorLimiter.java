@@ -47,12 +47,12 @@ public class ErrorLimiter {
     private static final Logger LOG = LoggerFactory.getLogger(ErrorLimiter.class);
     private double samplePeriod = 2;
     private ScheduledExecutorService scheduledExecutorService;
-    private final int maxErrors;
-    private final double maxErrorRatio;
+    private final Integer maxErrors;
+    private final Double maxErrorRatio;
     private String[] monitorUrls;
     private volatile int errors = 0;
     private volatile double errorRatio = 0.0;
-    private volatile int numWrite = 0;
+    private volatile int numRead = 0;
     private boolean valid = false;
     private String jobId;
     private String taskId;
@@ -70,7 +70,7 @@ public class ErrorLimiter {
         this(runtimeContext, monitors, maxErrors, Double.MAX_VALUE, 1);
     }
 
-    public ErrorLimiter(RuntimeContext runtimeContext, String monitors, int maxErrors, double maxErrorRatio, double samplePeriod) {
+    public ErrorLimiter(RuntimeContext runtimeContext, String monitors, Integer maxErrors, Double maxErrorRatio, double samplePeriod) {
 
         Preconditions.checkArgument(runtimeContext != null || monitors != null, "Should specify rumtimeContext or monitorUrls");
         Preconditions.checkArgument(samplePeriod > 0);
@@ -137,8 +137,8 @@ public class ErrorLimiter {
                                     if(name != null) {
                                         if(name.equals("nErrors")) {
                                             this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
-                                        } else if(name.equals("numWrite")) {
-                                            this.numWrite = Double.valueOf((String) accumulator.get("value")).intValue();
+                                        } else if(name.equals("numRead")) {
+                                            this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
                                         }
                                     }
                                 }
@@ -163,13 +163,18 @@ public class ErrorLimiter {
 
     public void acquire() {
         if(isValid()) {
-            Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
-                    + "]\n" + errMsg);
-            if(numWrite >= 1) {
-                errorRatio = (double)errors / numWrite;
+            if(maxErrors != null){
+                Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
+                        + "]\n" + errMsg);
             }
-            Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
-                    + "]\n" + errMsg);
+
+            if(maxErrorRatio != null){
+                if(numRead >= 1) {
+                    errorRatio = (double)errors / numRead;
+                }
+                Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
+                        + "]\n" + errMsg);
+            }
         }
     }
 

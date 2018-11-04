@@ -47,19 +47,20 @@ public class ErrorLimitConfig extends AbstractConfig {
         return new ErrorLimitConfig(map);
     }
 
-    public int getRecord() {
-        return getIntVal(KEY_ERROR_RECORD_LIMIT, DEFAULT_ERROR_RECORD_LIMIT);
+    public Integer getRecord() {
+        int record = getIntVal(KEY_ERROR_RECORD_LIMIT,-1);
+        return record == -1 ? null : record;
     }
 
-    public void setRecord(int record) {
+    public void setRecord(Integer record) {
         setIntVal(KEY_ERROR_RECORD_LIMIT, record);
     }
 
-    public double getPercentage() {
-        return getDoubleVal(KEY_ERROR_PERCENTAGE_LIMIT, DEFAULT_ERROR_PERCENTAGE_LIMIT);
+    public Double getPercentage() {
+        return (Double) getVal(KEY_ERROR_PERCENTAGE_LIMIT);
     }
 
-    public void setPercentage(double percentage) {
+    public void setPercentage(Double percentage) {
         setDoubleVal(KEY_ERROR_PERCENTAGE_LIMIT, percentage);
     }
 }

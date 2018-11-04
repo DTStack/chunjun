@@ -59,7 +59,7 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilter(String columnName) {
-        return String.format("mod(%s, ?) = ?", getStartQuote() + columnName + getEndQuote());
+        return String.format("mod(%s, ${N}) = ${M}", getStartQuote() + columnName + getEndQuote());
     }
 
     @Override

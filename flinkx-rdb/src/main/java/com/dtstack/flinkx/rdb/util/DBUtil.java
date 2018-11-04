@@ -192,13 +192,16 @@ public class DBUtil {
         return provider.getParameterValues();
     }
 
-    public static List<String> analyzeTable(Connection dbConn,DatabaseInterface databaseInterface,
+    public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
                                             String table,List<String> column) {
         List<String> ret = new ArrayList<>();
-
+        Connection dbConn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            dbConn = getConnection(dbURL, username, password);
+            stmt = dbConn.createStatement();
+            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
             Map<String,String> nameTypeMap = new HashMap<>();
@@ -211,6 +214,8 @@ public class DBUtil {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            closeDBResources(rs,stmt,dbConn);
         }
 
         return ret;
@@ -334,8 +339,13 @@ public class DBUtil {
                     paramMap.put(leftRight[0], leftRight[1]);
                 }
             }
+
             paramMap.put("useCursorFetch", "true");
 
+            if(pluginName.equalsIgnoreCase("mysqlreader")
+                    || pluginName.equalsIgnoreCase("mysqldreader")){
+                paramMap.put("zeroDateTimeBehavior","convertToNull");
+            }
 
             StringBuffer sb = new StringBuffer(splits[0]);
             if(paramMap.size() != 0) {

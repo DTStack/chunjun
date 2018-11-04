@@ -22,7 +22,6 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -31,9 +30,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.*;
-import java.sql.Date;
 import java.util.*;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
@@ -69,7 +66,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected transient Connection dbConn;
 
-    protected transient PreparedStatement statement;
+    protected transient Statement statement;
 
     protected transient ResultSet resultSet;
 
@@ -104,31 +101,32 @@ public class JdbcInputFormat extends RichInputFormat {
         try {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn.setAutoCommit(false);
 
-            if(drivername.equalsIgnoreCase("org.postgresql.Driver")){
-                dbConn.setAutoCommit(false);
-            }
-
-            statement = dbConn.prepareStatement(queryTemplate, resultSetType, resultSetConcurrency);
+            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             if (inputSplit != null && parameterValues != null) {
-                for (int i = 0; i < parameterValues[inputSplit.getSplitNumber()].length; i++) {
-                    Object param = parameterValues[inputSplit.getSplitNumber()][i];
-                    DBUtil.setParameterValue(param,statement,i);
-                }
+                String n = parameterValues[inputSplit.getSplitNumber()][0].toString();
+                String m = parameterValues[inputSplit.getSplitNumber()][1].toString();
+                queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
+
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
                 }
             }
 
-            statement.setFetchSize(fetchSize);
-            statement.setQueryTimeout(queryTimeOut);
-            resultSet = statement.executeQuery();
+            if(databaseInterface.getDatabaseType().equals("mysql")){
+                statement.setFetchSize(Integer.MIN_VALUE);
+            } else {
+                statement.setFetchSize(fetchSize);
+            }
+
+            resultSet = statement.executeQuery(queryTemplate);
             hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();
 
             if(descColumnTypeList == null) {
-                descColumnTypeList = DBUtil.analyzeTable(dbConn,databaseInterface,table,column);
+                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,column);
             }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);

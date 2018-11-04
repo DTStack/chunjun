@@ -69,7 +69,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     private transient Connection currentConn;
 
-    private transient PreparedStatement currentStatement;
+    private transient Statement currentStatement;
 
     private transient ResultSet currentResultSet;
 
@@ -127,14 +127,14 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         }
 
         currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn.setAutoCommit(false);
         String queryTemplate = DBUtil.getQuerySql(databaseInterface,currentSource.getTable(),column,splitKey,where,currentSource.isSplitByKey());
-        currentStatement = currentConn.prepareStatement(queryTemplate, resultSetType, resultSetConcurrency);
+        currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
         if (currentSource.isSplitByKey()){
-            for (int i = 0; i < currentSource.getParameterValues().length; i++) {
-                Object param = currentSource.getParameterValues()[i];
-                DBUtil.setParameterValue(param,currentStatement,i);
-            }
+            String n = currentSource.getParameterValues()[0].toString();
+            String m = currentSource.getParameterValues()[1].toString();
+            queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate,
@@ -142,13 +142,20 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             }
         }
 
-        currentStatement.setFetchSize(fetchSize);
+        if(databaseInterface.getDatabaseType().equals("mysql")){
+            currentStatement.setFetchSize(Integer.MIN_VALUE);
+        } else {
+            currentStatement.setFetchSize(fetchSize);
+        }
+
         currentStatement.setQueryTimeout(queryTimeOut);
-        currentResultSet = currentStatement.executeQuery();
+        currentResultSet = currentStatement.executeQuery(queryTemplate);
         hasNext = currentResultSet.next();
         columnCount = currentResultSet.getMetaData().getColumnCount();
+
         if(descColumnTypeList == null) {
-            descColumnTypeList = DBUtil.analyzeTable(currentConn,databaseInterface,currentSource.getTable(),column);
+            descColumnTypeList = DBUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
+                    currentSource.getPassword(),databaseInterface,currentSource.getTable(),column);
         }
 
         LOG.info("open source:" + currentSource.getJdbcUrl() + ",table:" + currentSource.getTable());
@@ -190,37 +197,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
     public InputSplit[] createInputSplits(int minPart) throws IOException {
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[numPartitions];
 
-        if(sourceList.size() >= numPartitions){
-            int partNum = sourceList.size() / numPartitions;
-            for (int j = 0; j < numPartitions; j++) {
-                DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-                split.setSourceList(new ArrayList<>(sourceList.subList(j * partNum,(j + 1) * partNum)));
-                inputSplits[j] = split;
-            }
-
-            if(partNum * numPartitions < sourceList.size()){
-                List<DataSource> sourceLeft = new ArrayList<>(sourceList.subList(numPartitions * partNum,sourceList.size()));
-                if(splitKey == null || splitKey.length() == 0){
-                    for (int i = 0; i < sourceLeft.size(); i++) {
-                        inputSplits[i].addSource(sourceLeft.get(i));
-                    }
-                } else {
-                    Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
-                    for (int j = 0; j < numPartitions; j++){
-                        List<DataSource> sourceLeftSplit = deepCopyList(sourceLeft);
-                        for (int i = 0; i < sourceLeftSplit.size(); i++) {
-                            sourceLeftSplit.get(i).setSplitByKey(true);
-                            sourceLeftSplit.get(i).setParameterValues(parmeter[j]);
-                        }
-                        inputSplits[j].addSource(sourceLeftSplit);
-                    }
-                }
-            }
-        } else {
-            if(splitKey == null || splitKey.length() == 0){
-                throw new IllegalArgumentException("SplitKey cannot be empty when the channel is greater than the number of table");
-            }
-
+        if(splitKey != null && splitKey.length()> 0){
             Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
                 DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
@@ -231,6 +208,29 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                 }
                 split.setSourceList(sourceCopy);
                 inputSplits[j] = split;
+            }
+        } else {
+            int partNum = sourceList.size() / numPartitions;
+            if (partNum == 0){
+                for (int i = 0; i < sourceList.size(); i++) {
+                    DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(i,numPartitions);
+                    split.setSourceList(Arrays.asList(sourceList.get(i)));
+                    inputSplits[i] = split;
+                }
+            } else {
+                for (int j = 0; j < numPartitions; j++) {
+                    DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
+                    split.setSourceList(new ArrayList<>(sourceList.subList(j * partNum,(j + 1) * partNum)));
+                    inputSplits[j] = split;
+                }
+
+                if (partNum * numPartitions < sourceList.size()){
+                    sourceList = sourceList.subList(partNum * numPartitions,sourceList.size());
+                    for (int i = 0; i < sourceList.size(); i++) {
+                        DistributedJdbcInputSplit split = inputSplits[i];
+                        split.getSourceList().add(sourceList.get(i));
+                    }
+                }
             }
         }
 
