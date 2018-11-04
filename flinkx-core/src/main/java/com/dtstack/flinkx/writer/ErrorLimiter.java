@@ -52,7 +52,7 @@ public class ErrorLimiter {
     private String[] monitorUrls;
     private volatile int errors = 0;
     private volatile double errorRatio = 0.0;
-    private volatile int numWrite = 0;
+    private volatile int numRead = 0;
     private boolean valid = false;
     private String jobId;
     private String taskId;
@@ -137,8 +137,8 @@ public class ErrorLimiter {
                                     if(name != null) {
                                         if(name.equals("nErrors")) {
                                             this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
-                                        } else if(name.equals("numWrite")) {
-                                            this.numWrite = Double.valueOf((String) accumulator.get("value")).intValue();
+                                        } else if(name.equals("numRead")) {
+                                            this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
                                         }
                                     }
                                 }
@@ -169,8 +169,8 @@ public class ErrorLimiter {
             }
 
             if(maxErrorRatio != null){
-                if(numWrite >= 1) {
-                    errorRatio = (double)errors / numWrite;
+                if(numRead >= 1) {
+                    errorRatio = (double)errors / numRead;
                 }
                 Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
                         + "]\n" + errMsg);
