@@ -160,6 +160,21 @@ public class DBUtil {
         }
     }
 
+    public static void executeOneByOne(Connection dbConn, List<String> sqls) {
+        if(sqls == null || sqls.size() == 0) {
+            return;
+        }
+
+        try {
+            Statement stmt = dbConn.createStatement();
+            for(String sql : sqls) {
+                stmt.execute(sql);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
         Map<String,List<String>> keyMap = new HashMap<>();
         DatabaseMetaData meta = dbConn.getMetaData();

@@ -27,6 +27,7 @@
         <module>flinkx-postgresql</module>
         <module>flinkx-launcher</module>
         <module>flinkx-stream</module>
+        <module>flinkx-carbondata</module>
     </modules>
 
     <properties>

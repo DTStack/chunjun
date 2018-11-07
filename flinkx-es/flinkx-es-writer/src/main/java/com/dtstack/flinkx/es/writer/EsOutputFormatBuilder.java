@@ -25,7 +25,7 @@ import java.util.List;
  * The Builder class of EsOutputFormat
  *
  * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ * @author huyifan_zju@163.com
  */
 public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
 

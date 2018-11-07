@@ -43,6 +43,9 @@ public class HdfsOutputFormatBuilder extends RichOutputFormatBuilder {
             case "ORC":
                 format = new HdfsOrcOutputFormat();
                 break;
+            case "PARQUET":
+                format = new HdfsParquetOutputFormat();
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported HDFS file type: " + type);
         }

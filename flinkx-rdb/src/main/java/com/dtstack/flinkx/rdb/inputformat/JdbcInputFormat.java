@@ -41,7 +41,6 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-@Deprecated
 public class JdbcInputFormat extends RichInputFormat {
 
     protected static final long serialVersionUID = 1L;
@@ -121,7 +120,9 @@ public class JdbcInputFormat extends RichInputFormat {
                 statement.setFetchSize(fetchSize);
             }
 
-            statement.setQueryTimeout(queryTimeOut);
+            if(!dbURL.startsWith("jdbc:hive2")) {
+                statement.setQueryTimeout(queryTimeOut);
+            }
             resultSet = statement.executeQuery(queryTemplate);
             hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();
