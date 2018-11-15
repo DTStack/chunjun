@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
@@ -142,7 +143,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             }
         }
 
-        if(databaseInterface.getDatabaseType().equals("mysql")){
+        if(databaseInterface.getDatabaseType() == EDatabaseType.MySQL){
             currentStatement.setFetchSize(Integer.MIN_VALUE);
         } else {
             currentStatement.setFetchSize(fetchSize);
