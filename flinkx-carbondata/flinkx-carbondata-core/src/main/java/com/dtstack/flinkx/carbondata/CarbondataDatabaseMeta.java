@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.carbondata;
 
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,8 +43,8 @@ public class CarbondataDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getDatabaseType() {
-        return "carbondata";
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.Carbondata;
     }
 
     @Override

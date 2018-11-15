@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
@@ -114,13 +115,13 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             }
 
-            if(databaseInterface.getDatabaseType().equals("mysql")){
+            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()){
                 statement.setFetchSize(Integer.MIN_VALUE);
             } else {
                 statement.setFetchSize(fetchSize);
             }
 
-            if(!dbURL.startsWith("jdbc:hive2")) {
+            if(EDatabaseType.Carbondata != databaseInterface.getDatabaseType()) {
                 statement.setQueryTimeout(queryTimeOut);
             }
             resultSet = statement.executeQuery(queryTemplate);
@@ -175,7 +176,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 return null;
             }
 
-            DBUtil.getRow(dbURL,row,descColumnTypeList,resultSet,typeConverter);
+            DBUtil.getRow(databaseInterface.getDatabaseType(),row,descColumnTypeList,resultSet,typeConverter);
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();
@@ -189,6 +190,14 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        try {
+            if(dbConn != null && !dbConn.isClosed()){
+                dbConn.commit();
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+
         DBUtil.closeDBResources(resultSet,statement,dbConn);
         parameterValues = null;
     }

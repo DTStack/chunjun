@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
@@ -269,16 +270,16 @@ public class DBUtil {
         }
     }
 
-    public static void getRow(String dbURL,Row row,List<String> descColumnTypeList,ResultSet resultSet,
+    public static void getRow(EDatabaseType dbType, Row row, List<String> descColumnTypeList, ResultSet resultSet,
                               TypeConverterInterface typeConverter) throws SQLException{
         for (int pos = 0; pos < row.getArity(); pos++) {
             Object obj = resultSet.getObject(pos + 1);
             if(obj != null) {
-                if (dbURL.startsWith("jdbc:oracle")) {
+                if (EDatabaseType.Oracle == dbType) {
                     if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
                         obj = resultSet.getTimestamp(pos + 1);
                     }
-                } else if(dbURL.startsWith("jdbc:mysql")) {
+                } else if(EDatabaseType.MySQL == dbType) {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
                             java.util.Date date = (java.util.Date) obj;
@@ -295,7 +296,7 @@ public class DBUtil {
                             }
                         }
                     }
-                } else if(dbURL.startsWith("jdbc:jtds:sqlserver")) {
+                } else if(EDatabaseType.SQLServer == dbType) {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
                             if(obj instanceof Boolean) {
@@ -303,7 +304,7 @@ public class DBUtil {
                             }
                         }
                     }
-                } else if(dbURL.startsWith("jdbc:postgresql")){
+                } else if(EDatabaseType.PostgreSQL == dbType){
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }

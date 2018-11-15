@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.sqlserver;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang.StringUtils;
 import java.util.List;
@@ -31,8 +32,8 @@ import java.util.List;
  */
 public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     @Override
-    public String getDatabaseType() {
-        return "sqlserver";
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.SQLServer;
     }
 
     @Override

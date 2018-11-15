@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.oracle;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang.StringUtils;
 import java.util.List;
@@ -38,8 +39,8 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
         return table;
     }
     @Override
-    public String getDatabaseType() {
-        return "oracle";
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.Oracle;
     }
 
     @Override

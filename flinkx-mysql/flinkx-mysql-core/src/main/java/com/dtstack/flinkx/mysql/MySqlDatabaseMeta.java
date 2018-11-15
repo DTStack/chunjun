@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.mysql;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
@@ -33,8 +34,8 @@ import java.util.Map;
 public class MySqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
-    public String getDatabaseType() {
-        return "mysql";
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.MySQL;
     }
 
     @Override
