@@ -182,7 +182,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     private void closeCurrentSource(){
         try {
-            if(currentConn != null){
+            if(currentConn != null && !currentConn.isClosed()){
                 currentConn.commit();
             }
         } catch (Throwable e) {
