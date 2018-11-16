@@ -365,4 +365,3 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
 
 }
-
