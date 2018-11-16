@@ -54,14 +54,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private transient int currenFileIndex = 0;
 
-    private GroupReadSupport readSupport;
-
     private SimpleDateFormat sdf = new SimpleDateFormat("");
 
     @Override
     protected void configureAnythingElse() {
         try {
-            readSupport = new GroupReadSupport();
             allFilePaths = getAllPartitionPath(inputPath);
         } catch (Exception e){
             throw new RuntimeException(e);
@@ -94,7 +91,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private void nextFile() throws IOException{
         String path = currentSplitFilePaths.get(currenFileIndex);
-        ParquetReader.Builder<Group> reader = ParquetReader.builder(readSupport, new Path(path)).withConf(conf);
+        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), new Path(path)).withConf(conf);
         currentFileReader = reader.build();
 
         currenFileIndex++;
