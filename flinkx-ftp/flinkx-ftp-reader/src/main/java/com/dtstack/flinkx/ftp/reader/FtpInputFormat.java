@@ -71,6 +71,8 @@ public class FtpInputFormat extends RichInputFormat {
 
     protected List<String> columnType;
 
+    protected transient boolean isFirstLineHeader;
+
     private transient BufferedReader br;
 
     private transient FtpHandler ftpHandler;
@@ -131,6 +133,12 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         line = br.readLine();
+
+        // if first line is header,then read next line
+        if(isFirstLineHeader){
+            line = br.readLine();
+            isFirstLineHeader = false;
+        }
         return line == null;
     }
 

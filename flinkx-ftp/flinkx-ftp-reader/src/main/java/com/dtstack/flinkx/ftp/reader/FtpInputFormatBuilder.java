@@ -64,6 +64,10 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
         format.columnIndex = columnIndex;
     }
 
+    public void setIsFirstLineHeader(boolean isFirstLineHeader){
+        format.isFirstLineHeader = isFirstLineHeader;
+    }
+
     public void setColumnValue(List<String> columnValue) {
         format.columnValue = columnValue;
     }

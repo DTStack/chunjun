@@ -51,6 +51,7 @@ public class FtpReader extends DataReader {
     private String path;
     private String fieldDelimiter;
     private String encoding;
+    private boolean isFirstLineHeader;
 
     private List<Integer> columnIndex;
     private List<String> columnType;
@@ -79,6 +80,7 @@ public class FtpReader extends DataReader {
         username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
         encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING);
+        isFirstLineHeader = readerConfig.getParameter().getBooleanVal(KEY_IS_FIRST_HEADER,false);
 
         List columns = readerConfig.getParameter().getColumn();
         if(columns != null && columns.size() > 0) {
@@ -114,6 +116,7 @@ public class FtpReader extends DataReader {
         builder.setPort(port);
         builder.setProtocol(protocol);
         builder.setUsername(username);
+        builder.setIsFirstLineHeader(isFirstLineHeader);
 
         return createInput(builder.finish(), "ftpreader");
     }
