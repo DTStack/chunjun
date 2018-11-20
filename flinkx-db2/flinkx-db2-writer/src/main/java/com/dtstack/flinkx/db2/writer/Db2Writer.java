@@ -16,27 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.db2.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.db2.Db2DatabaseMeta;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 
 /**
- * Database type
+ * db2 writer plugin
  *
- * Company: www.dtstack.com
  * @author jiangbo
+ * @date 2018/11/19
  */
-public enum EDatabaseType {
+public class Db2Writer extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata
+    public Db2Writer(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new Db2DatabaseMeta());
+    }
 }

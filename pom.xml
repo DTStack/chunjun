@@ -28,6 +28,7 @@
         <module>flinkx-launcher</module>
         <module>flinkx-stream</module>
         <module>flinkx-carbondata</module>
+        <module>flinkx-db2</module>
     </modules>
 
     <properties>

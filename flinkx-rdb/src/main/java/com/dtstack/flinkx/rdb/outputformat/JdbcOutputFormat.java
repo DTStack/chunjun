@@ -189,6 +189,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
             }
+
+            if(fullColumn == null || fullColumn.size() == 0){
+                for(int i = 0; i < rd.getColumnCount(); ++i) {
+                    fullColumn.add(rd.getColumnName(i+1));
+                }
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -308,6 +314,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
         if(EDatabaseType.Oracle == databaseInterface.getDatabaseType()){
             PreparedStatement ps = dbConn.prepareStatement(String.format(GET_ORACLE_INDEX_SQL,table));
             rs = ps.executeQuery();
+        } else if(EDatabaseType.DB2 == databaseInterface.getDatabaseType()){
+            rs = dbConn.getMetaData().getIndexInfo(null, null, table.toUpperCase(), true, false);
         } else {
             rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
         }

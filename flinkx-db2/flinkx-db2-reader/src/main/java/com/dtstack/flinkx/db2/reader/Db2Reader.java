@@ -16,27 +16,23 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.db2.reader;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.db2.Db2DatabaseMeta;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Database type
+ * db2 reader plugin
  *
- * Company: www.dtstack.com
  * @author jiangbo
+ * @date 2018/11/19
  */
-public enum EDatabaseType {
+public class Db2Reader extends JdbcDataReader {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata
+    public Db2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+        setDatabaseInterface(new Db2DatabaseMeta());
+    }
 }

@@ -27,6 +27,7 @@ import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.flink.types.Row;
 
+import java.io.BufferedReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -271,7 +272,7 @@ public class DBUtil {
     }
 
     public static void getRow(EDatabaseType dbType, Row row, List<String> descColumnTypeList, ResultSet resultSet,
-                              TypeConverterInterface typeConverter) throws SQLException{
+                              TypeConverterInterface typeConverter) throws Exception{
         for (int pos = 0; pos < row.getArity(); pos++) {
             Object obj = resultSet.getObject(pos + 1);
             if(obj != null) {
@@ -307,6 +308,18 @@ public class DBUtil {
                 } else if(EDatabaseType.PostgreSQL == dbType){
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
+                    }
+                } else if(EDatabaseType.DB2 == dbType){
+                    if (obj instanceof com.ibm.db2.jcc.am.c9){
+                        BufferedReader bf = new BufferedReader(((com.ibm.db2.jcc.am.c9)obj).getCharacterStream());
+                        StringBuilder data = new StringBuilder();
+                        String line;
+                        while ((line = bf.readLine()) != null){
+                            data.append(line);
+                        }
+                        obj = data.toString();
+                    } else if(obj instanceof byte[]){
+                        obj = new String((byte[]) obj);
                     }
                 }
             }

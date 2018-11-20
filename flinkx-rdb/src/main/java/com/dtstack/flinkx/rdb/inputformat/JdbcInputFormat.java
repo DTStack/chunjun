@@ -183,7 +183,7 @@ public class JdbcInputFormat extends RichInputFormat {
             return row;
         } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
-        } catch (NullPointerException npe) {
+        } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
         }
     }
