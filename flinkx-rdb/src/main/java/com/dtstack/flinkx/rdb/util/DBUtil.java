@@ -28,6 +28,8 @@ import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.flink.types.Row;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -310,8 +312,14 @@ public class DBUtil {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }
                 } else if(EDatabaseType.DB2 == dbType){
-                    if (obj instanceof com.ibm.db2.jcc.am.c9){
-                        BufferedReader bf = new BufferedReader(((com.ibm.db2.jcc.am.c9)obj).getCharacterStream());
+                    if (obj instanceof com.ibm.db2.jcc.am.c2 || obj instanceof com.ibm.db2.jcc.am.cz){
+                        BufferedReader bf;
+                        if(obj instanceof com.ibm.db2.jcc.am.c2){
+                            bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
+                        } else {
+                            bf = new BufferedReader(new InputStreamReader(((com.ibm.db2.jcc.am.cz)obj).getBinaryStream()));
+                        }
+
                         StringBuilder data = new StringBuilder();
                         String line;
                         while ((line = bf.readLine()) != null){
