@@ -22,7 +22,7 @@ package com.dtstack.flinkx.hdfs;
  * This class defines configuration keys for HdfsReader and HdfsWriter
  *
  * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ * @author huyifan_zju@163.com
  */
 public class HdfsConfigKeys {
 
