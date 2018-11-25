@@ -22,4 +22,6 @@ public class CarbonConfigKeys {
 
     public static final String KEY_COLUMN_VALUE = "value";
 
+    public static final String KEY_FILTER = "filter";
+
 }

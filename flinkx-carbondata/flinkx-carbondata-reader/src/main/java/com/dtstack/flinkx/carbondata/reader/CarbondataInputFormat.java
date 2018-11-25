@@ -49,11 +49,10 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     protected List<String> columnFormat;
 
-    protected String where;
+    protected String filter;
 
     private List<Integer> columnIndex;
 
-//    private transient org.apache.hadoop.conf.Configuration conf;
 
     private transient Job job;
 
@@ -68,8 +67,6 @@ public class CarbondataInputFormat extends RichInputFormat{
     private transient TaskAttemptContext taskAttemptContext;
 
     private transient CarbonProjection  projection;
-
-    private transient Expression filter = null;
 
 
     @Override
@@ -152,6 +149,10 @@ public class CarbondataInputFormat extends RichInputFormat{
         CarbonTableInputFormat.setTableName(conf, table);
         CarbonTableInputFormat.setColumnProjection(conf, projection);
         conf.set("mapreduce.input.fileinputformat.inputdir", path);
+
+        if(StringUtils.isNotBlank(filter)) {
+            CarbonTableInputFormat.setFilterPredicates(conf, CarbonExpressUtil.eval(filter, columnName, columnType));
+        }
 
         try {
             job = Job.getInstance(conf);

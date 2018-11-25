@@ -33,6 +33,8 @@ public class CarbondataReader extends DataReader {
 
     protected List<String> columnValue;
 
+    protected String filter;
+
 
     public CarbondataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -41,6 +43,7 @@ public class CarbondataReader extends DataReader {
         table = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE);
         database = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
+        filter = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_FILTER);
         List columns = readerConfig.getParameter().getColumn();
 
         if (columns != null && columns.size() > 0) {
@@ -72,6 +75,7 @@ public class CarbondataReader extends DataReader {
         builder.setDatabase(database);
         builder.setTable(table);
         builder.setPath(path);
+        builder.setFilter(filter);
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);

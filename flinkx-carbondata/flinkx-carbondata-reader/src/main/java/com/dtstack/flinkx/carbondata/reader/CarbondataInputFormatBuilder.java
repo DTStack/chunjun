@@ -41,6 +41,11 @@ public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
         format.columnType = columnTypes;
     }
 
+    public void setFilter(String filter) {
+        format.filter = filter;
+    }
+
+
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.hadoopConfig);
