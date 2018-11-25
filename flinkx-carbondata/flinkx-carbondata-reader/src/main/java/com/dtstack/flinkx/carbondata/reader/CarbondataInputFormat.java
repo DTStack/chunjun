@@ -1,10 +1,10 @@
 package com.dtstack.flinkx.carbondata.reader;
 
 
+import com.dtstack.flinkx.carbondata.CarbondataUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
-import org.apache.carbondata.core.scan.expression.Expression;
 import org.apache.carbondata.hadoop.CarbonInputSplit;
 import org.apache.carbondata.hadoop.CarbonProjection;
 import org.apache.carbondata.hadoop.api.CarbonTableInputFormat;
@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -22,7 +21,6 @@ import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -125,26 +123,9 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     @Override
     public void configure(Configuration configuration) {
-        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-        conf.clear();
-        if(hadoopConfig != null) {
-            for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
-            }
-        }
-        conf.set("fs.hdfs.impl.disable.cache", "true");
-        conf.set("fs.default.name", "hdfs://ns1");
-
-        try {
-            Field confField = FileFactory.class.getDeclaredField("configuration");
-            confField.setAccessible(true);
-            confField.set(null, conf);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
+        CarbondataUtil.initFileFactory(hadoopConfig);
         initColumnIndices();
-
+        org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
         CarbonTableInputFormat.setDatabaseName(conf, database);
         CarbonTableInputFormat.setTableName(conf, table);
         CarbonTableInputFormat.setColumnProjection(conf, projection);

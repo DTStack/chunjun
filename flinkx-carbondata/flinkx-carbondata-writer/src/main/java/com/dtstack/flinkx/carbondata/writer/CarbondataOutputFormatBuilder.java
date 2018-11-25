@@ -1,7 +1,10 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import org.apache.flink.util.Preconditions;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Builder class of CarbondataOutputFormat
@@ -17,44 +20,33 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format = new CarbonOutputFormat();
     }
 
-    public void setUsername(String username) {
-        format.username = username;
-    }
-
-    public void setPassword(String password) {
-        format.password = password;
-    }
-
-    public void setDBUrl(String dbURL) {
-        format.dbURL = dbURL;
+    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+        format.hadoopConfig = hadoopConfig;
     }
 
     public void setTable(String table) {
         format.table = table;
     }
 
+    public void setPath(String path) {
+        format.path = path;
+    }
+
+    public void setDatabase(String database) {
+        format.database = database;
+    }
+
     public void setColumn(List<String> column) {
         format.column = column;
     }
 
-    public void setPreSql(List<String> preSql) {
-        format.preSql = preSql;
-    }
-
-    public void setPostSql(List<String> postSql) {
-        format.postSql = postSql;
-    }
-
     @Override
     protected void checkFormat() {
-        if (format.username == null) {
-            LOG.info("Username was not supplied separately.");
-        }
-        if (format.password == null) {
-            LOG.info("Password was not supplied separately.");
-        }
-        if (format.dbURL == null) {
-            throw new IllegalArgumentException("No dababase URL supplied.");
-        }
+        Preconditions.checkNotNull(format.hadoopConfig);
+        Preconditions.checkNotNull(format.table);
+        Preconditions.checkNotNull(format.path);
+        Preconditions.checkNotNull(format.database);
+        Preconditions.checkNotNull(format.column);
+
     }
 }

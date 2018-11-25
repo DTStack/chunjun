@@ -24,4 +24,11 @@ public class CarbonConfigKeys {
 
     public static final String KEY_FILTER = "filter";
 
+    public static final String KEY_BATCH_SIZE = "batchSize";
+
+    public static final int DEFAULT_BATCH_SIZE = 1024;
+
+
+
+
 }
