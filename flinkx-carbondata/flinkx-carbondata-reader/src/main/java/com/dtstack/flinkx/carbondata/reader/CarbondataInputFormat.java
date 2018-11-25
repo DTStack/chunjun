@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -52,7 +53,7 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     private List<Integer> columnIndex;
 
-    private transient org.apache.hadoop.conf.Configuration conf;
+//    private transient org.apache.hadoop.conf.Configuration conf;
 
     private transient Job job;
 
@@ -66,7 +67,7 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     private transient TaskAttemptContext taskAttemptContext;
 
-    private transient CarbonProjection  projection = new CarbonProjection();
+    private transient CarbonProjection  projection;
 
     private transient Expression filter = null;
 
@@ -85,9 +86,10 @@ public class CarbondataInputFormat extends RichInputFormat{
     }
 
     private void initColumnIndices() {
+        projection = new CarbonProjection();
         columnIndex = new ArrayList<>();
         int k = 0;
-        for(int i = 0; i < columnIndex.size(); ++i) {
+        for(int i = 0; i < columnName.size(); ++i) {
             if(StringUtils.isNotBlank(columnName.get(i))) {
                 columnIndex.add(k);
                 projection.addColumn(columnName.get(i));
@@ -126,7 +128,7 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     @Override
     public void configure(Configuration configuration) {
-        conf = new org.apache.hadoop.conf.Configuration();
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
         conf.clear();
         if(hadoopConfig != null) {
             for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
@@ -149,15 +151,14 @@ public class CarbondataInputFormat extends RichInputFormat{
         CarbonTableInputFormat.setDatabaseName(conf, database);
         CarbonTableInputFormat.setTableName(conf, table);
         CarbonTableInputFormat.setColumnProjection(conf, projection);
-        CarbonTableInputFormat.setTablePath(conf, path);
-//
-//        Job job = null;
-//        try {
-//            job = Job.getInstance(conf);
-//            CarbonTableInputFormat.addInputPath(job, new Path(path));
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+        conf.set("mapreduce.input.fileinputformat.inputdir", path);
+
+        try {
+            job = Job.getInstance(conf);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
         format = new CarbonTableInputFormat();
 
@@ -165,7 +166,6 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     @Override
     public InputSplit[] createInputSplits(int num) throws IOException {
-        Job job = Job.getInstance(conf);
         List<org.apache.hadoop.mapreduce.InputSplit> splitList = format.getSplits(job);
         int splitNum = (splitList.size() < num ? splitList.size() : num);
         int groupSize = (int)Math.ceil(splitList.size() / (double)splitNum);
@@ -181,6 +181,7 @@ public class CarbondataInputFormat extends RichInputFormat{
 
         return ret;
     }
+
 
     @Override
     public boolean reachedEnd() throws IOException {
@@ -204,7 +205,7 @@ public class CarbondataInputFormat extends RichInputFormat{
         JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
         TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
         TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptID);
+        TaskAttemptContextImpl context = new TaskAttemptContextImpl(job.getConfiguration(), attemptID);
         return context;
     }
 
