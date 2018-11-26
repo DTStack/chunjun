@@ -21,10 +21,12 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
 import java.io.BufferedReader;
@@ -212,7 +214,7 @@ public class DBUtil {
     }
 
     public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
-                                            String table,List<String> column) {
+                                            String table,List<MetaColumn> metaColumns) {
         List<String> ret = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
@@ -228,8 +230,12 @@ public class DBUtil {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
 
-            for (String col : column) {
-                ret.add(nameTypeMap.get(col));
+            for (MetaColumn metaColumn : metaColumns) {
+                if(metaColumn.getValue() != null){
+                    ret.add("string");
+                } else {
+                    ret.add(nameTypeMap.get(metaColumn.getName()));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -336,10 +342,20 @@ public class DBUtil {
         }
     }
 
-    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<String> column,
+    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
                                      String splitKey,String where,boolean isSplitByKey) {
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(databaseInterface.quoteColumns(column)).append(" FROM ");
+
+        List<String> selectColumns = new ArrayList<>();
+        for (MetaColumn metaColumn : metaColumns) {
+            if (metaColumn.getValue() != null){
+                selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+            } else {
+                selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+            }
+        }
+
+        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
 
         StringBuilder filter = new StringBuilder();

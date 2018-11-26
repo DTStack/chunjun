@@ -64,6 +64,11 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String quoteValue(String value, String column) {
+        return String.format("\"%s\" as %s",value,column);
+    }
+
+    @Override
     public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
         return "REPLACE INTO " + quoteTable(table)
                 + " (" + quoteColumns(column) + ") values "

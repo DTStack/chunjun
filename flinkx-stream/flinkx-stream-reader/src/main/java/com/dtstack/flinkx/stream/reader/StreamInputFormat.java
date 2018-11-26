@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -26,7 +28,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Company: www.dtstack.com
@@ -42,13 +43,15 @@ public class StreamInputFormat extends RichInputFormat {
 
     protected long sliceRecordCount;
 
-    protected List<Map<String,Object>> columns;
+    protected List<MetaColumn> columns;
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         staticData = new Row(columns.size());
         for (int i = 0; i < columns.size(); i++) {
-            staticData.setField(i,columns.get(i).get("value"));
+            MetaColumn col = columns.get(i);
+            Object value = StringUtil.string2col(col.getValue(),col.getType(),col.getTimeFormat());
+            staticData.setField(i,value);
         }
     }
 

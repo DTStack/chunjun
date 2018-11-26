@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
+
 import java.util.List;
 import java.util.Map;
 
@@ -50,21 +52,8 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
         format.hadoopConfig = hadoopConfig;
     }
 
-    public void setColumnIndex(List<Integer> columnIndex) {
-        format.columnIndex = columnIndex;
-    }
-
-    public void setColumnValue(List<String> columnValue) {
-        format.columnValue = columnValue;
-    }
-
-    public void setColumnName(List<String> columnName) {
-        format.columnName = columnName;
-    }
-
-
-    public void setColumnType(List<String> columnType) {
-        format.columnType = columnType;
+    public void setMetaColumn(List<MetaColumn> metaColumn) {
+        format.metaColumns = metaColumn;
     }
 
     public void setInputPaths(String inputPaths) {

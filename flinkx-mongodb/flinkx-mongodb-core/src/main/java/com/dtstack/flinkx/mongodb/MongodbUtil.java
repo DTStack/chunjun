@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.mongodb;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
@@ -121,27 +122,10 @@ public class MongodbUtil {
         }
     }
 
-    public static Row convertDocTORow(Document doc,List<Column> columns){
-        Row row = new Row(columns.size());
-        for (int i = 0; i < columns.size(); i++) {
-            Column col= columns.get(i);
-            Object colVal = getSpecifiedTypeVal(doc,col.getName(),col.getType());
-            if (col.getSplitter() != null && col.getSplitter().length() > 0){
-                if(colVal instanceof List){
-                    colVal = StringUtils.join((List)colVal,col.getSplitter());
-                }
-            }
-
-            row.setField(i,colVal);
-        }
-
-        return row;
-    }
-
-    public static Document convertRowToDoc(Row row,List<Column> columns) throws WriteRecordException {
+    public static Document convertRowToDoc(Row row,List<MetaColumn> columns) throws WriteRecordException {
         Document doc = new Document();
         for (int i = 0; i < columns.size(); i++) {
-            Column column = columns.get(i);
+            MetaColumn column = columns.get(i);
             Object val = convertField(row.getField(i));
             if (StringUtils.isNotEmpty(column.getSplitter())){
                 val = Arrays.asList(String.valueOf(val).split(column.getSplitter()));
@@ -156,38 +140,6 @@ public class MongodbUtil {
     private static Object convertField(Object val){
         if(val instanceof BigDecimal){
            val = ((BigDecimal) val).doubleValue();
-        }
-
-        return val;
-    }
-
-    private static Object getSpecifiedTypeVal(Document doc,String key,String type){
-        if (!doc.containsKey(key)){
-            return null;
-        }
-
-        Object val;
-        switch (type.toLowerCase()){
-            case "string" :
-                val = doc.getString(key);
-                break;
-            case "int" :
-                val = doc.getInteger(key);
-                break;
-            case "long" :
-                val = doc.getLong(key);
-                break;
-            case "double" :
-                val = doc.getDouble(key);
-                break;
-            case "bool" :
-                val = doc.getBoolean(key);
-                break;
-            case "date" :
-                val = doc.getDate(key);
-                break;
-            default:
-                val = doc.get(key);
         }
 
         return val;

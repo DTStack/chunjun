@@ -97,4 +97,9 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     public String getEndQuote() {
         return "";
     }
+
+    @Override
+    public String quoteValue(String value, String column) {
+        return String.format("'%s' as %s",value,column);
+    }
 }
