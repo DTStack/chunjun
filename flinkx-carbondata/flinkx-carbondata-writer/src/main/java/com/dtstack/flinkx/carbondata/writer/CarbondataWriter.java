@@ -39,8 +39,6 @@ import java.util.Map;
  */
 public class CarbondataWriter extends DataWriter {
 
-    protected DatabaseInterface databaseInterface;
-
     protected String table;
 
     protected String database;
@@ -51,7 +49,6 @@ public class CarbondataWriter extends DataWriter {
 
     protected List<String> column;
 
-    protected int batchSize;
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -71,7 +68,6 @@ public class CarbondataWriter extends DataWriter {
         builder.setTable(table);
         builder.setPath(path);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setBatchInterval(batchSize);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
