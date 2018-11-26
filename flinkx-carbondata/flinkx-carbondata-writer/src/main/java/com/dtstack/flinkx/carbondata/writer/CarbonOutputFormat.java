@@ -22,14 +22,17 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.metadata.SegmentFileStore;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
+import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
 import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
+import org.apache.carbondata.core.writer.CarbonIndexFileMergeWriter;
 import org.apache.carbondata.hadoop.api.CarbonTableOutputFormat;
 import org.apache.carbondata.hadoop.internal.ObjectArrayWritable;
 import org.apache.carbondata.processing.loading.TableProcessingOperations;
@@ -246,13 +249,39 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         }
     }
 
-    private void updateTableStatusAfterDataLoad() {
-        LoadMetadataDetails newMetaEntry = carbonLoadModel.getCurrentLoadMetadataDetail();
-        String realPath = CarbonTablePath.getSegmentFilesLocation(carbonLoadModel.getTablePath())
-                + CarbonCommonConstants.FILE_SEPARATOR
-                + carbonLoadModel.getSegmentId() + "_" + carbonLoadModel.getFactTimeStamp();
+    private void updateTableStatusAfterDataLoad() throws IOException {
+        String segmentFileName = SegmentFileStore.writeSegmentFile(carbonTable, carbonLoadModel.getSegmentId(),
+                        String.valueOf(carbonLoadModel.getFactTimeStamp()));
 
-//        loadMetadataDetails.setSegmentFile();
+        SegmentFileStore.updateSegmentFile(
+                carbonTable,
+                carbonLoadModel.getSegmentId(),
+                segmentFileName,
+                carbonTable.getCarbonTableIdentifier().getTableId(),
+                new SegmentFileStore(carbonTable.getTablePath(), segmentFileName));
+
+        LoadMetadataDetails metadataDetails = carbonLoadModel.getCurrentLoadMetadataDetail();
+        metadataDetails.setSegmentFile(segmentFileName);
+
+        CarbonLoaderUtil.populateNewLoadMetaEntry(
+                metadataDetails,
+                SegmentStatus.SUCCESS,
+                carbonLoadModel.getFactTimeStamp(),
+                true);
+
+        CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
+
+
+        boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false,
+                false, "");
+
+        System.out.println(done);
+
+        new CarbonIndexFileMergeWriter(carbonTable)
+                .mergeCarbonIndexFilesOfSegment(carbonLoadModel.getSegmentId(),
+                        carbonLoadModel.getTablePath(),
+                        false,
+                        segmentFileName.split("_")[1]);
 
     }
 }
