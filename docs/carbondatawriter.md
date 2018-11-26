@@ -3,6 +3,7 @@
 ## 1. 配置样例
 
 ```
+
 {
   "job": {
     "setting": {
@@ -42,21 +43,23 @@
         "writer": {
           "name": "carbondatawriter",
           "parameter": {
-            "username": "admin",
-            "password": "admin",
+            "path": "hdfs://ns1/user/hive/warehouse/carbon.store1/sb/sb500",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn2": "rdos2:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1": "rdos1:9000",
+              "dfs.nameservices": "ns1",
+              "fs.defaultFS": "hdfs://ns1"
+            },
+            "table": "sb500",
+            "database": "sb",
+            "writeMode": "overwrite",
             "column": [
-              "c",
-              "a"
+              "a",
+              "b"
             ],
-            "batchSize": 1000,
-            "connection": [
-              {
-                "jdbcUrl": "jdbc:hive2://rdos2:10000/db1",
-                "table": [
-                  "cum1"
-                ]
-              }
-            ]
+            "batchSize": 1
           }
         }
       }
@@ -75,75 +78,68 @@
 	* 必选：是 <br />
 	* 默认值：无 <br />
 
-* **jdbcUrl**
 
-	* 描述：针对carbondata数据库的jdbc连接字符串
+* **path**
 
-	* 必选：是 <br />
-
-	* 默认值：无 <br />
-
-* **username**
-
-	* 描述：数据源的用户名 <br />
-
-	* 必选：否 <br />
-
-	* 默认值：空 <br />
-
-* **password**
-
-	* 描述：数据源指定用户名的密码 <br />
-
-	* 必选：否 <br />
-
-	* 默认值：空 <br />
-
-* **column**
-
-	* 描述：目的表需要写入数据的字段,字段之间用英文逗号分隔。例如: "column": ["id","name","age"]。
+	* 描述：carbondata表的存储路径
 
 	* 必选：是 <br />
-
-	* 默认值：否 <br />
 
 	* 默认值：无 <br />
 
 * **table**
 
-	* 描述：目的表的表名称。目前只支持配置单个表，后续会支持多表。
+	* 描述：carbondata表名 <br />
 
-               注意：table 和 jdbcUrl 必须包含在 connection 配置单元中
+	* 必选：否 <br />
+
+	* 默认值：无 <br />
+
+* **database**
+
+	* 描述：carbondata库名 <br />
+
+	* 必选：否 <br />
+
+	* 默认值：无 <br />
+
+* **filter**
+
+	* 描述：简单过滤器，目前只支持单条件的简单过滤，形式为 col op value<br />
+
+      col为列名；<br />
+      op为关系运算符，包括=,>,>=,<,<=；<br />
+      value为字面值，如1234， "ssss" <br />
+
+	* 必选：否 <br />
+
+	* 默认值：无 <br />
+
+
+* **column**
+
+	* 描述：所配置的表中需要同步的字段名列表
 
 	* 必选：是 <br />
 
 	* 默认值：无 <br />
 
+* **hadoopConfig**
 
-* **batchSize**
-
-	* 描述：一次性批量提交的记录数大小，该值可以极大减少FlinkX与Mysql的网络交互次数，并提升整体吞吐量。但是该值设置过大可能会造成FlinkX运行进程OOM情况。<br />
-
-	* 必选：否 <br />
-
-	* 默认值：1024 <br />
-
-* **preSql**
-
-	* 描述：写入数据到目的表前，会先执行这里的一组标准语句。
-
-	* 必选：否 <br />
-
-	* 默认值：无 <br />
-
-* **postSql**
-
-	* 描述：写入数据到目的表后，会执行这里的一组标准语句。
-
-	* 必选：否 <br />
-
-	* 默认值：无 <br />
-
+	* 描述：hadoopConfig里可以配置与Hadoop相关的一些高级参数，比如HA的配置。<br />
+	
+	```
+		{
+		"hadoopConfig": {
+                            "dfs.ha.namenodes.ns1": "nn1,nn2",
+                            "dfs.namenode.rpc-address.ns1.nn2": "rdos2:9000",
+                            "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                            "dfs.namenode.rpc-address.ns1.nn1": "rdos1:9000",
+                            "dfs.nameservices": "ns1",
+                            "fs.defaultFS": "hdfs://ns1"
+                        }
+		}
+	```
 
 
 ## 3. 数据类型

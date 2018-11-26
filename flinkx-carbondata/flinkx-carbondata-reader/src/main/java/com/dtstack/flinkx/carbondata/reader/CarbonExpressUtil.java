@@ -33,6 +33,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Utilities for creating Expression Filter
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbonExpressUtil {
 
     private static final String EQUAL = "=";

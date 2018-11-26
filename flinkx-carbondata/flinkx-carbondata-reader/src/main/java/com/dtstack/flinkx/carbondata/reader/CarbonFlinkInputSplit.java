@@ -30,6 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+/**
+ * Carbondata Flink Split
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbonFlinkInputSplit implements InputSplit {
 
     private int splitNumber;

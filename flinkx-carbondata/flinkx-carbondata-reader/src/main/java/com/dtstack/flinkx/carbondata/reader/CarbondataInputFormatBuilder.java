@@ -22,6 +22,13 @@ import org.apache.flink.util.Preconditions;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * Carbondata InputFormat Builder
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
 
     private CarbondataInputFormat format;

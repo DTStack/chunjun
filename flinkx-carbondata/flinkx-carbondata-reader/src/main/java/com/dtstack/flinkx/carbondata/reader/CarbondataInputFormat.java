@@ -45,7 +45,12 @@ import java.util.Random;
 import java.util.UUID;
 
 
-
+/**
+ * Carbondata InputFormat
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbondataInputFormat extends RichInputFormat{
 
     protected Map<String,String> hadoopConfig;

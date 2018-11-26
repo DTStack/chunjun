@@ -32,6 +32,12 @@ import java.util.Map;
 
 import java.io.IOException;
 
+/**
+ * Carbondata Utilities
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbondataUtil {
 
     private CarbondataUtil() {
