@@ -129,6 +129,7 @@ public class StringUtil {
                 result = Integer.valueOf(rowData);
                 break;
             case BIGINT:
+            case LONG:
                 result = Long.valueOf(rowData);
                 break;
             case FLOAT:

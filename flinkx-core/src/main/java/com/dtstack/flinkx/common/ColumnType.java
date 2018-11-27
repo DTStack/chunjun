@@ -27,7 +27,7 @@ package com.dtstack.flinkx.common;
  */
 public enum ColumnType {
     STRING, VARCHAR, CHAR,
-    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,
+    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,
     DOUBLE, FLOAT,
     BOOLEAN,
     DATE, TIMESTAMP, DECIMAL;

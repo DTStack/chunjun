@@ -27,7 +27,6 @@ import org.apache.carbondata.core.metadata.schema.table.TableInfo;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.hadoop.conf.Configuration;
-
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -74,8 +73,5 @@ public class CarbondataUtil {
 
     }
 
-    public static Object convertDataVal(Object object, DataType dataType) {
-       return object;
-    }
 
 }
