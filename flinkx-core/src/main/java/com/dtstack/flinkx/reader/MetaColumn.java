@@ -21,6 +21,7 @@ package com.dtstack.flinkx.reader;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.time.FastDateFormat;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.Map;
  * @author jiangbo
  * @date 2018/11/26
  */
-public class MetaColumn {
+public class MetaColumn implements Serializable {
 
     private String name;
 
@@ -99,6 +100,7 @@ public class MetaColumn {
                 for (int i = 0; i < columns.size(); i++) {
                     Map sm = (Map) columns.get(i);
                     MetaColumn mc = new MetaColumn();
+                    mc.setName((String) sm.get("name"));
                     mc.setIndex((Integer) sm.get("index"));
                     mc.setType((String) sm.get("type"));
                     mc.setValue((String) sm.get("value"));

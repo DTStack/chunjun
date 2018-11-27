@@ -347,11 +347,15 @@ public class DBUtil {
         StringBuilder sb = new StringBuilder();
 
         List<String> selectColumns = new ArrayList<>();
-        for (MetaColumn metaColumn : metaColumns) {
-            if (metaColumn.getValue() != null){
-                selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
-            } else {
-                selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+        if(metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+            selectColumns.add("*");
+        } else {
+            for (MetaColumn metaColumn : metaColumns) {
+                if (metaColumn.getValue() != null){
+                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+                } else {
+                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+                }
             }
         }
 
