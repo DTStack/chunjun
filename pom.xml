@@ -27,12 +27,11 @@
         <module>flinkx-postgresql</module>
         <module>flinkx-launcher</module>
         <module>flinkx-stream</module>
-        <module>flinkx-carbondata</module>
     </modules>
 
     <properties>
         <scala.binary.version>2.10</scala.binary.version>
-        <flink.version>1.5.0</flink.version>
+        <flink.version>1.5.4</flink.version>
         <dev.path>${basedir}/dev</dev.path>
     </properties>
 
