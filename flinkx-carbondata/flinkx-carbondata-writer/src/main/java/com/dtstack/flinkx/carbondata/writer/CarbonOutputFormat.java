@@ -18,15 +18,13 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
-import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.common.exceptions.sql.InvalidLoadOptionException;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
-import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
@@ -34,7 +32,6 @@ import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
 import org.apache.carbondata.core.util.CarbonProperties;
-import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.core.writer.CarbonIndexFileMergeWriter;
 import org.apache.carbondata.hadoop.api.CarbonTableOutputFormat;
 import org.apache.carbondata.hadoop.internal.ObjectArrayWritable;
@@ -55,8 +52,6 @@ import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +101,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         System.out.println(carbonTable);
         CarbonProperties carbonProperty = CarbonProperties.getInstance();
         carbonProperty.addProperty("zookeeper.enable.lock", "false");
-        //buildCarbonLoadModel();
         Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
         carbonLoadModel.setParentTablePath(null);
         carbonLoadModel.setFactFilePath("");
@@ -202,56 +196,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                 if(index == -1) {
                     record[i] = null;
                 } else {
-                    ColumnType columnType = ColumnType.fromString(fullColumnTypes.get(i));
                     Object column = row.getField(index);
-                    String rowData = column.toString();
-                    Object val = null;
-                    if(rowData.length() == 0 && columnType != ColumnType.STRING) {
-                        record[i] = null;
-                    } else {
-                        switch (columnType) {
-                            case SMALLINT:
-                                val = Short.valueOf(rowData);
-                                break;
-                            case INT:
-                                val = Integer.valueOf(rowData);
-                                break;
-                            case BIGINT:
-                                BigInteger data = new BigInteger(rowData);
-                                if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0) {
-                                    val = data;
-                                } else {
-                                    val = Long.valueOf(rowData);
-                                }
-                                break;
-                            case FLOAT:
-                                val = Float.valueOf(rowData);
-                                break;
-                            case DOUBLE:
-                                val = Double.valueOf(rowData);
-                                break;
-                            case DECIMAL:
-                                val = new BigDecimal(rowData);
-                                break;
-                            case STRING:
-                            case VARCHAR:
-                            case CHAR:
-                                val = rowData;
-                                break;
-                            case BOOLEAN:
-                                val = Boolean.valueOf(rowData);
-                                break;
-                            case DATE:
-                                val = DateUtil.columnToDate(column,null);
-                                break;
-                            case TIMESTAMP:
-                                val = DateUtil.columnToTimestamp(column,null);
-                                break;
-                            default:
-                                throw new IllegalArgumentException();
-                        }
-                    }
-                    record[i] = val;
+                    record[i] = StringUtil.col2string(column, fullColumnTypes.get(i));
                 }
             }
             writable.set(record);
@@ -267,6 +213,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         // CAN NOT HAPPEN
+        throw new IllegalArgumentException("It can not happen.");
     }
 
     @Override
@@ -312,13 +259,15 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false,
                 false, "");
 
-        System.out.println(done);
+        if(!done) {
+            throw new RuntimeException("Failed to recordNewLoadMetadata");
+        }
 
         new CarbonIndexFileMergeWriter(carbonTable)
                 .mergeCarbonIndexFilesOfSegment(carbonLoadModel.getSegmentId(),
                         carbonLoadModel.getTablePath(),
                         false,
-                        segmentFileName.split("_")[1]);
+                        segmentFileName.split("_")[1].split("\\.")[0]);
 
     }
 }
