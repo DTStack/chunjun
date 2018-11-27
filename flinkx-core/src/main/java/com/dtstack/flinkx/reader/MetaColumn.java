@@ -131,4 +131,15 @@ public class MetaColumn implements Serializable {
 
         return metaColumns;
     }
+
+    public static List<String> getColumnNames(List columns){
+        List<String> columnNames = new ArrayList<>();
+
+        List<MetaColumn> metaColumns = getMetaColumns(columns);
+        for (MetaColumn metaColumn : metaColumns) {
+            columnNames.add(metaColumn.getName());
+        }
+
+        return columnNames;
+    }
 }

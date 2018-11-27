@@ -25,6 +25,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -32,6 +33,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +116,7 @@ public class JdbcDataWriter extends DataWriter {
         preSql = (List<String>) writerConfig.getParameter().getVal(KEY_PRE_SQL);
         postSql = (List<String>) writerConfig.getParameter().getVal(KEY_POST_SQL);
         batchSize = writerConfig.getParameter().getIntVal(KEY_BATCH_SIZE, DEFAULT_BATCH_SIZE);
-        column = (List<String>) writerConfig.getParameter().getColumn();
+        column = MetaColumn.getColumnNames(writerConfig.getParameter().getColumn());
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
 
         updateKey = (Map<String, List<String>>) writerConfig.getParameter().getVal(KEY_UPDATE_KEY);
