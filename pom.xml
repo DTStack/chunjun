@@ -69,32 +69,6 @@
                     <destDir>flinkx-java-docs</destDir>
                 </configuration>
             </plugin>
-            <!--checkstyle-->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-checkstyle-plugin</artifactId>-->
-                <!--<version>2.17</version>-->
-                <!--<configuration>-->
-                    <!--<configLocation>${dev.path}/javastyle-config.xml</configLocation>-->
-                    <!--<suppressionsLocation>${dev.path}/javastyle-suppressions.xml</suppressionsLocation>-->
-                    <!--<headerLocation>${dev.path}/java.header</headerLocation>-->
-                    <!--<consoleOutput>true</consoleOutput>-->
-                    <!--<failsOnError>true</failsOnError>-->
-                    <!--<linkXRef>false</linkXRef>-->
-                    <!--<failOnViolation>true</failOnViolation>-->
-                    <!--<includeTestSourceDirectory>false</includeTestSourceDirectory>-->
-                    <!--<sourceDirectory>${basedir}/src/main/java</sourceDirectory>-->
-                    <!--<testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>-->
-                    <!--<outputFile>${basedir}/target/checkstyle-output.xml</outputFile>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<goals>-->
-                            <!--<goal>check</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
         </plugins>
 
     </build>
