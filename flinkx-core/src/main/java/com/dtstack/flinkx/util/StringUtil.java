@@ -115,7 +115,7 @@ public class StringUtil {
                 ret = DateUtil.columnToTimestamp(str,customTimeFormat);
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported field type:" + type);
+                ret = str;
         }
 
         return ret;
