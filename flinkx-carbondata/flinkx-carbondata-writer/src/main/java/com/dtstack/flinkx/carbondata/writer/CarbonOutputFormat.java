@@ -242,10 +242,10 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                                 val = Boolean.valueOf(rowData);
                                 break;
                             case DATE:
-                                val = DateUtil.columnToDate(column);
+                                val = DateUtil.columnToDate(column,null);
                                 break;
                             case TIMESTAMP:
-                                val = DateUtil.columnToTimestamp(column);
+                                val = DateUtil.columnToTimestamp(column,null);
                                 break;
                             default:
                                 throw new IllegalArgumentException();
