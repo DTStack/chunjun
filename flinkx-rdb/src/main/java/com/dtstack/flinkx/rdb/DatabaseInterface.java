@@ -43,6 +43,8 @@ public interface DatabaseInterface {
 
     String getEndQuote();
 
+    String quoteValue(String value,String column);
+
     String quoteColumn(String column);
 
     String quoteColumns(List<String> column, String table);

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
@@ -67,9 +68,15 @@ public class StringUtil {
         return str;
     }
 
-    public static Object string2col(String str, String type) {
+    public static Object string2col(String str, String type, FastDateFormat customTimeFormat) {
+        if(str == null || str.length() == 0){
+            return null;
+        }
 
-        Preconditions.checkNotNull(type);
+        if(type == null){
+            return str;
+        }
+
         ColumnType columnType = valueOf(type.toUpperCase());
         Object ret;
         switch(columnType) {
@@ -101,14 +108,14 @@ public class StringUtil {
                 ret = Boolean.valueOf(str.toLowerCase());
                 break;
             case DATE:
-                ret = DateUtil.columnToDate(str);
+                ret = DateUtil.columnToDate(str,customTimeFormat);
                 break;
             case TIMESTAMP:
             case DATETIME:
-                ret = DateUtil.columnToTimestamp(str);
+                ret = DateUtil.columnToTimestamp(str,customTimeFormat);
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Unsupported field type:" + type);
         }
 
         return ret;

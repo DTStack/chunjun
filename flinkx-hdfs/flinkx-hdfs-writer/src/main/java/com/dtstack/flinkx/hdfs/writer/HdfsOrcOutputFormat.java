@@ -152,10 +152,10 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                             recordList.add(Boolean.valueOf(rowData));
                             break;
                         case DATE:
-                            recordList.add(DateUtil.columnToDate(column));
+                            recordList.add(DateUtil.columnToDate(column,null));
                             break;
                         case TIMESTAMP:
-                            recordList.add(DateUtil.columnToTimestamp(column));
+                            recordList.add(DateUtil.columnToTimestamp(column,null));
                             break;
                         default:
                             throw new IllegalArgumentException();

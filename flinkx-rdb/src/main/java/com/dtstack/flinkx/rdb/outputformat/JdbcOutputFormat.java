@@ -207,9 +207,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
         if(EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
             String type = columnType.get(index);
             if(type.equalsIgnoreCase("DATE")) {
-                field = DateUtil.columnToDate(field);
+                field = DateUtil.columnToDate(field,null);
             } else if(type.equalsIgnoreCase("TIMESTAMP")){
-                field = DateUtil.columnToTimestamp(field);
+                field = DateUtil.columnToTimestamp(field,null);
             }
         } else if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
             if(columnType != null && columnType.size() != 0) {

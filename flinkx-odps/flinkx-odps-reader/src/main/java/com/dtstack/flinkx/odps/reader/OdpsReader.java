@@ -21,10 +21,10 @@ package com.dtstack.flinkx.odps.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
@@ -36,9 +36,7 @@ import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
  */
 public class OdpsReader extends DataReader {
     private Map<String,String> odpsConfig;
-    protected List<String> columnName;
-    protected List<String> columnType;
-    protected List<String> columnValue;
+    private List<MetaColumn> metaColumns;
 
     protected String tableName;
     protected String partition;
@@ -51,34 +49,14 @@ public class OdpsReader extends DataReader {
         tableName = readerConfig.getParameter().getStringVal(KEY_TABLE);
         partition = readerConfig.getParameter().getStringVal(KEY_PARTITION);
 
-        List columns = readerConfig.getParameter().getColumn();
-        if(columns != null && columns.size() > 0) {
-            if(columns.get(0) instanceof Map) {
-                columnType = new ArrayList<>();
-                columnValue = new ArrayList<>();
-                columnName = new ArrayList<>();
-                for(int i = 0; i < columns.size(); ++i) {
-                    Map sm = (Map) columns.get(i);
-                    columnType.add((String) sm.get(KEY_COLUMN_TYPE));
-                    columnValue.add((String) sm.get(KEY_COLUMN_VALUE));
-                    columnName.add((String) sm.get(KEY_COLUMN_NAME));
-                }
-                System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
-                throw new IllegalArgumentException("column argument error");
-            }
-        } else{
-            throw new IllegalArgumentException("column argument error");
-        }
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
     public DataStream<Row> readData() {
         OdpsInputFormatBuilder builder = new OdpsInputFormatBuilder();
 
-        builder.setColumnName(columnName);
-        builder.setColumnType(columnType);
-        builder.setColumnValue(columnValue);
+        builder.setMetaColumn(metaColumns);
         builder.setOdpsConfig(odpsConfig);
         builder.setTableName(tableName);
         builder.setPartition(partition);

@@ -125,7 +125,7 @@ public class CarbondataInputFormat extends RichInputFormat{
             Object[] record = (Object[]) recordReader.getCurrentValue();
             for(int i = 0; i < columnIndex.size(); ++i) {
                 if(columnIndex == null) {
-                    row.setField(i, StringUtil.string2col(columnValue.get(i), columnType.get(i)));
+                    row.setField(i, StringUtil.string2col(columnValue.get(i), columnType.get(i),null));
                 } else {
                     row.setField(i, record[columnIndex.get(i)]);
                 }

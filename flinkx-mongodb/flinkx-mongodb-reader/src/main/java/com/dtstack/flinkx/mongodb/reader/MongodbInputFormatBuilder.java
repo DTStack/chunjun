@@ -19,10 +19,9 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
-import com.dtstack.flinkx.mongodb.Column;
+import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The builder for mongodb reader plugin
@@ -58,8 +57,8 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         format.collectionName = collection;
     }
 
-    public void setColumns(List<Column> columns){
-        format.columns = columns;
+    public void setMetaColumns(List<MetaColumn> metaColumns){
+        format.metaColumns = metaColumns;
     }
 
     public void setFilter(String filter){

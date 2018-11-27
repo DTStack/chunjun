@@ -22,7 +22,9 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -80,7 +82,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    protected List<String> column;
+    protected List<MetaColumn> metaColumns;
 
     protected int fetchSize;
 
@@ -129,7 +131,7 @@ public class JdbcInputFormat extends RichInputFormat {
             columnCount = resultSet.getMetaData().getColumnCount();
 
             if(descColumnTypeList == null) {
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,column);
+                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
             }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -177,6 +179,15 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             DBUtil.getRow(databaseInterface.getDatabaseType(),row,descColumnTypeList,resultSet,typeConverter);
+            if(!metaColumns.get(0).getName().equals("*")){
+                for (int i = 0; i < columnCount; i++) {
+                    Object val = row.getField(i);
+                    if (val != null && val instanceof String){
+                        val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
+                        row.setField(i,val);
+                    }
+                }
+            }
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();

@@ -20,16 +20,14 @@ package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.mongodb.Column;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.KEY_COLLECTION;
@@ -52,7 +50,7 @@ public class MongodbWriter extends DataWriter {
 
     protected String collection;
 
-    protected List<Column> columns = new ArrayList<>();
+    protected List<MetaColumn> columns;
 
     protected String replaceKey;
 
@@ -68,10 +66,7 @@ public class MongodbWriter extends DataWriter {
         mode = writerConfig.getParameter().getStringVal(KEY_MODE);
         replaceKey = writerConfig.getParameter().getStringVal(KEY_REPLACE_KEY);
 
-        for (Object item : writerConfig.getParameter().getColumn()) {
-            Map<String,String> colMap = (Map<String,String>)item;
-            columns.add(new Column(colMap.get(KEY_NAME),colMap.get(KEY_TYPE),colMap.get(KEY_SPLITTER)));
-        }
+        columns = MetaColumn.getMetaColumns(writerConfig.getParameter().getColumn());
     }
 
     @Override

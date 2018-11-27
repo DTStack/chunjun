@@ -23,11 +23,11 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,10 +43,7 @@ public class HdfsReader extends DataReader {
     protected String fileType;
     protected String path;
     protected String fieldDelimiter;
-    protected List<Integer> columnIndex;
-    protected List<String> columnType;
-    protected List<String> columnValue;
-    protected List<String> columnName;
+    private List<MetaColumn> metaColumns;
     protected Map<String,String> hadoopConfig;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -65,38 +62,14 @@ public class HdfsReader extends DataReader {
             fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
-        List columns = readerConfig.getParameter().getColumn();
-        if(columns != null && columns.size() > 0) {
-            if(columns.get(0) instanceof Map) {
-                columnIndex = new ArrayList<>();
-                columnType = new ArrayList<>();
-                columnValue = new ArrayList<>();
-                columnName = new ArrayList<>();
-                for(int i = 0; i < columns.size(); ++i) {
-                    Map sm = (Map) columns.get(i);
-                    Double temp = (Double)sm.get("index");
-                    columnIndex.add(temp != null ? temp.intValue() : null);
-                    columnType.add((String) sm.get("type"));
-                    columnValue.add((String) sm.get("value"));
-                    columnName.add((String) sm.get("name"));
-                }
-                System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
-                throw new IllegalArgumentException("column argument error");
-            }
-        } else{
-            throw new IllegalArgumentException("column argument error");
-        }
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
     public DataStream<Row> readData() {
         HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(fileType);
         builder.setInputPaths(path);
-        builder.setColumnIndex(columnIndex);
-        builder.setColumnName(columnName);
-        builder.setColumnType(columnType);
-        builder.setColumnValue(columnValue);
+        builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);
         builder.setDefaultFs(defaultFS);
         builder.setDelimiter(fieldDelimiter);

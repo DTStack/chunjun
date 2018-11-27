@@ -101,6 +101,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String quoteValue(String value, String column) {
+        return String.format("'%s' as %s",value,column);
+    }
+
+    @Override
     public EDatabaseType getDatabaseType() {
         return EDatabaseType.PostgreSQL;
     }

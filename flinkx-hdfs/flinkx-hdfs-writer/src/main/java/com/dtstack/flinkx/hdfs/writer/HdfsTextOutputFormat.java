@@ -133,7 +133,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                             if(column instanceof Date) {
                                 sb.append(DateUtil.dateToString((Date)column));
                             } else {
-                                Date d = DateUtil.columnToDate(column);
+                                Date d = DateUtil.columnToDate(column,null);
                                 String s = DateUtil.dateToString(d);
                                 sb.append(s);
                             }
@@ -142,7 +142,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                             if(column instanceof Date) {
                                 sb.append(DateUtil.timestampToString((Date)column));
                             } else {
-                                Date d = DateUtil.columnToTimestamp(column);
+                                Date d = DateUtil.columnToTimestamp(column,null);
                                 String s = DateUtil.timestampToString(d);
                                 sb.append(s);
                             }

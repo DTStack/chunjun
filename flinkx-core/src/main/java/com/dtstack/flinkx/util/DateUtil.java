@@ -55,14 +55,14 @@ public class DateUtil {
     private DateUtil() {}
 
 
-    public static java.sql.Date columnToDate(Object column) {
+    public static java.sql.Date columnToDate(Object column,FastDateFormat customTimeFormat) {
         if(column == null) {
             return null;
         } else if(column instanceof String) {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Date(stringToDate((String)column).getTime());
+            return new java.sql.Date(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Date(rawData.longValue());
@@ -82,14 +82,14 @@ public class DateUtil {
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
     }
 
-    public static java.sql.Timestamp columnToTimestamp(Object column) {
+    public static java.sql.Timestamp columnToTimestamp(Object column,FastDateFormat customTimeFormat) {
         if (column == null) {
             return null;
         } else if(column instanceof String) {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Timestamp(stringToDate((String)column).getTime());
+            return new java.sql.Timestamp(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Timestamp(rawData.longValue());
@@ -108,9 +108,16 @@ public class DateUtil {
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
     }
 
-    public static Date stringToDate(String strDate)  {
+    public static Date stringToDate(String strDate,FastDateFormat customTimeFormat)  {
         if(strDate == null || strDate.trim().length() == 0) {
             return null;
+        }
+
+        if(customTimeFormat != null){
+            try {
+                return customTimeFormat.parse(strDate);
+            } catch (ParseException ignored) {
+            }
         }
 
         try {
@@ -146,6 +153,10 @@ public class DateUtil {
 
     public static String dateToYearString(Date date) {
         return yearFormatter.format(date);
+    }
+
+    public static FastDateFormat getDateFormatter(String timeFormat){
+        return FastDateFormat.getInstance(timeFormat, timeZoner);
     }
 
     static {
