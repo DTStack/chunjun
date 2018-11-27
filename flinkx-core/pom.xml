@@ -13,7 +13,7 @@
 
     <properties>
         <scala.binary.version>2.10</scala.binary.version>
-        <flink.version>1.5.0</flink.version>
+        <flink.version>1.5.4</flink.version>
         <dev.path>${basedir}/../dev</dev.path>
     </properties>
 
