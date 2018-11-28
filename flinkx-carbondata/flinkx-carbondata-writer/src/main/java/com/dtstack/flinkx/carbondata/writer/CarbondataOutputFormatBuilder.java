@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.Preconditions;
 
 import java.util.List;
@@ -55,6 +56,14 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setColumn(List<String> column) {
         format.column = column;
+    }
+
+    public void setWriteMode(String writeMode) {
+        if(writeMode.equalsIgnoreCase("overwrite")) {
+            format.overwrite = true;
+        } else {
+            format.overwrite = false;
+        }
     }
 
     @Override

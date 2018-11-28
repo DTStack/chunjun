@@ -42,7 +42,11 @@ import org.apache.carbondata.processing.loading.model.LoadOption;
 import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.RecordWriter;
@@ -52,6 +56,8 @@ import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,6 +83,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected List<String> column;
 
+    protected boolean overwrite = false;
+
     private CarbonTable carbonTable;
 
     private Map<String,String> options = new HashMap<>();
@@ -97,10 +105,22 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private int insertedRecords = 0;
 
+    private String bakPath;
+
+    private FileSystem fs;
+
+    @Override
+    public void configure(Configuration parameters) {
+        try {
+            CarbondataUtil.initFileFactory(hadoopConfig);
+            fs = FileSystem.get(FileFactory.getConfiguration());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        CarbondataUtil.initFileFactory(hadoopConfig);
         carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
         CarbonProperties carbonProperty = CarbonProperties.getInstance();
         carbonProperty.addProperty("zookeeper.enable.lock", "false");
@@ -132,7 +152,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
         TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, false);
         SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
-        boolean isOverwriteTable = false;
+        boolean isOverwriteTable = true;
         carbonLoadModel.setSegmentId(UUID.randomUUID().toString());
 
         List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
@@ -225,7 +245,52 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        // hehe
+        if(overwrite && taskNumber == 0) {
+            fs.delete(new Path(path), true);
+            fs.rename(new Path(bakPath), new Path(path));
+        }
+    }
+
+    @Override
+    protected boolean needWaitBeforeOpenInternal() {
+        return overwrite;
+    }
+
+    @Override
+    protected void beforeOpenInternal() {
+        if(taskNumber == 0) {
+            bakPath = path + "_bak";
+            String schemaPath =  path + "/Metadata/schema";
+            InputStream in = null;
+            OutputStream out = null;
+            try {
+                if(fs.exists(new Path(bakPath))) {
+                    fs.delete(new Path(bakPath), true);
+                }
+                fs.rename(new Path(path), new Path(bakPath));
+                fs.mkdirs(new Path(path));
+                in = fs.open(new Path(bakPath + "/Metadata/schema"));
+                out = fs.create(new Path(schemaPath));
+                IOUtils.copyBytes(in, out, 1024);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if(in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if(out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -282,4 +347,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                         segmentFileName.split("_")[1].split("\\.")[0]);
 
     }
+
+
 }

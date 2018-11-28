@@ -20,7 +20,6 @@ package com.dtstack.flinkx.carbondata.writer;
 import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -49,6 +48,8 @@ public class CarbondataWriter extends DataWriter {
 
     protected List<String> column;
 
+    protected String mode;
+
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -58,11 +59,13 @@ public class CarbondataWriter extends DataWriter {
         database = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         column = (List<String>) writerConfig.getParameter().getColumn();
+        mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         CarbondataOutputFormatBuilder builder = new CarbondataOutputFormatBuilder();
+        builder.setWriteMode(mode);
         builder.setColumn(column);
         builder.setDatabase(database);
         builder.setTable(table);
