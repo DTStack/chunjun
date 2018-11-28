@@ -93,12 +93,15 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<Integer> fullColumnIndices;
 
+    private final int CARBON_BATCH_SIZE = 1024;
+
+    private int insertedRecords = 0;
+
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         CarbondataUtil.initFileFactory(hadoopConfig);
         carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
-        System.out.println(carbonTable);
         CarbonProperties carbonProperty = CarbonProperties.getInstance();
         carbonProperty.addProperty("zookeeper.enable.lock", "false");
         Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
@@ -163,7 +166,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private void createRecordWriter() {
         try {
-            System.out.println(carbonLoadModel.getSegmentId());
             CarbonTableOutputFormat.setLoadModel(FileFactory.getConfiguration(), carbonLoadModel);
             CarbonTableOutputFormat.setCarbonTable(FileFactory.getConfiguration(), carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable());
             CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();
@@ -202,11 +204,16 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
             writable.set(record);
             recordWriter.write(NullWritable.get(), writable);
+            insertedRecords++;
         } catch(Exception e) {
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
+        }
+        if(insertedRecords == CARBON_BATCH_SIZE) {
+            closeRecordWriter();
+            createRecordWriter();
         }
     }
 
@@ -223,11 +230,16 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void closeInternal() throws IOException {
+        closeRecordWriter();
+    }
+
+    private void closeRecordWriter()  {
         if(recordWriter != null) {
             try {
                 recordWriter.close(taskAttemptContext);
                 updateTableStatusAfterDataLoad();
-            } catch (InterruptedException e) {
+                insertedRecords = 0;
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
