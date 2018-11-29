@@ -101,7 +101,17 @@ public class MetaColumn implements Serializable {
                     Map sm = (Map) columns.get(i);
                     MetaColumn mc = new MetaColumn();
                     mc.setName((String) sm.get("name"));
-                    mc.setIndex((Integer) sm.get("index"));
+
+                    Object colIndex = sm.get("index");
+                    if(colIndex != null) {
+                        if(colIndex instanceof Integer) {
+                            mc.setIndex((Integer) colIndex);
+                        } else if(colIndex instanceof Double) {
+                            Double doubleColIndex = (Double) colIndex;
+                            mc.setIndex(doubleColIndex.intValue());
+                        }
+                    }
+
                     mc.setType((String) sm.get("type"));
                     mc.setValue((String) sm.get("value"));
                     mc.setSplitter((String) sm.get("splitter"));
