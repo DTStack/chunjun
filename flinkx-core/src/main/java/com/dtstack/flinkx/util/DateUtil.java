@@ -56,6 +56,12 @@ public class DateUtil {
 
     static String START_TIME = "1970-01-01";
 
+    public final static String DATE_REGEX = "(?i)date";
+
+    public final static String TIMESTAMP_REGEX = "(?i)timestamp";
+
+    public final static String DATETIME_REGEX = "(?i)datetime";
+
     private DateUtil() {}
 
 

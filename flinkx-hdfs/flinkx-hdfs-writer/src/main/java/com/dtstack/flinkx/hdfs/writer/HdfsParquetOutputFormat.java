@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties;
@@ -108,7 +109,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     case "varchar" :
                     case "string" : group.add(colName,val);break;
                     case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
-                    case "timestamp" : group.add(colName,Long.parseLong(val));break;
+                    case "timestamp" : group.add(colName, DateUtil.getMillSecond(val));break;
                     case "decimal" : group.add(colName,val);break;
                     case "date" : group.add(colName,getDay(val));break;
                     default: group.add(colName,val);break;

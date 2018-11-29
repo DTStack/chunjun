@@ -87,12 +87,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    private final static String DATE_REGEX = "(?i)date";
-
-    private final static String TIMESTAMP_REGEX = "(?i)timestamp";
-
-    private final static String DATETIME_REGEX = "(?i)datetime";
-
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
@@ -252,9 +246,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
         String type = columnType.get(index);
-        if(type.matches(DATE_REGEX)) {
+        if(type.matches(DateUtil.DATE_REGEX)) {
             field = DateUtil.columnToDate(field,null);
-        } else if(type.matches(TIMESTAMP_REGEX) || type.matches(DATETIME_REGEX)){
+        } else if(type.matches(DateUtil.DATETIME_REGEX) || type.matches(DateUtil.TIMESTAMP_REGEX)){
             field = DateUtil.columnToTimestamp(field,null);
         }
 
