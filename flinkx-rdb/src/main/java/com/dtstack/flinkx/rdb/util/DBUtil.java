@@ -347,7 +347,7 @@ public class DBUtil {
         StringBuilder sb = new StringBuilder();
 
         List<String> selectColumns = new ArrayList<>();
-        if(metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             selectColumns.add("*");
         } else {
             for (MetaColumn metaColumn : metaColumns) {

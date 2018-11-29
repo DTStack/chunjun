@@ -140,7 +140,7 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String[] fields = line.split(delimiter);
-        if (metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);

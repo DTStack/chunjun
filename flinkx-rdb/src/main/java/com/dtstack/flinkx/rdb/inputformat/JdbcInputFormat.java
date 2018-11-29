@@ -179,7 +179,7 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             DBUtil.getRow(databaseInterface.getDatabaseType(),row,descColumnTypeList,resultSet,typeConverter);
-            if(!metaColumns.get(0).getName().equals("*")){
+            if(!"*".equals(metaColumns.get(0).getName())){
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
                     if (val != null && val instanceof String){

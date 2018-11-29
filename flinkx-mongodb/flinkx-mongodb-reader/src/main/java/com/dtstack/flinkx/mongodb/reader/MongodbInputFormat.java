@@ -96,7 +96,7 @@ public class MongodbInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         Document doc = cursor.next();
-        if(metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(doc.size());
             String[] names = doc.keySet().toArray(new String[0]);
             for (int i = 0; i < names.length; i++) {

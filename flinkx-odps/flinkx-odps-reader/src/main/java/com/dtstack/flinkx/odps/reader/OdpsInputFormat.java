@@ -161,7 +161,7 @@ public class OdpsInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if (metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(record.getColumnCount());
             for (int i = 0; i < record.getColumnCount(); i++) {
                 row.setField(i,record.get(i));

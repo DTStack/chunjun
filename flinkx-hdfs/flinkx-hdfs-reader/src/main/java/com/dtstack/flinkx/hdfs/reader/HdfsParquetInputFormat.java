@@ -118,7 +118,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.size());
             for (int i = 0; i < fullColNames.size(); i++) {
                 Object val = getData(currentLine,fullColTypes.get(i),i);

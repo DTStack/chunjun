@@ -180,7 +180,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && metaColumns.get(0).getName().equals("*")){
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.length);
             for (int i = 0; i < fullColNames.length; i++) {
                 Object col = inspector.getStructFieldData(value, fields.get(i));
