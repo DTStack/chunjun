@@ -50,6 +50,8 @@ public class CarbondataWriter extends DataWriter {
 
     protected String mode;
 
+    protected String defaultFS;
+
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -60,6 +62,7 @@ public class CarbondataWriter extends DataWriter {
         path = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         column = (List<String>) writerConfig.getParameter().getColumn();
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
+        defaultFS = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
     }
 
     @Override
@@ -71,6 +74,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setTable(table);
         builder.setPath(path);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setDefaultFS(defaultFS);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);

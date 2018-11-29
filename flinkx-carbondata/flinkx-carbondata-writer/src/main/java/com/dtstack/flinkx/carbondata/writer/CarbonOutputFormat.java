@@ -75,6 +75,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected Map<String,String> hadoopConfig;
 
+    protected String defaultFS;
+
     protected String table;
 
     protected String database;
@@ -112,8 +114,9 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     @Override
     public void configure(Configuration parameters) {
         try {
-            CarbondataUtil.initFileFactory(hadoopConfig);
+            CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
             fs = FileSystem.get(FileFactory.getConfiguration());
+            bakPath = path + "_bak";
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -121,7 +124,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+        if(overwrite) {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
+        } else {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+        }
         CarbonProperties carbonProperty = CarbonProperties.getInstance();
         carbonProperty.addProperty("zookeeper.enable.lock", "false");
         Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
@@ -155,7 +162,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         boolean isOverwriteTable = true;
         carbonLoadModel.setSegmentId(UUID.randomUUID().toString());
 
-        List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
+//        List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
 
         boolean createDictionary = false;
         if (!createDictionary) {
@@ -245,10 +252,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(overwrite && taskNumber == 0) {
-            fs.delete(new Path(path), true);
-            fs.rename(new Path(bakPath), new Path(path));
-        }
+        fs.delete(new Path(bakPath), true);
     }
 
     @Override
@@ -259,7 +263,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     @Override
     protected void beforeOpenInternal() {
         if(taskNumber == 0) {
-            bakPath = path + "_bak";
             String schemaPath =  path + "/Metadata/schema";
             InputStream in = null;
             OutputStream out = null;
@@ -267,10 +270,9 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                 if(fs.exists(new Path(bakPath))) {
                     fs.delete(new Path(bakPath), true);
                 }
-                fs.rename(new Path(path), new Path(bakPath));
-                fs.mkdirs(new Path(path));
-                in = fs.open(new Path(bakPath + "/Metadata/schema"));
-                out = fs.create(new Path(schemaPath));
+                fs.mkdirs(new Path(bakPath));
+                out = fs.create(new Path(bakPath + "/Metadata/schema"));
+                in = fs.open(new Path(schemaPath));
                 IOUtils.copyBytes(in, out, 1024);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -348,5 +350,21 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     }
 
+    @Override
+    protected boolean needWaitAfterCloseInternal() {
+        return overwrite;
+    }
+
+    @Override
+    protected void afterCloseInternal()  {
+        if(taskNumber == 0 && overwrite) {
+            try {
+                fs.delete(new Path(path), true);
+                fs.rename(new Path(bakPath), new Path(path));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
 }
