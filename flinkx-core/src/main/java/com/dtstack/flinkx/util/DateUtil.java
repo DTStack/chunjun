@@ -21,6 +21,8 @@ package com.dtstack.flinkx.util;
 import org.apache.commons.lang3.time.FastDateFormat;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -51,6 +53,8 @@ public class DateUtil {
     static FastDateFormat timeFormatter;
 
     static FastDateFormat yearFormatter;
+
+    static String START_TIME = "1970-01-01";
 
     private DateUtil() {}
 
@@ -92,10 +96,10 @@ public class DateUtil {
             return new java.sql.Timestamp(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
-            return new java.sql.Timestamp(rawData.longValue());
+            return new java.sql.Timestamp(getMillSecond(rawData.toString()));
         } else if (column instanceof Long) {
             Long rawData = (Long) column;
-            return new java.sql.Timestamp(rawData.longValue());
+            return new java.sql.Timestamp(getMillSecond(rawData.toString()));
         } else if (column instanceof java.sql.Date) {
             return (java.sql.Timestamp) column;
         } else if(column instanceof Timestamp) {
@@ -106,6 +110,30 @@ public class DateUtil {
         }
 
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
+    }
+
+    public static long getMillSecond(String data){
+        long time  = Long.valueOf(data);
+        if(data.length() == 10){
+            time = Long.valueOf(data) * 1000;
+        } else if(data.length() == 13){
+            time = Long.valueOf(data);
+        } else if(data.length() == 16){
+            time = Long.valueOf(data) / 1000;
+        } else if(data.length() == 19){
+            time = Long.valueOf(data) / 1000000 ;
+        } else if(data.length() < 10){
+            try {
+                int day = Integer.valueOf(data);
+                Date date = dateFormatter.parse(START_TIME);
+                Calendar cal = Calendar.getInstance();
+                long addMill = date.getTime() + day * 24 * 3600 * 1000;
+                cal.setTimeInMillis(addMill);
+                time = cal.getTimeInMillis();
+            } catch (Exception ignore){
+            }
+        }
+        return time;
     }
 
     public static Date stringToDate(String strDate,FastDateFormat customTimeFormat)  {

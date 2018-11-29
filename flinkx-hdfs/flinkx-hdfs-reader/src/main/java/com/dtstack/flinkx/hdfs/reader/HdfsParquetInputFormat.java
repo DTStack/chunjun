@@ -91,13 +91,13 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             fullColTypes = new ArrayList<>();
             List<Type> types = currentLine.getType().getFields();
             for (Type type : types) {
-                fullColNames.add(type.getName());
+                fullColNames.add(type.getName().toUpperCase());
                 fullColTypes.add(getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
             for (MetaColumn metaColumn : metaColumns) {
-                if(currentLine.getType().containsField(metaColumn.getName())){
-                    metaColumn.setIndex(currentLine.getType().getFieldIndex(metaColumn.getName()));
+                if(fullColNames.contains(metaColumn.getName().toUpperCase())){
+                    metaColumn.setIndex(fullColNames.indexOf(metaColumn.getName().toUpperCase()));
                 } else {
                     metaColumn.setIndex(-1);
                 }
@@ -163,7 +163,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             case "tinyint" :
             case "smallint" :
             case "int" : data = currentLine.getInteger(index,0);break;
-            case "bigint" : data = currentLine.getInt96(index,0);break;
+            case "bigint" : data = currentLine.getLong(index,0);break;
             case "float" : data = currentLine.getFloat(index,0);break;
             case "double" : data = currentLine.getDouble(index,0);break;
             case "binary" :data = currentLine.getBinary(index,0);break;
