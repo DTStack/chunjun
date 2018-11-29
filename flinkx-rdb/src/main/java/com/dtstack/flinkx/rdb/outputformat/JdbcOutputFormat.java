@@ -202,30 +202,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
         return ret;
     }
 
-    private Object convertField(Row row, int index) {
-        Object field = getField(row, index);
-        if(EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
-            String type = columnType.get(index);
-            if(type.equalsIgnoreCase("DATE")) {
-                field = DateUtil.columnToDate(field,null);
-            } else if(type.equalsIgnoreCase("TIMESTAMP")){
-                field = DateUtil.columnToTimestamp(field,null);
-            }
-        } else if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
-            if(columnType != null && columnType.size() != 0) {
-                field = typeConverter.convert(field,columnType.get(index));
-            }
-        }
-        return field;
-    }
-
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         int index = 0;
         try {
             for (; index < row.getArity(); index++) {
-                String type = columnType.get(index);
-                fillUploadStmt(singleUpload, index+1, convertField(row, index), type);
+                singleUpload.setObject(index+1,getField(row,index));
             }
             singleUpload.execute();
         } catch (Exception e) {
@@ -254,8 +236,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         for(int i = 0; i < rows.size(); ++i) {
             Row row = rows.get(i);
             for(int j = 0; j < row.getArity(); ++j) {
-                String type = columnType.get(j);
-                fillUploadStmt(upload, k, convertField(row, j), type);
+                upload.setObject(k,getField(row,j));
                 k++;
             }
         }
@@ -266,25 +247,19 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void fillUploadStmt(PreparedStatement upload, int k, Object field, String type) throws SQLException {
-        if(type.matches(DATE_REGEX)) {
-            if (field instanceof Timestamp){
-                field = new java.sql.Date(((Timestamp) field).getTime());
-            }
-            upload.setDate(k, (java.sql.Date) field);
-        } else if(type.matches(TIMESTAMP_REGEX)) {
-            upload.setTimestamp(k, (Timestamp) field);
-        } else {
-            upload.setObject(k, field);
-        }
-    }
-
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
-        if (field != null && field.getClass() == java.util.Date.class) {
-            java.util.Date d = (java.util.Date) field;
-            field = new Timestamp(d.getTime());
+        String type = columnType.get(index);
+        if(type.matches(DATE_REGEX)) {
+            field = DateUtil.columnToDate(field,null);
+        } else if(type.matches(TIMESTAMP_REGEX)){
+            field = DateUtil.columnToTimestamp(field,null);
         }
+
+        if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
+            field = typeConverter.convert(field,type);
+        }
+
         return field;
     }
 
