@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Carbondata Output Format
@@ -178,6 +179,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         fullColumnIndices = new ArrayList<>();
         fullColumnNames = new ArrayList<>();
         fullColumnTypes = new ArrayList<>();
+
+        column = column.stream().map(String::toLowerCase).collect(Collectors.toList());
 
         List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
         for(int i = 0; i < columnSchemas.size(); ++i) {
