@@ -100,7 +100,6 @@ public class MetaColumn implements Serializable {
                 for (int i = 0; i < columns.size(); i++) {
                     Map sm = (Map) columns.get(i);
                     MetaColumn mc = new MetaColumn();
-                    mc.setName((String) sm.get("name"));
 
                     Object colIndex = sm.get("index");
                     if(colIndex != null) {
@@ -112,12 +111,13 @@ public class MetaColumn implements Serializable {
                         }
                     }
 
-                    mc.setType((String) sm.get("type"));
-                    mc.setValue((String) sm.get("value"));
-                    mc.setSplitter((String) sm.get("splitter"));
+                    mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
+                    mc.setName(sm.get("type") != null ? String.valueOf(sm.get("type")) : null);
+                    mc.setName(sm.get("value") != null ? String.valueOf(sm.get("value")) : null);
+                    mc.setName(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
 
                     if(sm.get("format") != null){
-                        mc.setTimeFormat(DateUtil.getDateFormatter((String) sm.get("format")));
+                        mc.setTimeFormat(DateUtil.getDateFormatter(String.valueOf(sm.get("format"))));
                     }
 
                     metaColumns.add(mc);
