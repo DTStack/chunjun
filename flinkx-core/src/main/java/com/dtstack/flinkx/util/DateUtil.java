@@ -124,7 +124,7 @@ public class DateUtil {
             time = Long.valueOf(data) / 1000000 ;
         } else if(data.length() < 10){
             try {
-                int day = Integer.valueOf(data);
+                long day = Long.valueOf(data);
                 Date date = dateFormatter.parse(START_TIME);
                 Calendar cal = Calendar.getInstance();
                 long addMill = date.getTime() + day * 24 * 3600 * 1000;
