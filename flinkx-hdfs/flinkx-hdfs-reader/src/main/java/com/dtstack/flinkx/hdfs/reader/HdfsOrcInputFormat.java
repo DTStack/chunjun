@@ -193,10 +193,10 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             row = new Row(metaColumns.size());
             for (int i = 0; i < metaColumns.size(); i++) {
                 MetaColumn metaColumn = metaColumns.get(i);
-                Object val;
+                Object val = null;
                 if (metaColumn.getValue() != null){
                     val = metaColumn.getValue();
-                } else {
+                } else if(metaColumn.getIndex() != -1){
                     val = inspector.getStructFieldData(value, fields.get(metaColumn.getIndex()));
                     if (val != null) {
                         val = HdfsUtil.getWritableValue(val);
