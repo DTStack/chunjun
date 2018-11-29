@@ -130,6 +130,7 @@ public class StringUtil {
                 result = Byte.valueOf(rowData);
                 break;
             case SMALLINT:
+            case SHORT:
                 result = Short.valueOf(rowData);
                 break;
             case INT:
