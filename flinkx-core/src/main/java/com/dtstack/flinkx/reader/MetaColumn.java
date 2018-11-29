@@ -112,9 +112,9 @@ public class MetaColumn implements Serializable {
                     }
 
                     mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
-                    mc.setName(sm.get("type") != null ? String.valueOf(sm.get("type")) : null);
-                    mc.setName(sm.get("value") != null ? String.valueOf(sm.get("value")) : null);
-                    mc.setName(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
+                    mc.setType(sm.get("type") != null ? String.valueOf(sm.get("type")) : null);
+                    mc.setValue(sm.get("value") != null ? String.valueOf(sm.get("value")) : null);
+                    mc.setSplitter(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
 
                     if(sm.get("format") != null){
                         mc.setTimeFormat(DateUtil.getDateFormatter(String.valueOf(sm.get("format"))));
