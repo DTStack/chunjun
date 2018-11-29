@@ -69,6 +69,9 @@ public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
         format.filter = filter;
     }
 
+    public void setDefaultFS(String defaultFS) {
+        format.defaultFS = defaultFS;
+    }
 
     @Override
     protected void checkFormat() {

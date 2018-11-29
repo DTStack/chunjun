@@ -75,6 +75,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected Map<String,String> hadoopConfig;
 
+    protected String defaultFS;
+
     protected String table;
 
     protected String database;
@@ -112,7 +114,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     @Override
     public void configure(Configuration parameters) {
         try {
-            CarbondataUtil.initFileFactory(hadoopConfig);
+            CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
             fs = FileSystem.get(FileFactory.getConfiguration());
             bakPath = path + "_bak";
         } catch (IOException e) {
@@ -122,7 +124,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
+        if(overwrite) {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
+        } else {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+        }
         CarbonProperties carbonProperty = CarbonProperties.getInstance();
         carbonProperty.addProperty("zookeeper.enable.lock", "false");
         Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
@@ -156,7 +162,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         boolean isOverwriteTable = true;
         carbonLoadModel.setSegmentId(UUID.randomUUID().toString());
 
-        List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
+//        List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
 
         boolean createDictionary = false;
         if (!createDictionary) {
@@ -351,7 +357,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected void afterCloseInternal()  {
-        if(taskNumber == 0) {
+        if(taskNumber == 0 && overwrite) {
             try {
                 fs.delete(new Path(path), true);
                 fs.rename(new Path(bakPath), new Path(path));

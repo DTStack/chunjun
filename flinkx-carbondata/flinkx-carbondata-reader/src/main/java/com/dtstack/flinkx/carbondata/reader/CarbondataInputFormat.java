@@ -55,6 +55,8 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     protected Map<String,String> hadoopConfig;
 
+    protected String defaultFS;
+
     protected String table;
 
     protected String database;
@@ -145,7 +147,7 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     @Override
     public void configure(Configuration configuration) {
-        CarbondataUtil.initFileFactory(hadoopConfig);
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
         initColumnIndices();
         org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
         CarbonTableInputFormat.setDatabaseName(conf, database);

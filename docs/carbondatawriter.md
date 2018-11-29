@@ -49,9 +49,9 @@
               "dfs.namenode.rpc-address.ns1.nn2": "rdos2:9000",
               "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
               "dfs.namenode.rpc-address.ns1.nn1": "rdos1:9000",
-              "dfs.nameservices": "ns1",
-              "fs.defaultFS": "hdfs://ns1"
+              "dfs.nameservices": "ns1"
             },
+            "defaultFS": "hdfs://ns1",
             "table": "sb500",
             "database": "sb",
             "writeMode": "overwrite",
@@ -140,6 +140,14 @@
                         }
 		}
 	```
+
+* **defaultFS**
+
+	* 描述：Hadoop hdfs文件系统namenode节点地址。 <br />
+
+	* 必选：是 <br />
+
+	* 默认值：无 <br />
 
 
 ## 3. 数据类型

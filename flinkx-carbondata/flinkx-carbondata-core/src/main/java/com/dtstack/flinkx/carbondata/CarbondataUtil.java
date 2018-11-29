@@ -25,6 +25,7 @@ import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.TableInfo;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -52,13 +53,17 @@ public class CarbondataUtil {
         return CarbonTable.buildFromTableInfo(wrapperTableInfo);
     }
 
-    public static void initFileFactory(Map<String,String> hadoopConfig) {
+    public static void initFileFactory(Map<String,String> hadoopConfig, String defaultFS) {
         Configuration conf = new Configuration();
         conf.clear();
         if(hadoopConfig != null) {
             for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
                 conf.set(entry.getKey(), entry.getValue());
             }
+        }
+
+        if(StringUtils.isNotBlank(defaultFS)) {
+            conf.set("fs.default.name", defaultFS);
         }
         conf.set("fs.hdfs.impl.disable.cache", "true");
 

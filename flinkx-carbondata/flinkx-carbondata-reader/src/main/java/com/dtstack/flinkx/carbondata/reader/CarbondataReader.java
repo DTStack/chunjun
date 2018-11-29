@@ -44,6 +44,8 @@ public class CarbondataReader extends DataReader {
 
     protected Map<String,String> hadoopConfig;
 
+    protected String defaultFS;
+
     protected List<String> columnName;
 
     protected List<String> columnType;
@@ -61,6 +63,7 @@ public class CarbondataReader extends DataReader {
         database = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         filter = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_FILTER);
+        defaultFS = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         List columns = readerConfig.getParameter().getColumn();
 
         if (columns != null && columns.size() > 0) {
@@ -92,6 +95,7 @@ public class CarbondataReader extends DataReader {
         builder.setDatabase(database);
         builder.setTable(table);
         builder.setPath(path);
+        builder.setDefaultFS(defaultFS);
         builder.setFilter(filter);
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);

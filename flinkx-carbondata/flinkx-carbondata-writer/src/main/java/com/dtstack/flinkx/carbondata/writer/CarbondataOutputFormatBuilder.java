@@ -18,9 +18,7 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.Preconditions;
-
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +42,10 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setTable(String table) {
         format.table = table;
+    }
+
+    public void setDefaultFS(String defaultFS) {
+        format.defaultFS = defaultFS;
     }
 
     public void setPath(String path) {

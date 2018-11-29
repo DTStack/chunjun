@@ -33,12 +33,6 @@ public class CarbonConfigKeys {
 
     public static final String KEY_TABLE_PATH = "path";
 
-    public static final String KEY_COLUMN_NAME = "name";
-
-    public static final String KEY_COLUMN_TYPE = "type";
-
-    public static final String KEY_COLUMN_VALUE = "value";
-
     public static final String KEY_FILTER = "filter";
 
     public static final String KEY_BATCH_SIZE = "batchSize";
@@ -46,5 +40,7 @@ public class CarbonConfigKeys {
     public static final int DEFAULT_BATCH_SIZE = 1024;
 
     public static final String KEY_WRITE_MODE = "writeMode";
+
+    public static final String KEY_DEFAULT_FS = "defaultFS";
 
 }
