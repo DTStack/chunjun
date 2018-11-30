@@ -75,10 +75,10 @@ public class DateUtil {
             return new java.sql.Date(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
-            return new java.sql.Date(rawData.longValue());
+            return new java.sql.Date(getMillSecond(rawData.toString()));
         } else if (column instanceof Long) {
             Long rawData = (Long) column;
-            return new java.sql.Date(rawData.longValue());
+            return new java.sql.Date(getMillSecond(rawData.toString()));
         } else if (column instanceof java.sql.Date) {
             return (java.sql.Date) column;
         } else if(column instanceof Timestamp) {
