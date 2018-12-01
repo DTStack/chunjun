@@ -21,12 +21,17 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -209,7 +214,7 @@ public class DBUtil {
     }
 
     public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
-                                            String table,List<String> column) {
+                                            String table,List<MetaColumn> metaColumns) {
         List<String> ret = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
@@ -225,8 +230,12 @@ public class DBUtil {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
 
-            for (String col : column) {
-                ret.add(nameTypeMap.get(col));
+            for (MetaColumn metaColumn : metaColumns) {
+                if(metaColumn.getValue() != null){
+                    ret.add("string");
+                } else {
+                    ret.add(nameTypeMap.get(metaColumn.getName()));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -271,7 +280,7 @@ public class DBUtil {
     }
 
     public static void getRow(EDatabaseType dbType, Row row, List<String> descColumnTypeList, ResultSet resultSet,
-                              TypeConverterInterface typeConverter) throws SQLException{
+                              TypeConverterInterface typeConverter) throws Exception{
         for (int pos = 0; pos < row.getArity(); pos++) {
             Object obj = resultSet.getObject(pos + 1);
             if(obj != null) {
@@ -308,6 +317,24 @@ public class DBUtil {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }
+                } else if(EDatabaseType.DB2 == dbType){
+                    if (obj instanceof com.ibm.db2.jcc.am.c2 || obj instanceof com.ibm.db2.jcc.am.cz){
+                        BufferedReader bf;
+                        if(obj instanceof com.ibm.db2.jcc.am.c2){
+                            bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
+                        } else {
+                            bf = new BufferedReader(new InputStreamReader(((com.ibm.db2.jcc.am.cz)obj).getBinaryStream()));
+                        }
+
+                        StringBuilder data = new StringBuilder();
+                        String line;
+                        while ((line = bf.readLine()) != null){
+                            data.append(line);
+                        }
+                        obj = data.toString();
+                    } else if(obj instanceof byte[]){
+                        obj = new String((byte[]) obj);
+                    }
                 }
             }
 
@@ -315,10 +342,24 @@ public class DBUtil {
         }
     }
 
-    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<String> column,
+    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
                                      String splitKey,String where,boolean isSplitByKey) {
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(databaseInterface.quoteColumns(column)).append(" FROM ");
+
+        List<String> selectColumns = new ArrayList<>();
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            selectColumns.add("*");
+        } else {
+            for (MetaColumn metaColumn : metaColumns) {
+                if (metaColumn.getValue() != null){
+                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+                } else {
+                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+                }
+            }
+        }
+
+        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
 
         StringBuilder filter = new StringBuilder();

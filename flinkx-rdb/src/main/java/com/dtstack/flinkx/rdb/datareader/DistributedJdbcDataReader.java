@@ -24,10 +24,10 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputSplit;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -51,7 +51,7 @@ public class DistributedJdbcDataReader extends DataReader {
 
     protected String password;
 
-    protected List<String> column;
+    protected List<MetaColumn> metaColumns;
 
     protected String where;
 
@@ -74,7 +74,7 @@ public class DistributedJdbcDataReader extends DataReader {
         username = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_USER_NAME);
         password = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_PASSWORD);
         where = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_WHERE);
-        column = readerConfig.getParameter().getColumn();
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         connectionConfigs = readerConfig.getParameter().getConnection();
         fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
@@ -92,7 +92,7 @@ public class DistributedJdbcDataReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
-        builder.setColumn(column);
+        builder.setMetaColumn(metaColumns);
         builder.setSourceList(buildConnections());
         builder.setNumPartitions(numPartitions);
         builder.setSplitKey(splitKey);

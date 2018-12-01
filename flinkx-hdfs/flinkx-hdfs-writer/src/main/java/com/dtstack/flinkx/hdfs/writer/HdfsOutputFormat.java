@@ -98,7 +98,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         for(int i = 0; i < fullColumnNames.size(); ++i) {
             int j = 0;
             for(; j < columnNames.size(); ++j) {
-                if(fullColumnNames.get(i).equals(columnNames.get(j))) {
+                if(fullColumnNames.get(i).equalsIgnoreCase(columnNames.get(j))) {
                     colIndices[i] = j;
                     break;
                 }

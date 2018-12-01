@@ -16,49 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.mongodb;
+package com.dtstack.flinkx.db2.writer;
 
-import java.io.Serializable;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.db2.Db2DatabaseMeta;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 
 /**
- * @Company: www.dtstack.com
+ * db2 writer plugin
+ *
  * @author jiangbo
+ * @date 2018/11/19
  */
-public class Column implements Serializable {
+public class Db2Writer extends JdbcDataWriter {
 
-    private String name;
-
-    private String type;
-
-    private String splitter;
-
-    public Column(String name, String type, String splitter) {
-        this.name = name;
-        this.type = type;
-        this.splitter = splitter;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSplitter() {
-        return splitter;
-    }
-
-    public void setSplitter(String splitter) {
-        this.splitter = splitter;
+    public Db2Writer(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new Db2DatabaseMeta());
     }
 }

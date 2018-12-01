@@ -214,6 +214,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Odps读取插件](docs/odpsreader.md)
 * [PostgreSQL读取插件](docs/postgresqlreader.md)
 * [MongoDB读取插件](docs/mongodbreader.md)
+* [DB2读取插件](docs/db2reader.md)
 
 ### 5.2 写入插件
 
@@ -228,6 +229,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [PostgreSQL写入插件](docs/postgresqlwriter.md)
 * [MongoDB写入插件](docs/mongodbwriter.md)
 * [Redis写入插件](docs/rediswriter.md)
+* [DB2写入插件](docs/db2writer.md)
 
 ## 6.版本说明
  1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.4.0 对应 flink1.4.0,现在支持flink1.4和1.5

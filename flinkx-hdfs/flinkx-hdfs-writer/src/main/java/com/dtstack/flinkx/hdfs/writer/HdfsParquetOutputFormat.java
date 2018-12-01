@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties;
@@ -33,6 +34,7 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.*;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -87,9 +89,17 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 String colType = fullColumnTypes.get(i).toLowerCase();
 
                 Object valObj = row.getField(colIndices[i]);
+                if(colType.matches(DateUtil.DATE_REGEX)){
+                    valObj = DateUtil.columnToDate(valObj,null);
+                } else if(colType.matches(DateUtil.DATETIME_REGEX) || colType.matches(DateUtil.TIMESTAMP_REGEX)){
+                    valObj = DateUtil.columnToTimestamp(valObj,null);
+                }
+
                 String val = "";
                 if(valObj != null){
-                    if(valObj instanceof Date){
+                    if(valObj instanceof java.sql.Timestamp){
+                        val = String.valueOf(((java.sql.Timestamp) valObj).getTime());
+                    } else if(valObj instanceof Date){
                         val = sdf.format((Date)valObj);
                     } else {
                         val = String.valueOf(valObj);
@@ -108,7 +118,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     case "varchar" :
                     case "string" : group.add(colName,val);break;
                     case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
-                    case "timestamp" : group.add(colName,Long.parseLong(val));break;
+                    case "timestamp" : group.add(colName, Long.parseLong(val));break;
                     case "decimal" : group.add(colName,val);break;
                     case "date" : group.add(colName,getDay(val));break;
                     default: group.add(colName,val);break;

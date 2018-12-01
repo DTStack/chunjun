@@ -21,12 +21,12 @@ package com.dtstack.flinkx.stream.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Read plugin for reading static data
@@ -38,7 +38,7 @@ public class StreamReader extends DataReader {
 
     private long sliceRecordCount;
 
-    private List<Map<String,Object>> columns;
+    private List<MetaColumn> columns;
 
     /** -1 means no limit */
     private static final long DEFAULT_SLICE_RECORD_COUNT = -1;
@@ -48,7 +48,7 @@ public class StreamReader extends DataReader {
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         sliceRecordCount = readerConfig.getParameter().getLongVal("sliceRecordCount",DEFAULT_SLICE_RECORD_COUNT);
-        columns = readerConfig.getParameter().getColumn();
+        columns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override

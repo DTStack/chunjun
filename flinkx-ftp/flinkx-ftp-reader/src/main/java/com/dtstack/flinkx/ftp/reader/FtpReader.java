@@ -22,15 +22,12 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import static com.dtstack.flinkx.ftp.FtpConfigKeys.*;
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
 
@@ -51,10 +48,8 @@ public class FtpReader extends DataReader {
     private String path;
     private String fieldDelimiter;
     private String encoding;
-
-    private List<Integer> columnIndex;
-    private List<String> columnType;
-    private List<String> columnValue;
+    private boolean isFirstLineHeader;
+    private List<MetaColumn> metaColumns;
 
 
     public FtpReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -79,32 +74,16 @@ public class FtpReader extends DataReader {
         username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
         encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING);
+        isFirstLineHeader = readerConfig.getParameter().getBooleanVal(KEY_IS_FIRST_HEADER,false);
 
         List columns = readerConfig.getParameter().getColumn();
-        if(columns != null && columns.size() > 0) {
-            if (columns.get(0) instanceof Map) {
-                columnIndex = new ArrayList();
-                columnType = new ArrayList<>();
-                columnValue = new ArrayList<>();
-                for (int i = 0; i < columns.size(); ++i) {
-                    Map sm = (Map) columns.get(i);
-                    Double temp = (Double) sm.get("index");
-                    columnIndex.add(temp != null ? temp.intValue() : null);
-                    columnType.add((String) sm.get("type"));
-                    columnValue.add((String) sm.get("value"));
-                }
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
-                throw new IllegalArgumentException("column argument error");
-            }
-        }
+        metaColumns = MetaColumn.getMetaColumns(columns);
     }
 
     @Override
     public DataStream<Row> readData() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
-        builder.setColumnType(columnType);
-        builder.setColumnIndex(columnIndex);
-        builder.setColumnValue(columnValue);
+        builder.setMetaColumn(metaColumns);
         builder.setConnectMode(connectPattern);
         builder.setDelimiter(fieldDelimiter);
         builder.setEncoding(encoding);
@@ -114,6 +93,7 @@ public class FtpReader extends DataReader {
         builder.setPort(port);
         builder.setProtocol(protocol);
         builder.setUsername(username);
+        builder.setIsFirstLineHeader(isFirstLineHeader);
 
         return createInput(builder.finish(), "ftpreader");
     }

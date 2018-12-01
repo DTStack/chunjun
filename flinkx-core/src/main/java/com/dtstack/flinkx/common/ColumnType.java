@@ -27,10 +27,11 @@ package com.dtstack.flinkx.common;
  */
 public enum ColumnType {
     STRING, VARCHAR, CHAR,
-    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,
+    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,
     DOUBLE, FLOAT,
     BOOLEAN,
-    DATE, TIMESTAMP, DECIMAL;
+    DATE, TIMESTAMP,
+    DECIMAL,YEAR,BIT;
 
     public static ColumnType fromString(String type) {
         if(type == null) {
@@ -44,4 +45,13 @@ public enum ColumnType {
         return valueOf(type.toUpperCase());
     }
 
+    public static ColumnType getType(String type){
+        for (ColumnType value : ColumnType.values()) {
+            if(type.equalsIgnoreCase(value.name())){
+                return value;
+            }
+        }
+
+        return ColumnType.STRING;
+    }
 }

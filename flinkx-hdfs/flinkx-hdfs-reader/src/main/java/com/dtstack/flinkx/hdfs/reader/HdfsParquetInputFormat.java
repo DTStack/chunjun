@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.collect.Lists;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -28,6 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
+import org.apache.parquet.schema.Type;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -50,11 +52,15 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private transient List<String> allFilePaths;
 
+    private transient List<String> fullColNames;
+
+    private transient List<String> fullColTypes;
+
     private transient List<String> currentSplitFilePaths;
 
-    private transient int currenFileIndex = 0;
+    private transient int currentFileIndex = 0;
 
-    private SimpleDateFormat sdf = new SimpleDateFormat("");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Override
     protected void configureAnythingElse() {
@@ -71,7 +77,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     private boolean nextLine() throws IOException{
-        if (currentFileReader == null && currenFileIndex <= currentSplitFilePaths.size()-1){
+        if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
             nextFile();
         }
 
@@ -80,6 +86,23 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         }
 
         currentLine = currentFileReader.read();
+        if (fullColNames == null && currentLine != null){
+            fullColNames = new ArrayList<>();
+            fullColTypes = new ArrayList<>();
+            List<Type> types = currentLine.getType().getFields();
+            for (Type type : types) {
+                fullColNames.add(type.getName().toUpperCase());
+                fullColTypes.add(getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
+            }
+
+            for (MetaColumn metaColumn : metaColumns) {
+                if(fullColNames.contains(metaColumn.getName().toUpperCase())){
+                    metaColumn.setIndex(fullColNames.indexOf(metaColumn.getName().toUpperCase()));
+                } else {
+                    metaColumn.setIndex(-1);
+                }
+            }
+        }
 
         if (currentLine == null){
             currentFileReader = null;
@@ -90,31 +113,39 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     private void nextFile() throws IOException{
-        String path = currentSplitFilePaths.get(currenFileIndex);
+        String path = currentSplitFilePaths.get(currentFileIndex);
         ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), new Path(path)).withConf(conf);
         currentFileReader = reader.build();
 
-        currenFileIndex++;
+        currentFileIndex++;
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(columnIndex.size());
-        Object col;
-        for (int i = 0; i < columnIndex.size(); i++) {
-            Integer index = columnIndex.get(i);
-            String staticVal = columnValue.get(i);
-            String type = columnType.get(i);
-            if(index != null){
-                col = getDate(currentLine,type,index);
-                row.setField(i, col);
-            } else {
-                if(staticVal != null){
-                    row.setField(i, HdfsUtil.string2col(staticVal,type));
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(fullColNames.size());
+            for (int i = 0; i < fullColNames.size(); i++) {
+                Object val = getData(currentLine,fullColTypes.get(i),i);
+                row.setField(i, val);
+            }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+                Object val = null;
+                if (metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
                 } else {
-                    col = getDate(currentLine,type,currentLine.getType().getFieldIndex(columnName.get(i)));
-                    row.setField(i, col);
+                    if(metaColumn.getIndex() != -1){
+                        val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
+                    }
                 }
+
+                if(val != null && val instanceof String){
+                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                row.setField(i,val);
             }
         }
 
@@ -126,13 +157,13 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return !nextLine();
     }
 
-    private Object getDate(Group currentLine,String type,int index){
+    private Object getData(Group currentLine,String type,int index){
         Object data;
         switch (type){
             case "tinyint" :
             case "smallint" :
             case "int" : data = currentLine.getInteger(index,0);break;
-            case "bigint" : data = currentLine.getInt96(index,0);break;
+            case "bigint" : data = currentLine.getLong(index,0);break;
             case "float" : data = currentLine.getFloat(index,0);break;
             case "double" : data = currentLine.getDouble(index,0);break;
             case "binary" :data = currentLine.getBinary(index,0);break;
@@ -216,6 +247,22 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 fs.close();
             }
         }
+    }
+
+    private String getTypeName(String method){
+        String typeName;
+        switch (method){
+            case "getInteger" : typeName = "int";break;
+            case "getInt96" : typeName = "bigint";break;
+            case "getFloat" : typeName = "float";break;
+            case "getDouble" : typeName = "double";break;
+            case "getBinary" : typeName = "binary";break;
+            case "getString" : typeName = "string";break;
+            case "getBoolean" : typeName = "int";break;
+            default:typeName = "string";
+        }
+
+        return typeName;
     }
 
     static class HdfsParquetSplit implements InputSplit{

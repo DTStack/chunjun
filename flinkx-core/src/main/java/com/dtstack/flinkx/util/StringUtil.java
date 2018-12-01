@@ -20,16 +20,13 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.dtstack.flinkx.common.ColumnType.valueOf;
 
 /**
  * String Utilities
@@ -67,10 +64,16 @@ public class StringUtil {
         return str;
     }
 
-    public static Object string2col(String str, String type) {
+    public static Object string2col(String str, String type, FastDateFormat customTimeFormat) {
+        if(str == null || str.length() == 0){
+            return null;
+        }
 
-        Preconditions.checkNotNull(type);
-        ColumnType columnType = valueOf(type.toUpperCase());
+        if(type == null){
+            return str;
+        }
+
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object ret;
         switch(columnType) {
             case TINYINT:
@@ -95,20 +98,24 @@ public class StringUtil {
             case STRING:
             case VARCHAR:
             case CHAR:
-                ret = str;
+                if(customTimeFormat != null){
+                    ret = DateUtil.columnToDate(str,customTimeFormat);
+                } else {
+                    ret = str;
+                }
                 break;
             case BOOLEAN:
                 ret = Boolean.valueOf(str.toLowerCase());
                 break;
             case DATE:
-                ret = DateUtil.columnToDate(str);
+                ret = DateUtil.columnToDate(str,customTimeFormat);
                 break;
             case TIMESTAMP:
             case DATETIME:
-                ret = DateUtil.columnToTimestamp(str);
+                ret = DateUtil.columnToTimestamp(str,customTimeFormat);
                 break;
             default:
-                throw new IllegalArgumentException();
+                ret = str;
         }
 
         return ret;
@@ -116,19 +123,21 @@ public class StringUtil {
 
     public static String col2string(Object column, String type) {
         String rowData = column.toString();
-        ColumnType columnType = ColumnType.valueOf(type.toUpperCase());
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object result = null;
         switch (columnType) {
             case TINYINT:
                 result = Byte.valueOf(rowData);
                 break;
             case SMALLINT:
+            case SHORT:
                 result = Short.valueOf(rowData);
                 break;
             case INT:
                 result = Integer.valueOf(rowData);
                 break;
             case BIGINT:
+            case LONG:
                 result = Long.valueOf(rowData);
                 break;
             case FLOAT:

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang.StringUtils;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -52,6 +53,11 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String quoteValue(String value, String column) {
+        return String.format("'%s' as %s",value,column);
+    }
+
+    @Override
     public String getSplitFilter(String columnName) {
         return String.format("%s %% ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
     }
@@ -77,6 +83,20 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
             sb.append("? " + quoteColumn(column.get(i)));
         }
         return sb.toString();
+    }
+
+    @Override
+    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
+        if(updateKey == null || updateKey.isEmpty()) {
+            return getMultiInsertStatement(column, table, batchSize);
+        }
+
+        return "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeMultipleValues(column, batchSize) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ");";
     }
 
     @Override

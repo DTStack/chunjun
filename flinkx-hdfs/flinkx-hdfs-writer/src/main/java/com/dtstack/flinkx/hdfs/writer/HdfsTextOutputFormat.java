@@ -130,22 +130,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                             sb.append(Boolean.valueOf(rowData));
                             break;
                         case DATE:
-                            if(column instanceof Date) {
-                                sb.append(DateUtil.dateToString((Date)column));
-                            } else {
-                                Date d = DateUtil.columnToDate(column);
-                                String s = DateUtil.dateToString(d);
-                                sb.append(s);
-                            }
+                            column = DateUtil.columnToDate(column,null);
+                            sb.append(DateUtil.dateToString((Date) column));
                             break;
                         case TIMESTAMP:
-                            if(column instanceof Date) {
-                                sb.append(DateUtil.timestampToString((Date)column));
-                            } else {
-                                Date d = DateUtil.columnToTimestamp(column);
-                                String s = DateUtil.timestampToString(d);
-                                sb.append(s);
-                            }
+                            column = DateUtil.columnToTimestamp(column,null);
+                            sb.append(DateUtil.timestampToString((Date)column));
                             break;
                         default:
                             throw new IllegalArgumentException("Unsupported column type: " + columnType);
