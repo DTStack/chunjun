@@ -104,7 +104,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<Integer> fullColumnIndices;
 
-    private final int CARBON_BATCH_SIZE = 1024;
+    private final int CARBON_BATCH_SIZE =  1024 * 100;
 
     private int insertedRecords = 0;
 
@@ -163,8 +163,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         boolean isOverwriteTable = true;
         carbonLoadModel.setSegmentId(UUID.randomUUID().toString());
 
-//        List<CarbonDimension> allDimensions = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable().getAllDimensions();
-
         boolean createDictionary = false;
         if (!createDictionary) {
             carbonLoadModel.setUseOnePass(false);
@@ -185,8 +183,10 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
         for(int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
-            fullColumnNames.add(columnSchema.getColumnName());
-            fullColumnTypes.add(columnSchema.getDataType().getName());
+            if(!columnSchema.isInvisible()) {
+                fullColumnNames.add(columnSchema.getColumnName());
+                fullColumnTypes.add(columnSchema.getDataType().getName());
+            }
         }
 
         for(int i = 0; i < fullColumnNames.size(); ++i) {
@@ -229,7 +229,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                     record[i] = null;
                 } else {
                     Object column = row.getField(index);
-                    record[i] = StringUtil.col2string(column, fullColumnTypes.get(i));
+                    if(column == null) {
+                        record[i] = null;
+                    } else {
+                        record[i] = StringUtil.col2string(column, fullColumnTypes.get(i));
+                    }
                 }
             }
             writable.set(record);
