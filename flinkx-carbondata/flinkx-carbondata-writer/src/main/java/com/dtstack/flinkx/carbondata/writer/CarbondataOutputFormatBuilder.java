@@ -1,7 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import org.apache.flink.util.Preconditions;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Builder class of CarbondataOutputFormat
@@ -17,44 +36,45 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format = new CarbonOutputFormat();
     }
 
-    public void setUsername(String username) {
-        format.username = username;
-    }
-
-    public void setPassword(String password) {
-        format.password = password;
-    }
-
-    public void setDBUrl(String dbURL) {
-        format.dbURL = dbURL;
+    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+        format.hadoopConfig = hadoopConfig;
     }
 
     public void setTable(String table) {
         format.table = table;
     }
 
+    public void setDefaultFS(String defaultFS) {
+        format.defaultFS = defaultFS;
+    }
+
+    public void setPath(String path) {
+        format.path = path;
+    }
+
+    public void setDatabase(String database) {
+        format.database = database;
+    }
+
     public void setColumn(List<String> column) {
         format.column = column;
     }
 
-    public void setPreSql(List<String> preSql) {
-        format.preSql = preSql;
-    }
-
-    public void setPostSql(List<String> postSql) {
-        format.postSql = postSql;
+    public void setWriteMode(String writeMode) {
+        if(writeMode.equalsIgnoreCase("overwrite")) {
+            format.overwrite = true;
+        } else {
+            format.overwrite = false;
+        }
     }
 
     @Override
     protected void checkFormat() {
-        if (format.username == null) {
-            LOG.info("Username was not supplied separately.");
-        }
-        if (format.password == null) {
-            LOG.info("Password was not supplied separately.");
-        }
-        if (format.dbURL == null) {
-            throw new IllegalArgumentException("No dababase URL supplied.");
-        }
+        Preconditions.checkNotNull(format.hadoopConfig);
+        Preconditions.checkNotNull(format.table);
+        Preconditions.checkNotNull(format.path);
+        Preconditions.checkNotNull(format.database);
+        Preconditions.checkNotNull(format.column);
+
     }
 }

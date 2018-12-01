@@ -24,6 +24,7 @@ import com.dtstack.flinkx.ftp.SFtpHandler;
 import com.dtstack.flinkx.ftp.StandardFtpHandler;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -65,11 +66,9 @@ public class FtpInputFormat extends RichInputFormat {
 
     protected String charsetName = "utf-8";
 
-    protected List<Integer> columnIndex;
+    protected List<MetaColumn> metaColumns;
 
-    protected List<String> columnValue;
-
-    protected List<String> columnType;
+    protected transient boolean isFirstLineHeader;
 
     private transient BufferedReader br;
 
@@ -114,8 +113,6 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public void openInternal(InputSplit split) throws IOException {
-
-
         FtpInputSplit inputSplit = (FtpInputSplit)split;
         List<String> paths = inputSplit.getPaths();
         FtpSeqInputStream is = new FtpSeqInputStream(ftpHandler, paths);
@@ -131,26 +128,44 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         line = br.readLine();
+
+        // if first line is header,then read next line
+        if(isFirstLineHeader){
+            line = br.readLine();
+            isFirstLineHeader = false;
+        }
         return line == null;
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(columnIndex.size());
         String[] fields = line.split(delimiter);
-        for(int i = 0; i < columnIndex.size(); ++i) {
-            Integer index = columnIndex.get(i);
-            String val = columnValue.get(i);
-            if(index != null) {
-                String col = fields[index];
-                row.setField(i, col);
-            } else if(val != null) {
-                String type = columnType.get(i);
-                Object col = StringUtil.string2col(val,type);
-                row.setField(i, col);
+        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(fields.length);
+            for (int i = 0; i < fields.length; i++) {
+                row.setField(i, fields[i]);
             }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+                Object value;
+                if(metaColumn.getValue() != null){
+                    value = metaColumn.getValue();
+                } else if(metaColumn.getIndex() != null){
+                    value = fields[metaColumn.getIndex()];
+                } else {
+                    value = null;
+                }
 
+                if(value != null){
+                    value = StringUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                row.setField(i, value);
+            }
         }
+
         return row;
     }
 

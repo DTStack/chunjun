@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang.StringUtils;
@@ -55,7 +55,7 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     protected String collectionName;
 
-    protected List<Column> columns;
+    protected List<MetaColumn> columns;
 
     protected String replaceKey;
 

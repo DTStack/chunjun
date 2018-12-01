@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
 import java.util.List;
@@ -60,16 +61,12 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
         }
     }
 
-    public void setColumnIndex(List<Integer> columnIndex) {
-        format.columnIndex = columnIndex;
+    public void setMetaColumn(List<MetaColumn> metaColumns) {
+        format.metaColumns = metaColumns;
     }
 
-    public void setColumnValue(List<String> columnValue) {
-        format.columnValue = columnValue;
-    }
-
-    public void setColumnType(List<String> columnType) {
-        format.columnType = columnType;
+    public void setIsFirstLineHeader(boolean isFirstLineHeader){
+        format.isFirstLineHeader = isFirstLineHeader;
     }
 
     @Override

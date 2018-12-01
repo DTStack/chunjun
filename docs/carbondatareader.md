@@ -20,24 +20,28 @@
                 "reader": {
                     "name": "carbondatareader",
                     "parameter": {
-                        "username": "admin",
-                        "password": "admin",
+                        "path": "hdfs://ns1/user/hive/warehouse/carbon.store1/sb/tb2000",
+                        "hadoopConfig": {
+                            "dfs.ha.namenodes.ns1": "nn1,nn2",
+                            "dfs.namenode.rpc-address.ns1.nn2": "rdos2:9000",
+                            "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                            "dfs.namenode.rpc-address.ns1.nn1": "rdos1:9000",
+                            "dfs.nameservices": "ns1"
+                        },
+                        "defaultFS": "hdfs://ns1",
+                        "table": "tb2000",
+                        "database": "sb",
+                        "filter": " b = 100",
                         "column": [
-                            "a",
-                            "c"
-                        ],
-                        "where": "a > 40",
-                        "connection": [
                             {
-                                "table": [
-                                    "cum1"
-                                ],
-                                "jdbcUrl": [
-                                    "jdbc:hive2://rdos2:10000/cum"
-                                ]
+                                "name": "a",
+                                "type": "string"
+                            },
+                            {
+                                "name": "b",
+                                "type": "int"
                             }
-                        ],
-                        "splitPk": "a"
+                        ]
                     }
                 },
                "writer": {
@@ -47,8 +51,8 @@
                         "username": "root",
                         "password": "111111",
                         "column": [
-                            "id",
-                            "v"
+                            "v",
+                            "id"
                         ],
                         "batchSize": 1,
                         "connection": [
@@ -66,6 +70,7 @@
     }
 }
 
+
 ```
 
 ## 2. 参数说明
@@ -77,65 +82,86 @@
 
 	* 默认值：无 <br />
 
-* **jdbcUrl**
+* **path**
 
-	* 描述：针对carbondata数据库的jdbc连接字符串
+	* 描述：carbondata表的存储路径
 
 	* 必选：是 <br />
 
 	* 默认值：无 <br />
 
-* **username**
+* **table**
 
-	* 描述：数据源的用户名 <br />
-
-	* 必选：否 <br />
-
-	* 默认值：无 <br />
-
-* **password**
-
-	* 描述：数据源指定用户名的密码 <br />
+	* 描述：carbondata表名 <br />
 
 	* 必选：否 <br />
 
 	* 默认值：无 <br />
 
-* **where**
+* **database**
 
-	* 描述：筛选条件，CarbondataReader根据指定的column、table、where条件拼接SQL，并根据这个SQL进行数据抽取。在实际业务场景中，往往会选择当天的数据进行同步，可以将where条件指定为gmt_create > $bizdate 。注意：不可以将where条件指定为limit 10，limit不是SQL的合法where子句。<br />
-
-          where条件可以有效地进行业务增量同步。如果不填写where语句，包括不提供where的key或者value，FlinkX均视作同步全量数据。
+	* 描述：carbondata库名 <br />
 
 	* 必选：否 <br />
 
 	* 默认值：无 <br />
 
-* **splitPk**
+* **filter**
 
-	* 描述：CarbondataReader进行数据抽取时，如果指定splitPk，表示用户希望使用splitPk代表的字段进行数据分片，FlinkX因此会启动并发任务进行数据同步，这样可以大大提供数据同步的效能。
+	* 描述：简单过滤器，目前只支持单条件的简单过滤，形式为 col op value<br />
 
-	  推荐splitPk用户使用表主键，因为表主键通常情况下比较均匀，因此切分出来的分片也不容易出现数据热点。
-
-	  目前splitPk仅支持整形数据切分，`不支持浮点、字符串、日期等其他类型`。如果用户指定其他非支持类型，CarbondataReader将报错！
-
-	  如果splitPk不填写，包括不提供splitPk或者splitPk值为空，FlinkX视作使用单通道同步该表数据。
+      col为列名；<br />
+      op为关系运算符，包括=,>,>=,<,<=；<br />
+      value为字面值，如1234， "ssss" <br />
 
 	* 必选：否 <br />
 
-	* 默认值：空 <br />
-
+	* 默认值：无 <br />
 
 
 * **column**
 
-	* 描述：所配置的表中需要同步的列名集合。
+	* 描述：所配置的表中需要同步的字段集合。
+	字段包括表字段和常量字段，<br />
+	表字段的格式：
+	```
+	{
+		"name": "col1",
+		"type": "string"
+	}
+	```
+	
+	常量字段的格式：
+	{
+		"value": "12345",
+		"type": "string"
+	}
 
-	  支持列裁剪，即列可以挑选部分列进行导出。
 
-      支持列换序，即列可以不按照表schema信息进行导出。
+	* 必选：是 <br />
 
-      暂不支持常量列。
+	* 默认值：无 <br />
+
+* **hadoopConfig**
+
+	* 描述：hadoopConfig里可以配置与Hadoop相关的一些高级参数，比如HA的配置。<br />
+	
+	```
+		{
+		"hadoopConfig": {
+                            "dfs.ha.namenodes.ns1": "nn1,nn2",
+                            "dfs.namenode.rpc-address.ns1.nn2": "rdos2:9000",
+                            "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                            "dfs.namenode.rpc-address.ns1.nn1": "rdos1:9000",
+                            "dfs.nameservices": "ns1",
+                            "fs.defaultFS": "hdfs://ns1"
+                        }
+		}
+	```
+
+* **defaultFS**
+
+	* 描述：Hadoop hdfs文件系统namenode节点地址。 <br />
 
 	* 必选：是 <br />
 

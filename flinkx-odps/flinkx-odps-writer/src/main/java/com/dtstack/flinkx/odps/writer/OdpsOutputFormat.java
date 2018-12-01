@@ -127,7 +127,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     continue;
                 }
 
-                ColumnType columnType = ColumnType.valueOf(columnTypes[i].toUpperCase());
+                ColumnType columnType = ColumnType.getType(columnTypes[i].toUpperCase());
                 String rowData = column.toString();
 
                 switch (columnType) {
@@ -149,7 +149,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case DATE:
                     case DATETIME:
                     case TIMESTAMP:
-                        record.setDatetime(i, DateUtil.columnToTimestamp(column));
+                        record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
                         break;
                     default:
                         throw new IllegalArgumentException();

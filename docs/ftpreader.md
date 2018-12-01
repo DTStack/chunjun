@@ -39,7 +39,8 @@
                         ],
                         "path": "/upload",
                         "encoding": "UTF-8",
-                        "fieldDelimiter": "\\t"
+                        "fieldDelimiter": "\\t",
+                        "isFirstLineHeader":true
                     }
                 },
                 "writer": {
@@ -166,5 +167,13 @@
  	* 必选：否 <br />
 
  	* 默认值：utf-8 <br />
+ 	
+* **isFirstLineHeader**
+
+	* 描述：首行是否为标题行，如果是则不读取第一行。<br />
+
+ 	* 必选：否 <br />
+
+ 	* 默认值：false <br />
 
 

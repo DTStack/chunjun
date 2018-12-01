@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
 
@@ -59,8 +60,8 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.typeConverter = converter;
     }
 
-    public void setColumn(List<String> column){
-        format.column = column;
+    public void setMetaColumn(List<MetaColumn> metaColumns){
+        format.metaColumns = metaColumns;
     }
 
     public void setSplitKey(String splitKey){

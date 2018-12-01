@@ -46,4 +46,6 @@ public class FtpConfigKeys {
 
     public static final String KEY_WRITE_MODE = "writeMode";
 
+    public static final String KEY_IS_FIRST_HEADER = "isFirstLineHeader";
+
 }
