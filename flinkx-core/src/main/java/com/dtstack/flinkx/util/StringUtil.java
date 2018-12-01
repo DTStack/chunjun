@@ -98,7 +98,11 @@ public class StringUtil {
             case STRING:
             case VARCHAR:
             case CHAR:
-                ret = str;
+                if(customTimeFormat != null){
+                    ret = DateUtil.columnToDate(str,customTimeFormat);
+                } else {
+                    ret = str;
+                }
                 break;
             case BOOLEAN:
                 ret = Boolean.valueOf(str.toLowerCase());
