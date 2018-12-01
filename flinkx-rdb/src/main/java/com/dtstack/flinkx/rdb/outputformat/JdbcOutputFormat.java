@@ -158,7 +158,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 }
             }
 
-            if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
+            if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && updateKey != null && updateKey.size() > 0){
                 dbConn.createStatement().execute(String.format("SET IDENTITY_INSERT [%s] ON",table));
             }
 
@@ -343,7 +343,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         // 执行postsql
         if(taskNumber == 0) {
             try {
-                if (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
+                if (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && updateKey != null && updateKey.size() > 0){
                     dbConn.createStatement().execute(String.format("SET IDENTITY_INSERT [%s] OFF",table));
                 }
             } catch (Exception e){
