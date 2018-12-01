@@ -158,10 +158,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 }
             }
 
-            if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && updateKey != null && updateKey.size() > 0){
-                dbConn.createStatement().execute(String.format("SET IDENTITY_INSERT [%s] ON",table));
-            }
-
             singleUpload = prepareSingleTemplates();
             multipleUpload = prepareMultipleTemplates();
 
@@ -342,14 +338,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void beforeCloseInternal() {
         // 执行postsql
         if(taskNumber == 0) {
-            try {
-                if (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && updateKey != null && updateKey.size() > 0){
-                    dbConn.createStatement().execute(String.format("SET IDENTITY_INSERT [%s] OFF",table));
-                }
-            } catch (Exception e){
-                LOG.error("{}",e);
-            }
-
             DBUtil.executeBatch(dbConn, postSql);
         }
     }
