@@ -127,7 +127,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     continue;
                 }
 
-                ColumnType columnType = ColumnType.valueOf(columnTypes[i].toUpperCase());
+                ColumnType columnType = ColumnType.getType(columnTypes[i].toUpperCase());
                 String rowData = column.toString();
 
                 switch (columnType) {

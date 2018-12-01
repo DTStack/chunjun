@@ -77,7 +77,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             if(columnType.startsWith("DECIMAL")) {
                 columnType = "DECIMAL";
             }
-            ColumnType type = ColumnType.valueOf(columnType);
+            ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
         this.inspector = ObjectInspectorFactory

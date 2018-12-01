@@ -22,15 +22,11 @@ import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.dtstack.flinkx.common.ColumnType.valueOf;
 
 /**
  * String Utilities
@@ -77,7 +73,7 @@ public class StringUtil {
             return str;
         }
 
-        ColumnType columnType = valueOf(type.toUpperCase());
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object ret;
         switch(columnType) {
             case TINYINT:
@@ -123,7 +119,7 @@ public class StringUtil {
 
     public static String col2string(Object column, String type) {
         String rowData = column.toString();
-        ColumnType columnType = ColumnType.valueOf(type.toUpperCase());
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object result = null;
         switch (columnType) {
             case TINYINT:
