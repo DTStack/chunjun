@@ -104,7 +104,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<Integer> fullColumnIndices;
 
-    private final int CARBON_BATCH_SIZE =  1024 * 100;
+    private final int CARBON_BATCH_SIZE =  1024 * 200;
 
     private int insertedRecords = 0;
 
@@ -310,7 +310,10 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     private void closeRecordWriter()  {
         if(recordWriter != null) {
             try {
+                long start = System.currentTimeMillis();
                 recordWriter.close(taskAttemptContext);
+                long end = System.currentTimeMillis();
+                System.out.println("insert time: " + (end - start));
                 updateTableStatusAfterDataLoad();
                 insertedRecords = 0;
             } catch (Exception e) {
@@ -320,8 +323,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     }
 
     private void updateTableStatusAfterDataLoad() throws IOException {
+        long begin = System.currentTimeMillis();
         String segmentFileName = SegmentFileStore.writeSegmentFile(carbonTable, carbonLoadModel.getSegmentId(),
                         String.valueOf(carbonLoadModel.getFactTimeStamp()));
+        long end1 = System.currentTimeMillis();
+        System.out.println("seg1_time: " + (end1 - begin));
 
         SegmentFileStore.updateSegmentFile(
                 carbonTable,
@@ -329,21 +335,32 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                 segmentFileName,
                 carbonTable.getCarbonTableIdentifier().getTableId(),
                 new SegmentFileStore(carbonTable.getTablePath(), segmentFileName));
+        long end2 = System.currentTimeMillis();
+        System.out.println("seg2_time: " + (end2 - end1));
 
         LoadMetadataDetails metadataDetails = carbonLoadModel.getCurrentLoadMetadataDetail();
         metadataDetails.setSegmentFile(segmentFileName);
+
+        long end3 = System.currentTimeMillis();
+        System.out.println("seg3_time: " + (end3 - end2));
 
         CarbonLoaderUtil.populateNewLoadMetaEntry(
                 metadataDetails,
                 SegmentStatus.SUCCESS,
                 carbonLoadModel.getFactTimeStamp(),
                 true);
+        long end4 = System.currentTimeMillis();
+        System.out.println("seg4_time: " + (end4 - end3));
 
         CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
-
+        long end5 = System.currentTimeMillis();
+        System.out.println("seg5_time: " + (end5 - end4));
 
         boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false,
                 false, "");
+
+        long end6 = System.currentTimeMillis();
+        System.out.println("seg6_time: " + (end6-end5));
 
         if(!done) {
             throw new RuntimeException("Failed to recordNewLoadMetadata");
@@ -354,7 +371,9 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                         carbonLoadModel.getTablePath(),
                         false,
                         segmentFileName.split("_")[1].split("\\.")[0]);
-
+        long end = System.currentTimeMillis();
+        System.out.println("seg7_time: " + (end - end6));
+        System.out.println("update time: " + (end - begin));
     }
 
     @Override
