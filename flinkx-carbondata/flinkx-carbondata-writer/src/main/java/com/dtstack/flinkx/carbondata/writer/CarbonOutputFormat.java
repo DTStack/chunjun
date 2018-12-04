@@ -204,7 +204,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
 
@@ -216,6 +215,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         TaskAttemptContextImpl context = new TaskAttemptContextImpl(FileFactory.getConfiguration(), attemptID);
         return context;
     }
+
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
