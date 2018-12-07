@@ -68,7 +68,7 @@ public class FtpInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
-    protected transient boolean isFirstLineHeader;
+    protected boolean isFirstLineHeader;
 
     private transient BufferedReader br;
 
