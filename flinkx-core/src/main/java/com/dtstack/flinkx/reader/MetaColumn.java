@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang3.time.FastDateFormat;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class MetaColumn implements Serializable {
 
     private String value;
 
-    private FastDateFormat timeFormat;
+    private SimpleDateFormat timeFormat;
 
     private String splitter;
 
@@ -85,11 +85,11 @@ public class MetaColumn implements Serializable {
         this.value = value;
     }
 
-    public FastDateFormat getTimeFormat() {
+    public SimpleDateFormat getTimeFormat() {
         return timeFormat;
     }
 
-    public void setTimeFormat(FastDateFormat timeFormat) {
+    public void setTimeFormat(SimpleDateFormat timeFormat) {
         this.timeFormat = timeFormat;
     }
 

@@ -21,8 +21,6 @@ package com.dtstack.flinkx.hdfs;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.flink.util.Preconditions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -33,8 +31,7 @@ import org.apache.hadoop.io.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
-
-import static com.dtstack.flinkx.common.ColumnType.*;
+import java.text.SimpleDateFormat;
 
 /**
  * Utilities for HdfsReader and HdfsWriter
@@ -83,7 +80,7 @@ public class HdfsUtil {
         return configuration.get("fs.defaultFS");
     }
 
-    public static Object string2col(String str, String type, FastDateFormat customDateFormat) {
+    public static Object string2col(String str, String type, SimpleDateFormat customDateFormat) {
         if (str == null || str.length() == 0){
             return null;
         }

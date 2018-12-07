@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.commons.lang3.time.FastDateFormat;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,13 +45,13 @@ public class DateUtil {
 
     static TimeZone timeZoner;
 
-    static FastDateFormat datetimeFormatter;
+    static SimpleDateFormat datetimeFormatter;
 
-    static FastDateFormat dateFormatter;
+    static SimpleDateFormat dateFormatter;
 
-    static FastDateFormat timeFormatter;
+    static SimpleDateFormat timeFormatter;
 
-    static FastDateFormat yearFormatter;
+    static SimpleDateFormat yearFormatter;
 
     static String START_TIME = "1970-01-01";
 
@@ -65,7 +64,7 @@ public class DateUtil {
     private DateUtil() {}
 
 
-    public static java.sql.Date columnToDate(Object column,FastDateFormat customTimeFormat) {
+    public static java.sql.Date columnToDate(Object column,SimpleDateFormat customTimeFormat) {
         if(column == null) {
             return null;
         } else if(column instanceof String) {
@@ -92,7 +91,7 @@ public class DateUtil {
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
     }
 
-    public static java.sql.Timestamp columnToTimestamp(Object column,FastDateFormat customTimeFormat) {
+    public static java.sql.Timestamp columnToTimestamp(Object column,SimpleDateFormat customTimeFormat) {
         if (column == null) {
             return null;
         } else if(column instanceof String) {
@@ -142,7 +141,7 @@ public class DateUtil {
         return time;
     }
 
-    public static Date stringToDate(String strDate,FastDateFormat customTimeFormat)  {
+    public static Date stringToDate(String strDate,SimpleDateFormat customTimeFormat)  {
         if(strDate == null || strDate.trim().length() == 0) {
             return null;
         }
@@ -189,16 +188,26 @@ public class DateUtil {
         return yearFormatter.format(date);
     }
 
-    public static FastDateFormat getDateFormatter(String timeFormat){
-        return FastDateFormat.getInstance(timeFormat, timeZoner);
+    public static SimpleDateFormat getDateFormatter(String timeFormat){
+        SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
+        sdf.setTimeZone(timeZoner);
+        return sdf;
     }
 
     static {
         timeZoner = TimeZone.getTimeZone(timeZone);
-        datetimeFormatter = FastDateFormat.getInstance(datetimeFormat, timeZoner);
-        dateFormatter = FastDateFormat.getInstance(dateFormat, timeZoner);
-        timeFormatter =  FastDateFormat.getInstance(timeFormat, timeZoner);
-        yearFormatter = FastDateFormat.getInstance(yearFormat, timeZoner);
+
+        datetimeFormatter = new SimpleDateFormat(datetimeFormat);
+        datetimeFormatter.setTimeZone(timeZoner);
+
+        dateFormatter = new SimpleDateFormat(dateFormat);
+        dateFormatter.setTimeZone(timeZoner);
+
+        timeFormatter =  new SimpleDateFormat(timeFormat);
+        timeFormatter.setTimeZone(timeZoner);
+
+        yearFormatter = new SimpleDateFormat(yearFormat);
+        yearFormatter.setTimeZone(timeZoner);
     }
 
 }
