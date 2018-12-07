@@ -24,6 +24,7 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.types.Row;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +101,7 @@ public class StringUtil {
             case CHAR:
                 if(customTimeFormat != null){
                     ret = DateUtil.columnToDate(str,customTimeFormat);
+                    ret = DateUtil.timestampToString((Date)ret);
                 } else {
                     ret = str;
                 }
