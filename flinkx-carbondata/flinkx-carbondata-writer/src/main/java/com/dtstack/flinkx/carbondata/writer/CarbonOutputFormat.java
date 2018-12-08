@@ -26,7 +26,6 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
-import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.statusmanager.SegmentStatus;
@@ -98,13 +97,15 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private RecordWriter recordWriter;
 
+    private List<RecordWriter> recordWriters;
+
     private List<String> fullColumnNames;
 
     private List<String> fullColumnTypes;
 
     private List<Integer> fullColumnIndices;
 
-    private final int CARBON_BATCH_SIZE =  1024 * 200;
+    private List<Integer> partitionCols;
 
     private int insertedRecords = 0;
 
@@ -199,6 +200,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             CarbonTableOutputFormat.setLoadModel(FileFactory.getConfiguration(), carbonLoadModel);
             CarbonTableOutputFormat.setCarbonTable(FileFactory.getConfiguration(), carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable());
             CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();
+
             taskAttemptContext = createTaskContext();
             recordWriter = carbonTableOutputFormat.getRecordWriter(taskAttemptContext);
         } catch (IOException e) {
@@ -245,10 +247,10 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
-        if(insertedRecords == CARBON_BATCH_SIZE) {
-            closeRecordWriter();
-            createRecordWriter();
-        }
+//        if(insertedRecords == CARBON_BATCH_SIZE) {
+//            closeRecordWriter();
+//            createRecordWriter();
+//        }
     }
 
     @Override
@@ -391,6 +393,22 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private boolean isHivePartitionType() {
+        return false;
+    }
+
+    private boolean isCarbonPartitionType() {
+        return false;
+    }
+
+    private void initRecordWriters() {
+
+    }
+
+    private void closeRecordWriters() {
+
     }
 
 }
