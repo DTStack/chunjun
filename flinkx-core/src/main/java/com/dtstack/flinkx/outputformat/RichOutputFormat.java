@@ -333,6 +333,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     dirtyDataManager.close();
                 }
                 if(errorLimiter != null) {
+                    errorLimiter.updateErrorInfo();
                     errorLimiter.acquire();
                     errorLimiter.stop();
                 }

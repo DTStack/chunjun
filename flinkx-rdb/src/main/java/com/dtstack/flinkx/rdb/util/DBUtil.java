@@ -326,8 +326,8 @@ public class DBUtil {
         }
     }
 
-    public static String clobToString(Object obj,EDatabaseType dbType) throws Exception{
-        String dataStr = null;
+    public static Object clobToString(Object obj,EDatabaseType dbType) throws Exception{
+        String dataStr;
         if(EDatabaseType.DB2 == dbType){
             if (obj instanceof com.ibm.db2.jcc.am.c2){
                 BufferedReader bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
@@ -339,6 +339,8 @@ public class DBUtil {
                 dataStr = stringBuilder.toString();
             } else if(obj instanceof byte[]){
                 dataStr = new String((byte[]) obj);
+            } else {
+                return obj;
             }
         } else {
             if(obj instanceof Clob){
@@ -350,6 +352,8 @@ public class DBUtil {
                     stringBuilder.append(line);
                 }
                 dataStr = stringBuilder.toString();
+            } else {
+                return obj;
             }
         }
 
