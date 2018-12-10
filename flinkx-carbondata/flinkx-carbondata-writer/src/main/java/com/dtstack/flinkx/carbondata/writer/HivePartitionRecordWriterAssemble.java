@@ -15,10 +15,4 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
         return 0;
     }
 
-
-    @Override
-    protected void postCloseRecordWriter() {
-
-    }
-
 }

@@ -5,7 +5,7 @@ import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 
 public class RecordWriterAssembleFactory {
 
-    public AbstractRecordWriterAssemble getAssembleInstance(CarbonTable carbonTable) {
+    public static AbstractRecordWriterAssemble getAssembleInstance(CarbonTable carbonTable) {
         if(carbonTable.isHivePartitionTable()) {
             return new HivePartitionRecordWriterAssemble(carbonTable);
         } else if(carbonTable.getPartitionInfo() == null) {

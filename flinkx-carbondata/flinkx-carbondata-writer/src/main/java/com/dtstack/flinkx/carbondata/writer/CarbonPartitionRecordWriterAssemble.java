@@ -50,10 +50,5 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
     }
 
 
-    @Override
-    protected void postCloseRecordWriter() {
-
-    }
-
 
 }

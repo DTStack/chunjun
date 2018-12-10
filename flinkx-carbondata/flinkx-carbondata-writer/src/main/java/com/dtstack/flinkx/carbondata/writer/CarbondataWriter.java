@@ -28,8 +28,6 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_BATCH_SIZE;
-
 
 /**
  * Carbondata writer plugin
@@ -53,8 +51,6 @@ public class CarbondataWriter extends DataWriter {
 
     protected String defaultFS;
 
-    protected int batchSize;
-
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -66,7 +62,6 @@ public class CarbondataWriter extends DataWriter {
         column = (List<String>) writerConfig.getParameter().getColumn();
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
         defaultFS = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
-        batchSize = writerConfig.getParameter().getIntVal(KEY_BATCH_SIZE, CarbonConfigKeys.DEFAULT_BATCH_SIZE);
     }
 
     @Override

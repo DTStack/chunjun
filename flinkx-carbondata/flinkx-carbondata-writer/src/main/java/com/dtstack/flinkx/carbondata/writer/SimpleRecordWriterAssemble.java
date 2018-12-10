@@ -31,8 +31,4 @@ public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
         return 0;
     }
 
-    @Override
-    protected void postCloseRecordWriter() {
-
-    }
 }
