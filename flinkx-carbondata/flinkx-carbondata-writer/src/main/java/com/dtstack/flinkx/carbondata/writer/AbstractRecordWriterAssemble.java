@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 
-import org.apache.carbondata.common.exceptions.sql.InvalidLoadOptionException;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -26,7 +25,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
@@ -39,7 +37,7 @@ import java.util.UUID;
 
 public abstract class AbstractRecordWriterAssemble {
 
-    private static final int batchSize = 1024;
+    private static final int batchSize = 2;
 
     protected CarbonTable carbonTable;
 
@@ -50,6 +48,8 @@ public abstract class AbstractRecordWriterAssemble {
     protected List<TaskAttemptContext> taskAttemptContextList = new ArrayList<>();
 
     protected List<Integer> counterList = new ArrayList<>();
+
+    protected List<String> fullColumnNames;
 
 
     public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
@@ -137,7 +137,9 @@ public abstract class AbstractRecordWriterAssemble {
                 .mergeCarbonIndexFilesOfSegment(carbonLoadModel.getSegmentId(),
                         carbonLoadModel.getTablePath(),
                         false,
-                        segmentFileName.split("_")[1].split("\\.")[0]);
+                        String.valueOf(carbonLoadModel.getFactTimeStamp())
+                        );
+//                        segmentFileName.split("_")[1].split("\\.")[0]);
 
     }
 
@@ -163,7 +165,7 @@ public abstract class AbstractRecordWriterAssemble {
         carbonLoadModel.setAggLoadRequest(false);
         carbonLoadModel.setSegmentId("");
 
-        List<String> fullColumnNames = new ArrayList<>();
+        fullColumnNames = new ArrayList<>();
 
         List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
         for(int i = 0; i < columnSchemas.size(); ++i) {
