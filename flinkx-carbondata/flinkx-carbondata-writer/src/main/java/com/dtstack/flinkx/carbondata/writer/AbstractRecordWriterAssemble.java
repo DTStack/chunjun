@@ -37,7 +37,7 @@ import java.util.UUID;
 
 public abstract class AbstractRecordWriterAssemble {
 
-    private static final int batchSize = 2;
+    private static final int batchSize = 100;
 
     protected CarbonTable carbonTable;
 
@@ -138,8 +138,7 @@ public abstract class AbstractRecordWriterAssemble {
                         carbonLoadModel.getTablePath(),
                         false,
                         String.valueOf(carbonLoadModel.getFactTimeStamp())
-                        );
-//                        segmentFileName.split("_")[1].split("\\.")[0]);
+                );
 
     }
 

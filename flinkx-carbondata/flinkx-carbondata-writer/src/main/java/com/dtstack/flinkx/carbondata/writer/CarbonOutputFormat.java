@@ -21,49 +21,26 @@ import com.dtstack.flinkx.carbondata.CarbondataUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.carbondata.common.exceptions.sql.InvalidLoadOptionException;
-import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
-import org.apache.carbondata.core.metadata.SegmentFileStore;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
-import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
-import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
-import org.apache.carbondata.core.util.CarbonProperties;
-import org.apache.carbondata.core.writer.CarbonIndexFileMergeWriter;
-import org.apache.carbondata.hadoop.api.CarbonTableOutputFormat;
-import org.apache.carbondata.hadoop.internal.ObjectArrayWritable;
 import org.apache.carbondata.processing.loading.TableProcessingOperations;
-import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
-import org.apache.carbondata.processing.loading.model.CarbonLoadModelBuilder;
-import org.apache.carbondata.processing.loading.model.LoadOption;
-import org.apache.carbondata.processing.util.CarbonLoaderUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 /**
  * Carbondata Output Format
@@ -87,17 +64,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected boolean overwrite = false;
 
+    protected String partition;
+
     private CarbonTable carbonTable;
 
-    private Map<String,String> options = new HashMap<>();
-
-    private CarbonLoadModel carbonLoadModel = new CarbonLoadModel();
-
-    private TaskAttemptContext taskAttemptContext;
-
-    private RecordWriter recordWriter;
-
-    private List<RecordWriter> recordWriters;
+    private AbstractRecordWriterAssemble recordWriterAssemble;
 
     private List<String> fullColumnNames;
 
@@ -105,13 +76,20 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<Integer> fullColumnIndices;
 
-    private List<Integer> partitionCols;
-
-    private int insertedRecords = 0;
-
     private String bakPath;
 
     private FileSystem fs;
+
+    private static final String SLASH = "/";
+
+    private static final String ASSIGN = "=";
+
+    private boolean isHivePartitioned = false;
+
+    private List<Integer> partitionColIndex = new ArrayList<>();
+
+    private List<String> partitionColValue = new ArrayList<>();
+
 
     @Override
     public void configure(Configuration parameters) {
@@ -119,61 +97,67 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
             fs = FileSystem.get(FileFactory.getConfiguration());
             bakPath = path + "_bak";
+            if(overwrite) {
+                carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
+            } else {
+                carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+            }
+            isHivePartitioned = carbonTable.isHivePartitionTable();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(overwrite) {
-            carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
-        } else {
-            carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+    private void parsePartition(){
+        if(carbonTable.getPartitionInfo() == null) {
+            return;
         }
 
-        CarbonProperties carbonProperty = CarbonProperties.getInstance();
-        carbonProperty.addProperty("zookeeper.enable.lock", "false");
-        Map<String,String> tableProperties = carbonTable.getTableInfo().getFactTable().getTableProperties();
-        carbonLoadModel.setParentTablePath(null);
-        carbonLoadModel.setFactFilePath("");
-        carbonLoadModel.setCarbonTransactionalTable(carbonTable.getTableInfo().isTransactionalTable());
-        carbonLoadModel.setAggLoadRequest(false);
-        carbonLoadModel.setSegmentId("");
-
-        inferFullColumnInfo();
-        options.put("fileheader", StringUtils.join(fullColumnNames, ","));
-
-        Map<String,String> optionsFinal = null;
-        try {
-            optionsFinal = LoadOption.fillOptionWithDefaultValue(options);
-            optionsFinal.put("sort_scope", tableProperties.getOrDefault("sort_scope", CarbonCommonConstants.LOAD_SORT_SCOPE_DEFAULT));
-            new CarbonLoadModelBuilder(carbonTable).build(
-                    options,
-                    optionsFinal,
-                    carbonLoadModel,
-                    FileFactory.getConfiguration(),
-                    new HashMap<>(0),
-                    true
-            );
-        } catch (InvalidLoadOptionException e) {
-            throw new RuntimeException(e);
+        if(partition == null || partition.trim().length() == 0) {
+            return;
         }
 
-        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, false);
-        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
-        boolean isOverwriteTable = true;
-//        carbonLoadModel.setSegmentId(UUID.randomUUID().toString());
+        partition = partition.trim();
+        if(partition.startsWith(SLASH)) {
+            partition = partition.substring(1);
+        }
 
-//        boolean createDictionary = false;
-//        if (!createDictionary) {
-//            carbonLoadModel.setUseOnePass(false);
-//        }
-        CarbonLoaderUtil.readAndUpdateLoadProgressInTableMeta(carbonLoadModel, isOverwriteTable);
+        if(partition.endsWith(SLASH)) {
+            partition = partition.substring(0, partition.length() - 1);
+        }
 
-        createRecordWriter();
+        String[] splits = partition.split(SLASH);
+
+        Preconditions.checkArgument(splits.length == carbonTable.getPartitionInfo().getColumnSchemaList().size());
+
+        for(String split : splits) {
+            String[] pair = split.split(ASSIGN);
+            String name = pair[0];
+            String val = pair[1];
+            partitionColIndex.add(fullColumnNames.indexOf(name));
+            partitionColValue.add(val);
+        }
+
 
     }
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+
+
+        inferFullColumnInfo();
+
+        if(isHivePartitioned) {
+            parsePartition();
+        }
+
+        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
+        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
+
+        recordWriterAssemble = RecordWriterAssembleFactory.getAssembleInstance(carbonTable, partition);
+
+    }
+
 
     private void inferFullColumnInfo() {
         fullColumnIndices = new ArrayList<>();
@@ -196,35 +180,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         }
     }
 
-    private void createRecordWriter() {
-        try {
-            CarbonTableOutputFormat.setLoadModel(FileFactory.getConfiguration(), carbonLoadModel);
-            CarbonTableOutputFormat.setCarbonTable(FileFactory.getConfiguration(), carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable());
-            CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();
-
-            taskAttemptContext = createTaskContext();
-            recordWriter = carbonTableOutputFormat.getRecordWriter(taskAttemptContext);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private TaskAttemptContext createTaskContext() {
-        Random random = new Random();
-        JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
-        TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
-        TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(FileFactory.getConfiguration(), attemptID);
-        return context;
-    }
-
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         int i = 0;
         try {
-            ObjectArrayWritable writable = new ObjectArrayWritable();
             Object[] record = new Object[fullColumnNames.size()];
             for(; i < fullColumnIndices.size(); ++i) {
                 int index = fullColumnIndices.get(i);
@@ -239,19 +199,21 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                     }
                 }
             }
-            writable.set(record);
-            recordWriter.write(NullWritable.get(), writable);
-            insertedRecords++;
+            if(isHivePartitioned) {
+                for(int j = 0; j < partitionColIndex.size(); ++j) {
+                    int index = partitionColIndex.get(j);
+                    if(index != -1) {
+                        record[index] = partitionColValue.get(j);
+                    }
+                }
+            }
+            recordWriterAssemble.write(record);
         } catch(Exception e) {
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
-//        if(insertedRecords == CARBON_BATCH_SIZE) {
-//            closeRecordWriter();
-//            createRecordWriter();
-//        }
     }
 
     @Override
@@ -262,12 +224,14 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        fs.delete(new Path(bakPath), true);
+        if(!isHivePartitioned) {
+            fs.delete(new Path(bakPath), true);
+        }
     }
 
     @Override
     protected boolean needWaitBeforeOpenInternal() {
-        return overwrite;
+        return overwrite && !isHivePartitioned;
     }
 
     @Override
@@ -307,81 +271,24 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void closeInternal() throws IOException {
-        closeRecordWriter();
-    }
-
-    private void closeRecordWriter()  {
-        if(recordWriter != null) {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if(recordWriterAssemble != null) {
             try {
-                long start = System.currentTimeMillis();
-                recordWriter.close(taskAttemptContext);
-                long end = System.currentTimeMillis();
-                System.out.println("insert time: " + (end - start));
-                updateTableStatusAfterDataLoad();
-                insertedRecords = 0;
-            } catch (Exception e) {
+                recordWriterAssemble.close();
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private void updateTableStatusAfterDataLoad() throws IOException {
-        long begin = System.currentTimeMillis();
-        String segmentFileName = SegmentFileStore.writeSegmentFile(carbonTable, carbonLoadModel.getSegmentId(),
-                        String.valueOf(carbonLoadModel.getFactTimeStamp()));
-        long end1 = System.currentTimeMillis();
-        System.out.println("seg1_time: " + (end1 - begin));
-
-        SegmentFileStore.updateSegmentFile(
-                carbonTable,
-                carbonLoadModel.getSegmentId(),
-                segmentFileName,
-                carbonTable.getCarbonTableIdentifier().getTableId(),
-                new SegmentFileStore(carbonTable.getTablePath(), segmentFileName));
-        long end2 = System.currentTimeMillis();
-        System.out.println("seg2_time: " + (end2 - end1));
-
-        LoadMetadataDetails metadataDetails = carbonLoadModel.getCurrentLoadMetadataDetail();
-        metadataDetails.setSegmentFile(segmentFileName);
-
-        long end3 = System.currentTimeMillis();
-        System.out.println("seg3_time: " + (end3 - end2));
-
-        CarbonLoaderUtil.populateNewLoadMetaEntry(
-                metadataDetails,
-                SegmentStatus.SUCCESS,
-                carbonLoadModel.getFactTimeStamp(),
-                true);
-        long end4 = System.currentTimeMillis();
-        System.out.println("seg4_time: " + (end4 - end3));
-
-        CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
-        long end5 = System.currentTimeMillis();
-        System.out.println("seg5_time: " + (end5 - end4));
-
-        boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false,
-                false, "");
-
-        long end6 = System.currentTimeMillis();
-        System.out.println("seg6_time: " + (end6-end5));
-
-        if(!done) {
-            throw new RuntimeException("Failed to recordNewLoadMetadata");
-        }
-
-        new CarbonIndexFileMergeWriter(carbonTable)
-                .mergeCarbonIndexFilesOfSegment(carbonLoadModel.getSegmentId(),
-                        carbonLoadModel.getTablePath(),
-                        false,
-                        segmentFileName.split("_")[1].split("\\.")[0]);
-        long end = System.currentTimeMillis();
-        System.out.println("seg7_time: " + (end - end6));
-        System.out.println("update time: " + (end - begin));
-    }
 
     @Override
     protected boolean needWaitAfterCloseInternal() {
-        return overwrite;
+        return overwrite && !isHivePartitioned;
     }
 
     @Override
@@ -396,20 +303,5 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         }
     }
 
-    private boolean isHivePartitionType() {
-        return false;
-    }
-
-    private boolean isCarbonPartitionType() {
-        return false;
-    }
-
-    private void initRecordWriters() {
-
-    }
-
-    private void closeRecordWriters() {
-
-    }
 
 }

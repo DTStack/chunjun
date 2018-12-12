@@ -43,4 +43,6 @@ public class CarbonConfigKeys {
 
     public static final String KEY_DEFAULT_FS = "defaultFS";
 
+    public static final String KEY_PARTITION = "partition";
+
 }

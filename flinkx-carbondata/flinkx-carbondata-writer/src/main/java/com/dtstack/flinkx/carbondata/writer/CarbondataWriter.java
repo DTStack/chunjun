@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.carbondata.writer;
 
+
 import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
@@ -51,6 +52,8 @@ public class CarbondataWriter extends DataWriter {
 
     protected String defaultFS;
 
+    protected String partition;
+
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -62,12 +65,14 @@ public class CarbondataWriter extends DataWriter {
         column = (List<String>) writerConfig.getParameter().getColumn();
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
         defaultFS = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
+        partition = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_PARTITION);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         CarbondataOutputFormatBuilder builder = new CarbondataOutputFormatBuilder();
         builder.setWriteMode(mode);
+        builder.setPartition(partition);
         builder.setColumn(column);
         builder.setDatabase(database);
         builder.setTable(table);

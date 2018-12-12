@@ -30,10 +30,10 @@ import java.util.Map;
  */
 public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
 
-    private CarbonOutputFormatV2 format;
+    private CarbonOutputFormat format;
 
     public CarbondataOutputFormatBuilder() {
-        super.format = format = new CarbonOutputFormatV2();
+        super.format = format = new CarbonOutputFormat();
     }
 
     public void setHadoopConfig(Map<String,String> hadoopConfig) {
@@ -67,6 +67,11 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
             format.overwrite = false;
         }
     }
+
+    public void setPartition(String partition) {
+        format.partition = partition;
+    }
+
 
     @Override
     protected void checkFormat() {
