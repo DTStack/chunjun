@@ -26,6 +26,7 @@ import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
 import org.apache.carbondata.processing.loading.TableProcessingOperations;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -97,12 +98,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
             fs = FileSystem.get(FileFactory.getConfiguration());
             bakPath = path + "_bak";
-            if(overwrite) {
-                carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
-            } else {
-                carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
-            }
-            isHivePartitioned = carbonTable.isHivePartitionTable();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -143,7 +138,13 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        if(StringUtils.isBlank(partition) && overwrite) {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
+        } else {
+            carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
+        }
 
+        isHivePartitioned = carbonTable.isHivePartitionTable();
 
         inferFullColumnInfo();
 
@@ -189,11 +190,11 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             for(; i < fullColumnIndices.size(); ++i) {
                 int index = fullColumnIndices.get(i);
                 if(index == -1) {
-                    record[i] = null;
+                    record[i] = "\\N";
                 } else {
                     Object column = row.getField(index);
                     if(column == null) {
-                        record[i] = null;
+                        record[i] = "\\N";
                     } else {
                         record[i] = StringUtil.col2string(column, fullColumnTypes.get(i));
                     }
@@ -231,7 +232,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected boolean needWaitBeforeOpenInternal() {
-        return overwrite && !isHivePartitioned;
+        return overwrite && StringUtils.isBlank(partition);
     }
 
     @Override
@@ -288,7 +289,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected boolean needWaitAfterCloseInternal() {
-        return overwrite && !isHivePartitioned;
+        return overwrite && StringUtils.isBlank(partition);
     }
 
     @Override
