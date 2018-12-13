@@ -85,12 +85,12 @@ public abstract class AbstractRecordWriterAssemble {
         ObjectArrayWritable writable = new ObjectArrayWritable();
         writable.set(record);
         recordwriterList.get(writerNo).write(NullWritable.get(), writable);
-        incCounter(writerNo);
-        if(getCounter(writerNo) == batchSize) {
-            closeRecordWriter(writerNo);
-            recordwriterList.set(writerNo, createRecordWriter(carbonLoadModelList.get(writerNo) ,taskAttemptContextList.get(writerNo)));
-            clearCounter(writerNo);
-        }
+//        incCounter(writerNo);
+//        if(getCounter(writerNo) == batchSize) {
+//            closeRecordWriter(writerNo);
+//            recordwriterList.set(writerNo, createRecordWriter(carbonLoadModelList.get(writerNo) ,taskAttemptContextList.get(writerNo)));
+//            clearCounter(writerNo);
+//        }
     }
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
