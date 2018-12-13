@@ -31,6 +31,7 @@ import org.apache.hadoop.io.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.sql.Date;
 import java.text.SimpleDateFormat;
 
 /**
@@ -114,7 +115,12 @@ public class HdfsUtil {
             case STRING:
             case VARCHAR:
             case CHAR:
-                ret = str;
+                if(customDateFormat != null){
+                    ret = DateUtil.columnToDate(str,customDateFormat);
+                    ret = DateUtil.timestampToString((Date)ret);
+                } else {
+                    ret = str;
+                }
                 break;
             case BOOLEAN:
                 ret = Boolean.valueOf(str.toLowerCase());
