@@ -62,8 +62,11 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
     }
 
 
-    private String generateTaskNumber(String path, TaskAttemptContext context, String segmentId) {
+    private String generateTaskNumber(TaskAttemptContext context, String segmentId) {
         int taskID = context.getTaskAttemptID().getTaskID().getId();
+        if(taskID < 0) {
+            taskID = -taskID;
+        }
         return TaskNumberGenerator.generateUniqueNumber(taskID, segmentId, 6);
     }
 
@@ -132,7 +135,7 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
         TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
         Configuration conf = new Configuration(FileFactory.getConfiguration());
         TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptID);
-        taskNumber = generateTaskNumber(null, context, carbonLoadModel.getSegmentId());
+        taskNumber = generateTaskNumber(context, carbonLoadModel.getSegmentId());
         context.getConfiguration().set("carbon.outputformat.taskno", taskNumber);
         context.getConfiguration().set("carbon.outputformat.writepath", writePath + "/" + carbonLoadModel.getSegmentId() + "_" + carbonLoadModel.getFactTimeStamp() + ".tmp");
         return context;

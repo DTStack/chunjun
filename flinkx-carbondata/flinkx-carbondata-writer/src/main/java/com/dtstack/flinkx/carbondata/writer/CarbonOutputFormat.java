@@ -272,11 +272,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void closeInternal() throws IOException {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         if(recordWriterAssemble != null) {
             try {
                 recordWriterAssemble.close();
