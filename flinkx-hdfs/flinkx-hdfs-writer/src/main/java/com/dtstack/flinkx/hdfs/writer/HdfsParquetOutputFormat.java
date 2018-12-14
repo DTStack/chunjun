@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties;
@@ -35,6 +36,7 @@ import org.apache.parquet.schema.*;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -54,6 +56,12 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     private static Calendar cal = Calendar.getInstance();
+
+    private static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
+
+    private static final long JULIAN_EPOCH_OFFSET_DAYS = 2440588;
 
     static {
         try {
@@ -95,7 +103,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     valObj = DateUtil.columnToTimestamp(valObj,null);
                 }
 
-                String val = "";
+                String val = null;
                 if(valObj != null){
                     if(valObj instanceof java.sql.Timestamp){
                         val = String.valueOf(((java.sql.Timestamp) valObj).getTime());
@@ -104,6 +112,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     } else {
                         val = String.valueOf(valObj);
                     }
+                }
+
+                if (val == null){
+                    continue;
                 }
 
                 switch (colType){
@@ -118,7 +130,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     case "varchar" :
                     case "string" : group.add(colName,val);break;
                     case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
-                    case "timestamp" : group.add(colName, Long.parseLong(val));break;
+                    case "timestamp" :
+                        byte[] dst = timeToByteArray(val);
+                        group.add(colName, Binary.fromConstantByteArray(dst));
+                        break;
                     case "decimal" : group.add(colName,val);break;
                     case "date" : group.add(colName,getDay(val));break;
                     default: group.add(colName,val);break;
@@ -182,6 +197,61 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         }
 
         return typeBuilder.named("Pair");
+    }
+
+    private static byte[] timeToByteArray(String val) throws ParseException {
+        byte[] dst;
+        if(NumberUtils.isNumber(val)){
+            dst = longToByteArray(Long.parseLong(val));
+        } else {
+            Date date = sdf2.parse(val);
+            dst = longToByteArray(date.getTime());
+        }
+
+        return dst;
+    }
+
+    private static byte[] longToByteArray(long data){
+        long nano = data * 1000_000;
+
+        int julianDays = (int) ((nano / NANO_SECONDS_PER_DAY) + JULIAN_EPOCH_OFFSET_DAYS);
+        byte[] julianDaysBytes = getBytes(julianDays);
+        flip(julianDaysBytes);
+
+        long lastDayNanos = nano % NANO_SECONDS_PER_DAY;
+        byte[] lastDayNanosBytes = getBytes(lastDayNanos);
+        flip(lastDayNanosBytes);
+
+        byte[] dst = new byte[12];
+
+        System.arraycopy(lastDayNanosBytes, 0, dst, 0, 8);
+        System.arraycopy(julianDaysBytes, 0, dst, 8, 4);
+
+        return dst;
+    }
+
+    private static byte[] getBytes(long i) {
+        byte[] bytes=new byte[8];
+        bytes[0]=(byte)((i >> 56) & 0xFF);
+        bytes[1]=(byte)((i >> 48) & 0xFF);
+        bytes[2]=(byte)((i >> 40) & 0xFF);
+        bytes[3]=(byte)((i >> 32) & 0xFF);
+        bytes[4]=(byte)((i >> 24) & 0xFF);
+        bytes[5]=(byte)((i >> 16) & 0xFF);
+        bytes[6]=(byte)((i >> 8) & 0xFF);
+        bytes[7]=(byte)(i & 0xFF);
+        return bytes;
+    }
+
+    /**
+     * @param bytes
+     */
+    private static void flip(byte[] bytes) {
+        for(int i=0,j=bytes.length-1;i<j;i++,j--) {
+            byte t=bytes[i];
+            bytes[i]=bytes[j];
+            bytes[j]=t;
+        }
     }
 
     private int getDay(String dateStr) throws Exception{

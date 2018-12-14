@@ -134,6 +134,9 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case BOOLEAN:
                         record.setBoolean(i, Boolean.valueOf(rowData));
                         break;
+                    case INT:
+                    case TINYINT:
+                    case SMALLINT:
                     case BIGINT:
                         record.setBigint(i, Long.valueOf(rowData));
                         break;

@@ -68,6 +68,11 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
         }
     }
 
+    public void setPartition(String partition) {
+        format.partition = partition;
+    }
+
+
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.hadoopConfig);
