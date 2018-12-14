@@ -21,6 +21,8 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
@@ -29,6 +31,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
+import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.Type;
 
 import java.io.IOException;
@@ -37,6 +40,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The subclass of HdfsInputFormat which handles parquet files
@@ -59,6 +63,12 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private transient List<String> currentSplitFilePaths;
 
     private transient int currentFileIndex = 0;
+
+    private static final int JULIAN_EPOCH_OFFSET_DAYS = 2440588;
+
+    private static final long MILLIS_IN_DAY = TimeUnit.DAYS.toMillis(1);
+
+    private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -172,8 +182,8 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             case "string" : data = currentLine.getString(index,0);break;
             case "boolean" : data = currentLine.getBoolean(index,0);break;
             case "timestamp" :{
-                String val = currentLine.getValueToString(index,0);
-                data = new Timestamp(Long.parseLong(val));
+                long time = getTimestampMillis(currentLine.getInt96(index,0));
+                data = new Timestamp(time);
                 break;
             }
             case "decimal" : {
@@ -263,6 +273,28 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         }
 
         return typeName;
+    }
+
+    /**
+     * @param timestampBinary
+     * @return
+     */
+    private long getTimestampMillis(Binary timestampBinary)
+    {
+        if (timestampBinary.length() != 12) {
+            return 0;
+        }
+        byte[] bytes = timestampBinary.getBytes();
+
+        long timeOfDayNanos = Longs.fromBytes(bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]);
+        int julianDay = Ints.fromBytes(bytes[11], bytes[10], bytes[9], bytes[8]);
+
+        return julianDayToMillis(julianDay) + (timeOfDayNanos / NANOS_PER_MILLISECOND);
+    }
+
+    private long julianDayToMillis(int julianDay)
+    {
+        return (julianDay - JULIAN_EPOCH_OFFSET_DAYS) * MILLIS_IN_DAY;
     }
 
     static class HdfsParquetSplit implements InputSplit{

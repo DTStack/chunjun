@@ -317,29 +317,47 @@ public class DBUtil {
                     if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }
-                } else if(EDatabaseType.DB2 == dbType){
-                    if (obj instanceof com.ibm.db2.jcc.am.c2 || obj instanceof com.ibm.db2.jcc.am.cz){
-                        BufferedReader bf;
-                        if(obj instanceof com.ibm.db2.jcc.am.c2){
-                            bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
-                        } else {
-                            bf = new BufferedReader(new InputStreamReader(((com.ibm.db2.jcc.am.cz)obj).getBinaryStream()));
-                        }
-
-                        StringBuilder data = new StringBuilder();
-                        String line;
-                        while ((line = bf.readLine()) != null){
-                            data.append(line);
-                        }
-                        obj = data.toString();
-                    } else if(obj instanceof byte[]){
-                        obj = new String((byte[]) obj);
-                    }
                 }
+
+                obj = clobToString(obj,dbType);
             }
 
             row.setField(pos, obj);
         }
+    }
+
+    public static Object clobToString(Object obj,EDatabaseType dbType) throws Exception{
+        String dataStr;
+        if(EDatabaseType.DB2 == dbType){
+            if (obj instanceof com.ibm.db2.jcc.am.c2){
+                BufferedReader bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bf.readLine()) != null){
+                    stringBuilder.append(line);
+                }
+                dataStr = stringBuilder.toString();
+            } else if(obj instanceof byte[]){
+                dataStr = new String((byte[]) obj);
+            } else {
+                return obj;
+            }
+        } else {
+            if(obj instanceof Clob){
+                Clob clob = (Clob)obj;
+                BufferedReader bf = new BufferedReader(clob.getCharacterStream());
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bf.readLine()) != null){
+                    stringBuilder.append(line);
+                }
+                dataStr = stringBuilder.toString();
+            } else {
+                return obj;
+            }
+        }
+
+        return dataStr;
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,

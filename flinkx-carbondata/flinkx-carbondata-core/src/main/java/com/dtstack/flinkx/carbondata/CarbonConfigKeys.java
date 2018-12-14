@@ -37,10 +37,12 @@ public class CarbonConfigKeys {
 
     public static final String KEY_BATCH_SIZE = "batchSize";
 
-    public static final int DEFAULT_BATCH_SIZE = 1024;
+    public static final int DEFAULT_BATCH_SIZE = 200 * 1024;
 
     public static final String KEY_WRITE_MODE = "writeMode";
 
     public static final String KEY_DEFAULT_FS = "defaultFS";
+
+    public static final String KEY_PARTITION = "partition";
 
 }

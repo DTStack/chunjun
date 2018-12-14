@@ -20,10 +20,11 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.types.Row;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,7 +65,7 @@ public class StringUtil {
         return str;
     }
 
-    public static Object string2col(String str, String type, FastDateFormat customTimeFormat) {
+    public static Object string2col(String str, String type, SimpleDateFormat customTimeFormat) {
         if(str == null || str.length() == 0){
             return null;
         }
@@ -100,6 +101,7 @@ public class StringUtil {
             case CHAR:
                 if(customTimeFormat != null){
                     ret = DateUtil.columnToDate(str,customTimeFormat);
+                    ret = DateUtil.timestampToString((Date)ret);
                 } else {
                     ret = str;
                 }

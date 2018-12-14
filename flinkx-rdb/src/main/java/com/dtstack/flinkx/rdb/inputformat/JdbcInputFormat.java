@@ -127,8 +127,8 @@ public class JdbcInputFormat extends RichInputFormat {
                 statement.setQueryTimeout(queryTimeOut);
             }
             resultSet = statement.executeQuery(queryTemplate);
-            hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();
+            hasNext = resultSet.next();
 
             if(descColumnTypeList == null) {
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
