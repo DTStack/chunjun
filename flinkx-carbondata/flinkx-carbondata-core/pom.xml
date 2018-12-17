@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.apache.carbondata</groupId>
             <artifactId>carbondata-hadoop</artifactId>
-            <version>1.5.0-SNAPSHOT</version>
+            <version>1.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hadoop</groupId>
