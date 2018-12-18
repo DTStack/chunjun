@@ -67,11 +67,15 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+        if(updateKey == null || updateKey.size() == 0){
+            return getInsertStatement(column,table);
+        }
+
         return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") VALUES "
-                + makeValues(column.size())
+                + " (" + quoteColumns(fullColumn) + ") VALUES "
+                + makeReplaceValues(column,fullColumn)
                 + "ON CONFLICT(" + makeUpdateKey(updateKey)
-                + ") DO UPDATE SET " + makeUpdatePart(column) ;
+                + ") DO UPDATE SET " + makeUpdatePart(fullColumn) ;
     }
 
     @Override
@@ -87,7 +91,7 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
                 + " (" + quoteColumns(column) + ") VALUES "
                 + makeMultipleValues(column.size(), batchSize)
                 + "ON CONFLICT(" + makeUpdateKey(updateKey)
-                + ") DO UPDATE SET " + makeUpdatePart(column) ;
+                + ") DO UPDATE SET " + makeUpdatePart(fullColumn) ;
     }
 
     @Override

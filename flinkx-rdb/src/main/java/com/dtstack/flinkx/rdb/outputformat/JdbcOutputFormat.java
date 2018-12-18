@@ -158,16 +158,21 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 }
             }
 
-            singleUpload = prepareSingleTemplates();
-            multipleUpload = prepareMultipleTemplates();
-
             if(fullColumnType == null) {
                 fullColumnType = analyzeTable();
             }
 
             for(String col : column) {
-                columnType.add(fullColumnType.get(fullColumn.indexOf(col)));
+                for (int i = 0; i < fullColumn.size(); i++) {
+                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                        columnType.add(fullColumnType.get(i));
+                        break;
+                    }
+                }
             }
+
+            singleUpload = prepareSingleTemplates();
+            multipleUpload = prepareMultipleTemplates();
 
             LOG.info("subtask[" + taskNumber + "] wait finished");
         } catch (SQLException sqe) {
