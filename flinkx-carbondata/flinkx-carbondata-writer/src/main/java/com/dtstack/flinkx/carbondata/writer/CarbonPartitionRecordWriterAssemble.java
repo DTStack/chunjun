@@ -29,17 +29,17 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
         super(carbonTable);
         PartitionInfo partitionInfo = carbonTable.getPartitionInfo();
         partitionIds =  partitionInfo.getPartitionIds();
+        counter = new int[partitionIds.size()];
         for(Integer partitionId : partitionIds) {
             CarbonLoadModel carbonLoadModel = createCarbonLoadModel();
             carbonLoadModelList.add(carbonLoadModel);
             TaskAttemptContext context = createTaskContext();
             context.getConfiguration().set("carbon.outputformat.taskno", String.valueOf(partitionId));
             taskAttemptContextList.add(context);
-            counterList.add(new Integer(0));
             RecordWriter recordWriter = null;
             try {
                 recordWriter = createRecordWriter(carbonLoadModel, context);
-                recordwriterList.add(recordWriter);
+                recordWriterList.add(recordWriter);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

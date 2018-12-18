@@ -43,14 +43,13 @@ public abstract class AbstractRecordWriterAssemble {
 
     protected List<CarbonLoadModel> carbonLoadModelList = new ArrayList<>();
 
-    protected List<RecordWriter> recordwriterList = new ArrayList<>();
+    protected List<RecordWriter> recordWriterList = new ArrayList<>();
 
     protected List<TaskAttemptContext> taskAttemptContextList = new ArrayList<>();
 
-    protected List<Integer> counterList = new ArrayList<>();
+    protected int[] counter = new int[1];
 
     protected List<String> fullColumnNames;
-
 
     public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
@@ -68,36 +67,21 @@ public abstract class AbstractRecordWriterAssemble {
         return context;
     }
 
-    private void incCounter(int writerNo) {
-        counterList.set(writerNo, getCounter(writerNo) + 1);
-    }
-
-    private int getCounter(int writerNo) {
-        return counterList.get(writerNo);
-    }
-
-    private void clearCounter(int writerNo) {
-        counterList.set(writerNo, 0);
-    }
-
     protected void write(Object[] record) throws IOException, InterruptedException {
         int writerNo = getRecordWriterNumber(record);
         ObjectArrayWritable writable = new ObjectArrayWritable();
         writable.set(record);
-        recordwriterList.get(writerNo).write(NullWritable.get(), writable);
-//        incCounter(writerNo);
-//        if(getCounter(writerNo) == batchSize) {
-//            closeRecordWriter(writerNo);
-//            recordwriterList.set(writerNo, createRecordWriter(carbonLoadModelList.get(writerNo) ,taskAttemptContextList.get(writerNo)));
-//            clearCounter(writerNo);
-//        }
+        recordWriterList.get(writerNo).write(NullWritable.get(), writable);
+        counter[writerNo]++;
     }
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
-        RecordWriter recordWriter = recordwriterList.get(writerNo);
+        RecordWriter recordWriter = recordWriterList.get(writerNo);
         if(recordWriter != null) {
             recordWriter.close(taskAttemptContextList.get(writerNo));
-            postCloseRecordWriter(writerNo);
+            if(counter[writerNo] != 0) {
+                postCloseRecordWriter(writerNo);
+            }
         }
     }
 
@@ -143,7 +127,7 @@ public abstract class AbstractRecordWriterAssemble {
     }
 
     public void close() throws IOException, InterruptedException {
-        for(int i = 0; i < recordwriterList.size(); ++i) {
+        for(int i = 0; i < recordWriterList.size(); ++i) {
             closeRecordWriter(i);
         }
     }

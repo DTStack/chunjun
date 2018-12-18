@@ -16,11 +16,10 @@ public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
         carbonLoadModelList.add(carbonLoadModel);
         TaskAttemptContext context = createTaskContext();
         taskAttemptContextList.add(context);
-        counterList.add(new Integer(0));
         RecordWriter recordWriter = null;
         try {
             recordWriter = createRecordWriter(carbonLoadModel, context);
-            recordwriterList.add(recordWriter);
+            recordWriterList.add(recordWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
