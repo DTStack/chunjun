@@ -106,14 +106,18 @@ public class MongodbInputFormat extends RichInputFormat {
             row = new Row(metaColumns.size());
             for (int i = 0; i < metaColumns.size(); i++) {
                 MetaColumn metaColumn = metaColumns.get(i);
-                Object value;
-                if (metaColumn.getValue() != null){
-                    value = metaColumn.getValue();
-                } else {
+
+                Object value = null;
+                if(metaColumn.getName() != null){
                     value = doc.get(metaColumn.getName());
+                    if(value == null && metaColumn.getValue() != null){
+                        value = metaColumn.getValue();
+                    }
+                } else if(metaColumn.getValue() != null){
+                    value = metaColumn.getValue();
                 }
 
-                if(value != null && value instanceof String){
+                if(value instanceof String){
                     value = StringUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 

@@ -143,15 +143,17 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             for (int i = 0; i < metaColumns.size(); i++) {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
-                if (metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
-                } else {
-                    if(metaColumn.getIndex() != -1){
-                        val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
+
+                if(metaColumn.getIndex() != -1){
+                    val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
+                    if (val == null && metaColumn.getValue() != null){
+                        val = metaColumn.getValue();
                     }
+                } else if (metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
                 }
 
-                if(val != null && val instanceof String){
+                if(val instanceof String){
                     val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 

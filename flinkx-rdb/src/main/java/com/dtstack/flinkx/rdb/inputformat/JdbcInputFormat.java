@@ -182,7 +182,11 @@ public class JdbcInputFormat extends RichInputFormat {
             if(!"*".equals(metaColumns.get(0).getName())){
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
-                    if (val != null && val instanceof String){
+                    if(val == null && metaColumns.get(i).getValue() != null){
+                        val = metaColumns.get(i).getValue();
+                    }
+
+                    if (val instanceof String){
                         val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
                         row.setField(i,val);
                     }
