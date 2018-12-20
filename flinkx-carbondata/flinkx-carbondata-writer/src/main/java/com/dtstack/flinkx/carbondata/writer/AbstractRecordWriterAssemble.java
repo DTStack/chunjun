@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import org.apache.carbondata.core.metadata.datatype.DataTypes;
+import org.apache.carbondata.core.metadata.datatype.DataType;
 
 
 
@@ -50,6 +52,8 @@ public abstract class AbstractRecordWriterAssemble {
     protected int[] counter = new int[1];
 
     protected List<String> fullColumnNames;
+
+    protected List<DataType> fullColumnTypes;
 
     public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
@@ -149,12 +153,15 @@ public abstract class AbstractRecordWriterAssemble {
         carbonLoadModel.setSegmentId("");
 
         fullColumnNames = new ArrayList<>();
+        fullColumnTypes = new ArrayList<>();
 
         List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
         for(int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
             if(!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
+                String type = columnSchema.getDataType().getName();
+                fullColumnTypes.add(CarbonTypeConverter.convertToConbonDataType(type));
             }
         }
 
