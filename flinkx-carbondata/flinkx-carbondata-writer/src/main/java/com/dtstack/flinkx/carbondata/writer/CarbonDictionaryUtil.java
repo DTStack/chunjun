@@ -32,7 +32,7 @@ import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.flink.api.java.tuple.Tuple2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,12 +55,12 @@ public class CarbonDictionaryUtil {
      *
      * @param carbonLoadModel carbon load model
      */
-    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, Configuration hadoopConf) {
+    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, CarbonTableIdentifier table, CarbonDimension[] dimensions, String dictFolderPath) {
         CarbonTable carbonTable = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable();
         CarbonTableIdentifier carbonTableIdentifier = carbonTable.getAbsoluteTableIdentifier().getCarbonTableIdentifier();
         String dictfolderPath = CarbonTablePath.getMetadataPath(carbonLoadModel.getTablePath());
         List<CarbonDimension> dimensionList = carbonTable.getDimensionByTableName(carbonTable.getTableName());
-        CarbonDimension[] dimensions = dimensionList.toArray(new CarbonDimension[dimensionList.size()]);
+//        CarbonDimension[] dimensions = dimensionList.toArray(new CarbonDimension[dimensionList.size()]);
         carbonLoadModel.initPredefDictMap();
         String allDictionaryPath = carbonLoadModel.getAllDictPath();
 
@@ -69,29 +69,17 @@ public class CarbonDictionaryUtil {
             for(int i = 0; i < headers.length; ++i) {
                 headers[i] = headers[i].trim();
             }
-            String colDictFilePath = carbonLoadModel.getColDictFilePath();
-            if(colDictFilePath != null) {
-                generatePredefinedColDictionary(colDictFilePath, carbonTableIdentifier, dimensions, carbonLoadModel, dictfolderPath);
-            }
 
             String[] headerOfInputData = headers;
 
-            Pair pair = pruneDimensions(dimensions, headers,headers);
-            List<CarbonDimension> requireDimension = pair.dimensions;
-            List<String> requireColumnNames = pair.columnNames;
-            if(!requireColumnNames.isEmpty()) {
-                //dict rdd
-                DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
-            }
+            Tuple2<CarbonDimension[],String[]> tuple2 = pruneDimensions(dimensions, headers,headers);
+//            List<CarbonDimension> requireDimension = tuple2.f0();
+//            List<String> requireColumnNames = pair.columnNames;
+//            if(!requireColumnNames.isEmpty()) {
+//                //dict rdd
+//                DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
+//            }
         }
-    }
-
-    private static void generatePredefinedColDictionary(String colDictFilePath, CarbonTableIdentifier table, CarbonDimension[] dimensions, CarbonLoadModel carbonLoadModel, String dictFolderPath) {
-        new UnsupportedOperationException();
-    }
-
-    private static void loadInputDataAsDict(CarbonLoadModel carbonLoadModel) {
-
     }
 
     /**
@@ -101,7 +89,7 @@ public class CarbonDictionaryUtil {
      * @param headers    column headers
      * @param columns    column list of csv file
      */
-    private static Pair pruneDimensions(CarbonDimension[] dimensions, String[] headers, String[] columns) {
+    public static Tuple2<CarbonDimension[],String[]> pruneDimensions(CarbonDimension[] dimensions, String[] headers, String[] columns) {
         List<CarbonDimension> dimensionBuffer = new ArrayList<>();
         List<String> columnNameBuffer = new ArrayList<>();
         List<CarbonDimension> dimensionsWithDict = new ArrayList<>();
@@ -119,7 +107,11 @@ public class CarbonDictionaryUtil {
                 }
             }
         }
-        return new Pair(dimensionBuffer, columnNameBuffer);
+        CarbonDimension[] dimensionArr = dimensionBuffer.toArray(new CarbonDimension[dimensionBuffer.size()]);
+        dimensionBuffer.toArray(new CarbonDimension[dimensionBuffer.size()]);
+        String[] columnNameArr = columnNameBuffer.toArray(new String[columnNameBuffer.size()]);
+
+        return new Tuple2<>(dimensionArr, columnNameArr);
     }
 
     private static boolean hasEncoding(CarbonDimension dimension, Encoding encoding, Encoding excludeEncoding) {
@@ -144,7 +136,7 @@ public class CarbonDictionaryUtil {
         }
     }
 
-    private static DictionaryLoadModel createDictionaryLoadModel(
+    public static DictionaryLoadModel createDictionaryLoadModel(
             CarbonLoadModel carbonLoadModel, CarbonTableIdentifier table,
             List<CarbonDimension> dimensions, String dictFolderPath,
             boolean forPreDefDict) {
@@ -205,6 +197,7 @@ public class CarbonDictionaryUtil {
                 dimensionsWithDict, forPreDefDict);
         return dimensionsWithDict;
     }
+
 
     private static void gatherDimensionByEncoding(CarbonLoadModel carbonLoadModel, CarbonDimension dimension, Encoding encoding, Encoding excludeEncoding, final List<CarbonDimension> dimensionsWithEncoding, boolean forPreDefDict) {
         if(dimension.isComplex()) {
