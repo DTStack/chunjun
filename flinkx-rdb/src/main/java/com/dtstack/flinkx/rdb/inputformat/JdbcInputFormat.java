@@ -124,9 +124,9 @@ public class JdbcInputFormat extends RichInputFormat {
 
         endLocationAccumulator = new LongMaximum();
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
-        endLocationAccumulator.add(startLocation);
 
         if (startLocation != null){
+            endLocationAccumulator.add(startLocation);
             startLocationAccumulator = getRuntimeContext().getLongCounter(Metrics.START_LOCATION);
             startLocationAccumulator.add(startLocation);
         }
