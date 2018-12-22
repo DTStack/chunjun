@@ -1,6 +1,7 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 
+import com.dtstack.flinkx.carbondata.writer.dict.GenericParser;
 import org.apache.carbondata.core.constants.CarbonLoadOptionConstants;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.processing.loading.exception.NoRetryException;
@@ -8,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-public class PrimitiveParser implements GenericParser {
+public class PrimitiveParser extends GenericParser {
 
     private boolean hasDictEncoding;
 

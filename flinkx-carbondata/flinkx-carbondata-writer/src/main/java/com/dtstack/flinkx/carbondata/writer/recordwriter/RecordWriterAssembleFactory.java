@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 

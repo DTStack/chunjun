@@ -1,6 +1,7 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.carbondata.writer.CarbonTypeConverter;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -71,7 +72,7 @@ public abstract class AbstractRecordWriterAssemble {
         return context;
     }
 
-    protected void write(Object[] record) throws IOException, InterruptedException {
+    public void write(Object[] record) throws IOException, InterruptedException {
         int writerNo = getRecordWriterNumber(record);
         ObjectArrayWritable writable = new ObjectArrayWritable();
         writable.set(record);
