@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
@@ -25,6 +27,9 @@ import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -84,9 +89,23 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
+    protected String increCol;
+
+    protected String increColType;
+
+    protected Long startLocation;
+
+    private int increColIndex;
+
     protected int fetchSize;
 
     protected int queryTimeOut;
+
+    protected StringAccumulator stringAccumulator;
+
+    protected LongMaximum endLocationAccumulator;
+
+    protected LongCounter startLocationAccumulator;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -96,6 +115,28 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration configuration) {
 
+    }
+
+    private void setMetric(){
+        stringAccumulator = new StringAccumulator();
+        stringAccumulator.add(table + "-" + increCol);
+        getRuntimeContext().addAccumulator(Metrics.TABLE_COL,stringAccumulator);
+
+        endLocationAccumulator = new LongMaximum();
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+        endLocationAccumulator.add(startLocation);
+
+        if (startLocation != null){
+            startLocationAccumulator = getRuntimeContext().getLongCounter(Metrics.START_LOCATION);
+            startLocationAccumulator.add(startLocation);
+        }
+
+        for (int i = 0; i < metaColumns.size(); i++) {
+            if (metaColumns.get(i).getName().equals(increCol)){
+                increColIndex = i;
+                break;
+            }
+        }
     }
 
     @Override
@@ -132,6 +173,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if(descColumnTypeList == null) {
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+            }
+
+            if(increCol != null){
+                setMetric();
             }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -193,6 +238,15 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             }
 
+            if(increCol != null){
+                if (ColumnType.isTimeType(increColType)){
+                    Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
+                    endLocationAccumulator.add(getLocation(increVal));
+                } else {
+                    endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
+                }
+            }
+
             //update hasNext after we've read the record
             hasNext = resultSet.next();
             return row;
@@ -200,6 +254,18 @@ public class JdbcInputFormat extends RichInputFormat {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
+        }
+    }
+
+    private long getLocation(Timestamp increVal){
+        long time = increVal.getTime() / 1000;
+
+        String nanosStr = String.valueOf(increVal.getNanos());
+        if(nanosStr.length() == 9){
+            return Long.parseLong(time + nanosStr);
+        } else {
+            String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
+            return Long.parseLong(time + fillZeroStr + nanosStr);
         }
     }
 

@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
@@ -35,6 +36,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +51,11 @@ import java.util.Map;
 public class DBUtil {
 
     private static int MAX_RETRY_TIMES = 3;
+
+    private static int SECOND_LENGTH = 10;
+    private static int MILLIS_LENGTH = 13;
+    private static int MICRO_LENGTH = 16;
+    private static int NANOS_LENGTH = 19;
 
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
@@ -358,6 +365,90 @@ public class DBUtil {
         }
 
         return dataStr;
+    }
+
+    public static String buildWhereSql(DatabaseInterface databaseInterface,String increColType,String where,
+                                       String increCol,Long startLocation){
+        if (startLocation == null){
+            return where;
+        }
+
+        String increFilter;
+        String startTimeStr;
+
+        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer
+                && ColumnType.NVARCHAR.name().equals(increColType))){
+            Timestamp ts = new Timestamp(getMillis(startLocation));
+            ts.setNanos(getNanos(startLocation));
+            startTimeStr = getNanosTimeStr(ts.toString());
+
+            if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
+                startTimeStr = startTimeStr.substring(0,23);
+            } else {
+                startTimeStr = startTimeStr.substring(0,26);
+            }
+
+            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                startTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",startTimeStr);
+            } else {
+                startTimeStr = String.format("'%s'",startTimeStr);
+            }
+        } else {
+            startTimeStr = String.valueOf(startLocation);
+        }
+
+        increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+        if (where == null || where.length() == 0){
+            where = increFilter;
+        } else {
+            where = where + " and " + increFilter;
+        }
+
+        return where;
+    }
+
+    public static String getNanosTimeStr(String timeStr){
+        if(timeStr.length() < 29){
+            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+        }
+
+        return timeStr;
+    }
+
+    public static int getNanos(long startLocation){
+        String timeStr = String.valueOf(startLocation);
+        int nanos;
+        if (timeStr.length() == SECOND_LENGTH){
+            nanos = 0;
+        } else if (timeStr.length() == MILLIS_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MILLIS_LENGTH)) * 1000000;
+        } else if (timeStr.length() == MICRO_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MICRO_LENGTH)) * 1000;
+        } else if (timeStr.length() == NANOS_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,NANOS_LENGTH));
+        } else {
+            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
+        }
+
+        return nanos;
+    }
+
+    public static long getMillis(long startLocation){
+        String timeStr = String.valueOf(startLocation);
+        long millisSecond;
+        if (timeStr.length() == SECOND_LENGTH){
+            millisSecond = startLocation * 1000;
+        } else if (timeStr.length() == MILLIS_LENGTH){
+            millisSecond = startLocation;
+        } else if (timeStr.length() == MICRO_LENGTH){
+            millisSecond = startLocation / 1000;
+        } else if (timeStr.length() == NANOS_LENGTH){
+            millisSecond = startLocation / 1000000;
+        } else {
+            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
+        }
+
+        return millisSecond;
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
