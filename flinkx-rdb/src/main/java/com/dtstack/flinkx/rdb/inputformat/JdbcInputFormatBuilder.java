@@ -88,6 +88,18 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.queryTimeOut = queryTimeOut;
     }
 
+    public void setIncreCol(String increCol){
+        format.increCol = increCol;
+    }
+
+    public void setStartLocation(Long startLocation){
+        format.startLocation = startLocation;
+    }
+
+    public void setIncreColType(String increColType){
+        format.increColType = increColType;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.username == null) {

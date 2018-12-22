@@ -46,4 +46,9 @@ public class Metrics {
 
     public static String NUM_READS = "numRead";
 
+    public static String END_LOCATION = "endLocation";
+
+    public static String START_LOCATION = "startLocation";
+
+    public static String TABLE_COL = "tableCol";
 }
