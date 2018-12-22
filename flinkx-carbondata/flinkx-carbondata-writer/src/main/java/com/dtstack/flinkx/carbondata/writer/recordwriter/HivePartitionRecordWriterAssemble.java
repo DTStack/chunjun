@@ -1,6 +1,8 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.carbondata.writer.TaskNumberGenerator;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;

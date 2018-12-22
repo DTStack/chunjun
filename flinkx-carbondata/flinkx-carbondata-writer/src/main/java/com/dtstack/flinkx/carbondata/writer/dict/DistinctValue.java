@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 
 import java.util.HashSet;

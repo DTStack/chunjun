@@ -18,6 +18,8 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterAssembleFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;

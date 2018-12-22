@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 import org.apache.flink.types.Row;
 import java.text.SimpleDateFormat;
@@ -12,7 +12,7 @@ public class CarbonBlockDistinctValueCombiner {
 
     private DictionaryLoadModel model;
 
-    public CarbonBlockDistinctValueCombiner(List<Row> rows, DictionaryLoadModel model) {
+    public CarbonBlockDistinctValueCombiner(List<String[]> rows, DictionaryLoadModel model) {
 //        this.rows = rows;
         this.model = model;
     }
@@ -21,7 +21,7 @@ public class CarbonBlockDistinctValueCombiner {
         List<DistinctValue> distinctValuesList = new ArrayList<>();
         long rowCount = 0L;
         GenericParser[] dimensionParsers = CarbonDictionaryUtil.createDimensionParsers(model, distinctValuesList);
-        int dimNum = model.dimensions.size();
+        int dimNum = model.dimensions.length;
         SimpleDateFormat timeStampFormat = new SimpleDateFormat(model.defaultTimestampFormat);
         SimpleDateFormat dateFormat = new SimpleDateFormat(model.defaultDateFormat);
 
@@ -36,5 +36,10 @@ public class CarbonBlockDistinctValueCombiner {
         }
     }
 
+    public static void main(String[] args) {
+        List<String[]> rows = new ArrayList<>();
+        DictionaryLoadModel model = null;
+        CarbonBlockDistinctValueCombiner combiner = new CarbonBlockDistinctValueCombiner(rows, model);
+    }
 
 }

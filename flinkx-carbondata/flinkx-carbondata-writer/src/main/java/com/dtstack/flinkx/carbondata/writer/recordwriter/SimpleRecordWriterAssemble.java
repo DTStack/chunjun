@@ -1,6 +1,7 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
