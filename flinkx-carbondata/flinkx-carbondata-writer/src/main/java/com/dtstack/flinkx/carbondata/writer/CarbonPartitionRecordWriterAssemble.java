@@ -1,6 +1,9 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.carbondata.core.metadata.datatype.DataType;
+import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.PartitionInfo;
 import org.apache.carbondata.core.metadata.schema.partition.PartitionType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -14,7 +17,10 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 
 public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAssemble {
@@ -24,6 +30,16 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
     private Partitioner partitioner;
 
     private List<Integer> partitionIds;
+
+    private PartitionType partitionType;
+
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+    private static SimpleDateFormat stf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    static {
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
 
     public CarbonPartitionRecordWriterAssemble(CarbonTable carbonTable) {
         super(carbonTable);
@@ -67,7 +83,7 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
             throw new RuntimeException("partition column not found in table schema");
         }
 
-        PartitionType partitionType = partitionInfo.getPartitionType();
+        partitionType = partitionInfo.getPartitionType();
         int partitionNum = partitionInfo.getNumPartitions();
         if(partitionType == PartitionType.HASH) {
             partitioner = new HashPartitioner(partitionNum);
@@ -83,6 +99,20 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
     @Override
     protected int getRecordWriterNumber(Object[] record) {
         Object v = record[partitionColNumber];
+        DataType dataType = fullColumnTypes.get(partitionColNumber);
+        if(partitionType == PartitionType.RANGE) {
+            SimpleDateFormat format = null;
+            if(dataType == DataTypes.DATE) {
+                format = sdf;
+            } else if(dataType == DataTypes.TIMESTAMP) {
+                format = stf;
+            }
+            v = StringUtil.string2col((String)v, dataType.getName(), format);
+            if(v instanceof Date) {
+                Date date = (Date) v;
+                v = date.getTime();
+            }
+        }
         int partitionId = partitioner.getPartition(v);
         return partitionIds.indexOf(partitionId);
     }
