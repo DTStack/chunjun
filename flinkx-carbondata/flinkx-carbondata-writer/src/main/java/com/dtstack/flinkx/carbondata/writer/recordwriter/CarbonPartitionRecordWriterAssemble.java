@@ -2,6 +2,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.datatype.DataTypes;
@@ -34,13 +35,11 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
 
     private PartitionType partitionType;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-    private static SimpleDateFormat stf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    static {
+    private static ThreadLocal<SimpleDateFormat> dateFormat = ThreadLocal.withInitial(() -> {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
+        return sdf;
+    });
 
     public CarbonPartitionRecordWriterAssemble(CarbonTable carbonTable) {
         super(carbonTable);
@@ -104,9 +103,9 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
         if(partitionType == PartitionType.RANGE) {
             SimpleDateFormat format = null;
             if(dataType == DataTypes.DATE) {
-                format = sdf;
+                format = dateFormat.get();
             } else if(dataType == DataTypes.TIMESTAMP) {
-                format = stf;
+                format = DateUtil.getDateTimeFormatter();
             }
             v = StringUtil.string2col((String)v, dataType.getName(), format);
             if(v instanceof Date) {

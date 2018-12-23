@@ -53,11 +53,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     private ParquetWriter<Group> writer;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
     private static Calendar cal = Calendar.getInstance();
-
-    private static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
 
@@ -65,7 +61,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     static {
         try {
-            cal.setTime(sdf.parse("1970-01-01"));
+            cal.setTime(DateUtil.getDateFormatter().parse("1970-01-01"));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -108,7 +104,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     if(valObj instanceof java.sql.Timestamp){
                         val = String.valueOf(((java.sql.Timestamp) valObj).getTime());
                     } else if(valObj instanceof Date){
-                        val = sdf.format((Date)valObj);
+                        val = DateUtil.getDateFormatter().format((Date)valObj);
                     } else {
                         val = String.valueOf(valObj);
                     }
@@ -204,7 +200,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         if(NumberUtils.isNumber(val)){
             dst = longToByteArray(Long.parseLong(val));
         } else {
-            Date date = sdf2.parse(val);
+            Date date = DateUtil.getDateTimeFormatter().parse(val);
             dst = longToByteArray(date.getTime());
         }
 
@@ -255,7 +251,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     private int getDay(String dateStr) throws Exception{
-        Date date = sdf.parse(dateStr);
+        Date date = DateUtil.getDateFormatter().parse(dateStr);
         return (int)((date.getTime() - cal.getTimeInMillis()) / (1000 * 60 * 60 * 24));
     }
 }

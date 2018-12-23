@@ -117,7 +117,7 @@ public class MetaColumn implements Serializable {
                     mc.setSplitter(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
 
                     if(sm.get("format") != null && String.valueOf(sm.get("format")).trim().length() > 0){
-                        mc.setTimeFormat(DateUtil.getDateFormatter(String.valueOf(sm.get("format"))));
+                        mc.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(sm.get("format"))));
                     }
 
                     metaColumns.add(mc);

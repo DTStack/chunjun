@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -69,8 +70,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private static final long MILLIS_IN_DAY = TimeUnit.DAYS.toMillis(1);
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
-
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Override
     protected void configureAnythingElse() {
@@ -196,7 +195,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             case "date" : {
                 String val = currentLine.getValueToString(index,0);
                 try{
-                    data = sdf.parse(val);
+                    data = DateUtil.getDateTimeFormatter().parse(val);
                 } catch (ParseException pe){
                     data = val;
                 }
