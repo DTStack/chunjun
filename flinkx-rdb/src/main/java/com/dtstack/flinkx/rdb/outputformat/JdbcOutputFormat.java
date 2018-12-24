@@ -182,10 +182,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
-
+        Statement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            stmt = dbConn.createStatement();
+            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -198,6 +199,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            DBUtil.closeDBResources(rs,stmt,null);
         }
 
         return ret;
@@ -317,7 +320,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
     @Override
     public void closeInternal() {
         if(taskNumber != 0) {
-            DBUtil.closeDBResources(null,null,dbConn);
+            DBUtil.closeDBResources(null,singleUpload,dbConn);
+            DBUtil.closeDBResources(null,multipleUpload,null);
             dbConn = null;
         }
     }
