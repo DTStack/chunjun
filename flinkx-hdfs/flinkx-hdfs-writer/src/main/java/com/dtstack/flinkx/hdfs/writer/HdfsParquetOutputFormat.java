@@ -165,28 +165,28 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             switch (colType){
                 case "tinyint" :
                 case "smallint" :
-                case "int" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT32).named(name);break;
-                case "bigint" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT64).named(name);break;
-                case "float" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);break;
-                case "double" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);break;
-                case "binary" :typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).named(name);break;
+                case "int" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).named(name);break;
+                case "bigint" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT64).named(name);break;
+                case "float" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);break;
+                case "double" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);break;
+                case "binary" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);break;
                 case "char" :
                 case "varchar" :
-                case "string" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);break;
-                case "boolean" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);break;
-                case "timestamp" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT96).named(name);break;
-                case "date" :typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);break;
+                case "string" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);break;
+                case "boolean" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);break;
+                case "timestamp" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT96).named(name);break;
+                case "date" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);break;
                 default:
                     if (colType.contains("decimal")){
                         int precision = Integer.parseInt(colType.substring(colType.indexOf("(") + 1,colType.indexOf(",")).trim());
                         int scale = Integer.parseInt(colType.substring(colType.indexOf(",") + 1,colType.indexOf(")")).trim());
-                        typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY)
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(precision)
                                 .scale(scale)
                                 .named(name);
                     } else {
-                        typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
                     }
                     break;
             }
