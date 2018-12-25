@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
-import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;

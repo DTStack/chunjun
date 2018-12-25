@@ -23,6 +23,7 @@ package com.dtstack.flinkx.carbondata.writer.dict;
 import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
+import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.locks.CarbonLockFactory;
 import org.apache.carbondata.core.locks.ICarbonLock;
 import org.apache.carbondata.core.locks.LockUsage;
@@ -33,16 +34,19 @@ import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
+import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.util.CarbonProperties;
+import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
+import org.apache.carbondata.processing.loading.exception.NoRetryException;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +59,8 @@ import java.util.stream.Collectors;
  */
 public class CarbonDictionaryUtil {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CarbonDictionaryUtil.class);
+
     private CarbonDictionaryUtil() {
         // hehe
     }
@@ -65,7 +71,7 @@ public class CarbonDictionaryUtil {
      *
      * @param carbonLoadModel carbon load model
      */
-    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, Configuration hadoopConf, List<String[]> data) {
+    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, Configuration hadoopConf, List<String[]> data) throws IOException {
 
         CarbonTable carbonTable = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable();
         CarbonTableIdentifier carbonTableIdentifier = carbonTable.getAbsoluteTableIdentifier().getCarbonTableIdentifier();
@@ -100,18 +106,14 @@ public class CarbonDictionaryUtil {
         for(int i = 0; i < requireColumnNames.length; ++i) {
             String dictColName = requireColumnNames[i];
             int dictColIdx = dictColIndices[i];
-
-            // collect dictinct values
             Set<String> distinctValues = data.stream().map(row -> row[dictColIdx]).collect(Collectors.toSet());
-
-            //
-
+            writeDictionary(distinctValues, model, i);
         }
 
     }
 
-    private static void writeDictionary(Set<String> distinctValues, DictionaryLoadModel model, int idx) throws IOException {
-        Dictionary dictionaryForDistinctValueLookUp = CarbonLoaderUtil.getDictionary(model.getTable(), model.getColumnIdentifier()[idx], model.primDimensions.get(idx).getDataType());
+    private static SegmentStatus writeDictionary(Set<String> valuesBuffer, DictionaryLoadModel model, int idx) throws IOException {
+        SegmentStatus status = SegmentStatus.SUCCESS;
         boolean dictionaryForDistinctValueLookUpCleared = false;
         DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier = new DictionaryColumnUniqueIdentifier(
                 model.getTable(),
@@ -121,8 +123,54 @@ public class CarbonDictionaryUtil {
 
         ICarbonLock dictLock = CarbonLockFactory.getCarbonLockObj(model.table, model.columnIdentifier[idx].getColumnId() + LockUsage.LOCK);
         boolean isDictionaryLocked = false;
+        Dictionary dictionaryForDistinctValueLookUp = null;
 
-        //DictionaryWriterTask dictionaryWriterTask
+        try {
+            isDictionaryLocked = dictLock.lockWithRetries();
+            if(isDictionaryLocked) {
+                LOG.info("Successfully able to get the dictionary lock for " + model.primDimensions.get(idx).getColName());
+            } else {
+                LOG.error("Dictionary file ");
+                throw new RuntimeException();
+            }
+
+            FileFactory.FileType fileType = FileFactory.getFileType(model.getDictFilePaths()[idx]);
+            boolean isDictFileExists = FileFactory.isFileExist(model.getDictFilePaths()[idx], fileType);
+            if(isDictFileExists) {
+                dictionaryForDistinctValueLookUp = CarbonLoaderUtil.getDictionary(model.getTable(), model.getColumnIdentifier()[idx], model.primDimensions.get(idx).getDataType());
+            }
+
+            DictionaryWriterTask dictWriteTask = new DictionaryWriterTask(valuesBuffer, dictionaryForDistinctValueLookUp, dictionaryColumnUniqueIdentifier, model.primDimensions.get(idx).getColumnSchema(), isDictFileExists);
+            List<String> distinctValues = dictWriteTask.execute();
+
+            if(distinctValues.size() > 0) {
+                SortIndexWriterTask sortIndexWriteTask = new SortIndexWriterTask(dictionaryColumnUniqueIdentifier, model.primDimensions.get(idx).getDataType(), dictionaryForDistinctValueLookUp, distinctValues);
+                sortIndexWriteTask.execute();
+            }
+
+            dictWriteTask.updateMetaData();
+            valuesBuffer.clear();
+            CarbonUtil.clearDictionaryCache(dictionaryForDistinctValueLookUp);
+            dictionaryForDistinctValueLookUpCleared = true;
+        } catch (NoRetryException dictionaryException) {
+            LOG.error(dictionaryException.getMessage());
+            status = SegmentStatus.LOAD_FAILURE;
+        } catch (Exception ex) {
+            LOG.error(ex.getMessage());
+            throw ex;
+        } finally {
+            if (!dictionaryForDistinctValueLookUpCleared) {
+                CarbonUtil.clearDictionaryCache(dictionaryForDistinctValueLookUp);
+            }
+            if (dictLock != null && isDictionaryLocked) {
+                if (dictLock.unlock()) {
+                    LOG.info("Dictionary " + model.primDimensions.get(idx).getColName() + " unlocked unsuccessfully.");
+                }
+            } else {
+                LOG.error("Unable to unlock Dictionary " + model.primDimensions.get(idx).getColName());
+            }
+        }
+        return status;
     }
 
     /**
