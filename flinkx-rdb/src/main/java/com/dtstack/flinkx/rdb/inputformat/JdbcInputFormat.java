@@ -241,7 +241,9 @@ public class JdbcInputFormat extends RichInputFormat {
             if(increCol != null){
                 if (ColumnType.isTimeType(increColType)){
                     Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
-                    endLocationAccumulator.add(getLocation(increVal));
+                    if(increVal != null){
+                        endLocationAccumulator.add(getLocation(increVal));
+                    }
                 } else {
                     endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
                 }
