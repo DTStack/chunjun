@@ -27,7 +27,7 @@ public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
     }
 
     @Override
-    protected int getRecordWriterNumber(Object[] record) {
+    protected int getRecordWriterNumber(String[] record) {
         return 0;
     }
 

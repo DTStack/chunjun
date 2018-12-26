@@ -96,7 +96,7 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
     }
 
     @Override
-    protected int getRecordWriterNumber(Object[] record) {
+    protected int getRecordWriterNumber(String[] record) {
         Object v = record[partitionColNumber];
         DataType dataType = fullColumnTypes.get(partitionColNumber);
         if(partitionType == PartitionType.RANGE) {

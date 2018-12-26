@@ -188,7 +188,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         int i = 0;
         try {
-            Object[] record = new Object[fullColumnNames.size()];
+            String[] record = new String[fullColumnNames.size()];
             for(; i < fullColumnIndices.size(); ++i) {
                 int index = fullColumnIndices.get(i);
                 if(index == -1) {
@@ -282,7 +282,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
         }
     }
-
 
     @Override
     protected boolean needWaitAfterCloseInternal() {

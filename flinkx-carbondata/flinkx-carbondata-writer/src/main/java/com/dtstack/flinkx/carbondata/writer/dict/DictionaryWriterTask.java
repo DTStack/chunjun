@@ -45,7 +45,7 @@ public class DictionaryWriterTask {
         String[] values = valuesBuffer.toArray(new String[valuesBuffer.size()]);
         Arrays.sort(values);
         DictionaryService dictService = CarbonCommonFactory.getDictionaryService();
-        CarbonDictionaryWriter writer = dictService.getDictionaryWriter(dictionaryColumnUniqueIdentifier);
+        writer = dictService.getDictionaryWriter(dictionaryColumnUniqueIdentifier);
         List<String> distinctValues = new ArrayList<>();
 
         try {

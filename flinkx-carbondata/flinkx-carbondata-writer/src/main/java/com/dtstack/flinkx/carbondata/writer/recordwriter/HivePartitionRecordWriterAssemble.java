@@ -58,7 +58,7 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
     }
 
     @Override
-    protected int getRecordWriterNumber(Object[] record) {
+    protected int getRecordWriterNumber(String[] record) {
         return 0;
     }
 

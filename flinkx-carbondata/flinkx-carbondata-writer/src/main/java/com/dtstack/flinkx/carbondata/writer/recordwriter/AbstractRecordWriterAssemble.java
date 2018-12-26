@@ -60,7 +60,7 @@ public abstract class AbstractRecordWriterAssemble {
         this.carbonTable = carbonTable;
     }
 
-    protected abstract int getRecordWriterNumber(Object[] record);
+    protected abstract int getRecordWriterNumber(String[] record);
 
     protected TaskAttemptContext createTaskContext() {
         Random random = new Random();
@@ -72,7 +72,7 @@ public abstract class AbstractRecordWriterAssemble {
         return context;
     }
 
-    public void write(Object[] record) throws IOException, InterruptedException {
+    public void write(String[] record) throws IOException, InterruptedException {
         int writerNo = getRecordWriterNumber(record);
         ObjectArrayWritable writable = new ObjectArrayWritable();
         writable.set(record);
@@ -128,6 +128,10 @@ public abstract class AbstractRecordWriterAssemble {
                         false,
                         String.valueOf(carbonLoadModel.getFactTimeStamp())
                 );
+
+    }
+
+    private void writeDictionary() {
 
     }
 
