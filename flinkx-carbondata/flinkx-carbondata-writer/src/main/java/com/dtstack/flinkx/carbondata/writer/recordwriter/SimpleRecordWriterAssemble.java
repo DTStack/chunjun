@@ -16,18 +16,24 @@ public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
         carbonLoadModelList.add(carbonLoadModel);
         TaskAttemptContext context = createTaskContext();
         taskAttemptContextList.add(context);
-        RecordWriter recordWriter = null;
-        try {
-            recordWriter = createRecordWriter(carbonLoadModel, context);
-            recordWriterList.add(recordWriter);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
     @Override
     protected int getRecordWriterNumber(String[] record) {
         return 0;
     }
+
+    @Override
+    protected void createRecordWriterList() {
+        RecordWriter recordWriter = null;
+        try {
+            recordWriter = createRecordWriter(carbonLoadModelList.get(0), taskAttemptContextList.get(0));
+            recordWriterList.add(recordWriter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

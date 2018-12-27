@@ -59,6 +59,8 @@ public abstract class AbstractRecordWriterAssemble {
 
     protected List<String[]> data = new ArrayList<>();
 
+    protected boolean dictionaryCreated = false;
+
     public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }
@@ -77,16 +79,9 @@ public abstract class AbstractRecordWriterAssemble {
 
     public void write(String[] record) throws IOException, InterruptedException {
         data.add(record);
-        int writerNo = getRecordWriterNumber(record);
-        ObjectArrayWritable writable = new ObjectArrayWritable();
-        writable.set(record);
-        recordWriterList.get(writerNo).write(NullWritable.get(), writable);
-        counter[writerNo]++;
     }
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
-        CarbonDictionaryUtil.generateGlobalDictionary(carbonLoadModelList.get(0), data);
-        data.clear();
         RecordWriter recordWriter = recordWriterList.get(writerNo);
         if(recordWriter != null) {
             recordWriter.close(taskAttemptContextList.get(writerNo));
@@ -137,17 +132,31 @@ public abstract class AbstractRecordWriterAssemble {
 
     }
 
-    private void writeDictionary() {
-
-    }
-
     public void close() throws IOException, InterruptedException {
+        CarbonDictionaryUtil.generateGlobalDictionary(carbonLoadModelList.get(0), data);
+
+        createRecordWriterList();
+
+        for(String[] record : data) {
+            int writerNo = getRecordWriterNumber(record);
+            ObjectArrayWritable writable = new ObjectArrayWritable();
+            writable.set(record);
+            recordWriterList.get(writerNo).write(NullWritable.get(), writable);
+            counter[writerNo]++;
+        }
+
+        data.clear();
+
         for(int i = 0; i < recordWriterList.size(); ++i) {
             closeRecordWriter(i);
         }
     }
 
+    protected abstract void createRecordWriterList();
+
+
     protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context) throws IOException {
+
         CarbonTableOutputFormat.setLoadModel(context.getConfiguration(), model);
         CarbonTableOutputFormat.setCarbonTable(context.getConfiguration(), model.getCarbonDataLoadSchema().getCarbonTable());
         CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();

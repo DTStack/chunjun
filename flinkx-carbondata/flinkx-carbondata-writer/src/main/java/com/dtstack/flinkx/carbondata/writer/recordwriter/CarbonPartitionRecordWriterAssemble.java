@@ -51,13 +51,6 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
             TaskAttemptContext context = createTaskContext();
             context.getConfiguration().set("carbon.outputformat.taskno", String.valueOf(partitionId));
             taskAttemptContextList.add(context);
-            RecordWriter recordWriter = null;
-            try {
-                recordWriter = createRecordWriter(carbonLoadModel, context);
-                recordWriterList.add(recordWriter);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         List<ColumnSchema> columnSchemaList =  partitionInfo.getColumnSchemaList();
@@ -114,6 +107,19 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
         }
         int partitionId = partitioner.getPartition(v);
         return partitionIds.indexOf(partitionId);
+    }
+
+    @Override
+    protected void createRecordWriterList() {
+        for(int i = 0; i < partitionIds.size(); ++i) {
+            RecordWriter recordWriter = null;
+            try {
+                recordWriter = createRecordWriter(carbonLoadModelList.get(i), taskAttemptContextList.get(i));
+                recordWriterList.add(recordWriter);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

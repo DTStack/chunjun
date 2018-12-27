@@ -66,6 +66,15 @@ public class CarbonDictionaryUtil {
         // hehe
     }
 
+
+    public static void generateEmptyDictionaryIfNotExists(CarbonLoadModel carbonLoadModel) throws IOException {
+        String[] headers = carbonLoadModel.getCsvHeaderColumns();
+        String[] empty = new String[headers.length];
+        List<String[]> data = new ArrayList<>();
+        data.add(empty);
+        generateGlobalDictionary(carbonLoadModel, data);
+    }
+
     /**
      * generate global dictionary with SQLContext and CarbonLoadModel
      * 入口
@@ -84,6 +93,11 @@ public class CarbonDictionaryUtil {
         Tuple2<CarbonDimension[],String[]> tuple2 = pruneDimensions(dimensions, headers,headers);
         CarbonDimension[] requireDimension = tuple2.getField(0);
         String[] requireColumnNames = tuple2.getField(1);
+
+        if(requireColumnNames == null || requireColumnNames.length == 0) {
+            LOG.info("no dictionary table");
+            return;
+        }
         DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
 
         int[] dictColIndices = new int[requireColumnNames.length];
