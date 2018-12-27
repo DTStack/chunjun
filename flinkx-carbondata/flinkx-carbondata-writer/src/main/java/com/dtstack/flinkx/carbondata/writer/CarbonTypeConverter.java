@@ -3,6 +3,7 @@ package com.dtstack.flinkx.carbondata.writer;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -15,12 +16,6 @@ public class CarbonTypeConverter {
 
 
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
-
-
-
-    private CarbonTypeConverter() {
-
-    }
 
     public static DataType convertToConbonDataType(String type) {
         type = type.toUpperCase();
@@ -84,6 +79,10 @@ public class CarbonTypeConverter {
                 Integer i = (Integer) value;
                 return i.toString();
             }
+            if(value instanceof Long) {
+                Long l = (Long) value;
+                return l.toString();
+            }
             if(value instanceof Double) {
                 Double d = (Double) value;
                 return d.toString();
@@ -112,6 +111,37 @@ public class CarbonTypeConverter {
 
         }
         throw new IllegalArgumentException("Unsupported type for: " + value);
+    }
+
+
+    public static void checkStringType(String s, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat, DataType dataType) throws ParseException {
+        if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
+            return;
+        }
+        if (dataType == DataTypes.INT) {
+            Integer.parseInt(s);
+        } else if (dataType == DataTypes.LONG) {
+            Long.parseLong(s);
+        } else if (dataType == DataTypes.DATE) {
+            dateFormat.parse(s);
+        } else if (dataType == DataTypes.TIMESTAMP) {
+            timeStampFormat.parse(s);
+        } else if (dataType == DataTypes.SHORT || dataType == DataTypes.SHORT_INT) {
+            Short.parseShort(s);
+        } else if (dataType == DataTypes.BOOLEAN) {
+            Boolean.valueOf(s);
+        } else if (DataTypes.isDecimal(dataType)) {
+            Double.valueOf(s);
+        } else if (dataType == DataTypes.FLOAT) {
+            Float.valueOf(s);
+        } else if (dataType == DataTypes.DOUBLE) {
+            Double.valueOf(s);
+        } else if (dataType == DataTypes.STRING || dataType == DataTypes.VARCHAR) {
+            // IT'S OK
+        } else {
+            throw new IllegalArgumentException("Unsupported data type: " + dataType);
+        }
+
     }
 
 

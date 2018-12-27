@@ -2,6 +2,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import com.dtstack.flinkx.carbondata.writer.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonDictionaryUtil;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -56,6 +57,8 @@ public abstract class AbstractRecordWriterAssemble {
 
     protected List<DataType> fullColumnTypes;
 
+    protected List<String[]> data = new ArrayList<>();
+
     public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }
@@ -73,6 +76,7 @@ public abstract class AbstractRecordWriterAssemble {
     }
 
     public void write(String[] record) throws IOException, InterruptedException {
+        data.add(record);
         int writerNo = getRecordWriterNumber(record);
         ObjectArrayWritable writable = new ObjectArrayWritable();
         writable.set(record);
@@ -81,6 +85,8 @@ public abstract class AbstractRecordWriterAssemble {
     }
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
+        CarbonDictionaryUtil.generateGlobalDictionary(carbonLoadModelList.get(0), data);
+        data.clear();
         RecordWriter recordWriter = recordWriterList.get(writerNo);
         if(recordWriter != null) {
             recordWriter.close(taskAttemptContextList.get(writerNo));

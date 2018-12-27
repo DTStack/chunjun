@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 
+import org.apache.carbondata.core.cache.CacheProvider;
 import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
@@ -71,7 +72,7 @@ public class CarbonDictionaryUtil {
      *
      * @param carbonLoadModel carbon load model
      */
-    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, Configuration hadoopConf, List<String[]> data) throws IOException {
+    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, List<String[]> data) throws IOException {
 
         CarbonTable carbonTable = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable();
         CarbonTableIdentifier carbonTableIdentifier = carbonTable.getAbsoluteTableIdentifier().getCarbonTableIdentifier();
@@ -79,12 +80,10 @@ public class CarbonDictionaryUtil {
         List<CarbonDimension> dimensionList = carbonTable.getDimensionByTableName(carbonTable.getTableName());
         CarbonDimension[] dimensions = dimensionList.toArray(new CarbonDimension[dimensionList.size()]);
         carbonLoadModel.initPredefDictMap();
-        String allDictionaryPath = carbonLoadModel.getAllDictPath();
         String[] headers = carbonLoadModel.getCsvHeaderColumns();
         Tuple2<CarbonDimension[],String[]> tuple2 = pruneDimensions(dimensions, headers,headers);
         CarbonDimension[] requireDimension = tuple2.getField(0);
         String[] requireColumnNames = tuple2.getField(1);
-        //val dictRdd = loadInputDataAsDictRdd(
         DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
 
         int[] dictColIndices = new int[requireColumnNames.length];
@@ -104,11 +103,13 @@ public class CarbonDictionaryUtil {
         }
 
         for(int i = 0; i < requireColumnNames.length; ++i) {
-            String dictColName = requireColumnNames[i];
             int dictColIdx = dictColIndices[i];
             Set<String> distinctValues = data.stream().map(row -> row[dictColIdx]).collect(Collectors.toSet());
             writeDictionary(distinctValues, model, i);
         }
+
+        CacheProvider cacheProvider = CacheProvider.getInstance();
+        cacheProvider.dropAllCache();
 
     }
 
