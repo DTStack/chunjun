@@ -1,18 +1,21 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 
 public class CarbonTypeConverter {
 
+
+
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
-
-    private CarbonTypeConverter() {
-
-    }
 
     public static DataType convertToConbonDataType(String type) {
         type = type.toUpperCase();
@@ -43,25 +46,102 @@ public class CarbonTypeConverter {
         }
     }
 
-    public static String convertToDateAndTimeFormats(String value, DataType dataType, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) {
-        boolean defaultValue = value != null && value.equalsIgnoreCase(HIVE_DEFAULT_PARTITION);
-        try {
-            if(dataType == DataTypes.TIMESTAMP && timeStampFormat != null) {
-                if(defaultValue) {
-                    return timeStampFormat.format(new Date());
-                } else {
-                    //return timeStampFormat.format(DateTimeUtils.stringToTime(value));
-                    return null;
-                }
-            }
-        } catch(Exception e) {
-            throw new RuntimeException("Value $value with datatype $dataType on static partition is not correct");
-        }
-        return null;
+
+    public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) {
+        return objectToString(value, serializationNullFormat, timeStampFormat, dateFormat, false);
     }
 
-    public static String convertToCarbonFormat(String value) {
-        return null;
+
+    /**
+     * Return a String representation of the input value
+     * @param value input value
+     * @param serializationNullFormat string for null value
+     * @param timeStampFormat timestamp format
+     * @param dateFormat date format
+     * @param isVarcharType whether it is varchar type. A varchar type has no string length limit
+     */
+    public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat, boolean isVarcharType) {
+        if(value == null) {
+            return serializationNullFormat;
+        } else {
+            if(value instanceof String) {
+                String s = (String) value;
+                if(!isVarcharType && s.length() > CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT) {
+                    throw new IllegalArgumentException("Dataload failed, String length cannot exceed " + CarbonCommonConstants.MAX_CHARS_PER_COLUMN_DEFAULT + " characters");
+                }
+                return s;
+            }
+            if(value instanceof BigDecimal) {
+                BigDecimal d = (BigDecimal) value;
+                return d.toPlainString();
+            }
+            if(value instanceof Integer) {
+                Integer i = (Integer) value;
+                return i.toString();
+            }
+            if(value instanceof Long) {
+                Long l = (Long) value;
+                return l.toString();
+            }
+            if(value instanceof Double) {
+                Double d = (Double) value;
+                return d.toString();
+            }
+            if(value instanceof Timestamp) {
+                Timestamp t = (Timestamp) value;
+                return timeStampFormat.format(t);
+            }
+            if(value instanceof java.sql.Date) {
+                java.sql.Date d = (java.sql.Date) value;
+                return dateFormat.format(d);
+            }
+            if(value instanceof Boolean) {
+                Boolean b = (Boolean) value;
+                return b.toString();
+            }
+            if(value instanceof Short) {
+                Short s = (Short) value;
+                return s.toString();
+            }
+
+            if(value instanceof Float) {
+                Float f = (Float) value;
+                return f.toString();
+            }
+
+        }
+        throw new IllegalArgumentException("Unsupported type for: " + value);
+    }
+
+
+    public static void checkStringType(String s, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat, DataType dataType) throws ParseException {
+        if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
+            return;
+        }
+        if (dataType == DataTypes.INT) {
+            Integer.parseInt(s);
+        } else if (dataType == DataTypes.LONG) {
+            Long.parseLong(s);
+        } else if (dataType == DataTypes.DATE) {
+            dateFormat.parse(s);
+        } else if (dataType == DataTypes.TIMESTAMP) {
+            timeStampFormat.parse(s);
+        } else if (dataType == DataTypes.SHORT || dataType == DataTypes.SHORT_INT) {
+            Short.parseShort(s);
+        } else if (dataType == DataTypes.BOOLEAN) {
+            Boolean.valueOf(s);
+        } else if (DataTypes.isDecimal(dataType)) {
+            Double.valueOf(s);
+        } else if (dataType == DataTypes.FLOAT) {
+            Float.valueOf(s);
+        } else if (dataType == DataTypes.DOUBLE) {
+            Double.valueOf(s);
+        } else if (dataType == DataTypes.STRING || dataType == DataTypes.VARCHAR) {
+            // IT'S OK
+        } else {
+            throw new IllegalArgumentException("Unsupported data type: " + dataType);
+        }
+
     }
 
 

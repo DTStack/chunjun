@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -94,23 +95,23 @@ public class HdfsUtil {
         Object ret;
         switch(columnType) {
             case TINYINT:
-                ret = Byte.valueOf(str);
+                ret = Byte.valueOf(str.trim());
                 break;
             case SMALLINT:
-                ret = Short.valueOf(str);
+                ret = Short.valueOf(str.trim());
                 break;
             case INT:
-                ret = Integer.valueOf(str);
+                ret = Integer.valueOf(str.trim());
                 break;
             case BIGINT:
-                ret = Long.valueOf(str);
+                ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
-                ret = Float.valueOf(str);
+                ret = Float.valueOf(str.trim());
                 break;
             case DOUBLE:
             case DECIMAL:
-                ret = Double.valueOf(str);
+                ret = Double.valueOf(str.trim());
                 break;
             case STRING:
             case VARCHAR:
@@ -123,7 +124,7 @@ public class HdfsUtil {
                 }
                 break;
             case BOOLEAN:
-                ret = Boolean.valueOf(str.toLowerCase());
+                ret = Boolean.valueOf(str.trim().toLowerCase());
                 break;
             case DATE:
                 ret = DateUtil.columnToDate(str,customDateFormat);

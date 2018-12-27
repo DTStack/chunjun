@@ -48,17 +48,10 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
         carbonLoadModelList.add(carbonLoadModel);
         context = createTaskContext();
         taskAttemptContextList.add(context);
-        RecordWriter recordWriter = null;
-        try {
-            recordWriter = createRecordWriter(carbonLoadModel, context);
-            recordWriterList.add(recordWriter);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
-    protected int getRecordWriterNumber(Object[] record) {
+    protected int getRecordWriterNumber(String[] record) {
         return 0;
     }
 
@@ -125,6 +118,17 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
 
         CarbonLoaderUtil.mergeIndexFilesinPartitionedSegment(carbonTable, carbonLoadModel.getSegmentId(), String.valueOf(carbonLoadModel.getFactTimeStamp()));
 
+    }
+
+    @Override
+    protected void createRecordWriterList() {
+        RecordWriter recordWriter = null;
+        try {
+            recordWriter = createRecordWriter(carbonLoadModel, context);
+            recordWriterList.add(recordWriter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

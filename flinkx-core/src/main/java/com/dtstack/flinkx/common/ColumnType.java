@@ -53,6 +53,10 @@ public enum ColumnType {
     }
 
     public static ColumnType getType(String type){
+        if(type.toLowerCase().contains("timestamp")){
+            return TIMESTAMP;
+        }
+
         for (ColumnType value : ColumnType.values()) {
             if(type.equalsIgnoreCase(value.name())){
                 return value;

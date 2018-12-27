@@ -49,10 +49,7 @@ public class DateUtil {
 
     public final static String DATETIME_REGEX = "(?i)datetime";
 
-    public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter;
-
-    {
-        ThreadLocal.withInitial(() -> {
+    public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
 
             Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
@@ -74,8 +71,7 @@ public class DateUtil {
             formatterMap.put(YEAR_FORMAT,yearFormatter);
 
             return formatterMap;
-        });
-    }
+    });
 
     private DateUtil() {}
 
