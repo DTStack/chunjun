@@ -78,23 +78,23 @@ public class StringUtil {
         Object ret;
         switch(columnType) {
             case TINYINT:
-                ret = Byte.valueOf(str);
+                ret = Byte.valueOf(str.trim());
                 break;
             case SMALLINT:
-                ret = Short.valueOf(str);
+                ret = Short.valueOf(str.trim());
                 break;
             case INT:
-                ret = Integer.valueOf(str);
+                ret = Integer.valueOf(str.trim());
                 break;
             case MEDIUMINT:
             case BIGINT:
-                ret = Long.valueOf(str);
+                ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
-                ret = Float.valueOf(str);
+                ret = Float.valueOf(str.trim());
                 break;
             case DOUBLE:
-                ret = Double.valueOf(str);
+                ret = Double.valueOf(str.trim());
                 break;
             case STRING:
             case VARCHAR:
@@ -107,7 +107,7 @@ public class StringUtil {
                 }
                 break;
             case BOOLEAN:
-                ret = Boolean.valueOf(str.toLowerCase());
+                ret = Boolean.valueOf(str.trim().toLowerCase());
                 break;
             case DATE:
                 ret = DateUtil.columnToDate(str,customTimeFormat);
@@ -129,27 +129,27 @@ public class StringUtil {
         Object result = null;
         switch (columnType) {
             case TINYINT:
-                result = Byte.valueOf(rowData);
+                result = Byte.valueOf(rowData.trim());
                 break;
             case SMALLINT:
             case SHORT:
-                result = Short.valueOf(rowData);
+                result = Short.valueOf(rowData.trim());
                 break;
             case INT:
-                result = Integer.valueOf(rowData);
+                result = Integer.valueOf(rowData.trim());
                 break;
             case BIGINT:
             case LONG:
-                result = Long.valueOf(rowData);
+                result = Long.valueOf(rowData.trim());
                 break;
             case FLOAT:
-                result = Float.valueOf(rowData);
+                result = Float.valueOf(rowData.trim());
                 break;
             case DOUBLE:
-                result = Double.valueOf(rowData);
+                result = Double.valueOf(rowData.trim());
                 break;
             case DECIMAL:
-                result = new BigDecimal(rowData);
+                result = new BigDecimal(rowData.trim());
                 break;
             case STRING:
             case VARCHAR:
@@ -157,7 +157,7 @@ public class StringUtil {
                 result = rowData;
                 break;
             case BOOLEAN:
-                result = Boolean.valueOf(rowData);
+                result = Boolean.valueOf(rowData.trim());
                 break;
             case DATE:
                 result = DateUtil.dateToString((java.util.Date)column);
