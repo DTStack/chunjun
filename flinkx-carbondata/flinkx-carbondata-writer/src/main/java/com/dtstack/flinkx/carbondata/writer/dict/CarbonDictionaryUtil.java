@@ -31,7 +31,6 @@ import org.apache.carbondata.core.locks.LockUsage;
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.CarbonTableIdentifier;
 import org.apache.carbondata.core.metadata.ColumnIdentifier;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
@@ -43,14 +42,11 @@ import org.apache.carbondata.processing.loading.exception.NoRetryException;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,15 +60,6 @@ public class CarbonDictionaryUtil {
 
     private CarbonDictionaryUtil() {
         // hehe
-    }
-
-
-    public static void generateEmptyDictionaryIfNotExists(CarbonLoadModel carbonLoadModel) throws IOException {
-        String[] headers = carbonLoadModel.getCsvHeaderColumns();
-        String[] empty = new String[headers.length];
-        List<String[]> data = new ArrayList<>();
-        data.add(empty);
-        generateGlobalDictionary(carbonLoadModel, data);
     }
 
     /**
