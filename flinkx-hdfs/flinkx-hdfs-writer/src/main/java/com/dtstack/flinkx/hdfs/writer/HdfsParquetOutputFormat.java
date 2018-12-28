@@ -18,11 +18,14 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
@@ -35,11 +38,12 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.*;
 
 import java.io.IOException;
-import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The subclass of HdfsOutputFormat writing parquet files
@@ -53,11 +57,17 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     private ParquetWriter<Group> writer;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private Map<String, Map<String,Integer>> decimalColInfo;
+
+    private static final String KEY_PRECISION = "precision";
+
+    private static final String KEY_SCALE = "scale";
+
+    private static final int DEFAULT_PRECISION = 10;
+
+    private static final int DEFAULT_SCALE = 0;
 
     private static Calendar cal = Calendar.getInstance();
-
-    private static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
 
@@ -65,7 +75,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     static {
         try {
-            cal.setTime(sdf.parse("1970-01-01"));
+            cal.setTime(DateUtil.getDateFormatter().parse("1970-01-01"));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -94,7 +104,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         try {
             for (; i < fullColumnNames.size(); i++) {
                 String colName = fullColumnNames.get(i);
-                String colType = fullColumnTypes.get(i).toLowerCase();
+                String colType = fullColumnTypes.get(i);
+                colType = ColumnType.fromString(colType).name().toLowerCase();
 
                 Object valObj = row.getField(colIndices[i]);
                 if(colType.matches(DateUtil.DATE_REGEX)){
@@ -108,7 +119,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     if(valObj instanceof java.sql.Timestamp){
                         val = String.valueOf(((java.sql.Timestamp) valObj).getTime());
                     } else if(valObj instanceof Date){
-                        val = sdf.format((Date)valObj);
+                        val = DateUtil.getDateFormatter().format((Date)valObj);
                     } else {
                         val = String.valueOf(valObj);
                     }
@@ -134,7 +145,15 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         byte[] dst = timeToByteArray(val);
                         group.add(colName, Binary.fromConstantByteArray(dst));
                         break;
-                    case "decimal" : group.add(colName,val);break;
+                    case "decimal" :
+                        HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
+                        Map<String,Integer> decimalInfo = decimalColInfo.get(colName);
+                        if(decimalInfo != null){
+                            group.add(colName,decimalToBinary(hiveDecimal,decimalInfo.get(KEY_PRECISION),decimalInfo.get(KEY_SCALE)));
+                        } else {
+                            group.add(colName,decimalToBinary(hiveDecimal,DEFAULT_PRECISION,DEFAULT_SCALE));
+                        }
+                        break;
                     case "date" : group.add(colName,getDay(val));break;
                     default: group.add(colName,val);break;
                 }
@@ -142,11 +161,35 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
             writer.write(group);
         } catch (Exception e){
+            e.printStackTrace();
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
+    }
+
+    private Binary decimalToBinary(final HiveDecimal hiveDecimal, int prec,int scale) {
+        byte[] decimalBytes = hiveDecimal.setScale(scale).unscaledValue().toByteArray();
+
+        // Estimated number of bytes needed.
+        int precToBytes = ParquetHiveSerDe.PRECISION_TO_BYTE_COUNT[prec - 1];
+        if (precToBytes == decimalBytes.length) {
+            // No padding needed.
+            return Binary.fromByteArray(decimalBytes);
+        }
+
+        byte[] tgt = new byte[precToBytes];
+        if (hiveDecimal.signum() == -1) {
+            // For negative number, initializing bits to 1
+            for (int i = 0; i < precToBytes; i++) {
+                tgt[i] |= 0xFF;
+            }
+        }
+
+        // Padding leading zeroes/ones.
+        System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
+        return Binary.fromByteArray(tgt);
     }
 
     @Override
@@ -162,6 +205,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     private MessageType buildSchema(){
+        decimalColInfo = new HashMap<>();
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNames.size(); i++) {
             String name = fullColumnNames.get(i);
@@ -169,28 +213,33 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             switch (colType){
                 case "tinyint" :
                 case "smallint" :
-                case "int" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT32).named(name);break;
-                case "bigint" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT64).named(name);break;
-                case "float" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);break;
-                case "double" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);break;
-                case "binary" :typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).named(name);break;
+                case "int" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).named(name);break;
+                case "bigint" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT64).named(name);break;
+                case "float" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FLOAT).named(name);break;
+                case "double" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(name);break;
+                case "binary" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);break;
                 case "char" :
                 case "varchar" :
-                case "string" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);break;
-                case "boolean" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);break;
-                case "timestamp" : typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT96).named(name);break;
-                case "date" :typeBuilder.required(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);break;
+                case "string" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(name);break;
+                case "boolean" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BOOLEAN).named(name);break;
+                case "timestamp" : typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT96).named(name);break;
+                case "date" :typeBuilder.optional(PrimitiveType.PrimitiveTypeName.INT32).as(OriginalType.DATE).named(name);break;
                 default:
                     if (colType.contains("decimal")){
                         int precision = Integer.parseInt(colType.substring(colType.indexOf("(") + 1,colType.indexOf(",")).trim());
                         int scale = Integer.parseInt(colType.substring(colType.indexOf(",") + 1,colType.indexOf(")")).trim());
-                        typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY)
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(precision)
                                 .scale(scale)
                                 .named(name);
+
+                        Map<String,Integer> decimalInfo = new HashMap<>();
+                        decimalInfo.put(KEY_PRECISION,precision);
+                        decimalInfo.put(KEY_SCALE,scale);
+                        decimalColInfo.put(name,decimalInfo);
                     } else {
-                        typeBuilder.required(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
                     }
                     break;
             }
@@ -204,7 +253,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         if(NumberUtils.isNumber(val)){
             dst = longToByteArray(Long.parseLong(val));
         } else {
-            Date date = sdf2.parse(val);
+            Date date = DateUtil.getDateTimeFormatter().parse(val);
             dst = longToByteArray(date.getTime());
         }
 
@@ -255,7 +304,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     private int getDay(String dateStr) throws Exception{
-        Date date = sdf.parse(dateStr);
+        Date date = DateUtil.getDateFormatter().parse(dateStr);
         return (int)((date.getTime() - cal.getTimeInMillis()) / (1000 * 60 * 60 * 24));
     }
 }

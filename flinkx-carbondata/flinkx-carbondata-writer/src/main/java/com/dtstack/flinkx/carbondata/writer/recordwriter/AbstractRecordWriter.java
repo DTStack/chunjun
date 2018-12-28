@@ -1,6 +1,8 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonDictionaryUtil;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -33,9 +35,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+import org.apache.carbondata.core.metadata.datatype.DataType;
 
 
-public abstract class AbstractRecordWriterAssemble {
+
+public abstract class AbstractRecordWriter {
 
     private static final int batchSize = 100;
 
@@ -43,20 +47,25 @@ public abstract class AbstractRecordWriterAssemble {
 
     protected List<CarbonLoadModel> carbonLoadModelList = new ArrayList<>();
 
-    protected List<RecordWriter> recordwriterList = new ArrayList<>();
+    protected List<RecordWriter> recordWriterList = new ArrayList<>();
 
     protected List<TaskAttemptContext> taskAttemptContextList = new ArrayList<>();
 
-    protected List<Integer> counterList = new ArrayList<>();
+    protected int[] counter = new int[1];
 
     protected List<String> fullColumnNames;
 
+    protected List<DataType> fullColumnTypes;
 
-    public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
+    protected List<String[]> data = new ArrayList<>();
+
+    protected boolean dictionaryCreated = false;
+
+    public AbstractRecordWriter(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }
 
-    protected abstract int getRecordWriterNumber(Object[] record);
+    protected abstract int getRecordWriterNumber(String[] record);
 
     protected TaskAttemptContext createTaskContext() {
         Random random = new Random();
@@ -68,36 +77,17 @@ public abstract class AbstractRecordWriterAssemble {
         return context;
     }
 
-    private void incCounter(int writerNo) {
-        counterList.set(writerNo, getCounter(writerNo) + 1);
-    }
-
-    private int getCounter(int writerNo) {
-        return counterList.get(writerNo);
-    }
-
-    private void clearCounter(int writerNo) {
-        counterList.set(writerNo, 0);
-    }
-
-    protected void write(Object[] record) throws IOException, InterruptedException {
-        int writerNo = getRecordWriterNumber(record);
-        ObjectArrayWritable writable = new ObjectArrayWritable();
-        writable.set(record);
-        recordwriterList.get(writerNo).write(NullWritable.get(), writable);
-//        incCounter(writerNo);
-//        if(getCounter(writerNo) == batchSize) {
-//            closeRecordWriter(writerNo);
-//            recordwriterList.set(writerNo, createRecordWriter(carbonLoadModelList.get(writerNo) ,taskAttemptContextList.get(writerNo)));
-//            clearCounter(writerNo);
-//        }
+    public void write(String[] record) throws IOException, InterruptedException {
+        data.add(record);
     }
 
     protected void closeRecordWriter(int writerNo) throws IOException, InterruptedException {
-        RecordWriter recordWriter = recordwriterList.get(writerNo);
+        RecordWriter recordWriter = recordWriterList.get(writerNo);
         if(recordWriter != null) {
             recordWriter.close(taskAttemptContextList.get(writerNo));
-            postCloseRecordWriter(writerNo);
+            if(counter[writerNo] != 0) {
+                postCloseRecordWriter(writerNo);
+            }
         }
     }
 
@@ -143,12 +133,30 @@ public abstract class AbstractRecordWriterAssemble {
     }
 
     public void close() throws IOException, InterruptedException {
-        for(int i = 0; i < recordwriterList.size(); ++i) {
+        CarbonDictionaryUtil.generateGlobalDictionary(carbonLoadModelList.get(0), data);
+
+        createRecordWriterList();
+
+        for(String[] record : data) {
+            int writerNo = getRecordWriterNumber(record);
+            ObjectArrayWritable writable = new ObjectArrayWritable();
+            writable.set(record);
+            recordWriterList.get(writerNo).write(NullWritable.get(), writable);
+            counter[writerNo]++;
+        }
+
+        data.clear();
+
+        for(int i = 0; i < recordWriterList.size(); ++i) {
             closeRecordWriter(i);
         }
     }
 
+    protected abstract void createRecordWriterList();
+
+
     protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context) throws IOException {
+
         CarbonTableOutputFormat.setLoadModel(context.getConfiguration(), model);
         CarbonTableOutputFormat.setCarbonTable(context.getConfiguration(), model.getCarbonDataLoadSchema().getCarbonTable());
         CarbonTableOutputFormat carbonTableOutputFormat = new CarbonTableOutputFormat();
@@ -165,12 +173,15 @@ public abstract class AbstractRecordWriterAssemble {
         carbonLoadModel.setSegmentId("");
 
         fullColumnNames = new ArrayList<>();
+        fullColumnTypes = new ArrayList<>();
 
         List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
         for(int i = 0; i < columnSchemas.size(); ++i) {
             ColumnSchema columnSchema = columnSchemas.get(i);
             if(!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
+                String type = columnSchema.getDataType().getName();
+                fullColumnTypes.add(CarbonTypeConverter.convertToConbonDataType(type));
             }
         }
 

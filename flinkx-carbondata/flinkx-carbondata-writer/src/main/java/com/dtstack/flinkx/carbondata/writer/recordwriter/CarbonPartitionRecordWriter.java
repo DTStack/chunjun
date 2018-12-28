@@ -1,6 +1,10 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.carbondata.core.metadata.datatype.DataType;
+import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.PartitionInfo;
 import org.apache.carbondata.core.metadata.schema.partition.PartitionType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -14,10 +18,13 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 
-public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAssemble {
+public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
 
     private int partitionColNumber;
 
@@ -25,24 +32,25 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
 
     private List<Integer> partitionIds;
 
-    public CarbonPartitionRecordWriterAssemble(CarbonTable carbonTable) {
+    private PartitionType partitionType;
+
+    private static ThreadLocal<SimpleDateFormat> dateFormat = ThreadLocal.withInitial(() -> {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return sdf;
+    });
+
+    public CarbonPartitionRecordWriter(CarbonTable carbonTable) {
         super(carbonTable);
         PartitionInfo partitionInfo = carbonTable.getPartitionInfo();
         partitionIds =  partitionInfo.getPartitionIds();
+        counter = new int[partitionIds.size()];
         for(Integer partitionId : partitionIds) {
             CarbonLoadModel carbonLoadModel = createCarbonLoadModel();
             carbonLoadModelList.add(carbonLoadModel);
             TaskAttemptContext context = createTaskContext();
             context.getConfiguration().set("carbon.outputformat.taskno", String.valueOf(partitionId));
             taskAttemptContextList.add(context);
-            counterList.add(new Integer(0));
-            RecordWriter recordWriter = null;
-            try {
-                recordWriter = createRecordWriter(carbonLoadModel, context);
-                recordwriterList.add(recordWriter);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
 
         List<ColumnSchema> columnSchemaList =  partitionInfo.getColumnSchemaList();
@@ -67,7 +75,7 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
             throw new RuntimeException("partition column not found in table schema");
         }
 
-        PartitionType partitionType = partitionInfo.getPartitionType();
+        partitionType = partitionInfo.getPartitionType();
         int partitionNum = partitionInfo.getNumPartitions();
         if(partitionType == PartitionType.HASH) {
             partitioner = new HashPartitioner(partitionNum);
@@ -81,10 +89,37 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
     }
 
     @Override
-    protected int getRecordWriterNumber(Object[] record) {
+    protected int getRecordWriterNumber(String[] record) {
         Object v = record[partitionColNumber];
+        DataType dataType = fullColumnTypes.get(partitionColNumber);
+        if(partitionType == PartitionType.RANGE) {
+            SimpleDateFormat format = null;
+            if(dataType == DataTypes.DATE) {
+                format = dateFormat.get();
+            } else if(dataType == DataTypes.TIMESTAMP) {
+                format = DateUtil.getDateTimeFormatter();
+            }
+            v = StringUtil.string2col((String)v, dataType.getName(), format);
+            if(v instanceof Date) {
+                Date date = (Date) v;
+                v = date.getTime();
+            }
+        }
         int partitionId = partitioner.getPartition(v);
         return partitionIds.indexOf(partitionId);
+    }
+
+    @Override
+    protected void createRecordWriterList() {
+        for(int i = 0; i < partitionIds.size(); ++i) {
+            RecordWriter recordWriter = null;
+            try {
+                recordWriter = createRecordWriter(carbonLoadModelList.get(i), taskAttemptContextList.get(i));
+                recordWriterList.add(recordWriter);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

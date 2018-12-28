@@ -73,6 +73,10 @@ public class JdbcDataReader extends DataReader {
 
     protected String splitKey;
 
+    protected String increColumn;
+
+    protected Long startLocation;
+
     protected int fetchSize;
 
     protected int queryTimeOut;
@@ -99,6 +103,12 @@ public class JdbcDataReader extends DataReader {
         fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
+        increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
+
+        String startLocationStr = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
+        if(startLocationStr != null){
+            startLocation = Long.parseLong(startLocationStr);
+        }
     }
 
     @Override
@@ -117,11 +127,19 @@ public class JdbcDataReader extends DataReader {
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setIncreCol(increColumn);
+        builder.setStartLocation(startLocation);
 
         boolean isSplitByKey = false;
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
             builder.setParameterValues(DBUtil.getParameterValues(numPartitions));
             isSplitByKey = true;
+        }
+
+        if(increColumn != null){
+            String increColType = getIncreColType();
+            where = DBUtil.buildWhereSql(databaseInterface,increColType,where,increColumn,startLocation);
+            builder.setIncreColType(increColType);
         }
 
         String query = DBUtil.getQuerySql(databaseInterface,table,metaColumns,splitKey,where,isSplitByKey);
@@ -131,63 +149,36 @@ public class JdbcDataReader extends DataReader {
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 
-
-    /**
-     * FIXME 不通过该方法获取表的字段属性
-     * 暂时保留
-     * @return
-     */
-    private RowTypeInfo getColumnTypes() {
-        List<String> columnNames = metaColumns.stream().map(MetaColumn::getName).collect(Collectors.toList());
-        String sql = databaseInterface.getSQLQueryColumnFields(columnNames, table);
-
-        try (Connection conn = getConnection()) {
-            Statement stmt = conn.createStatement();
-            ResultSetMetaData rsmd = stmt.executeQuery(sql).getMetaData();
-            int cnt = rsmd.getColumnCount();
-            TypeInformation[] typeInformations = new TypeInformation[cnt];
-            for(int i = 0; i < cnt; ++i) {
-                Class<?> clz = Class.forName(rsmd.getColumnClassName(i + 1));
-                if(clz == Timestamp.class) {
-                    clz = java.util.Date.class;
-                }
-                typeInformations[i] = BasicTypeInfo.getInfoFor(clz);
+    private String getIncreColType(){
+        boolean containsIncreCol = false;
+        for (MetaColumn metaColumn : metaColumns) {
+            if(metaColumn.getName().equals(increColumn)){
+                containsIncreCol = true;
+                break;
             }
-            return new RowTypeInfo(typeInformations);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         }
 
-    }
+        if (!containsIncreCol){
+            MetaColumn metaIncreCol = new MetaColumn();
+            metaIncreCol.setName(increColumn);
+            metaColumns.add(metaIncreCol);
+        }
 
-    protected RowTypeInfo getColumnTypesBySetting() {
-        try{
-            int cnt = columnTypes.length;
-            TypeInformation[] typeInformations = new TypeInformation[cnt];
-            for(int i = 0; i < cnt; ++i) {
-                Class<?> clz = Class.forName(columnTypes[i]);
-                if(clz == Timestamp.class || clz == Date.class || clz == Time.class || columnTypes[i].toUpperCase().contains("TIMESTAMP")) {
-                    clz = java.util.Date.class;
-                }
-                typeInformations[i] = BasicTypeInfo.getInfoFor(clz);
+        ClassUtil.forName(databaseInterface.getDriverClass(), getClass().getClassLoader());
+        DBUtil.analyzeTable(dbUrl,username,password,databaseInterface,table, metaColumns);
+
+        String type = null;
+        for (MetaColumn metaColumn : metaColumns) {
+            if(metaColumn.getName().equals(increColumn)){
+                type = metaColumn.getType();
+                break;
             }
-            return new RowTypeInfo(typeInformations);
-        }catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected Connection getConnection() {
-        try {
-            ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            connection = DBUtil.getConnection(dbUrl, username, password);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
 
-        return connection;
+        if(type == null){
+            throw new IllegalArgumentException("There is no " + increColumn +" field in the " + table +" table");
+        }
 
+        return type;
     }
 }

@@ -67,7 +67,7 @@ public class RedisOutputFormat extends RichOutputFormat {
 
     private Jedis jedis;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat();
+    private SimpleDateFormat sdf;
 
     private static final int CRITICAL_TIME = 60 * 60 * 24 * 30;
 
@@ -83,7 +83,7 @@ public class RedisOutputFormat extends RichOutputFormat {
 
         jedis = JedisUtil.getJedis(properties);
 
-        sdf.applyPattern(dateFormat);
+        sdf = new SimpleDateFormat(dateFormat);
     }
 
     @Override

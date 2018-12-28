@@ -22,6 +22,7 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,6 +49,12 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     @Override
     protected String makeValues(int nCols) {
         return "(" + StringUtils.repeat("?", ",", nCols) + ")";
+    }
+
+    @Override
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
+        String replaceValues = super.makeReplaceValues(column,fullColumn);
+        return "(select " + replaceValues + " from SYSIBM.SYSDUMMY1)";
     }
 
     @Override

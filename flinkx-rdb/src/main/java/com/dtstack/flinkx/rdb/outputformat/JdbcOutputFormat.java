@@ -20,15 +20,16 @@ package com.dtstack.flinkx.rdb.outputformat;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,8 +37,10 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -46,6 +49,8 @@ import java.util.*;
  * @author huyifan.zju@163.com
  */
 public class JdbcOutputFormat extends RichOutputFormat {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
     protected static final long serialVersionUID = 1L;
 
@@ -158,16 +163,21 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 }
             }
 
-            singleUpload = prepareSingleTemplates();
-            multipleUpload = prepareMultipleTemplates();
-
             if(fullColumnType == null) {
                 fullColumnType = analyzeTable();
             }
 
             for(String col : column) {
-                columnType.add(fullColumnType.get(fullColumn.indexOf(col)));
+                for (int i = 0; i < fullColumn.size(); i++) {
+                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                        columnType.add(fullColumnType.get(i));
+                        break;
+                    }
+                }
             }
+
+            singleUpload = prepareSingleTemplates();
+            multipleUpload = prepareMultipleTemplates();
 
             LOG.info("subtask[" + taskNumber + "] wait finished");
         } catch (SQLException sqe) {
@@ -177,10 +187,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
-
+        Statement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            stmt = dbConn.createStatement();
+            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -193,6 +204,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            DBUtil.closeDBResources(rs,stmt,null);
         }
 
         return ret;
@@ -311,10 +324,32 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        if(taskNumber != 0) {
-            DBUtil.closeDBResources(null,null,dbConn);
+        if (taskNumber != 0) {
+            DBUtil.closeDBResources(null, singleUpload, dbConn);
+            DBUtil.closeDBResources(null, multipleUpload, null);
             dbConn = null;
         }
+
+        //FIXME TEST
+        //oracle
+        if (EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
+            String oracleTimeoutPollingThreadName = "OracleTimeoutPollingThread";
+            Thread thread = getThreadByName(oracleTimeoutPollingThreadName);
+            if(thread != null){
+                thread.interrupt();
+                LOG.warn("----close curr oracle polling thread: " + oracleTimeoutPollingThreadName);
+            }
+        }
+    }
+
+    public Thread getThreadByName(String name){
+        for(Thread t : Thread.getAllStackTraces().keySet()){
+            if(t.getName().equals(name)){
+                return t;
+            }
+        }
+
+        return null;
     }
 
     @Override

@@ -98,13 +98,15 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             row = new Row(metaColumns.size());
             for (int i = 0; i < metaColumns.size(); i++) {
                 MetaColumn metaColumn = metaColumns.get(i);
-                Object value;
-                if(metaColumn.getValue() != null){
-                    value = metaColumn.getValue();
-                } else if(metaColumn.getIndex() != null){
+
+                Object value = null;
+                if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
                     value = fields[metaColumn.getIndex()];
-                } else {
-                    value = null;
+                    if(value == null && metaColumn.getValue() != null){
+                        value = metaColumn.getValue();
+                    }
+                } else if(metaColumn.getValue() != null){
+                    value = metaColumn.getValue();
                 }
 
                 if(value != null){

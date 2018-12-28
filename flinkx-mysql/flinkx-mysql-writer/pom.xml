@@ -77,7 +77,7 @@
                                     <exclude>javax.xml.stream:stax-api</exclude>
                                     <exclude>javax.activation:activation</exclude>
                                     <exclude>org.apache.commons:commons-math3:</exclude>
-                                    <exclude>org.xerial.snappy:snappy-java</exclude>=
+                                    <exclude>org.xerial.snappy:snappy-java</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>org.javassist:*</exclude>
