@@ -102,11 +102,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int queryTimeOut;
 
-    protected StringAccumulator stringAccumulator;
+    protected StringAccumulator tableColAccumulator;
 
     protected LongMaximum endLocationAccumulator;
 
-    protected LongCounter startLocationAccumulator;
+    protected StringAccumulator startLocationAccumulator;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -122,9 +122,9 @@ public class JdbcInputFormat extends RichInputFormat {
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
 
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
-            stringAccumulator = new StringAccumulator();
-            stringAccumulator.add(table + "-" + increCol);
-            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,stringAccumulator);
+            tableColAccumulator = new StringAccumulator();
+            tableColAccumulator.add(table + "-" + increCol);
+            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
@@ -134,8 +134,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
         if (startLocation != null){
             endLocationAccumulator.add(startLocation);
-            startLocationAccumulator = getRuntimeContext().getLongCounter(Metrics.START_LOCATION);
-            startLocationAccumulator.add(startLocation);
+            if(!accumulatorMap.containsKey(Metrics.START_LOCATION)){
+                startLocationAccumulator = new StringAccumulator();
+                startLocationAccumulator.add(String.valueOf(startLocation));
+                getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
+            }
         }
 
         for (int i = 0; i < metaColumns.size(); i++) {
