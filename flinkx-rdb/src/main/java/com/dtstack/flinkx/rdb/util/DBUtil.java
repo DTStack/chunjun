@@ -326,42 +326,26 @@ public class DBUtil {
                     }
                 }
 
-                obj = clobToString(obj,dbType);
+                obj = clobToString(obj);
             }
 
             row.setField(pos, obj);
         }
     }
 
-    public static Object clobToString(Object obj,EDatabaseType dbType) throws Exception{
+    public static Object clobToString(Object obj) throws Exception{
         String dataStr;
-        if(EDatabaseType.DB2 == dbType){
-            if (obj instanceof com.ibm.db2.jcc.am.c2){
-                BufferedReader bf = new BufferedReader(((com.ibm.db2.jcc.am.c2)obj).getCharacterStream());
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bf.readLine()) != null){
-                    stringBuilder.append(line);
-                }
-                dataStr = stringBuilder.toString();
-            } else if(obj instanceof byte[]){
-                dataStr = new String((byte[]) obj);
-            } else {
-                return obj;
+        if(obj instanceof Clob){
+            Clob clob = (Clob)obj;
+            BufferedReader bf = new BufferedReader(clob.getCharacterStream());
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = bf.readLine()) != null){
+                stringBuilder.append(line);
             }
+            dataStr = stringBuilder.toString();
         } else {
-            if(obj instanceof Clob){
-                Clob clob = (Clob)obj;
-                BufferedReader bf = new BufferedReader(clob.getCharacterStream());
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bf.readLine()) != null){
-                    stringBuilder.append(line);
-                }
-                dataStr = stringBuilder.toString();
-            } else {
-                return obj;
-            }
+            return obj;
         }
 
         return dataStr;
