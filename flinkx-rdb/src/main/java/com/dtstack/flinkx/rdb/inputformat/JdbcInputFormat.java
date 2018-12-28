@@ -28,6 +28,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -118,12 +119,18 @@ public class JdbcInputFormat extends RichInputFormat {
     }
 
     private void setMetric(){
-        stringAccumulator = new StringAccumulator();
-        stringAccumulator.add(table + "-" + increCol);
-        getRuntimeContext().addAccumulator(Metrics.TABLE_COL,stringAccumulator);
+        Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
 
-        endLocationAccumulator = new LongMaximum();
-        getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+        if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
+            stringAccumulator = new StringAccumulator();
+            stringAccumulator.add(table + "-" + increCol);
+            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,stringAccumulator);
+        }
+
+        if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
+            endLocationAccumulator = new LongMaximum();
+            getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+        }
 
         if (startLocation != null){
             endLocationAccumulator.add(startLocation);
