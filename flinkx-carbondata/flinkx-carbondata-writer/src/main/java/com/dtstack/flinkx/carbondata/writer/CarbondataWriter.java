@@ -54,6 +54,7 @@ public class CarbondataWriter extends DataWriter {
 
     protected String partition;
 
+    protected int batchSize;
 
     public CarbondataWriter(DataTransferConfig config) {
         super(config);
@@ -66,6 +67,7 @@ public class CarbondataWriter extends DataWriter {
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
         defaultFS = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         partition = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_PARTITION);
+        batchSize = writerConfig.getParameter().getIntVal(CarbonConfigKeys.KEY_BATCH_SIZE, CarbonConfigKeys.DEFAULT_BATCH_SIZE);
     }
 
     @Override
@@ -85,6 +87,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setBatchSize(batchSize);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

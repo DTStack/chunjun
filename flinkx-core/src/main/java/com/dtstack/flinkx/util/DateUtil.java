@@ -21,9 +21,7 @@ package com.dtstack.flinkx.util;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Date Utilities
@@ -33,27 +31,17 @@ import java.util.TimeZone;
  */
 public class DateUtil {
 
-    static final String timeZone = "GMT+8";
+    private static final String TIME_ZONE = "GMT+8";
 
-    static final String datetimeFormat = "yyyy-MM-dd HH:mm:ss";
+    private static final String DATETIME_FORMAT = "datetimeFormatter";
 
-    static final String dateFormat = "yyyy-MM-dd";
+    private static final String DATE_FORMAT = "dateFormatter";
 
-    static final String timeFormat = "HH:mm:ss";
+    private static final String TIME_FORMAT = "timeFormatter";
 
-    static final String yearFormat = "yyyy";
+    private static final String YEAR_FORMAT = "yearFormatter";
 
-    static TimeZone timeZoner;
-
-    static SimpleDateFormat datetimeFormatter;
-
-    static SimpleDateFormat dateFormatter;
-
-    static SimpleDateFormat timeFormatter;
-
-    static SimpleDateFormat yearFormatter;
-
-    static String START_TIME = "1970-01-01";
+    private static final String START_TIME = "1970-01-01";
 
     public final static String DATE_REGEX = "(?i)date";
 
@@ -61,8 +49,31 @@ public class DateUtil {
 
     public final static String DATETIME_REGEX = "(?i)datetime";
 
-    private DateUtil() {}
+    public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
+            TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
 
+            Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
+
+            SimpleDateFormat datetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            datetimeFormatter.setTimeZone(timeZone);
+            formatterMap.put(DATETIME_FORMAT,datetimeFormatter);
+
+            SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+            dateFormatter.setTimeZone(timeZone);
+            formatterMap.put(DATE_FORMAT,dateFormatter);
+
+            SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+            timeFormatter.setTimeZone(timeZone);
+            formatterMap.put(TIME_FORMAT,timeFormatter);
+
+            SimpleDateFormat yearFormatter = new SimpleDateFormat("yyyy");
+            yearFormatter.setTimeZone(timeZone);
+            formatterMap.put(YEAR_FORMAT,yearFormatter);
+
+            return formatterMap;
+    });
+
+    private DateUtil() {}
 
     public static java.sql.Date columnToDate(Object column,SimpleDateFormat customTimeFormat) {
         if(column == null) {
@@ -130,7 +141,7 @@ public class DateUtil {
         } else if(data.length() < 10){
             try {
                 long day = Long.valueOf(data);
-                Date date = dateFormatter.parse(START_TIME);
+                Date date = datetimeFormatter.get().get(DATE_FORMAT).parse(START_TIME);
                 Calendar cal = Calendar.getInstance();
                 long addMill = date.getTime() + day * 24 * 3600 * 1000;
                 cal.setTimeInMillis(addMill);
@@ -154,22 +165,22 @@ public class DateUtil {
         }
 
         try {
-            return datetimeFormatter.parse(strDate);
+            return datetimeFormatter.get().get(DATETIME_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return dateFormatter.parse(strDate);
+            return datetimeFormatter.get().get(DATE_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return timeFormatter.parse(strDate);
+            return datetimeFormatter.get().get(TIME_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return yearFormatter.parse(strDate);
+            return datetimeFormatter.get().get(YEAR_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
@@ -177,37 +188,36 @@ public class DateUtil {
     }
 
     public static String dateToString(Date date) {
-        return dateFormatter.format(date);
+        return datetimeFormatter.get().get(DATE_FORMAT).format(date);
     }
 
     public static String timestampToString(Date date) {
-        return datetimeFormatter.format(date);
+        return datetimeFormatter.get().get(DATETIME_FORMAT).format(date);
     }
 
     public static String dateToYearString(Date date) {
-        return yearFormatter.format(date);
+        return datetimeFormatter.get().get(YEAR_FORMAT).format(date);
     }
 
-    public static SimpleDateFormat getDateFormatter(String timeFormat){
+    public static SimpleDateFormat getDateTimeFormatter(){
+        return datetimeFormatter.get().get(DATETIME_FORMAT);
+    }
+
+    public static SimpleDateFormat getDateFormatter(){
+        return datetimeFormatter.get().get(DATE_FORMAT);
+    }
+
+    public static SimpleDateFormat getTimeFormatter(){
+        return datetimeFormatter.get().get(TIME_FORMAT);
+    }
+
+    public static SimpleDateFormat getYearFormatter(){
+        return datetimeFormatter.get().get(YEAR_FORMAT);
+    }
+
+    public static SimpleDateFormat buildDateFormatter(String timeFormat){
         SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
-        sdf.setTimeZone(timeZoner);
+        sdf.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
         return sdf;
     }
-
-    static {
-        timeZoner = TimeZone.getTimeZone(timeZone);
-
-        datetimeFormatter = new SimpleDateFormat(datetimeFormat);
-        datetimeFormatter.setTimeZone(timeZoner);
-
-        dateFormatter = new SimpleDateFormat(dateFormat);
-        dateFormatter.setTimeZone(timeZoner);
-
-        timeFormatter =  new SimpleDateFormat(timeFormat);
-        timeFormatter.setTimeZone(timeZoner);
-
-        yearFormatter = new SimpleDateFormat(yearFormat);
-        yearFormatter.setTimeZone(timeZoner);
-    }
-
 }

@@ -21,6 +21,8 @@ package com.dtstack.flinkx.sqlserver;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -86,17 +88,95 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        if(updateKey == null || updateKey.isEmpty()) {
+            return getInsertStatement(column, table);
+        }
+
+        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeValues(column) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ");";
+    }
+
+    @Override
+    public String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey) {
+        if(updateKey == null || updateKey.isEmpty()) {
+            return getMultiInsertStatement(column, table, batchSize);
+        }
+
+        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeMultipleValues(column,batchSize) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ");";
+    }
+
+    @Override
+    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+        if(updateKey == null || updateKey.isEmpty()) {
+            return getInsertStatement(column, table);
+        }
+
+        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeReplaceValues(column,fullColumn) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getSqlServerUpdateSql(fullColumn, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ");";
+    }
+
+    @Override
     public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
         if(updateKey == null || updateKey.isEmpty()) {
             return getMultiInsertStatement(column, table, batchSize);
         }
 
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleValues(column, batchSize) + ") T2 ON ("
+        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeMultipleReplaceValues(column,fullColumn,batchSize) + ") T2 ON ("
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
+                + getSqlServerUpdateSql(fullColumn, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
                 + quoteColumns(column, "T2") + ");";
+    }
+
+    @Override
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
+        String replaceValues = super.makeReplaceValues(column,fullColumn);
+        return "(select " + replaceValues + ")";
+    }
+
+    private String getSqlServerUpdateSql(List<String> column,Map<String,List<String>> updateKey, String leftTable, String rightTable) {
+        List<String> pkCols = new ArrayList<>();
+        for(Map.Entry<String,List<String>> entry : updateKey.entrySet()) {
+            pkCols.addAll(entry.getValue());
+        }
+
+        String prefixLeft = StringUtils.isBlank(leftTable) ? "" : quoteTable(leftTable) + ".";
+        String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
+        List<String> list = new ArrayList<>();
+
+        boolean isPk = false;
+        for(String col : column) {
+            for (String pkCol : pkCols) {
+                if (pkCol.equalsIgnoreCase(col)){
+                    isPk = true;
+                    break;
+                }
+            }
+
+            if(isPk){
+                isPk = false;
+                continue;
+            }
+
+            list.add(prefixLeft + col + "=" + prefixRight + col);
+            isPk = false;
+        }
+        return StringUtils.join(list, ",");
     }
 
     @Override

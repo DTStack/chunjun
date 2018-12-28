@@ -38,4 +38,8 @@ public class JdbcConfigKeys {
 
     public static final String KEY_QUERY_TIME_OUT = "queryTimeOut";
 
+    public static final String KEY_INCRE_COLUMN = "increColumn";
+
+    public static final String KEY_START_LOCATION = "startLocation";
+
 }

@@ -17,33 +17,46 @@
  */
 
 
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 
+import org.apache.carbondata.core.cache.CacheProvider;
+import org.apache.carbondata.core.cache.dictionary.Dictionary;
+import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
+import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.locks.CarbonLockFactory;
+import org.apache.carbondata.core.locks.ICarbonLock;
+import org.apache.carbondata.core.locks.LockUsage;
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.CarbonTableIdentifier;
 import org.apache.carbondata.core.metadata.ColumnIdentifier;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
+import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.util.CarbonProperties;
+import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
+import org.apache.carbondata.processing.loading.exception.NoRetryException;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.carbondata.processing.util.CarbonLoaderUtil;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
  * A object which provide a method to generate global dictionary from CSV files.
  */
 public class CarbonDictionaryUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CarbonDictionaryUtil.class);
 
     private CarbonDictionaryUtil() {
         // hehe
@@ -55,43 +68,111 @@ public class CarbonDictionaryUtil {
      *
      * @param carbonLoadModel carbon load model
      */
-    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, Configuration hadoopConf) {
+    public static void generateGlobalDictionary(CarbonLoadModel carbonLoadModel, List<String[]> data) throws IOException {
+
         CarbonTable carbonTable = carbonLoadModel.getCarbonDataLoadSchema().getCarbonTable();
         CarbonTableIdentifier carbonTableIdentifier = carbonTable.getAbsoluteTableIdentifier().getCarbonTableIdentifier();
         String dictfolderPath = CarbonTablePath.getMetadataPath(carbonLoadModel.getTablePath());
         List<CarbonDimension> dimensionList = carbonTable.getDimensionByTableName(carbonTable.getTableName());
         CarbonDimension[] dimensions = dimensionList.toArray(new CarbonDimension[dimensionList.size()]);
         carbonLoadModel.initPredefDictMap();
-        String allDictionaryPath = carbonLoadModel.getAllDictPath();
+        String[] headers = carbonLoadModel.getCsvHeaderColumns();
+        Tuple2<CarbonDimension[],String[]> tuple2 = pruneDimensions(dimensions, headers,headers);
+        CarbonDimension[] requireDimension = tuple2.getField(0);
+        String[] requireColumnNames = tuple2.getField(1);
 
-        if (StringUtils.isEmpty(allDictionaryPath)) {
-            String[] headers = carbonLoadModel.getCsvHeaderColumns();
-            for(int i = 0; i < headers.length; ++i) {
-                headers[i] = headers[i].trim();
+        if(requireColumnNames == null || requireColumnNames.length == 0) {
+            LOG.info("no dictionary table");
+            return;
+        }
+        DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
+
+        int[] dictColIndices = new int[requireColumnNames.length];
+        for(int i = 0; i < dictColIndices.length; ++i) {
+            String dictColName = requireColumnNames[i];
+            int j = 0;
+            for(; j < headers.length; ++j) {
+                if(dictColName.equalsIgnoreCase(headers[j])) {
+                    break;
+                }
             }
-            String colDictFilePath = carbonLoadModel.getColDictFilePath();
-            if(colDictFilePath != null) {
-                generatePredefinedColDictionary(colDictFilePath, carbonTableIdentifier, dimensions, carbonLoadModel, dictfolderPath);
-            }
-
-            String[] headerOfInputData = headers;
-
-            Pair pair = pruneDimensions(dimensions, headers,headers);
-            List<CarbonDimension> requireDimension = pair.dimensions;
-            List<String> requireColumnNames = pair.columnNames;
-            if(!requireColumnNames.isEmpty()) {
-                //dict rdd
-                DictionaryLoadModel model = createDictionaryLoadModel(carbonLoadModel, carbonTableIdentifier, requireDimension, dictfolderPath, false);
+            if(j != headers.length) {
+                dictColIndices[i] = j;
+            } else {
+                throw new RuntimeException("dict column " + dictColName + " is not included in headers");
             }
         }
+
+        for(int i = 0; i < requireColumnNames.length; ++i) {
+            int dictColIdx = dictColIndices[i];
+            Set<String> distinctValues = data.stream().map(row -> row[dictColIdx]).collect(Collectors.toSet());
+            writeDictionary(distinctValues, model, i);
+        }
+
+        CacheProvider cacheProvider = CacheProvider.getInstance();
+        cacheProvider.dropAllCache();
+
     }
 
-    private static void generatePredefinedColDictionary(String colDictFilePath, CarbonTableIdentifier table, CarbonDimension[] dimensions, CarbonLoadModel carbonLoadModel, String dictFolderPath) {
-        new UnsupportedOperationException();
-    }
+    private static SegmentStatus writeDictionary(Set<String> valuesBuffer, DictionaryLoadModel model, int idx) throws IOException {
+        SegmentStatus status = SegmentStatus.SUCCESS;
+        boolean dictionaryForDistinctValueLookUpCleared = false;
+        DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier = new DictionaryColumnUniqueIdentifier(
+                model.getTable(),
+                model.getColumnIdentifier()[idx],
+                model.getColumnIdentifier()[idx].getDataType()
+        );
 
-    private static void loadInputDataAsDict(CarbonLoadModel carbonLoadModel) {
+        ICarbonLock dictLock = CarbonLockFactory.getCarbonLockObj(model.table, model.columnIdentifier[idx].getColumnId() + LockUsage.LOCK);
+        boolean isDictionaryLocked = false;
+        Dictionary dictionaryForDistinctValueLookUp = null;
 
+        try {
+            isDictionaryLocked = dictLock.lockWithRetries();
+            if(isDictionaryLocked) {
+                LOG.info("Successfully able to get the dictionary lock for " + model.primDimensions.get(idx).getColName());
+            } else {
+                LOG.error("Dictionary file ");
+                throw new RuntimeException();
+            }
+
+            FileFactory.FileType fileType = FileFactory.getFileType(model.getDictFilePaths()[idx]);
+            boolean isDictFileExists = FileFactory.isFileExist(model.getDictFilePaths()[idx], fileType);
+            if(isDictFileExists) {
+                dictionaryForDistinctValueLookUp = CarbonLoaderUtil.getDictionary(model.getTable(), model.getColumnIdentifier()[idx], model.primDimensions.get(idx).getDataType());
+            }
+
+            DictionaryWriterTask dictWriteTask = new DictionaryWriterTask(valuesBuffer, dictionaryForDistinctValueLookUp, dictionaryColumnUniqueIdentifier, model.primDimensions.get(idx).getColumnSchema(), isDictFileExists);
+            List<String> distinctValues = dictWriteTask.execute();
+
+            if(distinctValues.size() > 0) {
+                SortIndexWriterTask sortIndexWriteTask = new SortIndexWriterTask(dictionaryColumnUniqueIdentifier, model.primDimensions.get(idx).getDataType(), dictionaryForDistinctValueLookUp, distinctValues);
+                sortIndexWriteTask.execute();
+            }
+
+            dictWriteTask.updateMetaData();
+            valuesBuffer.clear();
+            CarbonUtil.clearDictionaryCache(dictionaryForDistinctValueLookUp);
+            dictionaryForDistinctValueLookUpCleared = true;
+        } catch (NoRetryException dictionaryException) {
+            LOG.error(dictionaryException.getMessage());
+            status = SegmentStatus.LOAD_FAILURE;
+        } catch (Exception ex) {
+            LOG.error(ex.getMessage());
+            throw ex;
+        } finally {
+            if (!dictionaryForDistinctValueLookUpCleared) {
+                CarbonUtil.clearDictionaryCache(dictionaryForDistinctValueLookUp);
+            }
+            if (dictLock != null && isDictionaryLocked) {
+                if (dictLock.unlock()) {
+                    LOG.info("Dictionary " + model.primDimensions.get(idx).getColName() + " unlocked unsuccessfully.");
+                }
+            } else {
+                LOG.error("Unable to unlock Dictionary " + model.primDimensions.get(idx).getColName());
+            }
+        }
+        return status;
     }
 
     /**
@@ -101,7 +182,7 @@ public class CarbonDictionaryUtil {
      * @param headers    column headers
      * @param columns    column list of csv file
      */
-    private static Pair pruneDimensions(CarbonDimension[] dimensions, String[] headers, String[] columns) {
+    public static Tuple2<CarbonDimension[],String[]> pruneDimensions(CarbonDimension[] dimensions, String[] headers, String[] columns) {
         List<CarbonDimension> dimensionBuffer = new ArrayList<>();
         List<String> columnNameBuffer = new ArrayList<>();
         List<CarbonDimension> dimensionsWithDict = new ArrayList<>();
@@ -119,7 +200,11 @@ public class CarbonDictionaryUtil {
                 }
             }
         }
-        return new Pair(dimensionBuffer, columnNameBuffer);
+        CarbonDimension[] dimensionArr = dimensionBuffer.toArray(new CarbonDimension[dimensionBuffer.size()]);
+        dimensionBuffer.toArray(new CarbonDimension[dimensionBuffer.size()]);
+        String[] columnNameArr = columnNameBuffer.toArray(new String[columnNameBuffer.size()]);
+
+        return new Tuple2<>(dimensionArr, columnNameArr);
     }
 
     private static boolean hasEncoding(CarbonDimension dimension, Encoding encoding, Encoding excludeEncoding) {
@@ -131,31 +216,18 @@ public class CarbonDictionaryUtil {
         }
     }
 
-
-    static class Pair {
-
-        List<CarbonDimension> dimensions;
-
-        List<String> columnNames;
-
-        public Pair(List<CarbonDimension> dimensions, List<String> columnNames) {
-            this.dimensions = dimensions;
-            this.columnNames = columnNames;
-        }
-    }
-
-    private static DictionaryLoadModel createDictionaryLoadModel(
+    public static DictionaryLoadModel createDictionaryLoadModel(
             CarbonLoadModel carbonLoadModel, CarbonTableIdentifier table,
-            List<CarbonDimension> dimensions, String dictFolderPath,
+            CarbonDimension[] dimensions, String dictFolderPath,
             boolean forPreDefDict) {
         List<CarbonDimension> primDimensionsBuffer = new ArrayList<>();
         List<Boolean> isComplexes = new ArrayList<>();
 
-        for(int i = 0; i < dimensions.size(); ++i) {
-            List<CarbonDimension> dims = getPrimDimensionWithDict(carbonLoadModel, dimensions.get(i), forPreDefDict);
+        for(int i = 0; i < dimensions.length; ++i) {
+            List<CarbonDimension> dims = getPrimDimensionWithDict(carbonLoadModel, dimensions[i], forPreDefDict);
             for(int j = 0; j < dims.size(); ++j) {
                 primDimensionsBuffer.add(dims.get(j));
-                isComplexes.add(dimensions.get(i).isComplex());
+                isComplexes.add(dimensions[i].isComplex());
             }
         }
 
@@ -206,6 +278,7 @@ public class CarbonDictionaryUtil {
         return dimensionsWithDict;
     }
 
+
     private static void gatherDimensionByEncoding(CarbonLoadModel carbonLoadModel, CarbonDimension dimension, Encoding encoding, Encoding excludeEncoding, final List<CarbonDimension> dimensionsWithEncoding, boolean forPreDefDict) {
         if(dimension.isComplex()) {
             List<CarbonDimension> children = dimension.getListOfChildDimensions();
@@ -224,42 +297,5 @@ public class CarbonDictionaryUtil {
             }
         }
     }
-
-
-    /**
-     * generate Dimension Parsers
-     *
-     * @param model
-     * @param distinctValuesList
-     * @return dimensionParsers
-     */
-    public static GenericParser[] createDimensionParsers(DictionaryLoadModel model, List<DistinctValue> distinctValuesList) {
-        // local combine set
-        int dimNum = model.dimensions.size();
-        int primDimNum = model.primDimensions.size();
-        HashSet<String>[] columnValues = new HashSet[primDimNum];
-        Map<String, HashSet<String>> mapColumnValuesWithId = new HashMap<>();
-        for(int i = 0; i < primDimNum; ++i) {
-            columnValues[i] = new HashSet();
-            distinctValuesList.add(new DistinctValue(i, columnValues[i]));
-            mapColumnValuesWithId.put(model.primDimensions.get(i).getColumnId(), columnValues[i]);
-        }
-        GenericParser[] dimensionParsers = new GenericParser[dimNum];
-        for(int j = 0; j < dimNum; ++j) {
-            dimensionParsers[j] = generateParserForDimension(model.dimensions.get(j), mapColumnValuesWithId);
-        }
-        return dimensionParsers;
-    }
-
-    private static GenericParser generateParserForDimension(CarbonDimension dimension, Map<String, HashSet<String>> mapColumnValuesWithId) {
-        if(dimension == null) {
-            return null;
-        } else if(DataTypes.isArrayType(dimension.getDataType()) || DataTypes.isStructType(dimension.getDataType())) {
-            throw new UnsupportedOperationException();
-        } else {
-            return new PrimitiveParser(dimension, mapColumnValuesWithId.get(dimension.getColumnId()));
-        }
-    }
-
 
 }

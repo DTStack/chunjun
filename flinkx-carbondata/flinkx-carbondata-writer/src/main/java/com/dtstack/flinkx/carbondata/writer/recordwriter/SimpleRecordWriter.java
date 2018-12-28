@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -8,27 +8,32 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import java.io.IOException;
 
 
-public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
+public class SimpleRecordWriter extends AbstractRecordWriter {
 
-    public SimpleRecordWriterAssemble(CarbonTable carbonTable) {
+    public SimpleRecordWriter(CarbonTable carbonTable) {
         super(carbonTable);
         CarbonLoadModel carbonLoadModel = createCarbonLoadModel();
         carbonLoadModelList.add(carbonLoadModel);
         TaskAttemptContext context = createTaskContext();
         taskAttemptContextList.add(context);
-        counterList.add(new Integer(0));
+
+    }
+
+    @Override
+    protected int getRecordWriterNumber(String[] record) {
+        return 0;
+    }
+
+    @Override
+    protected void createRecordWriterList() {
         RecordWriter recordWriter = null;
         try {
-            recordWriter = createRecordWriter(carbonLoadModel, context);
-            recordwriterList.add(recordWriter);
+            recordWriter = createRecordWriter(carbonLoadModelList.get(0), taskAttemptContextList.get(0));
+            recordWriterList.add(recordWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    protected int getRecordWriterNumber(Object[] record) {
-        return 0;
-    }
 
 }

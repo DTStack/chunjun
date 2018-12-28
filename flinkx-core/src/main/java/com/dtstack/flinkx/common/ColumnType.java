@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.common;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Define standard column type for all the readers or writers that do not
  * have special types of their own
@@ -26,12 +29,16 @@ package com.dtstack.flinkx.common;
  * @author huyifan.zju@163.com
  */
 public enum ColumnType {
-    STRING, VARCHAR, CHAR,
+    STRING, VARCHAR, CHAR,NVARCHAR,
     INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,
     DOUBLE, FLOAT,
     BOOLEAN,
-    DATE, TIMESTAMP,
+    DATE, TIMESTAMP,TIME,
     DECIMAL,YEAR,BIT;
+
+    public static List<ColumnType> TIME_TYPE = Arrays.asList(
+            DATE,DATETIME,TIME,TIMESTAMP
+    );
 
     public static ColumnType fromString(String type) {
         if(type == null) {
@@ -46,6 +53,10 @@ public enum ColumnType {
     }
 
     public static ColumnType getType(String type){
+        if(type.toLowerCase().contains("timestamp")){
+            return TIMESTAMP;
+        }
+
         for (ColumnType value : ColumnType.values()) {
             if(type.equalsIgnoreCase(value.name())){
                 return value;
@@ -53,5 +64,9 @@ public enum ColumnType {
         }
 
         return ColumnType.STRING;
+    }
+
+    public static boolean isTimeType(String type){
+        return TIME_TYPE.contains(getType(type));
     }
 }

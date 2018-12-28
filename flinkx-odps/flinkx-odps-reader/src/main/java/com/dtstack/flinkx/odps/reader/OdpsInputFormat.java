@@ -170,14 +170,20 @@ public class OdpsInputFormat extends RichInputFormat {
             row = new Row(metaColumns.size());
             for (int i = 0; i < metaColumns.size(); i++) {
                 MetaColumn metaColumn = metaColumns.get(i);
-                Object val;
-                if(metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
-                } else {
+
+                Object val = null;
+                if(metaColumn.getName() != null){
                     val = record.get(metaColumn.getName());
+
+                    if(val == null && metaColumn.getValue() != null){
+                        val = metaColumn.getValue();
+                    }
+
                     if(val instanceof byte[]) {
                         val = new String((byte[]) val);
                     }
+                } else if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
                 }
 
                 if(val != null){

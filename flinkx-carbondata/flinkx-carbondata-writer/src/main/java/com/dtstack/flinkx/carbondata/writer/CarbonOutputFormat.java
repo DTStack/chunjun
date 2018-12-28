@@ -18,10 +18,13 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
@@ -37,6 +40,7 @@ import org.apache.hadoop.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,13 +71,17 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected String partition;
 
+    protected int batchSize;
+
+    private int numWrites = 0;
+
     private CarbonTable carbonTable;
 
-    private AbstractRecordWriterAssemble recordWriterAssemble;
+    private AbstractRecordWriter recordWriterAssemble;
 
     private List<String> fullColumnNames;
 
-    private List<String> fullColumnTypes;
+    private List<DataType> fullColumnTypes;
 
     private List<Integer> fullColumnIndices;
 
@@ -90,6 +98,12 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     private List<Integer> partitionColIndex = new ArrayList<>();
 
     private List<String> partitionColValue = new ArrayList<>();
+
+    private final SimpleDateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+    private final SimpleDateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private final String DEFAULT_SERIAL_NULL_FORMAT = "\\N";
 
 
     @Override
@@ -133,11 +147,12 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             partitionColValue.add(val);
         }
 
-
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        this.taskNumber = taskNumber;
+        this.numTasks = numTasks;
         if(StringUtils.isBlank(partition) && overwrite) {
             carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
         } else {
@@ -155,7 +170,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
         SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
 
-        recordWriterAssemble = RecordWriterAssembleFactory.getAssembleInstance(carbonTable, partition);
+        recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
 
     }
 
@@ -172,7 +187,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             ColumnSchema columnSchema = columnSchemas.get(i);
             if(!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
-                fullColumnTypes.add(columnSchema.getDataType().getName());
+                fullColumnTypes.add(columnSchema.getDataType());
             }
         }
 
@@ -186,18 +201,16 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         int i = 0;
         try {
-            Object[] record = new Object[fullColumnNames.size()];
+            String[] record = new String[fullColumnNames.size()];
             for(; i < fullColumnIndices.size(); ++i) {
                 int index = fullColumnIndices.get(i);
                 if(index == -1) {
-                    record[i] = "\\N";
+                    record[i] = DEFAULT_SERIAL_NULL_FORMAT;
                 } else {
                     Object column = row.getField(index);
-                    if(column == null) {
-                        record[i] = "\\N";
-                    } else {
-                        record[i] = StringUtil.col2string(column, fullColumnTypes.get(i));
-                    }
+                    String s = CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT);
+                    CarbonTypeConverter.checkStringType(s, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT, fullColumnTypes.get(i));
+                    record[i] = s;
                 }
             }
             if(isHivePartitioned) {
@@ -215,6 +228,16 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
+        numWrites++;
+        if(numWrites == batchSize) {
+            try {
+                closeInternal();
+                openInternal(taskNumber, numTasks);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            numWrites = 0;
+        }
     }
 
     @Override
@@ -225,9 +248,9 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(!isHivePartitioned) {
-            fs.delete(new Path(bakPath), true);
-        }
+//        if(!isHivePartitioned) {
+//            fs.delete(new Path(bakPath), true);
+//        }
     }
 
     @Override
@@ -280,7 +303,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
         }
     }
-
 
     @Override
     protected boolean needWaitAfterCloseInternal() {
