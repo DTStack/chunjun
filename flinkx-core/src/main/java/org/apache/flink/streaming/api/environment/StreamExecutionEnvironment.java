@@ -1592,7 +1592,7 @@ public abstract class StreamExecutionEnvironment {
      * executed.
      */
     public static StreamExecutionEnvironment getExecutionEnvironment() {
-        if (contextEnvironmentFactory != null) {
+        if (contextEnvironmentFactory.get() != null) {
             return contextEnvironmentFactory.get().createExecutionEnvironment();
         }
 
