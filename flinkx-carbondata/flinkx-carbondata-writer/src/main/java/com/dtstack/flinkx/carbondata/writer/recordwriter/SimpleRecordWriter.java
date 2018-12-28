@@ -8,9 +8,9 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import java.io.IOException;
 
 
-public class SimpleRecordWriterAssemble extends AbstractRecordWriterAssemble {
+public class SimpleRecordWriter extends AbstractRecordWriter {
 
-    public SimpleRecordWriterAssemble(CarbonTable carbonTable) {
+    public SimpleRecordWriter(CarbonTable carbonTable) {
         super(carbonTable);
         CarbonLoadModel carbonLoadModel = createCarbonLoadModel();
         carbonLoadModelList.add(carbonLoadModel);

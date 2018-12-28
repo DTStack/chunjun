@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
-import com.dtstack.flinkx.carbondata.writer.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonDictionaryUtil;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
@@ -34,12 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
+
 import org.apache.carbondata.core.metadata.datatype.DataType;
 
 
 
-public abstract class AbstractRecordWriterAssemble {
+public abstract class AbstractRecordWriter {
 
     private static final int batchSize = 100;
 
@@ -61,7 +61,7 @@ public abstract class AbstractRecordWriterAssemble {
 
     protected boolean dictionaryCreated = false;
 
-    public AbstractRecordWriterAssemble(CarbonTable carbonTable) {
+    public AbstractRecordWriter(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }
 

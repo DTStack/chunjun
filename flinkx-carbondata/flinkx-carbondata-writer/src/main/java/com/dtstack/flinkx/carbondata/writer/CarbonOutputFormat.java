@@ -18,8 +18,9 @@
 package com.dtstack.flinkx.carbondata.writer;
 
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
-import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
-import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterAssembleFactory;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
@@ -72,7 +73,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private CarbonTable carbonTable;
 
-    private AbstractRecordWriterAssemble recordWriterAssemble;
+    private AbstractRecordWriter recordWriterAssemble;
 
     private List<String> fullColumnNames;
 
@@ -164,7 +165,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
         TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
         SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
 
-        recordWriterAssemble = RecordWriterAssembleFactory.getAssembleInstance(carbonTable, partition);
+        recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
 
     }
 
