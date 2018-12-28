@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 
-public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAssemble {
+public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
 
     private int partitionColNumber;
 
@@ -40,7 +40,7 @@ public class CarbonPartitionRecordWriterAssemble extends AbstractRecordWriterAss
         return sdf;
     });
 
-    public CarbonPartitionRecordWriterAssemble(CarbonTable carbonTable) {
+    public CarbonPartitionRecordWriter(CarbonTable carbonTable) {
         super(carbonTable);
         PartitionInfo partitionInfo = carbonTable.getPartitionInfo();
         partitionIds =  partitionInfo.getPartitionIds();

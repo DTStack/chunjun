@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.carbondata.core.cache.Cache;
 import org.apache.carbondata.core.cache.CacheProvider;
 import org.apache.carbondata.core.cache.CacheType;

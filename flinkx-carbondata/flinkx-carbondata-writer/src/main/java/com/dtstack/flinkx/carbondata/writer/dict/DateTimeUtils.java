@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.carbondata.writer;
+package com.dtstack.flinkx.carbondata.writer.dict;
 
 import org.apache.flink.api.java.tuple.Tuple2;
 import java.sql.Date;

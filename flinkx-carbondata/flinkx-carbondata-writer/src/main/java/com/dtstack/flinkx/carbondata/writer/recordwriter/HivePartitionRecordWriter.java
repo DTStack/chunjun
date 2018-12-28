@@ -2,7 +2,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import com.dtstack.flinkx.carbondata.writer.TaskNumberGenerator;
-import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriterAssemble;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -12,6 +12,7 @@ import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.carbondata.processing.util.CarbonLoaderUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.RecordWriter;
@@ -25,9 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 
-public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssemble {
+public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
     private String partition;
 
@@ -40,9 +44,9 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
     private TaskAttemptContext context;
 
 
-    public HivePartitionRecordWriterAssemble(CarbonTable carbonTable, String partition) {
+    public HivePartitionRecordWriter(CarbonTable carbonTable, String partition) {
         super(carbonTable);
-        this.partition = partition;
+        this.partition = updatePartition(carbonTable, partition);
         writePath = carbonTable.getTablePath() + "/" + partition;
         carbonLoadModel = createCarbonLoadModel();
         carbonLoadModelList.add(carbonLoadModel);
@@ -65,6 +69,15 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
     }
 
 
+    private String updatePartition(CarbonTable carbonTable, String partition) {
+        partition = trimPartition(partition);
+        Map<String,String> partitionSpec = generatePartitionSpec(partition);
+        partitionSpec = CarbonTypeConverter.updatePartitions(partitionSpec, carbonTable);
+        List<String> groupList = partitionSpec.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.toList());
+        return StringUtils.join(groupList, "/");
+    }
+
+
     private List<String> generatePartitionList() {
         partition = partition.trim();
         if(partition.startsWith("/")) {
@@ -75,6 +88,28 @@ public class HivePartitionRecordWriterAssemble extends AbstractRecordWriterAssem
         }
         String[] splits = partition.split("/");
         return Arrays.asList(splits);
+    }
+
+    private String trimPartition(String partition) {
+        partition = partition.trim();
+        if(partition.startsWith("/")) {
+            partition = partition.substring(1);
+        }
+        if(partition.endsWith("/")) {
+            partition = partition.substring(0, partition.length() - 1);
+        }
+        return partition;
+    }
+
+
+    private Map<String,String> generatePartitionSpec(String partition) {
+        Map<String,String> map = new HashMap<>();
+        String[] groups = partition.split("/");
+        for(String group : groups) {
+            String[] pair = group.split("=");
+            map.put(pair[0], pair[1]);
+        }
+        return map;
     }
 
 
