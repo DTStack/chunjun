@@ -71,6 +71,10 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     protected String partition;
 
+    protected int batchSize;
+
+    private int numWrites = 0;
+
     private CarbonTable carbonTable;
 
     private AbstractRecordWriter recordWriterAssemble;
@@ -143,11 +147,12 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             partitionColValue.add(val);
         }
 
-
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        this.taskNumber = taskNumber;
+        this.numTasks = numTasks;
         if(StringUtils.isBlank(partition) && overwrite) {
             carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
         } else {
@@ -223,6 +228,16 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
+        numWrites++;
+        if(numWrites == batchSize) {
+            try {
+                closeInternal();
+                openInternal(taskNumber, numTasks);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            numWrites = 0;
+        }
     }
 
     @Override
@@ -233,9 +248,9 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(!isHivePartitioned) {
-            fs.delete(new Path(bakPath), true);
-        }
+//        if(!isHivePartitioned) {
+//            fs.delete(new Path(bakPath), true);
+//        }
     }
 
     @Override

@@ -72,6 +72,10 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
         format.partition = partition;
     }
 
+    public void setBatchSize(int batchSize) {
+        format.batchSize = batchSize;
+    }
+
 
     @Override
     protected void checkFormat() {
