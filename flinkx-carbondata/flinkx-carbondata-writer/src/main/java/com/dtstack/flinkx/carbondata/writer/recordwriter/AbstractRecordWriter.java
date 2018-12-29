@@ -115,9 +115,7 @@ public abstract class AbstractRecordWriter {
 
         CarbonLoaderUtil.addDataIndexSizeIntoMetaEntry(metadataDetails, carbonLoadModel.getSegmentId(), carbonTable);
 
-        boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false,
-                false, "");
-
+        boolean done = CarbonLoaderUtil.recordNewLoadMetadata(metadataDetails, carbonLoadModel, false, false, "");
 
         if(!done) {
             throw new RuntimeException("Failed to recordNewLoadMetadata");

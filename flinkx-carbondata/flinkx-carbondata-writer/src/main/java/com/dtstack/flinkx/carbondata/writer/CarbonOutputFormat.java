@@ -27,6 +27,8 @@ import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
+import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
+import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
 import org.apache.carbondata.processing.loading.TableProcessingOperations;
 import org.apache.commons.lang3.StringUtils;
@@ -105,6 +107,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private final String DEFAULT_SERIAL_NULL_FORMAT = "\\N";
 
+    private final List<String> oldSegmentIds = new ArrayList<>();
+
 
     @Override
     public void configure(Configuration parameters) {
@@ -153,11 +157,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
-        if(StringUtils.isBlank(partition) && overwrite) {
-            carbonTable = CarbondataUtil.buildCarbonTable(database, table, bakPath);
-        } else {
-            carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
-        }
+
+        carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
 
         isHivePartitioned = carbonTable.isHivePartitionTable();
 
@@ -167,8 +168,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             parsePartition();
         }
 
-        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
-        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
+//        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
+//        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
 
         recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
 
@@ -248,45 +249,23 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void tryCleanupOnError() throws Exception {
-//        if(!isHivePartitioned) {
-//            fs.delete(new Path(bakPath), true);
-//        }
+        // try clean up on error
     }
 
     @Override
     protected boolean needWaitBeforeOpenInternal() {
-        return overwrite && StringUtils.isBlank(partition);
+        return overwrite;
     }
 
     @Override
     protected void beforeOpenInternal() {
-        if(taskNumber == 0) {
-            String schemaPath =  path + "/Metadata/schema";
-            InputStream in = null;
-            OutputStream out = null;
-            try {
-                if(fs.exists(new Path(bakPath))) {
-                    fs.delete(new Path(bakPath), true);
-                }
-                fs.mkdirs(new Path(bakPath));
-                out = fs.create(new Path(bakPath + "/Metadata/schema"));
-                in = fs.open(new Path(schemaPath));
-                IOUtils.copyBytes(in, out, 1024);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                if(in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                if(out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+        if(taskNumber == 0 && overwrite) {
+            String metaPath = path + SLASH + "/Metadata";
+            LoadMetadataDetails[] loadMetadataDetailsArr = SegmentStatusManager.readLoadMetadata(metaPath);
+            if(loadMetadataDetailsArr != null) {
+                for(LoadMetadataDetails loadMetadataDetails : loadMetadataDetailsArr) {
+                    if(loadMetadataDetails.getSegmentStatus() == SegmentStatus.SUCCESS) {
+                        oldSegmentIds.add(loadMetadataDetails.getLoadName());
                     }
                 }
             }
@@ -306,20 +285,26 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected boolean needWaitAfterCloseInternal() {
-        return overwrite && StringUtils.isBlank(partition);
+        return overwrite;
     }
 
     @Override
     protected void afterCloseInternal()  {
         if(taskNumber == 0 && overwrite) {
-            try {
-                fs.delete(new Path(path), true);
-                fs.rename(new Path(bakPath), new Path(path));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if(!oldSegmentIds.isEmpty()) {
+                String metaPath = path + SLASH + "/Metadata";
+                try {
+                    List<String> invalidLoadIds = SegmentStatusManager.updateDeletionStatus(carbonTable.getAbsoluteTableIdentifier(), oldSegmentIds, metaPath);
+                    if(invalidLoadIds.isEmpty()) {
+                        LOG.info("Delete segment by Id is successfull");
+                    } else {
+                        LOG.error("Delete segment by Id is failed");
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
-
 
 }
