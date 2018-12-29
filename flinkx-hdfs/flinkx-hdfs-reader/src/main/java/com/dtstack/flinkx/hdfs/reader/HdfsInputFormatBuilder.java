@@ -41,9 +41,9 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
             case "ORC":
                 format = new HdfsOrcInputFormat();
                 break;
-//            case "PARQUET":
-//                format = new HdfsParquetInputFormat();
-//                break;
+            case "PARQUET":
+                format = new HdfsParquetInputFormat();
+                break;
         }
         super.format = format;
     }
