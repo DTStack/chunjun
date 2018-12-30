@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.carbondata.writer;
 
+
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
@@ -30,18 +31,12 @@ import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
-import org.apache.carbondata.processing.loading.TableProcessingOperations;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
