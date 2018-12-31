@@ -22,6 +22,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 import com.dtstack.flinkx.carbondata.writer.TaskNumberGenerator;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.dict.ExternalCatalogUtils;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -72,7 +73,7 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
     public HivePartitionRecordWriter(CarbonTable carbonTable, String partition) {
         super(carbonTable);
         this.partition = updatePartition(carbonTable, partition);
-        writePath = carbonTable.getTablePath() + "/" + partition;
+        writePath = carbonTable.getTablePath() + "/" + this.partition;
         carbonLoadModel = createCarbonLoadModel();
         carbonLoadModelList.add(carbonLoadModel);
         context = createTaskContext();

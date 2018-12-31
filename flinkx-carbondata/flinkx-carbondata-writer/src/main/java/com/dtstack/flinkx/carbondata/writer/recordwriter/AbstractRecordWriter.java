@@ -152,6 +152,10 @@ public abstract class AbstractRecordWriter {
     }
 
     public void close() throws IOException, InterruptedException {
+        if(data.isEmpty()) {
+            return;
+        }
+
         CarbonDictionaryUtil.generateGlobalDictionary(carbonLoadModelList.get(0), data);
 
         createRecordWriterList();

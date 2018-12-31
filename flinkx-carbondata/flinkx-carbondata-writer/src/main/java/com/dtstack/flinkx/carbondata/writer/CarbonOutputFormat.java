@@ -35,7 +35,6 @@ import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.apache.hadoop.fs.FileSystem;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,10 +81,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<Integer> fullColumnIndices;
 
-    private String bakPath;
-
-    private FileSystem fs;
-
     private static final String SLASH = "/";
 
     private static final String ASSIGN = "=";
@@ -107,13 +102,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void configure(Configuration parameters) {
-        try {
-            CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
-            fs = FileSystem.get(FileFactory.getConfiguration());
-            bakPath = path + "_bak";
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
     }
 
     private void parsePartition(){

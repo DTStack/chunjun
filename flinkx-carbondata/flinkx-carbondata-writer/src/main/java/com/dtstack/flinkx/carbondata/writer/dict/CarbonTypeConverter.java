@@ -189,7 +189,7 @@ public class CarbonTypeConverter {
         CacheProvider cacheProvider = CacheProvider.getInstance();
         Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache = cacheProvider.createCache(CacheType.FORWARD_DICTIONARY);
         Map<String,String> map = new HashMap<>();
-        for (Map.Entry<String,String> entry : map.entrySet()) {
+        for (Map.Entry<String,String> entry : partitionSpec.entrySet()) {
             String col = entry.getKey();
             String pvalue = entry.getValue();
             String value = pvalue;
@@ -215,7 +215,13 @@ public class CarbonTypeConverter {
                 map.put(col, value);
             }
         }
-        return map;
+        Map<String,String> ret = new HashMap<>();
+        for(Map.Entry<String,String> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            ret.put(ExternalCatalogUtils.escapePathName(key), ExternalCatalogUtils.escapePathName(value));
+        }
+        return ret;
     }
 
     public static String convertToCarbonFormat(String value, CarbonColumn column, Cache<DictionaryColumnUniqueIdentifier,Dictionary> forwardDictionaryCache, CarbonTable table) throws IOException {
