@@ -54,36 +54,6 @@ public class CarbonTypeConverter {
 
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
 
-    public static DataType convertToConbonDataType(String type) {
-        type = type.toUpperCase();
-
-        switch (type) {
-            case "STRING":
-                return DataTypes.STRING;
-            case "DATE":
-                return DataTypes.DATE;
-            case "TIMESTAMP":
-                return DataTypes.TIMESTAMP;
-            case "BOOLEAN":
-                return DataTypes.BOOLEAN;
-            case "SMALLINT":
-            case "TINYINT":
-                return DataTypes.SHORT;
-            case "INT":
-                return DataTypes.INT;
-            case "FLOAT":
-                return DataTypes.FLOAT;
-            case "BIGINT":
-                return DataTypes.LONG;
-            case "DOUBLE":
-            case "NUMERIC":
-                return DataTypes.DOUBLE;
-            default:
-                throw new IllegalArgumentException("Unsupported DataType: " + type);
-        }
-    }
-
-
     public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) {
         return objectToString(value, serializationNullFormat, timeStampFormat, dateFormat, false);
     }
@@ -270,6 +240,33 @@ public class CarbonTypeConverter {
 
     }
 
-
+    public static Object string2col(String s, DataType dataType, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) throws ParseException {
+        if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
+            return null;
+        }
+        if (dataType == DataTypes.INT) {
+            return Integer.parseInt(s);
+        } else if (dataType == DataTypes.LONG) {
+            return Long.parseLong(s);
+        } else if (dataType == DataTypes.DATE) {
+            return dateFormat.parse(s);
+        } else if (dataType == DataTypes.TIMESTAMP) {
+            return timeStampFormat.parse(s);
+        } else if (dataType == DataTypes.SHORT || dataType == DataTypes.SHORT_INT) {
+            return Short.parseShort(s);
+        } else if (dataType == DataTypes.BOOLEAN) {
+            return Boolean.valueOf(s);
+        } else if (DataTypes.isDecimal(dataType)) {
+            return new BigDecimal(s);
+        } else if (dataType == DataTypes.FLOAT) {
+            return Float.valueOf(s);
+        } else if (dataType == DataTypes.DOUBLE) {
+            return Double.valueOf(s);
+        } else if (dataType == DataTypes.STRING || dataType == DataTypes.VARCHAR) {
+            return s;
+        } else {
+            throw new IllegalArgumentException("Unsupported data type: " + dataType);
+        }
+    }
 
 }

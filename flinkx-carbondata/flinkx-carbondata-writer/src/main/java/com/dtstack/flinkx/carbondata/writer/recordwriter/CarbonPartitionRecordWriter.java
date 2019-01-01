@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
@@ -36,6 +37,7 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -58,14 +60,24 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
 
     private PartitionType partitionType;
 
-    private static ThreadLocal<SimpleDateFormat> dateFormat = ThreadLocal.withInitial(() -> {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return sdf;
-    });
+    private static final String NULL_FORMAT = "\\N";
+
+    private SimpleDateFormat dateFormat;
+
+    private SimpleDateFormat timestampFormat;
+
+    private void initDateFormat() {
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        timestampFormat.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+    }
 
     public CarbonPartitionRecordWriter(CarbonTable carbonTable) {
         super(carbonTable);
+
+        initDateFormat();
+
         PartitionInfo partitionInfo = carbonTable.getPartitionInfo();
         partitionIds =  partitionInfo.getPartitionIds();
         counter = new int[partitionIds.size()];
@@ -116,18 +128,21 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
     protected int getRecordWriterNumber(String[] record) {
         Object v = record[partitionColNumber];
         DataType dataType = fullColumnTypes.get(partitionColNumber);
-        if(partitionType == PartitionType.RANGE) {
-            SimpleDateFormat format = null;
-            if(dataType == DataTypes.DATE) {
-                format = dateFormat.get();
-            } else if(dataType == DataTypes.TIMESTAMP) {
-                format = DateUtil.getDateTimeFormatter();
+        if(v != null && !v.equals(NULL_FORMAT)) {
+            try {
+                v = CarbonTypeConverter.string2col((String)v, dataType, NULL_FORMAT, timestampFormat, dateFormat);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
-            v = StringUtil.string2col((String)v, dataType.getName(), format);
             if(v instanceof Date) {
                 Date date = (Date) v;
                 v = date.getTime();
+            } else if(v instanceof String && partitioner instanceof RangePartitioner) {
+                String s = (String) v;
+                v = s.getBytes();
             }
+        } else {
+            v = null;
         }
         int partitionId = partitioner.getPartition(v);
         return partitionIds.indexOf(partitionId);

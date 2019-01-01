@@ -203,8 +203,7 @@ public abstract class AbstractRecordWriter {
             ColumnSchema columnSchema = columnSchemas.get(i);
             if(!columnSchema.isInvisible()) {
                 fullColumnNames.add(columnSchema.getColumnName());
-                String type = columnSchema.getDataType().getName();
-                fullColumnTypes.add(CarbonTypeConverter.convertToConbonDataType(type));
+                fullColumnTypes.add(columnSchema.getDataType());
             }
         }
 
