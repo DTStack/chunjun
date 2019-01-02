@@ -117,7 +117,7 @@ public class CarbonTypeConverter {
             }
 
         }
-        throw new IllegalArgumentException("Unsupported type for: " + value);
+        return value.toString();
     }
 
 
