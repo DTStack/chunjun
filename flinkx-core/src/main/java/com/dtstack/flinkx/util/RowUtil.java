@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
@@ -32,7 +33,7 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class RowUtil {
-    static Gson gson = new Gson();
+    static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     public static String rowToJson(Row row, String[] colName) {
         Preconditions.checkNotNull(colName);
