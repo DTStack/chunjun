@@ -116,7 +116,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
             singleSql = databaseInterface.getUpsertStatement(column, table, updateKey);
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Unknown write mode:" + mode);
         }
         return dbConn.prepareStatement(singleSql);
     }
