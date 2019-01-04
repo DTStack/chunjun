@@ -58,7 +58,7 @@ public class CarbonExpressUtil {
         // hehe
     }
 
-    public static Expression eval(String expr, List<String> columnNames, List<String> columnTypes) {
+    public static Expression eval(String expr, List<String> columnNames, List<DataType> columnTypes) {
         String left = null;
         String right = null;
         int i = 0;
@@ -89,8 +89,7 @@ public class CarbonExpressUtil {
             throw new RuntimeException("columns do not contain " + left);
         }
 
-        String columnType = columnTypes.get(leftIndex);
-        DataType dataType = getDataType(columnType);
+        DataType dataType = columnTypes.get(leftIndex);
         ColumnExpression columnExpression = new ColumnExpression(left, dataType);
         LiteralExpression literalExpression = new LiteralExpression(right, dataType);
 
@@ -108,41 +107,6 @@ public class CarbonExpressUtil {
         }
 
         return null;
-    }
-
-
-
-    private static DataType getDataType(String columnType) {
-        columnType = columnType.toLowerCase();
-        switch (columnType) {
-            case "string":
-                return DataTypes.STRING;
-            case "varchar":
-                return DataTypes.VARCHAR;
-            case "int":
-                return DataTypes.INT;
-            case "short":
-                return DataTypes.SHORT;
-            case "date":
-                return DataTypes.DATE;
-            case "double":
-                return DataTypes.DOUBLE;
-            case "timestamp":
-                return DataTypes.TIMESTAMP;
-        }
-        return null;
-    }
-
-    public static void main(String[] args) {
-        String stmt = " a = 1 ";
-        List<String> columnNames = new ArrayList<>();
-        columnNames.add("b");
-        columnNames.add("a");
-        List<String> columnTypes = new ArrayList<>();
-        columnTypes.add("string");
-        columnTypes.add("int");
-        Expression expr = eval(stmt, columnNames, columnTypes);
-        System.out.println(expr);
     }
 
 }

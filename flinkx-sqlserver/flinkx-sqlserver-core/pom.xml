@@ -13,18 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>net.sourceforge.jtds</groupId>
             <artifactId>jtds</artifactId>
             <version>1.3.1</version>

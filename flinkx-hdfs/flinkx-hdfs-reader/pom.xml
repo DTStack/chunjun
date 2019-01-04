@@ -88,7 +88,6 @@ under the License.
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

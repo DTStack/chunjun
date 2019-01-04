@@ -12,11 +12,6 @@
     <artifactId>flinkx-es-core</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
 
         <!--<dependency>-->
             <!--<groupId>org.elasticsearch.client</groupId>-->

@@ -17,4 +17,13 @@
         <module>flinkx-carbondata-reader</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-core</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
 </project>
