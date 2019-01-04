@@ -79,14 +79,7 @@ under the License.
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.apache.flink:flink-jdbc</exclude>
-                                    <!--from com.dtstack.flinkx:core-->
-                                    <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
-                                    <!--writer must exclude gson-->
                                     <exclude>com.google.code.gson:*</exclude>
-                                    <!--from org.apache.flink:*-->
-                                    <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
