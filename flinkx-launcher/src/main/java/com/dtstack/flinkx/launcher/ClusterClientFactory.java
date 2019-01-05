@@ -126,7 +126,7 @@ public class ClusterClientFactory {
                     throw new RuntimeException("No flink session found on yarn cluster.");
                 }
 
-                AbstractYarnClusterDescriptor clusterDescriptor = new LegacyYarnClusterDescriptor(config, yarnConf, ".", yarnClient, false);
+                AbstractYarnClusterDescriptor clusterDescriptor = new YarnClusterDescriptor(config, yarnConf, ".", yarnClient, false);
                 ClusterClient clusterClient = clusterDescriptor.retrieve(applicationId);
                 clusterClient.setDetached(true);
                 return clusterClient;
