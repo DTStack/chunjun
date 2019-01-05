@@ -257,7 +257,7 @@ public class OdpsUtil {
         tempResult[tempResult.length - 1]++;
 
         for (int i = 0; i < tempResult.length - 1; i++) {
-            result.add(ImmutablePair.of(tempResult[i], (tempResult[i + 1] - tempResult[i])));
+            result.add(ImmutablePair.of(tempResult[i], (tempResult[i + 1] - tempResult[0])));
         }
         return result;
     }

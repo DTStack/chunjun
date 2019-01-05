@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 
@@ -8,7 +26,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.carbondata.core.cache.Cache;
 import org.apache.carbondata.core.cache.CacheProvider;
 import org.apache.carbondata.core.cache.CacheType;
@@ -25,41 +42,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * Carbon Type Converter
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
+ */
 public class CarbonTypeConverter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CarbonTypeConverter.class);
 
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
-
-    public static DataType convertToConbonDataType(String type) {
-        type = type.toUpperCase();
-
-        switch (type) {
-            case "STRING":
-                return DataTypes.STRING;
-            case "DATE":
-                return DataTypes.DATE;
-            case "TIMESTAMP":
-                return DataTypes.TIMESTAMP;
-            case "BOOLEAN":
-                return DataTypes.BOOLEAN;
-            case "SMALLINT":
-            case "TINYINT":
-                return DataTypes.SHORT;
-            case "INT":
-                return DataTypes.INT;
-            case "FLOAT":
-                return DataTypes.FLOAT;
-            case "BIGINT":
-                return DataTypes.LONG;
-            case "DOUBLE":
-            case "NUMERIC":
-                return DataTypes.DOUBLE;
-            default:
-                throw new IllegalArgumentException("Unsupported DataType: " + type);
-        }
-    }
-
 
     public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) {
         return objectToString(value, serializationNullFormat, timeStampFormat, dateFormat, false);
@@ -124,7 +117,7 @@ public class CarbonTypeConverter {
             }
 
         }
-        throw new IllegalArgumentException("Unsupported type for: " + value);
+        return value.toString();
     }
 
 
@@ -166,7 +159,7 @@ public class CarbonTypeConverter {
         CacheProvider cacheProvider = CacheProvider.getInstance();
         Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache = cacheProvider.createCache(CacheType.FORWARD_DICTIONARY);
         Map<String,String> map = new HashMap<>();
-        for (Map.Entry<String,String> entry : map.entrySet()) {
+        for (Map.Entry<String,String> entry : partitionSpec.entrySet()) {
             String col = entry.getKey();
             String pvalue = entry.getValue();
             String value = pvalue;
@@ -192,7 +185,13 @@ public class CarbonTypeConverter {
                 map.put(col, value);
             }
         }
-        return map;
+        Map<String,String> ret = new HashMap<>();
+        for(Map.Entry<String,String> entry : map.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            ret.put(ExternalCatalogUtils.escapePathName(key), ExternalCatalogUtils.escapePathName(value));
+        }
+        return ret;
     }
 
     public static String convertToCarbonFormat(String value, CarbonColumn column, Cache<DictionaryColumnUniqueIdentifier,Dictionary> forwardDictionaryCache, CarbonTable table) throws IOException {
@@ -241,6 +240,33 @@ public class CarbonTypeConverter {
 
     }
 
-
+    public static Object string2col(String s, DataType dataType, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) throws ParseException {
+        if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
+            return null;
+        }
+        if (dataType == DataTypes.INT) {
+            return Integer.parseInt(s);
+        } else if (dataType == DataTypes.LONG) {
+            return Long.parseLong(s);
+        } else if (dataType == DataTypes.DATE) {
+            return dateFormat.parse(s);
+        } else if (dataType == DataTypes.TIMESTAMP) {
+            return timeStampFormat.parse(s);
+        } else if (dataType == DataTypes.SHORT || dataType == DataTypes.SHORT_INT) {
+            return Short.parseShort(s);
+        } else if (dataType == DataTypes.BOOLEAN) {
+            return Boolean.valueOf(s);
+        } else if (DataTypes.isDecimal(dataType)) {
+            return new BigDecimal(s);
+        } else if (dataType == DataTypes.FLOAT) {
+            return Float.valueOf(s);
+        } else if (dataType == DataTypes.DOUBLE) {
+            return Double.valueOf(s);
+        } else if (dataType == DataTypes.STRING || dataType == DataTypes.VARCHAR) {
+            return s;
+        } else {
+            throw new IllegalArgumentException("Unsupported data type: " + dataType);
+        }
+    }
 
 }
