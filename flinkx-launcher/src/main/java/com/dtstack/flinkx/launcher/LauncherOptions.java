@@ -42,11 +42,13 @@ public class LauncherOptions {
 
       private int parallelism = 1;
 
-    private int priority = 1;
+      private int priority = 1;
 
       private String queue;
 
       private String flinkLibJar;
+
+      private String confProp;
 
     public int getParallelism() {
         return parallelism;
@@ -134,5 +136,13 @@ public class LauncherOptions {
 
     public void setFlinkLibJar(String flinkLibJar) {
         this.flinkLibJar = flinkLibJar;
+    }
+
+    public String getConfProp() {
+        return confProp;
+    }
+
+    public void setConfProp(String confProp) {
+        this.confProp = confProp;
     }
 }

@@ -76,7 +76,22 @@ mvn clean package -Dmaven.test.skip
 	* 描述：Hadoop配置文件（包括hdfs和yarn）所在的目录（单机模式下不需要），如/hadoop/etc/hadoop
 	* 必选：否
 	* 默认值：无
-
+	
+ * **flinkLibJar**
+    * 描述：yarPer模式需要指定flink lib路径。
+    * 必选：是(yarPer)
+    * 默认值：无
+    
+  * **confProp**
+      * 描述：yarPer模式启动时相关参数设置。如果不设置则传入-confProp {}。
+      * 必选：是(yarPer)
+      * 默认值：无 
+      * 可选参数: 
+        * jobmanager.memory.mb: per_job模式下指定jobmanager的内存大小(单位MB, 默认值:768)
+        * taskmanager.memory.mb: per_job模式下指定taskmanager的内存大小(单位MB, 默认值:768)
+        * taskmanager.num: per_job模式下指定taskmanager的实例数(默认1)
+        * taskmanager.slots：per_job模式下指定每个taskmanager对应的slot数量(默认1)
+    
 #### 3.4.2 启动数据同步任务
 * **以本地模式启动数据同步任务**
 
@@ -89,12 +104,17 @@ bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task
 bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -plugin /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf
 ```
 
-* **以yarn模式启动数据同步任务**
+* **以yarnSession模式启动数据同步任务**
 
 ```
 bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -plugin /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop
 ```
 
+* **以yarn perjob模式启动数据同步任务**
+
+```
+sh flinkx.sh -mode yarnPer -job /opt/dtstack/tmp/sqlserver_sqlserver.txt -plugin /opt/dtstack/flinkx_171plugin -flinkconf /opt/dtstack/flink-1.7.1/conf -yarnconf /opt/dtstack/hadoop/etc/hadoop -confProp {"jobmanager\.memory\.mb":1276,"taskmanager.memory.mb":1276,"taskmanager.num":2,"taskmanager.slots":2} -flinkLibJar /opt/dtstack/flink-1.7.1/lib  
+```
 ## 4 数据同步任务模版
 
 从最高空俯视，一个数据同步的构成很简单，如下：

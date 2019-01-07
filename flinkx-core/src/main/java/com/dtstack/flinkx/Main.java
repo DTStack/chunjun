@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx;
 
+import com.dtstack.ClusterMode;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.reader.DataReader;
@@ -51,13 +52,16 @@ public class Main {
 
         // 解析命令行参数
         Options options = new Options();
+        options.addOption("mode", true, "Job run mode");
         options.addOption("job", true, "Job config.");
         options.addOption("jobid", true, "Job unique id.");
         options.addOption("monitor", true, "Monitor Addresses");
         options.addOption("pluginRoot", true, "plugin path root");
+
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
         String job = cl.getOptionValue("job");
+        String mode=cl.getOptionValue("mode");
         String jobIdString = cl.getOptionValue("jobid");
         String monitor = cl.getOptionValue("monitor");
         String pluginRoot = cl.getOptionValue("pluginRoot");
@@ -77,7 +81,7 @@ public class Main {
 
 
         //构造并执行flink任务
-        StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
+        StreamExecutionEnvironment env = !ClusterMode.local.name().equals(mode) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment();
 

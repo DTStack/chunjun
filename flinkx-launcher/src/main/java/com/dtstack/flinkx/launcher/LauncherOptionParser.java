@@ -50,6 +50,8 @@ public class LauncherOptionParser {
 
     public static final String OPTION_QUEUE ="queue";
 
+    public static final String OPTION_FLINK_CONF_PROP = "confProp";
+
     public static final String OPTION_FLINK_LIB_JAR = "flinkLibJar";
 
     private Options options = new Options();
@@ -66,7 +68,9 @@ public class LauncherOptionParser {
         options.addOption(OPTION_PLUGIN_ROOT, true, "FlinkX plugin root");
         options.addOption(OPTION_YARN_CONF_DIR, true, "Yarn and hadoop configuration directory");
         options.addOption(OPTION_QUEUE, true, "yarn job queue");
-        options.addOption(OPTION_FLINK_LIB_JAR, true, "flink lib jar path");
+        options.addOption(OPTION_FLINK_CONF_PROP, true, "flink perjob conf prop");
+        options.addOption(OPTION_FLINK_LIB_JAR, true, "flink lib jar");
+
         try {
             CommandLine cl = parser.parse(options, args);
 
@@ -97,8 +101,20 @@ public class LauncherOptionParser {
             if(StringUtils.isNotBlank(yarnConfDir)) {
                 launcherOptions.setYarnconf(yarnConfDir);
             }
+
             launcherOptions.setQueue(cl.getOptionValue(OPTION_QUEUE,"default"));
-            launcherOptions.setFlinkLibJar(cl.getOptionValue(OPTION_FLINK_LIB_JAR));
+
+            String libJar=cl.getOptionValue(OPTION_FLINK_LIB_JAR);
+            if(StringUtils.isNotBlank(yarnConfDir)) {
+                launcherOptions.setFlinkLibJar(libJar);
+            }
+
+            String confProp=cl.getOptionValue(OPTION_FLINK_CONF_PROP);
+            if (StringUtils.isNotBlank(confProp)){
+                launcherOptions.setConfProp(confProp);
+            }
+
+
         } catch (Exception e) {
             printUsage();
             throw new RuntimeException(e);
