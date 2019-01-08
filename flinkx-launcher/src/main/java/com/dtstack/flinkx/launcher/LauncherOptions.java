@@ -30,8 +30,6 @@ public class LauncherOptions {
 
       private String job;
 
-      private String monitor;
-
       private String jobid;
 
       private String flinkconf;
@@ -72,14 +70,6 @@ public class LauncherOptions {
 
     public void setJob(String job) {
         this.job = job;
-    }
-
-    public String getMonitor() {
-        return monitor;
-    }
-
-    public void setMonitor(String monitor) {
-        this.monitor = monitor;
     }
 
     public String getJobid() {
