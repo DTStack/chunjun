@@ -25,9 +25,6 @@ import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.writer.DataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -37,14 +34,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
-import org.apache.hadoop.yarn.client.api.YarnClient;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.exceptions.YarnException;
-
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -63,24 +52,24 @@ public class Main {
         options.addOption("mode", true, "Job run mode");
         options.addOption("job", true, "Job config.");
         options.addOption("jobid", true, "Job unique id.");
+        options.addOption("monitor", true, "Monitor Addresses");
         options.addOption("pluginRoot", true, "plugin path root");
-        options.addOption("yarnConf", true, "yarn conf string");
 
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
         String job = cl.getOptionValue("job");
         String mode=cl.getOptionValue("mode");
         String jobIdString = cl.getOptionValue("jobid");
+        String monitor = cl.getOptionValue("monitor");
         String pluginRoot = cl.getOptionValue("pluginRoot");
-        String yarnConfStr = cl.getOptionValue("yarnConf");
         Preconditions.checkNotNull(job, "Must provide --job argument");
         Preconditions.checkNotNull(jobIdString, "Must provide --jobid argument");
 
         // 解析jobPath指定的任务配置文件
         DataTransferConfig config = DataTransferConfig.parse(job);
 
-        if(yarnConfStr != null && yarnConfStr.length() > 0){
-            config.setMonitorUrls(getMonitorUrl(yarnConfStr,jobIdString,mode));
+        if(StringUtils.isNotEmpty(monitor)) {
+            config.setMonitorUrls(monitor);
         }
 
         if(StringUtils.isNotEmpty(pluginRoot)) {
@@ -115,38 +104,5 @@ public class Main {
 
         env.execute(jobIdString);
 
-    }
-
-    private static String getMonitorUrl(String yarnConfStr,String jobName,String mode) throws YarnException,IOException {
-        Configuration cfg = new Configuration();
-        JsonParser jsonParser = new JsonParser();
-        JsonObject jsonObject = jsonParser.parse(yarnConfStr).getAsJsonObject();
-        for (Map.Entry<String, JsonElement> keyVal : jsonObject.entrySet()) {
-            cfg.set(keyVal.getKey(),keyVal.getValue().getAsString());
-        }
-
-        YarnClient yarnClient = YarnClient.createYarnClient();
-        yarnClient.init(new YarnConfiguration(cfg));
-        yarnClient.start();
-
-        Set<String> set = new HashSet<>();
-        set.add("Apache Flink");
-        EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
-        enumSet.add(YarnApplicationState.RUNNING);
-
-        List<ApplicationReport> apps = yarnClient.getApplications(set,enumSet);
-        for (ApplicationReport app : apps) {
-            if(ClusterMode.yarnPer.name().equalsIgnoreCase(mode)){
-                if(app.getName().equals(jobName)){
-                    return app.getTrackingUrl();
-                }
-            } else if(ClusterMode.yarn.name().equalsIgnoreCase(mode)){
-                if(app.getName().startsWith("Flink session")){
-                    return app.getTrackingUrl();
-                }
-            }
-        }
-
-        return null;
     }
 }

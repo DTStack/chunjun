@@ -22,7 +22,6 @@ import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.launcher.perjob.PerJobSubmitter;
 import com.dtstack.flinkx.util.SysUtil;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
@@ -31,15 +30,12 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.util.Preconditions;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * FlinkX commandline Launcher
@@ -48,15 +44,6 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class Launcher {
-
-    private static List<String> yarnConfKeys = Arrays.asList(
-            "yarn.resourcemanager.address.rm1",
-            "yarn.resourcemanager.webapp.address.rm2",
-            "yarn.resourcemanager.webapp.address.rm1",
-            "yarn.resourcemanager.ha.rm-ids",
-            "yarn.resourcemanager.address.rm2",
-            "yarn.resourcemanager.ha.enabled"
-    );
 
     private static List<String> initFlinkxArgList(LauncherOptions launcherOptions) {
         List<String> argList = new ArrayList<>();
@@ -68,24 +55,7 @@ public class Launcher {
         argList.add(launcherOptions.getPlugin());
         argList.add("-mode");
         argList.add(launcherOptions.getMode());
-
-        if(launcherOptions.getYarnconf() != null && launcherOptions.getYarnconf().length() > 0){
-            argList.add("-yarnConf");
-            argList.add(getYarnConf(launcherOptions.getYarnconf()));
-        }
         return argList;
-    }
-
-    private static String getYarnConf(String yarnConfDir){
-        YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
-        JsonObject jsonObject = new JsonObject();
-        for (Map.Entry<String, String> keyVal : yarnConf) {
-            if(yarnConfKeys.contains(keyVal.getKey())){
-                jsonObject.addProperty(keyVal.getKey(),keyVal.getValue());
-            }
-        }
-
-        return jsonObject.toString();
     }
 
     private static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
@@ -129,6 +99,9 @@ public class Launcher {
 
             if (mode.equalsIgnoreCase(ClusterMode.yarn.name())){
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
+                String monitor = clusterClient.getWebInterfaceURL();
+                argList.add("-monitor");
+                argList.add(monitor);
 
                 String[] remoteArgs = argList.toArray(new String[argList.size()]);
                 PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
