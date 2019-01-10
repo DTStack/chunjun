@@ -360,28 +360,31 @@ public class DBUtil {
         String increFilter;
         String startTimeStr;
 
-        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer
-                && ColumnType.NVARCHAR.name().equals(increColType))){
-            Timestamp ts = new Timestamp(getMillis(startLocation));
-            ts.setNanos(getNanos(startLocation));
-            startTimeStr = getNanosTimeStr(ts.toString());
-
-            if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
-                startTimeStr = startTimeStr.substring(0,23);
-            } else {
-                startTimeStr = startTimeStr.substring(0,26);
-            }
-
-            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
-                startTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",startTimeStr);
-            } else {
-                startTimeStr = String.format("'%s'",startTimeStr);
-            }
-        } else {
+        if(ColumnType.isNumberType(increColType)){
             startTimeStr = String.valueOf(startLocation);
+            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+        } else {
+            if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
+                startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),startLocation);
+
+                if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                    startTimeStr = buildTimeFunc(startTimeStr,false);
+                } else {
+                    startTimeStr = String.format("'%s'",startTimeStr);
+                }
+
+                increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+            } else {
+                if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                    startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),startLocation);
+                    startTimeStr = buildTimeFunc(startTimeStr,false);
+                    increFilter = buildTimeFunc(databaseInterface.quoteColumn(increCol),true) + " > " + startTimeStr;
+                } else {
+                    throw new IllegalArgumentException("Currently only supports the string type field of the oracle database as an incremental field.");
+                }
+            }
         }
 
-        increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
         if (where == null || where.length() == 0){
             where = increFilter;
         } else {
@@ -389,6 +392,29 @@ public class DBUtil {
         }
 
         return where;
+    }
+
+    private static String buildTimeFunc(String str,boolean isCol){
+        if(isCol){
+            return String.format("TO_TIMESTAMP(%s,'YYYY-MM-DD HH24:MI:SS:FF6')",str);
+        } else {
+            return String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",str);
+        }
+    }
+
+    private static String getStartTimeStr(EDatabaseType databaseType,Long startLocation){
+        String startTimeStr;
+        Timestamp ts = new Timestamp(getMillis(startLocation));
+        ts.setNanos(getNanos(startLocation));
+        startTimeStr = getNanosTimeStr(ts.toString());
+
+        if(databaseType == EDatabaseType.SQLServer){
+            startTimeStr = startTimeStr.substring(0,23);
+        } else {
+            startTimeStr = startTimeStr.substring(0,26);
+        }
+
+        return startTimeStr;
     }
 
     public static String getNanosTimeStr(String timeStr){
