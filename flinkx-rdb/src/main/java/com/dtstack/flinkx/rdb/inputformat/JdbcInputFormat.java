@@ -30,7 +30,6 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -291,7 +290,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 return Long.parseLong(time + fillZeroStr + nanosStr);
             }
         } else {
-            Date date = DateUtil.stringToDate(increVal.toString(),dateStrFormat.get());
+            Date date = DateUtil.stringToDate(increVal.toString(),null);
             String fillZeroStr = StringUtils.repeat("0",6);
             long time = date.getTime();
             return Long.parseLong(time + fillZeroStr);
