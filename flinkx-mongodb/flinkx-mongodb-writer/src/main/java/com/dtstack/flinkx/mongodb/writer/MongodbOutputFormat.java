@@ -61,7 +61,7 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     protected String mode = WriteMode.INSERT.getMode();
 
-    private MongoCollection<Document> collection;
+    private transient MongoCollection<Document> collection;
 
     @Override
     public void configure(Configuration parameters) {

@@ -33,7 +33,9 @@ public class DateUtil {
 
     private static final String TIME_ZONE = "GMT+8";
 
-    private static final String DATETIME_FORMAT = "datetimeFormatter";
+    private static final String STANDARD_DATETIME_FORMAT = "standardDatetimeFormatter";
+
+    private static final String UN_STANDARD_DATETIME_FORMAT = "unStandardDatetimeFormatter";
 
     private static final String DATE_FORMAT = "dateFormatter";
 
@@ -54,9 +56,13 @@ public class DateUtil {
 
             Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
 
-            SimpleDateFormat datetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            datetimeFormatter.setTimeZone(timeZone);
-            formatterMap.put(DATETIME_FORMAT,datetimeFormatter);
+            SimpleDateFormat standardDatetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            standardDatetimeFormatter.setTimeZone(timeZone);
+            formatterMap.put(STANDARD_DATETIME_FORMAT,standardDatetimeFormatter);
+
+            SimpleDateFormat unStandardDatetimeFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+            unStandardDatetimeFormatter.setTimeZone(timeZone);
+            formatterMap.put(UN_STANDARD_DATETIME_FORMAT,unStandardDatetimeFormatter);
 
             SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
             dateFormatter.setTimeZone(timeZone);
@@ -165,7 +171,12 @@ public class DateUtil {
         }
 
         try {
-            return datetimeFormatter.get().get(DATETIME_FORMAT).parse(strDate);
+            return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT).parse(strDate);
+        } catch (ParseException ignored) {
+        }
+
+        try {
+            return datetimeFormatter.get().get(UN_STANDARD_DATETIME_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
@@ -192,7 +203,7 @@ public class DateUtil {
     }
 
     public static String timestampToString(Date date) {
-        return datetimeFormatter.get().get(DATETIME_FORMAT).format(date);
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT).format(date);
     }
 
     public static String dateToYearString(Date date) {
@@ -200,7 +211,7 @@ public class DateUtil {
     }
 
     public static SimpleDateFormat getDateTimeFormatter(){
-        return datetimeFormatter.get().get(DATETIME_FORMAT);
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT);
     }
 
     public static SimpleDateFormat getDateFormatter(){

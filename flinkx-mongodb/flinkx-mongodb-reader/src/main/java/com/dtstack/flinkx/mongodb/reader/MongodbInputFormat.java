@@ -62,9 +62,9 @@ public class MongodbInputFormat extends RichInputFormat {
 
     private Bson filter;
 
-    private MongoCollection<Document> collection;
+    private transient MongoCollection<Document> collection;
 
-    private MongoCursor<Document> cursor;
+    private transient MongoCursor<Document> cursor;
 
     @Override
     public void configure(Configuration parameters) {
