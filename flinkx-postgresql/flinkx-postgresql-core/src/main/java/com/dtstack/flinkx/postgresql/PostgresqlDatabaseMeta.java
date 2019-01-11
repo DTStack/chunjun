@@ -36,6 +36,13 @@ import java.util.Map;
 public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
+    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") values"
+                + makeMultipleValues(column.size(), batchSize);
+    }
+
+    @Override
     protected String makeMultipleValues(int nCols, int batchSize) {
         String value = makeValues(nCols);
         return StringUtils.repeat(value, ",", batchSize);
