@@ -19,6 +19,7 @@ package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.enums.ColType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
@@ -31,12 +32,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -265,10 +268,43 @@ public class JdbcOutputFormat extends RichOutputFormat {
             field = DateUtil.columnToTimestamp(field,null);
         }
 
+        if (type.equalsIgnoreCase(ColType.BIGINT.toString()) && field instanceof Timestamp){
+            field = ((Timestamp) field).getTime();
+        }
+
+        field=dealOracleTimestampToVarcharOrLong(databaseInterface.getDatabaseType(),field,type);
+
         if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
             field = typeConverter.convert(field,type);
         }
 
+        return field;
+    }
+
+    /**
+     * oracle timestamp to oracle varchar or varchar2 or long field format
+     * @param databaseType
+     * @param field
+     * @param type
+     * @return
+     */
+    private Object dealOracleTimestampToVarcharOrLong(EDatabaseType databaseType, Object field, String type) {
+        if (EDatabaseType.Oracle!=databaseInterface.getDatabaseType()){
+            return field;
+        }
+
+        if (!(field instanceof Timestamp)){
+            return field;
+        }
+
+        if (type.equalsIgnoreCase(ColType.VARCHAR.toString()) || type.equalsIgnoreCase(ColType.VARCHAR2.toString())){
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            field= format.format(field);
+        }
+
+        if (type.equalsIgnoreCase(ColType.LONG.toString()) ){
+            field = ((Timestamp) field).getTime();
+        }
         return field;
     }
 

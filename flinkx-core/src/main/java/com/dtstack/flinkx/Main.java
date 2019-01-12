@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx;
 
-import com.dtstack.ClusterMode;
+import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.reader.DataReader;
