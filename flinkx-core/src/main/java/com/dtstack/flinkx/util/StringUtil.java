@@ -136,6 +136,7 @@ public class StringUtil {
                 result = Short.valueOf(rowData.trim());
                 break;
             case INT:
+            case INTEGER:
                 result = Integer.valueOf(rowData.trim());
                 break;
             case BIGINT:
@@ -154,6 +155,7 @@ public class StringUtil {
             case STRING:
             case VARCHAR:
             case CHAR:
+            case TEXT:
                 result = rowData;
                 break;
             case BOOLEAN:
@@ -166,7 +168,7 @@ public class StringUtil {
                 result = DateUtil.timestampToString((java.util.Date)column);
                 break;
             default:
-                throw new IllegalArgumentException();
+                result = rowData;
         }
         return result.toString();
     }

@@ -38,8 +38,6 @@ public class LauncherOptionParser {
 
     public static final String OPTION_JOB = "job";
 
-    public static final String OPTION_MONITOR = "monitor";
-
     public static final String OPTION_JOB_ID = "jobid";
 
     public static final String OPTION_FLINK_CONF_DIR = "flinkconf";
@@ -62,7 +60,6 @@ public class LauncherOptionParser {
 
     public LauncherOptionParser(String[] args) {
         options.addOption(OPTION_MODE, true, "Running mode");
-        options.addOption(OPTION_MONITOR, true, "Monitor url of flink cluster");
         options.addOption(OPTION_JOB, true, "Job description json file");
         options.addOption(OPTION_FLINK_CONF_DIR, true, "Flink configuration directory");
         options.addOption(OPTION_PLUGIN_ROOT, true, "FlinkX plugin root");
@@ -105,7 +102,7 @@ public class LauncherOptionParser {
             launcherOptions.setQueue(cl.getOptionValue(OPTION_QUEUE,"default"));
 
             String libJar=cl.getOptionValue(OPTION_FLINK_LIB_JAR);
-            if(StringUtils.isNotBlank(yarnConfDir)) {
+            if(StringUtils.isNotBlank(libJar)) {
                 launcherOptions.setFlinkLibJar(libJar);
             }
 

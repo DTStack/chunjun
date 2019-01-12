@@ -17,6 +17,7 @@
 		"dirty": {
                 "path": "/tmp",
                 "hadoopConfig": {
+
                 }
             }
 	},

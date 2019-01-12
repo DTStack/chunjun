@@ -36,9 +36,7 @@ import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * The main class entry
@@ -49,7 +47,6 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-
         // 解析命令行参数
         Options options = new Options();
         options.addOption("mode", true, "Job run mode");
@@ -78,7 +75,6 @@ public class Main {
         if(StringUtils.isNotEmpty(pluginRoot)) {
             config.setPluginRoot(pluginRoot);
         }
-
 
         //构造并执行flink任务
         StreamExecutionEnvironment env = !ClusterMode.local.name().equals(mode) ?
@@ -109,5 +105,4 @@ public class Main {
         env.execute(jobIdString);
 
     }
-
 }

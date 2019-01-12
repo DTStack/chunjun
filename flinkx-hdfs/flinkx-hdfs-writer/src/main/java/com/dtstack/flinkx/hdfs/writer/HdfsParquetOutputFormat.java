@@ -21,7 +21,6 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -39,7 +38,7 @@ import org.apache.parquet.schema.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.ParseException;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -108,32 +107,36 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 colType = ColumnType.fromString(colType).name().toLowerCase();
 
                 Object valObj = row.getField(colIndices[i]);
-                if(colType.matches(DateUtil.DATE_REGEX)){
-                    valObj = DateUtil.columnToDate(valObj,null);
-                } else if(colType.matches(DateUtil.DATETIME_REGEX) || colType.matches(DateUtil.TIMESTAMP_REGEX)){
-                    valObj = DateUtil.columnToTimestamp(valObj,null);
-                }
 
-                String val = null;
-                if(valObj != null){
-                    if(valObj instanceof java.sql.Timestamp){
-                        val = String.valueOf(((java.sql.Timestamp) valObj).getTime());
-                    } else if(valObj instanceof Date){
-                        val = DateUtil.getDateFormatter().format((Date)valObj);
-                    } else {
-                        val = String.valueOf(valObj);
-                    }
-                }
-
-                if (val == null){
+                if(valObj == null){
                     continue;
                 }
+
+                String val = valObj.toString();
 
                 switch (colType){
                     case "tinyint" :
                     case "smallint" :
-                    case "int" : group.add(colName,Integer.parseInt(val));break;
-                    case "bigint" : group.add(colName,Long.parseLong(val));break;
+                    case "int" :
+                        if (valObj instanceof Timestamp){
+                            ((Timestamp) valObj).getTime();
+                            group.add(colName,(int)((Timestamp) valObj).getTime());
+                        } else if(valObj instanceof Date){
+                            group.add(colName,(int)((Date) valObj).getTime());
+                        } else {
+                            group.add(colName,Integer.parseInt(val));
+                        }
+                        break;
+                    case "bigint" :
+                        if (valObj instanceof Timestamp){
+                            ((Timestamp) valObj).getTime();
+                            group.add(colName,((Timestamp) valObj).getTime());
+                        } else if(valObj instanceof Date){
+                            group.add(colName,((Date) valObj).getTime());
+                        } else {
+                            group.add(colName,Long.parseLong(val));
+                        }
+                        break;
                     case "float" : group.add(colName,Float.parseFloat(val));break;
                     case "double" : group.add(colName,Double.parseDouble(val));break;
                     case "binary" :group.add(colName,Binary.fromString(val));break;
@@ -142,7 +145,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     case "string" : group.add(colName,val);break;
                     case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
                     case "timestamp" :
-                        byte[] dst = timeToByteArray(val);
+                        Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
+                        byte[] dst = longToByteArray(ts.getTime());
                         group.add(colName, Binary.fromConstantByteArray(dst));
                         break;
                     case "decimal" :
@@ -154,7 +158,9 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                             group.add(colName,decimalToBinary(hiveDecimal,DEFAULT_PRECISION,DEFAULT_SCALE));
                         }
                         break;
-                    case "date" : group.add(colName,getDay(val));break;
+                    case "date" :
+                        Date date = DateUtil.columnToDate(valObj,null);
+                        group.add(colName,getDay(date.toString()));break;
                     default: group.add(colName,val);break;
                 }
             }
@@ -246,18 +252,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         }
 
         return typeBuilder.named("Pair");
-    }
-
-    private static byte[] timeToByteArray(String val) throws ParseException {
-        byte[] dst;
-        if(NumberUtils.isNumber(val)){
-            dst = longToByteArray(Long.parseLong(val));
-        } else {
-            Date date = DateUtil.getDateTimeFormatter().parse(val);
-            dst = longToByteArray(date.getTime());
-        }
-
-        return dst;
     }
 
     private static byte[] longToByteArray(long data){

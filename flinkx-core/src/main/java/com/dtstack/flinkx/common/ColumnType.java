@@ -29,8 +29,8 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public enum ColumnType {
-    STRING, VARCHAR, CHAR,NVARCHAR,
-    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,
+    STRING, VARCHAR, CHAR,NVARCHAR,TEXT,KEYWORD,
+    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,INTEGER,
     DOUBLE, FLOAT,
     BOOLEAN,
     DATE, TIMESTAMP,TIME,
@@ -38,6 +38,10 @@ public enum ColumnType {
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(
             DATE,DATETIME,TIME,TIMESTAMP
+    );
+
+    public static List<ColumnType> NUMBER_TYPE = Arrays.asList(
+            INT,INTEGER,MEDIUMINT,TINYINT,SMALLINT, BIGINT,LONG,SHORT,DOUBLE, FLOAT,DECIMAL
     );
 
     public static ColumnType fromString(String type) {
@@ -68,5 +72,9 @@ public enum ColumnType {
 
     public static boolean isTimeType(String type){
         return TIME_TYPE.contains(getType(type));
+    }
+
+    public static boolean isNumberType(String type){
+        return NUMBER_TYPE.contains(getType(type));
     }
 }
