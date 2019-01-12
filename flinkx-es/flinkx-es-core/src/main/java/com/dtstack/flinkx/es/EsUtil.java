@@ -120,7 +120,7 @@ public class EsUtil {
     }
 
     public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) throws WriteRecordException {
-        Preconditions.checkArgument(row.getArity() == fields.size(),"The number of fields read does not match the number of fields specified");
+        Preconditions.checkArgument(row.getArity() == fields.size());
         Map<String,Object> jsonMap = new HashMap<>();
         int i = 0;
         try {

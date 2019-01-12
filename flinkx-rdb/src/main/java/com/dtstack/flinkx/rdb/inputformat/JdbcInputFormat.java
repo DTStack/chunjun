@@ -26,10 +26,10 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -40,7 +40,9 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
@@ -254,8 +256,13 @@ public class JdbcInputFormat extends RichInputFormat {
                     if(increVal != null){
                         endLocationAccumulator.add(getLocation(increVal));
                     }
-                } else {
+                } else if(ColumnType.isNumberType(increColType)){
                     endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
+                } else if(databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                    String increVal = resultSet.getString(increColIndex + 1);
+                    if(increVal != null){
+                        endLocationAccumulator.add(getLocation(increVal));
+                    }
                 }
             }
 
@@ -269,15 +276,22 @@ public class JdbcInputFormat extends RichInputFormat {
         }
     }
 
-    private long getLocation(Timestamp increVal){
-        long time = increVal.getTime() / 1000;
+    private long getLocation(Object increVal){
+        if(increVal instanceof Timestamp){
+            long time = ((Timestamp)increVal).getTime() / 1000;
 
-        String nanosStr = String.valueOf(increVal.getNanos());
-        if(nanosStr.length() == 9){
-            return Long.parseLong(time + nanosStr);
+            String nanosStr = String.valueOf(((Timestamp)increVal).getNanos());
+            if(nanosStr.length() == 9){
+                return Long.parseLong(time + nanosStr);
+            } else {
+                String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
+                return Long.parseLong(time + fillZeroStr + nanosStr);
+            }
         } else {
-            String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
-            return Long.parseLong(time + fillZeroStr + nanosStr);
+            Date date = DateUtil.stringToDate(increVal.toString(),null);
+            String fillZeroStr = StringUtils.repeat("0",6);
+            long time = date.getTime();
+            return Long.parseLong(time + fillZeroStr);
         }
     }
 

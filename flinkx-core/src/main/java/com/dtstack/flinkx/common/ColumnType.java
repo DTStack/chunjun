@@ -40,6 +40,10 @@ public enum ColumnType {
             DATE,DATETIME,TIME,TIMESTAMP
     );
 
+    public static List<ColumnType> NUMBER_TYPE = Arrays.asList(
+            INT,INTEGER,MEDIUMINT,TINYINT,SMALLINT, BIGINT,LONG,SHORT,DOUBLE, FLOAT,DECIMAL
+    );
+
     public static ColumnType fromString(String type) {
         if(type == null) {
             throw new RuntimeException("null ColumnType!");
@@ -68,5 +72,9 @@ public enum ColumnType {
 
     public static boolean isTimeType(String type){
         return TIME_TYPE.contains(getType(type));
+    }
+
+    public static boolean isNumberType(String type){
+        return NUMBER_TYPE.contains(getType(type));
     }
 }

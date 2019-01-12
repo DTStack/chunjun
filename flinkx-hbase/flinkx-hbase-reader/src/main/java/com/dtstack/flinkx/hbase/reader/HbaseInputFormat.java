@@ -227,6 +227,11 @@ public class HbaseInputFormat extends RichInputFormat {
         scan.setCaching(scanCacheSize);
         scan.setBatch(scanBatchSize);
         resultScanner = table.getScanner(scan);
+
+        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
+            this.byteRateLimiter.start();
+        }
     }
 
     @Override
