@@ -40,12 +40,11 @@ import java.util.Properties;
 
 public class PerJobSubmitter {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(PerJobSubmitter.class);
 
-    public static String submit(LauncherOptions launcherOptions, JobGraph jobGraph) throws Exception {
+    public static String submit(LauncherOptions launcherOptions, ClusterSpecification clusterSpecification) throws Exception {
         Properties confProperties = JsonUtils.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
-        ClusterSpecification clusterSpecification = FLinkPerJobResourceUtil.createClusterSpecification(confProperties);
+
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         perJobClusterClientBuilder.init(launcherOptions.getYarnconf());
 
@@ -53,9 +52,9 @@ public class PerJobSubmitter {
         String flinkJarPath = launcherOptions.getFlinkLibJar();
 
         AbstractYarnClusterDescriptor yarnClusterDescriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(confProperties, flinkJarPath, launcherOptions.getQueue());
-        ClusterClient<ApplicationId> clusterClient = yarnClusterDescriptor.deployJobCluster(clusterSpecification,jobGraph,true);
+        ClusterClient<ApplicationId> clusterClient = yarnClusterDescriptor.deployJobCluster(clusterSpecification,new JobGraph(),true);
         String applicationId = clusterClient.getClusterId().toString();
-        String flinkJobId = jobGraph.getJobID().toString();
+        String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
         String tips = String.format("deploy per_job with appId: %s, jobId: %s", applicationId, flinkJobId);
         System.out.println(tips);
         LOG.info(tips);

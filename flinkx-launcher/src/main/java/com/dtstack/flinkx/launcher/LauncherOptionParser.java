@@ -102,7 +102,7 @@ public class LauncherOptionParser {
             launcherOptions.setQueue(cl.getOptionValue(OPTION_QUEUE,"default"));
 
             String libJar=cl.getOptionValue(OPTION_FLINK_LIB_JAR);
-            if(StringUtils.isNotBlank(yarnConfDir)) {
+            if(StringUtils.isNotBlank(libJar)) {
                 launcherOptions.setFlinkLibJar(libJar);
             }
 
