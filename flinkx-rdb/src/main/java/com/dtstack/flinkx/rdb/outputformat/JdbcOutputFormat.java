@@ -298,7 +298,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         if (type.equalsIgnoreCase(ColType.VARCHAR.toString()) || type.equalsIgnoreCase(ColType.VARCHAR2.toString())){
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat format = DateUtil.getDateFormatter();
             field= format.format(field);
         }
 

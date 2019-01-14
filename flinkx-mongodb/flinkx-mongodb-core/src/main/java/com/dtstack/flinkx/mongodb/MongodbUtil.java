@@ -21,6 +21,7 @@ package com.dtstack.flinkx.mongodb;
 import com.dtstack.flinkx.enums.ColType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
@@ -146,7 +147,7 @@ public class MongodbUtil {
         }
 
         if (val instanceof Timestamp && !column.getType().equalsIgnoreCase(ColType.INTEGER.toString())){
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat format = DateUtil.getDateFormatter();
             val= format.format(val);
         }
 
