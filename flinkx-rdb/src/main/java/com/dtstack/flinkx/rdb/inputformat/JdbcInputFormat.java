@@ -260,10 +260,10 @@ public class JdbcInputFormat extends RichInputFormat {
                     }
                 } else if(ColumnType.isNumberType(increColType)){
                     endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
-                } else if(databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                } else {
                     String increVal = resultSet.getString(increColIndex + 1);
                     if(increVal != null){
-                        endLocationAccumulator.add(getLocation(increVal));
+                        endLocationAccumulator.add(Long.parseLong(increVal));
                     }
                 }
             }
