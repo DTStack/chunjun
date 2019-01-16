@@ -147,7 +147,7 @@ public class MongodbUtil {
         }
 
         if (val instanceof Timestamp && !column.getType().equalsIgnoreCase(ColType.INTEGER.toString())){
-            SimpleDateFormat format = DateUtil.getDateFormatter();
+            SimpleDateFormat format = DateUtil.getDateTimeFormatter();
             val= format.format(val);
         }
 
