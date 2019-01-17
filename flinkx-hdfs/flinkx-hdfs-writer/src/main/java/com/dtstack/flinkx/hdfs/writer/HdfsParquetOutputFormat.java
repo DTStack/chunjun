@@ -129,7 +129,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         break;
                     case "bigint" :
                         if (valObj instanceof Timestamp){
-                            ((Timestamp) valObj).getTime();
                             group.add(colName,((Timestamp) valObj).getTime());
                         } else if(valObj instanceof Date){
                             group.add(colName,((Date) valObj).getTime());
@@ -142,7 +141,14 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     case "binary" :group.add(colName,Binary.fromString(val));break;
                     case "char" :
                     case "varchar" :
-                    case "string" : group.add(colName,val);break;
+                    case "string" :
+                        if (valObj instanceof Timestamp){
+                            val=DateUtil.getDateTimeFormatter().format(valObj);
+                            group.add(colName,val);
+                        }else {
+                            group.add(colName,val);
+                        }
+                        break;
                     case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
                     case "timestamp" :
                         Timestamp ts = DateUtil.columnToTimestamp(valObj,null);

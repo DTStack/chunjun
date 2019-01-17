@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hbase.writer;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.Validate;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -30,6 +31,7 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -308,7 +310,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
                         longValue = ((Boolean) column).booleanValue() ? 1L : 0L;
                     } else if(column instanceof String) {
                         longValue = Long.valueOf((String) column);
-                    } else {
+                    }else if (column instanceof Timestamp){
+                        longValue = ((Timestamp) column).getTime();
+                    }else {
                         throw new RuntimeException("Can't convert from " + column.getClass() +  " to LONG");
                     }
                     bytes = Bytes.toBytes(longValue);
@@ -398,7 +402,13 @@ public class HbaseOutputFormat extends RichOutputFormat {
                     bytes = Bytes.toBytes(booleanValue);
                     break;
                 case STRING:
-                    String stringValue = String.valueOf(column);
+                    String stringValue;
+                    if (column instanceof Timestamp){
+                        SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                        stringValue = fm.format(column);
+                    }else {
+                        stringValue = String.valueOf(column);
+                    }
                     bytes = this.getValueByte(columnType, stringValue);
                     break;
                 default:

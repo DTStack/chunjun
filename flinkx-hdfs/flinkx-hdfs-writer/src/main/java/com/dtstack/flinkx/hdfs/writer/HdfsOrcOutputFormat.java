@@ -39,6 +39,8 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,6 +127,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                             recordList.add(Integer.valueOf(rowData));
                             break;
                         case BIGINT:
+                            if (column instanceof Timestamp){
+                                column=((Timestamp) column).getTime();
+                                recordList.add(column);
+                                break;
+                            }
                             BigInteger data = new BigInteger(rowData);
                             if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
                                 recordList.add(data);
@@ -146,7 +153,12 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                         case STRING:
                         case VARCHAR:
                         case CHAR:
-                            recordList.add(rowData);
+                            if (column instanceof Timestamp){
+                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                                recordList.add(fm.format(column));
+                            }else {
+                                recordList.add(rowData);
+                            }
                             break;
                         case BOOLEAN:
                             recordList.add(Boolean.valueOf(rowData));
