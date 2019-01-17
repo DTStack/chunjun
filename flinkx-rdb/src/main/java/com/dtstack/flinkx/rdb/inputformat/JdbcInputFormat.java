@@ -21,6 +21,8 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.EDatabaseType;
+import com.dtstack.flinkx.metric.MaximumMetric;
+import com.dtstack.flinkx.metric.StringMetric;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
@@ -30,7 +32,6 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -40,7 +41,6 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
@@ -96,7 +96,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected String increColType;
 
-    protected Long startLocation;
+    protected String startLocation;
 
     private int increColIndex;
 
@@ -104,11 +104,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int queryTimeOut;
 
-    protected StringAccumulator tableColAccumulator;
+    protected StringMetric tableColAccumulator;
 
-    protected LongMaximum endLocationAccumulator;
+    protected MaximumMetric endLocationAccumulator;
 
-    protected StringAccumulator startLocationAccumulator;
+    protected StringMetric startLocationAccumulator;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -124,22 +124,19 @@ public class JdbcInputFormat extends RichInputFormat {
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
 
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
-            tableColAccumulator = new StringAccumulator();
+            tableColAccumulator = StringMetric.build(Metrics.TABLE_COL,getRuntimeContext(),toPrometheus);
             tableColAccumulator.add(table + "-" + increCol);
-            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
-            endLocationAccumulator = new LongMaximum();
-            getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+            endLocationAccumulator = MaximumMetric.build(Metrics.END_LOCATION,getRuntimeContext(),toPrometheus);
         }
 
         if (startLocation != null){
             endLocationAccumulator.add(startLocation);
             if(!accumulatorMap.containsKey(Metrics.START_LOCATION)){
-                startLocationAccumulator = new StringAccumulator();
+                startLocationAccumulator = StringMetric.build(Metrics.START_LOCATION,getRuntimeContext(),toPrometheus);
                 startLocationAccumulator.add(String.valueOf(startLocation));
-                getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
             }
         }
 
@@ -254,14 +251,14 @@ public class JdbcInputFormat extends RichInputFormat {
                 if (ColumnType.isTimeType(increColType)){
                     Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
                     if(increVal != null){
-                        endLocationAccumulator.add(getLocation(increVal));
+                        endLocationAccumulator.add(String.valueOf(getLocation(increVal)));
                     }
                 } else if(ColumnType.isNumberType(increColType)){
-                    endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
+                    endLocationAccumulator.add(String.valueOf(resultSet.getLong(increColIndex + 1)));
                 } else if(databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
                     String increVal = resultSet.getString(increColIndex + 1);
                     if(increVal != null){
-                        endLocationAccumulator.add(getLocation(increVal));
+                        endLocationAccumulator.add(increVal);
                     }
                 }
             }

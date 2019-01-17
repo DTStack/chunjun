@@ -16,48 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.rdb.inputformat;
+package com.dtstack.flinkx.metric;
 
-import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.metrics.Gauge;
 
 /**
  * @author jiangbo
  * @explanation
- * @date 2018/12/21
+ * @date 2019/1/12
  */
-public class StringAccumulator implements Accumulator<String,String> {
+public class StringGauge implements Gauge<String> {
 
-    private String localValue;
+    private String value;
 
     @Override
-    public void add(String value) {
-        localValue = value;
+    public String getValue() {
+        return value;
     }
 
-    @Override
-    public String getLocalValue() {
-        return localValue;
-    }
-
-    @Override
-    public void resetLocal() {
-        localValue = null;
-    }
-
-    @Override
-    public Accumulator clone() {
-        StringAccumulator stringAccumulator = new StringAccumulator();
-        stringAccumulator.add(localValue);
-        return stringAccumulator;
-    }
-
-    @Override
-    public void merge(Accumulator other) {
-        // do nothing
-    }
-
-    @Override
-    public String toString() {
-        return "StringData " + this.localValue;
+    public void addValue(String value){
+        this.value = value;
     }
 }

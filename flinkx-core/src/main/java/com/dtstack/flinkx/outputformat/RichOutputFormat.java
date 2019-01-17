@@ -23,11 +23,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.metric.CounterMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.accumulators.IntCounter;
-import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
@@ -68,22 +67,22 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected List<Row> rows = new ArrayList();
 
     /** 总记录数 */
-    protected LongCounter numWriteCounter;
+    protected CounterMetric numWriteCounter;
 
     /** 错误记录数 */
-    protected IntCounter errCounter;
+    protected CounterMetric errCounter;
 
     /** Number of null pointer errors */
-    protected IntCounter nullErrCounter;
+    protected CounterMetric nullErrCounter;
 
     /** Number of primary key conflict errors */
-    protected IntCounter duplicateErrCounter;
+    protected CounterMetric duplicateErrCounter;
 
     /** Number of type conversion errors */
-    protected IntCounter conversionErrCounter;
+    protected CounterMetric conversionErrCounter;
 
     /** Number of other errors */
-    protected IntCounter otherErrCounter;
+    protected CounterMetric otherErrCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
@@ -110,6 +109,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected int numTasks;
 
     protected String jobId;
+
+    protected boolean toPrometheus;
 
     public DirtyDataManager getDirtyDataManager() {
         return dirtyDataManager;
@@ -164,14 +165,14 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         this.numTasks = numTasks;
 
         //错误记录数
-        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
-        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
-        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
-        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
-        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+        errCounter = CounterMetric.build(Metrics.NUM_ERRORS,getRuntimeContext(),toPrometheus);
+        nullErrCounter = CounterMetric.build(Metrics.NUM_NULL_ERRORS,getRuntimeContext(),toPrometheus);
+        duplicateErrCounter = CounterMetric.build(Metrics.NUM_DUPLICATE_ERRORS,getRuntimeContext(),toPrometheus);
+        conversionErrCounter = CounterMetric.build(Metrics.NUM_CONVERSION_ERRORS,getRuntimeContext(),toPrometheus);
+        otherErrCounter = CounterMetric.build(Metrics.NUM_OTHER_ERRORS,getRuntimeContext(),toPrometheus);
 
         //总记录数
-        numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        numWriteCounter = CounterMetric.build(Metrics.NUM_WRITES,getRuntimeContext(),toPrometheus);
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 
@@ -213,8 +214,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             latch.addOne();
             latch.waitUntil(numTasks);
         }
-
-
     }
 
     protected boolean needWaitBeforeOpenInternal() {
