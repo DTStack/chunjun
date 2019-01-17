@@ -352,7 +352,7 @@ public class DBUtil {
     }
 
     public static String buildWhereSql(DatabaseInterface databaseInterface,String increColType,String where,
-                                       String increCol,Long startLocation){
+                                       String increCol,String startLocation){
         if (startLocation == null){
             return where;
         }
@@ -361,7 +361,7 @@ public class DBUtil {
         String startTimeStr;
 
         if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
-            startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),startLocation);
+            startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(startLocation));
 
             if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
                 startTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",startTimeStr);
