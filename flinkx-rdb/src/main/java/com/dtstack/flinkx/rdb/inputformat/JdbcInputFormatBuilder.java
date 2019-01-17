@@ -92,7 +92,7 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.increCol = increCol;
     }
 
-    public void setStartLocation(Long startLocation){
+    public void setStartLocation(String startLocation){
         format.startLocation = startLocation;
     }
 

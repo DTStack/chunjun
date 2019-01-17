@@ -96,7 +96,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected String increColType;
 
-    protected Long startLocation;
+    protected String startLocation;
 
     private int increColIndex;
 
@@ -106,7 +106,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected StringAccumulator tableColAccumulator;
 
-    protected LongMaximum endLocationAccumulator;
+    protected MaximumAccumulator endLocationAccumulator;
 
     protected StringAccumulator startLocationAccumulator;
 
@@ -132,7 +132,7 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
-            endLocationAccumulator = new LongMaximum();
+            endLocationAccumulator = new MaximumAccumulator();
             getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
         }
 
@@ -140,7 +140,7 @@ public class JdbcInputFormat extends RichInputFormat {
             endLocationAccumulator.add(startLocation);
             if(!accumulatorMap.containsKey(Metrics.START_LOCATION)){
                 startLocationAccumulator = new StringAccumulator();
-                startLocationAccumulator.add(String.valueOf(startLocation));
+                startLocationAccumulator.add(startLocation);
                 getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
             }
         }
@@ -256,14 +256,14 @@ public class JdbcInputFormat extends RichInputFormat {
                 if (ColumnType.isTimeType(increColType)){
                     Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
                     if(increVal != null){
-                        endLocationAccumulator.add(getLocation(increVal));
+                        endLocationAccumulator.add(String.valueOf(getLocation(increVal)));
                     }
                 } else if(ColumnType.isNumberType(increColType)){
-                    endLocationAccumulator.add(resultSet.getLong(increColIndex + 1));
+                    endLocationAccumulator.add(String.valueOf(resultSet.getLong(increColIndex + 1)));
                 } else {
                     String increVal = resultSet.getString(increColIndex + 1);
                     if(increVal != null){
-                        endLocationAccumulator.add(Long.parseLong(increVal));
+                        endLocationAccumulator.add(increVal);
                     }
                 }
             }

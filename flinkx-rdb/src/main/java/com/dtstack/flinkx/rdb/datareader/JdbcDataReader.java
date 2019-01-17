@@ -75,7 +75,7 @@ public class JdbcDataReader extends DataReader {
 
     protected String increColumn;
 
-    protected Long startLocation;
+    protected String startLocation;
 
     protected int fetchSize;
 
@@ -104,11 +104,7 @@ public class JdbcDataReader extends DataReader {
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
-
-        String startLocationStr = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
-        if(startLocationStr != null){
-            startLocation = Long.parseLong(startLocationStr);
-        }
+        startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
     }
 
     @Override
