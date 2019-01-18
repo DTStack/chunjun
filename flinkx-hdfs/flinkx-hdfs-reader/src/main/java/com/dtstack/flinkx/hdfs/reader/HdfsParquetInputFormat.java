@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -37,9 +36,8 @@ import org.apache.parquet.schema.Type;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -231,33 +229,37 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         }
     }
 
-    private List<String> getAllPartitionPath(String tableLocation) throws IOException {
+    private List<String> getAllPartitionPath(List<String> tableLocation) throws IOException {
         FileSystem fs = null;
         List<String> pathList = Lists.newArrayList();
         try {
-            Path inputPath = new Path(tableLocation);
-            fs =  FileSystem.get(conf);
 
-            FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
-            if(fsStatus == null || fsStatus.length == 0){
-                pathList.add(tableLocation);
-                return pathList;
-            }
+            for (String location:tableLocation){
+                Path inputPath = new Path(location);
+                fs =  FileSystem.get(conf);
 
-            if(fsStatus[0].isDirectory()){
-                for(FileStatus status : fsStatus){
-                    pathList.addAll(getAllPartitionPath(status.getPath().toString()));
+                FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
+                if(fsStatus == null || fsStatus.length == 0){
+                    pathList.add(location);
+                    continue;
                 }
-                return pathList;
-            }else{
-                pathList.add(tableLocation);
-                return pathList;
+
+                if(fsStatus[0].isDirectory()){
+                    for(FileStatus status : fsStatus){
+                        pathList.addAll(getAllPartitionPath(Arrays.asList(status.getPath().toString())));
+                    }
+                    continue;
+                }else{
+                    pathList.add(location);
+                    continue;
+                }
             }
         } finally {
             if (fs != null){
                 fs.close();
             }
         }
+        return pathList;
     }
 
     private String getTypeName(String method){
