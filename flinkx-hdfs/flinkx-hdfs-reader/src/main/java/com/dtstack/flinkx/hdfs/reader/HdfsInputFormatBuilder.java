@@ -56,7 +56,7 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
         format.metaColumns = metaColumn;
     }
 
-    public void setInputPaths(String inputPaths) {
+    public void setInputPaths(List<String> inputPaths) {
         format.inputPath = inputPaths;
     }
 
