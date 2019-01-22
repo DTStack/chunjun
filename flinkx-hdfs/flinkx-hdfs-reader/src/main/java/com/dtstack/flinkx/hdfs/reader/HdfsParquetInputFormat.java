@@ -229,37 +229,33 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         }
     }
 
-    private List<String> getAllPartitionPath(List<String> tableLocation) throws IOException {
+    private List<String> getAllPartitionPath(String tableLocation) throws IOException {
         FileSystem fs = null;
         List<String> pathList = Lists.newArrayList();
         try {
+            Path inputPath = new Path(tableLocation);
+            fs =  FileSystem.get(conf);
 
-            for (String location:tableLocation){
-                Path inputPath = new Path(location);
-                fs =  FileSystem.get(conf);
+            FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
+            if(fsStatus == null || fsStatus.length == 0){
+                pathList.add(tableLocation);
+                return pathList;
+            }
 
-                FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
-                if(fsStatus == null || fsStatus.length == 0){
-                    pathList.add(location);
-                    continue;
+            if(fsStatus[0].isDirectory()){
+                for(FileStatus status : fsStatus){
+                    pathList.addAll(getAllPartitionPath(status.getPath().toString()));
                 }
-
-                if(fsStatus[0].isDirectory()){
-                    for(FileStatus status : fsStatus){
-                        pathList.addAll(getAllPartitionPath(Arrays.asList(status.getPath().toString())));
-                    }
-                    continue;
-                }else{
-                    pathList.add(location);
-                    continue;
-                }
+                return pathList;
+            }else{
+                pathList.add(tableLocation);
+                return pathList;
             }
         } finally {
             if (fs != null){
                 fs.close();
             }
         }
-        return pathList;
     }
 
     private String getTypeName(String method){

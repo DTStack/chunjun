@@ -54,9 +54,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        inputPath.forEach((path)->{
-            org.apache.hadoop.mapred.FileInputFormat.addInputPaths(conf, path);
-        });
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
         conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
         inputFormat.configure(conf);
@@ -143,7 +141,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             return this;
         }
 
-        public HdfsTextInputFormatBuilder setInputPaths(List<String> inputPaths) {
+        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
             format.inputPath = inputPaths;
             return this;
         }

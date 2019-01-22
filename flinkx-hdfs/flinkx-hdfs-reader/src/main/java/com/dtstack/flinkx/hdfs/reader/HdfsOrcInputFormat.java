@@ -66,39 +66,37 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
             readerOptions.filesystem(fs);
 
-
+            Path path = new Path(inputPath);
             String typeStruct = null;
-            for (String p:inputPath){
-                Path path = new Path(p);
-                if(fs.isDirectory(path)) {
-                    RemoteIterator<LocatedFileStatus> iterator = fs.listFiles(path, true);
-                    while(iterator.hasNext()) {
-                        FileStatus fileStatus = iterator.next();
-                        if(fileStatus.isFile() && fileStatus.getLen() > 49) {
-                            Path subPath = fileStatus.getPath();
-                            reader = OrcFile.createReader(subPath, readerOptions);
-                            typeStruct = reader.getObjectInspector().getTypeName();
-                            if(StringUtils.isNotEmpty(typeStruct)) {
-                                break;
-                            }
+
+            if(fs.isDirectory(path)) {
+                RemoteIterator<LocatedFileStatus> iterator = fs.listFiles(path, true);
+                while(iterator.hasNext()) {
+                    FileStatus fileStatus = iterator.next();
+                    if(fileStatus.isFile() && fileStatus.getLen() > 49) {
+                        Path subPath = fileStatus.getPath();
+                        reader = OrcFile.createReader(subPath, readerOptions);
+                        typeStruct = reader.getObjectInspector().getTypeName();
+                        if(StringUtils.isNotEmpty(typeStruct)) {
+                            break;
                         }
                     }
-
-                    if(reader == null) {
-                        //throw new RuntimeException("orcfile dir is empty!");
-                        LOG.error("orc file {} is empty!", inputPath);
-                        isFileEmpty = true;
-                        return;
-                    }
-
-                } else {
-                    reader = OrcFile.createReader(path, readerOptions);
-                    typeStruct = reader.getObjectInspector().getTypeName();
                 }
 
-                if (StringUtils.isEmpty(typeStruct)) {
-                    throw new RuntimeException("can't retrieve type struct from " + path);
+                if(reader == null) {
+                    //throw new RuntimeException("orcfile dir is empty!");
+                    LOG.error("orc file {} is empty!", inputPath);
+                    isFileEmpty = true;
+                    return;
                 }
+
+            } else {
+                reader = OrcFile.createReader(path, readerOptions);
+                typeStruct = reader.getObjectInspector().getTypeName();
+            }
+
+            if (StringUtils.isEmpty(typeStruct)) {
+                throw new RuntimeException("can't retrieve type struct from " + path);
             }
 
             int startIndex = typeStruct.indexOf("<") + 1;
@@ -136,11 +134,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     @Override
     public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
-
-        inputPath.forEach((path)->{
-            org.apache.hadoop.mapred.FileInputFormat.addInputPaths(conf, path);
-        });
-
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
         org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
 
         if(splits != null) {

@@ -28,8 +28,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +41,7 @@ public class HdfsReader extends DataReader {
     protected String type;
     protected String defaultFS;
     protected String fileType;
-    protected List<String> path;
+    protected String path;
     protected String fieldDelimiter;
     private List<MetaColumn> metaColumns;
     protected Map<String,String> hadoopConfig;
@@ -52,7 +50,7 @@ public class HdfsReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         defaultFS = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_DEFAULT_FS);
-        path = (List<String>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_PATH);
+        path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, String>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
 

@@ -40,7 +40,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
-    protected List<String> inputPath;
+    protected String inputPath;
 
     protected String defaultFS;
 
