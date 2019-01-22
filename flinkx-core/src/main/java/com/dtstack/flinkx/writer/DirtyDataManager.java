@@ -22,6 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.RowUtil;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
@@ -55,14 +56,13 @@ public class DirtyDataManager {
 
 
     private static List<String> PRIMARY_CONFLICT_KEYWORDS = new ArrayList<>();
-    private Gson gson = new Gson();
+    private Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     static {
         PRIMARY_CONFLICT_KEYWORDS.add("duplicate entry");
         PRIMARY_CONFLICT_KEYWORDS.add("unique constraint");
         PRIMARY_CONFLICT_KEYWORDS.add("primary key constraint");
     }
-
 
     public DirtyDataManager(String path, Map<String,String> configMap, String[] fieldNames) {
         this.fieldNames = fieldNames;
