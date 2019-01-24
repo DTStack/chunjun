@@ -65,8 +65,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected PreparedStatement multipleUpload;
 
-    protected int taskNumber;
-
     protected List<String> preSql;
 
     protected List<String> postSql;
@@ -356,9 +354,17 @@ public class JdbcOutputFormat extends RichOutputFormat {
     @Override
     public void closeInternal() {
         if (taskNumber != 0) {
-            DBUtil.closeDBResources(null, singleUpload, dbConn);
-            DBUtil.closeDBResources(null, multipleUpload, null);
-            dbConn = null;
+            try {
+                if (dbConn != null && !dbConn.isClosed()){
+                    dbConn.commit();
+                }
+            } catch (Exception e){
+                LOG.error("connection commit error:{}",e);
+            } finally {
+                DBUtil.closeDBResources(null, singleUpload, dbConn);
+                DBUtil.closeDBResources(null, multipleUpload, null);
+                dbConn = null;
+            }
         }
 
         //FIXME TEST
