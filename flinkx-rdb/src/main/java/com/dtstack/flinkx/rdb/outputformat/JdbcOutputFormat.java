@@ -200,7 +200,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
+            LOG.info("analyzeTable start close connect");
             DBUtil.closeDBResources(rs,stmt,null);
+            LOG.info("analyzeTable end close connect");
         }
 
         return ret;
@@ -353,18 +355,20 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        if (taskNumber != 0) {
-            try {
-                if (dbConn != null && !dbConn.isClosed()){
-                    dbConn.commit();
-                }
-            } catch (Exception e){
-                LOG.error("connection commit error:{}",e);
-            } finally {
-                DBUtil.closeDBResources(null, singleUpload, dbConn);
-                DBUtil.closeDBResources(null, multipleUpload, null);
-                dbConn = null;
+        try {
+            if (dbConn != null && !dbConn.isClosed()){
+                LOG.info("start commit connect");
+                dbConn.commit();
+                LOG.info("end commit connect");
             }
+        } catch (Exception e){
+            LOG.error("connection commit error:{}",e);
+        } finally {
+            LOG.info("start close connect");
+            DBUtil.closeDBResources(null, singleUpload, dbConn);
+            DBUtil.closeDBResources(null, multipleUpload, null);
+            dbConn = null;
+            LOG.info("end close connect");
         }
 
         //FIXME TEST
