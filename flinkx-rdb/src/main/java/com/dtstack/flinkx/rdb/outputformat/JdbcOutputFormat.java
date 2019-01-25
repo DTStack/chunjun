@@ -144,10 +144,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
 
-            if(batchInterval > 1 && databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-                dbConn.setAutoCommit(false);
-            }
-
             if(fullColumn == null || fullColumn.size() == 0) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
@@ -200,9 +196,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            LOG.info("analyzeTable start close connect");
             DBUtil.closeDBResources(rs,stmt,null);
-            LOG.info("analyzeTable end close connect");
         }
 
         return ret;
@@ -248,9 +242,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         upload.execute();
-        if(databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-            dbConn.commit();
-        }
     }
 
     protected Object getField(Row row, int index) {
@@ -355,21 +346,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        try {
-            if (dbConn != null && !dbConn.isClosed()){
-                LOG.info("start commit connect");
-                dbConn.commit();
-                LOG.info("end commit connect");
-            }
-        } catch (Exception e){
-            LOG.error("connection commit error:{}",e);
-        } finally {
-            LOG.info("start close connect");
-            DBUtil.closeDBResources(null, singleUpload, dbConn);
-            DBUtil.closeDBResources(null, multipleUpload, null);
-            dbConn = null;
-            LOG.info("end close connect");
-        }
+        DBUtil.closeDBResources(null, singleUpload, dbConn);
+        DBUtil.closeDBResources(null, multipleUpload, null);
+        dbConn = null;
 
         //FIXME TEST
         //oracle
