@@ -299,14 +299,6 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        try {
-            if(dbConn != null && !dbConn.isClosed()){
-                dbConn.commit();
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-
         DBUtil.closeDBResources(resultSet,statement,dbConn);
         parameterValues = null;
     }

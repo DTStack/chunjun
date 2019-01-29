@@ -200,6 +200,6 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public int getQueryTimeout(){
-        return 1000;
+        return 3000;
     }
 }

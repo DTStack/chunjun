@@ -104,9 +104,9 @@
 
 	* 描述：写入 Redis 时，Date 的时间格式：”yyyy-MM-dd HH:mm:ss”
 
-	* 必选：是
+	* 必选：否
 
-	* 默认值：无
+	* 默认值：将日期以long类型写入
 	
 * **writeMode**
 
