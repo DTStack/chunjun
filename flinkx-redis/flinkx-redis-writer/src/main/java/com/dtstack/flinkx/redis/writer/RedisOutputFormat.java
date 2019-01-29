@@ -83,7 +83,9 @@ public class RedisOutputFormat extends RichOutputFormat {
 
         jedis = JedisUtil.getJedis(properties);
 
-        sdf = new SimpleDateFormat(dateFormat);
+        if (StringUtils.isNotBlank(dateFormat)){
+            sdf = new SimpleDateFormat(dateFormat);
+        }
     }
 
     @Override
@@ -127,7 +129,11 @@ public class RedisOutputFormat extends RichOutputFormat {
     private void processTimeFormat(Row row){
         for (int i = 0; i < row.getArity(); i++) {
             if(row.getField(i) instanceof Date){
-                row.setField(i,sdf.format((Date)row.getField(i)));
+                if (StringUtils.isNotBlank(dateFormat)){
+                    row.setField(i,sdf.format((Date)row.getField(i)));
+                }else {
+                    row.setField(i,((Date)row.getField(i)).getTime());
+                }
             }
         }
     }

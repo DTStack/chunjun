@@ -18,8 +18,10 @@
 
 package com.dtstack.flinkx.mongodb;
 
+import com.dtstack.flinkx.enums.ColType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
@@ -32,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +130,7 @@ public class MongodbUtil {
         Document doc = new Document();
         for (int i = 0; i < columns.size(); i++) {
             MetaColumn column = columns.get(i);
-            Object val = convertField(row.getField(i));
+            Object val = convertField(row.getField(i),column);
             if (StringUtils.isNotEmpty(column.getSplitter())){
                 val = Arrays.asList(String.valueOf(val).split(column.getSplitter()));
             }
@@ -137,9 +141,14 @@ public class MongodbUtil {
         return doc;
     }
 
-    private static Object convertField(Object val){
+    private static Object convertField(Object val,MetaColumn column){
         if(val instanceof BigDecimal){
            val = ((BigDecimal) val).doubleValue();
+        }
+
+        if (val instanceof Timestamp && !column.getType().equalsIgnoreCase(ColType.INTEGER.toString())){
+            SimpleDateFormat format = DateUtil.getDateTimeFormatter();
+            val= format.format(val);
         }
 
         return val;

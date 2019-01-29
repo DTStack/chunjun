@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
+import com.dtstack.flinkx.enums.ColType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
@@ -31,12 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,8 +64,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected PreparedStatement singleUpload;
 
     protected PreparedStatement multipleUpload;
-
-    protected int taskNumber;
 
     protected List<String> preSql;
 
@@ -148,10 +143,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         try {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
-
-            if(batchInterval > 1 && databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-                dbConn.setAutoCommit(false);
-            }
 
             if(fullColumn == null || fullColumn.size() == 0) {
                 fullColumn = probeFullColumns(table, dbConn);
@@ -251,9 +242,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         upload.execute();
-        if(databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-            dbConn.commit();
-        }
     }
 
     protected Object getField(Row row, int index) {
@@ -265,10 +253,44 @@ public class JdbcOutputFormat extends RichOutputFormat {
             field = DateUtil.columnToTimestamp(field,null);
         }
 
+        if (type.equalsIgnoreCase(ColType.BIGINT.toString()) && field instanceof Timestamp){
+            field = ((Timestamp) field).getTime();
+        }
+
+        field=dealOracleTimestampToVarcharOrLong(databaseInterface.getDatabaseType(),field,type);
+
+
         if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
             field = typeConverter.convert(field,type);
         }
 
+        return field;
+    }
+
+    /**
+     * oracle timestamp to oracle varchar or varchar2 or long field format
+     * @param databaseType
+     * @param field
+     * @param type
+     * @return
+     */
+    private Object dealOracleTimestampToVarcharOrLong(EDatabaseType databaseType, Object field, String type) {
+        if (EDatabaseType.Oracle!=databaseInterface.getDatabaseType()){
+            return field;
+        }
+
+        if (!(field instanceof Timestamp)){
+            return field;
+        }
+
+        if (type.equalsIgnoreCase(ColType.VARCHAR.toString()) || type.equalsIgnoreCase(ColType.VARCHAR2.toString())){
+            SimpleDateFormat format = DateUtil.getDateTimeFormatter();
+            field= format.format(field);
+        }
+
+        if (type.equalsIgnoreCase(ColType.LONG.toString()) ){
+            field = ((Timestamp) field).getTime();
+        }
         return field;
     }
 
@@ -324,11 +346,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        if (taskNumber != 0) {
-            DBUtil.closeDBResources(null, singleUpload, dbConn);
-            DBUtil.closeDBResources(null, multipleUpload, null);
-            dbConn = null;
-        }
+        DBUtil.closeDBResources(null, singleUpload, dbConn);
+        DBUtil.closeDBResources(null, multipleUpload, null);
+        dbConn = null;
 
         //FIXME TEST
         //oracle

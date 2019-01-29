@@ -24,6 +24,7 @@ import org.apache.flink.types.Row;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -141,7 +142,11 @@ public class StringUtil {
                 break;
             case BIGINT:
             case LONG:
-                result = Long.valueOf(rowData.trim());
+                if (column instanceof Timestamp){
+                    result=((Timestamp) column).getTime();
+                }else {
+                    result = Long.valueOf(rowData.trim());
+                }
                 break;
             case FLOAT:
                 result = Float.valueOf(rowData.trim());
@@ -156,7 +161,11 @@ public class StringUtil {
             case VARCHAR:
             case CHAR:
             case TEXT:
-                result = rowData;
+                if (column instanceof Timestamp){
+                    result = DateUtil.timestampToString((java.util.Date)column);
+                }else {
+                    result = rowData;
+                }
                 break;
             case BOOLEAN:
                 result = Boolean.valueOf(rowData.trim());

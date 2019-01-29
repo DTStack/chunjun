@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -105,6 +107,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                             sb.append(Integer.valueOf(rowData));
                             break;
                         case BIGINT:
+                            if (column instanceof Timestamp){
+                                column=((Timestamp) column).getTime();
+                                sb.append(column);
+                                break;
+                            }
+
                             BigInteger data = new BigInteger(rowData);
                             if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
                                 sb.append(data);
@@ -124,7 +132,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                         case STRING:
                         case VARCHAR:
                         case CHAR:
-                            sb.append(rowData);
+                            if (column instanceof Timestamp){
+                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                                sb.append(fm.format(column));
+                            }else {
+                                sb.append(rowData);
+                            }
                             break;
                         case BOOLEAN:
                             sb.append(Boolean.valueOf(rowData));
