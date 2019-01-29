@@ -253,8 +253,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             field = DateUtil.columnToTimestamp(field,null);
         }
 
-        if (type.equalsIgnoreCase(ColType.BIGINT.toString()) && field instanceof Timestamp){
-            field = ((Timestamp) field).getTime();
+        if (type.equalsIgnoreCase(ColType.BIGINT.toString()) && field instanceof java.util.Date){
+            field = ((java.util.Date) field).getTime();
         }
 
         field=dealOracleTimestampToVarcharOrLong(databaseInterface.getDatabaseType(),field,type);
