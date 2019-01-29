@@ -29,14 +29,13 @@ import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +48,8 @@ import java.util.Map;
  * @author huyifan_zju@
  */
 public class DBUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DBUtil.class);
 
     private static int MAX_RETRY_TIMES = 3;
 
@@ -137,23 +138,46 @@ public class DBUtil {
                                         Connection conn) {
         if (null != rs) {
             try {
+                LOG.info("Start close resultSet");
                 rs.close();
-            } catch (SQLException unused) {
+                LOG.info("Close resultSet successful");
+            } catch (SQLException e) {
+                LOG.warn("Close resultSet error:{}",e);
             }
         }
 
         if (null != stmt) {
             try {
+                LOG.info("Start close statement");
                 stmt.close();
-            } catch (SQLException unused) {
+                LOG.info("Close statement successful");
+            } catch (SQLException e) {
+                LOG.warn("Close statement error:{}",e);
             }
         }
 
         if (null != conn) {
             try {
+                commit(conn);
+
+                LOG.info("Start close connection");
                 conn.close();
-            } catch (SQLException unused) {
+                LOG.info("Close connection successful");
+            } catch (SQLException e) {
+                LOG.warn("Close connection error:{}",e);
             }
+        }
+    }
+
+    public static void commit(Connection conn){
+        try {
+            if (!conn.getAutoCommit() && !conn.isClosed()){
+                LOG.info("Start commit connection");
+                conn.commit();
+                LOG.info("Commit connection successful");
+            }
+        } catch (SQLException e){
+            LOG.warn("commit error:{}",e);
         }
     }
 
@@ -170,6 +194,8 @@ public class DBUtil {
             stmt.executeBatch();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            commit(dbConn);
         }
     }
 

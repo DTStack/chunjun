@@ -255,7 +255,7 @@ public class JdbcInputFormat extends RichInputFormat {
                     }
                 } else if(ColumnType.isNumberType(increColType)){
                     endLocationAccumulator.add(String.valueOf(resultSet.getLong(increColIndex + 1)));
-                } else if(databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                } else {
                     String increVal = resultSet.getString(increColIndex + 1);
                     if(increVal != null){
                         endLocationAccumulator.add(increVal);
@@ -294,14 +294,6 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        try {
-            if(dbConn != null && !dbConn.isClosed()){
-                dbConn.commit();
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-
         DBUtil.closeDBResources(resultSet,statement,dbConn);
         parameterValues = null;
     }

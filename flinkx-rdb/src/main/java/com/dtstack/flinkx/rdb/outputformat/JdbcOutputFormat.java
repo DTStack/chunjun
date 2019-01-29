@@ -71,8 +71,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected PreparedStatement multipleUpload;
 
-    protected int taskNumber;
-
     protected List<String> preSql;
 
     protected List<String> postSql;
@@ -151,10 +149,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         try {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
-
-            if(batchInterval > 1 && databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-                dbConn.setAutoCommit(false);
-            }
 
             if(fullColumn == null || fullColumn.size() == 0) {
                 fullColumn = probeFullColumns(table, dbConn);
@@ -254,9 +248,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         upload.execute();
-        if(databaseInterface.getDatabaseType() != EDatabaseType.Oracle){
-            dbConn.commit();
-        }
     }
 
     protected Object getField(Row row, int index) {
@@ -273,6 +264,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         field=dealOracleTimestampToVarcharOrLong(databaseInterface.getDatabaseType(),field,type);
+
 
         if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
             field = typeConverter.convert(field,type);
@@ -360,11 +352,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        if (taskNumber != 0) {
-            DBUtil.closeDBResources(null, singleUpload, dbConn);
-            DBUtil.closeDBResources(null, multipleUpload, null);
-            dbConn = null;
-        }
+        DBUtil.closeDBResources(null, singleUpload, dbConn);
+        DBUtil.closeDBResources(null, multipleUpload, null);
+        dbConn = null;
 
         //FIXME TEST
         //oracle
