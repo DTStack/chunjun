@@ -13,18 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.github.noraui</groupId>
             <artifactId>ojdbc8</artifactId>
             <version>12.2.0.1</version>
