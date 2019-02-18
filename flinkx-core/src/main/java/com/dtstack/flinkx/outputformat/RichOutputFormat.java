@@ -247,6 +247,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
             if(errorLimiter != null) {
                 errorLimiter.setErrMsg(errMsg);
+                errorLimiter.setErrorData(row);
             }
 
             if(dirtyDataManager != null) {
@@ -284,7 +285,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeMultipleRecords();
         } catch(Exception e) {
-            e.printStackTrace();
             rows.forEach(this::writeSingleRecord);
         }
         rows.clear();

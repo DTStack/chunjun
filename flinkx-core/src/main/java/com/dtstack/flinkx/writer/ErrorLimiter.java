@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,11 @@ public class ErrorLimiter {
     private String jobId;
     private String taskId;
     private String errMsg = "";
+    private Row errorData;
+
+    public void setErrorData(Row errorData){
+        this.errorData = errorData;
+    }
 
     public String getErrMsg() {
         return errMsg;
@@ -165,17 +171,23 @@ public class ErrorLimiter {
 
     public void acquire() {
         if(isValid()) {
+            String errorDataStr = "";
+            if(errorData != null){
+                errorDataStr = errorData.toString() + "\n";
+            }
+
             if(maxErrors != null){
                 Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
-                        + "]\n" + errMsg);
+                        + "]\n" + errorDataStr + errMsg);
             }
 
             if(maxErrorRatio != null){
                 if(numRead >= 1) {
                     errorRatio = (double)errors / numRead;
                 }
+
                 Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
-                        + "]\n" + errMsg);
+                        + "]\n" + errorDataStr + errMsg);
             }
         }
     }
