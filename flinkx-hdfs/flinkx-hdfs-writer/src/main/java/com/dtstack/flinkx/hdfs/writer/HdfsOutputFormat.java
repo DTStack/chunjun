@@ -40,6 +40,8 @@ import org.apache.hadoop.conf.Configuration;
  */
 public abstract class HdfsOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
 
+    protected int rowGroupSize;
+
     protected static final String DATA_SUBDIR = ".data";
 
     protected static final String FINISHED_SUBDIR = ".finished";

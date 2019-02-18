@@ -58,4 +58,6 @@ public class HdfsConfigKeys {
 
     public static final String KEY_ENCODING = "encoding";
 
+    public static final String KEY_ROW_GROUP_SIZE = "rowGroupSize";
+
 }

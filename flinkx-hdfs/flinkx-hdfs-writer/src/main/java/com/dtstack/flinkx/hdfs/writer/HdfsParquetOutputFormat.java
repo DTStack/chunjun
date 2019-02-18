@@ -91,7 +91,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
                 .withCompressionCodec(CompressionCodecName.SNAPPY)
                 .withConf(conf)
-                .withType(schema);
+                .withType(schema)
+                .withRowGroupSize(rowGroupSize);
         writer = builder.build();
         groupFactory = new SimpleGroupFactory(schema);
     }
