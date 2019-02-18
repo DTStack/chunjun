@@ -44,8 +44,8 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         format.password = password;
     }
 
-    public void setDrivername(String drivername) {
-        format.drivername = drivername;
+    public void setDriverName(String driverName) {
+        format.driverName = driverName;
     }
 
     public void setDBUrl(String dbURL) {
@@ -99,7 +99,7 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.dbURL == null) {
             throw new IllegalArgumentException("No dababase URL supplied.");
         }
-        if (format.drivername == null) {
+        if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
         }
     }
