@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -33,12 +32,14 @@ import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.schema.DecimalMetadata;
+import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -189,8 +190,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                     break;
                 }
                 case "decimal" : {
-                    String val = currentLine.getValueToString(index,0);
-                    data = Double.parseDouble(val);
+                    Type structType = currentLine.getType().getType(index);
+                    DecimalMetadata dm = ((PrimitiveType) structType).getDecimalMetadata();
+                    Binary binary = currentLine.getBinary(index,0);
+                    data = binaryToDecimalStr(binary,dm.getScale());
                     break;
                 }
                 case "date" : {
@@ -229,6 +232,13 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         if (currentFileReader != null){
             currentFileReader.close();
         }
+    }
+
+    private static String binaryToDecimalStr(Binary binary,int scale){
+        BigInteger bi = new BigInteger(binary.getBytes());
+        BigDecimal bg = new BigDecimal(bi,scale);
+
+        return bg.toString();
     }
 
     private List<String> getAllPartitionPath(String tableLocation) throws IOException {
