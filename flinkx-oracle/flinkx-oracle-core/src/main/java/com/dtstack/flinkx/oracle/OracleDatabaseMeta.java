@@ -33,8 +33,10 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class OracleDatabaseMeta extends BaseDatabaseMeta {
+
     @Override
     public String quoteTable(String table) {
+        table = table.replace("\"","");
         String[] part = table.split("\\.");
         if(part.length == 2) {
             table = part[0] + "." + getStartQuote() + part[1] + getEndQuote();
@@ -43,6 +45,7 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
         }
         return table;
     }
+
     @Override
     public EDatabaseType getDatabaseType() {
         return EDatabaseType.Oracle;
