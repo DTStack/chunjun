@@ -57,7 +57,7 @@ public class MaximumAccumulator implements Accumulator<String,String> {
     @Override
     public void merge(Accumulator<String, String> other) {
         BigInteger local = new BigInteger(localValue);
-        if(local.compareTo(new BigInteger(other.getLocalValue())) > 0){
+        if(local.compareTo(new BigInteger(other.getLocalValue())) < 0){
             localValue = other.getLocalValue();
         }
     }
