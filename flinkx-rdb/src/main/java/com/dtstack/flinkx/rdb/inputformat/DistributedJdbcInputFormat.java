@@ -245,10 +245,11 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                 }
 
                 if (partNum * numPartitions < sourceList.size()){
-                    sourceList = sourceList.subList(partNum * numPartitions,sourceList.size());
-                    for (int i = 0; i < sourceList.size(); i++) {
+                    int base = partNum * numPartitions;
+                    int size = sourceList.size() - base;
+                    for (int i = 0; i < size; i++) {
                         DistributedJdbcInputSplit split = inputSplits[i];
-                        split.getSourceList().add(sourceList.get(i));
+                        split.getSourceList().add(sourceList.get(i + base));
                     }
                 }
             }

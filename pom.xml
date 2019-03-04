@@ -32,6 +32,7 @@
     </modules>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.5.4</flink.version>
         <dev.path>${basedir}/dev</dev.path>

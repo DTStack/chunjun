@@ -24,16 +24,12 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
-import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +49,6 @@ public class JdbcDataWriter extends DataWriter {
     protected String password;
     protected List<String> column;
     protected String table;
-    protected Connection connection;
     protected List<String> preSql;
     protected List<String> postSql;
     protected int batchSize;
@@ -126,7 +121,7 @@ public class JdbcDataWriter extends DataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder();
-        builder.setDrivername(databaseInterface.getDriverClass());
+        builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
@@ -165,16 +160,6 @@ public class JdbcDataWriter extends DataWriter {
         }
 
         return batchSize;
-    }
-
-    protected Connection getConnection() {
-        try {
-            ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            connection = DBUtil.getConnection(dbUrl, username, password);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-        return connection;
     }
 
 }

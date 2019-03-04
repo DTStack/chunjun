@@ -25,6 +25,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
@@ -39,10 +40,7 @@ import org.apache.parquet.schema.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The subclass of HdfsOutputFormat writing parquet files
@@ -88,10 +86,11 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
         ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
                 .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
                 .withCompressionCodec(CompressionCodecName.SNAPPY)
                 .withConf(conf)
-                .withType(schema);
+                .withType(schema)
+                .withRowGroupSize(rowGroupSize);
         writer = builder.build();
         groupFactory = new SimpleGroupFactory(schema);
     }
@@ -166,7 +165,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         break;
                     case "date" :
                         Date date = DateUtil.columnToDate(valObj,null);
-                        group.add(colName,getDay(date.toString()));break;
+                        group.add(colName, DateWritable.dateToDays(new java.sql.Date(date.getTime())));
+                        break;
                     default: group.add(colName,val);break;
                 }
             }
@@ -244,6 +244,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                                 .as(OriginalType.DECIMAL)
                                 .precision(precision)
                                 .scale(scale)
+                                .length(computeMinBytesForPrecision(precision))
                                 .named(name);
 
                         Map<String,Integer> decimalInfo = new HashMap<>();
@@ -258,6 +259,14 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         }
 
         return typeBuilder.named("Pair");
+    }
+
+    private int computeMinBytesForPrecision(int precision){
+        int numBytes = 1;
+        while (Math.pow(2.0, 8 * numBytes - 1) < Math.pow(10.0, precision)) {
+            numBytes += 1;
+        }
+        return numBytes;
     }
 
     private static byte[] longToByteArray(long data){
@@ -301,10 +310,5 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             bytes[i]=bytes[j];
             bytes[j]=t;
         }
-    }
-
-    private int getDay(String dateStr) throws Exception{
-        Date date = DateUtil.getDateFormatter().parse(dateStr);
-        return (int)((date.getTime() - cal.getTimeInMillis()) / (1000 * 60 * 60 * 24));
     }
 }

@@ -73,6 +73,10 @@ public class HdfsOutputFormatBuilder extends RichOutputFormatBuilder {
         format.delimiter = delimiter;
     }
 
+    public void setRowGroupSize(int rowGroupSize){
+        format.rowGroupSize = rowGroupSize;
+    }
+
     public void setFullColumnTypes(List<String> fullColumnTypes) {
         format.fullColumnTypes = fullColumnTypes;
     }
