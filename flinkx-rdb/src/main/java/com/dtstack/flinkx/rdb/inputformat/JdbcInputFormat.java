@@ -163,9 +163,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 String m = parameterValues[inputSplit.getSplitNumber()][1].toString();
                 queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
-                }
+                LOG.warn(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
             }
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()){
