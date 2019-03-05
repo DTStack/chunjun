@@ -86,7 +86,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
         ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
                 .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
+                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
                 .withCompressionCodec(CompressionCodecName.SNAPPY)
                 .withConf(conf)
                 .withType(schema)
@@ -240,7 +240,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                     if (colType.contains("decimal")){
                         int precision = Integer.parseInt(colType.substring(colType.indexOf("(") + 1,colType.indexOf(",")).trim());
                         int scale = Integer.parseInt(colType.substring(colType.indexOf(",") + 1,colType.indexOf(")")).trim());
-                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY)
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(precision)
                                 .scale(scale)
