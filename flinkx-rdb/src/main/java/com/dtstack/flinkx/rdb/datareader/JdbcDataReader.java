@@ -27,9 +27,11 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 
 /**
@@ -66,6 +68,8 @@ public class JdbcDataReader extends DataReader {
 
     protected int queryTimeOut;
 
+    protected boolean realTimeIncreSync;
+
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
     }
@@ -90,6 +94,9 @@ public class JdbcDataReader extends DataReader {
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
+
+        realTimeIncreSync = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_REALTIME_INCRE_SYNC,true);
+        realTimeIncreSync = StringUtils.isNotEmpty(increColumn);
     }
 
     @Override
@@ -109,28 +116,25 @@ public class JdbcDataReader extends DataReader {
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncreCol(increColumn);
+        builder.setIncreColType(getIncrementColType());
         builder.setStartLocation(startLocation);
+        builder.setSplitKey(splitKey);
+        builder.setNumPartitions(numPartitions);
+        builder.setRealTimeIncreSync(realTimeIncreSync);
 
-        boolean isSplitByKey = false;
-        if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
-            builder.setParameterValues(DBUtil.getParameterValues(numPartitions));
-            isSplitByKey = true;
-        }
-
-        if(increColumn != null){
-            String increColType = getIncreColType();
-            where = DBUtil.buildWhereSql(databaseInterface,increColType,where,increColumn,startLocation);
-            builder.setIncreColType(increColType);
-        }
-
-        String query = DBUtil.getQuerySql(databaseInterface,table,metaColumns,splitKey,where,isSplitByKey);
+        boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
+        String query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, realTimeIncreSync);
         builder.setQuery(query);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 
-    private String getIncreColType(){
+    private String getIncrementColType(){
+        if (StringUtils.isEmpty(increColumn)){
+            return null;
+        }
+
         for (MetaColumn metaColumn : metaColumns) {
             if(metaColumn.getName().equals(increColumn)){
                 return metaColumn.getType();

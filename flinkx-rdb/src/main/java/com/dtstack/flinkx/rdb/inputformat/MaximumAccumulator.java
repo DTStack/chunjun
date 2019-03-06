@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
 
 import java.math.BigInteger;
@@ -56,6 +57,15 @@ public class MaximumAccumulator implements Accumulator<String,String> {
 
     @Override
     public void merge(Accumulator<String, String> other) {
+        if (other == null || StringUtils.isEmpty(other.getLocalValue())){
+            return;
+        }
+
+        if (localValue == null){
+            localValue = other.getLocalValue();
+            return;
+        }
+
         BigInteger local = new BigInteger(localValue);
         if(local.compareTo(new BigInteger(other.getLocalValue())) < 0){
             localValue = other.getLocalValue();

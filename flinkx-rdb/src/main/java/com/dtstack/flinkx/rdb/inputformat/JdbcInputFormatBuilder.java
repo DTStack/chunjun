@@ -31,7 +31,6 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-@Deprecated
 public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
@@ -50,10 +49,6 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setQuery(String query) {
         format.queryTemplate = query;
-    }
-
-    public void setParameterValues(Object[][] parameterValues) {
-        format.parameterValues = parameterValues;
     }
 
     public void setUsername(String username) {
@@ -96,24 +91,37 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.startLocation = startLocation;
     }
 
+    public void setSplitKey(String splitKey){
+        format.splitKey = splitKey;
+    }
+
     public void setIncreColType(String increColType){
         format.increColType = increColType;
     }
 
+    public void setRealTimeIncreSync(boolean realTimeIncreSync){
+        format.realTimeIncreSync = realTimeIncreSync;
+    }
+
+    public void setNumPartitions(int numPartitions){
+        format.numPartitions = numPartitions;
+    }
+
     @Override
     protected void checkFormat() {
+
         if (format.username == null) {
             LOG.info("Username was not supplied separately.");
         }
+
         if (format.password == null) {
             LOG.info("Password was not supplied separately.");
         }
+
         if (format.dbURL == null) {
             throw new IllegalArgumentException("No database URL supplied");
         }
-        if (format.queryTemplate == null) {
-            throw new IllegalArgumentException("No query supplied");
-        }
+
         if (format.drivername == null) {
             throw new IllegalArgumentException("No driver supplied");
         }
