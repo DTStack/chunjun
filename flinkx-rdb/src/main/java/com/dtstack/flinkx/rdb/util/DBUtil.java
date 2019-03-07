@@ -562,26 +562,24 @@ public class DBUtil {
 
         sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
+        sb.append(" WHERE 1=1 ");
 
         StringBuilder filter = new StringBuilder();
 
         if(isSplitByKey) {
-            filter.append(databaseInterface.getSplitFilter(splitKey));
+            filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
         if(StringUtils.isNotEmpty(customFilter)) {
-            if(filter.length() > 0) {
-                filter.append(" AND ");
-            }
-            filter.append(customFilter);
+            filter.append(" AND ").append(customFilter);
         }
 
         if (realTimeIncreSync){
             filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
-        if(filter.length() != 0) {
-            sb.append(" WHERE ").append(filter);
+        if(filter.length() > 0) {
+            sb.append(filter);
         }
 
         return sb.toString();
