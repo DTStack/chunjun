@@ -284,7 +284,8 @@ public class JdbcInputFormat extends RichInputFormat {
         Statement st = null;
         ResultSet rs = null;
         try {
-            String queryMaxValueSql = String.format("select max(%s) as max_value from %s", increCol, table);
+            String queryMaxValueSql = String.format("select max(%s) as max_value from %s",
+                    databaseInterface.quoteColumn(increCol), databaseInterface.quoteTable(table));
             String startSql = DBUtil.buildStartLocationSql(databaseInterface, increColType, increCol, startLocation);
             if(StringUtils.isNotEmpty(startSql)){
                 queryMaxValueSql += " where " + startSql;
