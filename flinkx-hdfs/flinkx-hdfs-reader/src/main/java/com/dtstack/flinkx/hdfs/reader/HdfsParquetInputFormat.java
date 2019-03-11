@@ -240,7 +240,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     public void closeInternal() throws IOException {
         if (currentFileReader != null){
             currentFileReader.close();
+            currentFileReader = null;
         }
+
+        currentLine = null;
+        currentFileIndex = 0;
     }
 
     private String longToDecimalStr(long value,int scale){
