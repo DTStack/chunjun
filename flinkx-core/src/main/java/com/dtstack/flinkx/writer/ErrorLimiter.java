@@ -105,7 +105,6 @@ public class ErrorLimiter {
             try (InputStream inputStream = URLUtil.open(url)){
                  break;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
         }
@@ -157,7 +156,7 @@ public class ErrorLimiter {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error("Update data error:",e);
             }
             break;
         }

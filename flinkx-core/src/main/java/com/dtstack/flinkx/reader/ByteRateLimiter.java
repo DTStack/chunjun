@@ -99,7 +99,6 @@ public class ByteRateLimiter {
             try (InputStream inputStream = URLUtil.open(url)){
                 break;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
         }
@@ -174,7 +173,7 @@ public class ByteRateLimiter {
 
                             }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            LOG.error("Get metrics error:",e);
                         }
 
                     }

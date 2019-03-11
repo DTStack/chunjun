@@ -46,19 +46,23 @@ public class MetricLatch extends Latch {
     private RuntimeContext context;
     private static final String METRIC_PREFIX = "latch-";
 
-    private boolean checkMonitorRoots() {
+    private void checkMonitorRoots() {
         boolean flag = false;
         int j = 0;
+        String msg = null;
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
             try(InputStream inputStream = URLUtil.open(requestUrl)) {
                 flag = true;
                 break;
             } catch (Exception e) {
-                e.printStackTrace();
+                msg = e.getMessage();
             }
         }
-        return flag;
+
+        if (!flag){
+            throw new IllegalArgumentException("Invalid monitor url:" + msg);
+        }
     }
 
     private int getIntMetricVal(String requestUrl) {
@@ -96,13 +100,7 @@ public class MetricLatch extends Latch {
             }
         }
 
-        if(!checkMonitorRoots()) {
-            String msg = "";
-            if(monitorRoots != null && monitorRoots.length >= 1) {
-                msg = monitorRoots[0];
-            }
-            throw new RuntimeException("Invalid monitors: " + msg);
-        }
+        checkMonitorRoots();
     }
 
 

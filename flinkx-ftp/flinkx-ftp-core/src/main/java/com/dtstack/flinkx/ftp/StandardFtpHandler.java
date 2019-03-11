@@ -117,7 +117,7 @@ public class StandardFtpHandler implements FtpHandler {
                 try {
                     ftpClient.changeWorkingDirectory(originDir);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOG.error(e.getMessage());
                 }
             }
         }

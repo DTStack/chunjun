@@ -177,7 +177,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         try {
             session.commit();
         } catch (TunnelException e) {
-            e.printStackTrace();
+            throw new IOException("commit session error:",e);
         }
 
     }
