@@ -192,24 +192,9 @@ public class DBUtil {
             }
             stmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("execute batch sql error:{}",e);
         } finally {
             commit(dbConn);
-        }
-    }
-
-    public static void executeOneByOne(Connection dbConn, List<String> sqls) {
-        if(sqls == null || sqls.size() == 0) {
-            return;
-        }
-
-        try {
-            Statement stmt = dbConn.createStatement();
-            for(String sql : sqls) {
-                stmt.execute(sql);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 

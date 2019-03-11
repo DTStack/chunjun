@@ -429,14 +429,7 @@ public class OdpsUtil {
     }
 
     public static Table getTable(Odps odps, String projectName, String tableName) {
-        Table table = odps.tables().get(projectName, tableName);
-//        try {
-//            table.getOwner();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
-        return table;
+        return odps.tables().get(projectName, tableName);
     }
 
     public static TableTunnel.UploadSession createMasterTunnelUpload(final TableTunnel tunnel, final String projectName,

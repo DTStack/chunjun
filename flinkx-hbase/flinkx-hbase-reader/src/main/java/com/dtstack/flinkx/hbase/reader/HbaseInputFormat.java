@@ -270,9 +270,8 @@ public class HbaseInputFormat extends RichInputFormat {
                 }
                 row.setField(i, col);
             } catch(Exception e) {
-                e.printStackTrace();
+                throw new IOException("Couldn't read data:",e);
             }
-
         }
 
         return row;
