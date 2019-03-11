@@ -137,8 +137,13 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case INT:
                     case TINYINT:
                     case SMALLINT:
+                        record.set(i,Integer.parseInt(rowData));
+                        break;
                     case BIGINT:
                         record.setBigint(i, Long.valueOf(rowData));
+                        break;
+                    case FLOAT:
+                        record.set(i, Float.parseFloat(rowData));
                         break;
                     case DOUBLE:
                         record.setDouble(i, Double.valueOf(rowData));
@@ -155,7 +160,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
                         break;
                     default:
-                        throw new IllegalArgumentException();
+                        record.set(i,column);
                 }
 
             }
