@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -102,7 +101,8 @@ public class ErrorLimiter {
         int j = 0;
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
-            try (InputStream inputStream = URLUtil.open(url)){
+            try {
+                URLUtil.open(url);
                  break;
             } catch (Exception e) {
                 LOG.error("connected error: " + url);
