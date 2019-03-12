@@ -55,6 +55,7 @@ public class MetricLatch extends Latch {
     private void checkMonitorRoots() {
         boolean flag = false;
         int j = 0;
+        StringBuilder exceptionMsg = new StringBuilder();
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
             LOG.info("Monitor url:" + requestUrl);
@@ -62,12 +63,14 @@ public class MetricLatch extends Latch {
                 flag = true;
                 break;
             } catch (Exception e) {
+                exceptionMsg.append("Monitor url:").append(requestUrl).append("\n");
+                exceptionMsg.append("Error info:\n").append(e.getMessage()).append("\n");
                 LOG.error("Open monitor url error:{}",e);
             }
         }
 
         if (!flag){
-            throw new IllegalArgumentException("Invalid monitor url");
+            throw new IllegalArgumentException(exceptionMsg.toString());
         }
     }
 
