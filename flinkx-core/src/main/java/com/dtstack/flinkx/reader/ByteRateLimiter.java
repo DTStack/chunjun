@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.reader;
 
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.gson.Gson;
@@ -27,11 +28,14 @@ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -92,8 +96,7 @@ public class ByteRateLimiter {
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
             LOG.info("monitor_url=" + url);
-            try {
-                URLUtil.open(url);
+            try (InputStream inputStream = URLUtil.open(url)){
                 break;
             } catch (Exception e) {
                 LOG.error("connected error: " + url);

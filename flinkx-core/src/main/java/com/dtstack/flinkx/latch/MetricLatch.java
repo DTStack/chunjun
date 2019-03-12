@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.latch;
 
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -25,11 +26,14 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Distributed implementation of Latch
@@ -55,8 +59,7 @@ public class MetricLatch extends Latch {
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
             LOG.info("Monitor url:" + requestUrl);
-            try{
-                URLUtil.open(requestUrl);
+            try(InputStream inputStream = URLUtil.open(requestUrl)) {
                 flag = true;
                 break;
             } catch (Exception e) {
