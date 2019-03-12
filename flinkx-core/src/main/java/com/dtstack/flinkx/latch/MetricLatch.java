@@ -23,6 +23,9 @@ import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,6 +42,9 @@ import java.util.concurrent.Callable;
  * @author huyifan.zju@163.com
  */
 public class MetricLatch extends Latch {
+
+    public static Logger LOG = LoggerFactory.getLogger(MetricLatch.class);
+
     private String metricName;
     private String[] monitorRoots;
     private String jobId;
@@ -49,19 +55,19 @@ public class MetricLatch extends Latch {
     private void checkMonitorRoots() {
         boolean flag = false;
         int j = 0;
-        String msg = null;
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
+            LOG.info("Monitor url:" + requestUrl);
             try(InputStream inputStream = URLUtil.open(requestUrl)) {
                 flag = true;
                 break;
             } catch (Exception e) {
-                msg = e.getMessage();
+                LOG.error("Open monitor url error:{}",e);
             }
         }
 
         if (!flag){
-            throw new IllegalArgumentException("Invalid monitor url:" + msg);
+            throw new IllegalArgumentException("Invalid monitor url");
         }
     }
 
