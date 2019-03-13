@@ -42,5 +42,4 @@ public class JdbcConfigKeys {
 
     public static final String KEY_START_LOCATION = "startLocation";
 
-    public static final String KEY_REALTIME_INCRE_SYNC = "realTimeIncreSync";
 }
