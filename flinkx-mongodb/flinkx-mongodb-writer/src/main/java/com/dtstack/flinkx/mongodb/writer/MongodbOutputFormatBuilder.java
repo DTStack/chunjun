@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.mongodb.writer;
 
-import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+
 
 /**
  * The builder for mongodb writer plugin
@@ -57,7 +58,7 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
         format.collectionName = collection;
     }
 
-    public void setColumns(List<Column> columns){
+    public void setColumns(List<MetaColumn> columns){
         format.columns = columns;
     }
 

@@ -18,11 +18,10 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.commons.lang3.time.FastDateFormat;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.TimeZone;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Date Utilities
@@ -32,43 +31,70 @@ import java.util.TimeZone;
  */
 public class DateUtil {
 
-    static final String timeZone = "GMT+8";
+    private static final String TIME_ZONE = "GMT+8";
 
-    static final String datetimeFormat = "yyyy-MM-dd HH:mm:ss";
+    private static final String STANDARD_DATETIME_FORMAT = "standardDatetimeFormatter";
 
-    static final String dateFormat = "yyyy-MM-dd";
+    private static final String UN_STANDARD_DATETIME_FORMAT = "unStandardDatetimeFormatter";
 
-    static final String timeFormat = "HH:mm:ss";
+    private static final String DATE_FORMAT = "dateFormatter";
 
-    static final String yearFormat = "yyyy";
+    private static final String TIME_FORMAT = "timeFormatter";
 
-    static TimeZone timeZoner;
+    private static final String YEAR_FORMAT = "yearFormatter";
 
-    static FastDateFormat datetimeFormatter;
+    private static final String START_TIME = "1970-01-01";
 
-    static FastDateFormat dateFormatter;
+    public final static String DATE_REGEX = "(?i)date";
 
-    static FastDateFormat timeFormatter;
+    public final static String TIMESTAMP_REGEX = "(?i)timestamp";
 
-    static FastDateFormat yearFormatter;
+    public final static String DATETIME_REGEX = "(?i)datetime";
+
+    public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
+            TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
+
+            Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
+
+            SimpleDateFormat standardDatetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            standardDatetimeFormatter.setTimeZone(timeZone);
+            formatterMap.put(STANDARD_DATETIME_FORMAT,standardDatetimeFormatter);
+
+            SimpleDateFormat unStandardDatetimeFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+            unStandardDatetimeFormatter.setTimeZone(timeZone);
+            formatterMap.put(UN_STANDARD_DATETIME_FORMAT,unStandardDatetimeFormatter);
+
+            SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+            dateFormatter.setTimeZone(timeZone);
+            formatterMap.put(DATE_FORMAT,dateFormatter);
+
+            SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss");
+            timeFormatter.setTimeZone(timeZone);
+            formatterMap.put(TIME_FORMAT,timeFormatter);
+
+            SimpleDateFormat yearFormatter = new SimpleDateFormat("yyyy");
+            yearFormatter.setTimeZone(timeZone);
+            formatterMap.put(YEAR_FORMAT,yearFormatter);
+
+            return formatterMap;
+    });
 
     private DateUtil() {}
 
-
-    public static java.sql.Date columnToDate(Object column) {
+    public static java.sql.Date columnToDate(Object column,SimpleDateFormat customTimeFormat) {
         if(column == null) {
             return null;
         } else if(column instanceof String) {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Date(stringToDate((String)column).getTime());
+            return new java.sql.Date(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
-            return new java.sql.Date(rawData.longValue());
+            return new java.sql.Date(getMillSecond(rawData.toString()));
         } else if (column instanceof Long) {
             Long rawData = (Long) column;
-            return new java.sql.Date(rawData.longValue());
+            return new java.sql.Date(getMillSecond(rawData.toString()));
         } else if (column instanceof java.sql.Date) {
             return (java.sql.Date) column;
         } else if(column instanceof Timestamp) {
@@ -82,20 +108,20 @@ public class DateUtil {
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
     }
 
-    public static java.sql.Timestamp columnToTimestamp(Object column) {
+    public static java.sql.Timestamp columnToTimestamp(Object column,SimpleDateFormat customTimeFormat) {
         if (column == null) {
             return null;
         } else if(column instanceof String) {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Timestamp(stringToDate((String)column).getTime());
+            return new java.sql.Timestamp(stringToDate((String)column,customTimeFormat).getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
-            return new java.sql.Timestamp(rawData.longValue());
+            return new java.sql.Timestamp(getMillSecond(rawData.toString()));
         } else if (column instanceof Long) {
             Long rawData = (Long) column;
-            return new java.sql.Timestamp(rawData.longValue());
+            return new java.sql.Timestamp(getMillSecond(rawData.toString()));
         } else if (column instanceof java.sql.Date) {
             return (java.sql.Timestamp) column;
         } else if(column instanceof Timestamp) {
@@ -108,28 +134,64 @@ public class DateUtil {
         throw new IllegalArgumentException("Can't convert " + column.getClass().getName() + " to Date");
     }
 
-    public static Date stringToDate(String strDate)  {
+    public static long getMillSecond(String data){
+        long time  = Long.valueOf(data);
+        if(data.length() == 10){
+            time = Long.valueOf(data) * 1000;
+        } else if(data.length() == 13){
+            time = Long.valueOf(data);
+        } else if(data.length() == 16){
+            time = Long.valueOf(data) / 1000;
+        } else if(data.length() == 19){
+            time = Long.valueOf(data) / 1000000 ;
+        } else if(data.length() < 10){
+            try {
+                long day = Long.valueOf(data);
+                Date date = datetimeFormatter.get().get(DATE_FORMAT).parse(START_TIME);
+                Calendar cal = Calendar.getInstance();
+                long addMill = date.getTime() + day * 24 * 3600 * 1000;
+                cal.setTimeInMillis(addMill);
+                time = cal.getTimeInMillis();
+            } catch (Exception ignore){
+            }
+        }
+        return time;
+    }
+
+    public static Date stringToDate(String strDate,SimpleDateFormat customTimeFormat)  {
         if(strDate == null || strDate.trim().length() == 0) {
             return null;
         }
 
+        if(customTimeFormat != null){
+            try {
+                return customTimeFormat.parse(strDate);
+            } catch (ParseException ignored) {
+            }
+        }
+
         try {
-            return datetimeFormatter.parse(strDate);
+            return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return dateFormatter.parse(strDate);
+            return datetimeFormatter.get().get(UN_STANDARD_DATETIME_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return timeFormatter.parse(strDate);
+            return datetimeFormatter.get().get(DATE_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
         try {
-            return yearFormatter.parse(strDate);
+            return datetimeFormatter.get().get(TIME_FORMAT).parse(strDate);
+        } catch (ParseException ignored) {
+        }
+
+        try {
+            return datetimeFormatter.get().get(YEAR_FORMAT).parse(strDate);
         } catch (ParseException ignored) {
         }
 
@@ -137,23 +199,36 @@ public class DateUtil {
     }
 
     public static String dateToString(Date date) {
-        return dateFormatter.format(date);
+        return datetimeFormatter.get().get(DATE_FORMAT).format(date);
     }
 
     public static String timestampToString(Date date) {
-        return datetimeFormatter.format(date);
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT).format(date);
     }
 
     public static String dateToYearString(Date date) {
-        return yearFormatter.format(date);
+        return datetimeFormatter.get().get(YEAR_FORMAT).format(date);
     }
 
-    static {
-        timeZoner = TimeZone.getTimeZone(timeZone);
-        datetimeFormatter = FastDateFormat.getInstance(datetimeFormat, timeZoner);
-        dateFormatter = FastDateFormat.getInstance(dateFormat, timeZoner);
-        timeFormatter =  FastDateFormat.getInstance(timeFormat, timeZoner);
-        yearFormatter = FastDateFormat.getInstance(yearFormat, timeZoner);
+    public static SimpleDateFormat getDateTimeFormatter(){
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT);
     }
 
+    public static SimpleDateFormat getDateFormatter(){
+        return datetimeFormatter.get().get(DATE_FORMAT);
+    }
+
+    public static SimpleDateFormat getTimeFormatter(){
+        return datetimeFormatter.get().get(TIME_FORMAT);
+    }
+
+    public static SimpleDateFormat getYearFormatter(){
+        return datetimeFormatter.get().get(YEAR_FORMAT);
+    }
+
+    public static SimpleDateFormat buildDateFormatter(String timeFormat){
+        SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
+        sdf.setTimeZone(TimeZone.getTimeZone(TIME_ZONE));
+        return sdf;
+    }
 }

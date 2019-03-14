@@ -15,50 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.flinkx.mongodb;
-
-import java.io.Serializable;
+package com.dtstack.flinkx.carbondata;
 
 /**
- * @Company: www.dtstack.com
- * @author jiangbo
+ * This class defines configuration keys for CarbondataReader and CarbondataWriter
+ *
+ * Company: www.dtstack.com
+ * @author huyifan_zju@163.com
  */
-public class Column implements Serializable {
+public class CarbonConfigKeys {
 
-    private String name;
+    public static final String KEY_TABLE = "table";
 
-    private String type;
+    public static final String KEY_DATABASE = "database";
 
-    private String splitter;
+    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
-    public Column(String name, String type, String splitter) {
-        this.name = name;
-        this.type = type;
-        this.splitter = splitter;
-    }
+    public static final String KEY_TABLE_PATH = "path";
 
-    public String getName() {
-        return name;
-    }
+    public static final String KEY_FILTER = "filter";
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public static final String KEY_BATCH_SIZE = "batchSize";
 
-    public String getType() {
-        return type;
-    }
+    public static final int DEFAULT_BATCH_SIZE = 200 * 1024;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public static final String KEY_WRITE_MODE = "writeMode";
 
-    public String getSplitter() {
-        return splitter;
-    }
+    public static final String KEY_DEFAULT_FS = "defaultFS";
 
-    public void setSplitter(String splitter) {
-        this.splitter = splitter;
-    }
+    public static final String KEY_PARTITION = "partition";
+
 }

@@ -21,6 +21,7 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
 
@@ -75,8 +76,8 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.typeConverter = converter;
     }
 
-    public void setColumn(List<String> column){
-        format.column = column;
+    public void setMetaColumn(List<MetaColumn> metaColumns){
+        format.metaColumns = metaColumns;
     }
 
     public void setFetchSize(int fetchSize){
@@ -85,6 +86,18 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setQueryTimeOut(int queryTimeOut){
         format.queryTimeOut = queryTimeOut;
+    }
+
+    public void setIncreCol(String increCol){
+        format.increCol = increCol;
+    }
+
+    public void setStartLocation(String startLocation){
+        format.startLocation = startLocation;
+    }
+
+    public void setIncreColType(String increColType){
+        format.increColType = increColType;
     }
 
     @Override

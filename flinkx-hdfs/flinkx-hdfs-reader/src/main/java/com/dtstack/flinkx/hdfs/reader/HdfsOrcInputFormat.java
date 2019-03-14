@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -115,10 +116,9 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 fullColTypes[i] = temp[1];
             }
 
-            for(int j = 0; j < columnName.size(); ++j) {
-                if(columnName.get(j) != null) {
-                    columnIndex.set(j,name2index(columnName.get(j)));
-                }
+            for(int j = 0; j < metaColumns.size(); ++j) {
+                MetaColumn metaColumn = metaColumns.get(j);
+                metaColumn.setIndex(name2index(metaColumn.getName()));
             }
 
             Properties p = new Properties();
@@ -180,22 +180,42 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(columnIndex.size());
-        for(int i = 0; i < columnIndex.size(); ++i) {
-            Integer index = columnIndex.get(i);
-            String val = columnValue.get(i);
-            String type = columnType.get(i);
-            if(index != null) {
-                Object col = inspector.getStructFieldData(value, fields.get(index));
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(fullColNames.length);
+            for (int i = 0; i < fullColNames.length; i++) {
+                Object col = inspector.getStructFieldData(value, fields.get(i));
                 if (col != null) {
                     col = HdfsUtil.getWritableValue(col);
                 }
                 row.setField(i, col);
-            } else if(val != null) {
-                Object col = HdfsUtil.string2col(val,type);
-                row.setField(i, col);
+            }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+                Object val = null;
+
+                if(metaColumn.getIndex() != -1){
+                    val = inspector.getStructFieldData(value, fields.get(metaColumn.getIndex()));
+                    if (val == null && metaColumn.getValue() != null){
+                        val = metaColumn.getValue();
+                    }
+                } else if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }
+
+                if(val instanceof String){
+                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                if (val != null) {
+                    val = HdfsUtil.getWritableValue(val);
+                }
+
+                row.setField(i,val);
             }
         }
+
         return row;
     }
 

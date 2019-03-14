@@ -12,13 +12,6 @@
     <artifactId>flinkx-es-writer</artifactId>
 
     <dependencies>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-es-core</artifactId>
@@ -41,12 +34,8 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <!--from com.dtstack.flinkx:core-->
-                                    <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <!--writer must exclude gson-->
                                     <exclude>com.google.code.gson:*</exclude>
                                     <!--from org.apache.flink:*-->
-                                    <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>

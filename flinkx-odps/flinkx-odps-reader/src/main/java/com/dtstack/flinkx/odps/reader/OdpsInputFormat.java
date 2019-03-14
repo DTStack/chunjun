@@ -25,7 +25,7 @@ import com.aliyun.odps.data.RecordReader;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.odps.OdpsUtil;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,11 +48,7 @@ import java.util.Map;
  */
 public class OdpsInputFormat extends RichInputFormat {
 
-    protected List<String> columnName;
-
-    protected List<String> columnValue;
-
-    protected List<String> columnType;
+    protected List<MetaColumn> metaColumns;
 
     protected String sessionId;
 
@@ -164,25 +160,40 @@ public class OdpsInputFormat extends RichInputFormat {
     }
 
     @Override
-    public Row nextRecordInternal(Row row) throws IOException {;
-        row = new Row(columnName.size());
-        for(int i = 0; i < columnName.size(); ++i) {
-            String colName = columnName.get(i);
-            String val = columnValue.get(i);
-            String type = columnType.get(i);
-            if(StringUtils.isNotEmpty(colName)) {
-                Object field = record.get(colName);
-                if(field instanceof byte[]) {
-                    field = new String((byte[]) field);
+    public Row nextRecordInternal(Row row) throws IOException {
+        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(record.getColumnCount());
+            for (int i = 0; i < record.getColumnCount(); i++) {
+                row.setField(i,record.get(i));
+            }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+
+                Object val = null;
+                if(metaColumn.getName() != null){
+                    val = record.get(metaColumn.getName());
+
+                    if(val == null && metaColumn.getValue() != null){
+                        val = metaColumn.getValue();
+                    }
+
+                    if(val instanceof byte[]) {
+                        val = new String((byte[]) val);
+                    }
+                } else if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
                 }
-                row.setField(i, field);
-            } else if(val != null && type != null) {
-                Object col = StringUtil.string2col(val,type);
-                row.setField(i, col);
-            } else {
-                throw new RuntimeException("Illegal column format");
+
+                if(val != null){
+                    val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                row.setField(i,val);
             }
         }
+
         return row;
     }
 

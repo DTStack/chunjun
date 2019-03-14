@@ -17,16 +17,22 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -43,7 +49,14 @@ import java.util.Map;
  */
 public class DBUtil {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DBUtil.class);
+
     private static int MAX_RETRY_TIMES = 3;
+
+    private static int SECOND_LENGTH = 10;
+    private static int MILLIS_LENGTH = 13;
+    private static int MICRO_LENGTH = 16;
+    private static int NANOS_LENGTH = 19;
 
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
@@ -125,23 +138,46 @@ public class DBUtil {
                                         Connection conn) {
         if (null != rs) {
             try {
+                LOG.info("Start close resultSet");
                 rs.close();
-            } catch (SQLException unused) {
+                LOG.info("Close resultSet successful");
+            } catch (SQLException e) {
+                LOG.warn("Close resultSet error:{}",e);
             }
         }
 
         if (null != stmt) {
             try {
+                LOG.info("Start close statement");
                 stmt.close();
-            } catch (SQLException unused) {
+                LOG.info("Close statement successful");
+            } catch (SQLException e) {
+                LOG.warn("Close statement error:{}",e);
             }
         }
 
         if (null != conn) {
             try {
+                commit(conn);
+
+                LOG.info("Start close connection");
                 conn.close();
-            } catch (SQLException unused) {
+                LOG.info("Close connection successful");
+            } catch (SQLException e) {
+                LOG.warn("Close connection error:{}",e);
             }
+        }
+    }
+
+    public static void commit(Connection conn){
+        try {
+            if (!conn.getAutoCommit() && !conn.isClosed()){
+                LOG.info("Start commit connection");
+                conn.commit();
+                LOG.info("Commit connection successful");
+            }
+        } catch (SQLException e){
+            LOG.warn("commit error:{}",e);
         }
     }
 
@@ -157,7 +193,9 @@ public class DBUtil {
             }
             stmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("execute batch sql error:{}",e);
+        } finally {
+            commit(dbConn);
         }
     }
 
@@ -209,7 +247,7 @@ public class DBUtil {
     }
 
     public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
-                                            String table,List<String> column) {
+                                            String table,List<MetaColumn> metaColumns) {
         List<String> ret = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
@@ -225,8 +263,12 @@ public class DBUtil {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
 
-            for (String col : column) {
-                ret.add(nameTypeMap.get(col));
+            for (MetaColumn metaColumn : metaColumns) {
+                if(metaColumn.getValue() != null){
+                    ret.add("string");
+                } else {
+                    ret.add(nameTypeMap.get(metaColumn.getName()));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -271,7 +313,7 @@ public class DBUtil {
     }
 
     public static void getRow(EDatabaseType dbType, Row row, List<String> descColumnTypeList, ResultSet resultSet,
-                              TypeConverterInterface typeConverter) throws SQLException{
+                              TypeConverterInterface typeConverter) throws Exception{
         for (int pos = 0; pos < row.getArity(); pos++) {
             Object obj = resultSet.getObject(pos + 1);
             if(obj != null) {
@@ -309,16 +351,144 @@ public class DBUtil {
                         obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }
                 }
+
+                obj = clobToString(obj);
             }
 
             row.setField(pos, obj);
         }
     }
 
-    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<String> column,
+    public static Object clobToString(Object obj) throws Exception{
+        String dataStr;
+        if(obj instanceof Clob){
+            Clob clob = (Clob)obj;
+            BufferedReader bf = new BufferedReader(clob.getCharacterStream());
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = bf.readLine()) != null){
+                stringBuilder.append(line);
+            }
+            dataStr = stringBuilder.toString();
+        } else {
+            return obj;
+        }
+
+        return dataStr;
+    }
+
+    public static String buildWhereSql(DatabaseInterface databaseInterface,String increColType,String where,
+                                       String increCol,String startLocation){
+        if (startLocation == null){
+            return where;
+        }
+
+        String increFilter;
+        String startTimeStr;
+
+        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
+            startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(startLocation));
+
+            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                startTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",startTimeStr);
+            } else {
+                startTimeStr = String.format("'%s'",startTimeStr);
+            }
+
+            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+        } else if(ColumnType.isNumberType(increColType)){
+            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startLocation;
+        } else {
+            startTimeStr = String.format("'%s'",startLocation);
+            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+        }
+
+        if (where == null || where.length() == 0){
+            where = increFilter;
+        } else {
+            where = where + " and " + increFilter;
+        }
+
+        return where;
+    }
+
+    private static String getStartTimeStr(EDatabaseType databaseType,Long startLocation){
+        String startTimeStr;
+        Timestamp ts = new Timestamp(getMillis(startLocation));
+        ts.setNanos(getNanos(startLocation));
+        startTimeStr = getNanosTimeStr(ts.toString());
+
+        if(databaseType == EDatabaseType.SQLServer){
+            startTimeStr = startTimeStr.substring(0,23);
+        } else {
+            startTimeStr = startTimeStr.substring(0,26);
+        }
+
+        return startTimeStr;
+    }
+
+    public static String getNanosTimeStr(String timeStr){
+        if(timeStr.length() < 29){
+            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+        }
+
+        return timeStr;
+    }
+
+    public static int getNanos(long startLocation){
+        String timeStr = String.valueOf(startLocation);
+        int nanos;
+        if (timeStr.length() == SECOND_LENGTH){
+            nanos = 0;
+        } else if (timeStr.length() == MILLIS_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MILLIS_LENGTH)) * 1000000;
+        } else if (timeStr.length() == MICRO_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MICRO_LENGTH)) * 1000;
+        } else if (timeStr.length() == NANOS_LENGTH){
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,NANOS_LENGTH));
+        } else {
+            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
+        }
+
+        return nanos;
+    }
+
+    public static long getMillis(long startLocation){
+        String timeStr = String.valueOf(startLocation);
+        long millisSecond;
+        if (timeStr.length() == SECOND_LENGTH){
+            millisSecond = startLocation * 1000;
+        } else if (timeStr.length() == MILLIS_LENGTH){
+            millisSecond = startLocation;
+        } else if (timeStr.length() == MICRO_LENGTH){
+            millisSecond = startLocation / 1000;
+        } else if (timeStr.length() == NANOS_LENGTH){
+            millisSecond = startLocation / 1000000;
+        } else {
+            throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
+        }
+
+        return millisSecond;
+    }
+
+    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
                                      String splitKey,String where,boolean isSplitByKey) {
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT ").append(databaseInterface.quoteColumns(column)).append(" FROM ");
+
+        List<String> selectColumns = new ArrayList<>();
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            selectColumns.add("*");
+        } else {
+            for (MetaColumn metaColumn : metaColumns) {
+                if (metaColumn.getValue() != null){
+                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+                } else {
+                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+                }
+            }
+        }
+
+        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
 
         StringBuilder filter = new StringBuilder();

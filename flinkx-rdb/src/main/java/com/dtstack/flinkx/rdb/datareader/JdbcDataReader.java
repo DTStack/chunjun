@@ -26,19 +26,10 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
-import com.dtstack.flinkx.util.ClassUtil;
-import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import java.sql.Connection;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -59,17 +50,17 @@ public class JdbcDataReader extends DataReader {
 
     protected String password;
 
-    protected List<String> column;
-
-    protected String[] columnTypes;
+    protected List<MetaColumn> metaColumns;
 
     protected String table;
-
-    protected Connection connection;
 
     protected String where;
 
     protected String splitKey;
+
+    protected String increColumn;
+
+    protected String startLocation;
 
     protected int fetchSize;
 
@@ -93,10 +84,12 @@ public class JdbcDataReader extends DataReader {
         password = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_PASSWORD);
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
         where = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_WHERE);
-        column = readerConfig.getParameter().getColumn();
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
+        increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
+        startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
     }
 
     @Override
@@ -112,9 +105,11 @@ public class JdbcDataReader extends DataReader {
         builder.setTable(table);
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
-        builder.setColumn(column);
+        builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setIncreCol(increColumn);
+        builder.setStartLocation(startLocation);
 
         boolean isSplitByKey = false;
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
@@ -122,70 +117,26 @@ public class JdbcDataReader extends DataReader {
             isSplitByKey = true;
         }
 
-        String query = DBUtil.getQuerySql(databaseInterface,table,column,splitKey,where,isSplitByKey);
+        if(increColumn != null){
+            String increColType = getIncreColType();
+            where = DBUtil.buildWhereSql(databaseInterface,increColType,where,increColumn,startLocation);
+            builder.setIncreColType(increColType);
+        }
+
+        String query = DBUtil.getQuerySql(databaseInterface,table,metaColumns,splitKey,where,isSplitByKey);
         builder.setQuery(query);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 
-
-    /**
-     * FIXME 不通过该方法获取表的字段属性
-     * 暂时保留
-     * @return
-     */
-    private RowTypeInfo getColumnTypes() {
-
-        String sql = databaseInterface.getSQLQueryColumnFields(column, table);
-
-        try (Connection conn = getConnection()) {
-            Statement stmt = conn.createStatement();
-            ResultSetMetaData rsmd = stmt.executeQuery(sql).getMetaData();
-            int cnt = rsmd.getColumnCount();
-            TypeInformation[] typeInformations = new TypeInformation[cnt];
-            for(int i = 0; i < cnt; ++i) {
-                Class<?> clz = Class.forName(rsmd.getColumnClassName(i + 1));
-                if(clz == Timestamp.class) {
-                    clz = java.util.Date.class;
-                }
-                typeInformations[i] = BasicTypeInfo.getInfoFor(clz);
+    private String getIncreColType(){
+        for (MetaColumn metaColumn : metaColumns) {
+            if(metaColumn.getName().equals(increColumn)){
+                return metaColumn.getType();
             }
-            return new RowTypeInfo(typeInformations);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         }
 
-    }
-
-    protected RowTypeInfo getColumnTypesBySetting() {
-        try{
-            int cnt = columnTypes.length;
-            TypeInformation[] typeInformations = new TypeInformation[cnt];
-            for(int i = 0; i < cnt; ++i) {
-                Class<?> clz = Class.forName(columnTypes[i]);
-                if(clz == Timestamp.class || clz == Date.class || clz == Time.class || columnTypes[i].toUpperCase().contains("TIMESTAMP")) {
-                    clz = java.util.Date.class;
-                }
-                typeInformations[i] = BasicTypeInfo.getInfoFor(clz);
-            }
-            return new RowTypeInfo(typeInformations);
-        }catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected Connection getConnection() {
-        try {
-            ClassUtil.forName(databaseInterface.getDriverClass(), this.getClass().getClassLoader());
-            connection = DBUtil.getConnection(dbUrl, username, password);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-
-        return connection;
-
+        throw new IllegalArgumentException("There is no " + increColumn +" field in the columns");
     }
 }

@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import parquet.hadoop.ParquetWriter;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -91,6 +92,8 @@ public class HdfsWriter extends DataWriter {
 
     protected static final String SP = "/";
 
+    protected int rowGroupSize;
+
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -101,6 +104,7 @@ public class HdfsWriter extends DataWriter {
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
+        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
@@ -189,6 +193,7 @@ public class HdfsWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setCharSetName(charSet);
         builder.setDelimiter(fieldDelimiter);
+        builder.setRowGroupSize(rowGroupSize);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

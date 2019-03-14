@@ -79,16 +79,9 @@ under the License.
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <!--from com.dtstack.flinkx:core-->
-                                    <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
-                                    <!--reader do not exclude gson-->
-                                    <!--from org.apache.flink:*-->
-                                    <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

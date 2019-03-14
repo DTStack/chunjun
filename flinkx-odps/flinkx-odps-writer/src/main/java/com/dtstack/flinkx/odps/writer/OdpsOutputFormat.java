@@ -127,13 +127,16 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     continue;
                 }
 
-                ColumnType columnType = ColumnType.valueOf(columnTypes[i].toUpperCase());
+                ColumnType columnType = ColumnType.getType(columnTypes[i].toUpperCase());
                 String rowData = column.toString();
 
                 switch (columnType) {
                     case BOOLEAN:
                         record.setBoolean(i, Boolean.valueOf(rowData));
                         break;
+                    case INT:
+                    case TINYINT:
+                    case SMALLINT:
                     case BIGINT:
                         record.setBigint(i, Long.valueOf(rowData));
                         break;
@@ -149,7 +152,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case DATE:
                     case DATETIME:
                     case TIMESTAMP:
-                        record.setDatetime(i, DateUtil.columnToTimestamp(column));
+                        record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
                         break;
                     default:
                         throw new IllegalArgumentException();
@@ -174,7 +177,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         try {
             session.commit();
         } catch (TunnelException e) {
-            e.printStackTrace();
+            throw new IOException("commit session error:",e);
         }
 
     }

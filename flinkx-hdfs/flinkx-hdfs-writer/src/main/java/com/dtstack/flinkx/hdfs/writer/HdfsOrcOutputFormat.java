@@ -39,6 +39,8 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +79,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             if(columnType.startsWith("DECIMAL")) {
                 columnType = "DECIMAL";
             }
-            ColumnType type = ColumnType.valueOf(columnType);
+            ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
         this.inspector = ObjectInspectorFactory
@@ -125,6 +127,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                             recordList.add(Integer.valueOf(rowData));
                             break;
                         case BIGINT:
+                            if (column instanceof Timestamp){
+                                column=((Timestamp) column).getTime();
+                                recordList.add(column);
+                                break;
+                            }
                             BigInteger data = new BigInteger(rowData);
                             if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
                                 recordList.add(data);
@@ -146,16 +153,21 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                         case STRING:
                         case VARCHAR:
                         case CHAR:
-                            recordList.add(rowData);
+                            if (column instanceof Timestamp){
+                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                                recordList.add(fm.format(column));
+                            }else {
+                                recordList.add(rowData);
+                            }
                             break;
                         case BOOLEAN:
                             recordList.add(Boolean.valueOf(rowData));
                             break;
                         case DATE:
-                            recordList.add(DateUtil.columnToDate(column));
+                            recordList.add(DateUtil.columnToDate(column,null));
                             break;
                         case TIMESTAMP:
-                            recordList.add(DateUtil.columnToTimestamp(column));
+                            recordList.add(DateUtil.columnToTimestamp(column,null));
                             break;
                         default:
                             throw new IllegalArgumentException();

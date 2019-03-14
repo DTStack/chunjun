@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.mongodb.Column;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
@@ -34,10 +34,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 
@@ -59,15 +56,15 @@ public class MongodbInputFormat extends RichInputFormat {
 
     protected String collectionName;
 
-    protected List<Column> columns;
+    protected List<MetaColumn> metaColumns;
 
     protected String filterJson;
 
     private Bson filter;
 
-    private MongoCollection<Document> collection;
+    private transient MongoCollection<Document> collection;
 
-    private MongoCursor<Document> cursor;
+    private transient MongoCursor<Document> cursor;
 
     @Override
     public void configure(Configuration parameters) {
@@ -98,7 +95,37 @@ public class MongodbInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        return MongodbUtil.convertDocTORow(cursor.next(),columns);
+        Document doc = cursor.next();
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(doc.size());
+            String[] names = doc.keySet().toArray(new String[0]);
+            for (int i = 0; i < names.length; i++) {
+                row.setField(i,doc.get(names[i]));
+            }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+
+                Object value = null;
+                if(metaColumn.getName() != null){
+                    value = doc.get(metaColumn.getName());
+                    if(value == null && metaColumn.getValue() != null){
+                        value = metaColumn.getValue();
+                    }
+                } else if(metaColumn.getValue() != null){
+                    value = metaColumn.getValue();
+                }
+
+                if(value instanceof String){
+                    value = StringUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                row.setField(i,value);
+            }
+        }
+
+        return row;
     }
 
     @Override

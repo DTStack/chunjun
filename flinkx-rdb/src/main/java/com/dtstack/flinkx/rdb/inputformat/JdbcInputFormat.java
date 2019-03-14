@@ -18,11 +18,18 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -33,6 +40,7 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 
@@ -80,11 +88,25 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    protected List<String> column;
+    protected List<MetaColumn> metaColumns;
+
+    protected String increCol;
+
+    protected String increColType;
+
+    protected String startLocation;
+
+    private int increColIndex;
 
     protected int fetchSize;
 
     protected int queryTimeOut;
+
+    protected StringAccumulator tableColAccumulator;
+
+    protected MaximumAccumulator endLocationAccumulator;
+
+    protected StringAccumulator startLocationAccumulator;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -94,6 +116,37 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration configuration) {
 
+    }
+
+    private void setMetric(){
+        Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
+
+        if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
+            tableColAccumulator = new StringAccumulator();
+            tableColAccumulator.add(table + "-" + increCol);
+            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
+        }
+
+        if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
+            endLocationAccumulator = new MaximumAccumulator();
+            getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+        }
+
+        if (startLocation != null){
+            endLocationAccumulator.add(startLocation);
+            if(!accumulatorMap.containsKey(Metrics.START_LOCATION)){
+                startLocationAccumulator = new StringAccumulator();
+                startLocationAccumulator.add(startLocation);
+                getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
+            }
+        }
+
+        for (int i = 0; i < metaColumns.size(); i++) {
+            if (metaColumns.get(i).getName().equals(increCol)){
+                increColIndex = i;
+                break;
+            }
+        }
     }
 
     @Override
@@ -125,11 +178,15 @@ public class JdbcInputFormat extends RichInputFormat {
                 statement.setQueryTimeout(queryTimeOut);
             }
             resultSet = statement.executeQuery(queryTemplate);
-            hasNext = resultSet.next();
             columnCount = resultSet.getMetaData().getColumnCount();
+            hasNext = resultSet.next();
 
             if(descColumnTypeList == null) {
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,column);
+                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+            }
+
+            if(increCol != null){
+                setMetric();
             }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -177,27 +234,67 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             DBUtil.getRow(databaseInterface.getDatabaseType(),row,descColumnTypeList,resultSet,typeConverter);
+            if(!"*".equals(metaColumns.get(0).getName())){
+                for (int i = 0; i < columnCount; i++) {
+                    Object val = row.getField(i);
+                    if(val == null && metaColumns.get(i).getValue() != null){
+                        val = metaColumns.get(i).getValue();
+                    }
+
+                    if (val instanceof String){
+                        val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
+                        row.setField(i,val);
+                    }
+                }
+            }
+
+            if(increCol != null){
+                if (ColumnType.isTimeType(increColType)){
+                    Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
+                    if(increVal != null){
+                        endLocationAccumulator.add(String.valueOf(getLocation(increVal)));
+                    }
+                } else if(ColumnType.isNumberType(increColType)){
+                    endLocationAccumulator.add(String.valueOf(resultSet.getLong(increColIndex + 1)));
+                } else {
+                    String increVal = resultSet.getString(increColIndex + 1);
+                    if(increVal != null){
+                        endLocationAccumulator.add(increVal);
+                    }
+                }
+            }
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();
             return row;
         } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
-        } catch (NullPointerException npe) {
+        } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
+        }
+    }
+
+    private long getLocation(Object increVal){
+        if(increVal instanceof Timestamp){
+            long time = ((Timestamp)increVal).getTime() / 1000;
+
+            String nanosStr = String.valueOf(((Timestamp)increVal).getNanos());
+            if(nanosStr.length() == 9){
+                return Long.parseLong(time + nanosStr);
+            } else {
+                String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
+                return Long.parseLong(time + fillZeroStr + nanosStr);
+            }
+        } else {
+            Date date = DateUtil.stringToDate(increVal.toString(),null);
+            String fillZeroStr = StringUtils.repeat("0",6);
+            long time = date.getTime();
+            return Long.parseLong(time + fillZeroStr);
         }
     }
 
     @Override
     public void closeInternal() throws IOException {
-        try {
-            if(dbConn != null && !dbConn.isClosed()){
-                dbConn.commit();
-            }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-
         DBUtil.closeDBResources(resultSet,statement,dbConn);
         parameterValues = null;
     }

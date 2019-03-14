@@ -1,284 +1,294 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.carbondata.writer;
 
 
+import com.dtstack.flinkx.carbondata.CarbondataUtil;
+import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
+import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.util.ClassUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.metadata.datatype.DataType;
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
+import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
+import org.apache.carbondata.core.statusmanager.SegmentStatus;
+import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
+import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import org.apache.flink.util.Preconditions;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 /**
- * OutputFormat for writing data to carbondata via jdbc
+ * Carbondata Output Format
  *
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbonOutputFormat extends RichOutputFormat {
+public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
 
-    protected String username;
+    protected Map<String,String> hadoopConfig;
 
-    protected String password;
+    protected String defaultFS;
 
     protected String table;
 
+    protected String database;
+
+    protected String path;
+
     protected List<String> column;
-
-    protected List<String> columnType = new ArrayList<>();
-
-    private List<String> fullColumn;
-
-    private List<String> fullColumnType;
-
-    private List<String> parts;
-
-    private List<String> partTypes;
-
-    private List<Integer> indices = new ArrayList<>();
-
-    protected String dbURL;
-
-    protected Connection dbConn;
-
-    private static String DRIVER_CLASS = "org.apache.hive.jdbc.HiveDriver";
-
-    private PreparedStatement singleUpload;
-
-    private PreparedStatement multipleUpload;
-
-    private final static String DATE_REGEX = "(?i)date";
-
-    private final static String TIMESTAMP_REGEX = "(?i)timestamp";
-
-    private String values;
-
-    private int batchSize = 2000;
 
     protected boolean overwrite = false;
 
-    protected List<String> preSql;
+    protected String partition;
 
-    protected List<String> postSql;
+    protected int batchSize;
+
+    private int numWrites = 0;
+
+    private CarbonTable carbonTable;
+
+    private AbstractRecordWriter recordWriterAssemble;
+
+    private List<String> fullColumnNames;
+
+    private List<DataType> fullColumnTypes;
+
+    private List<Integer> fullColumnIndices;
+
+    private static final String SLASH = "/";
+
+    private static final String ASSIGN = "=";
+
+    private boolean isHivePartitioned = false;
+
+    private List<Integer> partitionColIndex = new ArrayList<>();
+
+    private List<String> partitionColValue = new ArrayList<>();
+
+    private final SimpleDateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+    private final SimpleDateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private final String DEFAULT_SERIAL_NULL_FORMAT = "\\N";
+
+    private final List<String> oldSegmentIds = new ArrayList<>();
+
+
+    @Override
+    public void configure(Configuration parameters) {
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
+    }
+
+    private void parsePartition(){
+        if(carbonTable.getPartitionInfo() == null) {
+            return;
+        }
+
+        if(partition == null || partition.trim().length() == 0) {
+            return;
+        }
+
+        partition = partition.trim();
+        if(partition.startsWith(SLASH)) {
+            partition = partition.substring(1);
+        }
+
+        if(partition.endsWith(SLASH)) {
+            partition = partition.substring(0, partition.length() - 1);
+        }
+
+        String[] splits = partition.split(SLASH);
+
+        Preconditions.checkArgument(splits.length == carbonTable.getPartitionInfo().getColumnSchemaList().size());
+
+        for(String split : splits) {
+            String[] pair = split.split(ASSIGN);
+            String name = pair[0];
+            String val = pair[1];
+            partitionColIndex.add(fullColumnNames.indexOf(name));
+            partitionColValue.add(val);
+        }
+
+    }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        try {
-            ClassUtil.forName(DRIVER_CLASS, getClass().getClassLoader());
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+        this.taskNumber = taskNumber;
+        this.numTasks = numTasks;
 
-            initDynamicSettings();
+        carbonTable = CarbondataUtil.buildCarbonTable(database, table, path);
 
-            analyzeTable();
-            lowcaseList(column);
-            lowcaseList(fullColumn);
+        isHivePartitioned = carbonTable.isHivePartitionTable();
 
-            for(String col : column) {
-                columnType.add(fullColumnType.get(fullColumn.indexOf(col)));
+        inferFullColumnInfo();
+
+        if(isHivePartitioned) {
+            parsePartition();
+        }
+
+//        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
+//        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
+
+        recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
+
+    }
+
+
+    private void inferFullColumnInfo() {
+        fullColumnIndices = new ArrayList<>();
+        fullColumnNames = new ArrayList<>();
+        fullColumnTypes = new ArrayList<>();
+
+        column = column.stream().map(String::toLowerCase).collect(Collectors.toList());
+
+        List<ColumnSchema> columnSchemas = carbonTable.getTableInfo().getFactTable().getListOfColumns();
+        for(int i = 0; i < columnSchemas.size(); ++i) {
+            ColumnSchema columnSchema = columnSchemas.get(i);
+            if(!columnSchema.isInvisible()) {
+                fullColumnNames.add(columnSchema.getColumnName());
+                fullColumnTypes.add(columnSchema.getDataType());
             }
+        }
 
-            initColIndex();
-            values = makeValues();
-            singleUpload = prepareSingleTemplates();
-            multipleUpload = prepareMultipleTemplates(batchSize);
-            LOG.info("subtask[" + taskNumber + "] wait finished");
-        } catch (SQLException sqe) {
-            throw new IllegalArgumentException("open() failed.", sqe);
+        for(int i = 0; i < fullColumnNames.size(); ++i) {
+            fullColumnIndices.add(column.indexOf(fullColumnNames.get(i)));
         }
     }
 
-    private void initDynamicSettings() throws SQLException {
-        Statement stmt = dbConn.createStatement();
-        stmt.execute("set hive.exec.dynamic.partition=true");
-        stmt.execute("set hive.exec.dynamic.partition.mode=nonstrict");
-        stmt.execute("set hive.exec.max.dynamic.partitions=500000");
-        stmt.execute("set hive.exec.max.created.files=150000");
-    }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        int index = 0;
+        int i = 0;
         try {
-            for (; index < row.getArity(); index++) {
-                String type = columnType.get(indices.get(index));
-                fillUploadStmt(singleUpload, index+1, getField(row, indices.get(index)), type);
+            String[] record = new String[fullColumnNames.size()];
+            for(; i < fullColumnIndices.size(); ++i) {
+                int index = fullColumnIndices.get(i);
+                if(index == -1) {
+                    record[i] = DEFAULT_SERIAL_NULL_FORMAT;
+                } else {
+                    Object column = row.getField(index);
+                    String s = CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT);
+                    CarbonTypeConverter.checkStringType(s, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT, fullColumnTypes.get(i));
+                    record[i] = s;
+                }
             }
-            singleUpload.execute();
-        } catch (Exception e) {
-            if(index < row.getArity()) {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+            if(isHivePartitioned) {
+                for(int j = 0; j < partitionColIndex.size(); ++j) {
+                    int index = partitionColIndex.get(j);
+                    if(index != -1) {
+                        record[index] = partitionColValue.get(j);
+                    }
+                }
+            }
+            recordWriterAssemble.write(record);
+        } catch(Exception e) {
+            if(i < row.getArity()) {
+                throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
+        }
+        numWrites++;
+        if(numWrites == batchSize) {
+            try {
+                closeInternal();
+                openInternal(taskNumber, numTasks);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            numWrites = 0;
         }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        PreparedStatement upload;
-        if(rows.size() == batchInterval) {
-            upload = multipleUpload;
-        } else {
-            upload = prepareMultipleTemplates(rows.size());
-        }
-
-        int k = 1;
-        for(int i = 0; i < rows.size(); ++i) {
-            Row row = rows.get(i);
-            for(int j = 0; j < row.getArity(); ++j) {
-                String type = columnType.get(indices.get(j));
-                fillUploadStmt(upload, k, getField(row, indices.get(j)), type);
-                k++;
-            }
-        }
-
-        upload.execute();
+        // CAN NOT HAPPEN
+        throw new IllegalArgumentException("It can not happen.");
     }
 
-    protected PreparedStatement prepareSingleTemplates() throws SQLException {
-        return dbConn.prepareStatement(makeSingleInsertSql());
+    @Override
+    public void tryCleanupOnError() throws Exception {
+        // try clean up on error
     }
 
-    protected PreparedStatement prepareMultipleTemplates(int batchSize) throws SQLException {
-        return dbConn.prepareStatement(makeMultipleInsertSql(batchSize));
+    @Override
+    protected boolean needWaitBeforeOpenInternal() {
+        return overwrite;
     }
 
-    private String makeSingleInsertSql() {
-        return "insert into " + table + " values " + values;
-    }
-
-    private String makeMultipleInsertSql(int size) {
-        return "insert into " + table + " values " + makeMultipleValues(size);
-    }
-
-    private String makeValues () {
-        StringBuilder sb = new StringBuilder("(");
-        for(int i = 0; i < fullColumn.size(); ++i) {
-            if(i != 0) {
-                sb.append(",");
-            }
-            if(column.contains(fullColumn.get(i))) {
-                sb.append("?");
-            } else {
-                sb.append("null");
-            }
-        }
-        sb.append(")");
-        return sb.toString();
-    }
-
-    private String makeMultipleValues (int n) {
-        return StringUtils.repeat(values, ",", n);
-    }
-
-    private Object getField(Row row, int index) {
-        Object field = row.getField(index);
-        if (field != null && field.getClass() == java.util.Date.class) {
-            java.util.Date d = (java.util.Date) field;
-            field = new Timestamp(d.getTime());
-        }
-        return field;
-    }
-
-    private void fillUploadStmt(PreparedStatement upload, int k, Object field, String type) throws SQLException {
-        if(type.matches(DATE_REGEX)) {
-            if (field instanceof Timestamp){
-                field = new java.sql.Date(((Timestamp) field).getTime());
-            }
-            upload.setDate(k, (java.sql.Date) field);
-        } else if(type.matches(TIMESTAMP_REGEX)) {
-            upload.setTimestamp(k, (Timestamp) field);
-        } else {
-            upload.setObject(k, field);
-        }
-    }
-
-    private void initColIndex() {
-        for(String col : fullColumn) {
-            int index = column.indexOf(col);
-            if(index != -1) {
-                indices.add(index);
-            }
-        }
-    }
-
-    private void analyzeTable() {
-        fullColumn = new ArrayList<>();
-        fullColumnType = new ArrayList<>();
-        parts = new ArrayList<>();
-        partTypes = new ArrayList<>();
-        try {
-            Statement stmt = dbConn.createStatement();
-            ResultSet rs = stmt.executeQuery("desc " + table);
-            boolean partition = false;
-            while(rs.next()) {
-                String col = rs.getString(1);
-                String type = rs.getString(2);
-                if(col == null || col.trim().length() == 0) {
-                    continue;
+    @Override
+    protected void beforeOpenInternal() {
+        if(taskNumber == 0 && overwrite) {
+            String metaPath = path + SLASH + "/Metadata";
+            LoadMetadataDetails[] loadMetadataDetailsArr = SegmentStatusManager.readLoadMetadata(metaPath);
+            if(loadMetadataDetailsArr != null) {
+                for(LoadMetadataDetails loadMetadataDetails : loadMetadataDetailsArr) {
+                    if(loadMetadataDetails.getSegmentStatus() == SegmentStatus.SUCCESS) {
+                        oldSegmentIds.add(loadMetadataDetails.getLoadName());
+                    }
                 }
-                if(col.startsWith("#")) {
-                    partition = true;
-                    continue;
-                }
-                if(partition) {
-                    parts.add(col);
-                    partTypes.add(type);
-                } else {
-                    fullColumn.add(col);
-                    fullColumnType.add(type);
-                }
-
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private List<String> lowcaseList(List<String> src) {
-        return src.stream().map(elem -> elem.toLowerCase()).collect(Collectors.toList());
-    }
-
-    @Override
-    public void closeInternal() {
-        if(taskNumber != 0) {
-            DBUtil.closeDBResources(null,null,dbConn);
-            dbConn = null;
         }
     }
 
     @Override
-    protected boolean needWaitBeforeWriteRecords() {
-        return  preSql != null && preSql.size() != 0;
-    }
-
-    @Override
-    protected void beforeWriteRecords()  {
-        if(taskNumber == 0) {
-            DBUtil.executeOneByOne(dbConn, preSql);
+    public void closeInternal() throws IOException {
+        if(recordWriterAssemble != null) {
+            try {
+                recordWriterAssemble.close();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
-    protected boolean needWaitBeforeCloseInternal() {
-        return postSql != null && postSql.size() != 0;
+    protected boolean needWaitAfterCloseInternal() {
+        return overwrite;
     }
 
     @Override
-    protected void beforeCloseInternal() {
-        // 执行postsql
-        if(taskNumber == 0) {
-            DBUtil.executeOneByOne(dbConn, postSql);
+    protected void afterCloseInternal()  {
+        if(taskNumber == 0 && overwrite) {
+            if(!oldSegmentIds.isEmpty()) {
+                String metaPath = path + SLASH + "/Metadata";
+                try {
+                    List<String> invalidLoadIds = SegmentStatusManager.updateDeletionStatus(carbonTable.getAbsoluteTableIdentifier(), oldSegmentIds, metaPath);
+                    if(invalidLoadIds.isEmpty()) {
+                        LOG.info("Delete segment by Id is successfull");
+                    } else {
+                        LOG.error("Delete segment by Id is failed");
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
+
 }

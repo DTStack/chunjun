@@ -21,7 +21,7 @@ package com.dtstack.flinkx.hdfs;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.util.Preconditions;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -32,8 +32,8 @@ import org.apache.hadoop.io.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
-
-import static com.dtstack.flinkx.common.ColumnType.*;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 /**
  * Utilities for HdfsReader and HdfsWriter
@@ -82,47 +82,58 @@ public class HdfsUtil {
         return configuration.get("fs.defaultFS");
     }
 
-    public static Object string2col(String str, String type) {
+    public static Object string2col(String str, String type, SimpleDateFormat customDateFormat) {
+        if (str == null || str.length() == 0){
+            return null;
+        }
 
-        Preconditions.checkNotNull(type);
+        if(type == null){
+            return str;
+        }
+
         ColumnType columnType = ColumnType.fromString(type.toUpperCase());
         Object ret;
         switch(columnType) {
             case TINYINT:
-                ret = Byte.valueOf(str);
+                ret = Byte.valueOf(str.trim());
                 break;
             case SMALLINT:
-                ret = Short.valueOf(str);
+                ret = Short.valueOf(str.trim());
                 break;
             case INT:
-                ret = Integer.valueOf(str);
+                ret = Integer.valueOf(str.trim());
                 break;
             case BIGINT:
-                ret = Long.valueOf(str);
+                ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
-                ret = Float.valueOf(str);
+                ret = Float.valueOf(str.trim());
                 break;
             case DOUBLE:
             case DECIMAL:
-                ret = Double.valueOf(str);
+                ret = Double.valueOf(str.trim());
                 break;
             case STRING:
             case VARCHAR:
             case CHAR:
-                ret = str;
+                if(customDateFormat != null){
+                    ret = DateUtil.columnToDate(str,customDateFormat);
+                    ret = DateUtil.timestampToString((Date)ret);
+                } else {
+                    ret = str;
+                }
                 break;
             case BOOLEAN:
-                ret = Boolean.valueOf(str.toLowerCase());
+                ret = Boolean.valueOf(str.trim().toLowerCase());
                 break;
             case DATE:
-                ret = DateUtil.columnToDate(str);
+                ret = DateUtil.columnToDate(str,customDateFormat);
                 break;
             case TIMESTAMP:
-                ret = DateUtil.columnToTimestamp(str);
+                ret = DateUtil.columnToTimestamp(str,customDateFormat);
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Unsupported field type:" + type);
         }
 
         return ret;

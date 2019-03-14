@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import jodd.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
@@ -55,6 +56,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
+        conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
         inputFormat.configure(conf);
         org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
 
@@ -86,23 +88,35 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         byte[] data = ((Text)value).getBytes();
         String line = new String(data, charsetName);
         String[] fields = line.split(delimiter);
-        row = new Row(columnIndex.size());
-        for(int i = 0; i < columnIndex.size(); ++i) {
-            Integer index = columnIndex.get(i);
-            String val = columnValue.get(i);
-            if(index != null) {
-                if(index >= fields.length) {
-                    row.setField(i, null);
-                } else {
-                    row.setField(i, HdfsUtil.string2col(fields[index],columnType.get(i)));
-                }
-            } else if(val != null) {
-                String type = columnType.get(i);
-                Object col = HdfsUtil.string2col(val,type);
-                row.setField(i, col);
-            }
 
+        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            row = new Row(fields.length);
+            for (int i = 0; i < fields.length; i++) {
+                row.setField(i, fields[i]);
+            }
+        } else {
+            row = new Row(metaColumns.size());
+            for (int i = 0; i < metaColumns.size(); i++) {
+                MetaColumn metaColumn = metaColumns.get(i);
+
+                Object value = null;
+                if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
+                    value = fields[metaColumn.getIndex()];
+                    if(value == null && metaColumn.getValue() != null){
+                        value = metaColumn.getValue();
+                    }
+                } else if(metaColumn.getValue() != null){
+                    value = metaColumn.getValue();
+                }
+
+                if(value != null){
+                    value = HdfsUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                }
+
+                row.setField(i, value);
+            }
         }
+
         return row;
     }
 
@@ -124,21 +138,6 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
 
         public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
             format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setColumnIndex(List<Integer> columnIndex) {
-            format.columnIndex = columnIndex;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setColumnValue(List<String> columnValue) {
-            format.columnValue = columnValue;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setColumnType(List<String> columnType) {
-            format.columnType = columnType;
             return this;
         }
 

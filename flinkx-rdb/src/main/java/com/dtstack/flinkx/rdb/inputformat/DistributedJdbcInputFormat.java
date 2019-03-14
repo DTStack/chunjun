@@ -24,7 +24,9 @@ import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -33,7 +35,6 @@ import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -82,7 +83,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected String where;
 
-    protected List<String> column;
+    protected List<MetaColumn> metaColumns;
 
     protected TypeConverterInterface typeConverter;
 
@@ -116,7 +117,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         DataSource currentSource = sourceList.get(sourceIndex);
         currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
-        String queryTemplate = DBUtil.getQuerySql(databaseInterface, currentSource.getTable(),column,splitKey,where, currentSource.isSplitByKey());
+        String queryTemplate = DBUtil.getQuerySql(databaseInterface, currentSource.getTable(),metaColumns,splitKey,where, currentSource.isSplitByKey());
         currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
         if (currentSource.isSplitByKey()){
@@ -142,7 +143,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
         if(descColumnTypeList == null) {
             descColumnTypeList = DBUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
-                    currentSource.getPassword(),databaseInterface, currentSource.getTable(),column);
+                    currentSource.getPassword(),databaseInterface, currentSource.getTable(),metaColumns);
         }
 
         LOG.info("open source:" + currentSource.getJdbcUrl() + ",table:" + currentSource.getTable());
@@ -158,6 +159,19 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             if (hasNext){
                 currentRecord = new Row(columnCount);
                 DBUtil.getRow(databaseInterface.getDatabaseType(),currentRecord,descColumnTypeList,currentResultSet,typeConverter);
+                if(!"*".equals(metaColumns.get(0).getName())){
+                    for (int i = 0; i < columnCount; i++) {
+                        Object val = currentRecord.getField(i);
+                        if(val == null && metaColumns.get(i).getValue() != null){
+                            val = metaColumns.get(i).getValue();
+                        }
+
+                        if (val instanceof String){
+                            val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
+                            currentRecord.setField(i,val);
+                        }
+                    }
+                }
             } else {
                 if(sourceIndex + 1 < sourceList.size()){
                     closeCurrentSource();
@@ -231,10 +245,11 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                 }
 
                 if (partNum * numPartitions < sourceList.size()){
-                    sourceList = sourceList.subList(partNum * numPartitions,sourceList.size());
-                    for (int i = 0; i < sourceList.size(); i++) {
+                    int base = partNum * numPartitions;
+                    int size = sourceList.size() - base;
+                    for (int i = 0; i < size; i++) {
                         DistributedJdbcInputSplit split = inputSplits[i];
-                        split.getSourceList().add(sourceList.get(i));
+                        split.getSourceList().add(sourceList.get(i + base));
                     }
                 }
             }

@@ -95,11 +95,40 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         }
 
         return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeValues(column) + ") T2 ON ("
+                + "(" + makeReplaceValues(column,fullColumn) + ") T2 ON ("
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
+                + getUpdateSql(fullColumn, "T1", "T2") + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
                 + quoteColumns(column, "T2") + ")";
+    }
+
+    protected String makeReplaceValues(List<String> column, List<String> fullColumn){
+        List<String> values = new ArrayList<>();
+        boolean contains = false;
+
+        for (String col : column) {
+            values.add("? " + quoteColumn(col));
+        }
+
+        for (String col : fullColumn) {
+            for (String c : column) {
+                if (c.equalsIgnoreCase(col)){
+                    contains = true;
+                    break;
+                }
+            }
+
+            if (contains){
+                contains = false;
+                continue;
+            } else {
+                values.add("null "  + quoteColumn(col));
+            }
+
+            contains = false;
+        }
+
+        return org.apache.commons.lang3.StringUtils.join(values,",");
     }
 
     @Override
@@ -107,7 +136,13 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         if(updateKey == null || updateKey.isEmpty()) {
             return getInsertStatement(column, table);
         }
-        return getReplaceStatement(column, column, table, updateKey);
+
+        return "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeValues(column) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getUpdateSql(column, "T1", "T2") + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ")";
     }
 
     abstract protected String makeMultipleValues(int nCols, int batchSize);
@@ -135,11 +170,16 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         }
 
         return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleValues(column, batchSize) + ") T2 ON ("
+                + "(" + makeMultipleReplaceValues(column,fullColumn,batchSize) + ") T2 ON ("
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, fullColumn, "T1", "T2", keyColList(updateKey)) + " WHEN NOT MATCHED THEN "
+                + getUpdateSql(fullColumn, "T1", "T2") + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
                 + quoteColumns(column, "T2") + ")";
+    }
+
+    protected String makeMultipleReplaceValues(List<String> column, List<String> fullColumn,int batchSize){
+        String value = makeReplaceValues(column,fullColumn);
+        return StringUtils.repeat(value, " UNION ALL ", batchSize);
     }
 
     @Override
@@ -148,7 +188,12 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
             return getMultiInsertStatement(column, table, batchSize);
         }
 
-        return getMultiReplaceStatement(column, column, table, batchSize, updateKey);
+        return "MERGE INTO " + quoteTable(table) + " T1 USING "
+                + "(" + makeMultipleValues(column,batchSize) + ") T2 ON ("
+                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                + getUpdateSql(column, "T1", "T2") + " WHEN NOT MATCHED THEN "
+                + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                + quoteColumns(column, "T2") + ")";
     }
 
     protected String getUpdateSql(List<String> column, String leftTable, String rightTable) {
@@ -156,24 +201,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
         List<String> list = new ArrayList<>();
         for(String col : column) {
-            list.add(prefixLeft + leftTable + col + "=" + prefixRight + rightTable + col);
-        }
-        return StringUtils.join(list, ",");
-    }
-
-    protected String getUpdateSql(List<String> column, List<String> fullColumn, String leftTable, String rightTable, List<String> keyCols) {
-        String prefixLeft = StringUtils.isBlank(leftTable) ? "" : quoteTable(leftTable) + ".";
-        String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
-        List<String> list = new ArrayList<>();
-        for(String col : fullColumn) {
-            if(keyCols == null || keyCols.size() == 0 ||  keyCols.contains(col)) {
-                continue;
-            }
-            if(fullColumn == null || column.contains(col)) {
-                list.add(prefixLeft + col + "=" + prefixRight + col);
-            } else {
-                list.add(prefixLeft + col + "=null");
-            }
+            list.add(prefixLeft + col + "=" + prefixRight + col);
         }
         return StringUtils.join(list, ",");
     }

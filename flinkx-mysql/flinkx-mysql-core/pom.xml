@@ -13,22 +13,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.20</version>
-            <!--<version>6.0.5</version>-->
+            <version>5.1.46</version>
         </dependency>
 
     </dependencies>

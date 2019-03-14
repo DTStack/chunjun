@@ -76,6 +76,8 @@ public class Launcher {
     }
 
 
+
+
     public static void main(String[] args) throws Exception {
         LauncherOptions launcherOptions = new LauncherOptionParser(args).getLauncherOptions();
         String mode = launcherOptions.getMode();
@@ -88,6 +90,7 @@ public class Launcher {
             String monitor = clusterClient.getWebInterfaceURL();
             argList.add("-monitor");
             argList.add(monitor);
+
             String pluginRoot = launcherOptions.getPlugin();
             String content = launcherOptions.getJob();
             File jarFile = new File(pluginRoot + File.separator + "flinkx.jar");

@@ -44,6 +44,8 @@
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
                                     <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>org.apache.hadoop:*</exclude>
+                                    <exclude>xerces:xercesImpl</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

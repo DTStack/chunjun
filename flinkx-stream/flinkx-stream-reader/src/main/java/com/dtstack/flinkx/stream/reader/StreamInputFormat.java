@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -26,7 +27,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Company: www.dtstack.com
@@ -36,25 +36,20 @@ public class StreamInputFormat extends RichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    private Row staticData;
-
     private long recordRead = 0;
 
     protected long sliceRecordCount;
 
-    protected List<Map<String,Object>> columns;
+    protected List<MetaColumn> columns;
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        staticData = new Row(columns.size());
-        for (int i = 0; i < columns.size(); i++) {
-            staticData.setField(i,columns.get(i).get("value"));
-        }
+
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        return staticData;
+        return MockDataUtil.getMockRow(columns);
     }
 
     @Override

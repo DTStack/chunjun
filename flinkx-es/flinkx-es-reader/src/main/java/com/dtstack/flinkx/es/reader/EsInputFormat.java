@@ -81,7 +81,7 @@ public class EsInputFormat extends RichInputFormat {
     public InputSplit[] createInputSplits(int splitNum) throws IOException {
         long cnt = EsUtil.searchCount(client, query);
         if (cnt < splitNum) {
-            EsInputSplit[] splits = new EsInputSplit[0];
+            EsInputSplit[] splits = new EsInputSplit[1];
             splits[0] = new EsInputSplit(0, (int)cnt);
             return splits;
         }

@@ -188,7 +188,7 @@ public class EsUtil {
                 column = constantValue;
                 break;
             case "DATE":
-                column = DateUtil.stringToDate(constantValue);
+                column = DateUtil.stringToDate(constantValue,null);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported column type: " + columnType);

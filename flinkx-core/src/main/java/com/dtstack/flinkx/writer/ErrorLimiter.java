@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,11 @@ public class ErrorLimiter {
     private String jobId;
     private String taskId;
     private String errMsg = "";
+    private Row errorData;
+
+    public void setErrorData(Row errorData){
+        this.errorData = errorData;
+    }
 
     public String getErrMsg() {
         return errMsg;
@@ -99,7 +105,6 @@ public class ErrorLimiter {
             try (InputStream inputStream = URLUtil.open(url)){
                  break;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
         }
@@ -124,35 +129,37 @@ public class ErrorLimiter {
         }
 
         scheduledExecutorService.scheduleAtFixedRate(
-                () -> {
-                    Gson gson = new Gson();
-                    for(int index = 0; index < monitorUrls.length; ++index) {
-                        String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
-                        try(InputStream inputStream = URLUtil.open(requestUrl) ) {
-                            try(Reader rd = new InputStreamReader(inputStream)) {
-                                Map<String,Object> map = gson.fromJson(rd, Map.class);
-                                List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
-                                for(LinkedTreeMap accumulator : userTaskAccumulators) {
-                                    String name = (String) accumulator.get("name");
-                                    if(name != null) {
-                                        if(name.equals("nErrors")) {
-                                            this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
-                                        } else if(name.equals("numRead")) {
-                                            this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    }
-                },
+                this::updateErrorInfo,
                 0,
                 (long) (samplePeriod * 1000),
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    public void updateErrorInfo(){
+        Gson gson = new Gson();
+        for(int index = 0; index < monitorUrls.length; ++index) {
+            String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
+            try(InputStream inputStream = URLUtil.open(requestUrl) ) {
+                try(Reader rd = new InputStreamReader(inputStream)) {
+                    Map<String,Object> map = gson.fromJson(rd, Map.class);
+                    List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
+                    for(LinkedTreeMap accumulator : userTaskAccumulators) {
+                        String name = (String) accumulator.get("name");
+                        if(name != null) {
+                            if(name.equals("nErrors")) {
+                                this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
+                            } else if(name.equals("numRead")) {
+                                this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error("Update data error:",e);
+            }
+            break;
+        }
     }
 
     public void stop() {
@@ -163,17 +170,23 @@ public class ErrorLimiter {
 
     public void acquire() {
         if(isValid()) {
+            String errorDataStr = "";
+            if(errorData != null){
+                errorDataStr = errorData.toString() + "\n";
+            }
+
             if(maxErrors != null){
                 Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
-                        + "]\n" + errMsg);
+                        + "]\n" + errorDataStr + errMsg);
             }
 
             if(maxErrorRatio != null){
                 if(numRead >= 1) {
                     errorRatio = (double)errors / numRead;
                 }
+
                 Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
-                        + "]\n" + errMsg);
+                        + "]\n" + errorDataStr + errMsg);
             }
         }
     }

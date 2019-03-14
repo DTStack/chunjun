@@ -21,15 +21,14 @@ package com.dtstack.flinkx.util;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.dtstack.flinkx.common.ColumnType.valueOf;
 
 /**
  * String Utilities
@@ -67,48 +66,59 @@ public class StringUtil {
         return str;
     }
 
-    public static Object string2col(String str, String type) {
+    public static Object string2col(String str, String type, SimpleDateFormat customTimeFormat) {
+        if(str == null || str.length() == 0){
+            return null;
+        }
 
-        Preconditions.checkNotNull(type);
-        ColumnType columnType = valueOf(type.toUpperCase());
+        if(type == null){
+            return str;
+        }
+
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object ret;
         switch(columnType) {
             case TINYINT:
-                ret = Byte.valueOf(str);
+                ret = Byte.valueOf(str.trim());
                 break;
             case SMALLINT:
-                ret = Short.valueOf(str);
+                ret = Short.valueOf(str.trim());
                 break;
             case INT:
-                ret = Integer.valueOf(str);
+                ret = Integer.valueOf(str.trim());
                 break;
             case MEDIUMINT:
             case BIGINT:
-                ret = Long.valueOf(str);
+                ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
-                ret = Float.valueOf(str);
+                ret = Float.valueOf(str.trim());
                 break;
             case DOUBLE:
-                ret = Double.valueOf(str);
+                ret = Double.valueOf(str.trim());
                 break;
             case STRING:
             case VARCHAR:
             case CHAR:
-                ret = str;
+                if(customTimeFormat != null){
+                    ret = DateUtil.columnToDate(str,customTimeFormat);
+                    ret = DateUtil.timestampToString((Date)ret);
+                } else {
+                    ret = str;
+                }
                 break;
             case BOOLEAN:
-                ret = Boolean.valueOf(str.toLowerCase());
+                ret = Boolean.valueOf(str.trim().toLowerCase());
                 break;
             case DATE:
-                ret = DateUtil.columnToDate(str);
+                ret = DateUtil.columnToDate(str,customTimeFormat);
                 break;
             case TIMESTAMP:
             case DATETIME:
-                ret = DateUtil.columnToTimestamp(str);
+                ret = DateUtil.columnToTimestamp(str,customTimeFormat);
                 break;
             default:
-                throw new IllegalArgumentException();
+                ret = str;
         }
 
         return ret;
@@ -116,37 +126,49 @@ public class StringUtil {
 
     public static String col2string(Object column, String type) {
         String rowData = column.toString();
-        ColumnType columnType = ColumnType.valueOf(type.toUpperCase());
+        ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object result = null;
         switch (columnType) {
             case TINYINT:
-                result = Byte.valueOf(rowData);
+                result = Byte.valueOf(rowData.trim());
                 break;
             case SMALLINT:
-                result = Short.valueOf(rowData);
+            case SHORT:
+                result = Short.valueOf(rowData.trim());
                 break;
             case INT:
-                result = Integer.valueOf(rowData);
+            case INTEGER:
+                result = Integer.valueOf(rowData.trim());
                 break;
             case BIGINT:
-                result = Long.valueOf(rowData);
+            case LONG:
+                if (column instanceof Timestamp){
+                    result=((Timestamp) column).getTime();
+                }else {
+                    result = Long.valueOf(rowData.trim());
+                }
                 break;
             case FLOAT:
-                result = Float.valueOf(rowData);
+                result = Float.valueOf(rowData.trim());
                 break;
             case DOUBLE:
-                result = Double.valueOf(rowData);
+                result = Double.valueOf(rowData.trim());
                 break;
             case DECIMAL:
-                result = new BigDecimal(rowData);
+                result = new BigDecimal(rowData.trim());
                 break;
             case STRING:
             case VARCHAR:
             case CHAR:
-                result = rowData;
+            case TEXT:
+                if (column instanceof Timestamp){
+                    result = DateUtil.timestampToString((java.util.Date)column);
+                }else {
+                    result = rowData;
+                }
                 break;
             case BOOLEAN:
-                result = Boolean.valueOf(rowData);
+                result = Boolean.valueOf(rowData.trim());
                 break;
             case DATE:
                 result = DateUtil.dateToString((java.util.Date)column);
@@ -155,7 +177,7 @@ public class StringUtil {
                 result = DateUtil.timestampToString((java.util.Date)column);
                 break;
             default:
-                throw new IllegalArgumentException();
+                result = rowData;
         }
         return result.toString();
     }

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
@@ -37,13 +38,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected Map<String,String> hadoopConfig;
 
-    protected List<Integer> columnIndex;
-
-    protected List<String> columnValue;
-
-    protected List<String> columnType;
-
-    protected List<String> columnName;
+    protected List<MetaColumn> metaColumns;
 
     protected String inputPath;
 
