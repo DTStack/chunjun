@@ -23,10 +23,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.SysUtil;
-import com.dtstack.flinkx.util.TelnetUtil;
+import com.dtstack.flinkx.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -57,6 +54,8 @@ public class DBUtil {
     private static int MILLIS_LENGTH = 13;
     private static int MICRO_LENGTH = 16;
     private static int NANOS_LENGTH = 19;
+
+    public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
 
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
@@ -196,21 +195,6 @@ public class DBUtil {
             throw new RuntimeException("execute batch sql error:{}",e);
         } finally {
             commit(dbConn);
-        }
-    }
-
-    public static void executeOneByOne(Connection dbConn, List<String> sqls) {
-        if(sqls == null || sqls.size() == 0) {
-            return;
-        }
-
-        try {
-            Statement stmt = dbConn.createStatement();
-            for(String sql : sqls) {
-                stmt.execute(sql);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -377,13 +361,63 @@ public class DBUtil {
         return dataStr;
     }
 
-    public static String buildWhereSql(DatabaseInterface databaseInterface,String increColType,String where,
-                                       String increCol,String startLocation){
-        if (startLocation == null){
-            return where;
+    public static String buildIncrementFilter(DatabaseInterface databaseInterface,String increColType,String increCol,
+                                              String startLocation,String endLocation){
+        StringBuilder filter = new StringBuilder();
+
+        String startFilter = buildStartLocationSql(databaseInterface,increColType,increCol,startLocation);
+        if (StringUtils.isNotEmpty(startFilter)){
+            filter.append(startFilter);
         }
 
-        String increFilter;
+        String endFilter = buildEndLocationSql(databaseInterface,increColType,increCol,endLocation);
+        if (StringUtils.isNotEmpty(endFilter)){
+            if (filter.length() > 0){
+                filter.append(" and ").append(endFilter);
+            } else {
+                filter.append(endFilter);
+            }
+        }
+
+        return filter.toString();
+    }
+
+    public static String buildEndLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String endLocation){
+
+        if(StringUtils.isEmpty(endLocation)){
+            return null;
+        }
+
+        String endLocationSql;
+        String endTimeStr;
+
+        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
+            endTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(endLocation));
+
+            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
+                endTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",endTimeStr);
+            } else {
+                endTimeStr = String.format("'%s'",endTimeStr);
+            }
+
+            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endTimeStr;
+        } else if(ColumnType.isNumberType(increColType)){
+            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endLocation;
+        } else {
+            endTimeStr = String.format("'%s'",endLocation);
+            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endTimeStr;
+        }
+
+        return endLocationSql;
+    }
+
+    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String startLocation){
+
+        if(StringUtils.isEmpty(startLocation)){
+            return null;
+        }
+
+        String startLocationSql;
         String startTimeStr;
 
         if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
@@ -395,21 +429,39 @@ public class DBUtil {
                 startTimeStr = String.format("'%s'",startTimeStr);
             }
 
-            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startTimeStr;
         } else if(ColumnType.isNumberType(increColType)){
-            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startLocation;
+            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startLocation;
         } else {
             startTimeStr = String.format("'%s'",startLocation);
-            increFilter = databaseInterface.quoteColumn(increCol) + " > " + startTimeStr;
+            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startTimeStr;
         }
 
-        if (where == null || where.length() == 0){
-            where = increFilter;
-        } else {
-            where = where + " and " + increFilter;
+        return startLocationSql;
+    }
+
+    public static String buildWhereSql(String where,String startSql,String endSql){
+        StringBuilder whereBuilder = new StringBuilder();
+
+        if (StringUtils.isNotEmpty(where)){
+            whereBuilder.append(where.trim());
         }
 
-        return where;
+        if(StringUtils.isNotEmpty(startSql)){
+            if(whereBuilder.toString().length() > 0){
+                whereBuilder.append(" and ");
+            }
+            whereBuilder.append(startSql);
+        }
+
+        if(StringUtils.isNotEmpty(endSql)){
+            if(whereBuilder.toString().length() > 0){
+                whereBuilder.append(" and ");
+            }
+            whereBuilder.append(endSql);
+        }
+
+        return whereBuilder.toString();
     }
 
     private static String getStartTimeStr(EDatabaseType databaseType,Long startLocation){
@@ -472,7 +524,12 @@ public class DBUtil {
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                                     String splitKey,String where,boolean isSplitByKey) {
+                                     String splitKey,String customFilter,boolean isSplitByKey){
+        return getQuerySql(databaseInterface, table, metaColumns, splitKey, customFilter, isSplitByKey, false);
+    }
+
+    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
+                                     String splitKey,String customFilter,boolean isSplitByKey,boolean realTimeIncreSync) {
         StringBuilder sb = new StringBuilder();
 
         List<String> selectColumns = new ArrayList<>();
@@ -490,22 +547,24 @@ public class DBUtil {
 
         sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
+        sb.append(" WHERE 1=1 ");
 
         StringBuilder filter = new StringBuilder();
 
         if(isSplitByKey) {
-            filter.append(databaseInterface.getSplitFilter(splitKey));
+            filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
-        if(where != null && where.trim().length() != 0) {
-            if(filter.length() > 0) {
-                filter.append(" AND ");
-            }
-            filter.append(where);
+        if(StringUtils.isNotEmpty(customFilter)) {
+            filter.append(" AND ").append(customFilter);
         }
 
-        if(filter.length() != 0) {
-            sb.append(" WHERE ").append(filter);
+        if (realTimeIncreSync){
+            filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
+        }
+
+        if(filter.length() > 0) {
+            sb.append(filter);
         }
 
         return sb.toString();
