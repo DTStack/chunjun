@@ -20,7 +20,6 @@ package com.dtstack.flinkx.metrics.promethues;
 
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricConfig;
-import org.apache.flink.metrics.reporter.MetricReporter;
 import org.apache.flink.metrics.reporter.Scheduled;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.PushGateway;
@@ -35,7 +34,7 @@ import static  com.dtstack.flinkx.metrics.promethues.PrometheusPushGatewayReport
 import static  com.dtstack.flinkx.metrics.promethues.PrometheusPushGatewayReporterOptions.RANDOM_JOB_NAME_SUFFIX;
 
 /**
- * {@link MetricReporter} that exports {@link Metric Metrics} via Prometheus {@link PushGateway}.
+ * {@link com.dtstack.flinkx.metrics.base.reporter.MetricReporter} that exports {@link Metric Metrics} via Prometheus {@link PushGateway}.
  */
 public class PrometheusPushGatewayReporter extends AbstractPrometheusReporter implements Scheduled {
 

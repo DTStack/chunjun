@@ -20,7 +20,6 @@ package com.dtstack.flinkx.metrics.promethues;
 
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricConfig;
-import org.apache.flink.metrics.reporter.MetricReporter;
 import org.apache.flink.util.NetUtils;
 import org.apache.flink.util.Preconditions;
 import io.prometheus.client.exporter.HTTPServer;
@@ -29,7 +28,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- * {@link MetricReporter} that exports {@link Metric Metrics} via Prometheus.
+ * {@link com.dtstack.flinkx.metrics.base.reporter.MetricReporter} that exports {@link Metric Metrics} via Prometheus.
  */
 public class PrometheusReporter extends AbstractPrometheusReporter {
 

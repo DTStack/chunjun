@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.metrics.scope;
+package com.dtstack.flinkx.metrics.scope;
 
 import org.apache.flink.metrics.CharacterFilter;
 

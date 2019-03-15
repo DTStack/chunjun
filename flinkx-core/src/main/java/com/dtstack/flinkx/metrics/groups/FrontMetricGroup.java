@@ -16,23 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metrics.scope;
+package com.dtstack.flinkx.metrics.groups;
 
 
-public class PipelineScopeFormat extends ScopeFormat {
+import org.apache.flink.metrics.CharacterFilter;
 
-    public PipelineScopeFormat(String format) {
-        super(format, null, new String[]{
-                SCOPE_HOST,
-                SCOPE_PLUGINE_TYPE,
-                SCOPE_PLUGINE_NAME,
-                SCOPE_JOB_NAME
-        });
-    }
+/**
+ * copy from https://github.com/apache/flink
+ */
+public class FrontMetricGroup<P extends AbstractMetricGroup<?>> extends ProxyMetricGroup<P> {
 
-    public String[] formatScope(String hostname, String pluginType, String pluginName, String jobName) {
-        final String[] template = copyTemplate();
-        final String[] values = {hostname, pluginType, pluginName, jobName};
-        return bindVariables(template, values);
-    }
+	protected int reporterIndex;
+
+	public FrontMetricGroup(int reporterIndex, P reference) {
+		super(reference);
+		this.reporterIndex = reporterIndex;
+	}
+
+	@Override
+	public String getMetricIdentifier(String metricName) {
+		return parentMetricGroup.getMetricIdentifier(metricName);
+	}
+
+	public String getLogicalScope(CharacterFilter filter) {
+		return parentMetricGroup.getLogicalScope(filter);
+	}
+
+	public String getLogicalScope(CharacterFilter filter, char delimiter) {
+		return parentMetricGroup.getLogicalScope(filter, delimiter);
+	}
 }

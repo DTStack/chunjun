@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.metrics.promethues;
 
+import com.dtstack.flinkx.metrics.base.MetricGroup;
+import com.dtstack.flinkx.metrics.base.reporter.MetricReporter;
+import com.dtstack.flinkx.metrics.groups.AbstractMetricGroup;
+import com.dtstack.flinkx.metrics.groups.FrontMetricGroup;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Gauge;
@@ -25,10 +29,6 @@ import org.apache.flink.metrics.Histogram;
 import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricConfig;
-import org.apache.flink.metrics.MetricGroup;
-import org.apache.flink.metrics.reporter.MetricReporter;
-import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
-import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import org.apache.flink.metrics.CharacterFilter;

@@ -20,16 +20,14 @@ package com.dtstack.flinkx.metrics.groups;
 
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.MetricRegistry;
 import org.apache.flink.metrics.CharacterFilter;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Meter;
 import org.apache.flink.metrics.MeterView;
 import org.apache.flink.metrics.SimpleCounter;
 import org.apache.flink.runtime.metrics.MetricNames;
-import org.apache.flink.runtime.metrics.MetricRegistry;
-import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
-import org.apache.flink.runtime.metrics.groups.ComponentMetricGroup;
-import org.apache.flink.runtime.metrics.scope.ScopeFormat;
+import com.dtstack.flinkx.metrics.scope.ScopeFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,11 +101,6 @@ public class PipelineInputMetricGroup<C extends ComponentMetricGroup<C>> extends
     @Override
     protected String getGroupName(CharacterFilter filter) {
         return "pipeline";
-    }
-
-    @Override
-    protected QueryScopeInfo createQueryServiceMetricInfo(CharacterFilter filter) {
-        return null;
     }
 
     // ============================================================================================
