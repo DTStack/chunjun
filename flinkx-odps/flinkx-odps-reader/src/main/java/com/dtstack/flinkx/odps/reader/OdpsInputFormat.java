@@ -186,7 +186,7 @@ public class OdpsInputFormat extends RichInputFormat {
                     val = metaColumn.getValue();
                 }
 
-                if(val != null){
+                if(val != null && val instanceof String){
                     val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 

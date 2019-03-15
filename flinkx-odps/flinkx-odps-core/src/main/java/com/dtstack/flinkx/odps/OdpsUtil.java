@@ -136,7 +136,7 @@ public class OdpsUtil {
                                                                                         final String projectName, final String tableName) {
         final TableTunnel tunnel = new TableTunnel(odps);
 
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -158,7 +158,7 @@ public class OdpsUtil {
                                                                                      final String projectName, final String tableName, String partition) {
 
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -183,7 +183,7 @@ public class OdpsUtil {
     public static TableTunnel.DownloadSession getSlaveSessionForNonPartitionedTable(Odps odps, final String sessionId,
                                                                                     String tunnelServer, final String projectName, final String tableName) {
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -203,7 +203,7 @@ public class OdpsUtil {
     public static TableTunnel.DownloadSession getSlaveSessionForPartitionedTable(Odps odps, final String sessionId,
                                                                                  String tunnelServer, final String projectName, final String tableName, String partition) {
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
