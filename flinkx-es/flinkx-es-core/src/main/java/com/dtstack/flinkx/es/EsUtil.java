@@ -139,9 +139,9 @@ public class EsUtil {
                 Object col = row.getField(i);
                 if(col != null) {
                     col = StringUtil.string2col(String.valueOf(col), types.get(i), null);
-                    currMap.put(key, col);
                 }
 
+                currMap.put(key, col);
             }
         } catch(Exception ex) {
             String msg = "EsUtil.rowToJsonMap Writing record error: when converting field[" + i + "] in Row(" + row + ")";
