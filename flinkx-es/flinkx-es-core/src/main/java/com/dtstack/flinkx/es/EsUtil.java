@@ -138,6 +138,10 @@ public class EsUtil {
                 String key = parts[parts.length - 1];
                 Object col = row.getField(i);
                 if(col != null) {
+                    if (col instanceof String){
+                        col = StringUtil.string2col(String.valueOf(col), types.get(i), null);
+                    }
+
                     currMap.put(key, col);
                 }
 
