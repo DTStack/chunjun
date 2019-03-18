@@ -138,8 +138,7 @@ public class EsUtil {
                 String key = parts[parts.length - 1];
                 Object col = row.getField(i);
                 if(col != null) {
-                    Object value = StringUtil.col2string(col, types.get(i));
-                    currMap.put(key, value);
+                    currMap.put(key, col);
                 }
 
             }
