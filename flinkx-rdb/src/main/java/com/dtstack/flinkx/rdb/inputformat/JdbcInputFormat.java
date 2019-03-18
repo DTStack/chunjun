@@ -33,6 +33,7 @@ import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
@@ -79,6 +80,8 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected boolean hasNext;
 
+    protected Object[][] parameterValues;
+
     protected int columnCount;
 
     protected String table;
@@ -93,17 +96,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected String startLocation;
 
-    protected String splitKey;
-
     private int increColIndex;
 
     protected int fetchSize;
 
     protected int queryTimeOut;
-
-    protected boolean realTimeIncreSync;
-
-    protected int numPartitions;
 
     protected StringAccumulator tableColAccumulator;
 
@@ -121,12 +118,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     }
 
-    private void initMetric(InputSplit split){
-
-        if (StringUtils.isEmpty(increCol)){
-            return;
-        }
-
+    private void setMetric(){
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
 
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
@@ -135,25 +127,18 @@ public class JdbcInputFormat extends RichInputFormat {
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
-        String endLocation = ((JdbcInputSplit)split).getEndLocation();
-        if(!accumulatorMap.containsKey(Metrics.END_LOCATION) && endLocation != null){
+        if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
             endLocationAccumulator = new MaximumAccumulator();
-
-            if(realTimeIncreSync){
-                endLocationAccumulator.add(endLocation);
-            }
-
             getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
         }
 
-        if (!accumulatorMap.containsKey(Metrics.START_LOCATION) && startLocation != null){
-            if(!realTimeIncreSync){
-                endLocationAccumulator.add(startLocation);
+        if (startLocation != null){
+            endLocationAccumulator.add(startLocation);
+            if(!accumulatorMap.containsKey(Metrics.START_LOCATION)){
+                startLocationAccumulator = new StringAccumulator();
+                startLocationAccumulator.add(startLocation);
+                getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
             }
-
-            startLocationAccumulator = new StringAccumulator();
-            startLocationAccumulator.add(startLocation);
-            getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
         }
 
         for (int i = 0; i < metaColumns.size(); i++) {
@@ -167,21 +152,21 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            LOG.info(inputSplit.toString());
-
-            initMetric(inputSplit);
-
-            if(!canReadData(inputSplit)){
-                LOG.warn("Not read data when the start location are equal to end location");
-
-                hasNext = false;
-                return;
-            }
-
             ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
             dbConn.setAutoCommit(false);
+
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+
+            if (inputSplit != null && parameterValues != null) {
+                String n = parameterValues[inputSplit.getSplitNumber()][0].toString();
+                String m = parameterValues[inputSplit.getSplitNumber()][1].toString();
+                queryTemplate = queryTemplate.replace("${N}",n).replace("${M}",m);
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Executing '%s' with parameters %s", queryTemplate, Arrays.deepToString(parameterValues[inputSplit.getSplitNumber()])));
+                }
+            }
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()){
                 statement.setFetchSize(Integer.MIN_VALUE);
@@ -192,9 +177,7 @@ public class JdbcInputFormat extends RichInputFormat {
             if(EDatabaseType.Carbondata != databaseInterface.getDatabaseType()) {
                 statement.setQueryTimeout(queryTimeOut);
             }
-
-            String querySql = buildQuerySql(inputSplit);
-            resultSet = statement.executeQuery(querySql);
+            resultSet = statement.executeQuery(queryTemplate);
             columnCount = resultSet.getMetaData().getColumnCount();
             hasNext = resultSet.next();
 
@@ -202,6 +185,9 @@ public class JdbcInputFormat extends RichInputFormat {
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
             }
 
+            if(increCol != null){
+                setMetric();
+            }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
@@ -217,113 +203,22 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        String endLocation = null;
-        if (realTimeIncreSync){
-            endLocation = getEndLocation();
-
-            if(StringUtils.equals(startLocation, endLocation)){
-                JdbcInputSplit[] splits = new JdbcInputSplit[1];
-                splits[0] = new JdbcInputSplit(0, numPartitions, 0, startLocation, endLocation);
-
-                return splits;
-            }
+        if (parameterValues == null) {
+            return new GenericInputSplit[]{new GenericInputSplit(0, 1)};
         }
-
-        JdbcInputSplit[] splits = new JdbcInputSplit[minNumSplits];
-        for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new JdbcInputSplit(i, numPartitions, i, startLocation, endLocation);
+        GenericInputSplit[] ret = new GenericInputSplit[parameterValues.length];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = new GenericInputSplit(i, ret.length);
         }
-
-        return splits;
+        return ret;
     }
 
-    private boolean canReadData(InputSplit split){
-        if (StringUtils.isEmpty(increCol)){
-            return true;
-        }
-
-        if (!realTimeIncreSync){
-            return true;
-        }
-
-        JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) split;
-        return !StringUtils.equals(jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
-    }
-
-    private String buildQuerySql(InputSplit inputSplit){
-        String querySql = queryTemplate;
-
-        if (inputSplit != null) {
-            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
-
-            if (StringUtils.isNotEmpty(splitKey)){
-                querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions))
-                        .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
-            }
-
-            if (realTimeIncreSync){
-                String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, increColType, increCol,
-                        jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
-
-                if(StringUtils.isNotEmpty(incrementFilter)){
-                    incrementFilter = " and " + incrementFilter;
-                }
-
-                querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
-            }
-        }
-
-        LOG.warn(String.format("Executing sql is: '%s'", querySql));
-
-        return querySql;
-    }
-
-    private String getEndLocation() {
-        String maxValue = null;
-        Connection conn = null;
-        Statement st = null;
-        ResultSet rs = null;
-        try {
-            String queryMaxValueSql = String.format("select max(%s) as max_value from %s",
-                    databaseInterface.quoteColumn(increCol), databaseInterface.quoteTable(table));
-            String startSql = DBUtil.buildStartLocationSql(databaseInterface, increColType, increCol, startLocation);
-            if(StringUtils.isNotEmpty(startSql)){
-                queryMaxValueSql += " where " + startSql;
-            }
-
-            LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
-
-            ClassUtil.forName(drivername, getClass().getClassLoader());
-            conn = DBUtil.getConnection(dbURL, username, password);
-            st = conn.createStatement();
-            rs = st.executeQuery(queryMaxValueSql);
-            if (rs.next()){
-                if (ColumnType.isTimeType(increColType)){
-                    Timestamp increVal = rs.getTimestamp("max_value");
-                    if(increVal != null){
-                        maxValue = String.valueOf(getLocation(increVal));
-                    }
-                } else if(ColumnType.isNumberType(increColType)){
-                    maxValue = String.valueOf(rs.getLong("max_value"));
-                } else {
-                    maxValue = rs.getString("max_value");
-                }
-            }
-
-            LOG.info(String.format("The max value of column %s is %s", increCol, maxValue));
-
-            return maxValue;
-        } catch (Throwable e){
-            throw new RuntimeException("Get max value from " + table + " error",e);
-        } finally {
-            DBUtil.closeDBResources(rs,st,conn);
-        }
-    }
 
     @Override
     public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
         return new DefaultInputSplitAssigner(inputSplits);
     }
+
 
     @Override
     public boolean reachedEnd() throws IOException {
@@ -353,7 +248,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             }
 
-            if(increCol != null && !realTimeIncreSync){
+            if(increCol != null){
                 if (ColumnType.isTimeType(increColType)){
                     Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
                     if(increVal != null){
@@ -401,6 +296,7 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void closeInternal() throws IOException {
         DBUtil.closeDBResources(resultSet,statement,dbConn);
+        parameterValues = null;
     }
 
 }

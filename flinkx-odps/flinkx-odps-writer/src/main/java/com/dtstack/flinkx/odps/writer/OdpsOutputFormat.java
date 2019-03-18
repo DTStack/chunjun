@@ -20,6 +20,7 @@ package com.dtstack.flinkx.odps.writer;
 
 import com.aliyun.odps.Odps;
 import com.aliyun.odps.Table;
+import com.aliyun.odps.data.Binary;
 import com.aliyun.odps.data.Record;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.aliyun.odps.tunnel.TunnelException;
@@ -134,16 +135,20 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case BOOLEAN:
                         record.setBoolean(i, Boolean.valueOf(rowData));
                         break;
-                    case INT:
                     case TINYINT:
+                        record.set(i, Byte.valueOf(rowData));
+                        break;
                     case SMALLINT:
-                        record.set(i,Integer.parseInt(rowData));
+                        record.set(i, Short.valueOf(rowData));
+                        break;
+                    case INT:
+                        record.set(i, Integer.valueOf(rowData));
                         break;
                     case BIGINT:
                         record.setBigint(i, Long.valueOf(rowData));
                         break;
                     case FLOAT:
-                        record.set(i, Float.parseFloat(rowData));
+                        record.set(i, Float.valueOf(rowData));
                         break;
                     case DOUBLE:
                         record.setDouble(i, Double.valueOf(rowData));
@@ -156,8 +161,13 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         break;
                     case DATE:
                     case DATETIME:
+                        record.set(i, DateUtil.columnToDate(column, null));
+                        break;
                     case TIMESTAMP:
                         record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
+                        break;
+                    case BINARY:
+                        record.set(i, new Binary(rowData.getBytes()));
                         break;
                     default:
                         record.set(i,column);
