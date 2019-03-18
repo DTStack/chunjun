@@ -1,9 +1,26 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.metrics;
 
+import com.dtstack.flinkx.constants.Metrics;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.Counter;
-import org.apache.flink.metrics.Meter;
-import org.apache.flink.metrics.MeterView;
 
 /**
  * company: www.dtstack.com
@@ -12,18 +29,12 @@ import org.apache.flink.metrics.MeterView;
  */
 public class OutputMetric {
 
-    protected transient Counter numErrors;
-    protected transient Counter numNullErrors;
-    protected transient Counter numDuplicateErrors;
-    protected transient Counter numConversionErrors;
-    protected transient Counter numOtherErrors;
-    protected transient Counter numWrite;
-
-    protected transient Counter numRecordsOut;
-    protected transient Meter numRecordsOutRate;
-
-    protected transient Counter numBytesOut;
-    protected transient Meter numBytesOutRate;
+    private Counter numErrors;
+    private Counter numNullErrors;
+    private Counter numDuplicateErrors;
+    private Counter numConversionErrors;
+    private Counter numOtherErrors;
+    private Counter numWrite;
 
     private transient RuntimeContext runtimeContext;
 
@@ -33,20 +44,13 @@ public class OutputMetric {
         initMetric();
     }
 
-    public void initMetric() {
-
-        numErrors = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_ERRORS);
-        numNullErrors = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_NULL_ERRORS);
-        numDuplicateErrors = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_DUPLICATE_ERRORS);
-        numConversionErrors = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_CONVERSION_ERRORS);
-        numOtherErrors = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_OTHER_ERRORS);
-        numWrite = getRuntimeContext().getMetricGroup().counter(DTMetricNames.NUM_WRITES);
-
-        numRecordsOut = getRuntimeContext().getMetricGroup().counter(DTMetricNames.IO_NUM_RECORDS_OUT);
-        numRecordsOutRate = getRuntimeContext().getMetricGroup().meter(DTMetricNames.IO_NUM_RECORDS_OUT_RATE, new MeterView(numRecordsOut, 20));
-
-        numBytesOut = getRuntimeContext().getMetricGroup().counter(DTMetricNames.IO_NUM_BYTES_OUT);
-        numBytesOutRate = getRuntimeContext().getMetricGroup().meter(DTMetricNames.IO_NUM_BYTES_OUT_RATE, new MeterView(numBytesOut, 20));
+    private void initMetric() {
+        numErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_ERRORS);
+        numNullErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_NULL_ERRORS);
+        numDuplicateErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_DUPLICATE_ERRORS);
+        numConversionErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_CONVERSION_ERRORS);
+        numOtherErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_OTHER_ERRORS);
+        numWrite = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_WRITES);
     }
 
     public Counter getNumErrors() {
@@ -73,23 +77,7 @@ public class OutputMetric {
         return numWrite;
     }
 
-    public Counter getNumRecordsOut() {
-        return numRecordsOut;
-    }
-
-    public Meter getNumRecordsOutRate() {
-        return numRecordsOutRate;
-    }
-
-    public Counter getNumBytesOut() {
-        return numBytesOut;
-    }
-
-    public Meter getNumBytesOutRate() {
-        return numBytesOutRate;
-    }
-
-    public RuntimeContext getRuntimeContext() {
+    private RuntimeContext getRuntimeContext() {
         return runtimeContext;
     }
 

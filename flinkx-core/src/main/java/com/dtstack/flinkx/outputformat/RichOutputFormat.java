@@ -112,7 +112,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
-    protected OutputMetric outputMetric;
+    protected transient OutputMetric outputMetric;
 
     public DirtyDataManager getDirtyDataManager() {
         return dirtyDataManager;
@@ -242,7 +242,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             // 总记录数加1
             numWriteCounter.add(1);
             outputMetric.getNumWrite().inc();
-            outputMetric.getNumRecordsOut();
         } catch(WriteRecordException e) {
             errCounter.add(1);
             outputMetric.getNumErrors().inc();

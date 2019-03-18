@@ -51,7 +51,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
-    protected InputMetric inputMetric;
+    protected transient InputMetric inputMetric;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -79,7 +79,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public Row nextRecord(Row row) throws IOException {
         numReadCounter.add(1);
-        inputMetric.getNumRecordsIn().inc();
+        inputMetric.getNumRead().inc();
 
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
