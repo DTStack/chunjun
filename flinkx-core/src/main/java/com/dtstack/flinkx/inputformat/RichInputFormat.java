@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.InputMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -50,6 +51,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
+    protected InputMetric inputMetric;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -59,6 +61,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
+
+        inputMetric = new InputMetric(getRuntimeContext());
+
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
 
         openInternal(inputSplit);
@@ -74,6 +79,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public Row nextRecord(Row row) throws IOException {
         numReadCounter.add(1);
+        inputMetric.getNumRecordsIn().inc();
 
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
