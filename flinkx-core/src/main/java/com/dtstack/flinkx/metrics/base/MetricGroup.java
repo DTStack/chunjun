@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * A MetricGroup is a named container for {@link org.apache.flink.metrics.Metric Metrics} and further metric subgroups.
  *
- * <p>Instances of this class can be used to register new metrics with jLogstash and to create a nested
+ * <p>Instances of this class can be used to register new metrics with Flinkx and to create a nested
  * hierarchy based on the group names.
  *
  * <p>A MetricGroup is uniquely identified by it's place in the hierarchy and name.
@@ -43,7 +43,7 @@ public interface MetricGroup {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Creates and registers a new {@link Counter} with jLogstash.
+	 * Creates and registers a new {@link Counter} with Flinkx.
 	 *
 	 * @param name name of the counter
 	 * @return the created counter
@@ -51,7 +51,7 @@ public interface MetricGroup {
 	Counter counter(int name);
 
 	/**
-	 * Creates and registers a new {@link Counter} with jLogstash.
+	 * Creates and registers a new {@link Counter} with Flinkx.
 	 *
 	 * @param name name of the counter
 	 * @return the created counter
@@ -59,7 +59,7 @@ public interface MetricGroup {
 	Counter counter(String name);
 
 	/**
-	 * Registers a {@link Counter} with jLogstash.
+	 * Registers a {@link Counter} with Flinkx.
 	 *
 	 * @param name    name of the counter
 	 * @param counter counter to register
@@ -69,7 +69,7 @@ public interface MetricGroup {
 	<C extends Counter> C counter(int name, C counter);
 
 	/**
-	 * Registers a {@link Counter} with jLogstash.
+	 * Registers a {@link Counter} with Flinkx.
 	 *
 	 * @param name    name of the counter
 	 * @param counter counter to register
@@ -79,7 +79,7 @@ public interface MetricGroup {
 	<C extends Counter> C counter(String name, C counter);
 
 	/**
-	 * Registers a new {@link Gauge} with jLogstash.
+	 * Registers a new {@link Gauge} with Flinkx.
 	 *
 	 * @param name  name of the gauge
 	 * @param gauge gauge to register
@@ -89,7 +89,7 @@ public interface MetricGroup {
 	<T, G extends Gauge<T>> G gauge(int name, G gauge);
 
 	/**
-	 * Registers a new {@link Gauge} with jLogstash.
+	 * Registers a new {@link Gauge} with Flinkx.
 	 *
 	 * @param name  name of the gauge
 	 * @param gauge gauge to register
@@ -100,7 +100,7 @@ public interface MetricGroup {
 
 
 	/**
-	 * Registers a new {@link Meter} with Flink.
+	 * Registers a new {@link Meter} with Flinkx.
 	 *
 	 * @param name name of the meter
 	 * @param meter meter to register
@@ -110,7 +110,7 @@ public interface MetricGroup {
 	<M extends Meter> M meter(String name, M meter);
 
 	/**
-	 * Registers a new {@link Meter} with Flink.
+	 * Registers a new {@link Meter} with Flinkx.
 	 *
 	 * @param name name of the meter
 	 * @param meter meter to register
