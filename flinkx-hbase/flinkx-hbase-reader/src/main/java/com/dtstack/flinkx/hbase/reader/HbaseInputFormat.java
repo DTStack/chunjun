@@ -70,11 +70,13 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient ResultScanner resultScanner;
     private transient Result next;
 
+    private org.apache.hadoop.conf.Configuration hConfiguration;
+
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
 
-        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
+        hConfiguration = new org.apache.hadoop.conf.Configuration();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
@@ -220,6 +222,16 @@ public class HbaseInputFormat extends RichInputFormat {
         HbaseInputSplit hbaseInputSplit = (HbaseInputSplit) inputSplit;
         byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
+
+        if(null == connection || connection.isClosed()){
+            try {
+                connection = ConnectionFactory.createConnection(hConfiguration);
+            } catch (Exception e) {
+                HbaseHelper.closeConnection(connection);
+                throw new IllegalArgumentException(e);
+            }
+        }
+
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
         scan.setStartRow(startRow);
