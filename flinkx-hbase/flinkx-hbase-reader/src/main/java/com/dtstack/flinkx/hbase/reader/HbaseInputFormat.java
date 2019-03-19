@@ -70,27 +70,29 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient ResultScanner resultScanner;
     private transient Result next;
 
-    private org.apache.hadoop.conf.Configuration hConfiguration;
-
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
 
-        hConfiguration = new org.apache.hadoop.conf.Configuration();
-        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
-
-        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
-        }
-
         try {
-            connection = ConnectionFactory.createConnection(hConfiguration);
+            connection = ConnectionFactory.createConnection(getConfig());
         } catch (Exception e) {
             HbaseHelper.closeConnection(connection);
             throw new IllegalArgumentException(e);
         }
 
         LOG.info("HbaseOutputFormat configure end");
+    }
+
+    public org.apache.hadoop.conf.Configuration getConfig(){
+        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
+        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
+
+        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
+            hConfiguration.set(entry.getKey(), entry.getValue());
+        }
+
+        return hConfiguration;
     }
 
     @Override
@@ -225,7 +227,7 @@ public class HbaseInputFormat extends RichInputFormat {
 
         if(null == connection || connection.isClosed()){
             try {
-                connection = ConnectionFactory.createConnection(hConfiguration);
+                connection = ConnectionFactory.createConnection(getConfig());
             } catch (Exception e) {
                 HbaseHelper.closeConnection(connection);
                 throw new IllegalArgumentException(e);
@@ -276,7 +278,6 @@ public class HbaseInputFormat extends RichInputFormat {
                         String family = arr[0].trim();
                         String qualifier = arr[1].trim();
                         bytes = next.getValue(family.getBytes(), qualifier.getBytes());
-                        //col = String.valueOf(bytes);
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
                 }
