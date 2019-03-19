@@ -2,6 +2,7 @@ package com.dtstack.flinkx.util;
 
 import org.apache.commons.net.telnet.TelnetClient;
 
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,22 @@ public class TelnetUtil {
             client.setConnectTimeout(3000);
             client.connect(ip,port);
         } catch (Exception e){
-            throw new RuntimeException("Unable connect to : " + ip + ":" + port);
+            TelnetClient finalClient = client;
+            boolean flag = false;
+            try {
+                flag = RetryUtil.executeWithRetry(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        finalClient.connect(ip,port);
+                        return finalClient.isAvailable();
+                    }
+                }, 4,2000,false);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+            if (!flag){
+                throw new RuntimeException("Unable connect to : " + ip + ":" + port);
+            }
         } finally {
             try {
                 if (client != null){
