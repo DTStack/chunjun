@@ -51,4 +51,6 @@ public class Metrics {
     public static String START_LOCATION = "startLocation";
 
     public static String TABLE_COL = "tableCol";
+
+    public static String MAX_VALUE = "maxValue";
 }

@@ -138,10 +138,10 @@ public class EsUtil {
                 String key = parts[parts.length - 1];
                 Object col = row.getField(i);
                 if(col != null) {
-                    Object value = StringUtil.col2string(col, types.get(i));
-                    currMap.put(key, value);
+                    col = StringUtil.string2col(String.valueOf(col), types.get(i), null);
                 }
 
+                currMap.put(key, col);
             }
         } catch(Exception ex) {
             String msg = "EsUtil.rowToJsonMap Writing record error: when converting field[" + i + "] in Row(" + row + ")";
