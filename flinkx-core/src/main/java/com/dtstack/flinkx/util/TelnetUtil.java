@@ -13,36 +13,32 @@ public class TelnetUtil {
     private static final String PORT_KEY = "port";
 
     public static void telnet(String ip,int port) {
-        TelnetClient client = null;
-        try{
-            client = new TelnetClient();
-            client.setConnectTimeout(3000);
-            client.connect(ip,port);
-        } catch (Exception e){
-            TelnetClient finalClient = client;
-            boolean flag = false;
-            try {
-                flag = RetryUtil.executeWithRetry(new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        finalClient.connect(ip,port);
-                        return finalClient.isAvailable();
+        try {
+            RetryUtil.executeWithRetry(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    TelnetClient client = null;
+                    try{
+                        client = new TelnetClient();
+                        client.setConnectTimeout(3000);
+                        client.connect(ip,port);
+                    } catch (Exception e){
+                        throw new RuntimeException("Unable connect to : " + ip + ":" + port);
+                    } finally {
+                        try {
+                            if (client != null){
+                                client.disconnect();
+                            }
+                        } catch (Exception ignore){
+                        }
                     }
-                }, 4,2000,false);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-            if (!flag){
-                throw new RuntimeException("Unable connect to : " + ip + ":" + port);
-            }
-        } finally {
-            try {
-                if (client != null){
-                    client.disconnect();
+                    return null;
                 }
-            } catch (Exception ignore){
-            }
+            }, 3,1000,false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     public static void telnet(String url) {
