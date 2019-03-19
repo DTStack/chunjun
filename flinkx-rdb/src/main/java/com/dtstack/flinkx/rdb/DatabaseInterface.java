@@ -67,6 +67,8 @@ public interface DatabaseInterface {
 
     String getSplitFilter(String columnName);
 
+    String getSplitFilterWithTmpTable(String tmpTable, String columnName);
+
     int getFetchSize();
 
     int getQueryTimeout();
