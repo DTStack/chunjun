@@ -86,9 +86,8 @@ public class HbaseInputFormat extends RichInputFormat {
         try {
             connection = ConnectionFactory.createConnection(hConfiguration);
         } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        } finally {
             HbaseHelper.closeConnection(connection);
+            throw new IllegalArgumentException(e);
         }
 
         LOG.info("HbaseOutputFormat configure end");
@@ -228,9 +227,8 @@ public class HbaseInputFormat extends RichInputFormat {
             try {
                 connection = ConnectionFactory.createConnection(hConfiguration);
             } catch (Exception e) {
-                throw new IllegalArgumentException(e);
-            } finally {
                 HbaseHelper.closeConnection(connection);
+                throw new IllegalArgumentException(e);
             }
         }
 
