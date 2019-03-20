@@ -208,10 +208,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                     val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 
-                if (val != null) {
-                    val = HdfsUtil.getWritableValue(val);
-                }
-
                 row.setField(i,val);
             }
         }
