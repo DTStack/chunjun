@@ -68,7 +68,7 @@ public class MongodbReader extends DataReader {
         database = readerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = readerConfig.getParameter().getStringVal(KEY_COLLECTION);
         filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
-        fetchSize = readerConfig.getParameter().getIntVal(KEY_FETCH_SIZE, 0);
+        fetchSize = readerConfig.getParameter().getIntVal(KEY_FETCH_SIZE, 100);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
 
         mongodbConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_MONGODB_CONFIG, new HashMap<>());
