@@ -111,6 +111,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.numPartitions = numPartitions;
     }
 
+    public void setCustomSql(String customSql){
+        format.customSql = customSql;
+    }
+
     @Override
     protected void checkFormat() {
 
