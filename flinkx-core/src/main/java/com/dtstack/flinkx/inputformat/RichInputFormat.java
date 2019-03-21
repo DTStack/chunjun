@@ -62,9 +62,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
-        inputMetric = new InputMetric(getRuntimeContext());
-
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+
+        inputMetric = new InputMetric(getRuntimeContext(), numReadCounter);
 
         openInternal(inputSplit);
 
@@ -79,7 +79,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public Row nextRecord(Row row) throws IOException {
         numReadCounter.add(1);
-        inputMetric.getNumRead().inc();
 
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();

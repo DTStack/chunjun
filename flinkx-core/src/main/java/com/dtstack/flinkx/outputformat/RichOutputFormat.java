@@ -166,8 +166,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
 
-        outputMetric = new OutputMetric(context);
-
         //错误记录数
         errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
@@ -177,6 +175,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         //总记录数
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+
+        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 
@@ -241,10 +241,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
             // 总记录数加1
             numWriteCounter.add(1);
-            outputMetric.getNumWrite().inc();
         } catch(WriteRecordException e) {
             errCounter.add(1);
-            outputMetric.getNumErrors().inc();
             String errMsg = e.getMessage();
 
             int pos = e.getColIndex();
@@ -261,16 +259,12 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 String errorType = dirtyDataManager.writeData(row, e);
                 if (ERR_NULL_POINTER.equals(errorType)){
                     nullErrCounter.add(1);
-                    outputMetric.getNumNullErrors().inc();
                 } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
                     conversionErrCounter.add(1);
-                    outputMetric.getNumConversionErrors().inc();
                 } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
                     duplicateErrCounter.add(1);
-                    outputMetric.getNumDuplicateErrors().inc();
                 } else {
                     otherErrCounter.add(1);
-                    outputMetric.getNumOtherErrors().inc();
                 }
             }
 

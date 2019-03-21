@@ -18,29 +18,26 @@
 
 package com.dtstack.flinkx.metrics;
 
-import com.dtstack.flinkx.constants.Metrics;
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.metrics.MetricGroup;
+import org.apache.flink.api.common.accumulators.SimpleAccumulator;
+import org.apache.flink.metrics.Gauge;
+
+import java.io.Serializable;
 
 /**
  * company: www.dtstack.com
  * @author: toutian
- * create: 2019/3/18
+ * create: 2019/3/21
  */
-public class InputMetric {
+public class SimpleAccumulatorGauge<T extends Serializable> implements Gauge<T> {
 
-    private RuntimeContext runtimeContext;
+    private SimpleAccumulator<T> accumulator;
 
-    public InputMetric(RuntimeContext runtimeContext, LongCounter numRead) {
-        this.runtimeContext = runtimeContext;
-
-        final MetricGroup flinkxInput = getRuntimeContext().getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_INPUT);
-
-        flinkxInput.gauge(Metrics.NUM_READS, new SimpleAccumulatorGauge<Long>(numRead));
+    public SimpleAccumulatorGauge(SimpleAccumulator<T> accumulator) {
+        this.accumulator = accumulator;
     }
 
-    private RuntimeContext getRuntimeContext() {
-        return runtimeContext;
+    @Override
+    public T getValue() {
+        return accumulator.getLocalValue();
     }
 }

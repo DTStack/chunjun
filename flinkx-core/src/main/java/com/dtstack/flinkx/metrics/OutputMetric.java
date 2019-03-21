@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,67 +19,36 @@
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
+import org.apache.flink.api.common.accumulators.IntCounter;
+import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.metrics.Counter;
+import org.apache.flink.metrics.MetricGroup;
 
 /**
  * company: www.dtstack.com
- * author: toutian
+ *
+ * @author: toutian
  * create: 2019/3/18
  */
 public class OutputMetric {
 
-    private Counter numErrors;
-    private Counter numNullErrors;
-    private Counter numDuplicateErrors;
-    private Counter numConversionErrors;
-    private Counter numOtherErrors;
-    private Counter numWrite;
-
     private transient RuntimeContext runtimeContext;
 
-    public OutputMetric(RuntimeContext runtimeContext) {
+    public OutputMetric(RuntimeContext runtimeContext, IntCounter numErrors, IntCounter numNullErrors,
+                        IntCounter numDuplicateErrors, IntCounter numConversionErrors, IntCounter numOtherErrors, LongCounter numWrite) {
         this.runtimeContext = runtimeContext;
 
-        initMetric();
-    }
+        final MetricGroup flinkxOutput = getRuntimeContext().getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
 
-    private void initMetric() {
-        numErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_ERRORS);
-        numNullErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_NULL_ERRORS);
-        numDuplicateErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_DUPLICATE_ERRORS);
-        numConversionErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_CONVERSION_ERRORS);
-        numOtherErrors = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_OTHER_ERRORS);
-        numWrite = getRuntimeContext().getMetricGroup().counter(Metrics.NUM_WRITES);
-    }
-
-    public Counter getNumErrors() {
-        return numErrors;
-    }
-
-    public Counter getNumNullErrors() {
-        return numNullErrors;
-    }
-
-    public Counter getNumDuplicateErrors() {
-        return numDuplicateErrors;
-    }
-
-    public Counter getNumConversionErrors() {
-        return numConversionErrors;
-    }
-
-    public Counter getNumOtherErrors() {
-        return numOtherErrors;
-    }
-
-    public Counter getNumWrite() {
-        return numWrite;
+        flinkxOutput.gauge(Metrics.NUM_ERRORS, new SimpleAccumulatorGauge<Integer>(numErrors));
+        flinkxOutput.gauge(Metrics.NUM_NULL_ERRORS, new SimpleAccumulatorGauge<Integer>(numNullErrors));
+        flinkxOutput.gauge(Metrics.NUM_DUPLICATE_ERRORS, new SimpleAccumulatorGauge<Integer>(numDuplicateErrors));
+        flinkxOutput.gauge(Metrics.NUM_CONVERSION_ERRORS, new SimpleAccumulatorGauge<Integer>(numConversionErrors));
+        flinkxOutput.gauge(Metrics.NUM_OTHER_ERRORS, new SimpleAccumulatorGauge<Integer>(numOtherErrors));
+        flinkxOutput.gauge(Metrics.NUM_WRITES, new SimpleAccumulatorGauge<Long>(numWrite));
     }
 
     private RuntimeContext getRuntimeContext() {
         return runtimeContext;
     }
-
-
 }
