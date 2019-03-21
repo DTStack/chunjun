@@ -21,6 +21,7 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.EDatabaseType;
+import com.dtstack.flinkx.metrics.SimpleAccumulatorGauge;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
@@ -36,6 +37,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.*;
@@ -120,16 +122,19 @@ public class JdbcInputFormat extends RichInputFormat {
 
     private void setMetric(){
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
+        final MetricGroup flinkxOutputMetricGroup = getRuntimeContext().getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
 
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
             tableColAccumulator = new StringAccumulator();
             tableColAccumulator.add(table + "-" + increCol);
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
+            flinkxOutputMetricGroup.gauge(Metrics.TABLE_COL, new SimpleAccumulatorGauge<String>(tableColAccumulator));
         }
 
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION)){
             endLocationAccumulator = new MaximumAccumulator();
             getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+            flinkxOutputMetricGroup.gauge(Metrics.END_LOCATION, new SimpleAccumulatorGauge<String>(endLocationAccumulator));
         }
 
         if (startLocation != null){
@@ -138,6 +143,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 startLocationAccumulator = new StringAccumulator();
                 startLocationAccumulator.add(startLocation);
                 getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
+                flinkxOutputMetricGroup.gauge(Metrics.START_LOCATION, new SimpleAccumulatorGauge<String>(startLocationAccumulator));
             }
         }
 

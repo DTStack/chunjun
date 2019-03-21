@@ -18,21 +18,22 @@
 
 package com.dtstack.flinkx.metrics;
 
-import org.apache.flink.api.common.accumulators.SimpleAccumulator;
+import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.metrics.Gauge;
 
 import java.io.Serializable;
 
 /**
  * company: www.dtstack.com
+ *
  * @author: toutian
  * create: 2019/3/21
  */
 public class SimpleAccumulatorGauge<T extends Serializable> implements Gauge<T> {
 
-    private SimpleAccumulator<T> accumulator;
+    private Accumulator<T, T> accumulator;
 
-    public SimpleAccumulatorGauge(SimpleAccumulator<T> accumulator) {
+    public SimpleAccumulatorGauge(Accumulator<T, T> accumulator) {
         this.accumulator = accumulator;
     }
 
