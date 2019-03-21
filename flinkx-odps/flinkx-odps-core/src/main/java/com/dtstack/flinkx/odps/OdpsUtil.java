@@ -56,6 +56,8 @@ public class OdpsUtil {
 
     public static int MAX_RETRY_TIME = 10;
 
+    public static final long BUFFER_SIZE_DEFAULT = 64 * 1024 * 1024;
+
     public static Odps initOdps(Map<String,String> odpsConfig) {
         String odpsServer = odpsConfig.get(OdpsConfigKeys.KEY_ODPS_SERVER);
         if(StringUtils.isBlank(odpsServer)) {
