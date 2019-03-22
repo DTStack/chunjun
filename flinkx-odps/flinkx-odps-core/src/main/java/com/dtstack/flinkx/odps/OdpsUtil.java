@@ -54,7 +54,7 @@ import static com.dtstack.flinkx.odps.OdpsConfigConstants.PACKAGE_AUTHORIZED_PRO
 public class OdpsUtil {
     private static final Logger LOG = LoggerFactory.getLogger(OdpsUtil.class);
 
-    public static int MAX_RETRY_TIME = 10;
+    public static int MAX_RETRY_TIME = 3;
 
     public static Odps initOdps(Map<String,String> odpsConfig) {
         String odpsServer = odpsConfig.get(OdpsConfigKeys.KEY_ODPS_SERVER);
