@@ -206,6 +206,8 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
                 if(val instanceof String || val instanceof org.apache.hadoop.io.Text){
                     val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                } else if(val != null){
+                    val = HdfsUtil.getWritableValue(val);
                 }
 
                 row.setField(i,val);
