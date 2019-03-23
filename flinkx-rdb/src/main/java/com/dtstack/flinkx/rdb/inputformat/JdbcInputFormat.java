@@ -171,8 +171,13 @@ public class JdbcInputFormat extends RichInputFormat {
             columnCount = resultSet.getMetaData().getColumnCount();
             hasNext = resultSet.next();
 
-            if(descColumnTypeList == null) {
+            if (StringUtils.isEmpty(customSql)){
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+            } else {
+                descColumnTypeList = new ArrayList<>();
+                for (MetaColumn metaColumn : metaColumns) {
+                    descColumnTypeList.add(metaColumn.getName());
+                }
             }
 
         } catch (SQLException se) {
