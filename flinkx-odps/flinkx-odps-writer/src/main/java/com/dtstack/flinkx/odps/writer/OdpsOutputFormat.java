@@ -27,7 +27,6 @@ import com.aliyun.odps.tunnel.TunnelException;
 import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
@@ -35,7 +34,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,6 +57,8 @@ public class OdpsOutputFormat extends RichOutputFormat {
     protected String tableName;
 
     protected Map<String,String> odpsConfig;
+
+    protected long bufferSize;
 
     private transient Odps odps;
 
@@ -96,6 +96,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         session = OdpsUtil.createMasterTunnelUpload(tunnel, projectName, tableName, partition);
         try {
             recordWriter = (TunnelBufferedWriter) session.openBufferedWriter();
+            recordWriter.setBufferSize(bufferSize);
         } catch (TunnelException e) {
             throw new RuntimeException("can not open record writer");
         }
