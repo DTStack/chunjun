@@ -123,7 +123,7 @@ public class DateUtil {
             Long rawData = (Long) column;
             return new java.sql.Timestamp(getMillSecond(rawData.toString()));
         } else if (column instanceof java.sql.Date) {
-            return (java.sql.Timestamp) column;
+            return new java.sql.Timestamp(((java.sql.Date) column).getTime());
         } else if(column instanceof Timestamp) {
             return (Timestamp) column;
         } else if(column instanceof Date) {
