@@ -65,6 +65,16 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
+    public EsInputFormatBuilder setIndex(String index){
+        format.index = index;
+        return this;
+    }
+
+    public EsInputFormatBuilder setType(String type){
+        format.type = type;
+        return this;
+    }
+
 
     @Override
     protected void checkFormat() {

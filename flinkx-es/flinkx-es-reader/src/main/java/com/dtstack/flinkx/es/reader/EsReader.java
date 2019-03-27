@@ -41,6 +41,9 @@ public class EsReader extends DataReader {
     private String address;
     private String query;
 
+    private String index;
+    private String type;
+
     protected List<String> columnType;
     protected List<String> columnValue;
     protected List<String> columnName;
@@ -49,6 +52,8 @@ public class EsReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
+        index = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
+        type = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
 
         Object queryMap = readerConfig.getParameter().getVal(EsConfigKeys.KEY_QUERY);
         if(queryMap != null) {
@@ -83,6 +88,8 @@ public class EsReader extends DataReader {
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);
         builder.setAddress(address);
+        builder.setIndex(index);
+        builder.setType(type);
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
