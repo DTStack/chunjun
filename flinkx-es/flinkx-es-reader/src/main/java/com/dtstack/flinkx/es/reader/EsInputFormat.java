@@ -56,7 +56,7 @@ public class EsInputFormat extends RichInputFormat {
 
     protected List<String> columnNames;
 
-    private int batch = 2;
+    protected int batchSize = 10;
 
     private int from;
 
@@ -123,7 +123,7 @@ public class EsInputFormat extends RichInputFormat {
     }
 
     private void loadNextBatch() {
-        int range = batch;
+        int range = batchSize;
         if (from + range > to) {
             range = to - from;
         }
@@ -139,6 +139,10 @@ public class EsInputFormat extends RichInputFormat {
                 return true;
             }
             loadNextBatch();
+
+            //check again
+            return reachedEnd();
+
         }
         return false;
     }

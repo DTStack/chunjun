@@ -43,6 +43,7 @@ public class EsReader extends DataReader {
 
     private String index;
     private String type;
+    private Integer batchSize;
 
     protected List<String> columnType;
     protected List<String> columnValue;
@@ -54,6 +55,7 @@ public class EsReader extends DataReader {
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
         index = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         type = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
+        batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 0);
 
         Object queryMap = readerConfig.getParameter().getVal(EsConfigKeys.KEY_QUERY);
         if(queryMap != null) {
@@ -90,6 +92,7 @@ public class EsReader extends DataReader {
         builder.setAddress(address);
         builder.setIndex(index);
         builder.setType(type);
+        builder.setBatchSize(batchSize);
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
