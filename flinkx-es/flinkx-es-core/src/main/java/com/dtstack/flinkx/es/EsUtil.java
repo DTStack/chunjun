@@ -82,8 +82,9 @@ public class EsUtil {
         if(StringUtils.isNotBlank(query)) {
             QueryBuilder qb = QueryBuilders.wrapperQuery(query);
             sourceBuilder.query(qb);
-            searchRequest.source(sourceBuilder);
         }
+
+        searchRequest.source(sourceBuilder);
 
         try {
             return client.search(searchRequest);
