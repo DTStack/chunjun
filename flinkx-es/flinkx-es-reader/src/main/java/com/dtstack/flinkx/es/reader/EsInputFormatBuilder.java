@@ -65,6 +65,23 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
+    public EsInputFormatBuilder setIndex(String index){
+        format.index = index;
+        return this;
+    }
+
+    public EsInputFormatBuilder setType(String type){
+        format.type = type;
+        return this;
+    }
+
+    public EsInputFormatBuilder setBatchSize(Integer batchSize){
+        if(batchSize != null && batchSize > 0){
+            format.batchSize = batchSize;
+        }
+        return this;
+    }
+
 
     @Override
     protected void checkFormat() {
