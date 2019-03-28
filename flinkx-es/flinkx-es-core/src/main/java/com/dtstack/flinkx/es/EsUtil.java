@@ -31,6 +31,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -64,17 +65,26 @@ public class EsUtil {
         return client;
     }
 
-    public static SearchResponse search(RestHighLevelClient client, String query, int from, int size) {
-        SearchRequest searchRequest = new SearchRequest();
+    public static SearchResponse search(RestHighLevelClient client, String index, String type, String query, int from, int size) {
+        SearchRequest searchRequest = Strings.isNullOrEmpty(index) ? new SearchRequest() : new SearchRequest(index);
+
+        if(!Strings.isNullOrEmpty(type)){
+           searchRequest.types(type);
+        }
+
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.from(from);
-        sourceBuilder.size(size);
+
+        if(size > 0){
+            sourceBuilder.size(size);
+        }
 
         if(StringUtils.isNotBlank(query)) {
             QueryBuilder qb = QueryBuilders.wrapperQuery(query);
             sourceBuilder.query(qb);
-            searchRequest.source(sourceBuilder);
         }
+
+        searchRequest.source(sourceBuilder);
 
         try {
             return client.search(searchRequest);
@@ -83,13 +93,13 @@ public class EsUtil {
         }
     }
 
-    public static long searchCount(RestHighLevelClient client, String query) {
-        SearchResponse searchResponse = search(client, query, 0, 0);
+    public static long searchCount(RestHighLevelClient client, String index, String type, String query) {
+        SearchResponse searchResponse = search(client, index, type, query, 0, 0);
         return searchResponse.getHits().getTotalHits();
     }
 
-    public static List<Map<String,Object>> searchContent(RestHighLevelClient client, String query, int from, int size) {
-        SearchResponse searchResponse = search(client, query, from, size);
+    public static List<Map<String,Object>> searchContent(RestHighLevelClient client, String index, String type, String query, int from, int size) {
+        SearchResponse searchResponse = search(client, index, type, query, from, size);
         SearchHits searchHits = searchResponse.getHits();
         List<Map<String,Object>> resultList = new ArrayList<>();
         for(SearchHit searchHit : searchHits) {
