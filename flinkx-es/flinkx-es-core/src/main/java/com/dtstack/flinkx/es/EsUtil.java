@@ -81,6 +81,7 @@ public class EsUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public static long searchCount(RestHighLevelClient client, String query) {
