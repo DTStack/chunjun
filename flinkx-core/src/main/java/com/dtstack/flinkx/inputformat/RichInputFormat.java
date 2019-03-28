@@ -21,6 +21,7 @@ package com.dtstack.flinkx.inputformat;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.InputMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
+import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -92,6 +93,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public void close() throws IOException {
         try{
+            if (inputMetric.getDelayPeriodMill() != 0){
+                SysUtil.sleep(inputMetric.getDelayPeriodMill());
+            }
+
             closeInternal();
         }catch (Exception e){
             throw new RuntimeException(e);
