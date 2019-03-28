@@ -25,8 +25,8 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.google.common.collect.Lists;
 import com.mongodb.*;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCursor;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -60,69 +60,58 @@ public class MongodbUtil {
 
     private static final Integer DEFAULT_PORT = 27017;
 
-    private static final Integer ONE_SECOND = 1000;
+    private static final Integer DEFAULT_CONNECTIONS_PER_HOST = 100;
 
-    private static final Integer CONNECTIONS_PER_HOST = 100;
+    private static final Integer DEFAULT_THREADS_FOR_CONNECTION_MULTIPLIER = 100;
 
-    private static final Integer THREADS_FOR_CONNECTION_MULTIPLIER = 100;
+    private static final Integer DEFAULT_CONNECT_TIMEOUT = 10 * 1000;
 
-    private static final Integer CONNECT_TIMEOUT = 10 * ONE_SECOND;
+    private static final Integer DEFAULT_MAX_WAIT_TIME = 5 * 1000;
 
-    private static final Integer MAX_WAIT_TIME = 5 * ONE_SECOND;
-
-    private static  final Integer SOCKET_TIMEOUT = 0;
-
-    private static MongoClient mongoClient;
+    private static  final Integer DEFAULT_SOCKET_TIMEOUT = 0;
 
     /**
      * Get mongo client
-     * @param config
+     * @param mongodbConfig
      * @return MongoClient
      */
-    public static MongoClient getMongoClient(Map<String,String> config){
+    public static MongoClient getMongoClient(Map<String,Object> mongodbConfig){
+        MongoClient mongoClient;
         try{
-            if(mongoClient == null){
-                MongoClientOptions options = getOption();
-                List<ServerAddress> serverAddress = getServerAddress(config.get(KEY_HOST_PORTS));
-                String username = config.get(KEY_USERNAME);
-                String password = config.get(KEY_PASSWORD);
-                String database = config.get(KEY_DATABASE);
+            MongoClientOptions options = getOption(mongodbConfig);
+            List<ServerAddress> serverAddress = getServerAddress(MapUtils.getString(mongodbConfig, KEY_HOST_PORTS));
+            String username = MapUtils.getString(mongodbConfig, KEY_USERNAME);
+            String password = MapUtils.getString(mongodbConfig, KEY_PASSWORD);
+            String database = MapUtils.getString(mongodbConfig, KEY_DATABASE);
 
-                if(StringUtils.isEmpty(username)){
-                    mongoClient = new MongoClient(serverAddress,options);
-                } else {
-                    MongoCredential credential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
-                    List<MongoCredential> credentials = Lists.newArrayList();
-                    credentials.add(credential);
+            if(StringUtils.isEmpty(username)){
+                mongoClient = new MongoClient(serverAddress,options);
+            } else {
+                MongoCredential credential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
+                List<MongoCredential> credentials = Lists.newArrayList();
+                credentials.add(credential);
 
-                    mongoClient = new MongoClient(serverAddress,credentials,options);
-                }
-
-
-                LOG.info("mongo客户端获取成功");
+                mongoClient = new MongoClient(serverAddress,credentials,options);
             }
+
+            LOG.info("Get mongodb client successful");
             return mongoClient;
         }catch (Exception e){
             throw new RuntimeException(e);
         }
     }
 
-    public static MongoDatabase getDatabase(Map<String,String> config,String database){
-        MongoClient client = getMongoClient(config);
-        return mongoClient.getDatabase(database);
-    }
+    public static void close(MongoClient mongoClient, MongoCursor<Document> cursor){
+        if (cursor != null){
+            LOG.info("Start close mongodb cursor");
+            cursor.close();
+            LOG.info("Close mongodb cursor successfully");
+        }
 
-    public static MongoCollection<Document> getCollection(Map<String,String> config,String database, String collection){
-        MongoClient client = getMongoClient(config);
-        MongoDatabase db = client.getDatabase(database);
-
-        return db.getCollection(collection);
-    }
-
-    public static void close(){
         if (mongoClient != null){
+            LOG.info("Start close mongodb client");
             mongoClient.close();
-            mongoClient = null;
+            LOG.info("Close mongodb client successfully");
         }
     }
 
@@ -181,13 +170,29 @@ public class MongodbUtil {
         return addresses;
     }
 
-    private static MongoClientOptions getOption(){
+    private static MongoClientOptions getOption(Map<String,Object> mongodbConfig){
         MongoClientOptions.Builder build = new MongoClientOptions.Builder();
-        build.connectionsPerHost(CONNECTIONS_PER_HOST);
-        build.threadsAllowedToBlockForConnectionMultiplier(THREADS_FOR_CONNECTION_MULTIPLIER);
-        build.connectTimeout(CONNECT_TIMEOUT);
-        build.maxWaitTime(MAX_WAIT_TIME);
-        build.socketTimeout(SOCKET_TIMEOUT);
+
+        int connectionsPerHost = MapUtils.getIntValue(mongodbConfig, KEY_CONNECTIONS_PERHOST, DEFAULT_CONNECTIONS_PER_HOST);
+        LOG.info("Mongodb config -- connectionsPerHost:" + connectionsPerHost);
+        build.connectionsPerHost(connectionsPerHost);
+
+        int threadsForConnectionMultiplier = MapUtils.getIntValue(mongodbConfig, KEY_THREADS_FOR_CONNECTION_MULTIPLIER, DEFAULT_THREADS_FOR_CONNECTION_MULTIPLIER);
+        LOG.info("Mongodb config -- threadsForConnectionMultiplier:" + threadsForConnectionMultiplier);
+        build.threadsAllowedToBlockForConnectionMultiplier(threadsForConnectionMultiplier);
+
+        int connectionTimeout = MapUtils.getIntValue(mongodbConfig, KEY_CONNECTION_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
+        LOG.info("Mongodb config -- connectionTimeout:" + connectionTimeout);
+        build.connectTimeout(connectionTimeout);
+
+        int maxWaitTime = MapUtils.getIntValue(mongodbConfig, KEY_MAX_WAIT_TIME, DEFAULT_MAX_WAIT_TIME);
+        LOG.info("Mongodb config -- maxWaitTime:" + maxWaitTime);
+        build.maxWaitTime(maxWaitTime);
+
+        int socketTimeout = MapUtils.getIntValue(mongodbConfig, KEY_SOCKET_TIMEOUT, DEFAULT_SOCKET_TIMEOUT);
+        LOG.info("Mongodb config -- socketTimeout:" + socketTimeout);
+        build.maxWaitTime(socketTimeout);
+
         build.writeConcern(WriteConcern.UNACKNOWLEDGED);
         return build.build();
     }

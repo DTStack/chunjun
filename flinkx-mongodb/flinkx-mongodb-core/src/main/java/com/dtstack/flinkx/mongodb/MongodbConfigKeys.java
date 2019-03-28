@@ -38,13 +38,21 @@ public class MongodbConfigKeys {
 
     public final static String KEY_FILTER = "filter";
 
+    public final static String KEY_FETCH_SIZE = "fetchSize";
+
     public final static String KEY_MODE = "writeMode";
 
     public final static String KEY_REPLACE_KEY = "replaceKey";
 
-    public final static String KEY_NAME = "name";
+    public final static String KEY_MONGODB_CONFIG = "mongodbConfig";
 
-    public final static String KEY_TYPE = "type";
+    public final static String KEY_CONNECTIONS_PERHOST = "connectionsPerHost";
 
-    public final static String KEY_SPLITTER = "splitter";
+    public final static String KEY_THREADS_FOR_CONNECTION_MULTIPLIER = "threadsForConnectionMultiplier";
+
+    public final static String KEY_CONNECTION_TIMEOUT = "connectionTimeout";
+
+    public final static String KEY_MAX_WAIT_TIME = "maxWaitTime";
+
+    public final static String KEY_SOCKET_TIMEOUT = "socketTimeout";
 }
