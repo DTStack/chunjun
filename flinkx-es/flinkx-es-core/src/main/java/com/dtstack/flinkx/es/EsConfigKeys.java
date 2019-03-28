@@ -34,8 +34,6 @@ public class EsConfigKeys {
 
     public static final String KEY_TYPE = "type";
 
-    public static final String KEY_BATCH_SIZE = "batchSize";
-
     public static final String KEY_BULK_ACTION = "bulkAction";
 
     public static final String KEY_COLUMN_NAME = "name";
