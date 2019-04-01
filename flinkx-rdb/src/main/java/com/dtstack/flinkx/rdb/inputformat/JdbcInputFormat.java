@@ -526,8 +526,12 @@ public class JdbcInputFormat extends RichInputFormat {
 
             Map<String,Object> metrics = new HashMap<>(3);
             metrics.put(Metrics.TABLE_COL, table + "-" + increCol);
-            metrics.put(Metrics.START_LOCATION, startLocationAccumulator.getLocalValue());
-            metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
+            if (startLocationAccumulator != null){
+                metrics.put(Metrics.START_LOCATION, startLocationAccumulator.getLocalValue());
+            }
+            if (endLocationAccumulator != null){
+                metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
+            }
             out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
         } finally {
             IOUtils.closeStream(out);
@@ -536,7 +540,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(increCol != null && hadoopConfig != null) {
+        if(StringUtils.isNotEmpty(increCol) && hadoopConfig != null) {
             uploadMetricData();
         }
         DBUtil.closeDBResources(resultSet,statement,dbConn);
