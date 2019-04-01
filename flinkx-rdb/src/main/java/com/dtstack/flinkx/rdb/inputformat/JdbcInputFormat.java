@@ -524,7 +524,7 @@ public class JdbcInputFormat extends RichInputFormat {
             out = FileSystem.create(remotePath.getFileSystem(conf), remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
 
             Map<String,Object> metrics = new HashMap<>(3);
-            metrics.put(Metrics.TABLE_COL, table + "-" + increCol);
+            metrics.put(Metrics.TABLE_COL, table + "-" + incrementConfig.getColumnName());
             metrics.put(Metrics.START_LOCATION, startLocationAccumulator.getLocalValue());
             metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
             out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
@@ -535,7 +535,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(increCol != null && hadoopConfig != null) {
+        if(incrementConfig.isIncrement() && hadoopConfig != null) {
             uploadMetricData();
         }
         DBUtil.closeDBResources(resultSet,statement,dbConn);
