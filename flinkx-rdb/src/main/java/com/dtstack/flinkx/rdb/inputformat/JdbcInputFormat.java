@@ -378,14 +378,6 @@ public class JdbcInputFormat extends RichInputFormat {
     }
 
     private boolean canReadData(InputSplit split){
-        /*
-         * If the user set multiple channels but does not specify a splitKey,
-         * the data is read only on the first channel to prevent data duplication
-         */
-        if (numPartitions > 1 && StringUtils.isEmpty(splitKey) && getRuntimeContext().getIndexOfThisSubtask() > 0){
-            return false;
-        }
-
         if (StringUtils.isEmpty(increCol)){
             return true;
         }
