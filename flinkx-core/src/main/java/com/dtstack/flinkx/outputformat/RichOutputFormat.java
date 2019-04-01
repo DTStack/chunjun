@@ -18,11 +18,13 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
@@ -111,13 +113,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
-    public DirtyDataManager getDirtyDataManager() {
-        return dirtyDataManager;
-    }
+    protected RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
 
-    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
-        this.dirtyDataManager = dirtyDataManager;
-    }
+    protected FormatState formatState;
 
     public String getDirtyPath() {
         return dirtyPath;
@@ -214,7 +212,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             latch.waitUntil(numTasks);
         }
 
-
+        if(restoreConfig.isRestore()){
+            formatState = new FormatState(numTasks, null);
+        }
     }
 
     protected boolean needWaitBeforeOpenInternal() {
@@ -355,6 +355,19 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     public void closeInternal() throws IOException {
 
+    }
+
+    protected void flush(){
+        // do nothing
+    }
+
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState(){
+        flush();
+        return formatState;
     }
 
     protected boolean needWaitBeforeWriteRecords() {

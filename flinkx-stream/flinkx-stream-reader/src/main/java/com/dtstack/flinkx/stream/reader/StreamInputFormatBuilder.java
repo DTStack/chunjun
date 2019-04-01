@@ -43,6 +43,10 @@ public class StreamInputFormatBuilder extends RichInputFormatBuilder {
         format.columns = columns;
     }
 
+    public void setExceptionIndex(long exceptionIndex){
+        format.exceptionIndex = exceptionIndex;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){

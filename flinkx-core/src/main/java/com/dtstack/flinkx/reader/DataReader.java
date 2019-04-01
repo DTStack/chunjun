@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -49,8 +50,9 @@ public abstract class DataReader {
 
     protected PluginLoader pluginLoader;
 
-    protected List<String> srcCols = new ArrayList<>();
+    protected RestoreConfig restoreConfig;
 
+    protected List<String> srcCols = new ArrayList<>();
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -64,7 +66,6 @@ public abstract class DataReader {
         return pluginLoader;
     }
 
-
     public void setPluginLoader(PluginLoader pluginLoader) {
         this.pluginLoader = pluginLoader;
     }
@@ -76,6 +77,7 @@ public abstract class DataReader {
         this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
     }
 
     public abstract DataStream<Row> readData();

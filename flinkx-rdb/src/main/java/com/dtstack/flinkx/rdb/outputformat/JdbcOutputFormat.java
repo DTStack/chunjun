@@ -85,6 +85,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
+    private Row currentRow;
+
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
@@ -209,9 +211,26 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
 
             preparedStatement.addBatch();
+
+            if(restoreConfig.isRestore()){
+                currentRow = row;
+            }
         }
 
-        preparedStatement.executeBatch();
+        // TODO
+        if (!restoreConfig.isRestore()){
+            preparedStatement.executeBatch();
+        }
+    }
+
+    @Override
+    protected void flush(){
+        try {
+            preparedStatement.executeBatch();
+            formatState.setState(currentRow.getField(restoreConfig.getRestoreColumnIndex()));
+        } catch (Exception e){
+            throw new RuntimeException("Flush data to databases error:{}", e);
+        }
     }
 
     protected Object getField(Row row, int index) {

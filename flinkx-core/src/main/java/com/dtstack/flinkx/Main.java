@@ -20,6 +20,7 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.writer.DataWriter;
@@ -27,17 +28,29 @@ import com.dtstack.flinkx.writer.DataWriterFactory;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.time.Time;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main class entry
@@ -47,6 +60,16 @@ import java.util.List;
  */
 public class Main {
 
+    public static Logger LOG = LoggerFactory.getLogger(Main.class);
+
+    private static final int FAILURE_RATE = 3;
+
+    private static final int FAILURE_INTERVAL = 6;
+
+    private static final int DELAY_INTERVAL = 10;
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
     public static void main(String[] args) throws Exception {
 
         // 解析命令行参数
@@ -55,12 +78,16 @@ public class Main {
         options.addOption("jobid", true, "Job unique id.");
         options.addOption("monitor", true, "Monitor Addresses");
         options.addOption("pluginRoot", true, "plugin path root");
+        options.addOption("confProp", true, "env properties");
+
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
         String job = cl.getOptionValue("job");
         String jobIdString = cl.getOptionValue("jobid");
         String monitor = cl.getOptionValue("monitor");
         String pluginRoot = cl.getOptionValue("pluginRoot");
+        Properties confProperties = parseConf(cl.getOptionValue("confProp"));
+
         Preconditions.checkNotNull(job, "Must provide --job argument");
         Preconditions.checkNotNull(jobIdString, "Must provide --jobid argument");
 
@@ -75,11 +102,11 @@ public class Main {
             config.setPluginRoot(pluginRoot);
         }
 
-
-        //构造并执行flink任务
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment();
+
+        openCheckpointConf(env, confProperties);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
@@ -106,4 +133,78 @@ public class Main {
 
     }
 
+    private static Properties parseConf(String confStr) throws Exception{
+        if(StringUtils.isEmpty(confStr)){
+            return new Properties();
+        }
+
+        confStr = URLDecoder.decode(confStr, Charsets.UTF_8.toString());
+        return objectMapper.readValue(confStr, Properties.class);
+    }
+
+    private static void openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
+        if(properties == null){
+            return;
+        }
+
+        if(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
+            return;
+        }else{
+            long interval = Long.valueOf(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
+
+            //start checkpoint every ${interval}
+            env.enableCheckpointing(interval);
+
+            LOG.info("Open checkpoint with interval:" + interval);
+        }
+
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+
+        String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+        if(checkpointTimeoutStr != null){
+            long checkpointTimeout = Long.valueOf(checkpointTimeoutStr);
+            //checkpoints have to complete within one min,or are discard
+            env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
+
+            LOG.info("Set checkpoint timeout:" + checkpointTimeout);
+        }
+
+        String maxConcurrentCheckpointsStr = properties.getProperty(ConfigConstrant.FLINK_MAXCONCURRENTCHECKPOINTS_KEY);
+        if(maxConcurrentCheckpointsStr != null){
+            int maxConcurrentCheckpoints = Integer.valueOf(maxConcurrentCheckpointsStr);
+            //allow only one checkpoint to be int progress at the same time
+            env.getCheckpointConfig().setMaxConcurrentCheckpoints(maxConcurrentCheckpoints);
+
+            LOG.info("Set MaxConcurrentCheckpoints:" + maxConcurrentCheckpoints);
+        }
+
+        String cleanupModeStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_CLEANUPMODE_KEY);
+        if(cleanupModeStr != null){
+            if("true".equalsIgnoreCase(cleanupModeStr)){
+                env.getCheckpointConfig().enableExternalizedCheckpoints(
+                        CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
+            }else if("false".equalsIgnoreCase(cleanupModeStr)){
+                env.getCheckpointConfig().enableExternalizedCheckpoints(
+                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+            }else{
+                throw new RuntimeException("not support value of cleanup mode :" + cleanupModeStr);
+            }
+
+            LOG.info("Set enableExternalizedCheckpoints:" + cleanupModeStr);
+        }
+
+        String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
+        if(backendPath != null){
+            //set checkpoint save path on file system,hdfs://, file://
+            env.setStateBackend(new FsStateBackend(backendPath));
+
+            LOG.info("Set StateBackend:" + backendPath);
+        }
+
+        env.setRestartStrategy(RestartStrategies.failureRateRestart(
+                FAILURE_RATE,
+                Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
+                Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
+        ));
+    }
 }

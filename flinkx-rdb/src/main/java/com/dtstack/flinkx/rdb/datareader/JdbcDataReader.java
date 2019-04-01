@@ -28,6 +28,7 @@ import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -60,19 +61,13 @@ public class JdbcDataReader extends DataReader {
 
     protected String splitKey;
 
-    protected String increColumn;
-
-    protected String startLocation;
-
     protected int fetchSize;
 
     protected int queryTimeOut;
 
-    protected int requestAccumulatorInterval;
-
-    protected boolean realTimeIncreSync;
-
     protected String customSql;
+
+    protected IncrementConfig incrementConfig;
 
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
@@ -95,14 +90,10 @@ public class JdbcDataReader extends DataReader {
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
-        requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL,2);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
-        increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
-        startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
 
-        realTimeIncreSync = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_REALTIME_INCRE_SYNC,true);
-        realTimeIncreSync = StringUtils.isNotEmpty(increColumn);
+        buildIncrementConfig(readerConfig);
     }
 
     @Override
@@ -121,22 +112,21 @@ public class JdbcDataReader extends DataReader {
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
-        builder.setRequestAccumulatorInterval(requestAccumulatorInterval);
-        builder.setIncreCol(increColumn);
-        builder.setIncreColType(getIncrementColType());
-        builder.setStartLocation(startLocation);
+        builder.setIncrementConfig(incrementConfig);
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
-        builder.setRealTimeIncreSync(realTimeIncreSync);
         builder.setCustomSql(customSql);
+        builder.setRestoreConfig(restoreConfig);
 
         boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
 
         String query;
         if (StringUtils.isNotEmpty(customSql)){
-            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, realTimeIncreSync);
+            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey,
+                    incrementConfig.isIncrement(), restoreConfig.isRestore());
         } else {
-            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, realTimeIncreSync);
+            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey,
+                    incrementConfig.isIncrement(), restoreConfig.isRestore());
         }
         builder.setQuery(query);
 
@@ -144,17 +134,47 @@ public class JdbcDataReader extends DataReader {
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 
-    private String getIncrementColType(){
-        if (StringUtils.isEmpty(increColumn)){
-            return null;
-        }
+    private void buildIncrementConfig(ReaderConfig readerConfig){
+        Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
+        String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
+        boolean isColumnUnique = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_IS_COLUMN_UNIQUE, false);
+        int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
 
-        for (MetaColumn metaColumn : metaColumns) {
-            if(metaColumn.getName().equals(increColumn)){
-                return metaColumn.getType();
+        incrementConfig = new IncrementConfig();
+        if (incrementColumn != null){
+            String type = null;
+            String name = null;
+            int index = -1;
+
+            String incrementColStr = String.valueOf(incrementColumn);
+            if(NumberUtils.isNumber(incrementColStr)){
+                MetaColumn metaColumn = metaColumns.get(Integer.valueOf(incrementColStr));
+                type = metaColumn.getType();
+                name = metaColumn.getName();
+                index = metaColumn.getIndex();
+            } else {
+                for (MetaColumn metaColumn : metaColumns) {
+                    if(metaColumn.getName().equals(incrementColStr)){
+                        type = metaColumn.getType();
+                        name = metaColumn.getName();
+                        index = metaColumn.getIndex();
+                        break;
+                    }
+                }
+            }
+
+            incrementConfig.setIncrement(true);
+            incrementConfig.setColumnName(name);
+            incrementConfig.setColumnType(type);
+            incrementConfig.setStartLocation(startLocation);
+            incrementConfig.setColumnUnique(isColumnUnique);
+            incrementConfig.setColumnIndex(index);
+            incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
+
+            if (type == null || name == null){
+                throw new IllegalArgumentException("There is no " + incrementColStr +" field in the columns");
             }
         }
-
-        throw new IllegalArgumentException("There is no " + increColumn +" field in the columns");
     }
+
 }

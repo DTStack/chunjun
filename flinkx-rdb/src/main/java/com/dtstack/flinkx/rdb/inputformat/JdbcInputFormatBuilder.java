@@ -20,6 +20,7 @@ package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
@@ -84,28 +85,8 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.queryTimeOut = queryTimeOut;
     }
 
-    public void setRequestAccumulatorInterval(int requestAccumulatorInterval){
-        format.requestAccumulatorInterval = requestAccumulatorInterval;
-    }
-
-    public void setIncreCol(String increCol){
-        format.increCol = increCol;
-    }
-
-    public void setStartLocation(String startLocation){
-        format.startLocation = startLocation;
-    }
-
     public void setSplitKey(String splitKey){
         format.splitKey = splitKey;
-    }
-
-    public void setIncreColType(String increColType){
-        format.increColType = increColType;
-    }
-
-    public void setRealTimeIncreSync(boolean realTimeIncreSync){
-        format.realTimeIncreSync = realTimeIncreSync;
     }
 
     public void setNumPartitions(int numPartitions){
@@ -114,6 +95,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setCustomSql(String customSql){
         format.customSql = customSql;
+    }
+
+    public void setIncrementConfig(IncrementConfig incrementConfig){
+        format.incrementConfig = incrementConfig;
     }
 
     @Override

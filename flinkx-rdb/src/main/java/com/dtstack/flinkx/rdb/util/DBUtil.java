@@ -57,6 +57,8 @@ public class DBUtil {
 
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
 
+    public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
+
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
 
     public static final String CUSTOM_SQL_TEMPLATE = "select * from (%s) %s";
@@ -532,7 +534,7 @@ public class DBUtil {
     }
 
     public static String buildQuerySqlWithCustomSql(DatabaseInterface databaseInterface,String customSql,
-                                                    boolean isSplitByKey,String splitKey,boolean realTimeIncreSync){
+                                                    boolean isSplitByKey,String splitKey,boolean isIncrement,boolean isRestore){
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         querySql.append(" WHERE 1=1 ");
@@ -541,20 +543,19 @@ public class DBUtil {
             querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
         }
 
-        if (realTimeIncreSync){
+        if(isIncrement){
             querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
+        }
+
+        if(isRestore){
+            querySql.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
         return querySql.toString();
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                                     String splitKey,String customFilter,boolean isSplitByKey){
-        return getQuerySql(databaseInterface, table, metaColumns, splitKey, customFilter, isSplitByKey, false);
-    }
-
-    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                                     String splitKey,String customFilter,boolean isSplitByKey,boolean realTimeIncreSync) {
+                                     String splitKey,String customFilter,boolean isSplitByKey,boolean isIncrement,boolean isRestore) {
         StringBuilder sb = new StringBuilder();
 
         List<String> selectColumns = new ArrayList<>();
@@ -584,13 +585,15 @@ public class DBUtil {
             filter.append(" AND ").append(customFilter);
         }
 
-        if (realTimeIncreSync){
+        if(isIncrement){
             filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
-        if(filter.length() > 0) {
-            sb.append(filter);
+        if(isRestore){
+            filter.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
+
+        sb.append(filter);
 
         return sb.toString();
     }

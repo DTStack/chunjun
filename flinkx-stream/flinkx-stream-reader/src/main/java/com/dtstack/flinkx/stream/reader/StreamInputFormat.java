@@ -42,24 +42,41 @@ public class StreamInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> columns;
 
+    protected long exceptionIndex;
+
+    private int subTaskIndex;
+
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-
+        subTaskIndex = inputSplit.getSplitNumber();
+        if (restoreConfig.isRestore() && formatState != null){
+            recordRead = (Long)formatState.getState();
+        }
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        return MockDataUtil.getMockRow(columns);
+        if (restoreConfig.isRestore()){
+            row = new Row(columns.size() + 1);
+            row.setField(0, recordRead);
+            row.setField(row.getArity() - 1, subTaskIndex);
+            return MockDataUtil.getMockRow(columns, row);
+        } else {
+            return MockDataUtil.getMockRow(columns);
+        }
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
+        if (exceptionIndex > 0 && recordRead > exceptionIndex){
+            throw new RuntimeException("Throw exception for test");
+        }
+
         return ++recordRead > sliceRecordCount && sliceRecordCount > 0;
     }
 
     @Override
     protected void closeInternal() throws IOException {
-        recordRead = 0;
     }
 
     @Override

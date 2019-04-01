@@ -20,7 +20,6 @@ package com.dtstack.flinkx.rdb.datawriter;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
@@ -57,8 +56,6 @@ public class JdbcDataWriter extends DataWriter {
     protected TypeConverterInterface typeConverter;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
-
-    private final static int SQL_SERVER_MAX_PARAMETER_MARKER = 2000;
 
     public void setTypeConverterInterface(TypeConverterInterface typeConverter) {
         this.typeConverter = typeConverter;
@@ -125,7 +122,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
-        builder.setBatchInterval(getBatchSize());
+        builder.setBatchInterval(batchSize);
         builder.setMonitorUrls(monitorUrls);
         builder.setPreSql(preSql);
         builder.setPostSql(postSql);
@@ -141,25 +138,13 @@ public class JdbcDataWriter extends DataWriter {
         builder.setFullColumn(fullColumn);
         builder.setUpdateKey(updateKey);
         builder.setTypeConverter(typeConverter);
+        builder.setRestoreConfig(restoreConfig);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
         String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
         dataStreamSink.name(sinkName);
         return dataStreamSink;
-    }
-
-    /**
-     * fix bug:Prepared or callable statement has more than 2000 parameter markers
-     */
-    private int getBatchSize(){
-        if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
-            if(column.size() * batchSize >= SQL_SERVER_MAX_PARAMETER_MARKER){
-                batchSize = SQL_SERVER_MAX_PARAMETER_MARKER / column.size();
-            }
-        }
-
-        return batchSize;
     }
 
 }

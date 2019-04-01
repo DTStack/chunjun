@@ -20,6 +20,7 @@ package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -51,6 +52,8 @@ public abstract class DataWriter {
 
     protected Map<String,String> dirtyHadoopConfig;
 
+    protected RestoreConfig restoreConfig;
+
     protected List<String> srcCols = new ArrayList<>();
 
     public List<String> getSrcCols() {
@@ -71,6 +74,7 @@ public abstract class DataWriter {
 
     public DataWriter(DataTransferConfig config) {
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
         this.errors = config.getJob().getSetting().getErrorLimit().getRecord();
         Double percentage = config.getJob().getSetting().getErrorLimit().getPercentage();
         if(percentage != null){

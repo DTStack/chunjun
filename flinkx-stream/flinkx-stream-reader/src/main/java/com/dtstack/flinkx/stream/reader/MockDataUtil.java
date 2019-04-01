@@ -80,4 +80,16 @@ public class MockDataUtil {
 
         return mockRow;
     }
+
+    public static Row getMockRow(List<MetaColumn> columns, Row mockRow){
+        for (int i = 1; i < columns.size() -1; i++) {
+            if(columns.get(i).getValue() != null){
+                mockRow.setField(i,columns.get(i).getValue());
+            } else {
+                mockRow.setField(i,mockData(columns.get(i).getType()));
+            }
+        }
+
+        return mockRow;
+    }
 }

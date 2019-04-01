@@ -44,7 +44,7 @@ public class JdbcConfigKeys {
 
     public static final String KEY_START_LOCATION = "startLocation";
 
-    public static final String KEY_CUSTOM_SQL = "customSql";
+    public static final String KEY_IS_COLUMN_UNIQUE = "isColumnUnique";
 
-    public static final String KEY_REALTIME_INCRE_SYNC = "realTimeIncreSync";
+    public static final String KEY_CUSTOM_SQL = "customSql";
 }

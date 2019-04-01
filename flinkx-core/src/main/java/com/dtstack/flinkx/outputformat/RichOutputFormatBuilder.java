@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -60,6 +61,10 @@ public abstract class RichOutputFormatBuilder {
 
     public void setBatchInterval(int batchInterval) {
         format.batchInterval = batchInterval;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig){
+        format.restoreConfig = restoreConfig;
     }
 
     protected abstract void checkFormat();

@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.FinalizeOnMaster;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
@@ -41,7 +42,7 @@ import java.util.Map;
  * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
  */
-public abstract class RichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> implements FinalizeOnMaster {
+public abstract class RichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -50,6 +51,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
+    protected RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
+
+    protected FormatState formatState;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -68,8 +72,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             this.byteRateLimiter.start();
         }
     }
-
-
 
     @Override
     public Row nextRecord(Row row) throws IOException {
@@ -102,11 +104,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract  void closeInternal() throws IOException;
 
     @Override
-    public void finalizeGlobal(int parallelism) throws IOException {
-
-    }
-
-    @Override
     public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
         return null;
     }
@@ -116,4 +113,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         return new DefaultInputSplitAssigner(inputSplits);
     }
 
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
+    }
 }
