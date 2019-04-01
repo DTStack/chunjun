@@ -170,7 +170,7 @@ public class DBUtil {
 
     public static void commit(Connection conn){
         try {
-            if (!conn.getAutoCommit() && !conn.isClosed()){
+            if (!conn.isClosed() && !conn.getAutoCommit()){
                 LOG.info("Start commit connection");
                 conn.commit();
                 LOG.info("Commit connection successful");

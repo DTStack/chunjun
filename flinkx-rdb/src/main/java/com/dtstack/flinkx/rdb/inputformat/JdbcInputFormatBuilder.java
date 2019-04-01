@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -128,6 +129,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
         if (format.drivername == null) {
             throw new IllegalArgumentException("No driver supplied");
+        }
+
+        if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1){
+            throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
         }
     }
 
