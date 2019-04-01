@@ -117,7 +117,8 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         DataSource currentSource = sourceList.get(sourceIndex);
         currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
-        String queryTemplate = DBUtil.getQuerySql(databaseInterface, currentSource.getTable(),metaColumns,splitKey,where, currentSource.isSplitByKey());
+        String queryTemplate = DBUtil.getQuerySql(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
+                where, currentSource.isSplitByKey(), false, false);
         currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
         if (currentSource.isSplitByKey()){
