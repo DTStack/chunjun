@@ -47,6 +47,12 @@ import java.util.*;
 import java.util.Date;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.io.IOUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * InputFormat for reading data from a database and generate Rows.
@@ -113,6 +119,11 @@ public class JdbcInputFormat extends RichInputFormat {
     protected StringAccumulator startLocationAccumulator;
 
     private MetaColumn restoreColumn;
+
+    /**
+     * The hadoop config for metric
+     */
+    protected Map<String,String> hadoopConfig;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -260,11 +271,6 @@ public class JdbcInputFormat extends RichInputFormat {
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
         }
-    }
-
-    @Override
-    public void closeInternal() throws IOException {
-        DBUtil.closeDBResources(resultSet,statement,dbConn);
     }
 
     private void initMetric(InputSplit split){
@@ -496,6 +502,43 @@ public class JdbcInputFormat extends RichInputFormat {
             long time = date.getTime();
             return Long.parseLong(time + fillZeroStr);
         }
+    }
+
+    private void uploadMetricData() throws IOException {
+        FSDataOutputStream out = null;
+        try {
+            org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+
+            if(hadoopConfig != null) {
+                for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
+                    conf.set(entry.getKey(), entry.getValue());
+                }
+            }
+
+            Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
+            String jobId = vars.get("<job_id>");
+            String taskId = vars.get("<task_id>");
+            String subtaskIndex = vars.get("<subtask_index>");
+            LOG.info("jobId:{} taskId:{} subtaskIndex:{}", jobId, taskId, subtaskIndex);
+            Path remotePath = new Path(conf.get("fs.defaultFS"), "/tmp/logs/admin/logs/" + jobId+"_"+taskId+"_"+subtaskIndex);
+            out = FileSystem.create(remotePath.getFileSystem(conf), remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
+
+            Map<String,Object> metrics = new HashMap<>(3);
+            metrics.put(Metrics.TABLE_COL, table + "-" + increCol);
+            metrics.put(Metrics.START_LOCATION, startLocationAccumulator.getLocalValue());
+            metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
+            out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
+        } finally {
+            IOUtils.closeStream(out);
+        }
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        if(increCol != null && hadoopConfig != null) {
+            uploadMetricData();
+        }
+        DBUtil.closeDBResources(resultSet,statement,dbConn);
     }
 
 }

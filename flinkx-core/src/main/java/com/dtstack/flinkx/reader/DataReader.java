@@ -20,6 +20,7 @@ package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -29,8 +30,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract specification of Reader Plugin
@@ -53,6 +56,11 @@ public abstract class DataReader {
     protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
+
+    /**
+     * reuse hadoopConfig for metric
+     */
+    protected Map<String, String> hadoopConfig;
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -78,6 +86,14 @@ public abstract class DataReader {
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
+
+        DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
+        if (dirtyConfig != null) {
+            Map<String, String> hadoopConfig = dirtyConfig.getHadoopConfig();
+            if (hadoopConfig != null) {
+                this.hadoopConfig = hadoopConfig;
+            }
+        }
     }
 
     public abstract DataStream<Row> readData();

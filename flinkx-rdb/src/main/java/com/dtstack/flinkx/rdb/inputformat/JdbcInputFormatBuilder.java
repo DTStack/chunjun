@@ -26,6 +26,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder of JdbcInputFormat
@@ -95,6 +96,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setCustomSql(String customSql){
         format.customSql = customSql;
+    }
+
+    public void setHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+        format.hadoopConfig = dirtyHadoopConfig;
     }
 
     public void setIncrementConfig(IncrementConfig incrementConfig){

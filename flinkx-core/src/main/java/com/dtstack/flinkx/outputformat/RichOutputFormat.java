@@ -24,6 +24,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.metrics.OutputMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
@@ -117,6 +118,12 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected FormatState formatState;
 
+    protected transient OutputMetric outputMetric;
+
+    public DirtyDataManager getDirtyDataManager() {
+        return dirtyDataManager;
+    }
+
     public String getDirtyPath() {
         return dirtyPath;
     }
@@ -170,6 +177,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         //总记录数
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+
+        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 

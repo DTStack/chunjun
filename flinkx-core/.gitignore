@@ -11,3 +11,4 @@ target
 .classpath
 *.eclipse.*
 *.iml
+/dependency-reduced-pom.xml
