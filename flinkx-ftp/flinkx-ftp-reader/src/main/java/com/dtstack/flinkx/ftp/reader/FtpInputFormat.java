@@ -132,11 +132,6 @@ public class FtpInputFormat extends RichInputFormat {
             br.setFromLine(0);
         }
         br.setCharsetName(charsetName);
-
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     @Override

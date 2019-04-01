@@ -26,7 +26,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 
@@ -52,6 +54,10 @@ public class MongodbReader extends DataReader {
 
     protected String filter;
 
+    protected Map<String,Object> mongodbConfig;
+
+    protected int fetchSize;
+
     public MongodbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
@@ -62,13 +68,19 @@ public class MongodbReader extends DataReader {
         database = readerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = readerConfig.getParameter().getStringVal(KEY_COLLECTION);
         filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
+        fetchSize = readerConfig.getParameter().getIntVal(KEY_FETCH_SIZE, 100);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+
+        mongodbConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_MONGODB_CONFIG, new HashMap<>());
+        mongodbConfig.put(KEY_HOST_PORTS, hostPorts);
+        mongodbConfig.put(KEY_USERNAME, username);
+        mongodbConfig.put(KEY_PASSWORD, password);
+        mongodbConfig.put(KEY_DATABASE, database);
     }
 
     @Override
     public DataStream<Row> readData() {
         MongodbInputFormatBuilder builder = new MongodbInputFormatBuilder();
-
         builder.setHostPorts(hostPorts);
         builder.setUsername(username);
         builder.setPassword(password);
@@ -76,6 +88,8 @@ public class MongodbReader extends DataReader {
         builder.setCollection(collection);
         builder.setFilter(filter);
         builder.setMetaColumns(metaColumns);
+        builder.setMongodbConfig(mongodbConfig);
+        builder.setFetchSize(fetchSize);
 
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);

@@ -337,13 +337,19 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
                 }
-                if(errorLimiter != null) {
-                    // Wait a while before checking dirty data
-                    Latch latch = newLatch("#5");
-                    latch.addOne();
-                    latch.waitUntil(numTasks);
 
-                    errorLimiter.updateErrorInfo();
+                if(errorLimiter != null) {
+                    try{
+                        // Wait a while before checking dirty data
+                        Latch latch = newLatch("#5");
+                        latch.addOne();
+                        latch.waitUntil(numTasks);
+
+                        errorLimiter.updateErrorInfo();
+                    } catch (Exception e){
+                        LOG.warn("Update error info error when task closing:{}", e);
+                    }
+
                     errorLimiter.acquire();
                     errorLimiter.stop();
                 }

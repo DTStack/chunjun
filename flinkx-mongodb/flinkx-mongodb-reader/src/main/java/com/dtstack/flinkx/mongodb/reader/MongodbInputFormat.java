@@ -23,9 +23,11 @@ import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
@@ -35,8 +37,6 @@ import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.util.*;
-
-import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 
 /**
  * Read plugin for reading static data
@@ -60,21 +60,18 @@ public class MongodbInputFormat extends RichInputFormat {
 
     protected String filterJson;
 
-    private Bson filter;
+    protected Map<String,Object> mongodbConfig;
 
-    private transient MongoCollection<Document> collection;
+    protected int fetchSize;
+
+    private Bson filter;
 
     private transient MongoCursor<Document> cursor;
 
+    private transient MongoClient client;
+
     @Override
     public void configure(Configuration parameters) {
-        Map<String,String> config = new HashMap<>(4);
-        config.put(KEY_HOST_PORTS,hostPorts);
-        config.put(KEY_USERNAME,username);
-        config.put(KEY_PASSWORD,password);
-        config.put(KEY_DATABASE,database);
-
-        collection = MongodbUtil.getCollection(config,database,collectionName);
         buildFilter();
     }
 
@@ -83,13 +80,19 @@ public class MongodbInputFormat extends RichInputFormat {
         MongodbInputSplit split = (MongodbInputSplit) inputSplit;
         FindIterable<Document> findIterable;
 
+        client = MongodbUtil.getMongoClient(mongodbConfig);
+        MongoDatabase db = client.getDatabase(database);
+        MongoCollection<Document> collection = db.getCollection(collectionName);
+
         if(filter == null){
             findIterable = collection.find();
         } else {
             findIterable = collection.find(filter);
         }
 
-        findIterable = findIterable.skip(split.getSkip()).limit(split.getLimit());
+        findIterable = findIterable.skip(split.getSkip())
+                .limit(split.getLimit())
+                .batchSize(fetchSize);
         cursor = findIterable.iterator();
     }
 
@@ -130,29 +133,37 @@ public class MongodbInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if (cursor != null){
-            cursor.close();
-            MongodbUtil.close();
-        }
+        MongodbUtil.close(client, cursor);
     }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         ArrayList<MongodbInputSplit> splits = new ArrayList<>();
 
-        long docNum = filter == null ? collection.count() : collection.count(filter);
-        if(docNum <= minNumSplits){
-            splits.add(new MongodbInputSplit(0,(int)docNum));
-            return splits.toArray(new MongodbInputSplit[splits.size()]);
-        }
+        MongoClient client = null;
+        try {
+            client = MongodbUtil.getMongoClient(mongodbConfig);
+            MongoDatabase db = client.getDatabase(database);
+            MongoCollection<Document> collection = db.getCollection(collectionName);
 
-        long size = Math.floorDiv(docNum,(long)minNumSplits);
-        for (int i = 0; i < minNumSplits; i++) {
-            splits.add(new MongodbInputSplit((int)(i * size), (int)size));
-        }
+            long docNum = filter == null ? collection.count() : collection.count(filter);
+            if(docNum <= minNumSplits){
+                splits.add(new MongodbInputSplit(0,(int)docNum));
+                return splits.toArray(new MongodbInputSplit[splits.size()]);
+            }
 
-        if(size * minNumSplits < docNum){
-            splits.add(new MongodbInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
+            long size = Math.floorDiv(docNum,(long)minNumSplits);
+            for (int i = 0; i < minNumSplits; i++) {
+                splits.add(new MongodbInputSplit((int)(i * size), (int)size));
+            }
+
+            if(size * minNumSplits < docNum){
+                splits.add(new MongodbInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
+            }
+        } catch (Exception e){
+            LOG.error("{}", e);
+        } finally {
+            MongodbUtil.close(client, null);
         }
 
         return splits.toArray(new MongodbInputSplit[splits.size()]);

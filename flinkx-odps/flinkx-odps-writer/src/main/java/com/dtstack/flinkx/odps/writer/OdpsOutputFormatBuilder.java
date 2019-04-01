@@ -67,6 +67,10 @@ public class OdpsOutputFormatBuilder extends RichOutputFormatBuilder {
         this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
     }
 
+    public void setBufferSize(long bufferSize){
+        format.bufferSize = bufferSize;
+    }
+
     @Override
     protected void checkFormat() {
 

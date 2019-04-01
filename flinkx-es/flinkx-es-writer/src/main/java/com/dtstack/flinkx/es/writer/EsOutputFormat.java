@@ -91,8 +91,8 @@ public class EsOutputFormat extends RichOutputFormat {
             IndexRequest request = StringUtils.isBlank(id) ? new IndexRequest(index, type) : new IndexRequest(index, type, id);
             request = request.source(EsUtil.rowToJsonMap(row, columnNames, columnTypes));
             bulkRequest.add(request);
-            client.bulk(bulkRequest);
         }
+        client.bulk(bulkRequest);
     }
 
     @Override

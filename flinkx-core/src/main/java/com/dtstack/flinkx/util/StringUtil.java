@@ -67,11 +67,7 @@ public class StringUtil {
     }
 
     public static Object string2col(String str, String type, SimpleDateFormat customTimeFormat) {
-        if(str == null || str.length() == 0){
-            return null;
-        }
-
-        if(type == null){
+        if(str == null || str.length() == 0 || type == null){
             return str;
         }
 

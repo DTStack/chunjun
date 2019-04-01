@@ -30,6 +30,7 @@ import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.mapred.FileOutputFormat;
@@ -168,6 +169,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                             break;
                         case TIMESTAMP:
                             recordList.add(DateUtil.columnToTimestamp(column,null));
+                            break;
+                        case BINARY:
+                            recordList.add(new BytesWritable(rowData.getBytes()));
                             break;
                         default:
                             throw new IllegalArgumentException();
