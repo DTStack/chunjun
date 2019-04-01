@@ -93,11 +93,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public void close() throws IOException {
         try{
+            closeInternal();
+
             if (inputMetric.getDelayPeriodMill() != 0){
                 SysUtil.sleep(inputMetric.getDelayPeriodMill());
             }
-
-            closeInternal();
         }catch (Exception e){
             throw new RuntimeException(e);
         }finally {

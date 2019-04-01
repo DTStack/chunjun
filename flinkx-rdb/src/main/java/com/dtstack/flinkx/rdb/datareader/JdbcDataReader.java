@@ -110,6 +110,7 @@ public class JdbcDataReader extends DataReader {
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncreCol(increColumn);
         builder.setStartLocation(startLocation);
+        builder.setHadoopConfig(hadoopConfig);
 
         boolean isSplitByKey = false;
         if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {

@@ -24,6 +24,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder of JdbcInputFormat
@@ -98,6 +99,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setIncreColType(String increColType){
         format.increColType = increColType;
+    }
+
+    public void setHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+        format.hadoopConfig = dirtyHadoopConfig;
     }
 
     @Override
