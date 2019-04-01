@@ -23,7 +23,6 @@ import com.dtstack.flinkx.reader.ByteRateLimiter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.FinalizeOnMaster;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
@@ -41,7 +40,7 @@ import java.util.Map;
  * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
  */
-public abstract class RichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> implements FinalizeOnMaster {
+public abstract class RichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -64,7 +63,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         openInternal(inputSplit);
 
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 1);
+            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
         }
     }
@@ -100,11 +99,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     }
 
     protected abstract  void closeInternal() throws IOException;
-
-    @Override
-    public void finalizeGlobal(int parallelism) throws IOException {
-
-    }
 
     @Override
     public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {

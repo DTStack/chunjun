@@ -186,7 +186,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         //启动错误限制
         if(StringUtils.isNotBlank(monitorUrl)) {
             if(errors != null || errorRatio != null) {
-                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 1);
+                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
                 errorLimiter.start();
             }
         }
