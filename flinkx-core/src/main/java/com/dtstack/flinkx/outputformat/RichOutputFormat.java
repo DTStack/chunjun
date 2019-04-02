@@ -31,6 +31,7 @@ import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
@@ -48,7 +49,7 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> {
+public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -363,6 +364,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     }
 
     public void closeInternal() throws IOException {
+
+    }
+
+    @Override
+    public void tryCleanupOnError() throws Exception {
 
     }
 

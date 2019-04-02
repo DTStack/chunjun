@@ -56,6 +56,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     private Map<String, Map<String,Integer>> decimalColInfo;
 
+    private MessageType schema;
+
     private static final String KEY_PRECISION = "precision";
 
     private static final String KEY_SCALE = "scale";
@@ -79,11 +81,14 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void open() throws IOException {
-        MessageType schema = buildSchema();
-        GroupWriteSupport.setSchema(schema,conf);
-        Path writePath = new Path(tmpPath);
+    protected void nextBlock() throws IOException {
+        if (writer != null){
+            writer.close();
+            writer = null;
+        }
 
+        currentBlockTmpPath = tmpPath + "." + blockIndex;
+        Path writePath = new Path(currentBlockTmpPath);
         ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
                 .withWriteMode(ParquetFileWriter.Mode.CREATE)
                 .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
@@ -92,7 +97,16 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 .withType(schema)
                 .withRowGroupSize(rowGroupSize);
         writer = builder.build();
+
+        blockIndex++;
+    }
+
+    @Override
+    protected void open() throws IOException {
+        schema = buildSchema();
+        GroupWriteSupport.setSchema(schema,conf);
         groupFactory = new SimpleGroupFactory(schema);
+        nextBlock();
     }
 
     @Override

@@ -47,21 +47,35 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     private long nLine = 0;
 
     @Override
-    public void open() throws IOException {
-        Path p  = new Path(tmpPath);
+    protected void nextBlock() throws IOException {
+        if (stream != null){
+            stream.flush();
+            stream.close();
+            stream = null;
+        }
+
+        currentBlockTmpPath = tmpPath + "." + blockIndex;
+        Path p  = new Path(currentBlockTmpPath);
         if(compress == null || compress.length() == 0) {
             stream = fs.create(p);
         } else if (compress.equalsIgnoreCase("GZIP")) {
-            tmpPath = tmpPath + ".gz";
-            p = new Path(tmpPath);
+            currentBlockTmpPath = currentBlockTmpPath + ".gz";
+            p = new Path(currentBlockTmpPath);
             stream = new GzipCompressorOutputStream(fs.create(p));
         } else if (compress.equalsIgnoreCase("BZIP2")) {
-            tmpPath = tmpPath + ".bz2";
-            p = new Path(tmpPath);
+            currentBlockTmpPath = currentBlockTmpPath + ".bz2";
+            p = new Path(currentBlockTmpPath);
             stream = new BZip2CompressorOutputStream(fs.create(p));
         } else {
             throw new IllegalArgumentException("Unsupported compress type: " + compress);
         }
+
+        blockIndex++;
+    }
+
+    @Override
+    public void open() throws IOException {
+        nextBlock();
     }
 
     @Override

@@ -20,9 +20,10 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -33,13 +34,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+
+
 /**
  * The Hdfs implementation of OutputFormat
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
+public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected int rowGroupSize;
 
@@ -87,6 +90,16 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
     protected int[] colIndices;
 
     protected Configuration conf;
+
+    protected int blockIndex = 0;
+
+    protected long maxRowsPerBlock = 10000;
+
+    protected boolean readyCheckpoint;
+
+    protected Row lastRow;
+
+    protected String currentBlockTmpPath;
 
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
@@ -144,7 +157,32 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         open();
     }
 
+    @Override
+    public FormatState getFormatState() {
+        try{
+            if (readyCheckpoint || numWriteCounter.getLocalValue() > maxRowsPerBlock){
+                nextBlock();
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+
+                return formatState;
+            }
+
+            return null;
+        }catch (Exception e){
+            try{
+                fs.delete(new Path(currentBlockTmpPath), true);
+                fs.close();
+            }catch (Exception e1){
+                throw new RuntimeException("Delete tmp file:" + currentBlockTmpPath + " failed when get next block error", e1);
+            }
+
+            throw new RuntimeException("Get next block error:", e);
+        }
+    }
+
     protected abstract void open() throws IOException;
+
+    protected abstract void nextBlock() throws IOException;
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
@@ -181,18 +219,15 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
                     SysUtil.sleep(3000);
                 }
 
-                // 等待所有subtask都执行到close方法了
-                if(StringUtils.isNotBlank(monitorUrl)) {
-                    SysUtil.sleep(3000);
-                    System.out.println("finally acquire");
-                    if(errorLimiter != null) {
-                        errorLimiter.acquire();
-                    }
+                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+                if (i == maxRetryTime) {
+                    fs.delete(tmpDir, true);
+                    fs.delete(finishedDir, true);
+                    throw new RuntimeException("timeout when gathering finish tags for each subtasks");
                 }
 
                 Path dir = new Path(outputFilePath);
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-                if (writeMode != null && writeMode.trim().length() != 0 && !writeMode.equalsIgnoreCase("APPEND")) {
+                if(!"APPEND".equalsIgnoreCase(writeMode)){
                     if(fs.exists(dir)) {
                         PathFilter pathFilter = new PathFilter() {
                             @Override
@@ -206,12 +241,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
                         }
                         fs.mkdirs(dir);
                     }
-                }
-
-                if (i == maxRetryTime) {
-                    fs.delete(tmpDir, true);
-                    fs.delete(finishedDir, true);
-                    throw new RuntimeException("timeout when gathering finish tags for each subtasks");
                 }
 
                 FileStatus[] dataFiles = fs.listStatus(tmpDir);

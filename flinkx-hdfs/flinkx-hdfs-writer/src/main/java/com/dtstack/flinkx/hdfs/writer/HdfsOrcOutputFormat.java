@@ -22,7 +22,10 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -58,15 +61,14 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
-
     @Override
     protected void configInternal() {
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
 
-        if(compress != null && compress.length() != 0 && !compress.equalsIgnoreCase("NONE")) {
-            if(compress.equalsIgnoreCase("SNAPPY")) {
+        if(!"NONE".equalsIgnoreCase(compress) && StringUtils.isNotEmpty(compress)) {
+            if("SNAPPY".equalsIgnoreCase(compress)) {
                 FileOutputFormat.setOutputCompressorClass(jobConf, SnappyCodec.class);
             } else {
                 throw new IllegalArgumentException("Unsupported compress format: " + compress);
@@ -89,12 +91,34 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
+    protected void nextBlock() throws IOException {
+        if (recordWriter != null){
+            recordWriter.close(Reporter.NULL);
+            recordWriter = null;
+        }
+
+        currentBlockTmpPath = tmpPath + "." + blockIndex;
+        recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+        blockIndex++;
+    }
+
+    @Override
     public void open() throws IOException {
-        recordWriter = outputFormat.getRecordWriter(null, jobConf, tmpPath, Reporter.NULL);
+        nextBlock();
     }
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+
+        if(restoreConfig.isRestore()){
+            if (lastRow != null){
+                readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+
+            lastRow = row;
+        }
+
         int i = 0;
         try {
             List<Object> recordList = new ArrayList<>();

@@ -26,11 +26,11 @@ import java.util.Map;
  * @explanation
  * @date 2019/3/25
  */
-public class RestoreConfig extends AbstractConfig{
+public class RestoreConfig extends AbstractConfig {
 
     private static final String KEY_IS_RESTORE = "isRestore";
     private static final String KEY_RESTORE_COLUMN_INDEX = "restoreColumnIndex";
-    private static final String KEY_MAX_ROW_NUM_FOR_CHECKPOINT = "max_row_num_for_checkpoint";
+    private static final String KEY_MAX_ROW_NUM_FOR_CHECKPOINT = "maxRowNumForCheckpoint";
 
     public RestoreConfig(Map<String, Object> map) {
         super(map);
