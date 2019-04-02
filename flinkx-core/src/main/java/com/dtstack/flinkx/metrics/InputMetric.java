@@ -47,7 +47,7 @@ public class InputMetric {
 
     private final static Long DEFAULT_PERIOD_MILLISECONDS = 10000L;
 
-    private Long delayPeriodMill = 20000L;
+    private Long delayPeriodMill = 12000L;
 
     public InputMetric(RuntimeContext runtimeContext, LongCounter numRead) {
         this.runtimeContext = runtimeContext;
@@ -96,7 +96,7 @@ public class InputMetric {
             LOG.info("InputMetric.scheduledFutureTask.schedulePeriodMill:{} ...", schedulePeriodMill);
 
             if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
-                this.delayPeriodMill = schedulePeriodMill * 2;
+                this.delayPeriodMill = (long) (schedulePeriodMill * 1.2);
             }
         } catch (Exception e) {
             LOG.error("{}", e);
