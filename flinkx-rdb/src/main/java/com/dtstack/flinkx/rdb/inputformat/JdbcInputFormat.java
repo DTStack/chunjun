@@ -521,7 +521,8 @@ public class JdbcInputFormat extends RichInputFormat {
             String taskId = vars.get("<task_id>");
             String subtaskIndex = vars.get("<subtask_index>");
             LOG.info("jobId:{} taskId:{} subtaskIndex:{}", jobId, taskId, subtaskIndex);
-            Path remotePath = new Path(conf.get("fs.defaultFS"), "/tmp/logs/admin/logs/" + jobId+"_"+taskId+"_"+subtaskIndex);
+
+            Path remotePath = new Path(conf.get("fs.defaultFS"), "/tmp/logs/admin/logs/" + jobId + "/" + taskId + "_" + subtaskIndex);
             out = FileSystem.create(remotePath.getFileSystem(conf), remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
 
             Map<String,Object> metrics = new HashMap<>(3);
