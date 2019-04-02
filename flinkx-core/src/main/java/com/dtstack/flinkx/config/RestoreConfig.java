@@ -30,6 +30,7 @@ public class RestoreConfig extends AbstractConfig{
 
     private static final String KEY_IS_RESTORE = "isRestore";
     private static final String KEY_RESTORE_COLUMN_INDEX = "restoreColumnIndex";
+    private static final String KEY_MAX_ROW_NUM_FOR_CHECKPOINT = "max_row_num_for_checkpoint";
 
     public RestoreConfig(Map<String, Object> map) {
         super(map);
@@ -47,6 +48,10 @@ public class RestoreConfig extends AbstractConfig{
 
     public int getRestoreColumnIndex(){
         return getIntVal(KEY_RESTORE_COLUMN_INDEX, -1);
+    }
+
+    public long getMaxRowNumForCheckpoint(){
+        return getLongVal(KEY_MAX_ROW_NUM_FOR_CHECKPOINT, 10000);
     }
 
 }

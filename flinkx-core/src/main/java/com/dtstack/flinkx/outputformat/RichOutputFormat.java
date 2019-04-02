@@ -366,16 +366,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     }
 
-    protected void flush(){
-        // do nothing
-    }
-
     /**
      * Get the recover point of current channel
      * @return DataRecoverPoint
      */
     public FormatState getFormatState(){
-        flush();
         return formatState;
     }
 
@@ -411,4 +406,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         }
     }
 
+    public int getBatchInterval() {
+        return batchInterval;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
 }

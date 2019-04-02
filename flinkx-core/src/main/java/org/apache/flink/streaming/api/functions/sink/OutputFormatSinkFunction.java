@@ -125,10 +125,11 @@ public class OutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implement
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        unionOffsetStates.clear();
-
         FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
-        unionOffsetStates.add(formatState);
+        if (formatState != null){
+            unionOffsetStates.clear();
+            unionOffsetStates.add(formatState);
+        }
     }
 
     @Override

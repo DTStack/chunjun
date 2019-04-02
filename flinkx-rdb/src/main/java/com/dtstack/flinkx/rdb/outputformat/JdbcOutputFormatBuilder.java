@@ -102,6 +102,10 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
         }
+
+        if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){
+            throw new IllegalArgumentException("Batch Size must greater than 1 when checkpoint is open");
+        }
     }
 
 }

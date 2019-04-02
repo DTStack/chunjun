@@ -25,8 +25,10 @@ import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +87,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    private Row currentRow;
+    private Row lastRow = null;
+
+    private boolean readyCheckpoint;
 
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
@@ -123,6 +127,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
 
+            if (restoreConfig.isRestore()){
+                dbConn.setAutoCommit(false);
+            }
+
             if(fullColumn == null || fullColumn.size() == 0) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
@@ -147,6 +155,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
 
             preparedStatement = prepareTemplates();
+            readyCheckpoint = false;
 
             LOG.info("subtask[" + taskNumber + "] wait finished");
         } catch (SQLException sqe) {
@@ -204,32 +213,53 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        for(int i = 0; i < rows.size(); ++i) {
-            Row row = rows.get(i);
-            for(int j = 0; j < row.getArity(); ++j) {
-                preparedStatement.setObject(j + 1, getField(row, j));
+        try {
+            for (Row row : rows) {
+                for (int j = 0; j < row.getArity(); ++j) {
+                    preparedStatement.setObject(j + 1, getField(row, j));
+                }
+                preparedStatement.addBatch();
+
+                if (restoreConfig.isRestore()) {
+                    if (lastRow != null){
+                        readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                                row.getField(restoreConfig.getRestoreColumnIndex()));
+                    }
+
+                    lastRow = row;
+                }
             }
 
-            preparedStatement.addBatch();
-
-            if(restoreConfig.isRestore()){
-                currentRow = row;
-            }
-        }
-
-        // TODO
-        if (!restoreConfig.isRestore()){
             preparedStatement.executeBatch();
+        } catch (Exception e){
+            if (restoreConfig.isRestore()){
+                dbConn.rollback();
+            } else {
+                throw e;
+            }
         }
     }
 
     @Override
-    protected void flush(){
+    public FormatState getFormatState(){
         try {
-            preparedStatement.executeBatch();
-            formatState.setState(currentRow.getField(restoreConfig.getRestoreColumnIndex()));
+            if (readyCheckpoint || numWriteCounter.getLocalValue() > restoreConfig.getMaxRowNumForCheckpoint()){
+                preparedStatement.executeBatch();
+                dbConn.commit();
+
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                return formatState;
+            }
+
+            return null;
         } catch (Exception e){
-            throw new RuntimeException("Flush data to databases error:{}", e);
+            try {
+                dbConn.rollback();
+            } catch (SQLException sqlE){
+                throw new RuntimeException("Rollback error:", e);
+            }
+
+            throw new RuntimeException("Return format state error:", e);
         }
     }
 
