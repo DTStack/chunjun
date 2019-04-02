@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
@@ -125,16 +126,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
         initColIndices();
 
-        conf = new Configuration();
-
-        if(hadoopConfig != null) {
-            for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
-            }
-        }
-
-        conf.set("fs.default.name", defaultFS);
-        conf.set("fs.hdfs.impl.disable.cache", "true");
+        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         fs = FileSystem.get(conf);
         Path dir = new Path(outputFilePath);
         // dir不能是文件

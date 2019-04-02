@@ -19,7 +19,9 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -32,13 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import parquet.hadoop.ParquetWriter;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
 
 /**
@@ -75,17 +73,6 @@ public class HdfsWriter extends DataWriter {
 
     protected List<String> fullColumnType;
 
-    /** hive config **/
-    protected String partition;
-
-    protected String dbUrl;
-
-    protected String username;
-
-    protected String password;
-
-    protected String table;
-
     protected static final String DATA_SUBDIR = ".data";
 
     protected static final String FINISHED_SUBDIR = ".finished";
@@ -114,11 +101,11 @@ public class HdfsWriter extends DataWriter {
 
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
         fileName = writerConfig.getParameter().getStringVal(KEY_FILE_NAME, "");
-        if(columns != null || columns.size() != 0) {
+        if(CollectionUtils.isNotEmpty(columns)) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
-            for(int i = 0; i < columns.size(); ++i) {
-                Map sm = (Map) columns.get(i);
+            for (Object column : columns) {
+                Map sm = (Map) column;
                 columnName.add((String) sm.get(KEY_COLUMN_NAME));
                 columnType.add((String) sm.get(KEY_COLUMN_TYPE));
             }
@@ -135,15 +122,7 @@ public class HdfsWriter extends DataWriter {
     public void deleteTempDir() throws RuntimeException{
         FileSystem fs = null;
         try {
-            Configuration conf = new Configuration();
-            if(hadoopConfig != null) {
-                for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                    conf.set(entry.getKey(), entry.getValue());
-                }
-            }
-
-            conf.set("fs.default.name", defaultFS);
-            conf.set("fs.hdfs.impl.disable.cache", "true");
+            Configuration conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
             fs = FileSystem.get(conf);
 
             String outputFilePath;
