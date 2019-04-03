@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -111,6 +112,12 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+
+        if (restoreConfig.isRestore() && lastRow != null){
+            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+
         Group group = groupFactory.newGroup();
         int i = 0;
         try {
@@ -186,6 +193,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             }
 
             writer.write(group);
+
+            lastRow = row;
             rowsOfCurrentBlock++;
         } catch (Exception e){
             if(i < row.getArity()) {

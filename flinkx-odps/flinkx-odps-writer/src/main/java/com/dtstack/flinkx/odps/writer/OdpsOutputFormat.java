@@ -29,7 +29,9 @@ import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
@@ -68,6 +70,12 @@ public class OdpsOutputFormat extends RichOutputFormat {
 
     private transient TunnelBufferedWriter recordWriter;
 
+    private Row lastRow;
+
+    private boolean readyCheckpoint;
+
+    private long rowsOfCurrentTransaction;
+
     @Override
     public void configure(Configuration configuration) {
         odps = OdpsUtil.initOdps(odpsConfig);
@@ -103,14 +111,39 @@ public class OdpsOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    public FormatState getFormatState() {
+        try {
+            if(readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
+                session.commit();
+
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                rowsOfCurrentTransaction = 0;
+                return formatState;
+            }
+
+            return null;
+        } catch (Exception e){
+            throw new RuntimeException("Commit data block error:", e);
+        }
+    }
+
+    @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException{
+
+        if (restoreConfig.isRestore() && lastRow != null){
+            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+
         Record record = row2record(row, columnTypes);
         try {
             recordWriter.write(record);
+
+            lastRow = row;
+            rowsOfCurrentTransaction++;
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
-
     }
 
     @Override

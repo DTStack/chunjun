@@ -149,6 +149,7 @@ public class SFtpHandler implements FtpHandler {
     @Override
     public InputStream getInputStream(String filePath) {
         try {
+
             return channelSftp.get(filePath);
         } catch (SftpException e) {
             String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);

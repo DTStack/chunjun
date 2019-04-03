@@ -24,6 +24,7 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -82,7 +83,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        // write string to hdfs
+
+        if (restoreConfig.isRestore() && lastRow != null){
+            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+
         byte[] bytes = null;
         int i = 0;
         try {
@@ -175,6 +181,8 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             bytes = sb.toString().getBytes(this.charsetName);
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
+
+            lastRow = row;
             rowsOfCurrentBlock++;
 
             if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {

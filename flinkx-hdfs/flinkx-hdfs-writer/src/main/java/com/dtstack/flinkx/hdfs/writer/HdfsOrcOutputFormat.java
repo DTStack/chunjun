@@ -110,13 +110,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
 
-        if(restoreConfig.isRestore()){
-            if (lastRow != null){
-                readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-
-            lastRow = row;
+        if (restoreConfig.isRestore() && lastRow != null){
+            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                    row.getField(restoreConfig.getRestoreColumnIndex()));
         }
 
         int i = 0;
@@ -204,6 +200,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             }
 
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
+
+            lastRow = row;
             rowsOfCurrentBlock++;
         } catch(Exception e) {
             if(i < row.getArity()) {

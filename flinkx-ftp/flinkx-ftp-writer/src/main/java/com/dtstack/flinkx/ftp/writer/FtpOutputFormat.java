@@ -88,6 +88,7 @@ public class FtpOutputFormat extends RichOutputFormat {
             ftpHandler = new StandardFtpHandler();
         }
         ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
+
     }
 
     @Override
@@ -112,12 +113,6 @@ public class FtpOutputFormat extends RichOutputFormat {
         String dateString = formatter.format(currentTime);
         String filePath = path + "/" + taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
         this.os = ftpHandler.getOutputStream(filePath);
-
-        //启动脏数据管理
-        if(StringUtils.isNotBlank(dirtyPath)) {
-            this.dirtyDataManager = new DirtyDataManager(this.dirtyPath, this.dirtyHadoopConfig, this.srcFieldNames.toArray(new String[this.srcFieldNames.size()]));
-            this.dirtyDataManager.open();
-        }
     }
 
     @Override
