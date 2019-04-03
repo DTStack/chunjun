@@ -21,8 +21,8 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
-import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -67,8 +67,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
 
-        if(!"NONE".equalsIgnoreCase(compress) && StringUtils.isNotEmpty(compress)) {
-            if("SNAPPY".equalsIgnoreCase(compress)) {
+        if(!ECompressType.NONE.getType().equalsIgnoreCase(compress) && StringUtils.isNotEmpty(compress)) {
+            if(ECompressType.SNAPPY.getType().equalsIgnoreCase(compress)) {
                 FileOutputFormat.setOutputCompressorClass(jobConf, SnappyCodec.class);
             } else {
                 throw new IllegalArgumentException("Unsupported compress format: " + compress);
@@ -202,7 +202,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                     }
                 }
             }
+
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
+            rowsOfCurrentBlock++;
         } catch(Exception e) {
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);

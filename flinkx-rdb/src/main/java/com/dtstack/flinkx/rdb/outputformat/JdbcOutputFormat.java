@@ -91,6 +91,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private boolean readyCheckpoint;
 
+    private long rowsOfCurrentTransaction;
+
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
@@ -231,6 +233,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
 
             preparedStatement.executeBatch();
+            rowsOfCurrentTransaction += rows.size();
         } catch (Exception e){
             if (restoreConfig.isRestore()){
                 dbConn.rollback();
@@ -243,9 +246,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
     @Override
     public FormatState getFormatState(){
         try {
-            if (readyCheckpoint || numWriteCounter.getLocalValue() > restoreConfig.getMaxRowNumForCheckpoint()){
+            if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
                 preparedStatement.executeBatch();
                 dbConn.commit();
+
+                rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 return formatState;

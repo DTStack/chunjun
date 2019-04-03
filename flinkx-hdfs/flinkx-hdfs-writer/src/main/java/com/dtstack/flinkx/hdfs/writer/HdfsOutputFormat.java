@@ -93,13 +93,13 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected int blockIndex = 0;
 
-    protected long maxRowsPerBlock = 10000;
-
     protected boolean readyCheckpoint;
 
     protected Row lastRow;
 
     protected String currentBlockTmpPath;
+
+    protected long rowsOfCurrentBlock;
 
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
@@ -160,9 +160,11 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     public FormatState getFormatState() {
         try{
-            if (readyCheckpoint || numWriteCounter.getLocalValue() > maxRowsPerBlock){
+            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
+            if (readyCheckpoint || overMaxRows){
                 nextBlock();
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                rowsOfCurrentBlock = 0;
 
                 return formatState;
             }

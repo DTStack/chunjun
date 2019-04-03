@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -43,8 +44,9 @@ import java.util.Date;
 public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     private static final int NEWLINE = 10;
-    protected transient OutputStream stream;
-    private long nLine = 0;
+    private transient OutputStream stream;
+
+    private static final int BUFFER_SIZE = 1000;
 
     @Override
     protected void nextBlock() throws IOException {
@@ -58,12 +60,12 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
         Path p  = new Path(currentBlockTmpPath);
         if(compress == null || compress.length() == 0) {
             stream = fs.create(p);
-        } else if (compress.equalsIgnoreCase("GZIP")) {
-            currentBlockTmpPath = currentBlockTmpPath + ".gz";
+        } else if (ECompressType.GZIP.getType().equalsIgnoreCase(compress)) {
+            currentBlockTmpPath = currentBlockTmpPath + ECompressType.GZIP.getSuffix();
             p = new Path(currentBlockTmpPath);
             stream = new GzipCompressorOutputStream(fs.create(p));
-        } else if (compress.equalsIgnoreCase("BZIP2")) {
-            currentBlockTmpPath = currentBlockTmpPath + ".bz2";
+        } else if (ECompressType.BZIP2.getType().equalsIgnoreCase(compress)) {
+            currentBlockTmpPath = currentBlockTmpPath + ECompressType.BZIP2.getSuffix();
             p = new Path(currentBlockTmpPath);
             stream = new BZip2CompressorOutputStream(fs.create(p));
         } else {
@@ -173,9 +175,9 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             bytes = sb.toString().getBytes(this.charsetName);
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
-            nLine++;
+            rowsOfCurrentBlock++;
 
-            if(nLine % 1000 == 0) {
+            if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {
                 this.stream.flush();
             }
         } catch(Exception e) {

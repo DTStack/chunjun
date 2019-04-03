@@ -186,6 +186,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             }
 
             writer.write(group);
+            rowsOfCurrentBlock++;
         } catch (Exception e){
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
