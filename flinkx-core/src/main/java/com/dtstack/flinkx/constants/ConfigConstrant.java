@@ -30,8 +30,6 @@ public class ConfigConstrant {
 
     public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
 
-    public static final String FLINK_CHECKPOINT_MODE_KEY = "flink.checkpoint.mode";
-
     public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
 
     public static final String FLINK_MAXCONCURRENTCHECKPOINTS_KEY = "flink.max.concurrent.checkpoints";

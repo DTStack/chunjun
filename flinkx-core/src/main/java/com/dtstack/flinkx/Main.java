@@ -32,6 +32,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -79,6 +80,7 @@ public class Main {
         options.addOption("monitor", true, "Monitor Addresses");
         options.addOption("pluginRoot", true, "plugin path root");
         options.addOption("confProp", true, "env properties");
+        options.addOption("s", true, "savepoint path");
 
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
@@ -86,6 +88,7 @@ public class Main {
         String jobIdString = cl.getOptionValue("jobid");
         String monitor = cl.getOptionValue("monitor");
         String pluginRoot = cl.getOptionValue("pluginRoot");
+        String savepointPath = cl.getOptionValue("s");
         Properties confProperties = parseConf(cl.getOptionValue("confProp"));
 
         Preconditions.checkNotNull(job, "Must provide --job argument");
@@ -127,6 +130,10 @@ public class Main {
                 }
             }
             ((MyLocalStreamEnvironment) env).setClasspaths(urlList);
+
+            if(StringUtils.isNotEmpty(savepointPath)){
+                ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));
+            }
         }
 
         env.execute(jobIdString);

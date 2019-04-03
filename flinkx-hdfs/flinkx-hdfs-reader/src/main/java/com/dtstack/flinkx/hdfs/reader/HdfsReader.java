@@ -75,6 +75,7 @@ public class HdfsReader extends DataReader {
         builder.setDelimiter(fieldDelimiter);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
+        builder.setRestoreConfig(restoreConfig);
 
         return createInput(builder.finish(), "hdfsreader");
     }

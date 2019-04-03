@@ -53,7 +53,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
-    protected RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
+    protected RestoreConfig restoreConfig;
 
     protected FormatState formatState;
 

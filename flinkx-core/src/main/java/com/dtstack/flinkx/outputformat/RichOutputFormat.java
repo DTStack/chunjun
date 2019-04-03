@@ -115,7 +115,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
-    protected RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
+    protected RestoreConfig restoreConfig;
 
     protected FormatState formatState;
 

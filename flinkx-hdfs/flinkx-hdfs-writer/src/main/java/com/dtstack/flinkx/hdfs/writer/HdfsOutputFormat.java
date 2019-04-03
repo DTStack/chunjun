@@ -159,10 +159,16 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     @Override
     public FormatState getFormatState() {
+        if (lastRow == null){
+            return null;
+        }
+
         try{
             boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
             if (readyCheckpoint || overMaxRows){
                 nextBlock();
+                LOG.info("Current block file name:" + currentBlockTmpPath);
+
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 rowsOfCurrentBlock = 0;
 

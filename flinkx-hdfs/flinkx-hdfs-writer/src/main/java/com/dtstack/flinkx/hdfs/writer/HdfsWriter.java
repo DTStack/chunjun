@@ -173,6 +173,7 @@ public class HdfsWriter extends DataWriter {
         builder.setCharSetName(charSet);
         builder.setDelimiter(fieldDelimiter);
         builder.setRowGroupSize(rowGroupSize);
+        builder.setRestoreConfig(restoreConfig);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
