@@ -71,6 +71,8 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

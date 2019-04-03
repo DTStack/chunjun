@@ -24,9 +24,9 @@ import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
 import com.dtstack.flinkx.ftp.StandardFtpHandler;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.writer.DirtyDataManager;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
@@ -80,6 +80,16 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     private transient OutputStream os;
 
+    private Row lastRow;
+
+    private long rowsOfCurrentFile;
+
+    private boolean readyCheckpoint;
+
+    private String fileName;
+
+    private int fileIndex;
+
     @Override
     public void configure(Configuration parameters) {
         if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
@@ -111,17 +121,60 @@ public class FtpOutputFormat extends RichOutputFormat {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String dateString = formatter.format(currentTime);
-        String filePath = path + "/" + taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
-        this.os = ftpHandler.getOutputStream(filePath);
+        fileName = taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
+
+        if (restoreConfig.isRestore()){
+            nextFile();
+        } else {
+            String filePath = path + "/" + fileName;
+            this.os = ftpHandler.getOutputStream(filePath);
+        }
+    }
+
+    private void nextFile() throws IOException{
+        if (os != null){
+            os.flush();
+            os = null;
+        }
+
+        String filePath = path + "/" + fileIndex + "." + fileName;
+        os = ftpHandler.getOutputStream(filePath);
+        fileIndex++;
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        try{
+            if (readyCheckpoint || rowsOfCurrentFile > restoreConfig.getMaxRowNumForCheckpoint()){
+                nextFile();
+
+                rowsOfCurrentFile = 0;
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                return formatState;
+            }
+
+            return null;
+        }catch (Exception e){
+            throw new RuntimeException("Get next file error:", e);
+        }
     }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+
+        if (restoreConfig.isRestore() && lastRow != null){
+            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+
         String line = StringUtil.row2string(row, columnTypes, delimiter, columnNames);
         try {
             byte[] bytes = line.getBytes(this.charsetName);
             this.os.write(bytes);
             this.os.write(NEWLINE);
+
+            lastRow = row;
+            rowsOfCurrentFile++;
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
