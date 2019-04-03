@@ -314,4 +314,9 @@ public class SFtpHandler implements FtpHandler {
         }
         return true;
     }
+
+    @Override
+    public void rename(String oldPath, String newPath) throws SftpException {
+        channelSftp.rename(oldPath, newPath);
+    }
 }

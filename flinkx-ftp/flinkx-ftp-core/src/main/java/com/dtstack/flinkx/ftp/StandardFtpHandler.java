@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.jcraft.jsch.SftpException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
@@ -282,5 +283,10 @@ public class StandardFtpHandler implements FtpHandler {
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
+    }
+
+    @Override
+    public void rename(String oldPath, String newPath) throws IOException {
+        ftpClient.rename(oldPath, newPath);
     }
 }

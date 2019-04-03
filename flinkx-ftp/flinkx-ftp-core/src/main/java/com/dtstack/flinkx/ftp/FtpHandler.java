@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.jcraft.jsch.SftpException;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -93,4 +95,6 @@ public interface FtpHandler {
     OutputStream getOutputStream(String filePath);
 
     void deleteAllFilesInDir(String dir);
+
+    void rename(String oldPath, String newPath) throws Exception;
 }

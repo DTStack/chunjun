@@ -26,6 +26,7 @@ import com.dtstack.flinkx.ftp.StandardFtpHandler;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -90,6 +91,10 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     private int fileIndex;
 
+    private static String tempPath = ".flinkxTmp";
+
+    private static String finishedTagPath = tempPath + "/.finishedTag";
+
     @Override
     public void configure(Configuration parameters) {
         if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
@@ -112,12 +117,22 @@ public class FtpOutputFormat extends RichOutputFormat {
             if("overwrite".equalsIgnoreCase(writeMode) && !"/".equals(path)) {
                 ftpHandler.deleteAllFilesInDir(path);
             }
+
+            if (restoreConfig.isRestore()){
+                ftpHandler.deleteAllFilesInDir(path + "/" + tempPath);
+            }
         }
     }
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
         ftpHandler.mkDirRecursive(path);
+
+        if (restoreConfig.isRestore()){
+            ftpHandler.mkDirRecursive(path + "/" + tempPath);
+            ftpHandler.mkDirRecursive(path + "/" + finishedTagPath);
+        }
+
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String dateString = formatter.format(currentTime);
@@ -137,7 +152,7 @@ public class FtpOutputFormat extends RichOutputFormat {
             os = null;
         }
 
-        String filePath = path + "/" + fileIndex + "." + fileName;
+        String filePath = path + "/" + tempPath + "/" + fileIndex + "." + fileName;
         os = ftpHandler.getOutputStream(filePath);
         fileIndex++;
     }
@@ -186,6 +201,37 @@ public class FtpOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    protected boolean needWaitAfterCloseInternal(){return restoreConfig.isRestore();}
+
+    @Override
+    protected void afterCloseInternal(){
+        if (taskNumber == 0){
+
+            final int maxRetryTime = 100;
+            for (int i = 0; i < maxRetryTime; i++) {
+                if(ftpHandler.getFiles(path + "/" + finishedTagPath).size() == numTasks){
+                    break;
+                }
+
+                SysUtil.sleep(3000);
+            }
+
+            try{
+                List<String> files = ftpHandler.getFiles(path + "/" + tempPath);
+                for (String file : files) {
+                    if (file.endsWith(".csv")){
+                        ftpHandler.rename(path + "/" + tempPath + "/" + file,path + "/" + file);
+                    }
+                }
+            }catch (Exception e){
+                throw new RuntimeException("Rename temp file error:", e);
+            }
+
+            ftpHandler.deleteAllFilesInDir(path + "/" + tempPath);
+        }
+    }
+
+    @Override
     public void closeInternal() throws IOException {
         OutputStream s = os;
         if(s != null) {
@@ -193,7 +239,13 @@ public class FtpOutputFormat extends RichOutputFormat {
             os = null;
             s.close();
         }
-        if(ftpHandler != null) {
+
+        if (restoreConfig.isRestore() && ftpHandler != null){
+            String finishedTag = path + "/" + finishedTagPath + "/" + taskNumber + "_finished";
+            ftpHandler.mkDirRecursive(finishedTag);
+        }
+
+        if(ftpHandler != null && (!restoreConfig.isRestore() || taskNumber > 0)) {
             ftpHandler.logoutFtpServer();
         }
     }

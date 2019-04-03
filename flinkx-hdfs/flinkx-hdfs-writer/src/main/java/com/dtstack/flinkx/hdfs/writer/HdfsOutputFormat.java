@@ -193,13 +193,14 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(fs != null) {
+        if(restoreConfig.isRestore() && fs != null) {
             Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
             Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
             fs.delete(finishedDir, true);
             fs.delete(tmpDir, true);
+
+            LOG.info(jobName + ": tryCleanupOnError over!");
         }
-        LOG.info(jobName + ": tryCleanupOnError over!");
     }
 
 
