@@ -44,11 +44,8 @@ public class StreamInputFormat extends RichInputFormat {
 
     protected long exceptionIndex;
 
-    private int subTaskIndex;
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        subTaskIndex = inputSplit.getSplitNumber();
         if (restoreConfig.isRestore() && formatState != null){
             recordRead = (Long)formatState.getState();
         }
@@ -56,14 +53,11 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if (restoreConfig.isRestore()){
-            row = new Row(columns.size() + 1);
+        row = MockDataUtil.getMockRow(columns);
+        if (restoreConfig.isRestore() && columns.get(0).getValue() == null){
             row.setField(0, recordRead);
-            row.setField(row.getArity() - 1, subTaskIndex);
-            return MockDataUtil.getMockRow(columns, row);
-        } else {
-            return MockDataUtil.getMockRow(columns);
         }
+        return row;
     }
 
     @Override

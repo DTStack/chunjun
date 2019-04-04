@@ -50,30 +50,48 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     private static final int BUFFER_SIZE = 1000;
 
     @Override
-    protected void nextBlock() throws IOException {
+    protected void nextBlock() {
+        if (stream != null){
+            return;
+        }
+
+        try {
+            if (restoreConfig.isRestore()){
+                tmpToData();
+                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
+            } else {
+                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
+            }
+
+            String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
+            Path p  = new Path(currentBlockTmpPath);
+            if(compress == null || compress.length() == 0) {
+                stream = fs.create(p);
+            } else if (ECompressType.GZIP.getType().equalsIgnoreCase(compress)) {
+                currentBlockTmpPath = currentBlockTmpPath + ECompressType.GZIP.getSuffix();
+                p = new Path(currentBlockTmpPath);
+                stream = new GzipCompressorOutputStream(fs.create(p));
+            } else if (ECompressType.BZIP2.getType().equalsIgnoreCase(compress)) {
+                currentBlockTmpPath = currentBlockTmpPath + ECompressType.BZIP2.getSuffix();
+                p = new Path(currentBlockTmpPath);
+                stream = new BZip2CompressorOutputStream(fs.create(p));
+            } else {
+                throw new IllegalArgumentException("Unsupported compress type: " + compress);
+            }
+
+            blockIndex++;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void flushBlock() throws IOException {
         if (stream != null){
             stream.flush();
             stream.close();
             stream = null;
         }
-
-        currentBlockTmpPath = tmpPath + "." + blockIndex;
-        Path p  = new Path(currentBlockTmpPath);
-        if(compress == null || compress.length() == 0) {
-            stream = fs.create(p);
-        } else if (ECompressType.GZIP.getType().equalsIgnoreCase(compress)) {
-            currentBlockTmpPath = currentBlockTmpPath + ECompressType.GZIP.getSuffix();
-            p = new Path(currentBlockTmpPath);
-            stream = new GzipCompressorOutputStream(fs.create(p));
-        } else if (ECompressType.BZIP2.getType().equalsIgnoreCase(compress)) {
-            currentBlockTmpPath = currentBlockTmpPath + ECompressType.BZIP2.getSuffix();
-            p = new Path(currentBlockTmpPath);
-            stream = new BZip2CompressorOutputStream(fs.create(p));
-        } else {
-            throw new IllegalArgumentException("Unsupported compress type: " + compress);
-        }
-
-        blockIndex++;
     }
 
     @Override
@@ -84,9 +102,13 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
 
-        if (restoreConfig.isRestore() && lastRow != null){
-            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        if (restoreConfig.isRestore()){
+            nextBlock();
+
+            if(lastRow != null){
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
         }
 
         byte[] bytes = null;
@@ -209,6 +231,8 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             s.flush();
             this.stream = null;
             s.close();
+
+            tmpToData();
         }
     }
 

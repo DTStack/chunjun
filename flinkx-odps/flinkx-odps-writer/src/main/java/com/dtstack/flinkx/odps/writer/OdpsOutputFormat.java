@@ -112,6 +112,10 @@ public class OdpsOutputFormat extends RichOutputFormat {
 
     @Override
     public FormatState getFormatState() {
+        if (!restoreConfig.isRestore() || lastRow == null){
+            return null;
+        }
+
         try {
             if(readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
                 session.commit();
@@ -131,7 +135,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
     public void writeSingleRecordInternal(Row row) throws WriteRecordException{
 
         if (restoreConfig.isRestore() && lastRow != null){
-            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+            readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                     row.getField(restoreConfig.getRestoreColumnIndex()));
         }
 

@@ -245,6 +245,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public FormatState getFormatState(){
+        if (!restoreConfig.isRestore() || lastRow == null){
+            return null;
+        }
+
         try {
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
                 preparedStatement.executeBatch();

@@ -20,6 +20,8 @@ package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.github.jsonzou.jmockdata.JMockData;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 
 import java.math.BigDecimal;
@@ -72,7 +74,7 @@ public class MockDataUtil {
         Row mockRow = new Row(columns.size());
         for (int i = 0; i < columns.size(); i++) {
             if(columns.get(i).getValue() != null){
-                mockRow.setField(i,columns.get(i).getValue());
+                mockRow.setField(i,getField(columns.get(i).getValue(), columns.get(i).getType()));
             } else {
                 mockRow.setField(i,mockData(columns.get(i).getType()));
             }
@@ -81,15 +83,24 @@ public class MockDataUtil {
         return mockRow;
     }
 
-    public static Row getMockRow(List<MetaColumn> columns, Row mockRow){
-        for (int i = 1; i < columns.size() -1; i++) {
-            if(columns.get(i).getValue() != null){
-                mockRow.setField(i,columns.get(i).getValue());
-            } else {
-                mockRow.setField(i,mockData(columns.get(i).getType()));
-            }
+    private static Object getField(String value,String type){
+        if (StringUtils.isEmpty(value)){
+            return value;
         }
 
-        return mockRow;
+        Object field;
+        switch (type.toLowerCase()){
+            case "integer":
+            case "smallint":
+            case "tinyint":
+            case "int" : field = NumberUtils.toInt(value);break;
+            case "bigint" :
+            case "long" : field = NumberUtils.toLong(value);break;
+            case "float" : field = NumberUtils.toFloat(value);break;
+            case "double" : field = NumberUtils.toDouble(value);break;
+            default: field = value;
+        }
+
+        return field;
     }
 }

@@ -27,6 +27,7 @@ import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
@@ -91,15 +92,36 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlock() throws IOException {
+    protected void nextBlock() {
+        if (recordWriter != null){
+            return;
+        }
+
+        try {
+            if (restoreConfig.isRestore()){
+                tmpToData();
+                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
+            } else {
+                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
+            }
+
+            String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
+            recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+            blockIndex++;
+
+            LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
+            LOG.info("Current block file name:" + currentBlockTmpPath);
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void flushBlock() throws IOException{
         if (recordWriter != null){
             recordWriter.close(Reporter.NULL);
             recordWriter = null;
         }
-
-        currentBlockTmpPath = tmpPath + "." + blockIndex;
-        recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
-        blockIndex++;
     }
 
     @Override
@@ -110,9 +132,13 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
 
-        if (restoreConfig.isRestore() && lastRow != null){
-            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        if (restoreConfig.isRestore()){
+            nextBlock();
+
+            if(lastRow != null){
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
         }
 
         int i = 0;
@@ -221,8 +247,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     public void closeInternal() throws IOException {
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
+            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
+
+            tmpToData();
         }
     }
 

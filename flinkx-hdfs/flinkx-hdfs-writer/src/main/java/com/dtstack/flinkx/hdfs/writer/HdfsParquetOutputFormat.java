@@ -82,24 +82,42 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlock() throws IOException {
+    protected void nextBlock() {
+        if (writer != null){
+            return;
+        }
+
+        try {
+            if (restoreConfig.isRestore()){
+                tmpToData();
+                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
+            } else {
+                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
+            }
+
+            String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
+            Path writePath = new Path(currentBlockTmpPath);
+            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
+                    .withWriteMode(ParquetFileWriter.Mode.CREATE)
+                    .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                    .withCompressionCodec(CompressionCodecName.SNAPPY)
+                    .withConf(conf)
+                    .withType(schema)
+                    .withRowGroupSize(rowGroupSize);
+            writer = builder.build();
+
+            blockIndex++;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void flushBlock() throws IOException{
         if (writer != null){
             writer.close();
             writer = null;
         }
-
-        currentBlockTmpPath = tmpPath + "." + blockIndex;
-        Path writePath = new Path(currentBlockTmpPath);
-        ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
-                .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                .withCompressionCodec(CompressionCodecName.SNAPPY)
-                .withConf(conf)
-                .withType(schema)
-                .withRowGroupSize(rowGroupSize);
-        writer = builder.build();
-
-        blockIndex++;
     }
 
     @Override
@@ -113,9 +131,13 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
 
-        if (restoreConfig.isRestore() && lastRow != null){
-            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        if (restoreConfig.isRestore()){
+            nextBlock();
+
+            if(lastRow != null){
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
         }
 
         Group group = groupFactory.newGroup();
@@ -236,6 +258,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     public void closeInternal() throws IOException {
         if (writer != null){
             writer.close();
+            tmpToData();
         }
     }
 

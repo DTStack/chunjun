@@ -165,8 +165,6 @@ public class Main {
             LOG.info("Open checkpoint with interval:" + interval);
         }
 
-        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-
         String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
         if(checkpointTimeoutStr != null){
             long checkpointTimeout = Long.valueOf(checkpointTimeoutStr);
@@ -176,29 +174,10 @@ public class Main {
             LOG.info("Set checkpoint timeout:" + checkpointTimeout);
         }
 
-        String maxConcurrentCheckpointsStr = properties.getProperty(ConfigConstrant.FLINK_MAXCONCURRENTCHECKPOINTS_KEY);
-        if(maxConcurrentCheckpointsStr != null){
-            int maxConcurrentCheckpoints = Integer.valueOf(maxConcurrentCheckpointsStr);
-            //allow only one checkpoint to be int progress at the same time
-            env.getCheckpointConfig().setMaxConcurrentCheckpoints(maxConcurrentCheckpoints);
-
-            LOG.info("Set MaxConcurrentCheckpoints:" + maxConcurrentCheckpoints);
-        }
-
-        String cleanupModeStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_CLEANUPMODE_KEY);
-        if(cleanupModeStr != null){
-            if("true".equalsIgnoreCase(cleanupModeStr)){
-                env.getCheckpointConfig().enableExternalizedCheckpoints(
-                        CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
-            }else if("false".equalsIgnoreCase(cleanupModeStr)){
-                env.getCheckpointConfig().enableExternalizedCheckpoints(
-                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-            }else{
-                throw new RuntimeException("not support value of cleanup mode :" + cleanupModeStr);
-            }
-
-            LOG.info("Set enableExternalizedCheckpoints:" + cleanupModeStr);
-        }
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+        env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
+        env.getCheckpointConfig().enableExternalizedCheckpoints(
+                CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
         String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
         if(backendPath != null){

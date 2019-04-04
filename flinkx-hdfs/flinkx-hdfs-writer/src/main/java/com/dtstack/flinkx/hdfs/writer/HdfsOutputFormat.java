@@ -97,7 +97,9 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected Row lastRow;
 
-    protected String currentBlockTmpPath;
+    protected String currentBlockFileNamePrefix;
+
+    protected String currentBlockFileName;
 
     protected long rowsOfCurrentBlock;
 
@@ -152,22 +154,23 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         String dateString = formatter.format(currentTime);
-        tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + taskNumber + "." + dateString;
+        currentBlockFileNamePrefix = taskNumber + "." + dateString;
+
+        tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
         open();
     }
 
     @Override
     public FormatState getFormatState() {
-        if (lastRow == null){
+        if (!restoreConfig.isRestore() || lastRow == null){
             return null;
         }
 
         try{
             boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
             if (readyCheckpoint || overMaxRows){
-                nextBlock();
-                LOG.info("Current block file name:" + currentBlockTmpPath);
+                flushBlock();
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 rowsOfCurrentBlock = 0;
@@ -178,19 +181,36 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             return null;
         }catch (Exception e){
             try{
-                fs.delete(new Path(currentBlockTmpPath), true);
+                fs.delete(new Path(tmpPath + SP + currentBlockFileName), true);
                 fs.close();
             }catch (Exception e1){
-                throw new RuntimeException("Delete tmp file:" + currentBlockTmpPath + " failed when get next block error", e1);
+                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
             }
 
             throw new RuntimeException("Get next block error:", e);
         }
     }
 
+    protected void tmpToData(){
+        try {
+            if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
+                Path src = new Path(tmpPath + SP + currentBlockFileName);
+
+                String dataFileName = currentBlockFileName.replaceFirst("\\.","");
+                Path dist = new Path(tmpPath + SP + dataFileName);
+
+                fs.rename(src, dist);
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
     protected abstract void open() throws IOException;
 
-    protected abstract void nextBlock() throws IOException;
+    protected abstract void nextBlock();
+
+    protected abstract void flushBlock() throws IOException;
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
@@ -199,7 +219,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(restoreConfig.isRestore() && fs != null) {
+        if(!restoreConfig.isRestore() && fs != null) {
             Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
             Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
             fs.delete(finishedDir, true);
