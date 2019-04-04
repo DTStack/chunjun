@@ -87,13 +87,15 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     private boolean readyCheckpoint;
 
-    private String fileName;
-
     private int fileIndex;
 
     private static String tempPath = ".flinkxTmp";
 
     private static String finishedTagPath = tempPath + "/.finishedTag";
+
+    private String currentFileNamePrefix;
+
+    private String currentFileName;
 
     @Override
     public void configure(Configuration parameters) {
@@ -136,32 +138,61 @@ public class FtpOutputFormat extends RichOutputFormat {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String dateString = formatter.format(currentTime);
-        fileName = taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
+        currentFileNamePrefix = taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
 
         if (restoreConfig.isRestore()){
             nextFile();
         } else {
-            String filePath = path + "/" + fileName;
+            String filePath = path + "/" + currentFileNamePrefix;
             this.os = ftpHandler.getOutputStream(filePath);
         }
     }
 
-    private void nextFile() throws IOException{
+    private void nextFile() {
         if (os != null){
-            os.flush();
-            os = null;
+            return;
         }
 
-        String filePath = path + "/" + tempPath + "/" + fileIndex + "." + fileName;
+        tmpToData();
+
+        currentFileName = "." + fileIndex + currentFileNamePrefix;
+        String filePath = path + "/" + tempPath + "/" + currentFileName;
         os = ftpHandler.getOutputStream(filePath);
         fileIndex++;
     }
 
+    private void tmpToData(){
+        if (currentFileName == null || !currentFileName.startsWith(".")){
+            return;
+        }
+
+        try{
+            String src = path + "/" + tempPath + "/" + currentFileName;
+
+            currentFileName = currentFileName.replaceFirst("\\.", "");
+            String dist = path + "/" + tempPath + "/" + currentFileName;
+            ftpHandler.rename(src, dist);
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void flushFile() throws IOException{
+        if (os != null){
+            os.flush();
+            os = null;
+        }
+    }
+
     @Override
     public FormatState getFormatState() {
+        if (!restoreConfig.isRestore() || lastRow == null){
+            return null;
+        }
+
         try{
             if (readyCheckpoint || rowsOfCurrentFile > restoreConfig.getMaxRowNumForCheckpoint()){
-                nextFile();
+                flushFile();
 
                 rowsOfCurrentFile = 0;
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
@@ -170,6 +201,7 @@ public class FtpOutputFormat extends RichOutputFormat {
 
             return null;
         }catch (Exception e){
+            ftpHandler.deleteAllFilesInDir(path + "/" + tempPath + "/" + currentFileName);
             throw new RuntimeException("Get next file error:", e);
         }
     }
@@ -177,9 +209,13 @@ public class FtpOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
 
-        if (restoreConfig.isRestore() && lastRow != null){
-            readyCheckpoint = ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                    row.getField(restoreConfig.getRestoreColumnIndex()));
+        if (restoreConfig.isRestore()){
+            nextFile();
+
+            if(lastRow != null){
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
         }
 
         String line = StringUtil.row2string(row, columnTypes, delimiter, columnNames);
@@ -219,7 +255,7 @@ public class FtpOutputFormat extends RichOutputFormat {
             try{
                 List<String> files = ftpHandler.getFiles(path + "/" + tempPath);
                 for (String file : files) {
-                    if (file.endsWith(".csv")){
+                    if (file.endsWith(".csv") && !file.startsWith(".")){
                         ftpHandler.rename(path + "/" + tempPath + "/" + file,path + "/" + file);
                     }
                 }
@@ -244,6 +280,8 @@ public class FtpOutputFormat extends RichOutputFormat {
             String finishedTag = path + "/" + finishedTagPath + "/" + taskNumber + "_finished";
             ftpHandler.mkDirRecursive(finishedTag);
         }
+
+        tmpToData();
 
         if(ftpHandler != null && (!restoreConfig.isRestore() || taskNumber > 0)) {
             ftpHandler.logoutFtpServer();
