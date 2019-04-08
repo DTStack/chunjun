@@ -68,7 +68,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/oraclewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/oraclewriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/oraclewriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

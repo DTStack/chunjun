@@ -68,7 +68,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/sqlserverwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/sqlserverwriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/sqlserverwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
