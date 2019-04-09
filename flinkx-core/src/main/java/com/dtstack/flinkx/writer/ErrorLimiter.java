@@ -104,7 +104,7 @@ public class ErrorLimiter {
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
             try {
-                URLUtil.open(httpClient, url);
+                URLUtil.get(httpClient, url);
                  break;
             } catch (Exception e) {
                 LOG.error("connected error: " + url);
@@ -142,7 +142,7 @@ public class ErrorLimiter {
         for(int index = 0; index < monitorUrls.length; ++index) {
             String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
             try {
-                String response = URLUtil.open(httpClient, requestUrl);
+                String response = URLUtil.get(httpClient, requestUrl);
                 Map<String,Object> map = gson.fromJson(response, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {

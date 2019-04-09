@@ -372,7 +372,7 @@ public class JdbcInputFormat extends RichInputFormat {
         for (String monitor : monitors) {
             LOG.info("Request url:" + monitor);
             try {
-                String response = URLUtil.open(httpClient, monitor);
+                String response = URLUtil.get(httpClient, monitor);
                 Map map = gson.fromJson(response, Map.class);
 
                 LOG.info("Accumulator data:" + gson.toJson(map));

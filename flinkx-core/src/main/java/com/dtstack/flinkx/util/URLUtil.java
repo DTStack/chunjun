@@ -51,7 +51,7 @@ public class URLUtil {
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
     }
 
-    public static String open(CloseableHttpClient httpClient, String url) throws Exception{
+    public static String get(CloseableHttpClient httpClient, String url) throws Exception{
         return RetryUtil.executeWithRetry(new Callable<String>() {
             @Override
             public String call() throws Exception{

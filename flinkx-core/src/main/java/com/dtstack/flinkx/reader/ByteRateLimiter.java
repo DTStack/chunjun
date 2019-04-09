@@ -95,7 +95,7 @@ public class ByteRateLimiter {
             String url = monitorUrls[j];
             LOG.info("monitor_url=" + url);
             try {
-                URLUtil.open(httpClient, url);
+                URLUtil.get(httpClient, url);
                 break;
             } catch (Exception e) {
                 LOG.error("connected error: " + url);
@@ -139,7 +139,7 @@ public class ByteRateLimiter {
                     for (int index = 0; index < 1; ++index) {
                         String requestUrl = monitorUrls[index] + "/jobs/" + this.jobId + "/vertices/" + this.taskId;
                         try {
-                            String response = URLUtil.open(httpClient, requestUrl);
+                            String response = URLUtil.get(httpClient, requestUrl);
 
                             Map<String, Object> map = gson.fromJson(response, Map.class);
                             double thisWriteBytes = 0;
