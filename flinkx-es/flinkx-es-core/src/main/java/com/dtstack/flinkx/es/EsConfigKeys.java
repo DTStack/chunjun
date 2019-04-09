@@ -50,4 +50,8 @@ public class EsConfigKeys {
 
     public static final String KEY_ID_COLUMN_VALUE = "value";
 
+    public static final String KEY_TIMEOUT = "timeout";
+
+    public static final String KEY_PATH_PREFIX = "pathPrefix";
+
 }

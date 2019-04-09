@@ -58,6 +58,8 @@ public class EsInputFormat extends RichInputFormat {
 
     protected int batchSize = 10;
 
+    protected Map<String,Object> clientConfig;
+
     private int from;
 
     private int to;
@@ -73,7 +75,7 @@ public class EsInputFormat extends RichInputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address);
+        client = EsUtil.getClient(address, clientConfig);
     }
 
     @Override
