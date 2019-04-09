@@ -27,6 +27,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class EsReader extends DataReader {
     private String index;
     private String type;
     private Integer batchSize;
+    private Map<String,Object> clientConfig;
 
     protected List<String> columnType;
     protected List<String> columnValue;
@@ -56,6 +58,10 @@ public class EsReader extends DataReader {
         index = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         type = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
         batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 0);
+
+        clientConfig = new HashMap<>();
+        clientConfig.put(EsConfigKeys.KEY_TIMEOUT, readerConfig.getParameter().getVal(EsConfigKeys.KEY_TIMEOUT));
+        clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, readerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
 
         Object queryMap = readerConfig.getParameter().getVal(EsConfigKeys.KEY_QUERY);
         if(queryMap != null) {
@@ -93,6 +99,7 @@ public class EsReader extends DataReader {
         builder.setIndex(index);
         builder.setType(type);
         builder.setBatchSize(batchSize);
+        builder.setClientConfig(clientConfig);
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);

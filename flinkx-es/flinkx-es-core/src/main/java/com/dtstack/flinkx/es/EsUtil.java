@@ -22,6 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
@@ -30,6 +31,7 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -52,7 +54,7 @@ import java.util.Map;
  */
 public class EsUtil {
 
-    public static RestHighLevelClient getClient(String address) {
+    public static RestHighLevelClient getClient(String address,Map<String,Object> config) {
         List<HttpHost> httpHostList = new ArrayList<>();
         String[] addr = address.split(",");
         for(String add : addr) {
@@ -60,8 +62,20 @@ public class EsUtil {
             TelnetUtil.telnet(pair[0], Integer.valueOf(pair[1]));
             httpHostList.add(new HttpHost(pair[0], Integer.valueOf(pair[1]), "http"));
         }
-        RestHighLevelClient client = new RestHighLevelClient(
-                RestClient.builder(httpHostList.toArray(new HttpHost[httpHostList.size()])));
+
+        RestClientBuilder builder = RestClient.builder(httpHostList.toArray(new HttpHost[httpHostList.size()]));
+
+        Integer timeout = MapUtils.getInteger(config, EsConfigKeys.KEY_TIMEOUT);
+        if (timeout != null){
+            builder.setMaxRetryTimeoutMillis(timeout);
+        }
+
+        String pathPrefix = MapUtils.getString(config, EsConfigKeys.KEY_PATH_PREFIX);
+        if (StringUtils.isNotEmpty(pathPrefix)){
+            builder.setPathPrefix(pathPrefix);
+        }
+
+        RestHighLevelClient client = new RestHighLevelClient(builder);
         return client;
     }
 

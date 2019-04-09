@@ -30,6 +30,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The OutputFormat class of ElasticSearch
@@ -55,6 +56,8 @@ public class EsOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
+    protected Map<String,Object> clientConfig;
+
     private transient RestHighLevelClient client;
 
     private transient BulkRequest bulkRequest;
@@ -62,7 +65,7 @@ public class EsOutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address);
+        client = EsUtil.getClient(address, clientConfig);
         bulkRequest = new BulkRequest();
     }
 
