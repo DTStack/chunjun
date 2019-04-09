@@ -18,8 +18,16 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.flink.hadoop.shaded.org.apache.http.HttpEntity;
+import org.apache.flink.hadoop.shaded.org.apache.http.HttpStatus;
+import org.apache.flink.hadoop.shaded.org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.flink.hadoop.shaded.org.apache.http.client.methods.HttpGet;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.util.EntityUtils;
+
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 /**
@@ -32,11 +40,31 @@ public class URLUtil {
 
     private static int SLEEP_TIME_MILLI_SECOND = 2000;
 
+    private static Charset charset = Charset.forName("UTF-8");
+
     public static InputStream open(String url) throws Exception{
         return RetryUtil.executeWithRetry(new Callable<InputStream>() {
             @Override
             public InputStream call() throws Exception{
                 return new URL(url).openStream();
+            }
+        },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+    }
+
+    public static String get(CloseableHttpClient httpClient, String url) throws Exception{
+        return RetryUtil.executeWithRetry(new Callable<String>() {
+            @Override
+            public String call() throws Exception{
+                String respBody = null;
+                HttpGet httpGet = new HttpGet(url);
+                CloseableHttpResponse response = httpClient.execute(httpGet);
+
+                if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+                    HttpEntity entity = response.getEntity();
+                    respBody = EntityUtils.toString(entity,charset);
+                }
+
+                return respBody;
             }
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
     }
