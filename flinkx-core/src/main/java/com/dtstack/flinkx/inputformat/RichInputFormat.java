@@ -75,7 +75,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         openInternal(inputSplit);
 
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 1);
+            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
         }
     }

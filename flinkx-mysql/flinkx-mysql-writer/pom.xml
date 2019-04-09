@@ -68,7 +68,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/mysqlwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mysqlwriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/mysqlwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

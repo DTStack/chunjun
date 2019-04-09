@@ -37,6 +37,8 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.io.InputStream;
@@ -320,18 +322,20 @@ public class JdbcInputFormat extends RichInputFormat {
                 return;
             }
 
-            Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-            String jobId = vars.get("<job_id>");
+            try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
 
-            String[] monitors;
-            if (monitorUrls.startsWith("http")){
-                monitors = new String[] {String.format("%s/jobs/%s/accumulators", monitorUrls, jobId)};
-            } else {
-                monitors = monitorUrls.split(",");
-                for (int i = 0; i < monitors.length; i++) {
-                    monitors[i] = String.format("http://%s/jobs/%s/accumulators", monitors[i], jobId);
+                Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
+                String jobId = vars.get("<job_id>");
+
+                String[] monitors;
+                if (monitorUrls.startsWith("http")) {
+                    monitors = new String[]{String.format("%s/jobs/%s/accumulators", monitorUrls, jobId)};
+                } else {
+                    monitors = monitorUrls.split(",");
+                    for (int i = 0; i < monitors.length; i++) {
+                        monitors[i] = String.format("http://%s/jobs/%s/accumulators", monitors[i], jobId);
+                    }
                 }
-            }
 
             /**
              * The extra 10 times is to ensure that accumulator is updated
@@ -345,25 +349,29 @@ public class JdbcInputFormat extends RichInputFormat {
                 } catch (InterruptedException ignore) {
                 }
 
-                maxValue = getMaxvalueFromAccumulator(monitors);
-                acquireTimes++;
-            }
+                    maxValue = getMaxvalueFromAccumulator(httpClient, monitors);
+                    acquireTimes++;
+                }
 
-            if (StringUtils.isEmpty(maxValue)){
-                throw new RuntimeException("Can't get the max value from accumulator");
+                if (StringUtils.isEmpty(maxValue)) {
+                    throw new RuntimeException("Can't get the max value from accumulator");
+                }
+            } catch (IOException e){
+                throw new RuntimeException("Can't get the max value from accumulator:" + e);
             }
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
-    private String getMaxvalueFromAccumulator(String[] monitors){
+    private String getMaxvalueFromAccumulator(CloseableHttpClient httpClient,String[] monitors){
         String maxValue = null;
         Gson gson = new Gson();
         for (String monitor : monitors) {
             LOG.info("Request url:" + monitor);
-            try (InputStream inputStream = URLUtil.open(monitor); Reader rd = new InputStreamReader(inputStream)) {
-                Map map = gson.fromJson(rd, Map.class);
+            try {
+                String response = URLUtil.get(httpClient, monitor);
+                Map map = gson.fromJson(response, Map.class);
 
                 LOG.info("Accumulator data:" + gson.toJson(map));
 
