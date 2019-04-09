@@ -68,7 +68,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/rediswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/rediswriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/rediswriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -68,7 +68,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/db2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/db2reader/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/db2reader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

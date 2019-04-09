@@ -69,7 +69,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/postgresqlreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/postgresqlreader/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/postgresqlreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
