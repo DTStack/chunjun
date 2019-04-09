@@ -67,7 +67,7 @@ public class EsUtil {
 
         Integer timeout = MapUtils.getInteger(config, EsConfigKeys.KEY_TIMEOUT);
         if (timeout != null){
-            builder.setMaxRetryTimeoutMillis(timeout);
+            builder.setMaxRetryTimeoutMillis(timeout * 1000);
         }
 
         String pathPrefix = MapUtils.getString(config, EsConfigKeys.KEY_PATH_PREFIX);
