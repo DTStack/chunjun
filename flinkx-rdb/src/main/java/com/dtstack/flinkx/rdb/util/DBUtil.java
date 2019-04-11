@@ -580,8 +580,11 @@ public class DBUtil {
             filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
-        if(StringUtils.isNotEmpty(customFilter)) {
-            filter.append(" AND ").append(customFilter);
+        if (customFilter != null){
+            customFilter = customFilter.trim();
+            if (customFilter.length() > 0){
+                filter.append(" AND ").append(customFilter);
+            }
         }
 
         if (realTimeIncreSync){
