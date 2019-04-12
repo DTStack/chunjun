@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Builder class of EsOutputFormat
@@ -67,6 +68,10 @@ public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
         format.columnTypes = columnTypes;
     }
 
+    public EsOutputFormatBuilder setClientConfig(Map<String, Object> clientConfig){
+        format.clientConfig = clientConfig;
+        return this;
+    }
 
     @Override
     protected void checkFormat() {

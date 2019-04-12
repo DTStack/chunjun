@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.config;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +102,12 @@ public class WriterConfig extends AbstractConfig {
 
             public ConnectionConfig(Map<String, Object> map) {
                 super(map);
-                jdbcUrl = getStringVal(KEY_JDBC_URL);
+                Object jdbcUrlObj = internalMap.get(KEY_JDBC_URL);
+                if(jdbcUrlObj instanceof String){
+                    jdbcUrl = jdbcUrlObj.toString();
+                } else if(jdbcUrlObj instanceof List && CollectionUtils.isNotEmpty((List) jdbcUrlObj)){
+                    jdbcUrl = ((List) jdbcUrlObj).get(0).toString();
+                }
                 table = (List<String>) getVal(KEY_TABLE_LIST);
             }
 
