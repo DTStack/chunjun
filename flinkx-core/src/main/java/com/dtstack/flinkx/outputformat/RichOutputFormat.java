@@ -49,7 +49,7 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
+public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -241,8 +241,16 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             errorLimiter.acquire();
         }
 
+        /*
+         * Remove channel information from the data
+         */
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
+
         try {
-            writeSingleRecordInternal(row);
+            writeSingleRecordInternal(internalRow);
 
             // 总记录数加1
             numWriteCounter.add(1);
@@ -257,11 +265,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
             if(errorLimiter != null) {
                 errorLimiter.setErrMsg(errMsg);
-                errorLimiter.setErrorData(row);
+                errorLimiter.setErrorData(internalRow);
             }
 
             if(dirtyDataManager != null) {
-                String errorType = dirtyDataManager.writeData(row, e);
+                String errorType = dirtyDataManager.writeData(internalRow, e);
                 if (ERR_NULL_POINTER.equals(errorType)){
                     nullErrCounter.add(1);
                 } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){

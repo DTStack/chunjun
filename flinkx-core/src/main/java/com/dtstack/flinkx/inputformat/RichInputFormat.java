@@ -59,6 +59,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected transient InputMetric inputMetric;
 
+    protected int indexOfSubtask;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -69,6 +71,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        indexOfSubtask = getRuntimeContext().getIndexOfThisSubtask();
 
         inputMetric = new InputMetric(getRuntimeContext(), numReadCounter);
 
@@ -88,7 +91,21 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
 
-        return nextRecordInternal(row);
+        /*
+         * Append channel information after the data
+         */
+        Row internalRow = nextRecordInternal(row);
+        if (internalRow != null){
+            Row rowWithChannel = new Row(internalRow.getArity() + 1);
+            for (int i = 0; i < internalRow.getArity(); i++) {
+                rowWithChannel.setField(i, internalRow.getField(i));
+            }
+
+            rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
+            return rowWithChannel;
+        } else {
+            return null;
+        }
     }
 
     protected abstract Row nextRecordInternal(Row row) throws IOException;
