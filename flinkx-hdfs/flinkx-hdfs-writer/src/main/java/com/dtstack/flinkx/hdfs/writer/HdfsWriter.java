@@ -81,6 +81,8 @@ public class HdfsWriter extends DataWriter {
 
     protected int rowGroupSize;
 
+    protected long maxFileSize;
+
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -92,6 +94,7 @@ public class HdfsWriter extends DataWriter {
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
@@ -174,6 +177,7 @@ public class HdfsWriter extends DataWriter {
         builder.setDelimiter(fieldDelimiter);
         builder.setRowGroupSize(rowGroupSize);
         builder.setRestoreConfig(restoreConfig);
+        builder.setMaxFileSize(maxFileSize);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

@@ -125,6 +125,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
+    protected double getCompressRate(){
+        return 0.22;
+    }
+
+    @Override
     public void open() throws IOException {
         nextBlock();
     }
@@ -139,6 +144,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
+        } else {
+            checkWriteSize();
         }
 
         int i = 0;

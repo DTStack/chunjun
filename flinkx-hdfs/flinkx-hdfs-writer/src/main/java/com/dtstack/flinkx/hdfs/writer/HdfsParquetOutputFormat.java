@@ -121,6 +121,11 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
+    protected double getCompressRate(){
+        return 0.38;
+    }
+
+    @Override
     protected void open() throws IOException {
         schema = buildSchema();
         GroupWriteSupport.setSchema(schema,conf);
@@ -138,6 +143,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
+        } else {
+            checkWriteSize();
         }
 
         Group group = groupFactory.newGroup();

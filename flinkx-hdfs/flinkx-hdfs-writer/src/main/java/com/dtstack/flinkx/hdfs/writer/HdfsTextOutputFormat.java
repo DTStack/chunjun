@@ -95,6 +95,11 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
+    protected double getCompressRate(){
+        return 1;
+    }
+
+    @Override
     public void open() throws IOException {
         nextBlock();
     }
@@ -109,6 +114,8 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
+        } else {
+            checkWriteSize();
         }
 
         byte[] bytes = null;
