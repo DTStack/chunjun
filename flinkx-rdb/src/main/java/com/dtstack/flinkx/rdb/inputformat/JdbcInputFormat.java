@@ -112,6 +112,8 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int numPartitions;
 
+    protected String customSql;
+
     protected StringAccumulator tableColAccumulator;
 
     protected StringAccumulator maxValueAccumulator;
@@ -169,8 +171,13 @@ public class JdbcInputFormat extends RichInputFormat {
             columnCount = resultSet.getMetaData().getColumnCount();
             hasNext = resultSet.next();
 
-            if(descColumnTypeList == null) {
+            if (StringUtils.isEmpty(customSql)){
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+            } else {
+                descColumnTypeList = new ArrayList<>();
+                for (MetaColumn metaColumn : metaColumns) {
+                    descColumnTypeList.add(metaColumn.getName());
+                }
             }
 
         } catch (SQLException se) {
@@ -311,6 +318,10 @@ public class JdbcInputFormat extends RichInputFormat {
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
+            if(StringUtils.isEmpty(monitorUrls)){
+                return;
+            }
+
             Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
             String jobId = vars.get("<job_id>");
 
@@ -403,7 +414,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if (realTimeIncreSync){
                 String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, increColType, increCol,
-                        jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
+                        jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql);
 
                 if(StringUtils.isNotEmpty(incrementFilter)){
                     incrementFilter = " and " + incrementFilter;
@@ -426,9 +437,17 @@ public class JdbcInputFormat extends RichInputFormat {
         try {
             long startTime = System.currentTimeMillis();
 
-            String queryMaxValueSql = String.format("select max(%s) as max_value from %s",
-                    databaseInterface.quoteColumn(increCol), databaseInterface.quoteTable(table));
-            String startSql = DBUtil.buildStartLocationSql(databaseInterface, increColType, increCol, startLocation);
+            String queryMaxValueSql;
+            if (StringUtils.isNotEmpty(customSql)){
+                queryMaxValueSql = String.format("select max(%s.%s) as max_value from ( %s ) %s", DBUtil.TEMPORARY_TABLE_NAME,
+                        databaseInterface.quoteColumn(increCol), customSql, DBUtil.TEMPORARY_TABLE_NAME);
+            } else {
+                queryMaxValueSql = String.format("select max(%s) as max_value from %s",
+                        databaseInterface.quoteColumn(increCol), databaseInterface.quoteTable(table));
+            }
+
+            String startSql = DBUtil.buildStartLocationSql(databaseInterface, increColType,
+                    databaseInterface.quoteColumn(increCol), startLocation);
             if(StringUtils.isNotEmpty(startSql)){
                 queryMaxValueSql += " where " + startSql;
             }

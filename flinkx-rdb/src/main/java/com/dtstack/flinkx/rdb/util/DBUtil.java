@@ -57,6 +57,10 @@ public class DBUtil {
 
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
 
+    public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
+
+    public static final String CUSTOM_SQL_TEMPLATE = "select * from (%s) %s";
+
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
@@ -362,15 +366,19 @@ public class DBUtil {
     }
 
     public static String buildIncrementFilter(DatabaseInterface databaseInterface,String increColType,String increCol,
-                                              String startLocation,String endLocation){
+                                              String startLocation,String endLocation, String customSql){
         StringBuilder filter = new StringBuilder();
 
-        String startFilter = buildStartLocationSql(databaseInterface,increColType,increCol,startLocation);
+        if (StringUtils.isNotEmpty(customSql)){
+            increCol = String.format("%s.%s", TEMPORARY_TABLE_NAME, databaseInterface.quoteColumn(increCol));
+        }
+
+        String startFilter = buildStartLocationSql(databaseInterface, increColType, increCol, startLocation);
         if (StringUtils.isNotEmpty(startFilter)){
             filter.append(startFilter);
         }
 
-        String endFilter = buildEndLocationSql(databaseInterface,increColType,increCol,endLocation);
+        String endFilter = buildEndLocationSql(databaseInterface, increColType, increCol, endLocation);
         if (StringUtils.isNotEmpty(endFilter)){
             if (filter.length() > 0){
                 filter.append(" and ").append(endFilter);
@@ -400,12 +408,12 @@ public class DBUtil {
                 endTimeStr = String.format("'%s'",endTimeStr);
             }
 
-            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endTimeStr;
+            endLocationSql = increCol + " < " + endTimeStr;
         } else if(ColumnType.isNumberType(increColType)){
-            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endLocation;
+            endLocationSql = increCol + " < " + endLocation;
         } else {
             endTimeStr = String.format("'%s'",endLocation);
-            endLocationSql = databaseInterface.quoteColumn(increCol) + " < " + endTimeStr;
+            endLocationSql = increCol + " < " + endTimeStr;
         }
 
         return endLocationSql;
@@ -429,12 +437,12 @@ public class DBUtil {
                 startTimeStr = String.format("'%s'",startTimeStr);
             }
 
-            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startTimeStr;
+            startLocationSql = increCol + " >= " + startTimeStr;
         } else if(ColumnType.isNumberType(increColType)){
-            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startLocation;
+            startLocationSql = increCol + " >= " + startLocation;
         } else {
             startTimeStr = String.format("'%s'",startLocation);
-            startLocationSql = databaseInterface.quoteColumn(increCol) + " >= " + startTimeStr;
+            startLocationSql = increCol + " >= " + startTimeStr;
         }
 
         return startLocationSql;
@@ -521,6 +529,23 @@ public class DBUtil {
         }
 
         return millisSecond;
+    }
+
+    public static String buildQuerySqlWithCustomSql(DatabaseInterface databaseInterface,String customSql,
+                                                    boolean isSplitByKey,String splitKey,boolean realTimeIncreSync){
+        StringBuilder querySql = new StringBuilder();
+        querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
+        querySql.append(" WHERE 1=1 ");
+
+        if (isSplitByKey){
+            querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
+        }
+
+        if (realTimeIncreSync){
+            querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
+        }
+
+        return querySql.toString();
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
