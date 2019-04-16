@@ -19,17 +19,12 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import parquet.hadoop.ParquetWriter;
@@ -73,12 +68,6 @@ public class HdfsWriter extends DataWriter {
 
     protected List<String> fullColumnType;
 
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String SP = "/";
-
     protected int rowGroupSize;
 
     protected long maxFileSize;
@@ -118,40 +107,6 @@ public class HdfsWriter extends DataWriter {
         fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
-
-        deleteTempDir();
-    }
-
-    public void deleteTempDir() throws RuntimeException{
-        FileSystem fs = null;
-        try {
-            Configuration conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-            fs = FileSystem.get(conf);
-
-            String outputFilePath;
-            if(StringUtils.isNotBlank(fileName)) {
-                outputFilePath = path + SP + fileName;
-            } else {
-                outputFilePath = path;
-            }
-
-            // delete tmp dir
-            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-            fs.delete(tmpDir, true);
-            fs.delete(finishedDir, true);
-        } catch (Exception e){
-            LOG.error("delete temp dir error:",e);
-            throw new RuntimeException(e);
-        } finally {
-            if (fs != null){
-                try {
-                    fs.close();
-                } catch (Exception e){
-                    LOG.error("close filesystem error:",e);
-                }
-            }
-        }
     }
 
     @Override

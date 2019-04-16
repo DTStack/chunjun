@@ -172,8 +172,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         String dateString = formatter.format(currentTime);
         currentBlockFileNamePrefix = taskNumber + "." + dateString;
 
-        tmpPath = outputFilePath + SP + DATA_SUBDIR;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
+        tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
+        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + jobId + SP + taskNumber;
 
         httpClient = HttpClientBuilder.create().build();
         open();
@@ -238,8 +238,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     public void tryCleanupOnError() throws Exception {
         if(!restoreConfig.isRestore() && fs != null) {
-            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
+            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
             fs.delete(finishedDir, true);
             fs.delete(tmpDir, true);
 
@@ -256,7 +256,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
             // task_0 move tmp data into destination
             if(taskNumber == 0) {
-                Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+                Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
                 final int maxRetryTime = 100;
                 int i = 0;
                 for(; i < maxRetryTime; ++i) {
@@ -266,7 +266,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     SysUtil.sleep(3000);
                 }
 
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
                 if (i == maxRetryTime) {
                     fs.delete(tmpDir, true);
                     fs.delete(finishedDir, true);
