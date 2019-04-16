@@ -86,6 +86,11 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
+        return String.format("mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    }
+
+    @Override
     public EDatabaseType getDatabaseType() {
         return EDatabaseType.DB2;
     }

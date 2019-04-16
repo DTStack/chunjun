@@ -72,6 +72,8 @@ public class JdbcDataReader extends DataReader {
 
     protected boolean realTimeIncreSync;
 
+    protected String customSql;
+
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
     }
@@ -97,6 +99,7 @@ public class JdbcDataReader extends DataReader {
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
+        customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
 
         realTimeIncreSync = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_REALTIME_INCRE_SYNC,true);
         realTimeIncreSync = StringUtils.isNotEmpty(increColumn);
@@ -125,9 +128,16 @@ public class JdbcDataReader extends DataReader {
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
         builder.setRealTimeIncreSync(realTimeIncreSync);
+        builder.setCustomSql(customSql);
 
         boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
-        String query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, realTimeIncreSync);
+
+        String query;
+        if (StringUtils.isNotEmpty(customSql)){
+            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, realTimeIncreSync);
+        } else {
+            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, realTimeIncreSync);
+        }
         builder.setQuery(query);
 
         RichInputFormat format =  builder.finish();
