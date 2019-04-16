@@ -117,7 +117,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     private CloseableHttpClient httpClient;
 
-    private final Gson gson = new Gson();
+    private transient final Gson gson = new Gson();
 
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
