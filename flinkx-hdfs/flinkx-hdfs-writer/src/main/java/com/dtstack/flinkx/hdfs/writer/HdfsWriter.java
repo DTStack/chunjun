@@ -94,7 +94,7 @@ public class HdfsWriter extends DataWriter {
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
