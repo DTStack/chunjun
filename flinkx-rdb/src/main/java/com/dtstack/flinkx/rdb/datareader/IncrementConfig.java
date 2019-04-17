@@ -18,12 +18,14 @@
 
 package com.dtstack.flinkx.rdb.datareader;
 
+import java.io.Serializable;
+
 /**
  * @author jiangbo
  * @explanation
  * @date 2019/3/29
  */
-public class IncrementConfig {
+public class IncrementConfig implements Serializable {
 
     private boolean increment;
 
