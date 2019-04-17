@@ -253,6 +253,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         try {
+            LOG.info("readyCheckpoint:" + readyCheckpoint);
+            LOG.info("rowsOfCurrentTransaction:" + rowsOfCurrentTransaction);
+
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
 
                 LOG.info("getFormatState:Start commit connection");
