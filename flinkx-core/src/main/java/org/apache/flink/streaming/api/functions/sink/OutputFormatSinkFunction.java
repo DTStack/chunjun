@@ -127,8 +127,10 @@ public class OutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implement
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
         if (formatState != null){
+            LOG.info("Start create snapshot");
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
+            LOG.info("Create snapshot success");
         }
     }
 
