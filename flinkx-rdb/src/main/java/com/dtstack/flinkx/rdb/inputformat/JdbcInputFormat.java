@@ -414,17 +414,21 @@ public class JdbcInputFormat extends RichInputFormat {
                         .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
             }
 
-            if (restoreConfig.isRestore() && formatState != null){
-                String startLocation = String.valueOf(getLocation(formatState.getState()));
+            if (restoreConfig.isRestore()){
+                if(formatState == null){
+                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, "");
+                } else {
+                    String startLocation = String.valueOf(getLocation(formatState.getState()));
 
-                String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
-                        restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql);
+                    String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
+                            restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql);
 
-                if(StringUtils.isNotEmpty(restoreFilter)){
-                    restoreFilter = " and " + restoreFilter;
+                    if(StringUtils.isNotEmpty(restoreFilter)){
+                        restoreFilter = " and " + restoreFilter;
+                    }
+
+                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
                 }
-
-                querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
             } else if (incrementConfig.isIncrement()){
                 String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, incrementConfig.getColumnType(),
                         incrementConfig.getColumnName(), jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql);

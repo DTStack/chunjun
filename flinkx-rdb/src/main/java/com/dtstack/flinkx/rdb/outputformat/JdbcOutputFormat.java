@@ -237,9 +237,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (Exception e){
             if (restoreConfig.isRestore()){
                 dbConn.rollback();
-            } else {
-                throw e;
+                LOG.warn("roll back data");
             }
+
+            throw e;
         }
     }
 
@@ -253,10 +254,13 @@ public class JdbcOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
                 preparedStatement.executeBatch();
                 dbConn.commit();
+                LOG.info("commit connection");
 
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                LOG.info("format state:" + String.valueOf(formatState.getState()));
+
                 return formatState;
             }
 
@@ -264,6 +268,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (Exception e){
             try {
                 dbConn.rollback();
+                LOG.warn("create snapshot failed,rollback data");
             } catch (SQLException sqlE){
                 throw new RuntimeException("Rollback error:", e);
             }

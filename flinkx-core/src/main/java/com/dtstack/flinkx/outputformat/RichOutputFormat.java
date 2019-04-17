@@ -241,16 +241,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             errorLimiter.acquire();
         }
 
-        /*
-         * Remove channel information from the data
-         */
-        Row internalRow = new Row(row.getArity() - 1);
-        for (int i = 0; i < internalRow.getArity(); i++) {
-            internalRow.setField(i, row.getField(i));
-        }
-
         try {
-            writeSingleRecordInternal(internalRow);
+            writeSingleRecordInternal(row);
 
             // 总记录数加1
             numWriteCounter.add(1);
@@ -265,11 +257,11 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
             if(errorLimiter != null) {
                 errorLimiter.setErrMsg(errMsg);
-                errorLimiter.setErrorData(internalRow);
+                errorLimiter.setErrorData(row);
             }
 
             if(dirtyDataManager != null) {
-                String errorType = dirtyDataManager.writeData(internalRow, e);
+                String errorType = dirtyDataManager.writeData(row, e);
                 if (ERR_NULL_POINTER.equals(errorType)){
                     nullErrCounter.add(1);
                 } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
@@ -303,22 +295,33 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         try {
             writeMultipleRecords();
         } catch(Exception e) {
-            rows.forEach(this::writeSingleRecord);
+            if(restoreConfig.isRestore()){
+                throw new RuntimeException(e);
+            } else {
+                rows.forEach(this::writeSingleRecord);
+            }
         }
         rows.clear();
     }
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        /*
+         * Remove channel information from the data
+         */
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
+
         if(batchInterval <= 1) {
-            writeSingleRecord(row);
+            writeSingleRecord(internalRow);
         } else {
-            rows.add(row);
+            rows.add(internalRow);
             if(rows.size() == batchInterval) {
                 writeRecordInternal();
             }
         }
-
     }
 
     @Override
