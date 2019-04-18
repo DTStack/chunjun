@@ -30,13 +30,13 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,12 +81,9 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         value = new Text();
     }
 
-
-
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        byte[] data = ((Text)value).getBytes();
-        String line = new String(data, charsetName);
+        String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
         String[] fields = line.split(delimiter);
 
         if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
