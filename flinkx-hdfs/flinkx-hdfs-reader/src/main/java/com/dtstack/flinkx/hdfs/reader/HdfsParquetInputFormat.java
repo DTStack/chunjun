@@ -172,6 +172,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private Object getData(Group currentLine,String type,int index){
         Object data = null;
         try{
+            if (index == -1){
+                return null;
+            }
+
             Type colSchemaType = currentLine.getType().getType(index);
             switch (type){
                 case "tinyint" :
