@@ -66,7 +66,7 @@ import org.apache.flink.streaming.api.functions.source.FileReadFunction;
 import org.apache.flink.streaming.api.functions.source.FromElementsFunction;
 import org.apache.flink.streaming.api.functions.source.FromIteratorFunction;
 import org.apache.flink.streaming.api.functions.source.FromSplittableIteratorFunction;
-import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
+import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SocketTextStreamFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -1347,7 +1347,7 @@ public abstract class StreamExecutionEnvironment {
                                                     TypeInformation<OUT> typeInfo,
                                                     String sourceName) {
 
-        InputFormatSourceFunction<OUT> function = new InputFormatSourceFunction<>(inputFormat, typeInfo);
+        DtInputFormatSourceFunction<OUT> function = new DtInputFormatSourceFunction<>(inputFormat, typeInfo);
         return addSource(function, sourceName, typeInfo);
     }
 

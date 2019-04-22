@@ -26,7 +26,7 @@ import com.dtstack.flinkx.redis.JedisUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 import java.util.ArrayList;
@@ -118,7 +118,7 @@ public class RedisWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchInterval(batchSize);
 
-        OutputFormatSinkFunction formatSinkFunction = new OutputFormatSinkFunction(builder.finish());
+        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
         dataStreamSink.name("rediswriter");
 

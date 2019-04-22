@@ -22,7 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 /**
@@ -46,7 +46,7 @@ public class StreamWriter extends DataWriter {
         builder.setPrint(print);
         builder.setRestoreConfig(restoreConfig);
 
-        OutputFormatSinkFunction formatSinkFunction = new OutputFormatSinkFunction(builder.finish());
+        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
         dataStreamSink.name("streamwriter");
 

@@ -25,7 +25,7 @@ import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +126,7 @@ public class HbaseWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
 
         dataStreamSink.name("hbasewriter");

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
@@ -54,6 +55,11 @@ public class Launcher {
         if (StringUtils.isNotEmpty(launcherOptions.getConfProp())){
             argList.add("-confProp");
             argList.add(launcherOptions.getConfProp());
+        }
+
+        if(StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
+            argList.add("-s");
+            argList.add(launcherOptions.getSavepoint());
         }
 
         return argList;

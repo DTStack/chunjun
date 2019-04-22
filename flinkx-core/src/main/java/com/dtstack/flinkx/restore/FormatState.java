@@ -51,4 +51,12 @@ public class FormatState implements Serializable {
     public void setState(Object state) {
         this.state = state;
     }
+
+    @Override
+    public String toString() {
+        return "FormatState{" +
+                "numOfSubTask=" + numOfSubTask +
+                ", state=" + state +
+                '}';
+    }
 }

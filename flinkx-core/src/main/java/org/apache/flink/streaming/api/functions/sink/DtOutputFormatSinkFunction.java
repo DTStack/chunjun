@@ -50,11 +50,11 @@ import java.io.IOException;
  */
 @PublicEvolving
 @Deprecated
-public class OutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implements InputTypeConfigurable ,CheckpointedFunction {
+public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(OutputFormatSinkFunction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DtOutputFormatSinkFunction.class);
 
     private OutputFormat<IN> format;
     private boolean cleanupCalled = false;
@@ -63,7 +63,8 @@ public class OutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implement
 
     private transient ListState<FormatState> unionOffsetStates;
 
-    public OutputFormatSinkFunction(OutputFormat<IN> format) {
+    public DtOutputFormatSinkFunction(OutputFormat<IN> format) {
+        super(format);
         this.format = format;
     }
 

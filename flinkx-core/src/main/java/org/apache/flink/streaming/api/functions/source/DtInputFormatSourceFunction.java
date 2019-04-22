@@ -36,6 +36,8 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,8 +48,10 @@ import java.util.NoSuchElementException;
  * A {@link SourceFunction} that reads data using an {@link InputFormat}.
  */
 @Internal
-public class InputFormatSourceFunction<OUT> extends RichParallelSourceFunction<OUT> implements CheckpointedFunction {
+public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT> implements CheckpointedFunction {
 	private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(DtInputFormatSourceFunction.class);
 
 	private TypeInformation<OUT> typeInfo;
 	private transient TypeSerializer<OUT> serializer;
@@ -64,7 +68,8 @@ public class InputFormatSourceFunction<OUT> extends RichParallelSourceFunction<O
     private static final String LOCATION_STATE_NAME = "data-sync-location-states";
 
 	@SuppressWarnings("unchecked")
-	public InputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
+	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
+		super(format, typeInfo);
 		this.format = (InputFormat<OUT, InputSplit>) format;
 		this.typeInfo = typeInfo;
 	}
@@ -147,6 +152,7 @@ public class InputFormatSourceFunction<OUT> extends RichParallelSourceFunction<O
 	 * Returns the {@code InputFormat}. This is only needed because we need to set the input
 	 * split assigner on the {@code StreamGraph}.
 	 */
+	@Override
 	public InputFormat<OUT, InputSplit> getFormat() {
 		return format;
 	}
@@ -210,16 +216,22 @@ public class InputFormatSourceFunction<OUT> extends RichParallelSourceFunction<O
 
 	@Override
 	public void initializeState(FunctionInitializationContext context) throws Exception {
+	    LOG.info("Start initialize format state");
+
 		OperatorStateStore stateStore = context.getOperatorStateStore();
         ListState<FormatState> unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
 				LOCATION_STATE_NAME,
 				TypeInformation.of(new TypeHint<FormatState>() {})));
 
 		if (context.isRestored()){
+            LOG.info("Format state into:");
 			formatStateMap = new HashMap<>();
 			for (FormatState formatState : unionOffsetStates.get()) {
 				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
+				LOG.info(formatState.toString());
 			}
 		}
+
+        LOG.info("End initialize format state");
 	}
 }
