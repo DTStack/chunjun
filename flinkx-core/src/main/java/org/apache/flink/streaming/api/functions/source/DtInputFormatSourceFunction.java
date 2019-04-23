@@ -67,6 +67,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private static final String LOCATION_STATE_NAME = "data-sync-location-states";
 
+    private transient ListState<FormatState> unionOffsetStates;
+
 	@SuppressWarnings("unchecked")
 	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
 		super(format, typeInfo);
@@ -211,7 +213,12 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void snapshotState(FunctionSnapshotContext context) throws Exception {
-		// do nothing
+        FormatState formatState = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getFormatState();
+        if (formatState != null){
+            LOG.info("InputFormat format state:{}", formatState.toString());
+            unionOffsetStates.clear();
+            unionOffsetStates.add(formatState);
+        }
 	}
 
 	@Override
@@ -219,7 +226,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	    LOG.info("Start initialize format state");
 
 		OperatorStateStore stateStore = context.getOperatorStateStore();
-        ListState<FormatState> unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
+        unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
 				LOCATION_STATE_NAME,
 				TypeInformation.of(new TypeHint<FormatState>() {})));
 

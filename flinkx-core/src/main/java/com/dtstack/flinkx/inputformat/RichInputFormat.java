@@ -61,6 +61,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected int indexOfSubtask;
 
+    private Row lastRow;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -80,6 +82,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
+        }
+
+        if(restoreConfig.isRestore() && formatState == null){
+            formatState = new FormatState(indexOfSubtask, null);
         }
     }
 
@@ -101,11 +107,24 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
                 rowWithChannel.setField(i, internalRow.getField(i));
             }
 
+            if (restoreConfig.isRestore() && lastRow != null){
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+            lastRow = internalRow;
+
             rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
             return rowWithChannel;
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState(){
+        return formatState;
     }
 
     protected abstract Row nextRecordInternal(Row row) throws IOException;

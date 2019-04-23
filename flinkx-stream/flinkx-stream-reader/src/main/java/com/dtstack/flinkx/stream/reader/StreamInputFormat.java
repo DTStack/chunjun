@@ -57,6 +57,7 @@ public class StreamInputFormat extends RichInputFormat {
         if (restoreConfig.isRestore() && columns.get(0).getValue() == null){
             row.setField(0, recordRead);
         }
+
         return row;
     }
 

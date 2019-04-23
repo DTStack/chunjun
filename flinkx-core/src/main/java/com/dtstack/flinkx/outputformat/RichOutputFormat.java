@@ -223,7 +223,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
 
         if(restoreConfig.isRestore()){
-            formatState = new FormatState(numTasks, null);
+            formatState = new FormatState(taskNumber, null);
         }
     }
 
