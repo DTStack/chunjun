@@ -84,8 +84,12 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             this.byteRateLimiter.start();
         }
 
-        if(restoreConfig.isRestore() && formatState == null){
-            formatState = new FormatState(indexOfSubtask, null);
+        if(restoreConfig.isRestore()){
+            if(formatState == null){
+                formatState = new FormatState(indexOfSubtask, null);
+            } else {
+                numReadCounter.add(formatState.getNumberRead());
+            }
         }
     }
 

@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simple implementation of the SinkFunction writing tuples in the specified
@@ -63,6 +65,8 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     private transient ListState<FormatState> unionOffsetStates;
 
+    private Map<Integer,FormatState> formatStateMap;
+
     public DtOutputFormatSinkFunction(OutputFormat<IN> format) {
         super(format);
         this.format = format;
@@ -72,6 +76,11 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
     public void open(Configuration parameters) throws Exception {
         RuntimeContext context = getRuntimeContext();
         format.configure(parameters);
+
+        if (format instanceof com.dtstack.flinkx.outputformat.RichOutputFormat && formatStateMap != null){
+            ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+        }
+
         int indexInSubtaskGroup = context.getIndexOfThisSubtask();
         int currentNumberOfSubtasks = context.getNumberOfParallelSubtasks();
         format.open(indexInSubtaskGroup, currentNumberOfSubtasks);
@@ -136,9 +145,22 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
+        LOG.info("Start initialize output format state");
+
         OperatorStateStore stateStore = context.getOperatorStateStore();
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
                 LOCATION_STATE_NAME,
                 TypeInformation.of(new TypeHint<FormatState>() {})));
+
+        if (context.isRestored()){
+            LOG.info("Format state into:");
+            formatStateMap = new HashMap<>();
+            for (FormatState formatState : unionOffsetStates.get()) {
+                formatStateMap.put(formatState.getNumOfSubTask(), formatState);
+                LOG.info(formatState.toString());
+            }
+        }
+
+        LOG.info("End initialize output format state");
     }
 }

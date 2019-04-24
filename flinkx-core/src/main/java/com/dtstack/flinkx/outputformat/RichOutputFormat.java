@@ -223,7 +223,11 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
 
         if(restoreConfig.isRestore()){
-            formatState = new FormatState(taskNumber, null);
+            if(formatState == null){
+                formatState = new FormatState(taskNumber, null);
+            } else {
+                numWriteCounter.add(formatState.getNumberWrite());
+            }
         }
     }
 
@@ -389,6 +393,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
      */
     public FormatState getFormatState(){
         return formatState;
+    }
+
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     protected boolean needWaitBeforeWriteRecords() {

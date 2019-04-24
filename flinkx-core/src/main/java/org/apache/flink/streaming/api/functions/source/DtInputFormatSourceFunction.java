@@ -223,7 +223,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void initializeState(FunctionInitializationContext context) throws Exception {
-	    LOG.info("Start initialize format state");
+	    LOG.info("Start initialize input format state");
 
 		OperatorStateStore stateStore = context.getOperatorStateStore();
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
@@ -239,6 +239,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 			}
 		}
 
-        LOG.info("End initialize format state");
+        LOG.info("End initialize input format state");
 	}
 }
