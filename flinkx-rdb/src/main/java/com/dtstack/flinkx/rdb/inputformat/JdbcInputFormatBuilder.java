@@ -105,8 +105,8 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.increColType = increColType;
     }
 
-    public void setRealTimeIncreSync(boolean realTimeIncreSync){
-        format.realTimeIncreSync = realTimeIncreSync;
+    public void setUseMaxFunc(boolean useMaxFunc){
+        format.useMaxFunc = useMaxFunc;
     }
 
     public void setNumPartitions(int numPartitions){

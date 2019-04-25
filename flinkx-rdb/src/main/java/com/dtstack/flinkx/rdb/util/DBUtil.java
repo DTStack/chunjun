@@ -532,7 +532,7 @@ public class DBUtil {
     }
 
     public static String buildQuerySqlWithCustomSql(DatabaseInterface databaseInterface,String customSql,
-                                                    boolean isSplitByKey,String splitKey,boolean realTimeIncreSync){
+                                                    boolean isSplitByKey,String splitKey,boolean useMaxFunc){
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         querySql.append(" WHERE 1=1 ");
@@ -541,7 +541,7 @@ public class DBUtil {
             querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
         }
 
-        if (realTimeIncreSync){
+        if (useMaxFunc){
             querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 

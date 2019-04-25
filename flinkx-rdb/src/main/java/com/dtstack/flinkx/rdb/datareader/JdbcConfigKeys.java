@@ -46,5 +46,5 @@ public class JdbcConfigKeys {
 
     public static final String KEY_CUSTOM_SQL = "customSql";
 
-    public static final String KEY_REALTIME_INCRE_SYNC = "realTimeIncreSync";
+    public static final String KEY_USE_MAX_FUNC = "useMaxFunc";
 }
