@@ -108,7 +108,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int requestAccumulatorInterval;
 
-    protected boolean realTimeIncreSync;
+    protected boolean useMaxFunc;
 
     protected int numPartitions;
 
@@ -139,7 +139,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
 
-            if (realTimeIncreSync){
+            if (useMaxFunc){
                 getMaxValue(inputSplit);
             }
 
@@ -236,7 +236,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             }
 
-            if(increCol != null && !realTimeIncreSync){
+            if(increCol != null && !useMaxFunc){
                 if (ColumnType.isTimeType(increColType)){
                     Timestamp increVal = resultSet.getTimestamp(increColIndex + 1);
                     if(increVal != null){
@@ -285,7 +285,7 @@ public class JdbcInputFormat extends RichInputFormat {
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION) && endLocation != null){
             endLocationAccumulator = new MaximumAccumulator();
 
-            if(realTimeIncreSync){
+            if(useMaxFunc){
                 endLocationAccumulator.add(endLocation);
             }
 
@@ -293,7 +293,7 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         if (!accumulatorMap.containsKey(Metrics.START_LOCATION) && startLocation != null){
-            if(!realTimeIncreSync){
+            if(!useMaxFunc){
                 endLocationAccumulator.add(startLocation);
             }
 
@@ -393,7 +393,7 @@ public class JdbcInputFormat extends RichInputFormat {
             return true;
         }
 
-        if (!realTimeIncreSync){
+        if (!useMaxFunc){
             return true;
         }
 
@@ -412,7 +412,7 @@ public class JdbcInputFormat extends RichInputFormat {
                         .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
             }
 
-            if (realTimeIncreSync){
+            if (useMaxFunc){
                 String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, increColType, increCol,
                         jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql);
 
