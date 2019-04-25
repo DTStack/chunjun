@@ -289,10 +289,9 @@ public class JdbcInputFormat extends RichInputFormat {
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
+        endLocationAccumulator = new MaximumAccumulator();
         String endLocation = ((JdbcInputSplit)split).getEndLocation();
         if(!accumulatorMap.containsKey(Metrics.END_LOCATION) && endLocation != null){
-            endLocationAccumulator = new MaximumAccumulator();
-
             if(useMaxFunc){
                 endLocationAccumulator.add(endLocation);
             }
@@ -300,12 +299,12 @@ public class JdbcInputFormat extends RichInputFormat {
             getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
         }
 
+        startLocationAccumulator = new StringAccumulator();
         if (!accumulatorMap.containsKey(Metrics.START_LOCATION) && startLocation != null){
             if(!useMaxFunc){
                 endLocationAccumulator.add(startLocation);
             }
 
-            startLocationAccumulator = new StringAccumulator();
             startLocationAccumulator.add(startLocation);
             getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
         }
