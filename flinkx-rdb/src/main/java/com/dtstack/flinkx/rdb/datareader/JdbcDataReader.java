@@ -70,7 +70,7 @@ public class JdbcDataReader extends DataReader {
 
     protected int requestAccumulatorInterval;
 
-    protected boolean realTimeIncreSync;
+    protected boolean useMaxFunc;
 
     protected String customSql;
 
@@ -100,9 +100,7 @@ public class JdbcDataReader extends DataReader {
         increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
-
-        realTimeIncreSync = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_REALTIME_INCRE_SYNC,true);
-        realTimeIncreSync = StringUtils.isNotEmpty(increColumn);
+        useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC,true);
     }
 
     @Override
@@ -127,16 +125,16 @@ public class JdbcDataReader extends DataReader {
         builder.setStartLocation(startLocation);
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
-        builder.setRealTimeIncreSync(realTimeIncreSync);
+        builder.setUseMaxFunc(useMaxFunc);
         builder.setCustomSql(customSql);
 
         boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
 
         String query;
         if (StringUtils.isNotEmpty(customSql)){
-            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, realTimeIncreSync);
+            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, useMaxFunc);
         } else {
-            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, realTimeIncreSync);
+            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, useMaxFunc);
         }
         builder.setQuery(query);
 
