@@ -422,7 +422,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if (StringUtils.isNotEmpty(increCol)){
                 String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, increColType, increCol,
-                        jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql);
+                        jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql, useMaxFunc);
 
                 if(StringUtils.isNotEmpty(incrementFilter)){
                     incrementFilter = " and " + incrementFilter;
@@ -455,7 +455,7 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             String startSql = DBUtil.buildStartLocationSql(databaseInterface, increColType,
-                    databaseInterface.quoteColumn(increCol), startLocation);
+                    databaseInterface.quoteColumn(increCol), startLocation, useMaxFunc);
             if(StringUtils.isNotEmpty(startSql)){
                 queryMaxValueSql += " where " + startSql;
             }
