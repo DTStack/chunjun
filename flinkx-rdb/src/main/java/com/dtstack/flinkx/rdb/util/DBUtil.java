@@ -366,14 +366,14 @@ public class DBUtil {
     }
 
     public static String buildIncrementFilter(DatabaseInterface databaseInterface,String increColType,String increCol,
-                                              String startLocation,String endLocation, String customSql){
+                                              String startLocation,String endLocation, String customSql, boolean useMaxFunc){
         StringBuilder filter = new StringBuilder();
 
         if (StringUtils.isNotEmpty(customSql)){
             increCol = String.format("%s.%s", TEMPORARY_TABLE_NAME, databaseInterface.quoteColumn(increCol));
         }
 
-        String startFilter = buildStartLocationSql(databaseInterface, increColType, increCol, startLocation);
+        String startFilter = buildStartLocationSql(databaseInterface, increColType, increCol, startLocation, useMaxFunc);
         if (StringUtils.isNotEmpty(startFilter)){
             filter.append(startFilter);
         }
@@ -419,7 +419,7 @@ public class DBUtil {
         return endLocationSql;
     }
 
-    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String startLocation){
+    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String startLocation,boolean useMaxFunc){
 
         if(StringUtils.isEmpty(startLocation)){
             return null;
@@ -427,6 +427,11 @@ public class DBUtil {
 
         String startLocationSql;
         String startTimeStr;
+
+        String operator = " >= ";
+        if(!useMaxFunc){
+            operator = " > ";
+        }
 
         if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
             startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(startLocation));
@@ -437,12 +442,12 @@ public class DBUtil {
                 startTimeStr = String.format("'%s'",startTimeStr);
             }
 
-            startLocationSql = increCol + " >= " + startTimeStr;
+            startLocationSql = increCol + operator + startTimeStr;
         } else if(ColumnType.isNumberType(increColType)){
-            startLocationSql = increCol + " >= " + startLocation;
+            startLocationSql = increCol + operator + startLocation;
         } else {
             startTimeStr = String.format("'%s'",startLocation);
-            startLocationSql = increCol + " >= " + startTimeStr;
+            startLocationSql = increCol + operator + startTimeStr;
         }
 
         return startLocationSql;
