@@ -138,9 +138,9 @@ public class JdbcDataReader extends DataReader {
 
         String query;
         if (StringUtils.isNotEmpty(customSql)){
-            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, useMaxFunc);
+            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, StringUtils.isNotEmpty(increColumn));
         } else {
-            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, useMaxFunc);
+            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, StringUtils.isNotEmpty(increColumn));
         }
         builder.setQuery(query);
 
