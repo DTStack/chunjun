@@ -406,7 +406,7 @@ public class JdbcInputFormat extends RichInputFormat {
                         .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
             }
 
-            if (useMaxFunc){
+            if (StringUtils.isNotEmpty(increCol)){
                 String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, increColType, increCol,
                         jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql);
 
