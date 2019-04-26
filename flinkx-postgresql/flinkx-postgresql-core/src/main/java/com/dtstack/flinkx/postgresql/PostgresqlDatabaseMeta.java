@@ -157,6 +157,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format(" mod(%s.%s,${N}) = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    }
+
+    @Override
     public int getFetchSize(){
         return 1000;
     }

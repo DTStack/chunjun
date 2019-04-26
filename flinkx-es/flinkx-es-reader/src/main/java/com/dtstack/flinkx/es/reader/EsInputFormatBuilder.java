@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder class of EsInputFormat
@@ -82,6 +83,10 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
+    public EsInputFormatBuilder setClientConfig(Map<String, Object> clientConfig){
+        format.clientConfig = clientConfig;
+        return this;
+    }
 
     @Override
     protected void checkFormat() {
