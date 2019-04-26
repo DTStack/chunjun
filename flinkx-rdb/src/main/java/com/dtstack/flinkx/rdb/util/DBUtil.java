@@ -532,7 +532,7 @@ public class DBUtil {
     }
 
     public static String buildQuerySqlWithCustomSql(DatabaseInterface databaseInterface,String customSql,
-                                                    boolean isSplitByKey,String splitKey,boolean useMaxFunc){
+                                                    boolean isSplitByKey,String splitKey,boolean increment){
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         querySql.append(" WHERE 1=1 ");
@@ -541,7 +541,7 @@ public class DBUtil {
             querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
         }
 
-        if (useMaxFunc){
+        if (increment){
             querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
@@ -554,7 +554,7 @@ public class DBUtil {
     }
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                                     String splitKey,String customFilter,boolean isSplitByKey,boolean realTimeIncreSync) {
+                                     String splitKey,String customFilter,boolean isSplitByKey,boolean increment) {
         StringBuilder sb = new StringBuilder();
 
         List<String> selectColumns = new ArrayList<>();
@@ -587,7 +587,7 @@ public class DBUtil {
             }
         }
 
-        if (realTimeIncreSync){
+        if (increment){
             filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
         }
 
