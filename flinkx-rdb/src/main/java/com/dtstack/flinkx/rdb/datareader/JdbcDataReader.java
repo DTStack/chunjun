@@ -101,6 +101,10 @@ public class JdbcDataReader extends DataReader {
         startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
         useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC,true);
+
+        if(StringUtils.isEmpty(increColumn)){
+            useMaxFunc = false;
+        }
     }
 
     @Override

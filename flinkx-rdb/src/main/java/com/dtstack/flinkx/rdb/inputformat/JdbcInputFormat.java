@@ -289,19 +289,20 @@ public class JdbcInputFormat extends RichInputFormat {
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
+        startLocationAccumulator = new StringAccumulator();
+        if (startLocation != null){
+            startLocationAccumulator.add(startLocation);
+        }
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
+
         endLocationAccumulator = new MaximumAccumulator();
         String endLocation = ((JdbcInputSplit)split).getEndLocation();
         if(endLocation != null && useMaxFunc){
             endLocationAccumulator.add(endLocation);
+        } else {
+            endLocationAccumulator.add(startLocation);
         }
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
-
-        startLocationAccumulator = new StringAccumulator();
-        if (startLocation != null && !useMaxFunc){
-            endLocationAccumulator.add(startLocation);
-            startLocationAccumulator.add(startLocation);
-        }
-        getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
 
         for (int i = 0; i < metaColumns.size(); i++) {
             if (metaColumns.get(i).getName().equals(increCol)){
