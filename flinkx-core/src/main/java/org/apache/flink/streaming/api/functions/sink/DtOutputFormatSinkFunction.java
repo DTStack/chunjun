@@ -152,8 +152,9 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
                 LOCATION_STATE_NAME,
                 TypeInformation.of(new TypeHint<FormatState>() {})));
 
+        LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()){
-            LOG.info("Format state into:");
+            LOG.info("Output format state into:");
             formatStateMap = new HashMap<>();
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);

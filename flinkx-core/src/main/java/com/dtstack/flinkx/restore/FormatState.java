@@ -35,6 +35,9 @@ public class FormatState implements Serializable {
 
     private long numberWrite;
 
+    public FormatState() {
+    }
+
     public FormatState(int numOfSubTask, Object state) {
         this.numOfSubTask = numOfSubTask;
         this.state = state;
