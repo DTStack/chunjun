@@ -41,9 +41,6 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -250,19 +247,8 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             if(incrementConfig.isIncrement() && !incrementConfig.isColumnUnique()){
-                if (ColumnType.isTimeType(incrementConfig.getColumnType())){
-                    Timestamp increVal = resultSet.getTimestamp(incrementConfig.getColumnIndex() + 1);
-                    if(increVal != null){
-                        endLocationAccumulator.add(String.valueOf(getLocation(increVal)));
-                    }
-                } else if(ColumnType.isNumberType(incrementConfig.getColumnType())){
-                    endLocationAccumulator.add(String.valueOf(resultSet.getLong(incrementConfig.getColumnIndex() + 1)));
-                } else {
-                    String increVal = resultSet.getString(incrementConfig.getColumnIndex() + 1);
-                    if(increVal != null){
-                        endLocationAccumulator.add(increVal);
-                    }
-                }
+                Object incrementVal = resultSet.getObject(incrementConfig.getColumnIndex() + 1);
+                endLocationAccumulator.add(getLocation(incrementConfig.getColumnType(), incrementVal));
             }
 
             //update hasNext after we've read the record
@@ -418,8 +404,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 if(formatState == null){
                     querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, "");
                 } else {
-                    String startLocation = String.valueOf(getLocation(formatState.getState()));
-
+                    String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
                     String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
                             restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql);
 
@@ -475,16 +460,7 @@ public class JdbcInputFormat extends RichInputFormat {
             st = conn.createStatement();
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()){
-                if (ColumnType.isTimeType(incrementConfig.getColumnType())){
-                    Timestamp increVal = rs.getTimestamp("max_value");
-                    if(increVal != null){
-                        maxValue = String.valueOf(getLocation(increVal));
-                    }
-                } else if(ColumnType.isNumberType(incrementConfig.getColumnType())){
-                    maxValue = String.valueOf(rs.getLong("max_value"));
-                } else {
-                    maxValue = rs.getString("max_value");
-                }
+                maxValue = getLocation(incrementConfig.getColumnType(), rs.getObject("max_value"));
             }
 
             LOG.info(String.format("Takes [%s] milliseconds to get the maximum value [%s]", System.currentTimeMillis() - startTime, maxValue));
@@ -497,23 +473,36 @@ public class JdbcInputFormat extends RichInputFormat {
         }
     }
 
-    private long getLocation(Object increVal){
-        if(increVal instanceof Timestamp){
-            long time = ((Timestamp)increVal).getTime() / 1000;
-
-            String nanosStr = String.valueOf(((Timestamp)increVal).getNanos());
-            if(nanosStr.length() == 9){
-                return Long.parseLong(time + nanosStr);
-            } else {
-                String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
-                return Long.parseLong(time + fillZeroStr + nanosStr);
-            }
-        } else {
-            Date date = DateUtil.stringToDate(increVal.toString(),null);
-            String fillZeroStr = StringUtils.repeat("0",6);
-            long time = date.getTime();
-            return Long.parseLong(time + fillZeroStr);
+    private String getLocation(String columnType, Object columnVal){
+        String location;
+        if (columnVal == null){
+            return null;
         }
+
+        if (ColumnType.isTimeType(columnType)){
+            if(columnVal instanceof Timestamp){
+                long time = ((Timestamp)columnVal).getTime() / 1000;
+
+                String nanosStr = String.valueOf(((Timestamp)columnVal).getNanos());
+                if(nanosStr.length() == 9){
+                    location = time + nanosStr;
+                } else {
+                    String fillZeroStr = StringUtils.repeat("0",9 - nanosStr.length());
+                    location = time + fillZeroStr + nanosStr;
+                }
+            } else {
+                Date date = DateUtil.stringToDate(columnVal.toString(),null);
+                String fillZeroStr = StringUtils.repeat("0",6);
+                long time = date.getTime();
+                location = time + fillZeroStr;
+            }
+        } else if(ColumnType.isNumberType(incrementConfig.getColumnType())){
+            location = String.valueOf(columnVal);
+        } else {
+            location = String.valueOf(columnVal);
+        }
+
+        return location;
     }
 
     private void uploadMetricData() throws IOException {
