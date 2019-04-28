@@ -167,8 +167,9 @@ public class StringUtil {
                 result = Boolean.valueOf(rowData.trim());
                 break;
             case DATE:
-                result = DateUtil.timestampToString(DateUtil.columnToDate(column, null));
+                result = DateUtil.dateToString(DateUtil.columnToDate(column, null));
                 break;
+            case DATETIME:
             case TIMESTAMP:
                 result = DateUtil.timestampToString(DateUtil.columnToTimestamp(column, null));
                 break;
