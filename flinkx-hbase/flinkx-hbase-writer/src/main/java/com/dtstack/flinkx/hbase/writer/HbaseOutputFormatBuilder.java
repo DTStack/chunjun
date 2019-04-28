@@ -117,7 +117,7 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         Preconditions.checkNotNull(format.rowkeyColumnTypes);
         Preconditions.checkNotNull(format.rowkeyColumnValues);
 
-        if (format.getRestoreConfig().isRestore()){
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
     }
