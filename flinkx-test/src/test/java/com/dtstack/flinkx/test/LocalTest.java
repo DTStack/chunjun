@@ -59,6 +59,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -112,6 +114,11 @@ public class LocalTest {
 
         // 解析jobPath指定的任务配置文件
         String job = readJob(jobPath);
+
+        runJob(job, confProperties, savepointPath);
+    }
+
+    public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
 
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment();
@@ -132,7 +139,7 @@ public class LocalTest {
             env.setSettings(SavepointRestoreSettings.forPath(savepointPath));
         }
 
-        env.execute();
+        return env.execute();
     }
 
     private static String readJob(String jobPath) {
