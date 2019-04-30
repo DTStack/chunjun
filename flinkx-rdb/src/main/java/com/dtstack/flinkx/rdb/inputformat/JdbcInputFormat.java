@@ -496,7 +496,7 @@ public class JdbcInputFormat extends RichInputFormat {
                 long time = date.getTime();
                 location = time + fillZeroStr;
             }
-        } else if(ColumnType.isNumberType(incrementConfig.getColumnType())){
+        } else if(ColumnType.isNumberType(columnType)){
             location = String.valueOf(columnVal);
         } else {
             location = String.valueOf(columnVal);
