@@ -102,6 +102,7 @@ public class JdbcDataReader extends DataReader {
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
         useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC,true);
 
+        increColumn = StringUtils.isEmpty(increColumn) ? null : increColumn;
         if(StringUtils.isEmpty(increColumn)){
             useMaxFunc = false;
         }
