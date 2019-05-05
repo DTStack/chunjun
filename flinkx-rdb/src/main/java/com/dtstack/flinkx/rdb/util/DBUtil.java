@@ -390,67 +390,46 @@ public class DBUtil {
         return filter.toString();
     }
 
-    public static String buildEndLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String endLocation){
-
-        if(StringUtils.isEmpty(endLocation)){
-            return null;
-        }
-
-        String endLocationSql;
-        String endTimeStr;
-
-        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
-            endTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(endLocation));
-
-            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
-                endTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",endTimeStr);
-            } else {
-                endTimeStr = String.format("'%s'",endTimeStr);
-            }
-
-            endLocationSql = increCol + " < " + endTimeStr;
-        } else if(ColumnType.isNumberType(increColType)){
-            endLocationSql = increCol + " < " + endLocation;
-        } else {
-            endTimeStr = String.format("'%s'",endLocation);
-            endLocationSql = increCol + " < " + endTimeStr;
-        }
-
-        return endLocationSql;
-    }
-
-    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String increColType,String increCol,String startLocation,boolean useMaxFunc){
-
+    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String incrementColType,
+                                               String incrementCol,String startLocation,boolean useMaxFunc){
         if(StringUtils.isEmpty(startLocation)){
             return null;
         }
-
-        String startLocationSql;
-        String startTimeStr;
 
         String operator = " >= ";
         if(!useMaxFunc){
             operator = " > ";
         }
 
-        if(ColumnType.isTimeType(increColType) || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(increColType))){
-            startTimeStr = getStartTimeStr(databaseInterface.getDatabaseType(),Long.parseLong(startLocation));
+        return getLocationSql(databaseInterface, incrementColType, incrementCol, startLocation, operator);
+    }
 
-            if (databaseInterface.getDatabaseType() == EDatabaseType.Oracle){
-                startTimeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",startTimeStr);
-            } else {
-                startTimeStr = String.format("'%s'",startTimeStr);
-            }
-
-            startLocationSql = increCol + operator + startTimeStr;
-        } else if(ColumnType.isNumberType(increColType)){
-            startLocationSql = increCol + operator + startLocation;
-        } else {
-            startTimeStr = String.format("'%s'",startLocation);
-            startLocationSql = increCol + operator + startTimeStr;
+    public static String buildEndLocationSql(DatabaseInterface databaseInterface,String incrementColType,String incrementCol,
+                                             String endLocation){
+        if(StringUtils.isEmpty(endLocation)){
+            return null;
         }
 
-        return startLocationSql;
+        return getLocationSql(databaseInterface, incrementColType, incrementCol, endLocation, " < ");
+    }
+
+    private static String getLocationSql(DatabaseInterface databaseInterface, String incrementColType, String incrementCol,
+                                  String endLocation, String operator) {
+        String endTimeStr;
+        String endLocationSql;
+        boolean isTimeType = ColumnType.isTimeType(incrementColType)
+                || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(incrementColType));
+        if(isTimeType){
+            endTimeStr = getTimeStr(databaseInterface.getDatabaseType(), Long.parseLong(endLocation), incrementColType);
+            endLocationSql = incrementCol + operator + endTimeStr;
+        } else if(ColumnType.isNumberType(incrementColType)){
+            endLocationSql = incrementCol + operator + endLocation;
+        } else {
+            endTimeStr = String.format("'%s'",endLocation);
+            endLocationSql = incrementCol + operator + endTimeStr;
+        }
+
+        return endLocationSql;
     }
 
     public static String buildWhereSql(String where,String startSql,String endSql){
@@ -477,22 +456,32 @@ public class DBUtil {
         return whereBuilder.toString();
     }
 
-    private static String getStartTimeStr(EDatabaseType databaseType,Long startLocation){
-        String startTimeStr;
+    private static String getTimeStr(EDatabaseType databaseType,Long startLocation,String incrementColType){
+        String timeStr;
         Timestamp ts = new Timestamp(getMillis(startLocation));
         ts.setNanos(getNanos(startLocation));
-        startTimeStr = getNanosTimeStr(ts.toString());
+        timeStr = getNanosTimeStr(ts.toString());
 
         if(databaseType == EDatabaseType.SQLServer){
-            startTimeStr = startTimeStr.substring(0,23);
+            timeStr = timeStr.substring(0,23);
         } else {
-            startTimeStr = startTimeStr.substring(0,26);
+            timeStr = timeStr.substring(0,26);
         }
 
-        return startTimeStr;
+        if (databaseType == EDatabaseType.Oracle){
+            if(ColumnType.TIMESTAMP.name().equals(incrementColType)){
+                timeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",timeStr);
+            } else {
+                timeStr = String.format("TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')", timeStr);
+            }
+        } else {
+            timeStr = String.format("'%s'",timeStr);
+        }
+
+        return timeStr;
     }
 
-    public static String getNanosTimeStr(String timeStr){
+    private static String getNanosTimeStr(String timeStr){
         if(timeStr.length() < 29){
             timeStr += StringUtils.repeat("0",29 - timeStr.length());
         }
@@ -500,7 +489,7 @@ public class DBUtil {
         return timeStr;
     }
 
-    public static int getNanos(long startLocation){
+    private static int getNanos(long startLocation){
         String timeStr = String.valueOf(startLocation);
         int nanos;
         if (timeStr.length() == SECOND_LENGTH){
@@ -518,7 +507,7 @@ public class DBUtil {
         return nanos;
     }
 
-    public static long getMillis(long startLocation){
+    private static long getMillis(long startLocation){
         String timeStr = String.valueOf(startLocation);
         long millisSecond;
         if (timeStr.length() == SECOND_LENGTH){
