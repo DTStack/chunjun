@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.SettingConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.InputMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
@@ -84,7 +85,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             this.byteRateLimiter.start();
         }
 
-        if(restoreConfig.isRestore()){
+        if(restoreConfig == null){
+            restoreConfig = RestoreConfig.defaultConfig();
+        } else if(restoreConfig.isRestore()){
             if(formatState == null){
                 formatState = new FormatState(indexOfSubtask, null);
             } else {

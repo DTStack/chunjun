@@ -222,7 +222,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             latch.waitUntil(numTasks);
         }
 
-        if(restoreConfig.isRestore()){
+        if(restoreConfig == null){
+            restoreConfig = RestoreConfig.defaultConfig();
+        } else if(restoreConfig.isRestore()){
             if(formatState == null){
                 formatState = new FormatState(taskNumber, null);
             } else {

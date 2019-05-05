@@ -101,6 +101,10 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
             throw new IllegalArgumentException("One or more data sources must be specified");
         }
 
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
+
         String jdbcPrefix = null;
 
         for (DataSource dataSource : format.sourceList) {
