@@ -472,6 +472,7 @@ public class DBUtil {
             if(ColumnType.TIMESTAMP.name().equals(incrementColType)){
                 timeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",timeStr);
             } else {
+                timeStr = timeStr.substring(0, 19);
                 timeStr = String.format("TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')", timeStr);
             }
         } else {
