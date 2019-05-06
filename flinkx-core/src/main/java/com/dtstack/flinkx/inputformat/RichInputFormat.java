@@ -115,6 +115,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             }
 
             if (restoreConfig.isRestore() && lastRow != null){
+                formatState.setNumberRead(numReadCounter.getLocalValue());
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
             lastRow = internalRow;

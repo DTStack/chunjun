@@ -196,6 +196,7 @@ public class FtpOutputFormat extends RichOutputFormat {
 
                 rowsOfCurrentFile = 0;
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                formatState.setNumberWrite(numWriteCounter.getLocalValue());
                 return formatState;
             }
 

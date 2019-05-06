@@ -266,6 +266,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                formatState.setNumberWrite(numWriteCounter.getLocalValue());
                 LOG.info("format state:" + String.valueOf(formatState.getState()));
 
                 return formatState;

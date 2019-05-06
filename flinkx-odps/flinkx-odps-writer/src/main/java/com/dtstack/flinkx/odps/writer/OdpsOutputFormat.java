@@ -121,6 +121,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                 session.commit();
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                formatState.setNumberWrite(numWriteCounter.getLocalValue());
                 rowsOfCurrentTransaction = 0;
                 return formatState;
             }
