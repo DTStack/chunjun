@@ -93,9 +93,6 @@ public class JdbcDataReader extends DataReader {
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
 
-        int restoreColumnIndex = MetaColumn.getColumnIndex(metaColumns, restoreConfig.getRestoreColumnName());
-        restoreConfig.setRestoreColumnIndex(restoreColumnIndex);
-
         buildIncrementConfig(readerConfig);
     }
 
