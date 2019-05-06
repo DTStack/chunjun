@@ -63,9 +63,6 @@ public class HdfsReader extends DataReader {
         }
 
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-
-        int restoreColumnIndex = MetaColumn.getColumnIndex(metaColumns, restoreConfig.getRestoreColumnName());
-        restoreConfig.setRestoreColumnIndex(restoreColumnIndex);
     }
 
     @Override

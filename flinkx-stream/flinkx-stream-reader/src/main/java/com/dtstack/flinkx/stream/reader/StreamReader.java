@@ -52,9 +52,6 @@ public class StreamReader extends DataReader {
         sliceRecordCount = readerConfig.getParameter().getLongVal("sliceRecordCount",DEFAULT_SLICE_RECORD_COUNT);
         columns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         exceptionIndex = readerConfig.getParameter().getLongVal("exceptionIndex",0);
-
-        int restoreColumnIndex = MetaColumn.getColumnIndex(columns, restoreConfig.getRestoreColumnName());
-        restoreConfig.setRestoreColumnIndex(restoreColumnIndex);
     }
 
     @Override
