@@ -29,7 +29,7 @@ public class IncrementConfig implements Serializable {
 
     private boolean increment;
 
-    private boolean isColumnUnique;
+    private boolean useMaxFunc;
 
     private int columnIndex;
 
@@ -57,12 +57,12 @@ public class IncrementConfig implements Serializable {
         this.columnIndex = columnIndex;
     }
 
-    public boolean isColumnUnique() {
-        return isColumnUnique;
+    public boolean isUseMaxFunc() {
+        return useMaxFunc;
     }
 
-    public void setColumnUnique(boolean columnUnique) {
-        isColumnUnique = columnUnique;
+    public void setUseMaxFunc(boolean useMaxFunc) {
+        this.useMaxFunc = useMaxFunc;
     }
 
     public boolean isIncrement() {

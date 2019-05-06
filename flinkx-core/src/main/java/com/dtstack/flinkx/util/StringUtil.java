@@ -167,10 +167,11 @@ public class StringUtil {
                 result = Boolean.valueOf(rowData.trim());
                 break;
             case DATE:
-                result = DateUtil.dateToString((java.util.Date)column);
+                result = DateUtil.dateToString(DateUtil.columnToDate(column, null));
                 break;
+            case DATETIME:
             case TIMESTAMP:
-                result = DateUtil.timestampToString((java.util.Date)column);
+                result = DateUtil.timestampToString(DateUtil.columnToTimestamp(column, null));
                 break;
             default:
                 result = rowData;

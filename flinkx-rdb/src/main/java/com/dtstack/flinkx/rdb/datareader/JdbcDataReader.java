@@ -141,7 +141,7 @@ public class JdbcDataReader extends DataReader {
     private void buildIncrementConfig(ReaderConfig readerConfig){
         Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
-        boolean isColumnUnique = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_IS_COLUMN_UNIQUE, false);
+        boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
 
         incrementConfig = new IncrementConfig();
@@ -171,7 +171,7 @@ public class JdbcDataReader extends DataReader {
             incrementConfig.setColumnName(name);
             incrementConfig.setColumnType(type);
             incrementConfig.setStartLocation(startLocation);
-            incrementConfig.setColumnUnique(isColumnUnique);
+            incrementConfig.setUseMaxFunc(useMaxFunc);
             incrementConfig.setColumnIndex(index);
             incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
 
