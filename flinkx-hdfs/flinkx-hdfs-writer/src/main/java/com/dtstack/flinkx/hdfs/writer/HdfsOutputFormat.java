@@ -289,7 +289,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     }
                 }
 
-
                 List<FileStatus> dataFiles = new ArrayList<>();
                 PathFilter pathFilter = new PathFilter() {
                     @Override
@@ -299,9 +298,10 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 } ;
                 Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
                 FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
+                List<FileStatus> deleteDir = new ArrayList<>();
                 for (FileStatus fileStatus : historyTmpDataDir) {
                     if (fileStatus.isDirectory()){
-                        fs.listStatus(fileStatus.getPath(), pathFilter);
+                        deleteDir.add(fileStatus);
                         dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
                     }
                 }
@@ -310,7 +310,9 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     fs.rename(dataFile.getPath(), dir);
                 }
 
-                fs.delete(tmpDir, true);
+                for (FileStatus fileStatus : deleteDir) {
+                    fs.delete(fileStatus.getPath(), true);
+                }
                 fs.delete(finishedDir, true);
             }
             fs.close();
