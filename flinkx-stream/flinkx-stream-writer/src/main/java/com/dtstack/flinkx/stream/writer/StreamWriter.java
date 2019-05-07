@@ -45,6 +45,7 @@ public class StreamWriter extends DataWriter {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setPrint(print);
         builder.setRestoreConfig(restoreConfig);
+        builder.setMonitorUrls(monitorUrls);
 
         DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
