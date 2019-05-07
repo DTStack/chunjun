@@ -20,6 +20,11 @@ package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.URLUtil;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -62,5 +67,26 @@ public class StreamOutputFormat extends RichOutputFormat {
             Row row = rows.get(rows.size() - 1);
             formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
+        JsonParser parser = new JsonParser();
+        for (int i = 0; i < 10; i++) {
+            try{
+                String response = URLUtil.get(httpClient, monitors);
+                JsonObject obj = parser.parse(response).getAsJsonObject();
+                String state = obj.getAsJsonObject("state").getAsString();
+                LOG.info("Job state is:{}", state);
+
+                Thread.sleep(500);
+            }catch (Exception e){
+                LOG.info("{}", e.getMessage());
+            }
+        }
+
+        httpClient.close();
     }
 }
