@@ -36,9 +36,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.hadoop.conf.Configuration;
 
 
@@ -267,9 +266,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     SysUtil.sleep(3000);
                 }
 
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
                 if (i == maxRetryTime) {
-                    fs.delete(tmpDir, true);
+                    fs.delete(new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId), true);
                     fs.delete(finishedDir, true);
                     throw new RuntimeException("timeout when gathering finish tags for each subtasks");
                 }
@@ -291,10 +289,27 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     }
                 }
 
-                FileStatus[] dataFiles = fs.listStatus(tmpDir);
+
+                List<FileStatus> dataFiles = new ArrayList<>();
+                PathFilter pathFilter = new PathFilter() {
+                    @Override
+                    public boolean accept(Path path) {
+                        return !path.getName().startsWith(".");
+                    }
+                } ;
+                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+                FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
+                for (FileStatus fileStatus : historyTmpDataDir) {
+                    if (fileStatus.isDirectory()){
+                        fs.listStatus(fileStatus.getPath(), pathFilter);
+                        dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
+                    }
+                }
+
                 for(FileStatus dataFile : dataFiles) {
                     fs.rename(dataFile.getPath(), dir);
                 }
+
                 fs.delete(tmpDir, true);
                 fs.delete(finishedDir, true);
             }
