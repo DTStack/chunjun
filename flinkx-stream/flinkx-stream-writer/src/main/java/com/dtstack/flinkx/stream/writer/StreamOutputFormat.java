@@ -73,17 +73,20 @@ public class StreamOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
+        LOG.info("Close monitor url:{}", monitors);
         JsonParser parser = new JsonParser();
         for (int i = 0; i < 10; i++) {
             try{
                 String response = URLUtil.get(httpClient, monitors);
+                LOG.info("response:{}", response);
+
                 JsonObject obj = parser.parse(response).getAsJsonObject();
                 String state = obj.getAsJsonObject("state").getAsString();
                 LOG.info("Job state is:{}", state);
 
                 Thread.sleep(500);
             }catch (Exception e){
-                LOG.info("{}", e.getMessage());
+                LOG.info("Get job state error:", e.getCause());
             }
         }
 
