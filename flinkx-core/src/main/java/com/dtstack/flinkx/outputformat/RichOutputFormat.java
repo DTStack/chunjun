@@ -250,8 +250,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         try {
             writeSingleRecordInternal(row);
 
-            // 总记录数加1
-            numWriteCounter.add(1);
+            if(!restoreConfig.isRestore()){
+                // 总记录数加1
+                numWriteCounter.add(1);
+            }
         } catch(WriteRecordException e) {
             errCounter.add(1);
             String errMsg = e.getMessage();
@@ -292,7 +294,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-        numWriteCounter.add(rows.size());
+
+        if(!restoreConfig.isRestore()){
+            numWriteCounter.add(rows.size());
+        }
     }
 
     protected abstract void writeMultipleRecordsInternal() throws Exception;

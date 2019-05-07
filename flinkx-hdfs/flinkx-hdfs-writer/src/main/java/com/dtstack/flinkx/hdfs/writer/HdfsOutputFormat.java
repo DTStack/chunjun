@@ -191,6 +191,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 formatState.setNumberWrite(numWriteCounter.getLocalValue());
+                numWriteCounter.add(rowsOfCurrentBlock);
                 rowsOfCurrentBlock = 0;
 
                 return formatState;

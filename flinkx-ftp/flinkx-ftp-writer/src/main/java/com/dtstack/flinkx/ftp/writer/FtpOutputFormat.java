@@ -194,7 +194,9 @@ public class FtpOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || rowsOfCurrentFile > restoreConfig.getMaxRowNumForCheckpoint()){
                 flushFile();
 
+                numWriteCounter.add(rowsOfCurrentFile);
                 rowsOfCurrentFile = 0;
+
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 formatState.setNumberWrite(numWriteCounter.getLocalValue());
                 return formatState;

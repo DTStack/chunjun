@@ -263,11 +263,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
+                numWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 formatState.setNumberWrite(numWriteCounter.getLocalValue());
-                LOG.info("format state:" + String.valueOf(formatState.getState()));
+                LOG.info("format state:{}", formatState.getState());
 
                 return formatState;
             }
