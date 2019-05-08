@@ -252,6 +252,12 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     protected void afterCloseInternal()  {
         try {
+            String state = getTaskState();
+            if(!RUNNING_STATE.equals(state)){
+                fs.close();
+                return;
+            }
+
             // write finished file
             fs.createNewFile(new Path(finishedPath));
 

@@ -26,13 +26,18 @@ import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.OutputMetric;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -52,6 +57,8 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    public static final String RUNNING_STATE = "RUNNING";
 
     /** Dirty data manager */
     protected DirtyDataManager dirtyDataManager;
@@ -392,6 +399,37 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     @Override
     public void tryCleanupOnError() throws Exception {
 
+    }
+
+    public String getTaskState() throws IOException{
+        String taskState;
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
+        LOG.info("Monitor url:{}", monitors);
+
+        JsonParser parser = new JsonParser();
+        for (int i = 0; i < 5; i++) {
+            try{
+                String response = URLUtil.get(httpClient, monitors);
+                LOG.info("response:{}", response);
+
+                JsonObject obj = parser.parse(response).getAsJsonObject();
+                taskState = obj.getAsJsonObject("state").getAsString();
+                LOG.info("Job state is:{}", taskState);
+
+                if(taskState != null){
+                    return taskState;
+                }
+
+                Thread.sleep(500);
+            }catch (Exception e){
+                LOG.info("Get job state error:", e.getCause());
+            }
+        }
+
+        httpClient.close();
+
+        return RUNNING_STATE;
     }
 
     /**

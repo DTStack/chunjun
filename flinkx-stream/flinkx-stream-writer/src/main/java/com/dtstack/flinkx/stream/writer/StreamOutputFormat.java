@@ -20,11 +20,6 @@ package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.util.URLUtil;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -46,50 +41,26 @@ public class StreamOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (print){
+        if (print) {
             System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, row));
         }
 
-        if (restoreConfig.isRestore()){
+        if (restoreConfig.isRestore()) {
             formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if (print){
+        if (print) {
             for (Row row : rows) {
                 System.out.println(row);
             }
         }
 
-        if (restoreConfig.isRestore()){
+        if (restoreConfig.isRestore()) {
             Row row = rows.get(rows.size() - 1);
             formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
-    }
-
-    @Override
-    public void closeInternal() throws IOException {
-        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
-        LOG.info("Close monitor url:{}", monitors);
-        JsonParser parser = new JsonParser();
-        for (int i = 0; i < 10; i++) {
-            try{
-                String response = URLUtil.get(httpClient, monitors);
-                LOG.info("response:{}", response);
-
-                JsonObject obj = parser.parse(response).getAsJsonObject();
-                String state = obj.getAsJsonObject("state").getAsString();
-                LOG.info("Job state is:{}", state);
-
-                Thread.sleep(500);
-            }catch (Exception e){
-                LOG.info("Get job state error:", e.getCause());
-            }
-        }
-
-        httpClient.close();
     }
 }

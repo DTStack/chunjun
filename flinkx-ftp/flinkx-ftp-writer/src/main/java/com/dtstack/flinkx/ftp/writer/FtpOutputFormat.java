@@ -211,7 +211,6 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-
         if (restoreConfig.isRestore()){
             nextFile();
 
@@ -244,8 +243,17 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     @Override
     protected void afterCloseInternal(){
-        if (taskNumber == 0){
+        try{
+            String state = getTaskState();
+            if(!RUNNING_STATE.equals(state)){
+                ftpHandler.logoutFtpServer();
+                return;
+            }
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
 
+        if (taskNumber == 0){
             final int maxRetryTime = 100;
             for (int i = 0; i < maxRetryTime; i++) {
                 if(ftpHandler.getFiles(path + "/" + finishedTagPath).size() == numTasks){
@@ -267,6 +275,7 @@ public class FtpOutputFormat extends RichOutputFormat {
             }
 
             ftpHandler.deleteAllFilesInDir(path + "/" + tempPath);
+            ftpHandler.logoutFtpServer();
         }
     }
 
