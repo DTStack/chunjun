@@ -75,17 +75,6 @@ public class HdfsWriter extends DataWriter {
 
     protected List<String> fullColumnType;
 
-    /** hive config **/
-    protected String partition;
-
-    protected String dbUrl;
-
-    protected String username;
-
-    protected String password;
-
-    protected String table;
-
     protected static final String DATA_SUBDIR = ".data";
 
     protected static final String FINISHED_SUBDIR = ".finished";

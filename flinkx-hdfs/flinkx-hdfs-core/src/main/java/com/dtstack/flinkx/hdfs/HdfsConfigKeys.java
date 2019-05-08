@@ -38,10 +38,6 @@ public class HdfsConfigKeys {
 
     public static final String KEY_WRITE_MODE = "writeMode";
 
-    public static final String KEY_USERNAME = "username";
-
-    public static final String KEY_PASSWORD = "password";
-
     public static final String KEY_FULL_COLUMN_NAME_LIST = "fullColumnName";
 
     public static final String KEY_FULL_COLUMN_TYPE_LIST = "fullColumnType";
@@ -51,8 +47,6 @@ public class HdfsConfigKeys {
     public static final String KEY_COLUMN_TYPE = "type";
 
     public static final String KEY_COMPRESS = "compress";
-
-    public static final String KEY_PARTITION = "partition";
 
     public static final String KEY_FILE_NAME = "fileName";
 
