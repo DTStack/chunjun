@@ -18,24 +18,19 @@
 
 package com.dtstack.flinkx.reader;
 
-import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -68,9 +63,12 @@ public class ByteRateLimiter {
 
     private int subtaskIndex;
 
+    private CloseableHttpClient httpClient;
+
     private ScheduledExecutorService scheduledExecutorService;
 
     public ByteRateLimiter(RuntimeContext runtimeContext, String monitors, double expectedBytePerSecond, double samplePeriod) {
+        httpClient = HttpClientBuilder.create().build();
 
         Preconditions.checkNotNull(runtimeContext);
         //DistributedRuntimeUDFContext context = (DistributedRuntimeUDFContext) runtimeContext;
@@ -96,10 +94,10 @@ public class ByteRateLimiter {
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
             LOG.info("monitor_url=" + url);
-            try (InputStream inputStream = URLUtil.open(url)){
+            try {
+                URLUtil.get(httpClient, url);
                 break;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
         }
@@ -140,43 +138,41 @@ public class ByteRateLimiter {
                 () -> {
                     for (int index = 0; index < 1; ++index) {
                         String requestUrl = monitorUrls[index] + "/jobs/" + this.jobId + "/vertices/" + this.taskId;
-                        try (InputStream inputStream = URLUtil.open(requestUrl)) {
-                            try (Reader rd = new InputStreamReader(inputStream)) {
-                                Map<String, Object> map = gson.fromJson(rd, Map.class);
-                                double thisWriteBytes = 0;
-                                double thisWriteRecords = 0;
-                                double totalWriteBytes = 0;
-                                double totalWriteRecords = 0;
+                        try {
+                            String response = URLUtil.get(httpClient, requestUrl);
 
-                                List<LinkedTreeMap> list = (List<LinkedTreeMap>) map.get("subtasks");
-                                for (int i = 0; i < list.size(); ++i) {
-                                    LinkedTreeMap subTask = list.get(i);
-                                    LinkedTreeMap subTaskMetrics = (LinkedTreeMap) subTask.get("metrics");
-                                    double subWriteBytes = (double) subTaskMetrics.get("write-bytes");
-                                    double subWriteRecords = (double) subTaskMetrics.get("write-records");
-                                    if (i == subTaskIndex) {
-                                        thisWriteBytes = subWriteBytes;
-                                        thisWriteRecords = subWriteRecords;
-                                    }
-                                    totalWriteBytes += subWriteBytes;
-                                    totalWriteRecords += subWriteRecords;
+                            Map<String, Object> map = gson.fromJson(response, Map.class);
+                            double thisWriteBytes = 0;
+                            double thisWriteRecords = 0;
+                            double totalWriteBytes = 0;
+                            double totalWriteRecords = 0;
+
+                            List<LinkedTreeMap> list = (List<LinkedTreeMap>) map.get("subtasks");
+                            for (int i = 0; i < list.size(); ++i) {
+                                LinkedTreeMap subTask = list.get(i);
+                                LinkedTreeMap subTaskMetrics = (LinkedTreeMap) subTask.get("metrics");
+                                double subWriteBytes = (double) subTaskMetrics.get("write-bytes");
+                                double subWriteRecords = (double) subTaskMetrics.get("write-records");
+                                if (i == subTaskIndex) {
+                                    thisWriteBytes = subWriteBytes;
+                                    thisWriteRecords = subWriteRecords;
                                 }
-
-                                double thisWriteRatio = (totalWriteRecords == 0 ? 0 : thisWriteRecords / totalWriteRecords);
-
-                                if (totalWriteRecords > 1000 && totalWriteBytes != 0 && thisWriteRatio != 0) {
-                                    double bpr = totalWriteBytes / totalWriteRecords;
-                                    double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio;
-                                    rateLimiter.setRate(permitsPerSecond);
-                                }
-
-                                break;
-
+                                totalWriteBytes += subWriteBytes;
+                                totalWriteRecords += subWriteRecords;
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
 
+                            double thisWriteRatio = (totalWriteRecords == 0 ? 0 : thisWriteRecords / totalWriteRecords);
+
+                            if (totalWriteRecords > 1000 && totalWriteBytes != 0 && thisWriteRatio != 0) {
+                                double bpr = totalWriteBytes / totalWriteRecords;
+                                double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio;
+                                rateLimiter.setRate(permitsPerSecond);
+                            }
+
+                            break;
+                        } catch (Exception e) {
+                            LOG.error("Get metrics error:",e);
+                        }
                     }
                 },
                 0,
@@ -188,6 +184,14 @@ public class ByteRateLimiter {
     public void stop() {
         if(!isValid()) {
             return;
+        }
+
+        if (httpClient != null){
+            try {
+                httpClient.close();
+            } catch (Exception e){
+                LOG.error("close httpClient error:{}", e);
+            }
         }
 
         if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {

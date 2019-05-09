@@ -119,7 +119,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hdfswriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

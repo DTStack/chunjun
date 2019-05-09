@@ -115,6 +115,11 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
+        return String.format("%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    }
+
+    @Override
     public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
         return "INSERT INTO " + quoteTable(table)
                 + " (" + quoteColumns(column) + ") values "

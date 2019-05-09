@@ -92,7 +92,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hbasereader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hbasereader/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/hbasereader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

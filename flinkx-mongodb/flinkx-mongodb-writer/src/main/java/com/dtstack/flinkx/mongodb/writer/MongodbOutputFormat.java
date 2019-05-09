@@ -23,7 +23,9 @@ import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
+import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -31,11 +33,8 @@ import org.bson.Document;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 
 /**
  * OutputFormat for mongodb writer plugin
@@ -59,26 +58,24 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     protected String replaceKey;
 
-    protected String mode = WriteMode.INSERT.getMode();
+    protected String mode;
 
     private transient MongoCollection<Document> collection;
 
+    private transient MongoClient client;
+
+    protected Map<String,Object> mongodbConfig;
+
     @Override
     public void configure(Configuration parameters) {
-        super.configure(parameters);
 
-        Map<String,String> config = new HashMap<>(4);
-        config.put(KEY_HOST_PORTS,hostPorts);
-        config.put(KEY_USERNAME,username);
-        config.put(KEY_PASSWORD,password);
-        config.put(KEY_DATABASE,database);
-
-        collection = MongodbUtil.getCollection(config,database,collectionName);
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-
+        client = MongodbUtil.getMongoClient(mongodbConfig);
+        MongoDatabase db = client.getDatabase(database);
+        collection = db.getCollection(collectionName);
     }
 
     @Override
@@ -119,7 +116,6 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        super.closeInternal();
-        MongodbUtil.close();
+        MongodbUtil.close(client, null);
     }
 }

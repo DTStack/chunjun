@@ -20,13 +20,13 @@ package com.dtstack.flinkx.odps.writer;
 
 import com.aliyun.odps.Odps;
 import com.aliyun.odps.Table;
+import com.aliyun.odps.data.Binary;
 import com.aliyun.odps.data.Record;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.aliyun.odps.tunnel.TunnelException;
 import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
@@ -34,7 +34,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -58,6 +57,8 @@ public class OdpsOutputFormat extends RichOutputFormat {
     protected String tableName;
 
     protected Map<String,String> odpsConfig;
+
+    protected long bufferSize;
 
     private transient Odps odps;
 
@@ -95,6 +96,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         session = OdpsUtil.createMasterTunnelUpload(tunnel, projectName, tableName, partition);
         try {
             recordWriter = (TunnelBufferedWriter) session.openBufferedWriter();
+            recordWriter.setBufferSize(bufferSize);
         } catch (TunnelException e) {
             throw new RuntimeException("can not open record writer");
         }
@@ -134,11 +136,20 @@ public class OdpsOutputFormat extends RichOutputFormat {
                     case BOOLEAN:
                         record.setBoolean(i, Boolean.valueOf(rowData));
                         break;
-                    case INT:
                     case TINYINT:
+                        record.set(i, Byte.valueOf(rowData));
+                        break;
                     case SMALLINT:
+                        record.set(i, Short.valueOf(rowData));
+                        break;
+                    case INT:
+                        record.set(i, Integer.valueOf(rowData));
+                        break;
                     case BIGINT:
                         record.setBigint(i, Long.valueOf(rowData));
+                        break;
+                    case FLOAT:
+                        record.set(i, Float.valueOf(rowData));
                         break;
                     case DOUBLE:
                         record.setDouble(i, Double.valueOf(rowData));
@@ -151,11 +162,16 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         break;
                     case DATE:
                     case DATETIME:
+                        record.set(i, DateUtil.columnToDate(column, null));
+                        break;
                     case TIMESTAMP:
                         record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
                         break;
+                    case BINARY:
+                        record.set(i, new Binary(rowData.getBytes()));
+                        break;
                     default:
-                        throw new IllegalArgumentException();
+                        record.set(i,column);
                 }
 
             }
@@ -177,7 +193,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         try {
             session.commit();
         } catch (TunnelException e) {
-            e.printStackTrace();
+            throw new IOException("commit session error:",e);
         }
 
     }

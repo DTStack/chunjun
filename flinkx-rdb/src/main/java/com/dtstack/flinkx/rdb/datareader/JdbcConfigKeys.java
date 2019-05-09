@@ -38,8 +38,13 @@ public class JdbcConfigKeys {
 
     public static final String KEY_QUERY_TIME_OUT = "queryTimeOut";
 
+    public static final String KEY_REQUEST_ACCUMULATOR_INTERVAL = "requestAccumulatorInterval";
+
     public static final String KEY_INCRE_COLUMN = "increColumn";
 
     public static final String KEY_START_LOCATION = "startLocation";
 
+    public static final String KEY_CUSTOM_SQL = "customSql";
+
+    public static final String KEY_USE_MAX_FUNC = "useMaxFunc";
 }

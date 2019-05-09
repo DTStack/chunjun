@@ -25,11 +25,14 @@ import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The OutputFormat class of ElasticSearch
@@ -55,6 +58,8 @@ public class EsOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
+    protected Map<String,Object> clientConfig;
+
     private transient RestHighLevelClient client;
 
     private transient BulkRequest bulkRequest;
@@ -62,7 +67,7 @@ public class EsOutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address);
+        client = EsUtil.getClient(address, clientConfig);
         bulkRequest = new BulkRequest();
     }
 
@@ -91,7 +96,23 @@ public class EsOutputFormat extends RichOutputFormat {
             IndexRequest request = StringUtils.isBlank(id) ? new IndexRequest(index, type) : new IndexRequest(index, type, id);
             request = request.source(EsUtil.rowToJsonMap(row, columnNames, columnTypes));
             bulkRequest.add(request);
-            client.bulk(bulkRequest);
+        }
+
+        BulkResponse response = client.bulk(bulkRequest);
+        if (response.hasFailures()){
+            if (dirtyDataManager != null){
+                BulkItemResponse[] itemResponses = response.getItems();
+                WriteRecordException exception;
+                for (int i = 0; i < itemResponses.length; i++) {
+                    if(itemResponses[i].isFailed()){
+                        exception = new WriteRecordException(itemResponses[i].getFailureMessage()
+                                ,itemResponses[i].getFailure().getCause());
+                        dirtyDataManager.writeData(rows.get(i), exception);
+                    }
+                }
+            } else {
+                LOG.warn(response.buildFailureMessage());
+            }
         }
     }
 

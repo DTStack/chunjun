@@ -44,6 +44,10 @@ public class EsInputFormat extends RichInputFormat {
 
     protected String address;
 
+    protected String index;
+
+    protected String type;
+
     protected String query;
 
     protected List<String> columnValues;
@@ -52,7 +56,9 @@ public class EsInputFormat extends RichInputFormat {
 
     protected List<String> columnNames;
 
-    private int batch = 2;
+    protected int batchSize = 10;
+
+    protected Map<String,Object> clientConfig;
 
     private int from;
 
@@ -69,7 +75,7 @@ public class EsInputFormat extends RichInputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address);
+        client = EsUtil.getClient(address, clientConfig);
     }
 
     @Override
@@ -79,7 +85,7 @@ public class EsInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int splitNum) throws IOException {
-        long cnt = EsUtil.searchCount(client, query);
+        long cnt = EsUtil.searchCount(client, index, type, query);
         if (cnt < splitNum) {
             EsInputSplit[] splits = new EsInputSplit[1];
             splits[0] = new EsInputSplit(0, (int)cnt);
@@ -119,11 +125,11 @@ public class EsInputFormat extends RichInputFormat {
     }
 
     private void loadNextBatch() {
-        int range = batch;
+        int range = batchSize;
         if (from + range > to) {
             range = to - from;
         }
-        resultList = EsUtil.searchContent(client, query, from, range);
+        resultList = EsUtil.searchContent(client, index, type, query, from, range);
         from += range;
         pos = 0;
     }
@@ -135,6 +141,10 @@ public class EsInputFormat extends RichInputFormat {
                 return true;
             }
             loadNextBatch();
+
+            //check again
+            return reachedEnd();
+
         }
         return false;
     }

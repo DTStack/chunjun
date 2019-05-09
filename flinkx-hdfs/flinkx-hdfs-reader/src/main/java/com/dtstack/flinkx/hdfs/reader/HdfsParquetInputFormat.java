@@ -172,6 +172,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private Object getData(Group currentLine,String type,int index){
         Object data = null;
         try{
+            if (index == -1){
+                return null;
+            }
+
+            Type colSchemaType = currentLine.getType().getType(index);
             switch (type){
                 case "tinyint" :
                 case "smallint" :
@@ -190,10 +195,18 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                     break;
                 }
                 case "decimal" : {
-                    Type structType = currentLine.getType().getType(index);
-                    DecimalMetadata dm = ((PrimitiveType) structType).getDecimalMetadata();
-                    Binary binary = currentLine.getBinary(index,0);
-                    data = binaryToDecimalStr(binary,dm.getScale());
+                    DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
+                    String primitiveTypeName = currentLine.getType().getType(index).asPrimitiveType().getPrimitiveTypeName().name();
+                    if ("INT32".equals(primitiveTypeName)){
+                        int intVal = currentLine.getInteger(index,0);
+                        data = longToDecimalStr((long)intVal,dm.getScale());
+                    } else if("INT64".equals(primitiveTypeName)){
+                        long longVal = currentLine.getLong(index,0);
+                        data = longToDecimalStr(longVal,dm.getScale());
+                    } else {
+                        Binary binary = currentLine.getBinary(index,0);
+                        data = binaryToDecimalStr(binary,dm.getScale());
+                    }
                     break;
                 }
                 case "date" : {
@@ -231,10 +244,21 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     public void closeInternal() throws IOException {
         if (currentFileReader != null){
             currentFileReader.close();
+            currentFileReader = null;
         }
+
+        currentLine = null;
+        currentFileIndex = 0;
     }
 
-    private static String binaryToDecimalStr(Binary binary,int scale){
+    private String longToDecimalStr(long value,int scale){
+        BigInteger bi = BigInteger.valueOf(value);
+        BigDecimal bg = new BigDecimal(bi, scale);
+
+        return bg.toString();
+    }
+
+    private String binaryToDecimalStr(Binary binary,int scale){
         BigInteger bi = new BigInteger(binary.getBytes());
         BigDecimal bg = new BigDecimal(bi,scale);
 

@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
 
 import java.math.BigInteger;
@@ -34,13 +36,19 @@ public class MaximumAccumulator implements Accumulator<String,String> {
 
     @Override
     public void add(String value) {
+        if(StringUtils.isEmpty(value)){
+            return;
+        }
+
         if(localValue == null){
             localValue = value;
-        } else {
+        } else if(NumberUtils.isNumber(localValue)){
             BigInteger newVal = new BigInteger(value);
             if(newVal.compareTo(new BigInteger(localValue)) > 0){
                 localValue = value;
             }
+        } else {
+            localValue = localValue.compareTo(value) < 0 ? value : localValue;
         }
     }
 
@@ -56,9 +64,22 @@ public class MaximumAccumulator implements Accumulator<String,String> {
 
     @Override
     public void merge(Accumulator<String, String> other) {
-        BigInteger local = new BigInteger(localValue);
-        if(local.compareTo(new BigInteger(other.getLocalValue())) < 0){
+        if (other == null || StringUtils.isEmpty(other.getLocalValue())){
+            return;
+        }
+
+        if (localValue == null){
             localValue = other.getLocalValue();
+            return;
+        }
+
+        if(NumberUtils.isNumber(localValue)){
+            BigInteger local = new BigInteger(localValue);
+            if(local.compareTo(new BigInteger(other.getLocalValue())) < 0){
+                localValue = other.getLocalValue();
+            }
+        } else {
+            localValue = localValue.compareTo(other.getLocalValue()) < 0 ? other.getLocalValue() : localValue;
         }
     }
 

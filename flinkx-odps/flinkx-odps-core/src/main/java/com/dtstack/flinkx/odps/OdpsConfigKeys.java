@@ -54,4 +54,6 @@ public class OdpsConfigKeys {
 
     public static final String KEY_MODE = "mode";
 
+    public static final String KEY_BUFFER_SIZE = "bufferSize";
+
 }

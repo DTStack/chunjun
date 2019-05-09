@@ -51,4 +51,13 @@ public class Metrics {
     public static String START_LOCATION = "startLocation";
 
     public static String TABLE_COL = "tableCol";
+
+    public static String MAX_VALUE = "maxValue";
+
+    public static String METRIC_GROUP_KEY_FLINKX = "flinkx";
+
+    public static String METRIC_GROUP_VALUE_INPUT = "input";
+
+    public static String METRIC_GROUP_VALUE_OUTPUT = "output";
+
 }

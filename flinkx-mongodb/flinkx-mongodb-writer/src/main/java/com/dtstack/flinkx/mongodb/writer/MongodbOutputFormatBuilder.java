@@ -22,6 +22,7 @@ import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -68,6 +69,11 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setReplaceKey(String replaceKey){
         format.replaceKey = replaceKey;
+    }
+
+
+    public void setMongodbConfig(Map<String,Object> mongodbConfig){
+        format.mongodbConfig = mongodbConfig;
     }
 
     @Override

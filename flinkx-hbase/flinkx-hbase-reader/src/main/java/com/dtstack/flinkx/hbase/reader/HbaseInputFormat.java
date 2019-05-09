@@ -74,6 +74,17 @@ public class HbaseInputFormat extends RichInputFormat {
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
 
+        try {
+            connection = ConnectionFactory.createConnection(getConfig());
+        } catch (Exception e) {
+            HbaseHelper.closeConnection(connection);
+            throw new IllegalArgumentException(e);
+        }
+
+        LOG.info("HbaseOutputFormat configure end");
+    }
+
+    public org.apache.hadoop.conf.Configuration getConfig(){
         org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
@@ -81,14 +92,7 @@ public class HbaseInputFormat extends RichInputFormat {
             hConfiguration.set(entry.getKey(), entry.getValue());
         }
 
-        try {
-            connection = ConnectionFactory.createConnection(hConfiguration);
-        } catch (Exception e) {
-            HbaseHelper.closeConnection(connection);
-            throw new IllegalArgumentException(e);
-        }
-
-        LOG.info("HbaseOutputFormat configure end");
+        return hConfiguration;
     }
 
     @Override
@@ -220,6 +224,16 @@ public class HbaseInputFormat extends RichInputFormat {
         HbaseInputSplit hbaseInputSplit = (HbaseInputSplit) inputSplit;
         byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
+
+        if(null == connection || connection.isClosed()){
+            try {
+                connection = ConnectionFactory.createConnection(getConfig());
+            } catch (Exception e) {
+                HbaseHelper.closeConnection(connection);
+                throw new IllegalArgumentException(e);
+            }
+        }
+
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
         scan.setStartRow(startRow);
@@ -227,11 +241,6 @@ public class HbaseInputFormat extends RichInputFormat {
         scan.setCaching(scanCacheSize);
         scan.setBatch(scanBatchSize);
         resultScanner = table.getScanner(scan);
-
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     @Override
@@ -264,15 +273,13 @@ public class HbaseInputFormat extends RichInputFormat {
                         String family = arr[0].trim();
                         String qualifier = arr[1].trim();
                         bytes = next.getValue(family.getBytes(), qualifier.getBytes());
-                        //col = String.valueOf(bytes);
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
                 }
                 row.setField(i, col);
             } catch(Exception e) {
-                e.printStackTrace();
+                throw new IOException("Couldn't read data:",e);
             }
-
         }
 
         return row;
