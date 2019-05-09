@@ -48,8 +48,6 @@ public class HdfsConfigKeys {
 
     public static final String KEY_COMPRESS = "compress";
 
-    public static final String KEY_PARTITION = "partition";
-
     public static final String KEY_FILE_NAME = "fileName";
 
     public static final String KEY_ENCODING = "encoding";

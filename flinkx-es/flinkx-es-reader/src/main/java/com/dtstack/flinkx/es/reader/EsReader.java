@@ -57,7 +57,7 @@ public class EsReader extends DataReader {
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
         index = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         type = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
-        batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 0);
+        batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 10);
 
         clientConfig = new HashMap<>();
         clientConfig.put(EsConfigKeys.KEY_TIMEOUT, readerConfig.getParameter().getVal(EsConfigKeys.KEY_TIMEOUT));
