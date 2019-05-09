@@ -27,9 +27,11 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 
 /**
@@ -66,6 +68,12 @@ public class JdbcDataReader extends DataReader {
 
     protected int queryTimeOut;
 
+    protected int requestAccumulatorInterval;
+
+    protected boolean useMaxFunc;
+
+    protected String customSql;
+
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         this.databaseInterface = databaseInterface;
     }
@@ -87,9 +95,17 @@ public class JdbcDataReader extends DataReader {
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         fetchSize = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_FETCH_SIZE,0);
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
+        requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL,2);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
+        customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
+        useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC,true);
+
+        increColumn = StringUtils.isEmpty(increColumn) ? null : increColumn;
+        if(StringUtils.isEmpty(increColumn)){
+            useMaxFunc = false;
+        }
     }
 
     @Override
@@ -108,29 +124,36 @@ public class JdbcDataReader extends DataReader {
         builder.setMetaColumn(metaColumns);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setRequestAccumulatorInterval(requestAccumulatorInterval);
         builder.setIncreCol(increColumn);
+        builder.setIncreColType(getIncrementColType());
         builder.setStartLocation(startLocation);
+        builder.setSplitKey(splitKey);
+        builder.setNumPartitions(numPartitions);
+        builder.setUseMaxFunc(useMaxFunc);
+        builder.setCustomSql(customSql);
+        builder.setHadoopConfig(hadoopConfig);
 
-        boolean isSplitByKey = false;
-        if(numPartitions > 1 && splitKey != null && splitKey.trim().length() != 0) {
-            builder.setParameterValues(DBUtil.getParameterValues(numPartitions));
-            isSplitByKey = true;
+
+        boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
+
+        String query;
+        if (StringUtils.isNotEmpty(customSql)){
+            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey, StringUtils.isNotEmpty(increColumn));
+        } else {
+            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey, StringUtils.isNotEmpty(increColumn));
         }
-
-        if(increColumn != null){
-            String increColType = getIncreColType();
-            where = DBUtil.buildWhereSql(databaseInterface,increColType,where,increColumn,startLocation);
-            builder.setIncreColType(increColType);
-        }
-
-        String query = DBUtil.getQuerySql(databaseInterface,table,metaColumns,splitKey,where,isSplitByKey);
         builder.setQuery(query);
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 
-    private String getIncreColType(){
+    private String getIncrementColType(){
+        if (StringUtils.isEmpty(increColumn)){
+            return null;
+        }
+
         for (MetaColumn metaColumn : metaColumns) {
             if(metaColumn.getName().equals(increColumn)){
                 return metaColumn.getType();

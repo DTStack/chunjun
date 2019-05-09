@@ -22,15 +22,13 @@ import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -60,6 +58,8 @@ public class ErrorLimiter {
     private String errMsg = "";
     private Row errorData;
 
+    private CloseableHttpClient httpClient;
+
     public void setErrorData(Row errorData){
         this.errorData = errorData;
     }
@@ -73,10 +73,11 @@ public class ErrorLimiter {
     }
 
     public ErrorLimiter(RuntimeContext runtimeContext, String monitors, int maxErrors, double samplePeriod) {
-        this(runtimeContext, monitors, maxErrors, Double.MAX_VALUE, 1);
+        this(runtimeContext, monitors, maxErrors, Double.MAX_VALUE, 2);
     }
 
     public ErrorLimiter(RuntimeContext runtimeContext, String monitors, Integer maxErrors, Double maxErrorRatio, double samplePeriod) {
+        httpClient = HttpClientBuilder.create().build();
 
         Preconditions.checkArgument(runtimeContext != null || monitors != null, "Should specify rumtimeContext or monitorUrls");
         Preconditions.checkArgument(samplePeriod > 0);
@@ -102,10 +103,10 @@ public class ErrorLimiter {
         int j = 0;
         for(; j < monitorUrls.length; ++j) {
             String url = monitorUrls[j];
-            try (InputStream inputStream = URLUtil.open(url)){
+            try {
+                URLUtil.get(httpClient, url);
                  break;
             } catch (Exception e) {
-                e.printStackTrace();
                 LOG.error("connected error: " + url);
             }
         }
@@ -124,7 +125,6 @@ public class ErrorLimiter {
     }
 
     public void start() {
-
         if(scheduledExecutorService == null) {
             return;
         }
@@ -141,29 +141,36 @@ public class ErrorLimiter {
         Gson gson = new Gson();
         for(int index = 0; index < monitorUrls.length; ++index) {
             String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
-            try(InputStream inputStream = URLUtil.open(requestUrl) ) {
-                try(Reader rd = new InputStreamReader(inputStream)) {
-                    Map<String,Object> map = gson.fromJson(rd, Map.class);
-                    List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
-                    for(LinkedTreeMap accumulator : userTaskAccumulators) {
-                        String name = (String) accumulator.get("name");
-                        if(name != null) {
-                            if(name.equals("nErrors")) {
-                                this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
-                            } else if(name.equals("numRead")) {
-                                this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
-                            }
+            try {
+                String response = URLUtil.get(httpClient, requestUrl);
+                Map<String,Object> map = gson.fromJson(response, Map.class);
+                List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
+                for(LinkedTreeMap accumulator : userTaskAccumulators) {
+                    String name = (String) accumulator.get("name");
+                    if(name != null) {
+                        if(name.equals("nErrors")) {
+                            this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
+                        } else if(name.equals("numRead")) {
+                            this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
                         }
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception e){
+                LOG.error("Update data error:",e);
             }
             break;
         }
     }
 
     public void stop() {
+        if (httpClient != null){
+            try {
+                httpClient.close();
+            } catch (Exception e){
+                LOG.error("close httpClient error:{}", e);
+            }
+        }
+
         if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
             scheduledExecutorService.shutdown();
         }

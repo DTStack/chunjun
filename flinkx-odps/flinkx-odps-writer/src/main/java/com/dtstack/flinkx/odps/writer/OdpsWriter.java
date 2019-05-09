@@ -20,6 +20,7 @@ package com.dtstack.flinkx.odps.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.odps.OdpsConfigKeys;
+import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -48,7 +49,7 @@ public class OdpsWriter extends DataWriter {
 
     protected String projectName;
 
-    protected String writeMode;
+    protected long bufferSize;
 
     public OdpsWriter(DataTransferConfig config) {
         super(config);
@@ -58,8 +59,13 @@ public class OdpsWriter extends DataWriter {
         partition = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PARTITION);
         mode = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_WRITE_MODE);
         projectName = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PROJECT);
-        writeMode = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_MODE);
 
+        bufferSize = writerConfig.getParameter().getLongVal(OdpsConfigKeys.KEY_BUFFER_SIZE, 0);
+        if (bufferSize == 0){
+            bufferSize = OdpsUtil.BUFFER_SIZE_DEFAULT;
+        } else {
+            bufferSize = bufferSize * 1024 * 1024;
+        }
 
         List columns = (List) writerConfig.getParameter().getVal(OdpsConfigKeys.KEY_COLUMN_LIST);
         if(columns != null || columns.size() != 0) {
@@ -80,7 +86,7 @@ public class OdpsWriter extends DataWriter {
         builder.setPartition(partition);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
-        builder.setWriteMode(writeMode);
+        builder.setWriteMode(mode);
         builder.setTableName(tableName);
         builder.setOdpsConfig(odpsConfig);
         builder.setDirtyPath(dirtyPath);
@@ -88,6 +94,7 @@ public class OdpsWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setErrorRatio(errorRatio);
         builder.setErrors(errors);
+        builder.setBufferSize(bufferSize);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

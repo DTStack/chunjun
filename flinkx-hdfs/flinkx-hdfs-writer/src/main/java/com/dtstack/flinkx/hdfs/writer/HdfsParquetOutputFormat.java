@@ -74,7 +74,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         try {
             cal.setTime(DateUtil.getDateFormatter().parse("1970-01-01"));
         } catch (Exception e){
-            e.printStackTrace();
+            throw new RuntimeException("Init calendar fail:",e);
         }
     }
 
@@ -173,7 +173,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
             writer.write(group);
         } catch (Exception e){
-            e.printStackTrace();
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }

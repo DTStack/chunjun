@@ -23,6 +23,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.metrics.OutputMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
@@ -111,6 +112,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
+    protected transient OutputMetric outputMetric;
+
     public DirtyDataManager getDirtyDataManager() {
         return dirtyDataManager;
     }
@@ -173,6 +176,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         //总记录数
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
 
+        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
+
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 
         if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
@@ -186,7 +191,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         //启动错误限制
         if(StringUtils.isNotBlank(monitorUrl)) {
             if(errors != null || errorRatio != null) {
-                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 1);
+                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
                 errorLimiter.start();
             }
         }
@@ -332,13 +337,19 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
                 }
-                if(errorLimiter != null) {
-                    // Wait a while before checking dirty data
-                    Latch latch = newLatch("#5");
-                    latch.addOne();
-                    latch.waitUntil(numTasks);
 
-                    errorLimiter.updateErrorInfo();
+                if(errorLimiter != null) {
+                    try{
+                        // Wait a while before checking dirty data
+                        Latch latch = newLatch("#5");
+                        latch.addOne();
+                        latch.waitUntil(numTasks);
+
+                        errorLimiter.updateErrorInfo();
+                    } catch (Exception e){
+                        LOG.warn("Update error info error when task closing:{}", e);
+                    }
+
                     errorLimiter.acquire();
                     errorLimiter.stop();
                 }

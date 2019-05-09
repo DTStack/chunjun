@@ -22,12 +22,15 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.*;
 import static com.dtstack.flinkx.mongodb.MongodbConfigKeys.KEY_COLLECTION;
@@ -54,6 +57,8 @@ public class MongodbWriter extends DataWriter {
 
     protected String replaceKey;
 
+    protected Map<String,Object> mongodbConfig;
+
     public MongodbWriter(DataTransferConfig config) {
         super(config);
 
@@ -63,10 +68,16 @@ public class MongodbWriter extends DataWriter {
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
         database = writerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = writerConfig.getParameter().getStringVal(KEY_COLLECTION);
-        mode = writerConfig.getParameter().getStringVal(KEY_MODE);
+        mode = writerConfig.getParameter().getStringVal(KEY_MODE, WriteMode.INSERT.getMode());
         replaceKey = writerConfig.getParameter().getStringVal(KEY_REPLACE_KEY);
 
         columns = MetaColumn.getMetaColumns(writerConfig.getParameter().getColumn());
+
+        mongodbConfig = (Map<String,Object>)writerConfig.getParameter().getVal(KEY_MONGODB_CONFIG, new HashMap<>());
+        mongodbConfig.put(KEY_HOST_PORTS, hostPorts);
+        mongodbConfig.put(KEY_USERNAME, username);
+        mongodbConfig.put(KEY_PASSWORD, password);
+        mongodbConfig.put(KEY_DATABASE, database);
     }
 
     @Override
@@ -81,6 +92,7 @@ public class MongodbWriter extends DataWriter {
         builder.setMode(mode);
         builder.setColumns(columns);
         builder.setReplaceKey(replaceKey);
+        builder.setMongodbConfig(mongodbConfig);
 
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);

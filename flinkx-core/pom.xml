@@ -153,13 +153,14 @@
                         </goals>
                         <configuration>
                             <tasks>
+                                <delete dir = "${basedir}/../plugins"/>
                                 <copy todir="${basedir}/../plugins/">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../plugins/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../plugins/flinkx.jar" />
+                                      tofile="${basedir}/../plugins/flinkx-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -106,12 +106,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
     }
 
     private void parsePartition(){
-        if(carbonTable.getPartitionInfo() == null) {
-            return;
-        }
-
         if(partition == null || partition.trim().length() == 0) {
-            return;
+            throw new IllegalArgumentException("The table have partition field，'partition' should not be empty");
         }
 
         partition = partition.trim();

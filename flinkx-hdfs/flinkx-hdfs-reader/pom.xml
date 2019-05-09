@@ -118,7 +118,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hdfsreader/${project.name}-${project.version}.jar"
-                                        tofile="${basedir}/../../plugins/hdfsreader/${project.name}.jar" />
+                                        tofile="${basedir}/../../plugins/hdfsreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

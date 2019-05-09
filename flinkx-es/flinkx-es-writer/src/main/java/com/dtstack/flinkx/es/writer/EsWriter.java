@@ -27,6 +27,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +49,8 @@ public class EsWriter extends DataWriter {
 
     private int bulkAction;
 
+    private Map<String,Object> clientConfig;
+
     private List<String> columnTypes;
 
     private List<String> columnNames;
@@ -65,6 +68,10 @@ public class EsWriter extends DataWriter {
         type = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
         index = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         bulkAction = writerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BULK_ACTION, DEFAULT_BULK_ACTION);
+
+        clientConfig = new HashMap<>();
+        clientConfig.put(EsConfigKeys.KEY_TIMEOUT, writerConfig.getParameter().getVal(EsConfigKeys.KEY_TIMEOUT));
+        clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, writerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
 
         List columns = writerConfig.getParameter().getColumn();
         if(columns != null || columns.size() != 0) {
@@ -111,6 +118,7 @@ public class EsWriter extends DataWriter {
         builder.setIndex(index);
         builder.setType(type);
         builder.setBatchInterval(bulkAction);
+        builder.setClientConfig(clientConfig);
         builder.setColumnNames(columnNames);
         builder.setColumnTypes(columnTypes);
         builder.setIdColumnIndices(idColumnIndices);

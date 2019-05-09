@@ -65,6 +65,11 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSplitFilterWithTmpTable(String tmpTable, String columnName) {
+        return String.format("%s.%s %% ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+    }
+
+    @Override
     protected String makeMultipleValues(int nCols, int batchSize) {
         String value = makeValues(nCols);
         return StringUtils.repeat(value, " UNION ALL ", batchSize);

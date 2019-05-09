@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hive.ql.io.HiveBinaryOutputFormat;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
@@ -155,6 +156,8 @@ public class HdfsUtil {
             ret = ((DateWritable) writable).get();
         } else if(writable instanceof Writable) {
             ret = writable.toString();
+        } else {
+            ret = writable.toString();
         }
 
         return ret;
@@ -197,6 +200,9 @@ public class HdfsUtil {
                 break;
             case BOOLEAN:
                 objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
+                break;
+            case BINARY:
+                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(BytesWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
                 break;
             default:
                 throw new IllegalArgumentException("You should not be here");

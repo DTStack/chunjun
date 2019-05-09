@@ -64,7 +64,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/streamwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/streamwriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/streamwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

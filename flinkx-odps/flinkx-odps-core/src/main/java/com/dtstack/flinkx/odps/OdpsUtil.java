@@ -54,7 +54,9 @@ import static com.dtstack.flinkx.odps.OdpsConfigConstants.PACKAGE_AUTHORIZED_PRO
 public class OdpsUtil {
     private static final Logger LOG = LoggerFactory.getLogger(OdpsUtil.class);
 
-    public static int MAX_RETRY_TIME = 10;
+    public static int MAX_RETRY_TIME = 3;
+
+    public static final long BUFFER_SIZE_DEFAULT = 64 * 1024 * 1024;
 
     public static Odps initOdps(Map<String,String> odpsConfig) {
         String odpsServer = odpsConfig.get(OdpsConfigKeys.KEY_ODPS_SERVER);
@@ -136,7 +138,7 @@ public class OdpsUtil {
                                                                                         final String projectName, final String tableName) {
         final TableTunnel tunnel = new TableTunnel(odps);
 
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -158,7 +160,7 @@ public class OdpsUtil {
                                                                                      final String projectName, final String tableName, String partition) {
 
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -183,7 +185,7 @@ public class OdpsUtil {
     public static TableTunnel.DownloadSession getSlaveSessionForNonPartitionedTable(Odps odps, final String sessionId,
                                                                                     String tunnelServer, final String projectName, final String tableName) {
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -203,7 +205,7 @@ public class OdpsUtil {
     public static TableTunnel.DownloadSession getSlaveSessionForPartitionedTable(Odps odps, final String sessionId,
                                                                                  String tunnelServer, final String projectName, final String tableName, String partition) {
         final TableTunnel tunnel = new TableTunnel(odps);
-        if (StringUtils.isNoneBlank(tunnelServer)) {
+        if (StringUtils.isNotEmpty(tunnelServer)) {
             tunnel.setEndpoint(tunnelServer);
         }
 
@@ -429,14 +431,7 @@ public class OdpsUtil {
     }
 
     public static Table getTable(Odps odps, String projectName, String tableName) {
-        Table table = odps.tables().get(projectName, tableName);
-//        try {
-//            table.getOwner();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
-        return table;
+        return odps.tables().get(projectName, tableName);
     }
 
     public static TableTunnel.UploadSession createMasterTunnelUpload(final TableTunnel tunnel, final String projectName,

@@ -40,10 +40,9 @@ public class ValueUtil {
                 Method method = obj.getClass().getMethod("intValue");
                 return (int) method.invoke(obj);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Unable to convert " + obj + " into Interger",e);
             }
         }
-        throw new RuntimeException("Unable to convert " + obj + " into Interger");
     }
 
 }

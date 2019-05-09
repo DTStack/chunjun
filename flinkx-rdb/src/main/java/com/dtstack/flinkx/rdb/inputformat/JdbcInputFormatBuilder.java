@@ -22,8 +22,10 @@ import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder of JdbcInputFormat
@@ -31,7 +33,6 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-@Deprecated
 public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
@@ -50,10 +51,6 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setQuery(String query) {
         format.queryTemplate = query;
-    }
-
-    public void setParameterValues(Object[][] parameterValues) {
-        format.parameterValues = parameterValues;
     }
 
     public void setUsername(String username) {
@@ -88,6 +85,10 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.queryTimeOut = queryTimeOut;
     }
 
+    public void setRequestAccumulatorInterval(int requestAccumulatorInterval){
+        format.requestAccumulatorInterval = requestAccumulatorInterval;
+    }
+
     public void setIncreCol(String increCol){
         format.increCol = increCol;
     }
@@ -96,26 +97,51 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.startLocation = startLocation;
     }
 
+    public void setSplitKey(String splitKey){
+        format.splitKey = splitKey;
+    }
+
     public void setIncreColType(String increColType){
         format.increColType = increColType;
     }
 
+    public void setUseMaxFunc(boolean useMaxFunc){
+        format.useMaxFunc = useMaxFunc;
+    }
+
+    public void setNumPartitions(int numPartitions){
+        format.numPartitions = numPartitions;
+    }
+
+    public void setCustomSql(String customSql){
+        format.customSql = customSql;
+    }
+
+    public void setHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+        format.hadoopConfig = dirtyHadoopConfig;
+    }
+
     @Override
     protected void checkFormat() {
+
         if (format.username == null) {
             LOG.info("Username was not supplied separately.");
         }
+
         if (format.password == null) {
             LOG.info("Password was not supplied separately.");
         }
+
         if (format.dbURL == null) {
             throw new IllegalArgumentException("No database URL supplied");
         }
-        if (format.queryTemplate == null) {
-            throw new IllegalArgumentException("No query supplied");
-        }
+
         if (format.drivername == null) {
             throw new IllegalArgumentException("No driver supplied");
+        }
+
+        if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1){
+            throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
         }
     }
 
