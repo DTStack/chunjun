@@ -5,175 +5,144 @@
 ```
 {
     "job": {
-        "setting": {
-            "speed": {
-                 "channel": 1,
-                 "bytes": 10000
-            },
-            "errorLimit": {
-                "record": 0,
-                "percentage": 50
-            }
-        },
-        "content": [
-            {
-                "reader": {
-                    "name": "ftpreader",
-                    "parameter": {
-                        "protocol": "sftp",
-                        "host": "node01" ,
-                        "port": 22,
-                        "username": "mysftp",
-                        "password": "oh1986mygod",
-                        "column": [
-                            {
-                                "index": 0
-                            },
-                            {
-                                "index": 1
-                            },
-                            {
-                                "value": "youcan",
-                                "type": "string"
-                            }
-                        ],
-                        "path": "/upload",
-                        "encoding": "UTF-8",
-                        "fieldDelimiter": "\\t",
-                        "isFirstLineHeader":true
-                    }
-                },
-                "writer": {
-                    "parameter": {
-                        "password": "abc123",
-                        "column": [
-                            "col1",
-                            "col2",
-                            "col3"
-                        ],
-                        "connection": [
-                            {
-                                "jdbcUrl": "jdbc:mysql://172.16.8.104:3306/test?charset=utf8",
-                                "table": [
-                                    "sb5"
-                                ]
-                            }
-                        ],
-                        "writeMode": "insert",
-                        "username": "dtstack"
-                    },
-                    "name": "mysqlwriter"
+        "setting": {},
+        "content": [{
+            "reader": {
+                "name": "ftpreader",
+                "parameter": {
+                    "protocol": "sftp",
+                    "host": "127.0.0.1",
+                    "port": 22,
+                    "username": "username",
+                    "password": "password",
+                    "column": [{
+                        "index": 0,
+                        "type": "",
+                        "value": "value"
+                    }],
+                    "path": "/upload",
+                    "encoding": "UTF-8",
+                    "fieldDelimiter": ",",
+                    "isFirstLineHeader": true
                 }
-            }
-        ]
+            },
+            "writer": {}
+        }]
     }
 }
-
 ```
 
 ## 2. 参数说明
 
 * **protocol**
-
-	* 描述：ftp服务器协议，目前支持传输协议有ftp和sftp。 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：无 <br />
+  
+  * 描述：ftp服务器协议，目前支持传输协议有ftp和sftp。
+  
+  * 必选：是
+  
+  * 默认值：无 
 
 * **host**
-
-	* 描述：ftp服务器地址。 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：无 <br />
+  
+  * 描述：ftp服务器地址。
+  
+  * 必选：是 
+  
+  * 默认值：无 
 
 * **port**
-
-	* 描述：ftp服务器端口。 <br />
-
-	* 必选：否 <br />
-
-	* 默认值：若传输协议是sftp协议，默认值是22；若传输协议是标准ftp协议，默认值是21 <br />
+  
+  * 描述：ftp服务器端口。
+  
+  * 必选：否 
+  
+  * 默认值：若传输协议是sftp协议，默认值是22；若传输协议是标准ftp协议，默认值是21 
 
 * **connectPattern**
-
-	* 描述：连接模式（主动模式或者被动模式）。该参数只在传输协议是标准ftp协议时使用，值只能为：PORT (主动)，PASV（被动）。两种模式主要的不同是数据连接建立的不同。对于Port模式，是客户端在本地打开一个端口等服务器去连接建立数据连接，而Pasv模式就是服务器打开一个端口等待客户端去建立一个数据连接。<br />
-
-	* 必选：否 <br />
-
-	* 默认值：PASV<br />
+  
+  * 描述：连接模式（主动模式或者被动模式）。该参数只在传输协议是标准ftp协议时使用，值只能为：PORT (主动)，PASV（被动）。两种模式主要的不同是数据连接建立的不同。对于Port模式，是客户端在本地打开一个端口等服务器去连接建立数据连接，而Pasv模式就是服务器打开一个端口等待客户端去建立一个数据连接。
+  
+  * 必选：否 
+  
+  * 默认值：PASV
 
 * **username**
-
-	* 描述：ftp服务器访问用户名。 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：无 <br />
+  
+  * 描述：ftp服务器访问用户名。
+  
+  * 必选：是
+  
+  * 默认值：无
 
 * **password**
-
-	* 描述：ftp服务器访问密码。 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：无 <br />
+  
+  * 描述：ftp服务器访问密码。
+  
+  * 必选：是
+  
+  * 默认值：无 
 
 * **path**
-
-	* 描述：远程FTP文件系统的路径信息，注意这里可以支持填写多个路径。 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：/ <br />
+  
+  * 描述：远程FTP文件系统的路径信息，注意这里可以支持填写多个路径。
+  
+  * 必选：是
+  
+  * 默认值：/
 
 * **column**
-
-	* 描述：读取字段列表，type指定源数据的类型，index指定当前列来自于文本第几列(以0开始)，value指定当前类型为常量。
-	
-
-		用户可以指定column字段信息，配置如下：
-
-		```json
-		{
-           "index": 0    //从远程FTP文件文本第一列获取int字段
-        },
-        {
-           "type": "string",
-           "value": "alibaba"  //从FtpReader内部生成alibaba的字符串字段作为当前字段
-        }
-		```
-
-		对于用户指定Column信息，type必须填写，index/value必须选择其一。
-
-	* 必选：是 <br />
-
-	* 默认值：全部按照string类型读取 <br />
+  
+  * 描述：需要读取的字段。
+  
+  * 格式：支持2中格式
+    
+    1.读取全部字段，如果字段数量很多，可以使用下面的写法：
+    
+    ```
+    "column":["*"]
+    ```
+    
+    2.指定具体信息：
+    
+    ```
+    "column": [{
+        "index": 0,
+        "type": "datetime",
+        "format": "yyyy-MM-dd hh:mm:ss",
+        "value": "value"
+    }]
+    ```
+  
+  * 属性说明:
+    
+    * index：字段索引
+    
+    * type：字段类型，ftp读取的为文本文件，本质上都是字符串类型，这里可以指定要转成的类型
+    
+    * format：如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回
+    
+    * value：如果没有指定index，则会把value的值作为常量列返回，如果指定了index，当读取的字段的值为null时，会以此value值作为默认值返回
+  
+  * 必选：是
+  
+  * 默认值：无
 
 * **fieldDelimiter**
-
-	* 描述：读取的字段分隔符 <br />
-
-	* 必选：是 <br />
-
-	* 默认值：, <br />
+  
+  * 描述：读取的字段分隔符 
+  
+  * 必选：是 
+  
+  * 默认值：, 
 
 * **encoding**
+  
+  * 描述：读取文件的编码配置。
+  * 必选：否
+  * 默认值：utf-8
 
-	* 描述：读取文件的编码配置。<br />
-
- 	* 必选：否 <br />
-
- 	* 默认值：utf-8 <br />
- 	
 * **isFirstLineHeader**
-
-	* 描述：首行是否为标题行，如果是则不读取第一行。<br />
-
- 	* 必选：否 <br />
-
- 	* 默认值：false <br />
-
-
+  
+  * 描述：首行是否为标题行，如果是则不读取第一行。
+  * 必选：否
+  * 默认值：false

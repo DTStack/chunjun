@@ -49,8 +49,6 @@ public class OdpsWriter extends DataWriter {
 
     protected String projectName;
 
-    protected String writeMode;
-
     protected long bufferSize;
 
     public OdpsWriter(DataTransferConfig config) {
@@ -61,7 +59,6 @@ public class OdpsWriter extends DataWriter {
         partition = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PARTITION);
         mode = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_WRITE_MODE);
         projectName = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_PROJECT);
-        writeMode = writerConfig.getParameter().getStringVal(OdpsConfigKeys.KEY_MODE);
 
         bufferSize = writerConfig.getParameter().getLongVal(OdpsConfigKeys.KEY_BUFFER_SIZE, 0);
         if (bufferSize == 0){
@@ -89,7 +86,7 @@ public class OdpsWriter extends DataWriter {
         builder.setPartition(partition);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
-        builder.setWriteMode(writeMode);
+        builder.setWriteMode(mode);
         builder.setTableName(tableName);
         builder.setOdpsConfig(odpsConfig);
         builder.setDirtyPath(dirtyPath);

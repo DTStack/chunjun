@@ -21,10 +21,14 @@ package com.dtstack.flinkx.launcher;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.util.SysUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.util.Preconditions;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,6 +41,8 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public class Launcher {
+
+    public static final String CORE_JAR_NAME_PREFIX = "flinkx";
 
     private static List<String> initFlinkxArgList(LauncherOptions launcherOptions) {
         List<String> argList = new ArrayList<>();
@@ -75,9 +81,6 @@ public class Launcher {
         return urlList;
     }
 
-
-
-
     public static void main(String[] args) throws Exception {
         LauncherOptions launcherOptions = new LauncherOptionParser(args).getLauncherOptions();
         String mode = launcherOptions.getMode();
@@ -93,12 +96,36 @@ public class Launcher {
 
             String pluginRoot = launcherOptions.getPlugin();
             String content = launcherOptions.getJob();
-            File jarFile = new File(pluginRoot + File.separator + "flinkx.jar");
+            String coreJarName = getCoreJarFileName(pluginRoot);
+            File jarFile = new File(pluginRoot + File.separator + coreJarName);
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
             String[] remoteArgs = argList.toArray(new String[argList.size()]);
             PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
             clusterClient.run(program, launcherOptions.getParallelism());
             clusterClient.shutdown();
         }
+    }
+
+    private static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{
+        String coreJarFileName = null;
+        File pluginDir = new File(pluginRoot);
+        if (pluginDir.exists() && pluginDir.isDirectory()){
+            File[] jarFiles = pluginDir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX) && name.toLowerCase().endsWith(".jar");
+                }
+            });
+
+            if (jarFiles != null && jarFiles.length > 0){
+                coreJarFileName = jarFiles[0].getName();
+            }
+        }
+
+        if (StringUtils.isEmpty(coreJarFileName)){
+            throw new FileNotFoundException("Can not find core jar file in path:" + pluginRoot);
+        }
+
+        return coreJarFileName;
     }
 }
