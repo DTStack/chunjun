@@ -45,8 +45,6 @@ import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
-import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
-import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
@@ -54,30 +52,23 @@ import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.writer.DataWriter;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.URLDecoder;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -94,28 +85,17 @@ public class LocalTest {
 
     private static final int DELAY_INTERVAL = 10;
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    public static final String TEST_RESOURCE_DIR = "src/test/resources/dev_test_job/";
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void test() throws Exception{
+        String jobPath = TEST_RESOURCE_DIR + "dev_stream_read.json";
+        LocalTest.runJob(new File(jobPath), null, null);
+    }
 
-        // 解析命令行参数
-        Options options = new Options();
-        options.addOption("job", true, "Job config.");
-        options.addOption("confProp", true, "env properties");
-        options.addOption("s", true, "savepoint path");
-
-        BasicParser parser = new BasicParser();
-        CommandLine cl = parser.parse(options, args);
-        String jobPath = cl.getOptionValue("job");
-        String savepointPath = cl.getOptionValue("s");
-        Properties confProperties = parseConf(cl.getOptionValue("confProp"));
-
-        Preconditions.checkNotNull(jobPath, "Must provide --job argument");
-
-        // 解析jobPath指定的任务配置文件
-        String job = readJob(jobPath);
-
-        runJob(job, confProperties, savepointPath);
+    public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
+        String jobContent = readJob(jobFile);
+        return runJob(jobContent, confProperties, savepointPath);
     }
 
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
@@ -142,13 +122,12 @@ public class LocalTest {
         return env.execute();
     }
 
-    private static String readJob(String jobPath) {
+    private static String readJob(File file) {
         try {
-            File file = new File(jobPath);
             FileInputStream in = new FileInputStream(file);
-            byte[] filecontent = new byte[(int) file.length()];
-            in.read(filecontent);
-            return new String(filecontent, "UTF-8");
+            byte[] fileContent = new byte[(int) file.length()];
+            in.read(fileContent);
+            return new String(fileContent, "UTF-8");
         } catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -160,12 +139,12 @@ public class LocalTest {
         switch (readerName){
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
-            case PluginNameConstrant.ORACLE_READER :
-            case PluginNameConstrant.POSTGRESQL_READER :
-            case PluginNameConstrant.SQLSERVER_READER :
-            case PluginNameConstrant.MYSQLD_READER :
-            case PluginNameConstrant.MYSQL_READER :
-            case PluginNameConstrant.DB2_READER : reader = new JdbcDataReader(config, env); break;
+            case PluginNameConstrant.ORACLE_READER : reader = new OracleReader(config, env); break;
+            case PluginNameConstrant.POSTGRESQL_READER : reader = new PostgresqlReader(config, env); break;
+            case PluginNameConstrant.SQLSERVER_READER : reader = new SqlserverReader(config, env); break;
+            case PluginNameConstrant.MYSQLD_READER : reader = new MysqldReader(config, env); break;
+            case PluginNameConstrant.MYSQL_READER : reader = new MysqlReader(config, env); break;
+            case PluginNameConstrant.DB2_READER : reader = new Db2Reader(config, env); break;
             case PluginNameConstrant.ES_READER : reader = new EsReader(config, env); break;
             case PluginNameConstrant.FTP_READER : reader = new FtpReader(config, env); break;
             case PluginNameConstrant.HBASE_READER : reader = new HbaseReader(config, env); break;
@@ -184,11 +163,11 @@ public class LocalTest {
         switch (writerName){
             case PluginNameConstrant.STREAM_WRITER : writer = new StreamWriter(config); break;
             case PluginNameConstrant.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;
-            case PluginNameConstrant.MYSQL_WRITER :
-            case PluginNameConstrant.SQLSERVER_WRITER :
-            case PluginNameConstrant.ORACLE_WRITER :
-            case PluginNameConstrant.POSTGRESQL_WRITER :
-            case PluginNameConstrant.DB2_WRITER : writer = new JdbcDataWriter(config); break;
+            case PluginNameConstrant.MYSQL_WRITER : writer = new MysqlWriter(config); break;
+            case PluginNameConstrant.SQLSERVER_WRITER : writer = new SqlserverWriter(config); break;
+            case PluginNameConstrant.ORACLE_WRITER : writer = new OracleWriter(config); break;
+            case PluginNameConstrant.POSTGRESQL_WRITER : writer = new PostgresqlWriter(config); break;
+            case PluginNameConstrant.DB2_WRITER : writer = new Db2Writer(config); break;
             case PluginNameConstrant.ES_WRITER : writer = new EsWriter(config); break;
             case PluginNameConstrant.FTP_WRITER : writer = new FtpWriter(config); break;
             case PluginNameConstrant.HBASE_WRITER : writer = new HbaseWriter(config); break;
@@ -200,15 +179,6 @@ public class LocalTest {
         }
 
         return writer;
-    }
-
-    private static Properties parseConf(String confStr) throws Exception{
-        if(StringUtils.isEmpty(confStr)){
-            return new Properties();
-        }
-
-        confStr = URLDecoder.decode(confStr, Charsets.UTF_8.toString());
-        return objectMapper.readValue(confStr, Properties.class);
     }
 
     private static void openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
