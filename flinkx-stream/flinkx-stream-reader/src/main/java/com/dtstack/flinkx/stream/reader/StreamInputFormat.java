@@ -42,8 +42,6 @@ public class StreamInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> columns;
 
-    protected long exceptionIndex;
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         if (restoreConfig.isRestore() && formatState != null){
@@ -63,10 +61,6 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        if (exceptionIndex > 0 && recordRead > exceptionIndex){
-            throw new RuntimeException("Throw exception for test");
-        }
-
         return ++recordRead > sliceRecordCount && sliceRecordCount > 0;
     }
 

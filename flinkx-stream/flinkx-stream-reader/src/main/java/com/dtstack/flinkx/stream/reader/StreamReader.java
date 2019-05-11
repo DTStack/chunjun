@@ -40,8 +40,6 @@ public class StreamReader extends DataReader {
 
     private List<MetaColumn> columns;
 
-    private long exceptionIndex;
-
     /** -1 means no limit */
     private static final long DEFAULT_SLICE_RECORD_COUNT = -1;
 
@@ -51,7 +49,6 @@ public class StreamReader extends DataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         sliceRecordCount = readerConfig.getParameter().getLongVal("sliceRecordCount",DEFAULT_SLICE_RECORD_COUNT);
         columns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-        exceptionIndex = readerConfig.getParameter().getLongVal("exceptionIndex",0);
     }
 
     @Override
@@ -61,7 +58,6 @@ public class StreamReader extends DataReader {
         builder.setSliceRecordCount(sliceRecordCount);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
-        builder.setExceptionIndex(exceptionIndex);
         builder.setRestoreConfig(restoreConfig);
         return createInput(builder.finish(),"streamreader");
     }

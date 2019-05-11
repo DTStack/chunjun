@@ -57,6 +57,8 @@ public abstract class DataReader {
 
     protected List<String> srcCols = new ArrayList<>();
 
+    protected long exceptionIndex;
+
     /**
      * reuse hadoopConfig for metric
      */
@@ -86,6 +88,7 @@ public abstract class DataReader {
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
+        this.exceptionIndex = config.getJob().getContent().get(0).getReader().getParameter().getLongVal("exceptionIndex",0);
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
         if (dirtyConfig != null) {
