@@ -239,21 +239,29 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     public void tryCleanupOnError() throws Exception {
         if(!restoreConfig.isRestore() && fs != null) {
-            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
-            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
-            fs.delete(finishedDir, true);
-            fs.delete(tmpDir, true);
-
-            LOG.info(jobName + ": tryCleanupOnError over!");
+            cleanTempDir();
         }
     }
 
+    private void cleanTempDir() throws Exception{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        fs.delete(finishedDir, true);
+        LOG.info("Delete .finished dir");
+
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+        fs.delete(tmpDir, true);
+        LOG.info("Delete .data dir");
+    }
 
     @Override
     protected void afterCloseInternal()  {
         try {
+            // 判断任务是不是正常结束
             String state = getTaskState();
             if(!RUNNING_STATE.equals(state)){
+                if (!restoreConfig.isRestore()){
+                    cleanTempDir();
+                }
                 fs.close();
                 return;
             }
@@ -279,15 +287,12 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     throw new RuntimeException("timeout when gathering finish tags for each subtasks");
                 }
 
+                PathFilter pathFilter = path -> !path.getName().startsWith(".");
+
+                // 不是追加模式，清除目录
                 Path dir = new Path(outputFilePath);
                 if(!"APPEND".equalsIgnoreCase(writeMode)){
                     if(fs.exists(dir)) {
-                        PathFilter pathFilter = new PathFilter() {
-                            @Override
-                            public boolean accept(Path path) {
-                                return !path.getName().startsWith(".");
-                            }
-                        } ;
                         FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
                         for(FileStatus dataFile : dataFiles) {
                             fs.delete(dataFile.getPath(), true);
@@ -297,18 +302,10 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 }
 
                 List<FileStatus> dataFiles = new ArrayList<>();
-                PathFilter pathFilter = new PathFilter() {
-                    @Override
-                    public boolean accept(Path path) {
-                        return !path.getName().startsWith(".");
-                    }
-                } ;
                 Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
                 FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
-                List<FileStatus> deleteDir = new ArrayList<>();
                 for (FileStatus fileStatus : historyTmpDataDir) {
                     if (fileStatus.isDirectory()){
-                        deleteDir.add(fileStatus);
                         dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
                     }
                 }
@@ -317,10 +314,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     fs.rename(dataFile.getPath(), dir);
                 }
 
-                for (FileStatus fileStatus : deleteDir) {
-                    fs.delete(fileStatus.getPath(), true);
-                }
-                fs.delete(finishedDir, true);
+                cleanTempDir();
             }
             fs.close();
         } catch(Exception ex) {
