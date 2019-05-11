@@ -28,6 +28,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
@@ -93,6 +94,14 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     private static String finishedTagPath = tempPath + "/.finishedTag";
 
+    private static final String SP = "/";
+
+    private static final String DOT = ".";
+
+    private static final String FILE_SUFFIX = ".csv";
+
+    private static final String OVERWRITE_MODE = "overwrite";
+
     private String currentFileNamePrefix;
 
     private String currentFileName;
@@ -116,12 +125,12 @@ public class FtpOutputFormat extends RichOutputFormat {
     @Override
     protected void beforeOpenInternal() {
         if(taskNumber == 0) {
-            if("overwrite".equalsIgnoreCase(writeMode) && !"/".equals(path)) {
+            if(OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(path)) {
                 ftpHandler.deleteAllFilesInDir(path);
             }
 
             if (restoreConfig.isRestore()){
-                ftpHandler.deleteAllFilesInDir(path + "/" + tempPath);
+                ftpHandler.deleteAllFilesInDir(path + SP + tempPath);
             }
         }
     }
@@ -131,19 +140,19 @@ public class FtpOutputFormat extends RichOutputFormat {
         ftpHandler.mkDirRecursive(path);
 
         if (restoreConfig.isRestore()){
-            ftpHandler.mkDirRecursive(path + "/" + tempPath);
-            ftpHandler.mkDirRecursive(path + "/" + finishedTagPath);
+            ftpHandler.mkDirRecursive(path + SP + tempPath);
+            ftpHandler.mkDirRecursive(path + SP + finishedTagPath);
         }
 
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String dateString = formatter.format(currentTime);
-        currentFileNamePrefix = taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
+        currentFileNamePrefix = taskNumber + DOT + dateString + DOT + UUID.randomUUID() + FILE_SUFFIX;
 
         if (restoreConfig.isRestore()){
             nextFile();
         } else {
-            String filePath = path + "/" + currentFileNamePrefix;
+            String filePath = path + SP + currentFileNamePrefix;
             this.os = ftpHandler.getOutputStream(filePath);
         }
     }
@@ -155,22 +164,24 @@ public class FtpOutputFormat extends RichOutputFormat {
 
         tmpToData();
 
-        currentFileName = "." + fileIndex + currentFileNamePrefix;
-        String filePath = path + "/" + tempPath + "/" + currentFileName;
+        currentFileName = DOT + fileIndex + currentFileNamePrefix;
+        String filePath = path + SP + tempPath + SP + currentFileName;
         os = ftpHandler.getOutputStream(filePath);
         fileIndex++;
     }
 
+    /**
+     * rename .xxxxx.csv to xxxxx.csv
+     */
     private void tmpToData(){
-        if (currentFileName == null || !currentFileName.startsWith(".")){
+        if (currentFileName == null || !currentFileName.startsWith(DOT)){
             return;
         }
 
         try{
-            String src = path + "/" + tempPath + "/" + currentFileName;
-
-            currentFileName = currentFileName.replaceFirst("\\.", "");
-            String dist = path + "/" + tempPath + "/" + currentFileName;
+            String src = path + SP + tempPath + SP + currentFileName;
+            currentFileName = currentFileName.replaceFirst("\\.", StringUtils.EMPTY);
+            String dist = path + SP + tempPath + SP + currentFileName;
             ftpHandler.rename(src, dist);
         }catch (Exception e){
             throw new RuntimeException(e);
@@ -204,7 +215,7 @@ public class FtpOutputFormat extends RichOutputFormat {
 
             return null;
         }catch (Exception e){
-            ftpHandler.deleteAllFilesInDir(path + "/" + tempPath + "/" + currentFileName);
+            ftpHandler.deleteAllFilesInDir(path + SP + tempPath + SP + currentFileName);
             throw new RuntimeException("Get next file error:", e);
         }
     }
@@ -246,6 +257,10 @@ public class FtpOutputFormat extends RichOutputFormat {
         try{
             String state = getTaskState();
             if(!RUNNING_STATE.equals(state)){
+                if (!restoreConfig.isRestore()){
+                    ftpHandler.deleteAllFilesInDir(path + SP + tempPath);
+                }
+
                 ftpHandler.logoutFtpServer();
                 return;
             }
@@ -253,10 +268,17 @@ public class FtpOutputFormat extends RichOutputFormat {
             throw new RuntimeException(e);
         }
 
+        if (restoreConfig.isRestore() && ftpHandler != null){
+            String finishedTag = path + SP + finishedTagPath + SP + taskNumber + "_finished";
+            ftpHandler.mkDirRecursive(finishedTag);
+        }
+
+        tmpToData();
+
         if (taskNumber == 0){
             final int maxRetryTime = 100;
             for (int i = 0; i < maxRetryTime; i++) {
-                if(ftpHandler.getFiles(path + "/" + finishedTagPath).size() == numTasks){
+                if(ftpHandler.getFiles(path + SP + finishedTagPath).size() == numTasks){
                     break;
                 }
 
@@ -264,40 +286,24 @@ public class FtpOutputFormat extends RichOutputFormat {
             }
 
             try{
-                List<String> files = ftpHandler.getFiles(path + "/" + tempPath);
+                List<String> files = ftpHandler.getFiles(path + SP + tempPath);
                 for (String file : files) {
-                    if (file.endsWith(".csv") && !file.startsWith(".")){
-                        ftpHandler.rename(path + "/" + tempPath + "/" + file,path + "/" + file);
+                    if (file.endsWith(FILE_SUFFIX) && !file.startsWith(DOT)){
+                        ftpHandler.rename(path + SP + tempPath + SP + file,path + SP + file);
                     }
                 }
             }catch (Exception e){
                 throw new RuntimeException("Rename temp file error:", e);
             }
 
-            ftpHandler.deleteAllFilesInDir(path + "/" + tempPath);
+            ftpHandler.deleteAllFilesInDir(path + SP + tempPath);
             ftpHandler.logoutFtpServer();
         }
     }
 
     @Override
     public void closeInternal() throws IOException {
-        OutputStream s = os;
-        if(s != null) {
-            s.flush();
-            os = null;
-            s.close();
-        }
-
-        if (restoreConfig.isRestore() && ftpHandler != null){
-            String finishedTag = path + "/" + finishedTagPath + "/" + taskNumber + "_finished";
-            ftpHandler.mkDirRecursive(finishedTag);
-        }
-
-        tmpToData();
-
-        if(ftpHandler != null && (!restoreConfig.isRestore() || taskNumber > 0)) {
-            ftpHandler.logoutFtpServer();
-        }
+        flushFile();
     }
 
 }
