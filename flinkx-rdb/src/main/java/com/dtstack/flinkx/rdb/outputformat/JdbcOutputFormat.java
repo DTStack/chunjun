@@ -185,7 +185,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(rs,stmt,null);
+            DBUtil.closeDBResources(rs, stmt,null, false);
         }
 
         return ret;
@@ -389,7 +389,18 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
-        DBUtil.closeDBResources(null, preparedStatement, dbConn);
+        boolean commit = true;
+        try{
+            String state = getTaskState();
+            // Do not commit a transaction when the task is canceled or failed
+            if(!RUNNING_STATE.equals(state) && restoreConfig.isRestore()){
+                commit = false;
+            }
+        } catch (Exception e){
+            LOG.error("Get task status error:{}", e.getMessage());
+        }
+
+        DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
 
         //FIXME TEST

@@ -134,13 +134,13 @@ public class DBUtil {
             throw new RuntimeException(e);
         }
         finally{
-            DBUtil.closeDBResources(res, statement, null);
+            DBUtil.closeDBResources(res, statement, null, false);
         }
         return result;
     }
 
     public static void closeDBResources(ResultSet rs, Statement stmt,
-                                        Connection conn) {
+                                        Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 LOG.info("Start close resultSet");
@@ -163,7 +163,9 @@ public class DBUtil {
 
         if (null != conn) {
             try {
-                commit(conn);
+                if(commit){
+                    commit(conn);
+                }
 
                 LOG.info("Start close connection");
                 conn.close();
@@ -263,7 +265,7 @@ public class DBUtil {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            closeDBResources(rs,stmt,dbConn);
+            closeDBResources(rs, stmt, dbConn, false);
         }
 
         return ret;

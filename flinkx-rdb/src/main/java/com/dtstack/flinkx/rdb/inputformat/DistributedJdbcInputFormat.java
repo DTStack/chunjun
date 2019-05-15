@@ -196,11 +196,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     private void closeCurrentSource(){
         try {
-            if(currentConn != null && !currentConn.isClosed()){
-                currentConn.commit();
-            }
-
-            DBUtil.closeDBResources(currentResultSet,currentStatement,currentConn);
+            DBUtil.closeDBResources(currentResultSet,currentStatement,currentConn, true);
             currentConn = null;
             currentStatement = null;
             currentResultSet = null;

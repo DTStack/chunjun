@@ -470,7 +470,7 @@ public class JdbcInputFormat extends RichInputFormat {
         } catch (Throwable e){
             throw new RuntimeException("Get max value from " + table + " error",e);
         } finally {
-            DBUtil.closeDBResources(rs,st,conn);
+            DBUtil.closeDBResources(rs, st, conn, false);
         }
     }
 
@@ -545,7 +545,7 @@ public class JdbcInputFormat extends RichInputFormat {
         if(incrementConfig.isIncrement() && hadoopConfig != null) {
             uploadMetricData();
         }
-        DBUtil.closeDBResources(resultSet,statement,dbConn);
+        DBUtil.closeDBResources(resultSet,statement,dbConn, true);
     }
 
 }
