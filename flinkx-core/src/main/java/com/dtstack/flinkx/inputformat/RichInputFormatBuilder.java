@@ -47,6 +47,10 @@ public abstract class RichInputFormatBuilder {
         format.restoreConfig = restoreConfig;
     }
 
+    public void setExceptionIndex(long exceptionIndex){
+        format.exceptionIndex = exceptionIndex;
+    }
+
     protected abstract void checkFormat();
 
     public RichInputFormat finish() {

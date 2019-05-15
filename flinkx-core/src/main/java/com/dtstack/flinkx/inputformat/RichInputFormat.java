@@ -64,6 +64,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private Row lastRow;
 
+    protected long exceptionIndex;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -98,6 +100,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public Row nextRecord(Row row) throws IOException {
+        if(exceptionIndex > 0 && exceptionIndex > numReadCounter.getLocalValue()){
+            throw new RuntimeException("Task failure test");
+        }
+
         numReadCounter.add(1);
 
         if(byteRateLimiter != null) {

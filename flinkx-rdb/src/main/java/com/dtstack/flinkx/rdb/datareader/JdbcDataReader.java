@@ -118,6 +118,7 @@ public class JdbcDataReader extends DataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setExceptionIndex(exceptionIndex);
 
         boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
 
