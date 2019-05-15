@@ -414,7 +414,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 LOG.info("response:{}", response);
 
                 JsonObject obj = parser.parse(response).getAsJsonObject();
-                taskState = obj.getAsJsonObject("state").getAsString();
+                taskState = obj.get("state").getAsString();
                 LOG.info("Job state is:{}", taskState);
 
                 if(taskState != null){
@@ -423,7 +423,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
                 Thread.sleep(500);
             }catch (Exception e){
-                LOG.info("Get job state error:", e.getCause());
+                LOG.info("Get job state error:", e.getMessage());
             }
         }
 
