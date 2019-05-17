@@ -44,19 +44,11 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        if (restoreConfig.isRestore() && formatState != null){
-            recordRead = (Long)formatState.getState();
-        }
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        row = MockDataUtil.getMockRow(columns);
-        if (restoreConfig.isRestore() && columns.get(0).getValue() == null){
-            row.setField(0, recordRead);
-        }
-
-        return row;
+        return MockDataUtil.getMockRow(columns);
     }
 
     @Override

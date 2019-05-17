@@ -49,7 +49,6 @@ public class MockDataUtil {
             case "long": mockData = JMockData.mock(long.class);break;
             case "float": mockData = JMockData.mock(float.class);break;
             case "double": mockData = JMockData.mock(double.class);break;
-            case "string": mockData = JMockData.mock(String.class);break;
             case "date": mockData = JMockData.mock(Date.class);break;
             case "timestamp": mockData = JMockData.mock(Timestamp.class);break;
             case "bigdecimal": mockData = JMockData.mock(BigDecimal.class);break;
@@ -74,7 +73,11 @@ public class MockDataUtil {
         Row mockRow = new Row(columns.size());
         for (int i = 0; i < columns.size(); i++) {
             if(columns.get(i).getValue() != null){
-                mockRow.setField(i,getField(columns.get(i).getValue(), columns.get(i).getType()));
+                if("null".equalsIgnoreCase(columns.get(i).getValue())){
+                    mockRow.setField(i, null);
+                } else {
+                    mockRow.setField(i,getField(columns.get(i).getValue(), columns.get(i).getType()));
+                }
             } else {
                 mockRow.setField(i,mockData(columns.get(i).getType()));
             }
