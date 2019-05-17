@@ -275,7 +275,6 @@ public class StandardFtpHandler implements FtpHandler {
     public InputStream getInputStream(String filePath) {
         try {
             InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
-            ftpClient.getReply();
             return is;
         } catch (IOException e) {
             String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
