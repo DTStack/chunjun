@@ -95,6 +95,7 @@ public class OdpsWriter extends DataWriter {
         builder.setErrorRatio(errorRatio);
         builder.setErrors(errors);
         builder.setBufferSize(bufferSize);
+        builder.setRestoreConfig(restoreConfig);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

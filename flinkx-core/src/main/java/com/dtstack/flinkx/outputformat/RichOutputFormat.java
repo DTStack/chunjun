@@ -126,6 +126,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected FormatState formatState;
 
+    protected Object initState;
+
+    protected boolean readyWrite = false;
+
     protected transient OutputMetric outputMetric;
 
     public DirtyDataManager getDirtyDataManager() {
@@ -235,6 +239,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             if(formatState == null){
                 formatState = new FormatState(taskNumber, null);
             } else {
+                initState = formatState.getState();
                 numWriteCounter.add(formatState.getNumberWrite());
             }
         }
@@ -332,6 +337,17 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             internalRow.setField(i, row.getField(i));
         }
 
+        if(restoreConfig.isRestore() && !readyWrite && initState != null){
+            Object currentState = internalRow.getField(restoreConfig.getRestoreColumnIndex());
+            if(currentState != null){
+                readyWrite = currentState.toString().compareTo(initState.toString()) > 0;
+            }
+
+            if(!readyWrite){
+                return;
+            }
+        }
+
         if(batchInterval <= 1) {
             writeSingleRecord(internalRow);
         } else {
@@ -354,9 +370,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 Latch latch = newLatch("#3");
                 beforeCloseInternal();
                 latch.addOne();
-                System.out.println("hyf latch add one: task# " + taskNumber);
                 latch.waitUntil(numTasks);
-                System.out.println("hyf waitUtil end");
             }
         }finally {
             try{
@@ -401,7 +415,11 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     }
 
-    public String getTaskState() throws IOException{
+    protected String getTaskState() throws IOException{
+        if (StringUtils.isEmpty(monitorUrl)) {
+            return null;
+        }
+
         String taskState;
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
@@ -423,7 +441,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
                 Thread.sleep(500);
             }catch (Exception e){
-                LOG.info("Get job state error:", e.getMessage());
+                LOG.info("Get job state error:{}", e.getMessage());
             }
         }
 

@@ -116,7 +116,9 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				while (isRunning && !format.reachedEnd()) {
 					nextElement = format.nextRecord(nextElement);
 					if (nextElement != null) {
-						ctx.collect(nextElement);
+                        synchronized (ctx.getCheckpointLock()) {
+                            ctx.collect(nextElement);
+                        }
 					} else {
 						break;
 					}
@@ -232,11 +234,10 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
         LOG.info("Is restored:{}", context.isRestored());
 		if (context.isRestored()){
-            LOG.info("Input format state into:");
 			formatStateMap = new HashMap<>();
 			for (FormatState formatState : unionOffsetStates.get()) {
 				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-				LOG.info(formatState.toString());
+				LOG.info("Input format state into:{}", formatState.toString());
 			}
 		}
 

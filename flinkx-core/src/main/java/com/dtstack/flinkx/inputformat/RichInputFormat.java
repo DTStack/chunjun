@@ -19,11 +19,11 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.config.SettingConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.InputMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.LimitedQueue;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -62,9 +62,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected int indexOfSubtask;
 
-    private Row lastRow;
-
-    protected long exceptionIndex;
+    private LimitedQueue<Object> limitedQueue;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -95,15 +93,13 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             } else {
                 numReadCounter.add(formatState.getNumberRead());
             }
+
+            limitedQueue = new LimitedQueue<>(restoreConfig.getCacheQueueSize());
         }
     }
 
     @Override
     public Row nextRecord(Row row) throws IOException {
-        if(exceptionIndex > 0 && exceptionIndex > numReadCounter.getLocalValue()){
-            throw new RuntimeException("Task failure test");
-        }
-
         numReadCounter.add(1);
 
         if(byteRateLimiter != null) {
@@ -115,16 +111,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
          */
         Row internalRow = nextRecordInternal(row);
         if (internalRow != null){
+            if (restoreConfig.isRestore()){
+                limitedQueue.offer(internalRow.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+
             Row rowWithChannel = new Row(internalRow.getArity() + 1);
             for (int i = 0; i < internalRow.getArity(); i++) {
                 rowWithChannel.setField(i, internalRow.getField(i));
             }
-
-            if (restoreConfig.isRestore() && lastRow != null){
-                formatState.setNumberRead(numReadCounter.getLocalValue());
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-            lastRow = internalRow;
 
             rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
             return rowWithChannel;
@@ -138,6 +132,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
      * @return DataRecoverPoint
      */
     public FormatState getFormatState(){
+        formatState.setState(limitedQueue.poll());
+        formatState.setNumberRead(numReadCounter.getLocalValue() - limitedQueue.size());
         return formatState;
     }
 

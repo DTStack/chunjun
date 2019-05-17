@@ -154,11 +154,10 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
         LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()){
-            LOG.info("Output format state into:");
             formatStateMap = new HashMap<>();
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-                LOG.info(formatState.toString());
+                LOG.info("Output format state into:{}" ,formatState.toString());
             }
         }
 

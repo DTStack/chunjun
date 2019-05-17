@@ -111,6 +111,7 @@ public class FtpWriter extends DataWriter{
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setRestoreConfig(restoreConfig);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
