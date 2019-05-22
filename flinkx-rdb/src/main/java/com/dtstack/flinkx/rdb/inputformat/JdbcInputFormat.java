@@ -263,17 +263,11 @@ public class JdbcInputFormat extends RichInputFormat {
     }
 
     private void initMetric(InputSplit split){
-
         if (!incrementConfig.isIncrement()){
             return;
         }
 
-        if (getRuntimeContext().getIndexOfThisSubtask() > 0){
-            return;
-        }
-
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
-
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
             tableColAccumulator = new StringAccumulator();
             tableColAccumulator.add(table + "-" + incrementConfig.getColumnName());
