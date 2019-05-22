@@ -402,7 +402,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if (restoreConfig.isRestore()){
                 if(formatState == null){
-                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, "");
+                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
+
+                    if (incrementConfig.isIncrement()){
+                        querySql = buildIncrementSql(jdbcInputSplit, querySql);
+                    }
                 } else {
                     String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
                     String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
@@ -414,22 +418,28 @@ public class JdbcInputFormat extends RichInputFormat {
 
                     querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
                 }
+
+                querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
             } else if (incrementConfig.isIncrement()){
-                String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, incrementConfig.getColumnType(),
-                        incrementConfig.getColumnName(), jdbcInputSplit.getStartLocation(),
-                        jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
-
-                if(StringUtils.isNotEmpty(incrementFilter)){
-                    incrementFilter = " and " + incrementFilter;
-                }
-
-                querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
+                querySql = buildIncrementSql(jdbcInputSplit, querySql);
             }
         }
 
         LOG.warn(String.format("Executing sql is: '%s'", querySql));
 
         return querySql;
+    }
+
+    private String buildIncrementSql(JdbcInputSplit jdbcInputSplit, String querySql){
+        String incrementFilter = DBUtil.buildIncrementFilter(databaseInterface, incrementConfig.getColumnType(),
+                incrementConfig.getColumnName(), jdbcInputSplit.getStartLocation(),
+                jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
+
+        if(StringUtils.isNotEmpty(incrementFilter)){
+            incrementFilter = " and " + incrementFilter;
+        }
+
+        return querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
     }
 
     private String getMaxValueFromDb() {
