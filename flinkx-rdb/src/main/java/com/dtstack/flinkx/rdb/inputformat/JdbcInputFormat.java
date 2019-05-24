@@ -317,17 +317,17 @@ public class JdbcInputFormat extends RichInputFormat {
                     }
                 }
 
-            /**
-             * The extra 10 times is to ensure that accumulator is updated
-             */
-            int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
+                /**
+                 * The extra 10 times is to ensure that accumulator is updated
+                 */
+                int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
 
-            int acquireTimes = 0;
-            while (StringUtils.isEmpty(maxValue) && acquireTimes < maxAcquireTimes){
-                try {
-                    Thread.sleep(incrementConfig.getRequestAccumulatorInterval() * 1000);
-                } catch (InterruptedException ignore) {
-                }
+                int acquireTimes = 0;
+                while (StringUtils.isEmpty(maxValue) && acquireTimes < maxAcquireTimes){
+                    try {
+                        Thread.sleep(incrementConfig.getRequestAccumulatorInterval() * 1000);
+                    } catch (InterruptedException ignore) {
+                    }
 
                     maxValue = getMaxvalueFromAccumulator(httpClient, monitors);
                     acquireTimes++;
@@ -386,37 +386,40 @@ public class JdbcInputFormat extends RichInputFormat {
     private String buildQuerySql(InputSplit inputSplit){
         String querySql = queryTemplate;
 
-        if (inputSplit != null) {
-            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+        if (inputSplit == null){
+            LOG.warn(String.format("Executing sql is: '%s'", querySql));
+            return querySql;
+        }
 
-            if (StringUtils.isNotEmpty(splitKey)){
-                querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions))
-                        .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
-            }
+        JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
 
-            if (restoreConfig.isRestore()){
-                if(formatState == null){
-                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
+        if (StringUtils.isNotEmpty(splitKey)){
+            querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions))
+                    .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
+        }
 
-                    if (incrementConfig.isIncrement()){
-                        querySql = buildIncrementSql(jdbcInputSplit, querySql);
-                    }
-                } else {
-                    String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
-                    String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
-                            restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
+        if (restoreConfig.isRestore()){
+            if(formatState == null){
+                querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
 
-                    if(StringUtils.isNotEmpty(restoreFilter)){
-                        restoreFilter = " and " + restoreFilter;
-                    }
+                if (incrementConfig.isIncrement()){
+                    querySql = buildIncrementSql(jdbcInputSplit, querySql);
+                }
+            } else {
+                String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
+                String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
+                        restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
 
-                    querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
+                if(StringUtils.isNotEmpty(restoreFilter)){
+                    restoreFilter = " and " + restoreFilter;
                 }
 
-                querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
-            } else if (incrementConfig.isIncrement()){
-                querySql = buildIncrementSql(jdbcInputSplit, querySql);
+                querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
             }
+
+            querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
+        } else if (incrementConfig.isIncrement()){
+            querySql = buildIncrementSql(jdbcInputSplit, querySql);
         }
 
         LOG.warn(String.format("Executing sql is: '%s'", querySql));
