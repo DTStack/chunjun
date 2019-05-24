@@ -219,6 +219,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 Path dist = new Path(tmpPath + SP + dataFileName);
 
                 fs.rename(src, dist);
+                LOG.info("Rename temp file:{} to:{}", src, dist);
             }
         } catch (Exception e){
             throw new RuntimeException(e);
@@ -246,11 +247,11 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     private void cleanTempDir() throws Exception{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         fs.delete(finishedDir, true);
-        LOG.info("Delete .finished dir");
+        LOG.info("Delete .finished dir:{}", finishedDir);
 
         Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
         fs.delete(tmpDir, true);
-        LOG.info("Delete .data dir");
+        LOG.info("Delete .data dir:{}", tmpDir);
     }
 
     @Override
@@ -268,6 +269,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
             // write finished file
             fs.createNewFile(new Path(finishedPath));
+            LOG.info("Create finished tag dir:{}", finishedPath);
 
             // task_0 move tmp data into destination
             if(taskNumber == 0) {
@@ -305,6 +307,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
                 for(FileStatus dataFile : dataFiles) {
                     fs.rename(dataFile.getPath(), dir);
+                    LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
                 }
 
                 cleanTempDir();
