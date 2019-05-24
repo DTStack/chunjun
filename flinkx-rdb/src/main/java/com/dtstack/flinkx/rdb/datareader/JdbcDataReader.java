@@ -142,7 +142,7 @@ public class JdbcDataReader extends DataReader {
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
 
         incrementConfig = new IncrementConfig();
-        if (incrementColumn != null){
+        if (incrementColumn != null && StringUtils.isNotEmpty(incrementColumn.toString())){
             String type = null;
             String name = null;
             int index = -1;

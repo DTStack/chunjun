@@ -86,7 +86,7 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
         return "INSERT INTO " + quoteTable(table)
                 + " (" + quoteColumns(column) + ") VALUES "
                 + makeValues(column.size())
-                + "ON CONFLICT(" + makeUpdateKey(updateKey)
+                + " ON CONFLICT(" + makeUpdateKey(updateKey)
                 + ") DO UPDATE SET " + makeUpdatePart(column) ;
     }
 
@@ -103,14 +103,14 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
         return "INSERT INTO " + quoteTable(table)
                 + " (" + quoteColumns(column) + ") VALUES "
-                + makeMultipleReplaceValues(column,fullColumn, batchSize)
-                + "ON CONFLICT(" + makeUpdateKey(updateKey)
+                + makeValues(column.size())
+                + " ON CONFLICT(" + makeUpdateKey(updateKey)
                 + ") DO UPDATE SET " + makeUpdatePart(fullColumn) ;
     }
 
     @Override
     protected String makeMultipleReplaceValues(List<String> column, List<String> fullColumn,int batchSize){
-        String value = makeReplaceValues(column,fullColumn);
+        String value = makeValues(column.size());
         return org.apache.commons.lang.StringUtils.repeat(value, " , ", batchSize);
     }
 

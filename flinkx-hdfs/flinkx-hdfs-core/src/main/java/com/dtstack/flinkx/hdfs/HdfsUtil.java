@@ -170,6 +170,8 @@ public class HdfsUtil {
             ret = ((ByteWritable) writable).get();
         } else if(clz == DateWritable.class) {
             ret = ((DateWritable) writable).get();
+        } else if(writable instanceof DoubleWritable){
+            ret = ((DoubleWritable) writable).get();
         } else if(writable instanceof Writable) {
             ret = writable.toString();
         } else {
