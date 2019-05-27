@@ -315,7 +315,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 }
 
                 List<FileStatus> dataFiles = new ArrayList<>();
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
+                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
                 FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
                 for (FileStatus fileStatus : historyTmpDataDir) {
                     if (fileStatus.isDirectory()){

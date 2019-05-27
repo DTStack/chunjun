@@ -417,7 +417,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected String getTaskState() throws IOException{
         if (StringUtils.isEmpty(monitorUrl)) {
-            return null;
+            return RUNNING_STATE;
         }
 
         String taskState;
