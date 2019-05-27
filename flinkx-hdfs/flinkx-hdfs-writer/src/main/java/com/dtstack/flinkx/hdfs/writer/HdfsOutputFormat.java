@@ -179,6 +179,17 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    public void beforeWriteRecords(){
+        if (formatState == null || formatState.getState() == null) {
+            try {
+                cleanTempDir();
+            } catch (Exception e) {
+                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+            }
+        }
+    }
+
+    @Override
     public FormatState getFormatState() {
         if (!restoreConfig.isRestore() || lastRow == null){
             return null;
@@ -303,8 +314,15 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                     }
                 }
 
+                List<FileStatus> dataFiles = new ArrayList<>();
                 Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId);
-                FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+                FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
+                for (FileStatus fileStatus : historyTmpDataDir) {
+                    if (fileStatus.isDirectory()){
+                        dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
+                    }
+                }
+
                 for(FileStatus dataFile : dataFiles) {
                     fs.rename(dataFile.getPath(), dir);
                     LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
