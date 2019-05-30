@@ -132,10 +132,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected transient OutputMetric outputMetric;
 
-    public DirtyDataManager getDirtyDataManager() {
-        return dirtyDataManager;
-    }
-
     public String getDirtyPath() {
         return dirtyPath;
     }
@@ -152,10 +148,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         this.dirtyHadoopConfig = dirtyHadoopConfig;
     }
 
-    public List<String> getSrcFieldNames() {
-        return srcFieldNames;
-    }
-
     public void setSrcFieldNames(List<String> srcFieldNames) {
         this.srcFieldNames = srcFieldNames;
     }
@@ -168,7 +160,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
 
     /**
-     * The method that I don't know how to say
      * @param taskNumber The number of the parallel instance.
      * @param numTasks The number of parallel tasks.
      * @throws IOException
@@ -180,59 +171,27 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
 
-        //错误记录数
-        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
-        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
-        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
-        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
-        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+        initStatisticsAccumulator();
+        initJobInfo();
 
-        //总记录数
-        numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
-
-        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
-
-        Map<String, String> vars = context.getMetricGroup().getAllVariables();
-
-        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
-            jobName = vars.get(Metrics.JOB_NAME);
-        }
-
-        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
-            jobId = vars.get(Metrics.JOB_ID);
-        }
-
-        //启动错误限制
-        if(StringUtils.isNotBlank(monitorUrl)) {
-            if(errors != null || errorRatio != null) {
-                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
-                errorLimiter.start();
-            }
-        }
-
-        //启动脏数据管理
-        if(StringUtils.isNotBlank(dirtyPath)) {
-            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]));
-            dirtyDataManager.open();
-        }
+        openErrorLimiter();
+        openDirtyDataManager();
 
         if(needWaitBeforeOpenInternal()) {
-            Latch latch = newLatch("#1");
             beforeOpenInternal();
-            latch.addOne();
-            latch.waitUntil(numTasks);
+            waitWhile("#1");
         }
 
         openInternal(taskNumber, numTasks);
-
-        // Do something before starting writing records
         if(needWaitBeforeWriteRecords()) {
-            Latch latch = newLatch("#2");
             beforeWriteRecords();
-            latch.addOne();
-            latch.waitUntil(numTasks);
+            waitWhile("#2");
         }
 
+        initRestoreInfo();
+    }
+
+    private void initRestoreInfo(){
         if(restoreConfig == null){
             restoreConfig = RestoreConfig.defaultConfig();
         } else if(restoreConfig.isRestore()){
@@ -245,6 +204,44 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
     }
 
+    private void initJobInfo(){
+        Map<String, String> vars = context.getMetricGroup().getAllVariables();
+        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
+            jobName = vars.get(Metrics.JOB_NAME);
+        }
+
+        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
+            jobId = vars.get(Metrics.JOB_ID);
+        }
+    }
+
+    private void initStatisticsAccumulator(){
+        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+        numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+
+        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
+    }
+
+    private void openErrorLimiter(){
+        if(StringUtils.isNotBlank(monitorUrl)) {
+            if(errors != null || errorRatio != null) {
+                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
+                errorLimiter.start();
+            }
+        }
+    }
+
+    private void openDirtyDataManager(){
+        if(StringUtils.isNotBlank(dirtyPath)) {
+            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]));
+            dirtyDataManager.open();
+        }
+    }
+
     protected boolean needWaitBeforeOpenInternal() {
         return false;
     }
@@ -254,7 +251,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     }
 
     protected void writeSingleRecord(Row row) {
-        // 若错误数超过限制,则抛异常而退出
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
@@ -263,39 +259,44 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             writeSingleRecordInternal(row);
 
             if(!restoreConfig.isRestore()){
-                // 总记录数加1
                 numWriteCounter.add(1);
             }
         } catch(WriteRecordException e) {
-            errCounter.add(1);
-            String errMsg = e.getMessage();
-
-            int pos = e.getColIndex();
-            if (pos != -1) {
-               errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
-            }
-
-            if(errorLimiter != null) {
-                errorLimiter.setErrMsg(errMsg);
-                errorLimiter.setErrorData(row);
-            }
-
-            if(dirtyDataManager != null) {
-                String errorType = dirtyDataManager.writeData(row, e);
-                if (ERR_NULL_POINTER.equals(errorType)){
-                    nullErrCounter.add(1);
-                } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
-                    conversionErrCounter.add(1);
-                } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
-                    duplicateErrCounter.add(1);
-                } else {
-                    otherErrCounter.add(1);
-                }
-            }
+            saveErrorData(row, e);
+            updateStatisticsOfDirtyData(row, e);
 
             LOG.error(e.getMessage());
         }
+    }
 
+    private void saveErrorData(Row row, WriteRecordException e){
+        errCounter.add(1);
+
+        String errMsg = e.getMessage();
+        int pos = e.getColIndex();
+        if (pos != -1) {
+            errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
+        }
+
+        if(errorLimiter != null) {
+            errorLimiter.setErrMsg(errMsg);
+            errorLimiter.setErrorData(row);
+        }
+    }
+
+    private void updateStatisticsOfDirtyData(Row row, WriteRecordException e){
+        if(dirtyDataManager != null) {
+            String errorType = dirtyDataManager.writeData(row, e);
+            if (ERR_NULL_POINTER.equals(errorType)){
+                nullErrCounter.add(1);
+            } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
+                conversionErrCounter.add(1);
+            } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
+                duplicateErrCounter.add(1);
+            } else {
+                otherErrCounter.add(1);
+            }
+        }
     }
 
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
@@ -329,23 +330,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     @Override
     public void writeRecord(Row row) throws IOException {
-        /*
-         * Remove channel information from the data
-         */
-        Row internalRow = new Row(row.getArity() - 1);
-        for (int i = 0; i < internalRow.getArity(); i++) {
-            internalRow.setField(i, row.getField(i));
-        }
-
-        if(restoreConfig.isRestore() && !readyWrite && initState != null){
-            Object currentState = internalRow.getField(restoreConfig.getRestoreColumnIndex());
-            if(currentState != null){
-                readyWrite = currentState.toString().compareTo(initState.toString()) > 0;
-            }
-
-            if(!readyWrite){
-                return;
-            }
+        Row internalRow = setChannelInfo(row);
+        if(!readyWrite(internalRow)){
+            return;
         }
 
         if(batchInterval <= 1) {
@@ -358,6 +345,28 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
     }
 
+    private Row setChannelInfo(Row row){
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
+
+        return internalRow;
+    }
+
+    private boolean readyWrite(Row row){
+        if(restoreConfig.isRestore() && !readyWrite && initState != null){
+            Object currentState = row.getField(restoreConfig.getRestoreColumnIndex());
+            if(currentState != null){
+                readyWrite = currentState.toString().compareTo(initState.toString()) > 0;
+            }
+
+            return readyWrite;
+        }
+
+        return true;
+    }
+
     @Override
     public void close() throws IOException {
         LOG.info("subtask[" + taskNumber + "] close()");
@@ -366,19 +375,16 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
+
             if(needWaitBeforeCloseInternal()) {
-                Latch latch = newLatch("#3");
                 beforeCloseInternal();
-                latch.addOne();
-                latch.waitUntil(numTasks);
+                waitWhile("#3");
             }
         }finally {
             try{
                 closeInternal();
                 if(needWaitAfterCloseInternal()) {
-                    Latch latch = newLatch("#4");
-                    latch.addOne();
-                    latch.waitUntil(numTasks);
+                    waitWhile("#4");
                 }
                 afterCloseInternal();
             }finally {
@@ -386,23 +392,24 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                     dirtyDataManager.close();
                 }
 
-                if(errorLimiter != null) {
-                    try{
-                        // Wait a while before checking dirty data
-                        Latch latch = newLatch("#5");
-                        latch.addOne();
-                        latch.waitUntil(numTasks);
-
-                        errorLimiter.updateErrorInfo();
-                    } catch (Exception e){
-                        LOG.warn("Update error info error when task closing:{}", e);
-                    }
-
-                    errorLimiter.acquire();
-                    errorLimiter.stop();
-                }
+                checkErrorLimit();
             }
             LOG.info("subtask[" + taskNumber + "] close() finished");
+        }
+    }
+
+    private void checkErrorLimit(){
+        if(errorLimiter != null) {
+            try{
+                waitWhile("#5");
+
+                errorLimiter.updateErrorInfo();
+            } catch (Exception e){
+                LOG.warn("Update error info error when task closing: ", e);
+            }
+
+            errorLimiter.acquire();
+            errorLimiter.stop();
         }
     }
 
@@ -484,6 +491,12 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected void afterCloseInternal()  {
         // nothing
+    }
+
+    protected void waitWhile(String latchName){
+        Latch latch = newLatch(latchName);
+        latch.addOne();
+        latch.waitUntil(numTasks);
     }
 
     protected Latch newLatch(String latchName) {
