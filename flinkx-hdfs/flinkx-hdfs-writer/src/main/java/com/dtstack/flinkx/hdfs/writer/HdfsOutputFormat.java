@@ -254,6 +254,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     public void tryCleanupOnError() throws Exception {
         if(!restoreConfig.isRestore() && fs != null) {
+            LOG.info("Clean temporary data in method tryCleanupOnError");
             clearTemporaryDataFiles();
         }
     }
@@ -284,6 +285,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 waitForAllTasksToFinish();
                 coverageData();
                 moveTemporaryDataFileToDirectory();
+
+                LOG.info("The task ran successfully,clear temporary data files");
                 clearTemporaryDataFiles();
             }
 
