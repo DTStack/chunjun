@@ -51,6 +51,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected int rowGroupSize;
 
+    protected static final String APPEND_MODE = "APPEND";
+
     protected static final String DATA_SUBDIR = ".data";
 
     protected static final String FINISHED_SUBDIR = ".finished";
@@ -166,11 +168,11 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
 
         configInternal();
+
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         String dateString = formatter.format(currentTime);
         currentBlockFileNamePrefix = taskNumber + "." + dateString;
-
         tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + jobId + SP + taskNumber;
 
@@ -182,7 +184,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     public void beforeWriteRecords(){
         if (formatState == null || formatState.getState() == null) {
             try {
-                cleanTempDir();
+                LOG.info("Delete [.data] dir before write records");
+                clearTemporaryDataFiles();
             } catch (Exception e) {
                 LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
             }
@@ -221,7 +224,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    protected void tmpToData(){
+    protected void moveTemporaryDataBlockFileToDirectory(){
         try {
             if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
                 Path src = new Path(tmpPath + SP + currentBlockFileName);
@@ -251,11 +254,11 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     public void tryCleanupOnError() throws Exception {
         if(!restoreConfig.isRestore() && fs != null) {
-            cleanTempDir();
+            clearTemporaryDataFiles();
         }
     }
 
-    private void cleanTempDir() throws Exception{
+    private void clearTemporaryDataFiles() throws Exception{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         fs.delete(finishedDir, true);
         LOG.info("Delete .finished dir:{}", finishedDir);
@@ -268,73 +271,95 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     @Override
     protected void afterCloseInternal()  {
         try {
-            // 判断任务是不是正常结束
-            String state = getTaskState();
-            if(!RUNNING_STATE.equals(state)){
-                if (!restoreConfig.isRestore()){
-                    cleanTempDir();
-                }
-                fs.close();
+            if(!isTaskEndsNormally()){
                 return;
             }
 
-            // write finished file
             fs.createNewFile(new Path(finishedPath));
             LOG.info("Create finished tag dir:{}", finishedPath);
 
-            // task_0 move tmp data into destination
+            numWriteCounter.add(rowsOfCurrentBlock);
+
             if(taskNumber == 0) {
-                Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
-                final int maxRetryTime = 100;
-                int i = 0;
-                for(; i < maxRetryTime; ++i) {
-                    if(fs.listStatus(finishedDir).length == numTasks) {
-                        break;
-                    }
-                    SysUtil.sleep(3000);
-                }
-
-                if (i == maxRetryTime) {
-                    fs.delete(new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId), true);
-                    fs.delete(finishedDir, true);
-                    throw new RuntimeException("timeout when gathering finish tags for each subtasks");
-                }
-
-                PathFilter pathFilter = path -> !path.getName().startsWith(".");
-
-                // 不是追加模式，清除目录
-                Path dir = new Path(outputFilePath);
-                if(!"APPEND".equalsIgnoreCase(writeMode)){
-                    if(fs.exists(dir)) {
-                        FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-                        for(FileStatus dataFile : dataFiles) {
-                            fs.delete(dataFile.getPath(), true);
-                        }
-                        fs.mkdirs(dir);
-                    }
-                }
-
-                List<FileStatus> dataFiles = new ArrayList<>();
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-                FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
-                for (FileStatus fileStatus : historyTmpDataDir) {
-                    if (fileStatus.isDirectory()){
-                        dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
-                    }
-                }
-
-                for(FileStatus dataFile : dataFiles) {
-                    fs.rename(dataFile.getPath(), dir);
-                    LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
-                }
-
-                cleanTempDir();
+                waitForAllTasksToFinish();
+                coverageData();
+                moveTemporaryDataFileToDirectory();
+                clearTemporaryDataFiles();
             }
+
             fs.close();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
 
+    private boolean isTaskEndsNormally() throws Exception{
+        String state = getTaskState();
+        LOG.info("State of current task is:[{}]", state);
+        if(!RUNNING_STATE.equals(state)){
+            if (!restoreConfig.isRestore()){
+                LOG.info("The task does not end normally, clear the temporary data file");
+                clearTemporaryDataFiles();
+            }
+            fs.close();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void waitForAllTasksToFinish() throws Exception{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
+        final int maxRetryTime = 100;
+        int i = 0;
+        for(; i < maxRetryTime; ++i) {
+            if(fs.listStatus(finishedDir).length == numTasks) {
+                break;
+            }
+            SysUtil.sleep(3000);
+        }
+
+        if (i == maxRetryTime) {
+            fs.delete(new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId), true);
+            fs.delete(finishedDir, true);
+            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+        }
+    }
+
+    private void coverageData() throws Exception{
+        if(APPEND_MODE.equalsIgnoreCase(writeMode)){
+            return;
+        }
+
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+
+        Path dir = new Path(outputFilePath);
+        if(fs.exists(dir)) {
+            FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
+            for(FileStatus dataFile : dataFiles) {
+                fs.delete(dataFile.getPath(), true);
+            }
+            fs.mkdirs(dir);
+        }
+    }
+
+    private void moveTemporaryDataFileToDirectory() throws Exception{
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+        Path dir = new Path(outputFilePath);
+        List<FileStatus> dataFiles = new ArrayList<>();
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+
+        FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
+        for (FileStatus fileStatus : historyTmpDataDir) {
+            if (fileStatus.isDirectory()){
+                dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
+            }
+        }
+
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
     }
 
     /**

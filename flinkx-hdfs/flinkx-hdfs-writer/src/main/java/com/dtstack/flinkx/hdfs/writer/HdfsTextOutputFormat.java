@@ -57,7 +57,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
         try {
             if (restoreConfig.isRestore()){
-                tmpToData();
+                moveTemporaryDataBlockFileToDirectory();
                 currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
             } else {
                 currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
@@ -67,16 +67,16 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             Path p  = new Path(currentBlockTmpPath);
             if(compress == null || compress.length() == 0) {
                 stream = fs.create(p);
-            } else if (ECompressType.GZIP.getType().equalsIgnoreCase(compress)) {
-                currentBlockTmpPath = currentBlockTmpPath + ECompressType.GZIP.getSuffix();
-                p = new Path(currentBlockTmpPath);
-                stream = new GzipCompressorOutputStream(fs.create(p));
-            } else if (ECompressType.BZIP2.getType().equalsIgnoreCase(compress)) {
-                currentBlockTmpPath = currentBlockTmpPath + ECompressType.BZIP2.getSuffix();
-                p = new Path(currentBlockTmpPath);
-                stream = new BZip2CompressorOutputStream(fs.create(p));
             } else {
-                throw new IllegalArgumentException("Unsupported compress type: " + compress);
+                ECompressType compressType = ECompressType.getByType(compress);
+                currentBlockTmpPath = currentBlockTmpPath + compressType.getSuffix();
+                p = new Path(currentBlockTmpPath);
+
+                if (compressType == ECompressType.GZIP){
+                    stream = new GzipCompressorOutputStream(fs.create(p));
+                } else if(compressType == ECompressType.BZIP2){
+                    stream = new BZip2CompressorOutputStream(fs.create(p));
+                }
             }
 
             blockIndex++;
@@ -239,7 +239,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             this.stream = null;
             s.close();
 
-            tmpToData();
+            moveTemporaryDataBlockFileToDirectory();
         }
     }
 

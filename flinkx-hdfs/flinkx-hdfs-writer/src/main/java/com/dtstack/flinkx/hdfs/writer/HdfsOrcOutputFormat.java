@@ -99,7 +99,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
         try {
             if (restoreConfig.isRestore()){
-                tmpToData();
+                moveTemporaryDataBlockFileToDirectory();
                 currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
             } else {
                 currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
@@ -136,7 +136,6 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-
         if (restoreConfig.isRestore()){
             nextBlock();
 
@@ -152,84 +151,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
         try {
             List<Object> recordList = new ArrayList<>();
             for (; i < fullColumnNames.size(); ++i) {
-                int j = colIndices[i];
-                if(j == -1) {
-                    recordList.add(null);
-                    continue;
-                }
-
-                Object column = row.getField(j);
-
-                if (column == null) {
-                    recordList.add(null);
-                    continue;
-                }
-
-                ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
-                String rowData = column.toString();
-                if(rowData == null || rowData.length() == 0){
-                    recordList.add(null);
-                } else {
-                    switch (columnType) {
-                        case TINYINT:
-                            recordList.add(Byte.valueOf(rowData));
-                            break;
-                        case SMALLINT:
-                            recordList.add(Short.valueOf(rowData));
-                            break;
-                        case INT:
-                            recordList.add(Integer.valueOf(rowData));
-                            break;
-                        case BIGINT:
-                            if (column instanceof Timestamp){
-                                column=((Timestamp) column).getTime();
-                                recordList.add(column);
-                                break;
-                            }
-                            BigInteger data = new BigInteger(rowData);
-                            if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
-                                recordList.add(data);
-                            } else {
-                                recordList.add(Long.valueOf(rowData));
-                            }
-                            break;
-                        case FLOAT:
-                            recordList.add(Float.valueOf(rowData));
-                            break;
-                        case DOUBLE:
-                            recordList.add(Double.valueOf(rowData));
-                            break;
-                        case DECIMAL:
-                            HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
-                            HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
-                            recordList.add(hiveDecimalWritable);
-                            break;
-                        case STRING:
-                        case VARCHAR:
-                        case CHAR:
-                            if (column instanceof Timestamp){
-                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
-                                recordList.add(fm.format(column));
-                            }else {
-                                recordList.add(rowData);
-                            }
-                            break;
-                        case BOOLEAN:
-                            recordList.add(Boolean.valueOf(rowData));
-                            break;
-                        case DATE:
-                            recordList.add(DateUtil.columnToDate(column,null));
-                            break;
-                        case TIMESTAMP:
-                            recordList.add(DateUtil.columnToTimestamp(column,null));
-                            break;
-                        case BINARY:
-                            recordList.add(new BytesWritable(rowData.getBytes()));
-                            break;
-                        default:
-                            throw new IllegalArgumentException();
-                    }
-                }
+                getData(recordList, i, row);
             }
 
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
@@ -242,7 +164,87 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
+    }
 
+    private void getData(List<Object> recordList, int index, Row row){
+        int j = colIndices[index];
+        if(j == -1) {
+            recordList.add(null);
+            return;
+        }
+
+        Object column = row.getField(j);
+        if (column == null) {
+            recordList.add(null);
+            return;
+        }
+
+        ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
+        String rowData = column.toString();
+        if(rowData == null || rowData.length() == 0){
+            recordList.add(null);
+            return;
+        }
+
+        switch (columnType) {
+            case TINYINT:
+                recordList.add(Byte.valueOf(rowData));
+                break;
+            case SMALLINT:
+                recordList.add(Short.valueOf(rowData));
+                break;
+            case INT:
+                recordList.add(Integer.valueOf(rowData));
+                break;
+            case BIGINT:
+                if (column instanceof Timestamp){
+                    column=((Timestamp) column).getTime();
+                    recordList.add(column);
+                    break;
+                }
+                BigInteger data = new BigInteger(rowData);
+                if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                    recordList.add(data);
+                } else {
+                    recordList.add(Long.valueOf(rowData));
+                }
+                break;
+            case FLOAT:
+                recordList.add(Float.valueOf(rowData));
+                break;
+            case DOUBLE:
+                recordList.add(Double.valueOf(rowData));
+                break;
+            case DECIMAL:
+                HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
+                HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
+                recordList.add(hiveDecimalWritable);
+                break;
+            case STRING:
+            case VARCHAR:
+            case CHAR:
+                if (column instanceof Timestamp){
+                    SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                    recordList.add(fm.format(column));
+                }else {
+                    recordList.add(rowData);
+                }
+                break;
+            case BOOLEAN:
+                recordList.add(Boolean.valueOf(rowData));
+                break;
+            case DATE:
+                recordList.add(DateUtil.columnToDate(column,null));
+                break;
+            case TIMESTAMP:
+                recordList.add(DateUtil.columnToTimestamp(column,null));
+                break;
+            case BINARY:
+                recordList.add(new BytesWritable(rowData.getBytes()));
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override
@@ -258,7 +260,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             rw.close(Reporter.NULL);
             this.recordWriter = null;
 
-            tmpToData();
+            moveTemporaryDataBlockFileToDirectory();
         }
     }
 

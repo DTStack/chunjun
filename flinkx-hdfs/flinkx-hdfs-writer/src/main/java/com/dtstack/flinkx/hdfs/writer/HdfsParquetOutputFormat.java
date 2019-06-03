@@ -89,7 +89,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
         try {
             if (restoreConfig.isRestore()){
-                tmpToData();
+                moveTemporaryDataBlockFileToDirectory();
                 currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
             } else {
                 currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
@@ -265,7 +265,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     public void closeInternal() throws IOException {
         if (writer != null){
             writer.close();
-            tmpToData();
+            moveTemporaryDataBlockFileToDirectory();
         }
     }
 

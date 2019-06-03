@@ -48,6 +48,16 @@ public enum ECompressType {
         this.suffix = suffix;
     }
 
+    public static ECompressType getByType(String type){
+        for (ECompressType value : ECompressType.values()) {
+            if (value.getType().equalsIgnoreCase(type)){
+                return value;
+            }
+        }
+
+        throw new IllegalArgumentException("Unsupported compress type: " + type);
+    }
+
     public String getType() {
         return type;
     }
