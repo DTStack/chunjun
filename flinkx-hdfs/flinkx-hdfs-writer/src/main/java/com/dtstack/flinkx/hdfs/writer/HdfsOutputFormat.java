@@ -216,6 +216,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             try{
                 fs.delete(new Path(tmpPath + SP + currentBlockFileName), true);
                 fs.close();
+                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
             }catch (Exception e1){
                 throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
             }
@@ -323,8 +324,13 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
 
         if (i == maxRetryTime) {
-            fs.delete(new Path(outputFilePath + SP + DATA_SUBDIR + SP + jobId), true);
+            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
+            fs.delete(new Path(subTaskDataPath), true);
+            LOG.info("waitForAllTasksToFinish: delete path:[{}]", subTaskDataPath);
+
             fs.delete(finishedDir, true);
+            LOG.info("waitForAllTasksToFinish: delete finished dir:[{}]", finishedDir);
+
             throw new RuntimeException("timeout when gathering finish tags for each subtasks");
         }
     }
@@ -334,14 +340,18 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             return;
         }
 
+        LOG.info("Overwrite the original data");
         PathFilter pathFilter = path -> !path.getName().startsWith(".");
 
         Path dir = new Path(outputFilePath);
         if(fs.exists(dir)) {
             FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
             for(FileStatus dataFile : dataFiles) {
+                LOG.info("coverageData:delete path:[{}]", dataFile.getPath());
                 fs.delete(dataFile.getPath(), true);
             }
+
+            LOG.info("coverageData:make dir:[{}]", outputFilePath);
             fs.mkdirs(dir);
         }
     }
