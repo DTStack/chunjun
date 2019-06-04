@@ -260,7 +260,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void clearTemporaryDataFiles() throws Exception{
+    private void clearTemporaryDataFiles() throws IOException{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         fs.delete(finishedDir, true);
         LOG.info("Delete .finished dir:{}", finishedDir);
@@ -297,7 +297,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private boolean isTaskEndsNormally() throws Exception{
+    protected boolean isTaskEndsNormally() throws IOException{
         String state = getTaskState();
         LOG.info("State of current task is:[{}]", state);
         if(!RUNNING_STATE.equals(state)){
@@ -312,7 +312,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         return true;
     }
 
-    private void waitForAllTasksToFinish() throws Exception{
+    private void waitForAllTasksToFinish() throws IOException{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
         final int maxRetryTime = 100;
         int i = 0;
@@ -335,7 +335,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void coverageData() throws Exception{
+    private void coverageData() throws IOException{
         if(APPEND_MODE.equalsIgnoreCase(writeMode)){
             return;
         }
@@ -356,7 +356,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void moveTemporaryDataFileToDirectory() throws Exception{
+    private void moveTemporaryDataFileToDirectory() throws IOException{
         PathFilter pathFilter = path -> !path.getName().startsWith(".");
         Path dir = new Path(outputFilePath);
         List<FileStatus> dataFiles = new ArrayList<>();

@@ -239,7 +239,9 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             this.stream = null;
             s.close();
 
-            moveTemporaryDataBlockFileToDirectory();
+            if(isTaskEndsNormally()){
+                moveTemporaryDataBlockFileToDirectory();
+            }
         }
     }
 

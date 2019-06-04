@@ -265,7 +265,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     public void closeInternal() throws IOException {
         if (writer != null){
             writer.close();
-            moveTemporaryDataBlockFileToDirectory();
+
+            if(isTaskEndsNormally()){
+                moveTemporaryDataBlockFileToDirectory();
+            }
         }
     }
 

@@ -260,7 +260,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             rw.close(Reporter.NULL);
             this.recordWriter = null;
 
-            moveTemporaryDataBlockFileToDirectory();
+            if(isTaskEndsNormally()){
+                moveTemporaryDataBlockFileToDirectory();
+            }
         }
     }
 
