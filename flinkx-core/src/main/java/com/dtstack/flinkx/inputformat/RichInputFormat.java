@@ -95,6 +95,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             closeInternal();
 
             if (inputMetric.getDelayPeriodMill() != 0){
+                LOG.info("Wait for metrics reported:[{}]", inputMetric.getDelayPeriodMill());
                 SysUtil.sleep(inputMetric.getDelayPeriodMill());
             }
         }catch (Exception e){
