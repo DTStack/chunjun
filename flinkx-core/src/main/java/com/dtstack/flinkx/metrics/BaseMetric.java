@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +16,14 @@
  * limitations under the License.
  */
 
+
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.util.SysUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.metrics.MetricRegistryImpl;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
@@ -35,39 +38,61 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * company: www.dtstack.com
- *
- * @author: toutian
- * create: 2019/3/18
+ * @author jiangbo
+ * @date 2019/6/5
  */
-public class InputMetric {
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+public class BaseMetric {
 
-    private RuntimeContext runtimeContext;
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private final static Long DEFAULT_PERIOD_MILLISECONDS = 10000L;
 
     private Long delayPeriodMill = 12000L;
 
-    public InputMetric(RuntimeContext runtimeContext, LongCounter numRead) {
+    private RuntimeContext runtimeContext;
+
+    private MetricGroup flinkxOutput;
+
+    private String sourceName;
+
+    private long totalWaitMill = 0;
+
+    private long maxWaitMill;
+
+    public BaseMetric(RuntimeContext runtimeContext, String sourceName) {
         this.runtimeContext = runtimeContext;
-
-        final MetricGroup flinkxInput = getRuntimeContext().getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_INPUT);
-
-        flinkxInput.gauge(Metrics.NUM_READS, new SimpleAccumulatorGauge<Long>(numRead));
+        this.sourceName = sourceName;
 
         initPeriod();
+
+        flinkxOutput = runtimeContext.getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
+        maxWaitMill = TaskManagerOptions.TASK_CANCELLATION_INTERVAL.defaultValue();
     }
 
-    private RuntimeContext getRuntimeContext() {
-        return runtimeContext;
+    public void addMetric(String metricName, LongCounter counter){
+        flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<Long>(counter));
     }
 
-    public Long getDelayPeriodMill() {
-        return delayPeriodMill;
+    public void waitForReportMetrics(){
+        if(delayPeriodMill == 0){
+            return;
+        }
+
+        if(totalWaitMill + delayPeriodMill > maxWaitMill){
+            return;
+        }
+
+        try {
+            Thread.sleep(delayPeriodMill);
+            totalWaitMill += delayPeriodMill;
+        } catch (InterruptedException e){
+            SysUtil.sleep(delayPeriodMill);
+            totalWaitMill += delayPeriodMill;
+            LOG.warn("Task [{}] thread is interrupted", sourceName);
+        }
     }
 
-    public void initPeriod() {
+    private void initPeriod() {
         try {
             MetricGroup mgObj = runtimeContext.getMetricGroup();
             Class<AbstractMetricGroup> amgCls = (Class<AbstractMetricGroup>) mgObj.getClass().getSuperclass().getSuperclass();
@@ -95,7 +120,9 @@ public class InputMetric {
 
             LOG.info("InputMetric.scheduledFutureTask.schedulePeriodMill:{} ...", schedulePeriodMill);
 
-            if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
+            if(schedulePeriodMill > maxWaitMill){
+                delayPeriodMill = maxWaitMill;
+            } else if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
                 this.delayPeriodMill = (long) (schedulePeriodMill * 1.2);
             }
         } catch (Exception e) {
