@@ -74,10 +74,6 @@ public class BaseMetric {
     }
 
     public void waitForReportMetrics(){
-        if(delayPeriodMill == 0){
-            return;
-        }
-
         if(totalWaitMill + delayPeriodMill > maxWaitMill){
             return;
         }
@@ -125,6 +121,8 @@ public class BaseMetric {
             } else if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
                 this.delayPeriodMill = (long) (schedulePeriodMill * 1.2);
             }
+
+            delayPeriodMill = delayPeriodMill == 0 ? DEFAULT_PERIOD_MILLISECONDS : delayPeriodMill;
         } catch (Exception e) {
             LOG.error("{}", e);
         }
