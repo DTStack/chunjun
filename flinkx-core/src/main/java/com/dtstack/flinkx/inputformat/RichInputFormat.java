@@ -20,7 +20,7 @@ package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.InputMetric;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
@@ -58,7 +58,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected FormatState formatState;
 
-    protected transient InputMetric inputMetric;
+    protected transient BaseMetric inputMetric;
 
     protected int indexOfSubtask;
 
@@ -76,7 +76,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
         indexOfSubtask = getRuntimeContext().getIndexOfThisSubtask();
 
-        inputMetric = new InputMetric(getRuntimeContext(), numReadCounter);
+        inputMetric = new BaseMetric(getRuntimeContext(), "reader");
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
 
         openInternal(inputSplit);
 
@@ -144,9 +145,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         try{
             closeInternal();
 
-            if (inputMetric.getDelayPeriodMill() != 0){
-                SysUtil.sleep(inputMetric.getDelayPeriodMill());
-            }
+            inputMetric.waitForReportMetrics();
         }catch (Exception e){
             throw new RuntimeException(e);
         }finally {

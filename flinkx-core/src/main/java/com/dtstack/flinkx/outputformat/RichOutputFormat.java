@@ -24,7 +24,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
-import com.dtstack.flinkx.metrics.OutputMetric;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
@@ -32,7 +32,6 @@ import com.dtstack.flinkx.writer.ErrorLimiter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
@@ -82,19 +81,19 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     protected LongCounter numWriteCounter;
 
     /** 错误记录数 */
-    protected IntCounter errCounter;
+    protected LongCounter errCounter;
 
     /** Number of null pointer errors */
-    protected IntCounter nullErrCounter;
+    protected LongCounter nullErrCounter;
 
     /** Number of primary key conflict errors */
-    protected IntCounter duplicateErrCounter;
+    protected LongCounter duplicateErrCounter;
 
     /** Number of type conversion errors */
-    protected IntCounter conversionErrCounter;
+    protected LongCounter conversionErrCounter;
 
     /** Number of other errors */
-    protected IntCounter otherErrCounter;
+    protected LongCounter otherErrCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
@@ -130,7 +129,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected boolean readyWrite = false;
 
-    protected transient OutputMetric outputMetric;
+    protected transient BaseMetric outputMetric;
 
     public String getDirtyPath() {
         return dirtyPath;
@@ -216,14 +215,20 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     }
 
     private void initStatisticsAccumulator(){
-        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
-        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
-        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
-        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
-        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+        errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
 
-        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
+        outputMetric = new BaseMetric(context, "writer");
+        outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
+        outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
+        outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
+        outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
+        outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
     }
 
     private void openErrorLimiter(){
@@ -375,6 +380,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
+
+            outputMetric.waitForReportMetrics();
 
             if(needWaitBeforeCloseInternal()) {
                 beforeCloseInternal();
