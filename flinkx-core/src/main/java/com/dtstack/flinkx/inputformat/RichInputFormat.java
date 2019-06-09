@@ -25,6 +25,7 @@ import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
 import com.dtstack.flinkx.util.SysUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -50,6 +51,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
     protected LongCounter numReadCounter;
+    protected LongCounter readBytesCounter;
     protected String monitorUrls;
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
@@ -73,19 +75,30 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
-        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
-        indexOfSubtask = getRuntimeContext().getIndexOfThisSubtask();
-
-        inputMetric = new BaseMetric(getRuntimeContext(), "reader");
-        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
-
+        initStatisticsAccumulator();
         openInternal(inputSplit);
+        openByteRateLImiter();
+        initRestoreInfo();
+    }
 
+    private void openByteRateLImiter(){
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
         }
+    }
 
+    private void initStatisticsAccumulator(){
+        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        readBytesCounter = getRuntimeContext().getLongCounter(Metrics.BYTES_READS);
+        indexOfSubtask = getRuntimeContext().getIndexOfThisSubtask();
+
+        inputMetric = new BaseMetric(getRuntimeContext(), "reader");
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
+        inputMetric.addMetric(Metrics.BYTES_READS, readBytesCounter);
+    }
+
+    private void initRestoreInfo(){
         if(restoreConfig == null){
             restoreConfig = RestoreConfig.defaultConfig();
         } else if(restoreConfig.isRestore()){
@@ -107,10 +120,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
 
-        /*
-         * Append channel information after the data
-         */
         Row internalRow = nextRecordInternal(row);
+        internalRow = setChannelInformation(internalRow);
+        readBytesCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
+
+        return internalRow;
+    }
+
+    private Row setChannelInformation(Row internalRow){
         if (internalRow != null){
             if (restoreConfig.isRestore()){
                 limitedQueue.offer(internalRow.getField(restoreConfig.getRestoreColumnIndex()));
@@ -123,9 +140,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
             rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
             return rowWithChannel;
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**

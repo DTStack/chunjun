@@ -80,6 +80,8 @@ public class BaseMetric {
 
         try {
             Thread.sleep(delayPeriodMill);
+            LOG.info("Wait [{}] millisecond for [{}]", delayPeriodMill, sourceName);
+
             totalWaitMill += delayPeriodMill;
         } catch (InterruptedException e){
             SysUtil.sleep(delayPeriodMill);

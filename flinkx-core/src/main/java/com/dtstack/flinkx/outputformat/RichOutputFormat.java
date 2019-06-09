@@ -31,6 +31,7 @@ import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -94,6 +95,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     /** Number of other errors */
     protected LongCounter otherErrCounter;
+
+    protected LongCounter writeBytesCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
@@ -221,6 +224,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
         otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        writeBytesCounter = context.getLongCounter(Metrics.BYTES_WRITES);
 
         outputMetric = new BaseMetric(context, "writer");
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
@@ -229,6 +233,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
         outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
+        outputMetric.addMetric(Metrics.BYTES_WRITES, writeBytesCounter);
     }
 
     private void openErrorLimiter(){
@@ -348,6 +353,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 writeRecordInternal();
             }
         }
+
+        writeBytesCounter.add(ObjectSizeCalculator.getObjectSize(row));
     }
 
     private Row setChannelInfo(Row row){
@@ -381,8 +388,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 writeRecordInternal();
             }
 
-            outputMetric.waitForReportMetrics();
-
             if(needWaitBeforeCloseInternal()) {
                 beforeCloseInternal();
                 waitWhile("#3");
@@ -394,6 +399,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                     waitWhile("#4");
                 }
                 afterCloseInternal();
+
+                outputMetric.waitForReportMetrics();
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
@@ -450,6 +457,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 LOG.info("Job state is:{}", taskState);
 
                 if(taskState != null){
+                    httpClient.close();
                     return taskState;
                 }
 

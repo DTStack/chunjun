@@ -400,6 +400,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
+        numWriteCounter.add(rowsOfCurrentTransaction);
+
         DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
 

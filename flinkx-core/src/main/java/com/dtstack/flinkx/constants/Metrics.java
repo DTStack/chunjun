@@ -38,6 +38,8 @@ public class Metrics {
 
     public static String NUM_WRITES = "numWrite";
 
+    public static String BYTES_WRITES = "bytesWrite";
+
     public static String JOB_NAME = "<job_name>";
 
     public static String JOB_ID = "<job_id>";
@@ -45,6 +47,8 @@ public class Metrics {
     public static String NUM_BEFORES = "nBefores";
 
     public static String NUM_READS = "numRead";
+
+    public static String BYTES_READS = "bytesRead";
 
     public static String END_LOCATION = "endLocation";
 

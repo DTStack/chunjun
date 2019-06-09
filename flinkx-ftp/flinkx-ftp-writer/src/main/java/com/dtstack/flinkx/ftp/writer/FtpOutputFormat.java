@@ -154,7 +154,7 @@ public class FtpOutputFormat extends RichOutputFormat {
             return;
         }
 
-        tmpToData();
+        moveTemporaryDataBlockFileToDirectory();
 
         currentFileName = DOT + fileIndex + currentFileNamePrefix;
         String filePath = path + SP + tempPath + SP + currentFileName;
@@ -165,7 +165,7 @@ public class FtpOutputFormat extends RichOutputFormat {
     /**
      * rename .xxxxx.csv to xxxxx.csv
      */
-    private void tmpToData(){
+    private void moveTemporaryDataBlockFileToDirectory(){
         if (currentFileName == null || !currentFileName.startsWith(DOT)){
             return;
         }
@@ -246,18 +246,8 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     @Override
     protected void afterCloseInternal(){
-        try{
-            String state = getTaskState();
-            if(!RUNNING_STATE.equals(state)){
-                if (!restoreConfig.isRestore()){
-                    ftpHandler.deleteAllFilesInDir(path + SP + tempPath, null);
-                }
-
-                ftpHandler.logoutFtpServer();
-                return;
-            }
-        } catch (IOException e){
-            throw new RuntimeException(e);
+        if(!isTaskEndsNormally()){
+            return;
         }
 
         if (restoreConfig.isRestore() && ftpHandler != null){
@@ -266,41 +256,79 @@ public class FtpOutputFormat extends RichOutputFormat {
             ftpHandler.mkDirRecursive(finishedTag);
         }
 
-        tmpToData();
+        numWriteCounter.add(rowsOfCurrentFile);
+
+        moveTemporaryDataBlockFileToDirectory();
 
         if (taskNumber == 0){
-            final int maxRetryTime = 10;
-            for (int i = 0; i < maxRetryTime; i++) {
-                int finishedTaskNum = ftpHandler.listDirs(path + SP + finishedTagPath).size();
-                LOG.info("The number of finished task is:{}", finishedTaskNum);
-                if(finishedTaskNum == numTasks){
-                    break;
-                }
-
-                SysUtil.sleep(3000);
-            }
-
-            boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(path);
-            if(cleanPath){
-                ftpHandler.deleteAllFilesInDir(path, Arrays.asList(tempPath));
-            }
-
-            try{
-                List<String> files = ftpHandler.getFiles(path + SP + tempPath);
-                for (String file : files) {
-                    String fileName = file.substring(file.lastIndexOf(SP) + 1);
-                    if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
-                        String newPath = path + SP + fileName;
-                        LOG.info("Move file {} to path {}", file, newPath);
-                        ftpHandler.rename(file, newPath);
-                    }
-                }
-            }catch (Exception e){
-                throw new RuntimeException("Rename temp file error:", e);
-            }
+            waitForAllTasksToFinish();
+            coverageData();
+            moveTemporaryDataFileToDirectory();
 
             ftpHandler.deleteAllFilesInDir(path + SP + tempPath, null);
             ftpHandler.logoutFtpServer();
+        }
+    }
+
+    private boolean isTaskEndsNormally(){
+        try{
+            String state = getTaskState();
+            if(!RUNNING_STATE.equals(state)){
+                if (!restoreConfig.isRestore()){
+                    ftpHandler.deleteAllFilesInDir(path + SP + tempPath, null);
+                }
+
+                ftpHandler.logoutFtpServer();
+                return false;
+            }
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
+        return true;
+    }
+
+    private void waitForAllTasksToFinish(){
+        final int maxRetryTime = 100;
+        int i = 0;
+        for (; i < maxRetryTime; i++) {
+            int finishedTaskNum = ftpHandler.listDirs(path + SP + finishedTagPath).size();
+            LOG.info("The number of finished task is:{}", finishedTaskNum);
+            if(finishedTaskNum == numTasks){
+                break;
+            }
+
+            SysUtil.sleep(3000);
+        }
+
+        if (i == maxRetryTime) {
+            String finishedTag = path + SP + finishedTagPath + SP + taskNumber + "_finished";
+            ftpHandler.deleteAllFilesInDir(finishedTag, null);
+
+            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+        }
+    }
+
+    private void coverageData(){
+        boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(path);
+        if(cleanPath){
+            ftpHandler.deleteAllFilesInDir(path, Arrays.asList(tempPath));
+        }
+    }
+
+    private void moveTemporaryDataFileToDirectory(){
+        try{
+            List<String> files = ftpHandler.getFiles(path + SP + tempPath);
+            for (String file : files) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                    String newPath = path + SP + fileName;
+                    LOG.info("Move file {} to path {}", file, newPath);
+                    ftpHandler.rename(file, newPath);
+                }
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Rename temp file error:", e);
         }
     }
 

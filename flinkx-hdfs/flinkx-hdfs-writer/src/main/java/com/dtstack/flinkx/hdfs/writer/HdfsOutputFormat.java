@@ -49,6 +49,8 @@ import org.apache.hadoop.conf.Configuration;
  */
 public abstract class HdfsOutputFormat extends RichOutputFormat {
 
+    private long recordNumOfFileBlock = 5000;
+
     protected int rowGroupSize;
 
     protected static final String APPEND_MODE = "APPEND";
@@ -114,12 +116,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected long lastWriteSize;
 
-    private String taskId;
-
-    private CloseableHttpClient httpClient;
-
-    private transient final Gson gson = new Gson();
-
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
@@ -176,8 +172,12 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + jobId + SP + taskNumber;
 
-        httpClient = HttpClientBuilder.create().build();
         open();
+    }
+
+    @Override
+    protected boolean needWaitBeforeWriteRecords() {
+        return true;
     }
 
     @Override
@@ -203,11 +203,11 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || overMaxRows){
                 flushBlock();
 
+                numWriteCounter.add(rowsOfCurrentBlock);
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 formatState.setNumberWrite(numWriteCounter.getLocalValue());
-                numWriteCounter.add(rowsOfCurrentBlock);
-                rowsOfCurrentBlock = 0;
 
+                rowsOfCurrentBlock = 0;
                 return formatState;
             }
 
@@ -377,7 +377,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     /**
      * Get the rate of compress
-     * @return
      */
     protected abstract double getCompressRate();
 
@@ -386,12 +385,13 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             return;
         }
 
-        if(rowsOfCurrentBlock < 5000){
+        if(rowsOfCurrentBlock < recordNumOfFileBlock){
             return;
         }
 
-        long writeSize = getWriteByteSizeOfThisSubTask();
-        if (getCompressRate() * (writeSize - lastWriteSize) > maxFileSize){
+        long writeSize = writeBytesCounter.getLocalValue();
+        long currentFileSize = (long)getCompressRate() * (writeSize - lastWriteSize);
+        if (currentFileSize > maxFileSize){
             try{
                 flushBlock();
             }catch (IOException e){
@@ -399,44 +399,15 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             }
 
             nextBlock();
+            recordNumOfFileBlock = rowsOfCurrentBlock;
             rowsOfCurrentBlock = 0;
         }
 
         lastWriteSize = writeSize;
     }
 
-    private long getWriteByteSizeOfThisSubTask(){
-        if(taskId == null){
-            StreamingRuntimeContext context = (StreamingRuntimeContext) getRuntimeContext();
-            Map<String, String> vars = context.getMetricGroup().getAllVariables();
-            taskId = vars.get("<task_id>");
-        }
-
-        String[] monitorUrls = monitorUrl.split(",");
-        String requestUrl = monitorUrls[0] + "/jobs/" + jobId + "/vertices/" + taskId;
-
-        try{
-            String response = URLUtil.get(httpClient, requestUrl);
-            Map<String, Object> map = gson.fromJson(response, Map.class);
-            List<LinkedTreeMap> list = (List<LinkedTreeMap>) map.get("subtasks");
-
-            for (int i = 0; i < list.size(); ++i) {
-                LinkedTreeMap subTask = list.get(i);
-                LinkedTreeMap subTaskMetrics = (LinkedTreeMap) subTask.get("metrics");
-                if (i == taskNumber) {
-                    return (long) subTaskMetrics.get("write-bytes");
-                }
-            }
-        }catch (Exception e){
-            LOG.error("Get write size of subtask:" + taskNumber + " error:",e);
-        }
-
-        return 0;
-    }
-
     @Override
     protected boolean needWaitAfterCloseInternal() {
         return true;
     }
-
 }
