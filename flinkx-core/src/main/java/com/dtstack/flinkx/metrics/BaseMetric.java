@@ -62,11 +62,11 @@ public class BaseMetric {
     public BaseMetric(RuntimeContext runtimeContext, String sourceName) {
         this.runtimeContext = runtimeContext;
         this.sourceName = sourceName;
+        maxWaitMill = TaskManagerOptions.TASK_CANCELLATION_INTERVAL.defaultValue();
 
         initPeriod();
 
         flinkxOutput = runtimeContext.getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
-        maxWaitMill = TaskManagerOptions.TASK_CANCELLATION_INTERVAL.defaultValue();
     }
 
     public void addMetric(String metricName, LongCounter counter){
@@ -74,18 +74,22 @@ public class BaseMetric {
     }
 
     public void waitForReportMetrics(){
+        if(delayPeriodMill == 0){
+            return;
+        }
+
         if(totalWaitMill + delayPeriodMill > maxWaitMill){
             return;
         }
 
         try {
             Thread.sleep(delayPeriodMill);
-            LOG.info("");
             totalWaitMill += delayPeriodMill;
+            LOG.info("wait [{}] mill for source [{}]", totalWaitMill, sourceName);
         } catch (InterruptedException e){
             SysUtil.sleep(delayPeriodMill);
             totalWaitMill += delayPeriodMill;
-            LOG.warn("Task [{}] thread is interrupted", sourceName);
+            LOG.info("Task [{}] thread is interrupted,wait [{}] mill for source [{}]", sourceName, totalWaitMill, sourceName);
         }
     }
 
@@ -116,14 +120,17 @@ public class BaseMetric {
             long schedulePeriodMill = -1 * new FiniteDuration(schedulePeriod, TimeUnit.NANOSECONDS).toMillis();
 
             LOG.info("InputMetric.scheduledFutureTask.schedulePeriodMill:{} ...", schedulePeriodMill);
-
-            schedulePeriodMill = schedulePeriodMill == 0 ? DEFAULT_PERIOD_MILLISECONDS : schedulePeriodMill;
-
-            if(sourceName.contains("writer")){
-                this.delayPeriodMill = (long)(schedulePeriodMill * 2.5);
+            if(schedulePeriodMill > 0){
+                delayPeriodMill = schedulePeriodMill;
             }
 
-            if(schedulePeriodMill > maxWaitMill){
+            if(sourceName.contains("writer")){
+                delayPeriodMill = (long)(delayPeriodMill * 2.5);
+            } else {
+                delayPeriodMill = (long)(delayPeriodMill * 1.2);
+            }
+
+            if(delayPeriodMill > maxWaitMill){
                 delayPeriodMill = maxWaitMill;
             }
         } catch (Exception e) {
