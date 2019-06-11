@@ -47,7 +47,7 @@ public class BaseMetric {
 
     private final static Long DEFAULT_PERIOD_MILLISECONDS = 10000L;
 
-    private Long delayPeriodMill = 12000L;
+    private Long delayPeriodMill = DEFAULT_PERIOD_MILLISECONDS;
 
     private RuntimeContext runtimeContext;
 
@@ -80,6 +80,7 @@ public class BaseMetric {
 
         try {
             Thread.sleep(delayPeriodMill);
+            LOG.info("");
             totalWaitMill += delayPeriodMill;
         } catch (InterruptedException e){
             SysUtil.sleep(delayPeriodMill);
@@ -116,15 +117,17 @@ public class BaseMetric {
 
             LOG.info("InputMetric.scheduledFutureTask.schedulePeriodMill:{} ...", schedulePeriodMill);
 
-            if(schedulePeriodMill > maxWaitMill){
-                delayPeriodMill = maxWaitMill;
-            } else if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
-                this.delayPeriodMill = (long) (schedulePeriodMill * 1.2);
+            schedulePeriodMill = schedulePeriodMill == 0 ? DEFAULT_PERIOD_MILLISECONDS : schedulePeriodMill;
+
+            if(sourceName.contains("writer")){
+                this.delayPeriodMill = (long)(schedulePeriodMill * 2.5);
             }
 
-            delayPeriodMill = delayPeriodMill == 0 ? DEFAULT_PERIOD_MILLISECONDS : delayPeriodMill;
+            if(schedulePeriodMill > maxWaitMill){
+                delayPeriodMill = maxWaitMill;
+            }
         } catch (Exception e) {
-            LOG.error("{}", e);
+            LOG.warn("init period error: ", e);
         }
 
         LOG.info("InputMetric.delayPeriodMill:{} ...", delayPeriodMill);
