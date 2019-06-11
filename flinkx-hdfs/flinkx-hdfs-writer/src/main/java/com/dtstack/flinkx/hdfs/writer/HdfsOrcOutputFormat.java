@@ -259,10 +259,10 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
+        }
 
-            if(isTaskEndsNormally()){
-                moveTemporaryDataBlockFileToDirectory();
-            }
+        if(isTaskEndsNormally()){
+            moveTemporaryDataBlockFileToDirectory();
         }
     }
 

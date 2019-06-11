@@ -234,7 +234,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
                 Path dist = new Path(tmpPath + SP + dataFileName);
 
                 fs.rename(src, dist);
-                LOG.info("Rename temp file:{} to:{}", src, dist);
+                LOG.info("Rename temporary data block file:{} to:{}", src, dist);
             }
         } catch (Exception e){
             throw new RuntimeException(e);
