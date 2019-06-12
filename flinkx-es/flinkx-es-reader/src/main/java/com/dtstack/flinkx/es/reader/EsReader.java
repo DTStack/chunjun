@@ -63,10 +63,6 @@ public class EsReader extends DataReader {
         clientConfig.put(EsConfigKeys.KEY_TIMEOUT, readerConfig.getParameter().getVal(EsConfigKeys.KEY_TIMEOUT));
         clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, readerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
 
-        clientConfig = new HashMap<>();
-        clientConfig.put(EsConfigKeys.KEY_TIMEOUT, readerConfig.getParameter().getVal(EsConfigKeys.KEY_TIMEOUT));
-        clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, readerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
-
         Object queryMap = readerConfig.getParameter().getVal(EsConfigKeys.KEY_QUERY);
         if(queryMap != null) {
             query = new Gson().toJson(queryMap);
