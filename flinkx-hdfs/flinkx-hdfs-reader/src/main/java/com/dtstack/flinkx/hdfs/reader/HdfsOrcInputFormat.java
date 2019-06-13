@@ -34,10 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * The subclass of HdfsInputFormat which handles orc files
@@ -56,6 +53,8 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     private transient StructObjectInspector inspector;
 
     private transient List<? extends StructField> fields;
+
+    private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
 
     @Override
     protected void configureAnythingElse() {
@@ -105,13 +104,17 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             int endIndex = typeStruct.lastIndexOf(">");
             typeStruct = typeStruct.substring(startIndex, endIndex);
 
-            String[] cols = StringUtil.splitIgnoreQuotaBrackets(typeStruct,",");
+            if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
+                throw new RuntimeException("Field types such as array, map, and struct are not supported.");
+            }
 
-            fullColNames = new String[cols.length];
-            fullColTypes = new String[cols.length];
+            List<String> cols = parseColumnAndType(typeStruct);
 
-            for(int i = 0; i < cols.length; ++i) {
-                String[] temp = cols[i].split(":");
+            fullColNames = new String[cols.size()];
+            fullColTypes = new String[cols.size()];
+
+            for(int i = 0; i < cols.size(); ++i) {
+                String[] temp = cols.get(i).split(":");
                 fullColNames[i] = temp[0];
                 fullColTypes[i] = temp[1];
             }
@@ -133,6 +136,24 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         }
     }
 
+    private List<String> parseColumnAndType(String typeStruct){
+        List<String> cols = new ArrayList<>();
+        List<String> splits = Arrays.asList(typeStruct.split(","));
+        Iterator<String> it = splits.iterator();
+        while (it.hasNext()){
+            String current = it.next();
+            if(current.contains("(")){
+                if(current.contains("(")){
+                    String next = it.next();
+                    cols.add(current + "," + next);
+                }
+            } else {
+                cols.add(current);
+            }
+        }
+
+        return cols;
+    }
 
     @Override
     public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
