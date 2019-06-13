@@ -57,8 +57,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     private transient List<? extends StructField> fields;
 
-    private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
-
     @Override
     protected void configureAnythingElse() {
         orcSerde = new OrcSerde();
@@ -107,11 +105,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             int endIndex = typeStruct.lastIndexOf(">");
             typeStruct = typeStruct.substring(startIndex, endIndex);
 
-            if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
-                throw new RuntimeException("Field types such as array, map, and struct are not supported.");
-            }
-
-            String[] cols = typeStruct.split(",");
+            String[] cols = StringUtil.splitIgnoreQuotaBrackets(typeStruct,",");
 
             fullColNames = new String[cols.length];
             fullColTypes = new String[cols.length];
