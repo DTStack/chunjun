@@ -49,8 +49,8 @@ public enum ColumnType {
             throw new RuntimeException("null ColumnType!");
         }
 
-        if(type.toUpperCase().startsWith("DECIMAL")) {
-            return DECIMAL;
+        if(type.contains("(")){
+            type = type.substring(0, type.indexOf("("));
         }
 
         return valueOf(type.toUpperCase());
