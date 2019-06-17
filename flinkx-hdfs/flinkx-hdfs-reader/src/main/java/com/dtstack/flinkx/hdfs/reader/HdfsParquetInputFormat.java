@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.collect.Lists;
@@ -171,9 +172,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private Object getData(Group currentLine,String type,int index){
         Object data = null;
+        ColumnType columnType = ColumnType.fromString(type);
+
         try{
             Type colSchemaType = currentLine.getType().getType(index);
-            switch (type){
+            switch (columnType.name().toLowerCase()){
                 case "tinyint" :
                 case "smallint" :
                 case "int" : data = currentLine.getInteger(index,0);break;
