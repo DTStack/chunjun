@@ -263,6 +263,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        readyCheckpoint = false;
         if (writer != null){
             writer.close();
 

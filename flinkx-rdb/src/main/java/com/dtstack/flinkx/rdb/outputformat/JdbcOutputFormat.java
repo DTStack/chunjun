@@ -389,6 +389,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() {
+        readyCheckpoint = false;
         boolean commit = true;
         try{
             String state = getTaskState();

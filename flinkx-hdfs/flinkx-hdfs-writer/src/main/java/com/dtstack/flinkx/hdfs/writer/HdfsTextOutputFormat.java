@@ -233,6 +233,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        readyCheckpoint = false;
         OutputStream s = this.stream;
         if(s != null) {
             s.flush();

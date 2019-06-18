@@ -254,6 +254,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        readyCheckpoint = false;
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
