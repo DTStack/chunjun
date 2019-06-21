@@ -94,7 +94,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         try{
             closeInternal();
 
-            inputMetric.waitForReportMetrics();
+            if(inputMetric != null){
+                inputMetric.waitForReportMetrics();
+            }
         }catch (Exception e){
             throw new RuntimeException(e);
         }finally {
