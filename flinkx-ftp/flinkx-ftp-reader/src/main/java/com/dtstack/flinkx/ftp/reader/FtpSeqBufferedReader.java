@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.StandardFtpHandler;
 
 import java.io.*;
 import java.util.Iterator;
@@ -54,7 +55,7 @@ public class FtpSeqBufferedReader {
         if(br != null){
             String line = br.readLine();
             if (line == null){
-                br = null;
+                close();
                 return readLine();
             }
 
@@ -65,8 +66,6 @@ public class FtpSeqBufferedReader {
     }
 
     private void nextStream() throws IOException{
-        close();
-
         if(iter.hasNext()){
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
@@ -88,6 +87,10 @@ public class FtpSeqBufferedReader {
         if (br != null){
             br.close();
             br = null;
+
+            if (ftpHandler instanceof StandardFtpHandler){
+                ((StandardFtpHandler) ftpHandler).getFtpClient().completePendingCommand();
+            }
         }
     }
 
