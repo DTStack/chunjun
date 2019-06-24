@@ -48,4 +48,6 @@ public class FtpConfigKeys {
 
     public static final String KEY_IS_FIRST_HEADER = "isFirstLineHeader";
 
+    public static final String KEY_TIMEOUT = "timeout";
+
 }
