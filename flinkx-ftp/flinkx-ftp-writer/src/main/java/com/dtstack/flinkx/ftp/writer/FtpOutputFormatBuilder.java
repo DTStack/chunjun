@@ -100,6 +100,10 @@ public class FtpOutputFormatBuilder extends RichOutputFormatBuilder {
         }
     }
 
+    public void setTimeout(Integer timeout){
+        format.timeout = timeout;
+    }
+
     @Override
     protected void checkFormat() {
 
