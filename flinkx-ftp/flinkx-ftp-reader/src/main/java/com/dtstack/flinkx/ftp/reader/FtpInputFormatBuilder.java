@@ -61,6 +61,10 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
         }
     }
 
+    public void setTimeout(Integer timeout){
+        format.timeout = timeout;
+    }
+
     public void setMetaColumn(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
