@@ -388,6 +388,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 writeRecordInternal();
             }
 
+            if(outputMetric != null){
+                outputMetric.waitForReportMetrics();
+            }
+
             if(needWaitBeforeCloseInternal()) {
                 beforeCloseInternal();
                 waitWhile("#3");

@@ -281,15 +281,15 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 return pathList;
             }
 
-            if(fsStatus[0].isDirectory()){
-                for(FileStatus status : fsStatus){
+            for (FileStatus status : fsStatus) {
+                if(status.isDirectory()){
                     pathList.addAll(getAllPartitionPath(status.getPath().toString()));
+                } else {
+                    pathList.add(status.getPath().toString());
                 }
-                return pathList;
-            }else{
-                pathList.add(tableLocation);
-                return pathList;
             }
+
+            return pathList;
         } finally {
             if (fs != null){
                 fs.close();

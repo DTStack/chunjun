@@ -49,6 +49,9 @@ public class FtpHandler implements IFtpHandler {
 
     private static final String SP = "/";
 
+    public FTPClient getFtpClient() {
+        return ftpClient;
+    }
 
     @Override
     public void loginFtpServer(String host, String username, String password, int port, int timeout, String connectMode) {

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -54,6 +55,7 @@ public class FtpWriter extends DataWriter{
 
     private List<String> columnName;
     private List<String> columnType;
+    private Integer timeout;
 
     public FtpWriter(DataTransferConfig config) {
         super(config);
@@ -73,6 +75,7 @@ public class FtpWriter extends DataWriter{
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         connectPattern = writerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN, DEFAULT_FTP_CONNECT_PATTERN);
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
+        timeout = writerConfig.getParameter().getIntVal(KEY_TIMEOUT, FtpConfigConstants.DEFAULT_TIMEOUT);
 
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
         if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
@@ -111,6 +114,7 @@ public class FtpWriter extends DataWriter{
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setTimeout(timeout);
         builder.setRestoreConfig(restoreConfig);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
