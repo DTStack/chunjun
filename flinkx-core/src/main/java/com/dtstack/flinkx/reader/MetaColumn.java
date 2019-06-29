@@ -109,6 +109,8 @@ public class MetaColumn implements Serializable {
                             Double doubleColIndex = (Double) colIndex;
                             mc.setIndex(doubleColIndex.intValue());
                         }
+                    } else {
+                        mc.setIndex(i);
                     }
 
                     mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
@@ -151,5 +153,15 @@ public class MetaColumn implements Serializable {
         }
 
         return columnNames;
+    }
+
+    public static int getColumnIndex(List<MetaColumn> columns, String name){
+        for (int i = 0; i < columns.size(); i++) {
+            if(columns.get(i).getName().equals(name)){
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

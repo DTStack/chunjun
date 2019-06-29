@@ -16,28 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+
+
+package com.dtstack.flinkx.constants;
+
 
 /**
- * Database type
  *
- * Company: www.dtstack.com
- * @author jiangbo
+ * @author sishu.yss
+ *
  */
-public enum EDatabaseType {
+public class ConfigConstrant {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase
+    public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
+
+    public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
+
+    public static final String FLINK_MAXCONCURRENTCHECKPOINTS_KEY = "flink.max.concurrent.checkpoints";
+
+    public static final String FLINK_CHECKPOINT_CLEANUPMODE_KEY = "flink.checkpoint.cleanup.mode";
+
+    public static final String FLINK_CHECKPOINT_DATAURI_KEY = "flink.checkpoint.stateBackend";
 }

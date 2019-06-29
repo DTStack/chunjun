@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,28 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+
+package com.dtstack.flinkx.gbase.reader;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.gbase.GbaseDatabaseMeta;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Database type
- *
- * Company: www.dtstack.com
  * @author jiangbo
+ * @date 2019/6/9
  */
-public enum EDatabaseType {
+public class GbaseReader extends JdbcDataReader {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase
+    public GbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+        setDatabaseInterface(new GbaseDatabaseMeta());
+    }
 }

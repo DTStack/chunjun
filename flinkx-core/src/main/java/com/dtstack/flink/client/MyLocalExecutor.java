@@ -201,7 +201,7 @@ public class MyLocalExecutor extends PlanExecutor {
                 JobGraphGenerator jgg = new JobGraphGenerator(configuration);
                 JobGraph jobGraph = jgg.compileJobGraph(op, plan.getJobId());
                 jobGraph.setClasspaths(classpaths);
-                System.out.println("jobGraph.classpaths=" + jobGraph.getClasspaths());
+
                 boolean sysoutPrint = isPrintingStatusDuringExecution();
                 return flink.submitJobAndWait(jobGraph, sysoutPrint);
             }

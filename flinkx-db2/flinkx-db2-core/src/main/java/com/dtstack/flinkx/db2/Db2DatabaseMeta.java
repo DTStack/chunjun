@@ -34,24 +34,6 @@ import java.util.List;
 public class Db2DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
-    protected String makeMultipleValues(int nCols, int batchSize) {
-        String value = makeValues(nCols);
-        return StringUtils.repeat(value, ",", batchSize);
-    }
-
-    @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    @Override
-    protected String makeValues(int nCols) {
-        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
-    }
-
-    @Override
     protected String makeReplaceValues(List<String> column, List<String> fullColumn){
         String replaceValues = super.makeReplaceValues(column,fullColumn);
         return "(select " + replaceValues + " from SYSIBM.SYSDUMMY1)";

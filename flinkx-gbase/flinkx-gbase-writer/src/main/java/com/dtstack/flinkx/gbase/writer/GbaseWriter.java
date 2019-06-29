@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,28 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+
+package com.dtstack.flinkx.gbase.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.gbase.GbaseDatabaseMeta;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 
 /**
- * Database type
- *
- * Company: www.dtstack.com
  * @author jiangbo
+ * @date 2019/6/9
  */
-public enum EDatabaseType {
+public class GbaseWriter extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase
+    public GbaseWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new GbaseDatabaseMeta());
+    }
 }
