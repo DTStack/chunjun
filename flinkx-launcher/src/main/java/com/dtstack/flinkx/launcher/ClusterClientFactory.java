@@ -75,7 +75,7 @@ public class ClusterClientFactory {
         InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
         config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
         config.setInteger(JobManagerOptions.PORT, address.getPort());
-        clusterClient.setDetached(true);
+        clusterClient.setDetached(launcherOptions.getDetached());
         return clusterClient;
     }
 
@@ -128,7 +128,7 @@ public class ClusterClientFactory {
 
                 AbstractYarnClusterDescriptor clusterDescriptor = new YarnClusterDescriptor(config, yarnConf, ".", yarnClient, false);
                 ClusterClient clusterClient = clusterDescriptor.retrieve(applicationId);
-                clusterClient.setDetached(true);
+                clusterClient.setDetached(launcherOptions.getDetached());
                 return clusterClient;
             } catch(Exception e) {
                 throw new RuntimeException(e);

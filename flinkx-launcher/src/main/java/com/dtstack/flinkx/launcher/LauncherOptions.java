@@ -48,6 +48,8 @@ public class LauncherOptions {
 
       private String confProp;
 
+      private boolean detached;
+
     public int getParallelism() {
         return parallelism;
     }
@@ -134,5 +136,13 @@ public class LauncherOptions {
 
     public void setConfProp(String confProp) {
         this.confProp = confProp;
+    }
+
+    public boolean getDetached() {
+        return detached;
+    }
+
+    public void setDetached(boolean detached) {
+        this.detached = detached;
     }
 }

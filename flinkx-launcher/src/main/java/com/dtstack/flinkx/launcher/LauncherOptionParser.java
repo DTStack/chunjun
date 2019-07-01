@@ -52,6 +52,8 @@ public class LauncherOptionParser {
 
     public static final String OPTION_FLINK_LIB_JAR = "flinkLibJar";
 
+    public static final String OPTION_DETACHED = "detached";
+
     private Options options = new Options();
 
     private BasicParser parser = new BasicParser();
@@ -67,6 +69,7 @@ public class LauncherOptionParser {
         options.addOption(OPTION_QUEUE, true, "yarn job queue");
         options.addOption(OPTION_FLINK_CONF_PROP, true, "flink perjob conf prop");
         options.addOption(OPTION_FLINK_LIB_JAR, true, "flink lib jar");
+        options.addOption(OPTION_DETACHED, false, "detached mode");
 
         try {
             CommandLine cl = parser.parse(options, args);
@@ -111,6 +114,9 @@ public class LauncherOptionParser {
                 launcherOptions.setConfProp(confProp);
             }
 
+            if (cl.hasOption(OPTION_DETACHED)) {
+                launcherOptions.setDetached(true);
+            }
 
         } catch (Exception e) {
             printUsage();
