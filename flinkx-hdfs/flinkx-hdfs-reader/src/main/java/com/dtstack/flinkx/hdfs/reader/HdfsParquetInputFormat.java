@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.collect.Lists;
@@ -171,13 +172,15 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private Object getData(Group currentLine,String type,int index){
         Object data = null;
+        ColumnType columnType = ColumnType.fromString(type);
+
         try{
             if (index == -1){
                 return null;
             }
 
             Type colSchemaType = currentLine.getType().getType(index);
-            switch (type){
+            switch (columnType.name().toLowerCase()){
                 case "tinyint" :
                 case "smallint" :
                 case "int" : data = currentLine.getInteger(index,0);break;
@@ -278,15 +281,15 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 return pathList;
             }
 
-            if(fsStatus[0].isDirectory()){
-                for(FileStatus status : fsStatus){
+            for (FileStatus status : fsStatus) {
+                if(status.isDirectory()){
                     pathList.addAll(getAllPartitionPath(status.getPath().toString()));
+                } else {
+                    pathList.add(status.getPath().toString());
                 }
-                return pathList;
-            }else{
-                pathList.add(tableLocation);
-                return pathList;
             }
+
+            return pathList;
         } finally {
             if (fs != null){
                 fs.close();

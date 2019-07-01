@@ -23,11 +23,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
-import com.dtstack.flinkx.metrics.OutputMetric;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
@@ -72,19 +71,19 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected LongCounter numWriteCounter;
 
     /** 错误记录数 */
-    protected IntCounter errCounter;
+    protected LongCounter errCounter;
 
     /** Number of null pointer errors */
-    protected IntCounter nullErrCounter;
+    protected LongCounter nullErrCounter;
 
     /** Number of primary key conflict errors */
-    protected IntCounter duplicateErrCounter;
+    protected LongCounter duplicateErrCounter;
 
     /** Number of type conversion errors */
-    protected IntCounter conversionErrCounter;
+    protected LongCounter conversionErrCounter;
 
     /** Number of other errors */
-    protected IntCounter otherErrCounter;
+    protected LongCounter otherErrCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
@@ -112,7 +111,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
-    protected transient OutputMetric outputMetric;
+    protected transient BaseMetric outputMetric;
 
     public DirtyDataManager getDirtyDataManager() {
         return dirtyDataManager;
@@ -167,16 +166,20 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         this.numTasks = numTasks;
 
         //错误记录数
-        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
-        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
-        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
-        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
-        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
-
-        //总记录数
+        errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
 
-        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
+        outputMetric = new BaseMetric(context, "writer");
+        outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
+        outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
+        outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
+        outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
+        outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 
@@ -316,6 +319,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
+
+            if(outputMetric != null){
+                outputMetric.waitForReportMetrics();
+            }
+
             if(needWaitBeforeCloseInternal()) {
                 Latch latch = newLatch("#3");
                 beforeCloseInternal();
@@ -347,7 +355,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
                         errorLimiter.updateErrorInfo();
                     } catch (Exception e){
-                        LOG.warn("Update error info error when task closing:{}", e);
+                        LOG.warn("Update error info error when task closing: ", e);
                     }
 
                     errorLimiter.acquire();

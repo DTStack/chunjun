@@ -64,7 +64,7 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     protected String protocol;
 
-    protected Integer timeout = 60000;
+    protected Integer timeout;
 
     protected String connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
 
