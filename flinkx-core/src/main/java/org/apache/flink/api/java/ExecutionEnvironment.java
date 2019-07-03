@@ -18,14 +18,11 @@
 
 package org.apache.flink.api.java;
 
+import com.esotericsoftware.kryo.Serializer;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.Public;
 import org.apache.flink.annotation.PublicEvolving;
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.InvalidProgramException;
-import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.JobID;
-import org.apache.flink.api.common.Plan;
+import org.apache.flink.api.common.*;
 import org.apache.flink.api.common.cache.DistributedCache.DistributedCacheEntry;
 import org.apache.flink.api.common.io.FileInputFormat;
 import org.apache.flink.api.common.io.InputFormat;
@@ -33,13 +30,7 @@ import org.apache.flink.api.common.operators.OperatorInformation;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.io.CollectionInputFormat;
-import org.apache.flink.api.java.io.CsvReader;
-import org.apache.flink.api.java.io.IteratorInputFormat;
-import org.apache.flink.api.java.io.ParallelIteratorInputFormat;
-import org.apache.flink.api.java.io.PrimitiveInputFormat;
-import org.apache.flink.api.java.io.TextInputFormat;
-import org.apache.flink.api.java.io.TextValueInputFormat;
+import org.apache.flink.api.java.io.*;
 import org.apache.flink.api.java.operators.DataSink;
 import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.api.java.operators.Operator;
@@ -59,20 +50,12 @@ import org.apache.flink.util.NumberSequenceIterator;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.SplittableIterator;
 import org.apache.flink.util.Visitor;
-
-import com.esotericsoftware.kryo.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -234,7 +217,7 @@ public abstract class ExecutionEnvironment {
     }
 
     /**
-     * Returns the {@link org.apache.flink.api.common.JobExecutionResult} of the last executed job.
+     * Returns the {@link JobExecutionResult} of the last executed job.
      *
      * @return The execution result from the latest job execution.
      */
@@ -384,7 +367,7 @@ public abstract class ExecutionEnvironment {
 
     /**
      * Creates a {@link DataSet} that represents the Strings produced by reading the given file line wise.
-     * The file will be read with the system's default character set.
+     * The file will be read with the UTF-8 character set.
      *
      * @param filePath The path of the file, as a URI (e.g., "file:///some/local/file" or "hdfs://host:port/file/path").
      * @return A {@link DataSet} that represents the data read from the given file as text lines.
@@ -419,7 +402,7 @@ public abstract class ExecutionEnvironment {
      * {@link StringValue} objects, rather than Java Strings. StringValues can be used to tune implementations
      * to be less object and garbage collection heavy.
      *
-     * <p>The file will be read with the system's default character set.
+     * <p>The file will be read with the UTF-8 character set.
      *
      * @param filePath The path of the file, as a URI (e.g., "file:///some/local/file" or "hdfs://host:port/file/path").
      * @return A {@link DataSet} that represents the data read from the given file as text lines.
@@ -703,7 +686,7 @@ public abstract class ExecutionEnvironment {
         catch (Exception e) {
             throw new RuntimeException("Could not create TypeInformation for type " + data[0].getClass().getName()
                     + "; please specify the TypeInformation manually via "
-                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)");
+                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)", e);
         }
 
         return fromCollection(Arrays.asList(data), typeInfo, Utils.getCallLocationName());
@@ -736,7 +719,7 @@ public abstract class ExecutionEnvironment {
         catch (Exception e) {
             throw new RuntimeException("Could not create TypeInformation for type " + type.getName()
                     + "; please specify the TypeInformation manually via "
-                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)");
+                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)", e);
         }
 
         return fromCollection(Arrays.asList(data), typeInfo, Utils.getCallLocationName());
@@ -844,7 +827,7 @@ public abstract class ExecutionEnvironment {
     /**
      * Registers a file at the distributed cache under the given name. The file will be accessible
      * from any user-defined function in the (distributed) runtime under a local path. Files
-     * may be local files (as long as all relevant workers have access to it), or files in a distributed file system.
+     * may be local files (which will be distributed via BlobServer), or files in a distributed file system.
      * The runtime will copy the files temporarily to a local cache, if needed.
      *
      * <p>The {@link org.apache.flink.api.common.functions.RuntimeContext} can be obtained inside UDFs via
@@ -862,7 +845,7 @@ public abstract class ExecutionEnvironment {
     /**
      * Registers a file at the distributed cache under the given name. The file will be accessible
      * from any user-defined function in the (distributed) runtime under a local path. Files
-     * may be local files (as long as all relevant workers have access to it), or files in a distributed file system.
+     * may be local files (which will be distributed via BlobServer), or files in a distributed file system.
      * The runtime will copy the files temporarily to a local cache, if needed.
      *
      * <p>The {@link org.apache.flink.api.common.functions.RuntimeContext} can be obtained inside UDFs via
@@ -963,12 +946,16 @@ public abstract class ExecutionEnvironment {
         if (!config.isAutoTypeRegistrationDisabled()) {
             plan.accept(new Visitor<org.apache.flink.api.common.operators.Operator<?>>() {
 
-                private final HashSet<Class<?>> deduplicator = new HashSet<>();
+                private final Set<Class<?>> registeredTypes = new HashSet<>();
+                private final Set<org.apache.flink.api.common.operators.Operator<?>> visitedOperators = new HashSet<>();
 
                 @Override
                 public boolean preVisit(org.apache.flink.api.common.operators.Operator<?> visitable) {
+                    if (!visitedOperators.add(visitable)) {
+                        return false;
+                    }
                     OperatorInformation<?> opInfo = visitable.getOperatorInfo();
-                    Serializers.recursivelyRegisterType(opInfo.getOutputType(), config, deduplicator);
+                    Serializers.recursivelyRegisterType(opInfo.getOutputType(), config, registeredTypes);
                     return true;
                 }
 

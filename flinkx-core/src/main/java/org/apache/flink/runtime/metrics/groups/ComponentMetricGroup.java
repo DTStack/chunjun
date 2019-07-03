@@ -21,7 +21,6 @@ package org.apache.flink.runtime.metrics.groups;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.runtime.metrics.MetricRegistry;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,6 +75,7 @@ public abstract class ComponentMetricGroup<P extends AbstractMetricGroup<?>> ext
      */
     @Override
     protected abstract void putVariables(Map<String, String> variables);
+
 
     /**
      * Closes the component group by removing and closing all metrics and subgroups

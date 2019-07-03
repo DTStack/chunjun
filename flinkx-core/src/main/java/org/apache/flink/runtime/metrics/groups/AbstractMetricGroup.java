@@ -91,9 +91,9 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
      * For example: "host-7.taskmanager-2.window_word_count.my-mapper" */
     private final String[] scopeStrings;
 
-    /** The logical metrics scope represented by this group, as a concatenated string, lazily computed.
+    /** The logical metrics scope represented by this group for each reporter, as a concatenated string, lazily computed.
      * For example: "taskmanager.job.task" */
-    private String logicalScopeString;
+    private String[] logicalScopeStrings;
 
     /** The metrics query service scope represented by this group, lazily computed. */
     protected QueryScopeInfo queryServiceScopeInfo;
@@ -108,19 +108,16 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
         this.scopeComponents = checkNotNull(scope);
         this.parent = parent;
         this.scopeStrings = new String[registry.getNumberReporters()];
+        this.logicalScopeStrings = new String[registry.getNumberReporters()];
     }
 
     @Override
     public Map<String, String> getAllVariables() {
-        if (variables == null) { // avoid synchronization for common case
-            synchronized (this) {
-                if (variables == null) {
-                    if (parent != null) {
-                        variables = parent.getAllVariables();
-                    } else { // this case should only be true for mock groups
-                        variables = new ConcurrentHashMap<>();
-                    }
-                }
+        if (variables == null) {
+            if (parent != null) {
+                variables = parent.getAllVariables();
+            } else { // this case should only be true for mock groups
+                variables = new ConcurrentHashMap<>();
             }
         }
         return variables;
@@ -153,14 +150,34 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
      * @return logical scope
      */
     public String getLogicalScope(CharacterFilter filter, char delimiter) {
-        if (logicalScopeString == null) {
-            if (parent == null) {
-                logicalScopeString = getGroupName(filter);
-            } else {
-                logicalScopeString = parent.getLogicalScope(filter, delimiter) + delimiter + getGroupName(filter);
+        return getLogicalScope(filter, delimiter, -1);
+    }
+
+    /**
+     * Returns the logical scope of this group, for example
+     * {@code "taskmanager.job.task"}.
+     *
+     * @param filter character filter which is applied to the scope components
+     * @param delimiter delimiter to use for concatenating scope components
+     * @param reporterIndex index of the reporter
+     * @return logical scope
+     */
+    String getLogicalScope(CharacterFilter filter, char delimiter, int reporterIndex) {
+        if (logicalScopeStrings.length == 0 || (reporterIndex < 0 || reporterIndex >= logicalScopeStrings.length)) {
+            return createLogicalScope(filter, delimiter);
+        } else {
+            if (logicalScopeStrings[reporterIndex] == null) {
+                logicalScopeStrings[reporterIndex] = createLogicalScope(filter, delimiter);
             }
+            return logicalScopeStrings[reporterIndex];
         }
-        return logicalScopeString;
+    }
+
+    protected String createLogicalScope(CharacterFilter filter, char delimiter) {
+        final String groupName = getGroupName(filter);
+        return parent == null
+                ? groupName
+                : parent.getLogicalScope(filter, delimiter) + delimiter + groupName;
     }
 
     /**
