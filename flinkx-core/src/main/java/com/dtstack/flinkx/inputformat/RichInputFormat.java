@@ -55,7 +55,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
-    public void open(InputSplit inputSplit) throws IOException {
+    public void openInputFormat() throws IOException {
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
         if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
@@ -66,15 +66,16 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         inputMetric = new BaseMetric(getRuntimeContext(), "reader");
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
 
-        openInternal(inputSplit);
-
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
         }
     }
 
-
+    @Override
+    public void open(InputSplit inputSplit) throws IOException {
+        openInternal(inputSplit);
+    }
 
     @Override
     public Row nextRecord(Row row) throws IOException {
@@ -93,19 +94,22 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void close() throws IOException {
         try{
             closeInternal();
-
-            if(inputMetric != null){
-                inputMetric.waitForReportMetrics();
-            }
         }catch (Exception e){
             throw new RuntimeException(e);
-        }finally {
-            if(byteRateLimiter != null) {
-                byteRateLimiter.stop();
-                byteRateLimiter = null;
-            }
-            LOG.info("subtask input close finished");
         }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        if(inputMetric != null){
+            inputMetric.waitForReportMetrics();
+        }
+
+        if(byteRateLimiter != null) {
+            byteRateLimiter.stop();
+            byteRateLimiter = null;
+        }
+        LOG.info("subtask input close finished");
     }
 
     protected abstract  void closeInternal() throws IOException;
