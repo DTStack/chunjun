@@ -184,6 +184,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
         outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter);
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 

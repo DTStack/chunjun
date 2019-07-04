@@ -36,9 +36,9 @@ public class Metrics {
 
     public static String NUM_OTHER_ERRORS = "otherErrors";
 
-    public static String READ_BYTES = "readBytes";
+    public static String READ_BYTES = "byteRead";
 
-    public static String WRITE_BYTES = "writeBytes";
+    public static String WRITE_BYTES = "byteWrite";
 
     public static String NUM_WRITES = "numWrite";
 

@@ -68,6 +68,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         inputMetric = new BaseMetric(getRuntimeContext(), "reader");
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
 
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
