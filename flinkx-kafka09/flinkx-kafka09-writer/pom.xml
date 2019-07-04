@@ -3,18 +3,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-binlog</artifactId>
+        <artifactId>flinkx-kafka09</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-binlog-reader</artifactId>
+    <artifactId>flinkx-kafka09-writer</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-binlog-core</artifactId>
+            <artifactId>flinkx-kafka09-core</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>
@@ -69,13 +69,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/binlogreader">
+                                <copy todir="${basedir}/../../plugins/kafka09writer">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/binlogreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/binlogreader/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../plugins/kafka09writer/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/kafka09writer/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -30,6 +30,7 @@
         <module>flinkx-db2</module>
         <module>flinkx-test</module>
         <module>flinkx-binlog</module>
+        <module>flinkx-kafka09</module>
     </modules>
 
     <properties>
