@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog;
+package com.dtstack.flinkx.binlog.reader;
 
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
@@ -28,10 +28,10 @@ public class BinlogPositionManager extends AbstractLogPositionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(BinlogPositionManager.class);
 
-    private final Binlog binlog;
+    private final BinlogInputFormat format;
 
-    public BinlogPositionManager(Binlog binlog) {
-        this.binlog = binlog;
+    public BinlogPositionManager(BinlogInputFormat format) {
+        this.format = format;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class BinlogPositionManager extends AbstractLogPositionManager {
         if(logger.isDebugEnabled()){
             logger.debug("persistLogPosition: " + logPosition.toString());
         }
-        binlog.updateLastPos(logPosition.getPostion());
+        format.updateLastPos(logPosition.getPostion());
     }
 
 }

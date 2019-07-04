@@ -20,6 +20,7 @@ package com.dtstack.flinkx.binlog.reader;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,16 +28,21 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 
 public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger logger = LoggerFactory.getLogger(BinlogEventSink.class);
 
-    private Binlog binlog;
+    private BinlogInputFormat format;
 
-    public BinlogEventSink(Binlog binlog) {
-        this.binlog = binlog;
+    private BlockingQueue<Row> queue;
+
+    public BinlogEventSink(BinlogInputFormat format, int bufferSize) {
+        this.format = format;
+        queue = new ArrayBlockingQueue<Row>(bufferSize);
     }
 
     @Override
@@ -81,7 +87,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long ts) {
         CanalEntry.EventType eventType = rowChange.getEventType();
 
-        if(!binlog.accept(eventType.toString())) {
+        if(!format.accept(eventType.toString())) {
             return;
         }
 
@@ -95,7 +101,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             message.put("before", processColumnList(rowData.getBeforeColumnsList()));
             message.put("after", processColumnList(rowData.getAfterColumnsList()));
             event.put("message", message);
-            binlog.process(event);
+
+            queue.add(Row.of(event));
         }
 
     }
@@ -106,6 +113,16 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             map.put(column.getName(), column.getValue());
         }
         return map;
+    }
+
+    public Row takeEvent() {
+        Row row = null;
+        try {
+            row = queue.take();
+        } catch (InterruptedException e) {
+            logger.error("takeEvent interrupted error:{}", e);
+        }
+        return row;
     }
 
     @Override
