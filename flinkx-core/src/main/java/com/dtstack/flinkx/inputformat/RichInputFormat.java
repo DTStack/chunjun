@@ -21,6 +21,7 @@ package com.dtstack.flinkx.inputformat;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -46,6 +47,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
     protected LongCounter numReadCounter;
+    protected LongCounter bytesReadCounter;
     protected String monitorUrls;
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
@@ -55,18 +57,17 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
-    public void open(InputSplit inputSplit) throws IOException {
+    public void openInputFormat() throws IOException {
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
         if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
 
         inputMetric = new BaseMetric(getRuntimeContext(), "reader");
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
-
-        openInternal(inputSplit);
 
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
@@ -74,7 +75,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
     }
 
-
+    @Override
+    public void open(InputSplit inputSplit) throws IOException {
+        openInternal(inputSplit);
+    }
 
     @Override
     public Row nextRecord(Row row) throws IOException {
@@ -84,6 +88,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
 
+        bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(row));
         return nextRecordInternal(row);
     }
 

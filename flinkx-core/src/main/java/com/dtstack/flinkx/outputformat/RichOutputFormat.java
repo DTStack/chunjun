@@ -26,6 +26,7 @@ import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.configuration.Configuration;
@@ -87,6 +88,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
+
+    protected LongCounter bytesWriteCounter;
 
     /** 错误阈值 */
     protected Integer errors;
@@ -172,6 +175,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
         otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
 
         outputMetric = new BaseMetric(context, "writer");
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
@@ -309,6 +313,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             }
         }
 
+        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
     }
 
     @Override
