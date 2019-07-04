@@ -29,6 +29,7 @@
         <module>flinkx-stream</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-db2</module>
+        <module>flinkx-binlog</module>
     </modules>
 
     <properties>
