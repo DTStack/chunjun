@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.kafka09;
 
 
-public class Kafka09ConfigKeys {
+public class KafkaConfigKeys {
 
 
 }
