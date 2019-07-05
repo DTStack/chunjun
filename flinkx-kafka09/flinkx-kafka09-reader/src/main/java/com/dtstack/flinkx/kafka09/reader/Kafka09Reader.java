@@ -49,7 +49,7 @@ public class Kafka09Reader extends DataReader {
         topic = (Map<String, Integer>) readerConfig.getParameter().getVal(KEY_TOPIC);
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
-        encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING, "UTF8");
+        encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING, "utf-8");
     }
 
     @Override

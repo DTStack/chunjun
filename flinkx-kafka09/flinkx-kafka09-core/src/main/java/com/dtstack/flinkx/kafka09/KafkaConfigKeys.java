@@ -25,8 +25,18 @@ public class KafkaConfigKeys {
 
     public static final String KEY_ENCODING = "encoding";
 
+    public static final String KEY_TIMEZONE = "timezone";
+
     public static final String KEY_CODEC = "codec";
 
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
+
+    public static final String KEY_BROKER_LIST = "brokerList";
+
+    public static final String KEY_TOPIC_SELECT = "topicSelect";
+
+    public static final String KEY_ENTRY_TOPIC_SELECT = "entryTopicSelect";
+
+    public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
 
 }
