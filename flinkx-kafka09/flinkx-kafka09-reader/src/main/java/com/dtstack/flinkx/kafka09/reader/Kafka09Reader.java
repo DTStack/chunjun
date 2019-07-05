@@ -35,13 +35,13 @@ import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;
  */
 public class Kafka09Reader extends DataReader {
 
-    private static Map<String, Integer> topic;
+    private Map<String, Integer> topic;
 
-    private static String codec;
+    private String codec;
 
-    private static Map<String, String> consumerSettings;
+    private Map<String, String> consumerSettings;
 
-    private static String encoding;
+    private String encoding;
 
     public Kafka09Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -59,6 +59,7 @@ public class Kafka09Reader extends DataReader {
         format.setCodec(codec);
         format.setConsumerSettings(consumerSettings);
         format.setEncoding(encoding);
+
         return createInput(format, "kafka09reader");
     }
 }

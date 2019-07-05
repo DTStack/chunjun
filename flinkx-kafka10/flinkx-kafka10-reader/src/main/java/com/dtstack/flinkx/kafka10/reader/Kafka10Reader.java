@@ -18,10 +18,15 @@
 package com.dtstack.flinkx.kafka10.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
+import java.util.Map;
+
+import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
 
 /**
  * company: www.dtstack.com
@@ -30,12 +35,36 @@ import org.apache.flink.types.Row;
  */
 public class Kafka10Reader extends DataReader {
 
-    @Override
-    public DataStream<Row> readData() {
-        return null;
-    }
+
+    private String topic;
+
+    private String groupId;
+
+    private String codec;
+
+    private String bootstrapServers;
+
+    private Map<String, String> consumerSettings;
 
     public Kafka10Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
+        groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
+        codec = readerConfig.getParameter().getStringVal(KEY_CODEC);
+        bootstrapServers = readerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
+        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+    }
+
+    @Override
+    public DataStream<Row> readData() {
+        Kafka10InputFormat format = new Kafka10InputFormat();
+        format.setTopic(topic);
+        format.setGroupId(groupId);
+        format.setCodec(codec);
+        format.setBootstrapServers(bootstrapServers);
+        format.setConsumerSettings(consumerSettings);
+
+        return createInput(format, "kafka10reader");
     }
 }

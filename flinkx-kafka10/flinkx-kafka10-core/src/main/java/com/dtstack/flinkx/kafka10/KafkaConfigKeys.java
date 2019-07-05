@@ -21,5 +21,18 @@ package com.dtstack.flinkx.kafka10;
 
 public class KafkaConfigKeys {
 
+    public static final String KEY_TOPIC = "topic";
+
+    public static final String KEY_GROUPID = "groupId";
+
+    public static final String KEY_ENCODING = "encoding";
+
+    public static final String KEY_TIMEZONE = "timezone";
+
+    public static final String KEY_CODEC = "codec";
+
+    public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
+
+    public static final String KEY_BOOTSTRAP_SERVERS = "bootstrapServers";
 
 }

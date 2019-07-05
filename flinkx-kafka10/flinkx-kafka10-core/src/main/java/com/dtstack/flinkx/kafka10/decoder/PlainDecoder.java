@@ -15,20 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka09.decoder;
+package com.dtstack.flinkx.kafka10.decoder;
 
+import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * 
  * Reason: TODO ADD REASON(可选)
- * Date: 2016年8月31日 下午1:25:51
+ * Date: 2016年8月31日 下午1:26:00
  * Company: www.dtstack.com
  * @author sishu.yss
  *
  */
-public interface IDecode {
-	
-	public Map<String, Object> decode(String message);
+public class PlainDecoder implements IDecode {
+
+	@SuppressWarnings("serial")
+	@Override
+	public Map<String, Object> decode(final String message) {
+		HashMap<String, Object> event = new HashMap<String, Object>() {
+			{
+				put("message", message);
+			}
+		};
+		return event;
+	}
 
 }

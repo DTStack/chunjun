@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka09.decoder;
+package com.dtstack.flinkx.kafka10.decoder;
 
 import java.util.Map;
 

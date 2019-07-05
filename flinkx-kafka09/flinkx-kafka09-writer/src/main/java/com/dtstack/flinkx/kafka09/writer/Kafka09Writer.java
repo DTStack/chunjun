@@ -78,6 +78,6 @@ public class Kafka09Writer extends DataWriter {
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
 
         dataStreamSink.name("kafka09writer");
-        return null;
+        return dataStreamSink;
     }
 }

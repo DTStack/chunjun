@@ -42,10 +42,4 @@ public class PlainDecoder implements IDecode {
 		return event;
 	}
 
-	@Override
-	public Map<String, Object> decode(String message, String identify) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 }
