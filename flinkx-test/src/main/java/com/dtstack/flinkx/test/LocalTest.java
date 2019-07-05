@@ -65,7 +65,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,9 +88,8 @@ public class LocalTest {
 
     public static final String TEST_RESOURCE_DIR = "src/test/resources/dev_test_job/";
 
-    @Test
-    public void test() throws Exception{
-        String jobPath = TEST_RESOURCE_DIR + "dev_stream_read.json";
+    public static void main(String[] args) throws Exception{
+        String jobPath = TEST_RESOURCE_DIR + "stream_template.json";
         LocalTest.runJob(new File(jobPath), null, null);
     }
 
