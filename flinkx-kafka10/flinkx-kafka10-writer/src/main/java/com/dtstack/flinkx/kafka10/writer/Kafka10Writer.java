@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,17 @@
 package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+
+import java.util.Map;
+import java.util.Set;
+
+import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
 
 /**
  * company: www.dtstack.com
@@ -30,12 +37,43 @@ import org.apache.flink.types.Row;
  */
 public class Kafka10Writer extends DataWriter {
 
+    private String timezone;
+
+    private String topic;
+
+    private Map<String, Map<String, String>> topicSelect;
+
+    private Set<Map.Entry<String, Map<String, String>>> entryTopicSelect;
+
+    private String bootstrapServers;
+
+    private Map<String, String> producerSettings;
+
     public Kafka10Writer(DataTransferConfig config) {
         super(config);
+        WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
+        timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
+        topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
+        topicSelect = (Map<String, Map<String, String>>) writerConfig.getParameter().getVal(KEY_TOPIC_SELECT);
+        entryTopicSelect = (Set<Map.Entry<String, Map<String, String>>>) writerConfig.getParameter().getVal(KEY_ENTRY_TOPIC_SELECT);
+        bootstrapServers = writerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
+        producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        return null;
+        Kafka10OutputFormat format = new Kafka10OutputFormat();
+        format.setTimezone(timezone);
+        format.setTopic(topic);
+        format.setTopicSelect(topicSelect);
+        format.setEntryTopicSelect(entryTopicSelect);
+        format.setBootstrapServers(bootstrapServers);
+        format.setProducerSettings(producerSettings);
+
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(format);
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+
+        dataStreamSink.name("kafka10writer");
+        return dataStreamSink;
     }
 }
