@@ -38,7 +38,11 @@ public class Metrics {
 
     public static String READ_BYTES = "byteRead";
 
+    public static String READ_DURATION = "readDuration";
+
     public static String WRITE_BYTES = "byteWrite";
+
+    public static String WRITE_DURATION = "writeDuration";
 
     public static String NUM_WRITES = "numWrite";
 
