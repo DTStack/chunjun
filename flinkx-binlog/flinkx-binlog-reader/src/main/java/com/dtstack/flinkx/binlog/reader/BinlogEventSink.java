@@ -30,26 +30,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 
 public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinlogEventSink.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
 
     private BinlogInputFormat format;
 
     private BlockingQueue<Row> queue;
 
-    public BinlogEventSink(BinlogInputFormat format, int bufferSize) {
+    public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
-        queue = new ArrayBlockingQueue<Row>(bufferSize);
+        queue = new SynchronousQueue<Row>(false);
     }
 
     @Override
     public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException, InterruptedException {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("binlog sink, entries.size:{} entryType:{}", entries.size(), entries.size() > 0 ? entries.get(0).getEntryType() : null);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("binlog sink, entries.size:{} entryType:{}", entries.size(), entries.size() > 0 ? entries.get(0).getEntryType() : null);
         }
 
         for (CanalEntry.Entry entry : entries) {
@@ -79,7 +80,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
         } catch (Exception e) {
-            logger.error("ERROR ## parser of eromanga-event has an error , data:" + entry.toString());
+            LOG.error("ERROR ## parser of eromanga-event has an error , data:" + entry.toString());
         }
         return rowChange;
     }
@@ -102,7 +103,11 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             message.put("after", processColumnList(rowData.getAfterColumnsList()));
             event.put("message", message);
 
-            queue.add(Row.of(event));
+            try {
+                queue.put(Row.of(event));
+            } catch (InterruptedException e) {
+                LOG.error("takeEvent interrupted event:{} error:{}", event, e);
+            }
         }
 
     }
@@ -120,14 +125,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             row = queue.take();
         } catch (InterruptedException e) {
-            logger.error("takeEvent interrupted error:{}", e);
+            LOG.error("takeEvent interrupted error:{}", e);
         }
         return row;
     }
 
     @Override
     public void interrupt() {
-        logger.info("BinlogEventSink is interrupted");
+        LOG.info("BinlogEventSink is interrupted");
     }
 
 }

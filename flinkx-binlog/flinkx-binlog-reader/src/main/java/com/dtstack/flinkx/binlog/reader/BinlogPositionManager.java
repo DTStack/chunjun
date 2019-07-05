@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 public class BinlogPositionManager extends AbstractLogPositionManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinlogPositionManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BinlogPositionManager.class);
 
     private final BinlogInputFormat format;
 
@@ -41,8 +41,8 @@ public class BinlogPositionManager extends AbstractLogPositionManager {
 
     @Override
     public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
-        if(logger.isDebugEnabled()){
-            logger.debug("persistLogPosition: " + logPosition.toString());
+        if(LOG.isDebugEnabled()){
+            LOG.debug("persistLogPosition: " + logPosition.toString());
         }
         format.updateLastPos(logPosition.getPostion());
     }

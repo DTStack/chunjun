@@ -31,7 +31,7 @@ import java.util.List;
 
 public class BinlogJournalValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinlogJournalValidator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BinlogJournalValidator.class);
 
     private String host;
 
@@ -64,15 +64,15 @@ public class BinlogJournalValidator {
                     journalList.add(fieldValues.get(i));
                 }
             }
-            logger.info("collect journals: " + journalList);
+            LOG.info("collect journals: " + journalList);
         } catch (IOException e) {
-            logger.error("Error occured: " + e.getMessage());
+            LOG.error("Error occured: " + e.getMessage());
         } finally {
             if(conn != null) {
                 try {
                     conn.disconnect();
                 } catch (IOException e) {
-                    logger.error("Error occured while disconnect mysqlconnection: " + e.getMessage());
+                    LOG.error("Error occured while disconnect mysqlconnection: " + e.getMessage());
                 }
             }
         }

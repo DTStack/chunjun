@@ -15,18 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.kafka09.decoder;
 
-package com.dtstack.flinkx.kafka09;
+import java.util.HashMap;
+import java.util.Map;
 
 
-public class KafkaConfigKeys {
+/**
+ * 
+ * Reason: TODO ADD REASON(可选)
+ * Date: 2016年8月31日 下午1:26:00
+ * Company: www.dtstack.com
+ * @author sishu.yss
+ *
+ */
+public class PlainDecoder implements IDecode {
 
-    public static final String KEY_TOPIC = "topic";
+	@SuppressWarnings("serial")
+	@Override
+	public Map<String, Object> decode(final String message) {
+		HashMap<String, Object> event = new HashMap<String, Object>() {
+			{
+				put("message", message);
+			}
+		};
+		return event;
+	}
 
-    public static final String KEY_ENCODING = "encoding";
-
-    public static final String KEY_CODEC = "codec";
-
-    public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
-
+	@Override
+	public Map<String, Object> decode(String message, String identify) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }

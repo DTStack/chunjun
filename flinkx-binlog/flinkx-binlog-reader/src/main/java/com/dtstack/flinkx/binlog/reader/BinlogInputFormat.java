@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BinlogInputFormat extends RichInputFormat {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinlogInputFormat.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
 
     private String host;
 
@@ -91,12 +91,12 @@ public class BinlogInputFormat extends RichInputFormat {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        logger.debug("save pos to local, entryPosition:{}", entryPosition);
+        LOG.debug("save pos to local, entryPosition:{}", entryPosition);
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        logger.info("binlog emit started...");
+        LOG.info("binlog emit started...");
 
         controller.start();
 
@@ -107,7 +107,7 @@ public class BinlogInputFormat extends RichInputFormat {
             }
         }, period, period, TimeUnit.MILLISECONDS);
 
-        logger.info("binlog emit ended...");
+        LOG.info("binlog emit ended...");
     }
 
     @Override
@@ -117,7 +117,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        logger.info("binlog release...");
+        LOG.info("binlog release...");
 
         if(controller != null) {
             controller.stop();
@@ -128,13 +128,13 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         savePos();
-        logger.info("binlog release..., save pos:{}", entryPosition);
+        LOG.info("binlog release..., save pos:{}", entryPosition);
     }
 
     @Override
     public void configure(Configuration parameters) {
         try {
-            logger.info("binlog prepare started..");
+            LOG.info("binlog prepare started..");
 
             parseCategories();
 
@@ -149,7 +149,7 @@ public class BinlogInputFormat extends RichInputFormat {
             controller.setParallelBufferSize(bufferSize);
             controller.setParallelThreadSize(2);
             controller.setIsGTIDMode(false);
-            binlogEventSink = new BinlogEventSink(this, bufferSize);
+            binlogEventSink = new BinlogEventSink(this);
             controller.setEventSink(binlogEventSink);
 
             controller.setLogPositionManager(new BinlogPositionManager(this));
@@ -163,16 +163,16 @@ public class BinlogInputFormat extends RichInputFormat {
                 controller.setEventFilter(new AviaterRegexFilter(filter));
             }
 
-            logger.info("binlog prepare ended..");
+            LOG.info("binlog prepare ended..");
         } catch (Exception e) {
-            logger.error("",e);
+            LOG.error("",e);
             System.exit(-1);
         }
     }
 
     private void parseCategories() {
         if(!StringUtils.isBlank(cat)) {
-            logger.info("{}", categories);
+            LOG.info("{}", categories);
             categories = Arrays.asList(cat.toUpperCase().split(","));
         }
     }
@@ -197,7 +197,7 @@ public class BinlogInputFormat extends RichInputFormat {
         try {
             startPosition = BinlogPosUtil.readPos("default_task_id");
         } catch(IOException e) {
-            logger.error("Failed to read pos file: " + e.getMessage());
+            LOG.error("Failed to read pos file: " + e.getMessage());
         }
         return startPosition;
     }

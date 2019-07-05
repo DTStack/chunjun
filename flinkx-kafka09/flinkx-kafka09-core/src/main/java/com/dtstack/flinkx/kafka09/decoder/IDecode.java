@@ -15,18 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.kafka09.decoder;
 
-package com.dtstack.flinkx.kafka09;
+import java.util.Map;
 
-
-public class KafkaConfigKeys {
-
-    public static final String KEY_TOPIC = "topic";
-
-    public static final String KEY_ENCODING = "encoding";
-
-    public static final String KEY_CODEC = "codec";
-
-    public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
+/**
+ * 
+ * Reason: TODO ADD REASON(可选)
+ * Date: 2016年8月31日 下午1:25:51
+ * Company: www.dtstack.com
+ * @author sishu.yss
+ *
+ */
+public interface IDecode {
+	
+	public Map<String, Object> decode(String message);
+	
+	public Map<String, Object> decode(String message, String identify);
 
 }
