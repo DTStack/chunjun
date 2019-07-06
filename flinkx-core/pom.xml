@@ -131,6 +131,8 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.google.guava:*</include>
+                                    <include>ch.qos.logback:*</include>
+                                    <include>org.slf4j:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
