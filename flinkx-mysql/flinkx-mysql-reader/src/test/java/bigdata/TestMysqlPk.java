@@ -1,7 +1,7 @@
 package bigdata;
 
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import util.DBUtil;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
