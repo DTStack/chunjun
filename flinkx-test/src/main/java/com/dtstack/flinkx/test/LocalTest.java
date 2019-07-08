@@ -86,7 +86,7 @@ public class LocalTest {
 
     private static final int DELAY_INTERVAL = 10;
 
-    public static final String TEST_RESOURCE_DIR = "src/test/resources/dev_test_job/";
+    public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
 
     public static void main(String[] args) throws Exception{
         String jobPath = TEST_RESOURCE_DIR + "stream_template.json";
