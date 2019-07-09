@@ -18,13 +18,11 @@
 
 package com.dtstack.flinkx.hdfs;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hive.ql.io.HiveBinaryOutputFormat;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;

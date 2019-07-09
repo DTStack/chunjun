@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.collect.Lists;
