@@ -26,6 +26,7 @@ import com.dtstack.flinkx.binlog.BinlogPosUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -61,21 +62,21 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private String cat;
 
-    private long period = 1000;
+    private long period;
 
-    private int bufferSize = 1000;
+    private int bufferSize;
 
     /** internal fields */
 
-    private MysqlEventParser controller;
+    private transient MysqlEventParser controller;
 
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private transient ScheduledExecutorService scheduler;
 
     private volatile EntryPosition entryPosition = new EntryPosition();
 
     private List<String> categories = new ArrayList<>();
 
-    private BinlogEventSink binlogEventSink;
+    private transient BinlogEventSink binlogEventSink;
 
     public void updateLastPos(EntryPosition entryPosition) {
         this.entryPosition = entryPosition;
@@ -100,6 +101,8 @@ public class BinlogInputFormat extends RichInputFormat {
 
         controller.start();
 
+        LOG.info("binlog scheduleAtFixedRate....");
+        scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -204,7 +207,9 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
+        InputSplit[] split = new InputSplit[1];
+        split[0] = new GenericInputSplit(0,1);
+        return split;
     }
 
     @Override

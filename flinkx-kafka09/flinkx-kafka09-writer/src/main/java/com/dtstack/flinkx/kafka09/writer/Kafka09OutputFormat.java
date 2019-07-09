@@ -27,13 +27,13 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka09OutputFormat.class);
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     private Properties props;
 
-    private Producer<String, byte[]> producer;
+    private transient Producer<String, byte[]> producer;
 
-    private String encoding = "utf-8";
+    private String encoding;
 
     private String timezone;
 
@@ -47,7 +47,7 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     private Map<String, String> producerSettings;
 
-    private JsonDecoder jsonDecoder = new JsonDecoder();
+    private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
     static {
         Thread.currentThread().setContextClassLoader(null);

@@ -64,7 +64,7 @@ public class BinlogReader extends DataReader {
         cat = readerConfig.getParameter().getStringVal(KEY_CATALOG);
         filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
         period = readerConfig.getParameter().getLongVal(KEY_PERIOD, 1000L);
-        bufferSize = readerConfig.getParameter().getIntVal(KEY_BUFFER_SIZE, 1000);
+        bufferSize = readerConfig.getParameter().getIntVal(KEY_BUFFER_SIZE, 1024);
     }
 
     @Override

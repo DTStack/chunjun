@@ -28,7 +28,6 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
@@ -43,7 +42,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
-        queue = new SynchronousQueue<Row>(false);
+        queue = new SynchronousQueue<>(false);
     }
 
     @Override

@@ -25,7 +25,7 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka10OutputFormat.class);
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     private Properties props;
 
@@ -41,9 +41,9 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private Map<String, String> producerSettings;
 
-    private KafkaProducer producer;
+    private transient KafkaProducer producer;
 
-    private JsonDecoder jsonDecoder = new JsonDecoder();
+    private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
     private AtomicBoolean isInit = new AtomicBoolean(false);
 
