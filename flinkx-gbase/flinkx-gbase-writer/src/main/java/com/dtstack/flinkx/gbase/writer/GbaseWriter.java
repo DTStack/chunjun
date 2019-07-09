@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,29 +6,31 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+
+
+package com.dtstack.flinkx.gbase.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.gbase.GbaseDatabaseMeta;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 
 /**
- * Reason:
- * Date: 2019/1/17
- * Company: www.dtstack.com
- * @author maqi
+ * @author jiangbo
+ * @date 2019/6/9
  */
-public enum  ColType {
+public class GbaseWriter extends JdbcDataWriter {
 
-	BIGINT,	//sqlserver 数值
-	VARCHAR,
-	VARCHAR2,
-	LONG,    //oracle 数值
-
-	INTEGER	//mongodb 数值
+    public GbaseWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new GbaseDatabaseMeta());
+    }
 }

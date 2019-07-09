@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;

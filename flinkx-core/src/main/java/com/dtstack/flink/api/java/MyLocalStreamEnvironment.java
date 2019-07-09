@@ -25,6 +25,7 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.minicluster.LocalFlinkMiniCluster;
 import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -57,6 +58,12 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
     }
 
     private List<URL> classpaths = Collections.emptyList();
+
+    private SavepointRestoreSettings settings;
+
+    public void setSettings(SavepointRestoreSettings settings) {
+        this.settings = settings;
+    }
 
     /**
      * Creates a new local stream environment that uses the default configuration.
@@ -96,6 +103,10 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
         JobGraph jobGraph = streamGraph.getJobGraph();
         jobGraph.setClasspaths(classpaths);
+
+        if (settings != null){
+            jobGraph.setSavepointRestoreSettings(settings);
+        }
 
         Configuration configuration = new Configuration();
         configuration.addAll(jobGraph.getJobConfiguration());

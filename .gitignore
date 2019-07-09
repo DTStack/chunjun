@@ -8,4 +8,3 @@ jobs/
 nohup.out
 flinkconf/
 hadoopconf/
-test/

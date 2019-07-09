@@ -21,6 +21,7 @@ package com.dtstack.flinkx.inputformat;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -46,11 +47,15 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
     protected LongCounter numReadCounter;
+    protected LongCounter bytesReadCounter;
+    protected LongCounter durationCounter;
     protected String monitorUrls;
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
     protected transient BaseMetric inputMetric;
+
+    private long startTime;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -62,9 +67,15 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
+        durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
 
         inputMetric = new BaseMetric(getRuntimeContext(), "reader");
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
+        inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+
+        startTime = System.currentTimeMillis();
 
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
@@ -85,6 +96,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
 
+        updateDuration();
+
+        bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(row));
         return nextRecordInternal(row);
     }
 
@@ -101,6 +115,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void closeInputFormat() throws IOException {
+        updateDuration();
+
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
         }
@@ -110,6 +126,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter = null;
         }
         LOG.info("subtask input close finished");
+    }
+
+    private void updateDuration(){
+        durationCounter.resetLocal();
+        durationCounter.add(System.currentTimeMillis() - startTime);
     }
 
     protected abstract  void closeInternal() throws IOException;
