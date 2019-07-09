@@ -35,7 +35,7 @@ import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;
  */
 public class Kafka09Reader extends DataReader {
 
-    private Map<String, Integer> topic;
+    private Map<String, Object> topic;
 
     private String codec;
 
@@ -46,7 +46,7 @@ public class Kafka09Reader extends DataReader {
     public Kafka09Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        topic = (Map<String, Integer>) readerConfig.getParameter().getVal(KEY_TOPIC);
+        topic = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_TOPIC);
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
         encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING, "utf-8");

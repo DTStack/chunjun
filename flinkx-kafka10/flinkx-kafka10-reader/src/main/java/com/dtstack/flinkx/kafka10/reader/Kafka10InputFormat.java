@@ -5,6 +5,7 @@ import com.dtstack.flinkx.kafka10.decoder.IDecode;
 import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -140,7 +141,9 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
+        InputSplit[] split = new InputSplit[1];
+        split[0] = new GenericInputSplit(0,1);
+        return split;
     }
 
     @Override

@@ -5,6 +5,7 @@ import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private String codec;
 
-    private Map<String, Integer> topic;
+    private Map<String, Object> topic;
 
     private Map<String, String> consumerSettings;
 
@@ -46,12 +47,12 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        Iterator<Map.Entry<String, Integer>> topicIT = topic.entrySet().iterator();
+        Iterator<Map.Entry<String, Object>> topicIT = topic.entrySet().iterator();
         while (topicIT.hasNext()) {
 
-            Map.Entry<String, Integer> entry = topicIT.next();
+            Map.Entry<String, Object> entry = topicIT.next();
             String topic = entry.getKey();
-            Integer threads = entry.getValue();
+            Integer threads = Integer.valueOf(entry.getValue().toString());
             addNewConsumer(topic, threads);
         }
     }
@@ -127,7 +128,9 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
+        InputSplit[] split = new InputSplit[1];
+        split[0] = new GenericInputSplit(0,1);
+        return split;
     }
 
     @Override
@@ -159,11 +162,11 @@ public class Kafka09InputFormat extends RichInputFormat {
         this.codec = codec;
     }
 
-    public void setTopic(Map<String, Integer> topic) {
+    public void setTopic(Map<String, Object> topic) {
         this.topic = topic;
     }
 
-    public Map<String, Integer> getTopic() {
+    public Map<String, Object> getTopic() {
         return topic;
     }
 
