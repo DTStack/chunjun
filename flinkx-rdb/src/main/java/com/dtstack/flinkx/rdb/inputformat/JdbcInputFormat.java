@@ -166,7 +166,8 @@ public class JdbcInputFormat extends RichInputFormat {
             dbConn.setAutoCommit(false);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
-            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()){
+            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
+                    || EDatabaseType.GBase == databaseInterface.getDatabaseType()){
                 statement.setFetchSize(Integer.MIN_VALUE);
             } else {
                 statement.setFetchSize(fetchSize);
