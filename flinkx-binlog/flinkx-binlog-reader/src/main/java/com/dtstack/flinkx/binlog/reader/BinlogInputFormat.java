@@ -56,7 +56,13 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private String password;
 
+    private String jdbcUrl;
+
+    private static boolean pavingData = false;
+
     private Map<String,Object> start;
+
+    private static List<String> table;
 
     private String filter;
 
@@ -152,14 +158,49 @@ public class BinlogInputFormat extends RichInputFormat {
             controller.setParallelBufferSize(bufferSize);
             controller.setParallelThreadSize(2);
             controller.setIsGTIDMode(false);
-            binlogEventSink = new BinlogEventSink(this);
-            controller.setEventSink(binlogEventSink);
+
+            BinlogEventSink sink = new BinlogEventSink(this);
+            sink.setPavingData(pavingData);
+            controller.setEventSink(sink);
 
             controller.setLogPositionManager(new BinlogPositionManager(this));
 
             EntryPosition startPosition = findStartPosition();
             if (startPosition != null) {
                 controller.setMasterPosition(startPosition);
+            }
+
+            /**
+             * mysql 数据解析关注的表，Perl正则表达式.
+
+             多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
+
+
+             常见例子：
+
+             1.  所有表：.*   or  .*\\..*
+             2.  canal schema下所有表： canal\\..*
+             3.  canal下的以canal打头的表：canal\\.canal.*
+             4.  canal schema下的一张表：canal\\.test1
+
+             5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
+             */
+            if (table != null && table.size() != 0 && jdbcUrl != null) {
+                int idx = jdbcUrl.lastIndexOf('?');
+                String database = null;
+                if (idx != -1) {
+                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
+                } else {
+                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
+                }
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < table.size(); i++) {
+                    sb.append(database).append(".").append(table.get(i));
+                    if (i != table.size() - 1) {
+                        sb.append(",");
+                    }
+                }
+                filter = sb.toString();
             }
 
             if (filter != null) {

@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.binlog.reader;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
@@ -39,6 +40,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private BinlogInputFormat format;
 
     private BlockingQueue<Row> queue;
+
+    private boolean pavingData;
 
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
@@ -92,31 +95,43 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         }
 
         for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            Map<String,Object> event = new HashMap<>();
             Map<String,Object> message = new HashMap<>();
             message.put("type", eventType.toString());
             message.put("schema", schema);
             message.put("table", table);
             message.put("ts", ts);
-            message.put("before", processColumnList(rowData.getBeforeColumnsList()));
-            message.put("after", processColumnList(rowData.getAfterColumnsList()));
-            event.put("message", message);
+
+            if (pavingData){
+                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                    message.put("after_" + column.getName(), column.getValue());
+                }
+                for (CanalEntry.Column column : rowData.getBeforeColumnsList()){
+                    message.put("before_" + column.getName(), column.getValue());
+                }
+            } else {
+                message.put("before", processColumnList(rowData.getBeforeColumnsList()));
+                message.put("after", processColumnList(rowData.getAfterColumnsList()));
+            }
 
             try {
-                queue.put(Row.of(event));
+                queue.put(Row.of(message));
             } catch (InterruptedException e) {
-                LOG.error("takeEvent interrupted event:{} error:{}", event, e);
+                LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
         }
 
     }
 
-    private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
+    private String processColumnList(List<CanalEntry.Column> columnList) {
         Map<String,Object> map = new HashMap<>();
         for (CanalEntry.Column column : columnList) {
             map.put(column.getName(), column.getValue());
         }
-        return map;
+        return JSON.toJSONString(map);
+    }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
     }
 
     public Row takeEvent() {
