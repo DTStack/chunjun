@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class StreamReader extends DataReader {
 
-    private long sliceRecordCount;
+    private List<Long> sliceRecordCount;
 
     private List<MetaColumn> columns;
 
@@ -47,7 +47,7 @@ public class StreamReader extends DataReader {
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        sliceRecordCount = readerConfig.getParameter().getLongVal("sliceRecordCount",DEFAULT_SLICE_RECORD_COUNT);
+        sliceRecordCount = (List<Long>)readerConfig.getParameter().getVal("sliceRecordCount",DEFAULT_SLICE_RECORD_COUNT);
         columns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
