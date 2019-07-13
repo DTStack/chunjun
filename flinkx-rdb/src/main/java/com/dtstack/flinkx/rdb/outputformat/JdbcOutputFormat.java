@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
-import com.dtstack.flinkx.enums.ColType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
@@ -296,7 +296,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             field = DateUtil.columnToTimestamp(field,null);
         }
 
-        if (type.equalsIgnoreCase(ColType.BIGINT.toString()) && field instanceof java.util.Date){
+        if (type.equalsIgnoreCase(ColumnType.BIGINT.name()) && field instanceof java.util.Date){
             field = ((java.util.Date) field).getTime();
         }
 
@@ -326,12 +326,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
             return field;
         }
 
-        if (type.equalsIgnoreCase(ColType.VARCHAR.toString()) || type.equalsIgnoreCase(ColType.VARCHAR2.toString())){
+        if (type.equalsIgnoreCase(ColumnType.VARCHAR.name()) || type.equalsIgnoreCase(ColumnType.VARCHAR2.name())){
             SimpleDateFormat format = DateUtil.getDateTimeFormatter();
             field= format.format(field);
         }
 
-        if (type.equalsIgnoreCase(ColType.LONG.toString()) ){
+        if (type.equalsIgnoreCase(ColumnType.LONG.name()) ){
             field = ((Timestamp) field).getTime();
         }
         return field;

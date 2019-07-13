@@ -23,13 +23,13 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
@@ -72,35 +72,7 @@ public class JdbcDataWriter extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         dbUrl = writerConfig.getParameter().getConnection().get(0).getJdbcUrl();
-
-        if(writerConfig.getName().equalsIgnoreCase("mysqlwriter")) {
-            String[] splits = dbUrl.split("\\?");
-
-            Map<String,String> paramMap = new HashMap<String,String>();
-            if(splits.length > 1) {
-                String[] pairs = splits[1].split("&");
-                for(String pair : pairs) {
-                    String[] leftRight = pair.split("=");
-                    paramMap.put(leftRight[0], leftRight[1]);
-                }
-            }
-            paramMap.put("rewriteBatchedStatements", "true");
-
-            StringBuffer sb = new StringBuffer(splits[0]);
-            if(paramMap.size() != 0) {
-                sb.append("?");
-                int index = 0;
-                for(Map.Entry<String,String> entry : paramMap.entrySet()) {
-                    if(index != 0) {
-                        sb.append("&");
-                    }
-                    sb.append(entry.getKey() + "=" + entry.getValue());
-                    index++;
-                }
-            }
-
-            dbUrl = sb.toString();
-        }
+        dbUrl = DBUtil.formatJdbcUrl(writerConfig.getName(), dbUrl);
 
         username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);

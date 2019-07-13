@@ -1,0 +1,95 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "tinyint_col",
+                "type": "tinyint"
+              },
+              {
+                "name": "smallint_col",
+                "type": "smallint"
+              },
+              {
+                "name": "int_col",
+                "type": "int"
+              },
+              {
+                "name": "bigint_col",
+                "type": "bigint"
+              },
+              {
+                "name": "float_col",
+                "type": "float"
+              },
+              {
+                "name": "double_col",
+                "type": "double"
+              },
+              {
+                "name": "decimal_col",
+                "type": "decimal"
+              },
+              {
+                "name": "numeric_col",
+                "type": "numeric"
+              },
+              {
+                "name": "char_col",
+                "type": "char"
+              },
+              {
+                "name": "varchar_col",
+                "type": "varchar"
+              },
+              {
+                "name": "text_col",
+                "type": "text"
+              },
+              {
+                "name": "blob_col",
+                "type": "blob"
+              },
+              {
+                "name": "longblob_col",
+                "type": "longblob"
+              },
+              {
+                "name": "date_col",
+                "type": "date"
+              },
+              {
+                "name": "datetime_col",
+                "type": "datetime"
+              },
+              {
+                "name": "time_col",
+                "type": "time"
+              }
+            ],
+            "sliceRecordCount": 100
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}

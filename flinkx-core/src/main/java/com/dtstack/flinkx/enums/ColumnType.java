@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.common;
+package com.dtstack.flinkx.enums;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public enum ColumnType {
-    STRING, VARCHAR, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY,
+    STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY,
     INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,INTEGER,
     DOUBLE, FLOAT,
     BOOLEAN,

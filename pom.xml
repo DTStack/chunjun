@@ -29,6 +29,7 @@
         <module>flinkx-carbondata</module>
         <module>flinkx-db2</module>
         <module>flinkx-test</module>
+        <module>flinkx-gbase</module>
     </modules>
 
     <properties>

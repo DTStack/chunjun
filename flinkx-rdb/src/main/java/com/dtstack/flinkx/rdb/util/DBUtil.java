@@ -17,8 +17,8 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
-import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.constants.PluginNameConstrant;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
@@ -582,7 +582,9 @@ public class DBUtil {
     public static String formatJdbcUrl(String pluginName,String dbUrl){
         if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_READER)
                 || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)
-                || pluginName.equalsIgnoreCase(PluginNameConstrant.POSTGRESQL_READER)){
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.POSTGRESQL_READER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_WRITER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.GBASE_WRITER) ){
             String[] splits = dbUrl.split("\\?");
 
             Map<String,String> paramMap = new HashMap<String,String>();
@@ -595,7 +597,7 @@ public class DBUtil {
             }
 
             paramMap.put("useCursorFetch", "true");
-
+            paramMap.put("rewriteBatchedStatements", "true");
             if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_READER)
                     || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)){
                 paramMap.put("zeroDateTimeBehavior","convertToNull");
