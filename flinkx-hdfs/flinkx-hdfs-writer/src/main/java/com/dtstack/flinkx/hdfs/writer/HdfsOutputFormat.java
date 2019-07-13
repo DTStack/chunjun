@@ -389,7 +389,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             return;
         }
 
-        long writeSize = writeBytesCounter.getLocalValue();
+        long writeSize = bytesWriteCounter.getLocalValue();
         long currentFileSize = (long)getCompressRate() * (writeSize - lastWriteSize);
         if (currentFileSize > maxFileSize){
             try{

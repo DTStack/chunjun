@@ -25,8 +25,6 @@ import com.dtstack.flinkx.reader.ByteRateLimiter;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
-import com.dtstack.flinkx.util.SysUtil;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -193,6 +191,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         LOG.info("subtask input close finished");
+    }
+
+    private void updateDuration(){
+        durationCounter.resetLocal();
+        durationCounter.add(System.currentTimeMillis() - startTime);
     }
 
     protected abstract  void closeInternal() throws IOException;

@@ -370,7 +370,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         updateDuration();
 
-        writeBytesCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
     }
 
     private Row setChannelInfo(Row row){
