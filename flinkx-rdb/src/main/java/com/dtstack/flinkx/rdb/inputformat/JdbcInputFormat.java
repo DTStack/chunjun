@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
@@ -41,9 +41,6 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -169,7 +166,8 @@ public class JdbcInputFormat extends RichInputFormat {
             dbConn.setAutoCommit(false);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
-            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()){
+            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
+                    || EDatabaseType.GBase == databaseInterface.getDatabaseType()){
                 statement.setFetchSize(Integer.MIN_VALUE);
             } else {
                 statement.setFetchSize(fetchSize);

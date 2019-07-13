@@ -35,7 +35,7 @@ public class StreamInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format = new StreamInputFormat();
     }
 
-    public void setSliceRecordCount(long sliceRecordCount){
+    public void setSliceRecordCount(List<Long> sliceRecordCount){
         format.sliceRecordCount = sliceRecordCount;
     }
 

@@ -75,19 +75,6 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         return sb.toString();
     }
 
-    protected List<String> keyColList(Map<String,List<String>> updateKey) {
-        List<String> keyCols = new ArrayList<>();
-        for(Map.Entry<String,List<String>> entry : updateKey.entrySet()) {
-            List<String> list = entry.getValue();
-            for(String col : list) {
-                if(!keyCols.contains(col)) {
-                    keyCols.add(col);
-                }
-            }
-        }
-        return keyCols;
-    }
-
     @Override
     public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
         if(updateKey == null || updateKey.isEmpty()) {
@@ -128,7 +115,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
             contains = false;
         }
 
-        return org.apache.commons.lang3.StringUtils.join(values,",");
+        return StringUtils.join(values,",");
     }
 
     @Override
@@ -145,56 +132,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
                 + quoteColumns(column, "T2") + ")";
     }
 
-    abstract protected String makeMultipleValues(int nCols, int batchSize);
-
-    protected String makeMultipleValues(List<String> column, int batchSize) {
-        String value = makeValues(column);
-        return StringUtils.repeat(value, " UNION ALL ", batchSize);
-    }
-
-    @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") "
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    abstract protected String makeValues(int nCols);
-
     abstract protected String makeValues(List<String> column);
-
-    @Override
-    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getMultiInsertStatement(column, table, batchSize);
-        }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleReplaceValues(column,fullColumn,batchSize) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(fullColumn, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
-    }
-
-    protected String makeMultipleReplaceValues(List<String> column, List<String> fullColumn,int batchSize){
-        String value = makeReplaceValues(column,fullColumn);
-        return StringUtils.repeat(value, " UNION ALL ", batchSize);
-    }
-
-    @Override
-    public String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getMultiInsertStatement(column, table, batchSize);
-        }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleValues(column,batchSize) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
-    }
 
     protected String getUpdateSql(List<String> column, String leftTable, String rightTable) {
         String prefixLeft = StringUtils.isBlank(leftTable) ? "" : quoteTable(leftTable) + ".";

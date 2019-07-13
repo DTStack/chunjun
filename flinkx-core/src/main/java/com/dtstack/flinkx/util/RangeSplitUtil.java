@@ -180,9 +180,6 @@ public final class RangeSplitUtil {
             map.put(i, (char) (i));
         }
 
-//        String msg = String.format("%s 转为 %s 进制，结果为：%s", bigInteger.longValue(), radix, list);
-//        System.out.println(msg);
-
         for (Integer aList : list) {
             resultStringBuilder.append(map.get(aList));
         }

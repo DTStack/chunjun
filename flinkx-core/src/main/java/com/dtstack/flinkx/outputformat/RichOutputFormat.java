@@ -26,6 +26,7 @@ import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.configuration.Configuration;
@@ -88,6 +89,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
 
+    protected LongCounter bytesWriteCounter;
+
+    protected LongCounter durationCounter;
+
     /** 错误阈值 */
     protected Integer errors;
 
@@ -112,6 +117,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected String jobId;
 
     protected transient BaseMetric outputMetric;
+
+    private long startTime;
 
     public DirtyDataManager getDirtyDataManager() {
         return dirtyDataManager;
@@ -172,6 +179,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
         otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
+        durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
 
         outputMetric = new BaseMetric(context, "writer");
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
@@ -180,6 +189,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
         outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+
+        startTime = System.currentTimeMillis();
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
 
@@ -221,8 +234,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             latch.addOne();
             latch.waitUntil(numTasks);
         }
-
-
     }
 
     protected boolean needWaitBeforeOpenInternal() {
@@ -309,6 +320,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             }
         }
 
+        updateDuration();
+
+        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
     }
 
     @Override
@@ -319,6 +333,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
+
+            updateDuration();
 
             if(outputMetric != null){
                 outputMetric.waitForReportMetrics();
@@ -364,6 +380,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             }
             LOG.info("subtask[" + taskNumber + "] close() finished");
         }
+    }
+
+    private void updateDuration(){
+        durationCounter.resetLocal();
+        durationCounter.add(System.currentTimeMillis() - startTime);
     }
 
     public void closeInternal() throws IOException {
