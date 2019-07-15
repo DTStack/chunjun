@@ -70,7 +70,7 @@
                 "type": "time"
               }
             ],
-            "sliceRecordCount": 100
+            "sliceRecordCount": ["1000"]
           },
           "name": "streamreader"
         },
