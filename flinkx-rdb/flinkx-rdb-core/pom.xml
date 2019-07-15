@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>flinkx-rdb</artifactId>
+        <groupId>com.dtstack.flinkx</groupId>
+        <version>1.6</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+    <artifactId>flinkx-rdb-core</artifactId>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${basedir}/../../plugins/common">
+                                    <fileset dir="target/">
+                                        <include name="${project.name}-${project.version}.jar"/>
+                                    </fileset>
+                                </copy>
+                                <move file="${basedir}/../../plugins/common/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/common/${project.name}-${git.branch}.jar"/>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

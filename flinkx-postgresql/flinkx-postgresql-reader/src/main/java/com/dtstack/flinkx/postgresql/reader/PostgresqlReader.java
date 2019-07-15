@@ -23,12 +23,7 @@ import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The reader plugin for PostgreSQL database

@@ -1,0 +1,219 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "abc123",
+            "column": [
+              {
+                "name": "id",
+                "type": "INT"
+              },
+              {
+                "name": "job_id",
+                "type": "VARCHAR"
+              },
+              {
+                "name": "engine_type",
+                "type": "VARCHAR"
+              },
+              {
+                "name": "compute_type",
+                "type": "TINYINT"
+              },
+              {
+                "name": "stage",
+                "type": "TINYINT"
+              },
+              {
+                "name": "job_info",
+                "type": "LONGTEXT"
+              },
+              {
+                "name": "gmt_create",
+                "type": "DATETIME"
+              },
+              {
+                "name": "gmt_modified",
+                "type": "DATETIME"
+              },
+              {
+                "name": "is_deleted",
+                "type": "TINYINT"
+              },
+              {
+                "name": "node_address",
+                "type": "VARCHAR"
+              },
+              {
+                "name": "job_name",
+                "type": "VARCHAR"
+              },
+              {
+                "name": "job_priority",
+                "type": "BIGINT"
+              },
+              {
+                "name": "group_name",
+                "type": "VARCHAR"
+              }
+            ],
+            "connection": [
+              {
+                "sourceId": 474,
+                "password": "abc123",
+                "jdbcUrl": [
+                  "jdbc:mysql://172.16.10.45:3306/ide"
+                ],
+                "type": 1,
+                "table": [
+                  "rdos_engine_job_cache"
+                ],
+                "username": "dtstack"
+              }
+            ],
+            "username": "dtstack"
+          },
+          "name": "mysqlreader"
+        },
+        "writer": {
+          "parameter": {
+            "fileName": "pt=1213",
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "int"
+              },
+              {
+                "name": "job_id",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "engine_type",
+                "index": 2,
+                "type": "string"
+              },
+              {
+                "name": "compute_type",
+                "index": 3,
+                "type": "tinyint"
+              },
+              {
+                "name": "stage",
+                "index": 4,
+                "type": "tinyint"
+              },
+              {
+                "name": "job_info",
+                "index": 5,
+                "type": "string"
+              },
+              {
+                "name": "gmt_create",
+                "index": 6,
+                "type": "string"
+              },
+              {
+                "name": "gmt_modified",
+                "index": 7,
+                "type": "string"
+              },
+              {
+                "name": "is_deleted",
+                "index": 8,
+                "type": "tinyint"
+              },
+              {
+                "name": "node_address",
+                "index": 9,
+                "type": "string"
+              },
+              {
+                "name": "job_name",
+                "index": 10,
+                "type": "string"
+              },
+              {
+                "name": "job_priority",
+                "index": 11,
+                "type": "bigint"
+              },
+              {
+                "name": "group_name",
+                "index": 12,
+                "type": "string"
+              }
+            ],
+            "writeMode": "overwrite",
+            "fieldDelimiter": "\u0001",
+            "encoding": "utf-8",
+            "fullColumnName": [
+              "id",
+              "job_id",
+              "engine_type",
+              "compute_type",
+              "stage",
+              "job_info",
+              "gmt_create",
+              "gmt_modified",
+              "is_deleted",
+              "node_address",
+              "job_name",
+              "job_priority",
+              "group_name"
+            ],
+            "path": "hdfs://ns1/user/hive/warehouse/mufeng_1206.db/rdos_engine_job_cache",
+            "password": "sanyue123",
+            "partition": "pt=1213",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn2": "node002:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1": "node001:9000",
+              "dfs.nameservices": "ns1"
+            },
+            "defaultFS": "hdfs://ns1",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:hive2://node001:10000/mufeng_1206",
+                "table": [
+                  "rdos_engine_job_cache"
+                ]
+              }
+            ],
+            "fileType": "orc",
+            "username": "sanyue2",
+            "fullColumnType": [
+              "int",
+              "string",
+              "string",
+              "tinyint",
+              "tinyint",
+              "string",
+              "string",
+              "string",
+              "tinyint",
+              "string",
+              "string",
+              "bigint",
+              "string"
+            ]
+          },
+          "name": "hdfswriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}

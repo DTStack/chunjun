@@ -95,44 +95,48 @@ public abstract class DataWriter {
 
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
 
-        if(columns == null || columns.size() == 0) {
-            throw new RuntimeException("source columns can't be null or empty");
-        }
+        if(columns != null) {
 
-        System.out.println("src class: " + columns.get(0).getClass());
-
-        if(columns.get(0) instanceof String) {
-            for(Object column : columns) {
-                srcCols.add((String)column);
+            if (columns.size() == 0) {
+                throw new RuntimeException("source columns can't be null or empty");
             }
-        } else if(columns.get(0) instanceof Map) {
-            this.srcCols = new ArrayList<>();
-            for(Object column : columns) {
-                Map<String,Object> colMap = (Map<String,Object>) column;
-                String colName = (String) colMap.get("name");
-                if(StringUtils.isBlank(colName)) {
-                    Object colIndex = colMap.get("index");
-                    if(colIndex != null) {
-                        if(colIndex instanceof Integer) {
-                            colName = String.valueOf(colIndex);
-                        } else if(colIndex instanceof Double) {
-                            Double doubleColIndex = (Double) colIndex;
-                            colName = String.valueOf(doubleColIndex.intValue());
+
+            System.out.println("src class: " + columns.get(0).getClass());
+
+            if(columns.get(0) instanceof String) {
+                for(Object column : columns) {
+                    srcCols.add((String)column);
+                }
+            } else if(columns.get(0) instanceof Map) {
+                this.srcCols = new ArrayList<>();
+                for(Object column : columns) {
+                    Map<String,Object> colMap = (Map<String,Object>) column;
+                    String colName = (String) colMap.get("name");
+                    if(StringUtils.isBlank(colName)) {
+                        Object colIndex = colMap.get("index");
+                        if(colIndex != null) {
+                            if(colIndex instanceof Integer) {
+                                colName = String.valueOf(colIndex);
+                            } else if(colIndex instanceof Double) {
+                                Double doubleColIndex = (Double) colIndex;
+                                colName = String.valueOf(doubleColIndex.intValue());
+                            } else {
+                                throw new RuntimeException("invalid src col index");
+                            }
                         } else {
-                            throw new RuntimeException("invalid src col index");
-                        }
-                    } else {
-                        String colValue = (String) colMap.get("value");
-                        if(StringUtils.isNotBlank(colValue)) {
-                            colName = "val_" +colValue;
-                        } else {
-                            throw new RuntimeException("can't determine source column name");
+                            String colValue = (String) colMap.get("value");
+                            if(StringUtils.isNotBlank(colValue)) {
+                                colName = "val_" +colValue;
+                            } else {
+                                throw new RuntimeException("can't determine source column name");
+                            }
                         }
                     }
+                    srcCols.add(colName);
                 }
-                srcCols.add(colName);
             }
         }
+
 
     }
 
