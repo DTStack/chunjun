@@ -248,6 +248,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+
+        startTime = System.currentTimeMillis();
     }
 
     private void openErrorLimiter(){
