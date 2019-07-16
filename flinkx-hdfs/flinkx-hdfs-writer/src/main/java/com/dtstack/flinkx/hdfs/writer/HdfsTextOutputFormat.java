@@ -50,31 +50,25 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     private static final int BUFFER_SIZE = 1000;
 
     @Override
-    protected void nextBlock() {
+    protected void nextBlockInternal() {
         if (stream != null){
             return;
         }
 
         try {
-            if (restoreConfig.isRestore()){
-                moveTemporaryDataBlockFileToDirectory();
-                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
-            } else {
-                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
-            }
-
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             Path p  = new Path(currentBlockTmpPath);
-            if(compress == null || compress.length() == 0) {
+
+            ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
+            if(ECompressType.TEXT_NONE.equals(compressType)){
                 stream = fs.create(p);
             } else {
-                ECompressType compressType = ECompressType.getByType(compress);
                 currentBlockTmpPath = currentBlockTmpPath + compressType.getSuffix();
                 p = new Path(currentBlockTmpPath);
 
-                if (compressType == ECompressType.GZIP){
+                if (compressType == ECompressType.TEXT_GZIP){
                     stream = new GzipCompressorOutputStream(fs.create(p));
-                } else if(compressType == ECompressType.BZIP2){
+                } else if(compressType == ECompressType.TEXT_BZIP2){
                     stream = new BZip2CompressorOutputStream(fs.create(p));
                 }
             }
@@ -87,6 +81,8 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void flushBlock() throws IOException {
+        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
         if (stream != null){
             stream.flush();
             stream.close();
@@ -95,8 +91,15 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected double getCompressRate(){
-        return 1;
+    protected float getCompressRate(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
+        return compressType.getCompressRate();
+    }
+
+    @Override
+    protected String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
+        return compressType.getSuffix();
     }
 
     @Override
@@ -223,7 +226,6 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             }
             throw new WriteRecordException(e.getMessage(), e);
         }
-
     }
 
     @Override
