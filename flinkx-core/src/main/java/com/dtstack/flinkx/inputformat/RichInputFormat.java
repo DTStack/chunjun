@@ -135,7 +135,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         internalRow = setChannelInformation(internalRow);
         bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
 
-        return nextRecordInternal(row);
+        return internalRow;
     }
 
     private Row setChannelInformation(Row internalRow){
