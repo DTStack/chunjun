@@ -20,12 +20,12 @@ package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -35,6 +35,7 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -49,6 +50,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
+    protected String jobId;
     protected LongCounter numReadCounter;
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
@@ -68,15 +70,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private long startTime;
 
+    protected AccumulatorCollector accumulatorCollector;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
     public void openInputFormat() throws IOException {
-        Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
-            jobName = vars.get(Metrics.JOB_NAME);
-        }
-
+        initJobInfo();
+        initAccumulatorCollector();
         initStatisticsAccumulator();
         openByteRateLImiter();
         initRestoreInfo();
@@ -87,10 +88,28 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         openInternal(inputSplit);
     }
 
+    private void initAccumulatorCollector(){
+        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrls, getRuntimeContext(), 2,
+                Arrays.asList(Metrics.NUM_READS,
+                        Metrics.READ_BYTES,
+                        Metrics.READ_DURATION));
+        accumulatorCollector.start();
+    }
+
+    private void initJobInfo(){
+        Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
+        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
+            jobName = vars.get(Metrics.JOB_NAME);
+        }
+
+        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
+            jobId = vars.get(Metrics.JOB_ID);
+        }
+    }
+
     private void openByteRateLImiter(){
-        if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
-            this.byteRateLimiter.start();
+        if (this.bytes > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, this.bytes);
         }
     }
 
@@ -185,9 +204,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             inputMetric.waitForReportMetrics();
         }
 
-        if(byteRateLimiter != null) {
-            byteRateLimiter.stop();
-            byteRateLimiter = null;
+        if(accumulatorCollector != null){
+            accumulatorCollector.close();
         }
 
         LOG.info("subtask input close finished");
