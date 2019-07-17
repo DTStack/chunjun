@@ -36,6 +36,10 @@ public class ByteRateLimiter {
 
     private AccumulatorCollector accumulatorCollector;
 
+    private long lastThisWriteRecords;
+
+    private long lastTotalWriteRecords;
+
     public ByteRateLimiter(AccumulatorCollector accumulatorCollector, double expectedBytePerSecond) {
         double initialRate = 1000.0;
         this.rateLimiter = RateLimiter.create(initialRate);
@@ -53,6 +57,10 @@ public class ByteRateLimiter {
         long thisWriteRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_WRITES);
         long totalWriteRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_WRITES);
 
+        if(lastTotalWriteRecords == totalWriteRecords && lastThisWriteRecords == thisWriteRecords){
+            return;
+        }
+
         double thisWriteRatio = (totalWriteRecords == 0 ? 0 : thisWriteRecords / totalWriteRecords);
 
         if (totalWriteRecords > 1000 && totalWriteBytes != 0 && thisWriteRatio != 0) {
@@ -60,5 +68,8 @@ public class ByteRateLimiter {
             double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio;
             rateLimiter.setRate(permitsPerSecond);
         }
+
+        lastThisWriteRecords = thisWriteRecords;
+        lastTotalWriteRecords = totalWriteRecords;
     }
 }
