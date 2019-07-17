@@ -157,9 +157,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-
         if (restoreConfig.isRestore()){
-            nextBlock();
+            if(writer == null){
+                nextBlock();
+            }
 
             if(lastRow != null){
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),

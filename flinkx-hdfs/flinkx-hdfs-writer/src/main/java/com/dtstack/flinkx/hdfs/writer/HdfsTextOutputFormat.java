@@ -109,9 +109,10 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-
         if (restoreConfig.isRestore()){
-            nextBlock();
+            if(stream == null){
+                nextBlock();
+            }
 
             if(lastRow != null){
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
