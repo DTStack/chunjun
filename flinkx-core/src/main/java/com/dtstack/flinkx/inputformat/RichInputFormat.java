@@ -22,7 +22,6 @@ import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
 import org.apache.commons.lang.StringUtils;
@@ -84,6 +83,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void open(InputSplit inputSplit) throws IOException {
+        indexOfSubtask = inputSplit.getSplitNumber();
+
         openInternal(inputSplit);
     }
 
@@ -133,7 +134,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         Row internalRow = nextRecordInternal(row);
         internalRow = setChannelInformation(internalRow);
-        bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
+        bytesReadCounter.add(internalRow.toString().length());
 
         return internalRow;
     }

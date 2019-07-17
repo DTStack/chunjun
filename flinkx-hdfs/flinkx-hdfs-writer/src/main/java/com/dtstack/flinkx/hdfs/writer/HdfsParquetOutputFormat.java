@@ -20,8 +20,10 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -82,25 +84,18 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlock() {
+    protected void nextBlockInternal() {
         if (writer != null){
             return;
         }
 
         try {
-            if (restoreConfig.isRestore()){
-                moveTemporaryDataBlockFileToDirectory();
-                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
-            } else {
-                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
-            }
-
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             Path writePath = new Path(currentBlockTmpPath);
             ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
                     .withWriteMode(ParquetFileWriter.Mode.CREATE)
                     .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                    .withCompressionCodec(CompressionCodecName.SNAPPY)
+                    .withCompressionCodec(getCompressType())
                     .withConf(conf)
                     .withType(schema)
                     .withRowGroupSize(rowGroupSize);
@@ -112,8 +107,34 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         }
     }
 
+    private CompressionCodecName getCompressType(){
+        // Compatible with old code
+        if(StringUtils.isEmpty(compress)){
+            compress = ECompressType.PARQUET_SNAPPY.getType();
+        }
+
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        if(ECompressType.PARQUET_SNAPPY.equals(compressType)){
+            return CompressionCodecName.SNAPPY;
+        }else if(ECompressType.PARQUET_GZIP.equals(compressType)){
+            return CompressionCodecName.GZIP;
+        }else if(ECompressType.PARQUET_LZO.equals(compressType)){
+            return CompressionCodecName.LZO;
+        } else {
+            return CompressionCodecName.UNCOMPRESSED;
+        }
+    }
+
+    @Override
+    protected String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        return compressType.getSuffix();
+    }
+
     @Override
     protected void flushBlock() throws IOException{
+        LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
         if (writer != null){
             writer.close();
             writer = null;
@@ -121,8 +142,9 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected double getCompressRate(){
-        return 0.38;
+    protected float getCompressRate(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        return compressType.getCompressRate();
     }
 
     @Override

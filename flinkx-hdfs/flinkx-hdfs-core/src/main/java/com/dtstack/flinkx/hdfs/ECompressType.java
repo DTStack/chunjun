@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.hdfs;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+
 /**
  * @author jiangbo
  * @explanation
@@ -26,43 +29,71 @@ package com.dtstack.flinkx.hdfs;
 public enum ECompressType {
 
     /**
-     * .gz
+     * text file
      */
-    GZIP("GZIP", ".gz"),
+    TEXT_GZIP("GZIP", "text", ".gz", 0.738F),
+    TEXT_BZIP2("BZIP2", "text", ".bz2", 0.745F),
+    TEXT_NONE("NONE", "text", "", 1.0F),
 
     /**
-     * .bz2
+     * orc file
      */
-    BZIP2("BZIP2", ".bz2"),
+    ORC_SNAPPY("SNAPPY", "orc", ".snappy", 0.715F),
+    ORC_GZIP("GZIP", "orc", ".gz", 0.717F),
+    ORC_BZIP("BZIP", "orc", ".bz", 0.717F),
+    ORC_LZ4("LZ4", "orc", ".lz4", 0.717F),
+    ORC_NONE("NONE", "orc", "", 0.713F),
 
-    SNAPPY("SNAPPY", null),
-
-    NONE("NONE", null);
+    /**
+     * parquet file
+     */
+    PARQUET_SNAPPY("SNAPPY", "parquet", ".snappy", 1.0F),
+    PARQUET_GZIP("GZIP", "parquet", ".gz", 1.0F),
+    PARQUET_LZO("LZO", "parquet", ".lzo", 1.0F),
+    PARQUET_NONE("NONE", "parquet", "", 1.0F);
 
     private String type;
 
+    private String fileType;
+
     private String suffix;
 
-    ECompressType(String type, String suffix) {
+    private float compressRate;
+
+    ECompressType(String type, String fileType, String suffix, float compressRate) {
         this.type = type;
+        this.fileType = fileType;
         this.suffix = suffix;
+        this.compressRate = compressRate;
     }
 
-    public static ECompressType getByType(String type){
+    public static ECompressType getByTypeAndFileType(String type, String fileType){
+        if(StringUtils.isEmpty(type)){
+            type = "NONE";
+    }
+
         for (ECompressType value : ECompressType.values()) {
-            if (value.getType().equalsIgnoreCase(type)){
+            if (value.getType().equalsIgnoreCase(type) && value.getFileType().equalsIgnoreCase(fileType)){
                 return value;
             }
         }
 
-        throw new IllegalArgumentException("Unsupported compress type: " + type);
+        throw new IllegalArgumentException("No enum constant " + type);
     }
 
     public String getType() {
         return type;
     }
 
+    public String getFileType() {
+        return fileType;
+    }
+
     public String getSuffix() {
         return suffix;
+    }
+
+    public float getCompressRate() {
+        return compressRate;
     }
 }

@@ -50,6 +50,8 @@ public class StreamInputFormat extends RichInputFormat {
         if(CollectionUtils.isNotEmpty(sliceRecordCount) && sliceRecordCount.size() > inputSplit.getSplitNumber()){
             channelRecordNum = sliceRecordCount.get(inputSplit.getSplitNumber());
         }
+
+        LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
     }
 
     @Override
