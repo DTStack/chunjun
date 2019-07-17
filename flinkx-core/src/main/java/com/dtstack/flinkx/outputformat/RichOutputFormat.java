@@ -32,7 +32,6 @@ import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -378,7 +377,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         updateDuration();
 
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        bytesWriteCounter.add(row.toString().length());
     }
 
     private Row setChannelInfo(Row row){

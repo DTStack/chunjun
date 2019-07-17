@@ -22,13 +22,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.SysUtil;
-import com.dtstack.flinkx.util.URLUtil;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -49,7 +43,7 @@ import org.apache.hadoop.conf.Configuration;
  */
 public abstract class HdfsOutputFormat extends RichOutputFormat {
 
-    private long recordNumOfFileBlock = 5000;
+    private static final int DEFAULT_RECORD_NUM_FOR_CHECK = 1000;
 
     protected int rowGroupSize;
 
@@ -116,6 +110,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected long lastWriteSize;
 
+    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
+
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
@@ -172,6 +168,9 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + jobId + SP + taskNumber;
 
+        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
+                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
+
         open();
     }
 
@@ -182,6 +181,10 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     @Override
     public void beforeWriteRecords(){
+        if(taskNumber > 0){
+            return;
+        }
+
         if (formatState == null || formatState.getState() == null) {
             try {
                 LOG.info("Delete [.data] dir before write records");
@@ -243,8 +246,30 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected abstract void open() throws IOException;
 
-    protected abstract void nextBlock();
+    protected void nextBlock(){
+        if (restoreConfig.isRestore()){
+            moveTemporaryDataBlockFileToDirectory();
+            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
+        } else {
+            currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
+        }
 
+        nextBlockInternal();
+    }
+
+    /**
+     * Open next file
+     */
+    protected abstract void nextBlockInternal();
+
+    /**
+     * Get file extension
+     */
+    protected abstract String getExtension();
+
+    /**
+     * Close current file stream
+     */
     protected abstract void flushBlock() throws IOException;
 
     @Override
@@ -378,32 +403,42 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     /**
      * Get the rate of compress
      */
-    protected abstract double getCompressRate();
+    protected abstract float getCompressRate();
 
     protected void checkWriteSize() {
-        if(StringUtils.isBlank(monitorUrl)){
+        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
             return;
         }
 
-        if(rowsOfCurrentBlock < recordNumOfFileBlock){
-            return;
-        }
-
-        long writeSize = bytesWriteCounter.getLocalValue();
-        long currentFileSize = (long)getCompressRate() * (writeSize - lastWriteSize);
-        if (currentFileSize > maxFileSize){
+        if (getCurrentFileSize() > maxFileSize){
             try{
                 flushBlock();
+                lastWriteSize = bytesWriteCounter.getLocalValue();
             }catch (IOException e){
                 throw new RuntimeException(e);
             }
 
             nextBlock();
-            recordNumOfFileBlock = rowsOfCurrentBlock;
-            rowsOfCurrentBlock = 0;
         }
 
-        lastWriteSize = writeSize;
+        nextNumForCheckDataSize = getNextNumForCheckDataSize();
+        LOG.info("The next record number for check data size is:[{}],current write number is:[{}]", nextNumForCheckDataSize, numWriteCounter.getLocalValue());
+    }
+
+    private long getCurrentFileSize(){
+        return  (long)(getCompressRate() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
+        }
+
+    private long getNextNumForCheckDataSize(){
+        long totalBytesWrite = bytesWriteCounter.getLocalValue();
+        long totalRecordWrite = numWriteCounter.getLocalValue();
+
+        float eachRecordSize = (totalBytesWrite * getCompressRate()) / totalRecordWrite;
+
+        long currentFileSize = getCurrentFileSize();
+        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
+
+        return totalRecordWrite + recordNum;
     }
 
     @Override

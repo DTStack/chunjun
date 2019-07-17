@@ -25,9 +25,7 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
@@ -36,7 +34,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.compress.SnappyCodec;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -62,19 +60,14 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
+
     @Override
     protected void configInternal() {
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
 
-        if(!ECompressType.NONE.getType().equalsIgnoreCase(compress) && StringUtils.isNotEmpty(compress)) {
-            if(ECompressType.SNAPPY.getType().equalsIgnoreCase(compress)) {
-                FileOutputFormat.setOutputCompressorClass(jobConf, SnappyCodec.class);
-            } else {
-                throw new IllegalArgumentException("Unsupported compress format: " + compress);
-            }
-        }
+        FileOutputFormat.setOutputCompressorClass(jobConf, getCompressType());
 
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
@@ -86,25 +79,39 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
+
         this.inspector = ObjectInspectorFactory
                 .getStandardStructObjectInspector(fullColumnNames, fullColTypeList);
+    }
 
+    private Class getCompressType(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        if(ECompressType.ORC_SNAPPY.equals(compressType)){
+            return SnappyCodec.class;
+        } else if(ECompressType.ORC_BZIP.equals(compressType)){
+            return BZip2Codec.class;
+        } else if(ECompressType.ORC_GZIP.equals(compressType)){
+            return GzipCodec.class;
+        } else if(ECompressType.ORC_LZ4.equals(compressType)){
+            return Lz4Codec.class;
+        } else {
+            return DefaultCodec.class;
+        }
     }
 
     @Override
-    protected void nextBlock() {
+    protected String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getSuffix();
+    }
+
+    @Override
+    protected void nextBlockInternal() {
         if (recordWriter != null){
             return;
         }
 
         try {
-            if (restoreConfig.isRestore()){
-                moveTemporaryDataBlockFileToDirectory();
-                currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex;
-            } else {
-                currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex;
-            }
-
             String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
             recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
             blockIndex++;
@@ -118,6 +125,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void flushBlock() throws IOException{
+        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
         if (recordWriter != null){
             recordWriter.close(Reporter.NULL);
             recordWriter = null;
@@ -125,8 +134,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected double getCompressRate(){
-        return 0.22;
+    protected float getCompressRate(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getCompressRate();
     }
 
     @Override
