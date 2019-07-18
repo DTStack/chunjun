@@ -25,6 +25,7 @@ import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.LimitedQueue;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -120,7 +121,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
 
-        inputMetric = new BaseMetric(getRuntimeContext(), "reader");
+        inputMetric = new BaseMetric(getRuntimeContext(), "reader", StringUtils.isEmpty(monitorUrls));
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
         inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);

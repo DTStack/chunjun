@@ -49,15 +49,20 @@ public class BaseMetric {
 
     private long maxWaitMill;
 
-    public BaseMetric(RuntimeContext runtimeContext, String sourceName) {
+    public BaseMetric(RuntimeContext runtimeContext, String sourceName, boolean isLocal) {
         this.sourceName = sourceName;
+
         maxWaitMill = TaskManagerOptions.TASK_CANCELLATION_INTERVAL.defaultValue();
         flinkxOutput = runtimeContext.getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
 
-        if(sourceName.contains("writer")){
-            delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 2.5);
+        if (isLocal){
+            delayPeriodMill = 0L;
         } else {
-            delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 1.2);
+            if(sourceName.contains("writer")){
+                delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 2.5);
+            } else {
+                delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 1.2);
+            }
         }
 
         LOG.info("delayPeriodMill:[{}]", delayPeriodMill);

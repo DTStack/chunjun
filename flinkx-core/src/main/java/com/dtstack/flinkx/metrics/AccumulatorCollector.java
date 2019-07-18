@@ -89,8 +89,9 @@ public class AccumulatorCollector {
             checkMonitorUrlIsValid();
 
             httpClient = HttpClientBuilder.create().build();
-            initThreadPool();
         }
+
+        initThreadPool();
     }
 
     private void initValueAccumulatorMap(){
@@ -145,37 +146,27 @@ public class AccumulatorCollector {
     }
 
     public void close(){
+        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
+            scheduledExecutorService.shutdown();
+        }
+
         if(isLocalMode){
             return;
         }
 
         try {
-            httpClient.close();
+            if(httpClient != null){
+                httpClient.close();
+            }
         } catch (Exception e){
             LOG.error("Close httpClient error:", e);
-        }
-
-        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
-            scheduledExecutorService.shutdown();
         }
     }
 
     public void collectAccumulator(){
-        if(isLocalMode){
-            printMetrics();
-            return;
+        if(!isLocalMode){
+            collectAccumulatorWithApi();
         }
-
-        collectAccumulatorWithApi();
-    }
-
-    private void printMetrics(){
-        List<String> metricStrList = new ArrayList<>();
-        valueAccumulatorMap.forEach((name, value) -> {
-            metricStrList.add(name + ":" + value.getLocal().getLocalValue());
-        });
-
-        LOG.info("metrics:[{}]", StringUtils.join(metricStrList, ","));
     }
 
     public long getAccumulatorValue(String name){
