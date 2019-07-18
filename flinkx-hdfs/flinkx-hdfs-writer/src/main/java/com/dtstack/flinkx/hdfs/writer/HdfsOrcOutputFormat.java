@@ -134,9 +134,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected float getCompressRate(){
+    protected float getDeviation(){
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
-        return compressType.getCompressRate();
+        return compressType.getDeviation();
     }
 
     @Override
@@ -147,7 +147,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (restoreConfig.isRestore()){
-            nextBlock();
+            if(recordWriter == null){
+                nextBlock();
+            }
 
             if(lastRow != null){
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),

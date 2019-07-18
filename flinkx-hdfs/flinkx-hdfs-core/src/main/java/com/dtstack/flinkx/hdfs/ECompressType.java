@@ -31,23 +31,23 @@ public enum ECompressType {
     /**
      * text file
      */
-    TEXT_GZIP("GZIP", "text", ".gz", 0.738F),
-    TEXT_BZIP2("BZIP2", "text", ".bz2", 0.745F),
-    TEXT_NONE("NONE", "text", "", 1.0F),
+    TEXT_GZIP("GZIP", "text", ".gz", 0.331F),
+    TEXT_BZIP2("BZIP2", "text", ".bz2", 0.259F),
+    TEXT_NONE("NONE", "text", "", 0.637F),
 
     /**
      * orc file
      */
-    ORC_SNAPPY("SNAPPY", "orc", ".snappy", 0.715F),
-    ORC_GZIP("GZIP", "orc", ".gz", 0.717F),
-    ORC_BZIP("BZIP", "orc", ".bz", 0.717F),
-    ORC_LZ4("LZ4", "orc", ".lz4", 0.717F),
-    ORC_NONE("NONE", "orc", "", 0.713F),
+    ORC_SNAPPY("SNAPPY", "orc", ".snappy", 0.233F),
+    ORC_GZIP("GZIP", "orc", ".gz", 1.0F),
+    ORC_BZIP("BZIP", "orc", ".bz", 1.0F),
+    ORC_LZ4("LZ4", "orc", ".lz4", 1.0F),
+    ORC_NONE("NONE", "orc", "", 0.233F),
 
     /**
      * parquet file
      */
-    PARQUET_SNAPPY("SNAPPY", "parquet", ".snappy", 1.0F),
+    PARQUET_SNAPPY("SNAPPY", "parquet", ".snappy", 0.274F),
     PARQUET_GZIP("GZIP", "parquet", ".gz", 1.0F),
     PARQUET_LZO("LZO", "parquet", ".lzo", 1.0F),
     PARQUET_NONE("NONE", "parquet", "", 1.0F);
@@ -58,19 +58,19 @@ public enum ECompressType {
 
     private String suffix;
 
-    private float compressRate;
+    private float deviation;
 
-    ECompressType(String type, String fileType, String suffix, float compressRate) {
+    ECompressType(String type, String fileType, String suffix, float deviation) {
         this.type = type;
         this.fileType = fileType;
         this.suffix = suffix;
-        this.compressRate = compressRate;
+        this.deviation = deviation;
     }
 
     public static ECompressType getByTypeAndFileType(String type, String fileType){
         if(StringUtils.isEmpty(type)){
             type = "NONE";
-    }
+        }
 
         for (ECompressType value : ECompressType.values()) {
             if (value.getType().equalsIgnoreCase(type) && value.getFileType().equalsIgnoreCase(fileType)){
@@ -93,7 +93,7 @@ public enum ECompressType {
         return suffix;
     }
 
-    public float getCompressRate() {
-        return compressRate;
+    public float getDeviation() {
+        return deviation;
     }
 }
