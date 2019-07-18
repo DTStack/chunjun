@@ -165,22 +165,18 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         String dateString = formatter.format(currentTime);
         currentBlockFileNamePrefix = taskNumber + "." + dateString;
-        tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + jobId + SP + taskNumber;
+        tmpPath = outputFilePath + SP + DATA_SUBDIR;
+        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
 
         LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
 
+        beforeOpenInternal();
         open();
     }
 
     @Override
-    protected boolean needWaitBeforeWriteRecords() {
-        return true;
-    }
-
-    @Override
-    public void beforeWriteRecords(){
+    protected void beforeOpenInternal(){
         if(taskNumber > 0){
             return;
         }
@@ -338,7 +334,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     private void waitForAllTasksToFinish() throws IOException{
-        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR + SP + jobId);
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         final int maxRetryTime = 100;
         int i = 0;
         for(; i < maxRetryTime; ++i) {
@@ -349,7 +345,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
 
         if (i == maxRetryTime) {
-            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR + SP + jobId;
+            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR;
             fs.delete(new Path(subTaskDataPath), true);
             LOG.info("waitForAllTasksToFinish: delete path:[{}]", subTaskDataPath);
 
@@ -389,7 +385,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
         for (FileStatus fileStatus : historyTmpDataDir) {
-            if (fileStatus.isDirectory()){
+            if (fileStatus.isFile()){
                 dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
             }
         }
@@ -401,9 +397,9 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     /**
-     * Get the rate of compress
+     * Get the deviation
      */
-    protected abstract float getCompressRate();
+    protected abstract float getDeviation();
 
     protected void checkWriteSize() {
         if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
@@ -426,14 +422,17 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     private long getCurrentFileSize(){
-        return  (long)(getCompressRate() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
-        }
+        long currentFileSize = (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
+        LOG.info("Current file size:[{}]", currentFileSize);
+
+        return  currentFileSize;
+    }
 
     private long getNextNumForCheckDataSize(){
         long totalBytesWrite = bytesWriteCounter.getLocalValue();
         long totalRecordWrite = numWriteCounter.getLocalValue();
 
-        float eachRecordSize = (totalBytesWrite * getCompressRate()) / totalRecordWrite;
+        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
 
         long currentFileSize = getCurrentFileSize();
         long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);

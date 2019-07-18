@@ -134,9 +134,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected float getCompressRate(){
+    protected float getDeviation(){
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
-        return compressType.getCompressRate();
+        return compressType.getDeviation();
     }
 
     @Override

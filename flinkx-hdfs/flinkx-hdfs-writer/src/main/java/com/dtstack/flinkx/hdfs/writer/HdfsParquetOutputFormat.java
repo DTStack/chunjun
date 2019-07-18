@@ -142,9 +142,9 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected float getCompressRate(){
+    protected float getDeviation(){
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
-        return compressType.getCompressRate();
+        return compressType.getDeviation();
     }
 
     @Override

@@ -31,6 +31,7 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
+import org.apache.lucene.util.RamUsageEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -134,7 +135,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         Row internalRow = nextRecordInternal(row);
         internalRow = setChannelInformation(internalRow);
-        bytesReadCounter.add(internalRow.toString().length());
+        bytesReadCounter.add(RamUsageEstimator.sizeOf(internalRow)/8);
 
         return internalRow;
     }

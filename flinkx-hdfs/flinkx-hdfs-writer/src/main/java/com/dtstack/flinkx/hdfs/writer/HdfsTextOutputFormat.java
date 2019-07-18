@@ -63,9 +63,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             if(ECompressType.TEXT_NONE.equals(compressType)){
                 stream = fs.create(p);
             } else {
-                currentBlockTmpPath = currentBlockTmpPath + compressType.getSuffix();
                 p = new Path(currentBlockTmpPath);
-
                 if (compressType == ECompressType.TEXT_GZIP){
                     stream = new GzipCompressorOutputStream(fs.create(p));
                 } else if(compressType == ECompressType.TEXT_BZIP2){
@@ -91,9 +89,9 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected float getCompressRate(){
+    protected float getDeviation(){
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
-        return compressType.getCompressRate();
+        return compressType.getDeviation();
     }
 
     @Override
