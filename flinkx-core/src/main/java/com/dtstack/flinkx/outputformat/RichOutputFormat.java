@@ -39,7 +39,6 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
-import org.apache.lucene.util.RamUsageEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -372,7 +371,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         updateDuration();
 
-        bytesWriteCounter.add(RamUsageEstimator.sizeOf(row)/8);
+        bytesWriteCounter.add(row.toString().length());
     }
 
     private Row setChannelInfo(Row row){
