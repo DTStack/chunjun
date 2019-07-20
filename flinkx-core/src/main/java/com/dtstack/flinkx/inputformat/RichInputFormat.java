@@ -21,7 +21,6 @@ package com.dtstack.flinkx.inputformat;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -98,7 +97,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         updateDuration();
 
-        bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        //bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        bytesReadCounter.add(row.toString().getBytes().length);
         return nextRecordInternal(row);
     }
 

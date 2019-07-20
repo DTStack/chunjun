@@ -26,7 +26,6 @@ import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.configuration.Configuration;
@@ -322,7 +321,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
         updateDuration();
 
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        //bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
+        bytesWriteCounter.add(row.toString().getBytes().length);
     }
 
     @Override
