@@ -98,7 +98,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         updateDuration();
 
         //bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(row));
-        bytesReadCounter.add(row.toString().getBytes().length);
+        if(row != null){
+            bytesReadCounter.add(row.toString().getBytes().length);
+        }
         return nextRecordInternal(row);
     }
 

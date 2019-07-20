@@ -322,7 +322,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         updateDuration();
 
         //bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
-        bytesWriteCounter.add(row.toString().getBytes().length);
+        if(row != null){
+            bytesWriteCounter.add(row.toString().getBytes().length);
+        }
     }
 
     @Override
