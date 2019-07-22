@@ -98,8 +98,18 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         updateDuration();
 
         Row internalRow = nextRecordInternal(row);
-        internalRow = setChannelInformation(internalRow);
+        internalRow = setChannelInfo(internalRow);
         bytesReadCounter.add(internalRow.toString().length());
+
+        return internalRow;
+    }
+
+
+    private Row setChannelInfo(Row row){
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
 
         return internalRow;
     }

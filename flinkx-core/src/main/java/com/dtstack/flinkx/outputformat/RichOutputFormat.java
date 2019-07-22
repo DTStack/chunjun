@@ -310,6 +310,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        Row internalRow = setChannelInfo(row);
         if(batchInterval <= 1) {
             writeSingleRecord(row);
         } else {
@@ -322,9 +323,16 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         updateDuration();
 
         //bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(row));
-        if(row != null){
-            bytesWriteCounter.add(row.toString().getBytes().length);
+        bytesWriteCounter.add(row.toString().getBytes().length);
+    }
+
+    private Row setChannelInfo(Row row){
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
         }
+
+        return internalRow;
     }
 
     @Override
