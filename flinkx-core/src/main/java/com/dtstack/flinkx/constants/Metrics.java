@@ -64,4 +64,8 @@ public class Metrics {
 
     public static String METRIC_GROUP_VALUE_OUTPUT = "output";
 
+    public static String LAST_WRITE_LOCATION_PREFIX = "last_write_location";
+
+    public static String LAST_WRITE_NUM__PREFIX = "last_write_num";
+
 }

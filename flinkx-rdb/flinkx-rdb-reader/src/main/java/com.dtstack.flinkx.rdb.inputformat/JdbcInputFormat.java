@@ -489,7 +489,9 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         if (ColumnType.isTimeType(columnType)){
-            if(columnVal instanceof Timestamp){
+            if(columnVal instanceof Long){
+                location = columnVal.toString();
+            } else if(columnVal instanceof Timestamp){
                 long time = ((Timestamp)columnVal).getTime() / 1000;
 
                 String nanosStr = String.valueOf(((Timestamp)columnVal).getNanos());

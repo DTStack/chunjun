@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.util.URLUtil;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.commons.lang.StringUtils;
@@ -56,7 +57,7 @@ public class AccumulatorCollector {
 
     private String jobId;
 
-    private String[] monitorUrls;
+    private List<String> monitorUrls = Lists.newArrayList();
 
     private int period = 2;
 
@@ -103,12 +104,18 @@ public class AccumulatorCollector {
 
     private void formatMonitorUrl(String monitorUrlStr){
         if(monitorUrlStr.startsWith("http")){
-            monitorUrls = new String[] {monitorUrlStr};
+            String url;
+            if(monitorUrlStr.endsWith("/")){
+                url = monitorUrlStr + "jobs/" + jobId + "/accumulators";
+            } else {
+                url = monitorUrlStr + "/jobs/" + jobId + "/accumulators";
+            }
+            monitorUrls.add(url);
         } else {
             String[] monitor = monitorUrlStr.split(",");
-            monitorUrls = new String[monitor.length];
-            for (int i = 0; i < monitorUrls.length; ++i) {
-                monitorUrls[i] = "http://" + monitor[i] + "/jobs/" + jobId + "/accumulators";
+            for (int i = 0; i < monitor.length; ++i) {
+                String url = "http://" + monitor[i] + "/jobs/" + jobId + "/accumulators";
+                monitorUrls.add(url);
             }
         }
     }

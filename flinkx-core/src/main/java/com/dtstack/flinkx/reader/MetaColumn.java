@@ -157,14 +157,14 @@ public class MetaColumn implements Serializable {
         return columnNames;
     }
 
-    public static int getColumnIndex(List columns, String name){
+    public static MetaColumn getMetaColumn(List columns, String name){
         List<MetaColumn> metaColumns = getMetaColumns(columns);
         for (MetaColumn metaColumn : metaColumns) {
             if(StringUtils.isNotEmpty(metaColumn.getName()) && metaColumn.getName().equals(name)){
-                return metaColumn.getIndex();
+                return metaColumn;
             }
         }
 
-        return -1;
+        return null;
     }
 }

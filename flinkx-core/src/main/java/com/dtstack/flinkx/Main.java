@@ -139,7 +139,9 @@ public class Main {
         }
 
         JobExecutionResult result = env.execute(jobIdString);
-        ResultPrintUtil.printResult(result);
+        if(StringUtils.isBlank(monitor)){
+            ResultPrintUtil.printResult(result);
+        }
     }
 
     private static Properties parseConf(String confStr) throws Exception{

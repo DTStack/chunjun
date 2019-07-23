@@ -21,6 +21,12 @@ package com.dtstack.flinkx.reader;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.google.common.util.concurrent.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is user for speed control
@@ -30,46 +36,52 @@ import com.google.common.util.concurrent.RateLimiter;
  */
 public class ByteRateLimiter {
 
+    private final static Logger LOG = LoggerFactory.getLogger(ByteRateLimiter.class);
+
     private RateLimiter rateLimiter;
 
     private double expectedBytePerSecond;
 
     private AccumulatorCollector accumulatorCollector;
 
-    private long lastThisWriteRecords;
-
-    private long lastTotalWriteRecords;
+    private ScheduledExecutorService scheduledExecutorService;
 
     public ByteRateLimiter(AccumulatorCollector accumulatorCollector, double expectedBytePerSecond) {
         double initialRate = 1000.0;
         this.rateLimiter = RateLimiter.create(initialRate);
         this.expectedBytePerSecond = expectedBytePerSecond;
         this.accumulatorCollector = accumulatorCollector;
+
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    public void start(){
+        scheduledExecutorService.scheduleAtFixedRate(this::updateRate,0,
+                (long) (1000),
+                TimeUnit.MILLISECONDS);
+    }
+
+    public void stop(){
+        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
+            scheduledExecutorService.shutdown();
+        }
     }
 
     public void acquire() {
-        updateRate();
         rateLimiter.acquire();
     }
 
     private void updateRate(){
-        long totalWriteBytes = accumulatorCollector.getAccumulatorValue(Metrics.WRITE_BYTES);
-        long thisWriteRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_WRITES);
-        long totalWriteRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_WRITES);
+        long totalBytes = accumulatorCollector.getAccumulatorValue(Metrics.READ_BYTES);
+        long thisRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_READS);
+        long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
 
-        if(lastTotalWriteRecords == totalWriteRecords && lastThisWriteRecords == thisWriteRecords){
-            return;
-        }
+        double thisWriteRatio = (totalRecords == 0 ? 0 : thisRecords / totalRecords);
 
-        double thisWriteRatio = (totalWriteRecords == 0 ? 0 : thisWriteRecords / totalWriteRecords);
-
-        if (totalWriteRecords > 1000 && totalWriteBytes != 0 && thisWriteRatio != 0) {
-            double bpr = totalWriteBytes / totalWriteRecords;
+        if (totalRecords > 1000 && totalBytes != 0 && thisWriteRatio != 0) {
+            double bpr = totalBytes / totalRecords;
             double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio;
             rateLimiter.setRate(permitsPerSecond);
         }
-
-        lastThisWriteRecords = thisWriteRecords;
-        lastTotalWriteRecords = totalWriteRecords;
     }
 }

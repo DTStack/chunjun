@@ -27,7 +27,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
+import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
@@ -100,11 +100,12 @@ public abstract class DataReader {
 
         if(restoreConfig.isRestore()){
             List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
-            int index = MetaColumn.getColumnIndex(columns, restoreConfig.getRestoreColumnName());
-            if(index == -1){
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if(metaColumn == null){
                 throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
             }
-            restoreConfig.setRestoreColumnIndex(index);
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
         }
     }
 
@@ -114,7 +115,7 @@ public abstract class DataReader {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
+        InputFormatSourceFunction function = new InputFormatSourceFunction(inputFormat, typeInfo);
         return env.addSource(function, sourceName, typeInfo);
     }
 

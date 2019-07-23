@@ -99,11 +99,12 @@ public abstract class DataWriter {
         parseSrcColumnNames(columns);
 
         if(restoreConfig.isRestore()){
-            int index = MetaColumn.getColumnIndex(columns, restoreConfig.getRestoreColumnName());
-            if(index == -1){
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if(metaColumn == null){
                 throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
             }
-            restoreConfig.setRestoreColumnIndex(index);
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
         }
     }
 

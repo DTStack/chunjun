@@ -30,9 +30,9 @@ public class RestoreConfig extends AbstractConfig {
 
     private static final String KEY_IS_RESTORE = "isRestore";
     private static final String KEY_RESTORE_COLUMN_NAME = "restoreColumnName";
+    private static final String KEY_RESTORE_COLUMN_TYPE = "restoreColumnType";
     private static final String KEY_RESTORE_COLUMN_INDEX = "restoreColumnIndex";
     private static final String KEY_MAX_ROW_NUM_FOR_CHECKPOINT = "maxRowNumForCheckpoint";
-    private static final String KEY_CACHE_QUEUE_SIZE= "cacheQueueSize";
 
     public RestoreConfig(Map<String, Object> map) {
         super(map);
@@ -56,15 +56,19 @@ public class RestoreConfig extends AbstractConfig {
         setIntVal(KEY_RESTORE_COLUMN_INDEX, index);
     }
 
+    public void setRestoreColumnType(String type){
+        setStringVal(KEY_RESTORE_COLUMN_TYPE, type);
+    }
+
+    public String getRestoreColumnType(){
+        return getStringVal(KEY_RESTORE_COLUMN_TYPE);
+    }
+
     public String getRestoreColumnName(){
         return getStringVal(KEY_RESTORE_COLUMN_NAME);
     }
 
     public long getMaxRowNumForCheckpoint(){
         return getLongVal(KEY_MAX_ROW_NUM_FOR_CHECKPOINT, 10000);
-    }
-
-    public int getCacheQueueSize(){
-        return getIntVal(KEY_CACHE_QUEUE_SIZE, 5000);
     }
 }

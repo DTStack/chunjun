@@ -27,6 +27,7 @@ import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.DataConvertUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
@@ -223,7 +224,25 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 initState = formatState.getState();
                 numWriteCounter.add(formatState.getNumberWrite());
             }
+
+            putStateToAccumulator();
         }
+    }
+
+    private void putStateToAccumulator(){
+        long val = Long.MAX_VALUE;
+        if(initState != null){
+            Long longObj = DataConvertUtil.toLong(restoreConfig.getRestoreColumnType(), initState);
+            if(longObj != null){
+                val = longObj;
+            }
+        }
+
+        context.getLongCounter(String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, taskNumber)).add(val);
+        LOG.info("Put last write location:{} for channel:{}", val, taskNumber);
+
+        context.getLongCounter( String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, taskNumber)).add(formatState.getNumberWrite());
+        LOG.info("Put last write num:{} for channel:{}", formatState.getNumberWrite(), taskNumber);
     }
 
     private void initJobInfo(){
