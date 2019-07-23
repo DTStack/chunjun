@@ -80,9 +80,9 @@ public class RowKeyFunction {
     private void init() {
         rowKeyColumnNamesMap = new HashMap<>();
 
-        for (int i = 0; i < format.rowkeyColumnIndices.size(); ++i) {
+        for (int i = 0; i < format.rowkeyColumnTypes.size(); ++i) {
             Integer index = format.rowkeyColumnIndices.get(i);
-            if (index != null) {
+            if (index == null) {
                 String value = format.rowkeyColumnValues.get(i);
                 regalByRules(value);
             }
@@ -91,13 +91,14 @@ public class RowKeyFunction {
 
     private void regalByRules(String value) {
         try {
-            if (value.indexOf(LEFT_KUO) >= value.indexOf(RIGHT_KUO)) {
+            String rowKeyValue = value;
+            if (rowKeyValue.indexOf(LEFT_KUO) >= rowKeyValue.indexOf(RIGHT_KUO)) {
                 return;
             }
-            String funcStr = StringUtils.substringBefore(value, LEFT_KUO);
+            String funcStr = StringUtils.substringBefore(rowKeyValue, LEFT_KUO);
             function = FunctionFactory.createFuntion(funcStr);
-            value = StringUtils.substring(value, value.indexOf(LEFT_KUO) + 1, value.lastIndexOf(RIGHT_KUO));
-            Matcher matcher = ROWKEY_FIELD_PATTERN.matcher(value);
+            rowKeyValue = StringUtils.substring(rowKeyValue, rowKeyValue.indexOf(LEFT_KUO) + 1, rowKeyValue.lastIndexOf(RIGHT_KUO));
+            Matcher matcher = ROWKEY_FIELD_PATTERN.matcher(rowKeyValue);
             while (matcher.find()) {
                 String fieldKey = matcher.group();
                 String key = fieldKey.substring(2, fieldKey.length() - 1);
