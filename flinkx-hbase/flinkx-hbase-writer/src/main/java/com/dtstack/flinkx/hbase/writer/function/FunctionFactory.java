@@ -29,12 +29,15 @@ public class FunctionFactory {
 
     public static IFunction createFuntion(String functionName) {
         if (StringUtils.isBlank(functionName)) {
-            return new StringFunction();
+            throw new UnsupportedOperationException("function name can't be null!");
         }
         IFunction function = null;
         switch (functionName.toUpperCase()) {
             case "MD5":
                 function = new MD5Function();
+                break;
+            case "STRING":
+                function = new StringFunction();
                 break;
             default:
                 throw new UnsupportedOperationException("function name don't exist!");
