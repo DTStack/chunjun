@@ -22,6 +22,8 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
+import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -94,50 +96,56 @@ public abstract class DataWriter {
         }
 
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+        parseSrcColumnNames(columns);
 
-        if(columns != null) {
-
-            if (columns.size() == 0) {
-                throw new RuntimeException("source columns can't be null or empty");
+        if(restoreConfig.isRestore()){
+            int index = MetaColumn.getColumnIndex(columns, restoreConfig.getRestoreColumnName());
+            if(index == -1){
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
             }
+            restoreConfig.setRestoreColumnIndex(index);
+        }
+    }
 
-            System.out.println("src class: " + columns.get(0).getClass());
-
-            if(columns.get(0) instanceof String) {
-                for(Object column : columns) {
-                    srcCols.add((String)column);
-                }
-            } else if(columns.get(0) instanceof Map) {
-                this.srcCols = new ArrayList<>();
-                for(Object column : columns) {
-                    Map<String,Object> colMap = (Map<String,Object>) column;
-                    String colName = (String) colMap.get("name");
-                    if(StringUtils.isBlank(colName)) {
-                        Object colIndex = colMap.get("index");
-                        if(colIndex != null) {
-                            if(colIndex instanceof Integer) {
-                                colName = String.valueOf(colIndex);
-                            } else if(colIndex instanceof Double) {
-                                Double doubleColIndex = (Double) colIndex;
-                                colName = String.valueOf(doubleColIndex.intValue());
-                            } else {
-                                throw new RuntimeException("invalid src col index");
-                            }
-                        } else {
-                            String colValue = (String) colMap.get("value");
-                            if(StringUtils.isNotBlank(colValue)) {
-                                colName = "val_" +colValue;
-                            } else {
-                                throw new RuntimeException("can't determine source column name");
-                            }
-                        }
-                    }
-                    srcCols.add(colName);
-                }
-            }
+    private void parseSrcColumnNames(List columns){
+        if(CollectionUtils.isEmpty(columns)){
+            throw new RuntimeException("source columns can't be null or empty");
         }
 
+        if(columns.get(0) instanceof String) {
+            for(Object column : columns) {
+                srcCols.add((String)column);
+            }
+            return;
+        }
 
+        if(columns.get(0) instanceof Map) {
+            for(Object column : columns) {
+                Map<String,Object> colMap = (Map<String,Object>) column;
+                String colName = (String) colMap.get("name");
+                if(StringUtils.isBlank(colName)) {
+                    Object colIndex = colMap.get("index");
+                    if(colIndex != null) {
+                        if(colIndex instanceof Integer) {
+                            colName = String.valueOf(colIndex);
+                        } else if(colIndex instanceof Double) {
+                            Double doubleColIndex = (Double) colIndex;
+                            colName = String.valueOf(doubleColIndex.intValue());
+                        } else {
+                            throw new RuntimeException("invalid src col index");
+                        }
+                    } else {
+                        String colValue = (String) colMap.get("value");
+                        if(StringUtils.isNotBlank(colValue)) {
+                            colName = "val_" + colValue;
+                        } else {
+                            throw new RuntimeException("can't determine source column name");
+                        }
+                    }
+                }
+                srcCols.add(colName);
+            }
+        }
     }
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);

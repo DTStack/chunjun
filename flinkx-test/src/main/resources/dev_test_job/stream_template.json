@@ -76,7 +76,7 @@
         },
         "writer": {
           "parameter": {
-            "print": false
+            "print": true
           },
           "name": "streamwriter"
         }

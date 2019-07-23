@@ -32,7 +32,6 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
-import org.apache.lucene.util.RamUsageEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -80,7 +79,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         initJobInfo();
         initAccumulatorCollector();
         initStatisticsAccumulator();
-        openByteRateLImiter();
+        openByteRateLimiter();
         initRestoreInfo();
     }
 
@@ -88,6 +87,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void open(InputSplit inputSplit) throws IOException {
         indexOfSubtask = inputSplit.getSplitNumber();
 
+        formatState.setNumOfSubTask(indexOfSubtask);
         openInternal(inputSplit);
     }
 
@@ -110,7 +110,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
     }
 
-    private void openByteRateLImiter(){
+    private void openByteRateLimiter(){
         if (this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, this.bytes);
         }
@@ -155,7 +155,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         Row internalRow = nextRecordInternal(row);
         internalRow = setChannelInformation(internalRow);
-        bytesReadCounter.add(RamUsageEstimator.sizeOf(internalRow)/8);
+        bytesReadCounter.add(internalRow.toString().length());
 
         return internalRow;
     }
