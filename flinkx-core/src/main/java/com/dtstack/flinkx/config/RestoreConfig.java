@@ -52,6 +52,10 @@ public class RestoreConfig extends AbstractConfig {
         return getIntVal(KEY_RESTORE_COLUMN_INDEX, -1);
     }
 
+    public void setRestoreColumnIndex(int index){
+        setIntVal(KEY_RESTORE_COLUMN_INDEX, index);
+    }
+
     public String getRestoreColumnName(){
         return getStringVal(KEY_RESTORE_COLUMN_NAME);
     }

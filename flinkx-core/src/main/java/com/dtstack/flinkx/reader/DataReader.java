@@ -97,6 +97,15 @@ public abstract class DataReader {
                 this.hadoopConfig = hadoopConfig;
             }
         }
+
+        if(restoreConfig.isRestore()){
+            List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+            int index = MetaColumn.getColumnIndex(columns, restoreConfig.getRestoreColumnName());
+            if(index == -1){
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+            }
+            restoreConfig.setRestoreColumnIndex(index);
+        }
     }
 
     public abstract DataStream<Row> readData();
