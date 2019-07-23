@@ -77,7 +77,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         initStatisticsAccumulator();
-        openByteRateLImiter();
+        openByteRateLimiter();
         initRestoreInfo();
     }
 
@@ -85,10 +85,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void open(InputSplit inputSplit) throws IOException {
         indexOfSubtask = inputSplit.getSplitNumber();
 
+        formatState.setNumOfSubTask(indexOfSubtask);
         openInternal(inputSplit);
     }
 
-    private void openByteRateLImiter(){
+    private void openByteRateLimiter(){
         if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
             this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
             this.byteRateLimiter.start();
