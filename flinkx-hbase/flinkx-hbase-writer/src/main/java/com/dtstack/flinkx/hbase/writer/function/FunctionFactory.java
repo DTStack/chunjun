@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.hbase.writer.function;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @company: www.dtstack.com
  * @author: toutian
@@ -26,13 +28,16 @@ package com.dtstack.flinkx.hbase.writer.function;
 public class FunctionFactory {
 
     public static IFunction createFuntion(String functionName) {
+        if (StringUtils.isBlank(functionName)) {
+            return new StringFunction();
+        }
         IFunction function = null;
         switch (functionName.toUpperCase()) {
             case "MD5":
                 function = new MD5Function();
                 break;
             default:
-                function = new StringFunction();
+                throw new UnsupportedOperationException("function name don't exist!");
         }
         return function;
     }

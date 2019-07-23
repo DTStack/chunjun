@@ -47,10 +47,12 @@ public class RowKeyFunction {
 
     private static String RIGHT_KUO = ")";
 
+    private static String REGEX_LEFT = "$";
+
     /**
      * once only support a function
      */
-    private IFunction function;
+    private IFunction function = null;
 
     private HbaseOutputFormat format;
 
@@ -74,7 +76,10 @@ public class RowKeyFunction {
                 rowKeyValue = rowKeyValue.replace("$(" + name + ")", record.getField(i).toString());
             }
         }
-        return format.getValueByte(columnType, function.eval(rowKeyValue));
+        if (function != null) {
+            rowKeyValue = function.eval(rowKeyValue);
+        }
+        return format.getValueByte(columnType, rowKeyValue);
     }
 
     private void init() {
@@ -96,8 +101,12 @@ public class RowKeyFunction {
                 return;
             }
             String funcStr = StringUtils.substringBefore(rowKeyValue, LEFT_KUO);
-            function = FunctionFactory.createFuntion(funcStr);
-            rowKeyValue = StringUtils.substring(rowKeyValue, rowKeyValue.indexOf(LEFT_KUO) + 1, rowKeyValue.lastIndexOf(RIGHT_KUO));
+            if (!funcStr.endsWith(REGEX_LEFT)) {
+                function = FunctionFactory.createFuntion(funcStr);
+            }
+            if (function != null) {
+                rowKeyValue = StringUtils.substring(rowKeyValue, rowKeyValue.indexOf(LEFT_KUO) + 1, rowKeyValue.lastIndexOf(RIGHT_KUO));
+            }
             Matcher matcher = ROWKEY_FIELD_PATTERN.matcher(rowKeyValue);
             while (matcher.find()) {
                 String fieldKey = matcher.group();
