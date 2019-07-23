@@ -78,6 +78,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient BufferedMutator bufferedMutator;
 
+    private transient RowKeyFunction rowKeyFunction;
+
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
@@ -100,6 +102,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
             HbaseHelper.closeConnection(connection);
             throw new IllegalArgumentException(e);
         }
+
+        rowKeyFunction = new RowKeyFunction(this);
 
         LOG.info("HbaseOutputFormat configure end");
     }
@@ -138,8 +142,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
                 byte[] columnBytes = getColumnByte(columnType,record.getField(i));
                 //columnBytes 为null忽略这列
                 if(null != columnBytes){
-                    put.addColumn(Bytes.toBytes(
-                            cfAndQualifier[0]),
+                    put.addColumn(
+                            Bytes.toBytes(cfAndQualifier[0]),
                             Bytes.toBytes(cfAndQualifier[1]),
                             columnBytes);
                 }else{
@@ -174,7 +178,11 @@ public class HbaseOutputFormat extends RichOutputFormat {
             ColumnType columnType = ColumnType.getByTypeName(type);
             if(index == null) {
                 String value = rowkeyColumnValues.get(i);
-                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
+
+//                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
+
+                byte[] buf = rowKeyFunction.resolve(record, value, columnType);
+                rowkeyBuffer = Bytes.add(rowkeyBuffer, buf);
             } else {
                 if(index >= record.getArity() || index < 0) {
                     throw new IllegalArgumentException("index of rowkeyColumn out of range");
