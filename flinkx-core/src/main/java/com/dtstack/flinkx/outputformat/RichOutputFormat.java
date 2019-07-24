@@ -134,8 +134,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected Object initState;
 
-    protected boolean readyWrite = false;
-
     protected transient BaseMetric outputMetric;
 
     protected AccumulatorCollector accumulatorCollector;
@@ -210,6 +208,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                         Metrics.NUM_OTHER_ERRORS,
                         Metrics.NUM_WRITES,
                         Metrics.WRITE_BYTES,
+                        Metrics.NUM_READS,
                         Metrics.WRITE_DURATION));
         accumulatorCollector.start();
     }
@@ -381,10 +380,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     @Override
     public void writeRecord(Row row) throws IOException {
         Row internalRow = setChannelInfo(row);
-        if(!readyWrite(internalRow)){
-            return;
-        }
-
         if(batchInterval <= 1) {
             writeSingleRecord(internalRow);
         } else {
@@ -408,19 +403,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         return internalRow;
     }
 
-    private boolean readyWrite(Row row){
-        if(restoreConfig.isRestore() && !readyWrite && initState != null){
-            Object currentState = row.getField(restoreConfig.getRestoreColumnIndex());
-            if(currentState != null){
-                readyWrite = currentState.toString().compareTo(initState.toString()) > 0;
-            }
-
-            return readyWrite;
-        }
-
-        return true;
-    }
-
     @Override
     public void close() throws IOException {
         LOG.info("subtask[" + taskNumber + "] close()");
@@ -431,10 +413,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             }
 
             updateDuration();
-
-            if(outputMetric != null){
-                outputMetric.waitForReportMetrics();
-            }
 
             if(needWaitBeforeCloseInternal()) {
                 beforeCloseInternal();
@@ -448,7 +426,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 }
                 afterCloseInternal();
 
-                outputMetric.waitForReportMetrics();
+                if(outputMetric != null){
+                    outputMetric.waitForReportMetrics();
+                }
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();

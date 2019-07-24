@@ -164,7 +164,6 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
-            dbConn.setAutoCommit(false);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
