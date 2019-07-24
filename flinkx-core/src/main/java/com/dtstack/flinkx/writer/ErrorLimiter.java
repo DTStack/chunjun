@@ -18,22 +18,10 @@
 
 package com.dtstack.flinkx.writer;
 
-import com.dtstack.flinkx.util.URLUtil;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Error Limitation
@@ -43,159 +31,51 @@ import java.util.concurrent.TimeUnit;
  */
 public class ErrorLimiter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ErrorLimiter.class);
-    private double samplePeriod = 2;
-    private ScheduledExecutorService scheduledExecutorService;
     private final Integer maxErrors;
     private final Double maxErrorRatio;
-    private String[] monitorUrls;
-    private volatile int errors = 0;
+    private AccumulatorCollector accumulatorCollector;
     private volatile double errorRatio = 0.0;
-    private volatile int numRead = 0;
-    private boolean valid = false;
-    private String jobId;
-    private String taskId;
     private String errMsg = "";
     private Row errorData;
 
-    private CloseableHttpClient httpClient;
-
     public void setErrorData(Row errorData){
         this.errorData = errorData;
-    }
-
-    public String getErrMsg() {
-        return errMsg;
     }
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
     }
 
-    public ErrorLimiter(RuntimeContext runtimeContext, String monitors, int maxErrors, double samplePeriod) {
-        this(runtimeContext, monitors, maxErrors, Double.MAX_VALUE, 2);
-    }
-
-    public ErrorLimiter(RuntimeContext runtimeContext, String monitors, Integer maxErrors, Double maxErrorRatio, double samplePeriod) {
-        httpClient = HttpClientBuilder.create().build();
-
-        Preconditions.checkArgument(runtimeContext != null || monitors != null, "Should specify rumtimeContext or monitorUrls");
-        Preconditions.checkArgument(samplePeriod > 0);
-        StreamingRuntimeContext context = (StreamingRuntimeContext) runtimeContext;
-        Map<String, String> vars = context.getMetricGroup().getAllVariables();
-        this.jobId = vars.get("<job_id>");
-        this.taskId = vars.get("<task_id>");
-
+    public ErrorLimiter(AccumulatorCollector accumulatorCollector, Integer maxErrors, Double maxErrorRatio) {
         this.maxErrors = maxErrors;
-        this.samplePeriod = samplePeriod;
         this.maxErrorRatio = maxErrorRatio;
-
-        if(monitors.startsWith("http")) {
-            monitorUrls = new String[] {monitors};
-        } else {
-            String[] monitor = monitors.split(",");
-            monitorUrls = new String[monitor.length];
-            for (int i = 0; i < monitorUrls.length; ++i) {
-                monitorUrls[i] = "http://" + monitor[i];
-            }
-        }
-
-        int j = 0;
-        for(; j < monitorUrls.length; ++j) {
-            String url = monitorUrls[j];
-            try {
-                URLUtil.get(httpClient, url);
-                 break;
-            } catch (Exception e) {
-                LOG.error("connected error: " + url);
-            }
-        }
-
-        if(j <  monitorUrls.length) {
-            valid = true;
-        } else {
-            return;
-        }
-
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-    }
-
-    public boolean isValid() {
-        return valid;
-    }
-
-    public void start() {
-        if(scheduledExecutorService == null) {
-            return;
-        }
-
-        scheduledExecutorService.scheduleAtFixedRate(
-                this::updateErrorInfo,
-                0,
-                (long) (samplePeriod * 1000),
-                TimeUnit.MILLISECONDS
-        );
+        this.accumulatorCollector = accumulatorCollector;
     }
 
     public void updateErrorInfo(){
-        Gson gson = new Gson();
-        for(int index = 0; index < monitorUrls.length; ++index) {
-            String requestUrl = monitorUrls[index] + "/jobs/" + jobId + "/accumulators";
-            try {
-                String response = URLUtil.get(httpClient, requestUrl);
-                Map<String,Object> map = gson.fromJson(response, Map.class);
-                List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
-                for(LinkedTreeMap accumulator : userTaskAccumulators) {
-                    String name = (String) accumulator.get("name");
-                    if(name != null) {
-                        if(name.equals("nErrors")) {
-                            this.errors = Double.valueOf((String) accumulator.get("value")).intValue();
-                        } else if(name.equals("numRead")) {
-                            this.numRead = Double.valueOf((String) accumulator.get("value")).intValue();
-                        }
-                    }
-                }
-            } catch (Exception e){
-                LOG.error("Update data error:",e);
-            }
-            break;
-        }
-    }
-
-    public void stop() {
-        if (httpClient != null){
-            try {
-                httpClient.close();
-            } catch (Exception e){
-                LOG.error("close httpClient error:{}", e);
-            }
-        }
-
-        if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
-            scheduledExecutorService.shutdown();
-        }
+        accumulatorCollector.collectAccumulator();
     }
 
     public void acquire() {
-        if(isValid()) {
-            String errorDataStr = "";
-            if(errorData != null){
-                errorDataStr = errorData.toString() + "\n";
+        String errorDataStr = "";
+        if(errorData != null){
+            errorDataStr = errorData.toString() + "\n";
+        }
+
+        long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS);
+        if(maxErrors != null){
+            Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
+                    + "]\n" + errorDataStr + errMsg);
+        }
+
+        if(maxErrorRatio != null){
+            long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
+            if(numRead >= 1) {
+                errorRatio = (double) errors / numRead;
             }
 
-            if(maxErrors != null){
-                Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
-                        + "]\n" + errorDataStr + errMsg);
-            }
-
-            if(maxErrorRatio != null){
-                if(numRead >= 1) {
-                    errorRatio = (double)errors / numRead;
-                }
-
-                Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
-                        + "]\n" + errorDataStr + errMsg);
-            }
+            Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
+                    + "]\n" + errorDataStr + errMsg);
         }
     }
 
