@@ -56,6 +56,8 @@ public class Main {
         options.addOption("jobid", true, "Job unique id.");
         options.addOption("monitor", true, "Monitor Addresses");
         options.addOption("pluginRoot", true, "plugin path root");
+        options.addOption("confProp", true, "env properties");
+        options.addOption("s", true, "savepoint path");
 
         BasicParser parser = new BasicParser();
         CommandLine cl = parser.parse(options, args);
