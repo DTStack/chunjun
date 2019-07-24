@@ -139,7 +139,7 @@ public class Main {
         }
 
         JobExecutionResult result = env.execute(jobIdString);
-        if(StringUtils.isBlank(monitor)){
+        if(env instanceof MyLocalStreamEnvironment){
             ResultPrintUtil.printResult(result);
         }
     }
