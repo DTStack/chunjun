@@ -70,23 +70,31 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected AccumulatorCollector accumulatorCollector;
 
+    private boolean inited = false;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
     public void openInputFormat() throws IOException {
         initJobInfo();
-        initAccumulatorCollector();
-        initStatisticsAccumulator();
-        openByteRateLimiter();
-        initRestoreInfo();
+        startTime = System.currentTimeMillis();
     }
 
     @Override
     public void open(InputSplit inputSplit) throws IOException {
         indexOfSubtask = inputSplit.getSplitNumber();
 
+        if(!inited){
+        initAccumulatorCollector();
+        initStatisticsAccumulator();
+        openByteRateLimiter();
+        initRestoreInfo();
+
         if(restoreConfig.isRestore()){
             formatState.setNumOfSubTask(indexOfSubtask);
+        }
+
+            inited = true;
         }
 
         openInternal(inputSplit);
@@ -134,8 +142,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
         inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
-
-        startTime = System.currentTimeMillis();
     }
 
     private void initRestoreInfo(){
