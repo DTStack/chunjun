@@ -85,14 +85,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         indexOfSubtask = inputSplit.getSplitNumber();
 
         if(!inited){
-        initAccumulatorCollector();
-        initStatisticsAccumulator();
-        openByteRateLimiter();
-        initRestoreInfo();
+            initAccumulatorCollector();
+            initStatisticsAccumulator();
+            openByteRateLimiter();
+            initRestoreInfo();
 
-        if(restoreConfig.isRestore()){
-            formatState.setNumOfSubTask(indexOfSubtask);
-        }
+            if(restoreConfig.isRestore()){
+                formatState.setNumOfSubTask(indexOfSubtask);
+            }
 
             inited = true;
         }

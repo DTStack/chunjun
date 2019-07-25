@@ -164,6 +164,10 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
+            if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
+                dbConn.setAutoCommit(false);
+            }
+
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
