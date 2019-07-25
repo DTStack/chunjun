@@ -55,8 +55,8 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         format.columnNames = columnNames;
     }
 
-    public void setRowkeyColumn(String rowkeyColumn) {
-        format.rowkeyColumn = rowkeyColumn;
+    public void setRowkeyExpress(String rowkeyExpress) {
+        format.rowkeyExpress = rowkeyExpress;
     }
 
     public void setVersionColumnIndex(Integer versionColumnIndex) {
@@ -105,7 +105,7 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         Preconditions.checkNotNull(format.hbaseConfig);
         Preconditions.checkNotNull(format.columnNames);
         Preconditions.checkNotNull(format.columnTypes);
-        Preconditions.checkNotNull(format.rowkeyColumn);
+        Preconditions.checkNotNull(format.rowkeyExpress);
 
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");

@@ -22,8 +22,9 @@ package com.dtstack.flinkx.hbase.writer.function;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,23 +40,21 @@ public class FunctionTree {
 
     private List<FunctionTree> inputFunctions = Lists.newArrayList();
 
-    private String returnValFormat;
-
     public String evaluate(Map<String, Object> nameValueMap){
         if(StringUtils.isNotEmpty(columnName) && MapUtils.isNotEmpty(nameValueMap)){
             return function.evaluate(nameValueMap.get(columnName));
         }
 
         if(CollectionUtils.isNotEmpty(inputFunctions)){
-            String subFuncReturnVal = returnValFormat;
+            List<String> subTaskVal = new ArrayList<>();
             for (FunctionTree inputFunction : inputFunctions) {
-                subFuncReturnVal = subFuncReturnVal.replaceFirst("\\$\\{val}", inputFunction.evaluate(nameValueMap));
+                subTaskVal.add(inputFunction.evaluate(nameValueMap));
             }
 
-            return function.evaluate(subFuncReturnVal);
+            return function.evaluate(StringUtils.join(subTaskVal, "_"));
+        } else {
+            return function.evaluate(null);
         }
-
-        return null;
     }
 
     public void addInputFunction(FunctionTree inputFunction){
@@ -78,11 +77,4 @@ public class FunctionTree {
         this.function = function;
     }
 
-    public String getReturnValFormat() {
-        return returnValFormat;
-    }
-
-    public void setReturnValFormat(String returnValFormat) {
-        this.returnValFormat = returnValFormat;
-    }
 }

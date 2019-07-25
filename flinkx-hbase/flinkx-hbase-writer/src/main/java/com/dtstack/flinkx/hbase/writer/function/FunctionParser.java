@@ -19,14 +19,11 @@
 
 package com.dtstack.flinkx.hbase.writer.function;
 
-import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.commons.lang.StringUtils;
-import org.hamcrest.MatcherAssert;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,104 +33,27 @@ import java.util.regex.Pattern;
  */
 public class FunctionParser {
 
-    private static final String FUNCTION_NAME_REGEX = "([a-z]|[A-Z]){1,}([a-z]|[A-Z]|[\\d])+";
+    private static final String COL_REGEX = "\\$\\([^\\(\\)]+?\\)";
+    private static Pattern COL_PATTERN = Pattern.compile(COL_REGEX);
 
-    private static final String regex = "\\$\\([^\\)]+?\\)";
-
-    private static Pattern pattern = Pattern.compile(regex);
+    private static final String FUNC_REGEX = "[^\\(\\)]+\\(.*\\)";
+    private static Pattern FUNC_PATTERN = Pattern.compile(FUNC_REGEX);
 
     private static String LEFT_KUO = "(";
     private static String RIGHT_KUO = ")";
     private static String COLUMN_PREFIX = "$";
     private static String DELIM = "_";
 
-    public static void main(String[] args) {
-        String e2 = "$(cf:name5)_md5(md5($(cf:name1))_$(cf:name6)md5($(cf:name2)_test_$(cf:name3))_$(cf:name4))";
-
-        String functionExpress = convertExpressToFunction(e2);
-        System.out.println(functionExpress);
-
-        parseFunc(functionExpress, 0);
-    }
-
-    /**
-     * str(cf:name5) constant(_) md5(md5(str(cf:name1))constant(_)str(cf:name6)md5(str(cf:name2)constant(_)constant(test)constant(_)str(cf:name3))constant(_)str(cf:name4))
-     * str(cf:name5) constant(_) md5()
-     */
-    private static void parseFunc(String express, int grade){
-        for (int i = 0; i < express.length(); i++) {
-            if(express.charAt(i) == '('){
-                String token = express.substring(0, i);
-                System.out.println(grade + " ---- func ----- " + token);
-
-                int rightKuoIndex = express.indexOf(")", i+1);
-                int leftKuoIndex = express.indexOf("(", i+1);
-                if(leftKuoIndex != 0 && leftKuoIndex < rightKuoIndex){
-                    int endIndex = xxx(express);
-                    parseFunc(express.substring(i, endIndex), grade+1);
-                    i = endIndex;
-                    return;
-                } else {
-                    String params = express.substring(i+1, rightKuoIndex);
-                    System.out.println(grade + "-----  params ------ " + params);
-
-                    parseFunc(express.substring(rightKuoIndex+1), grade);
-                    return;
-                }
-            } else if(express.charAt(i) == ')'){
-                parseFunc(express.substring(i), grade);
-                return;
-            }
-        }
-    }
-
-    private static int xxx(String express){
-
-        // md5( md5(str(cf:name1))constant(_)str(cf:name6)md5(str(cf:name2)constant(_)constant(test)constant(_)str(cf:name3))constant(_)str(cf:name4))
-
-        int firstLeftKuo = express.indexOf("(");
-
-        int leftKuoNum = 0;
-        for (int i = firstLeftKuo; i < express.length(); i++) {
-            if(express.charAt(i) == '('){
-                leftKuoNum++;
-            } else if(express.charAt(i) == ')'){
-                if(leftKuoNum == 0){
-                    return i;
-                } else {
-                    leftKuoNum--;
-                }
-            }
-
-        }
-
-        return 0;
-    }
-
-    private static void parseChar(Iterator<String> it){
-
-    }
-
-    private static String convertExpressToFunction(String express){
-        Matcher matcher = pattern.matcher(express);
+    public static List<String> parseRowKeyCol(String express){
+        List<String> columnNames = new ArrayList<>();
+        Matcher matcher = COL_PATTERN.matcher(express);
         while (matcher.find()) {
-            String colExpress = matcher.group();
-            String col = colExpress.replace("$(", "").replace(")", "");
-            express = express.replace(colExpress, String.format("str(%s)", col));
+            String colExpre = matcher.group();
+            String col = colExpre.substring(colExpre.indexOf(LEFT_KUO)+1, colExpre.indexOf(RIGHT_KUO));
+            columnNames.add(col);
         }
 
-        List<String> parts = new ArrayList<>();
-        for (String split : express.split("_")) {
-            if(!split.contains("(") && !split.contains(")")){
-                parts.add(String.format("constant(%s)", split));
-            } else {
-                parts.add(split);
-            }
-        }
-
-        express = StringUtils.join(parts, "constant(_)");
-
-        return express;
+        return columnNames;
     }
 
     public static FunctionTree parse(String express){
@@ -148,92 +68,46 @@ public class FunctionParser {
         FunctionTree root = new FunctionTree();
         root.setFunction(new StringFunction());
 
-        List<String> chars = new ArrayList<>();
-        for (char c : express.toCharArray()) {
-            chars.add(String.valueOf(c));
+        if(express.matches(FUNC_REGEX)){
+            parseFunction(express, root);
+        } else {
+            parseColumn(express, root);
         }
-
-        Iterator<String> it = chars.iterator();
-        parseChars(it, root);
 
         return root;
     }
 
-    private static void parseChars(Iterator<String> it, FunctionTree root){
-        while (it.hasNext()){
-            String c = it.next();
-            if(COLUMN_PREFIX.equals(c)){
-                parseColumn(it, root);
+    private static void parseColumn(String express, FunctionTree root){
+        for (String split : express.split(DELIM)) {
+            FunctionTree subFunc = new FunctionTree();
+            if(split.startsWith(COLUMN_PREFIX)){
+                String col = split.substring(split.indexOf(LEFT_KUO)+1, split.indexOf(RIGHT_KUO));
+
+                subFunc.setFunction(new StringFunction());
+                subFunc.setColumnName(col);
             } else {
-                parseFunction(it, c, root);
+                ConstantFunction function = new ConstantFunction();
+                function.setValue(split);
+                subFunc.setFunction(function);
             }
+
+            root.addInputFunction(subFunc);
         }
     }
 
-    private static void parseColumn(Iterator<String> it, FunctionTree root){
-        List<String> chars = new ArrayList<>();
+    private static void parseFunction(String express, FunctionTree root){
+        Matcher matcher = FUNC_PATTERN.matcher(express);
+        if(matcher.find()){
+            String funcExpress = matcher.group();
+            String funcName = funcExpress.substring(0, funcExpress.indexOf(LEFT_KUO));
 
-        while (it.hasNext()) {
-            String c = it.next();
-            if(LEFT_KUO.equals(c)){
-                continue;
-            }
+            FunctionTree subFunc = new FunctionTree();
+            subFunc.setFunction(FunctionFactory.createFuntion(funcName));
 
-            if(RIGHT_KUO.equals(c)){
-                break;
-            }
+            funcExpress = funcExpress.substring(funcExpress.indexOf(LEFT_KUO)+1, funcExpress.lastIndexOf(RIGHT_KUO));
+            parseColumn(funcExpress, subFunc);
 
-            chars.add(c);
+            root.addInputFunction(subFunc);
         }
-
-        String columnName = StringUtils.join(chars, "");
-        System.out.println("column:" + columnName);
-
-        FunctionTree columnFunction = new FunctionTree();
-        columnFunction.setFunction(new StringFunction());
-        columnFunction.setColumnName(columnName);
-
-        root.addInputFunction(columnFunction);
-    }
-
-    private static void parseFunction(Iterator<String> it, String firstChar, FunctionTree root){
-        List<String> chars = new ArrayList<>();
-
-        if(!DELIM.equals(firstChar) && !RIGHT_KUO.equals(firstChar)){
-            chars.add(firstChar);
-        }
-
-        while (it.hasNext()) {
-            String c = it.next();
-
-            if(DELIM.equals(c)){
-                continue;
-            }
-
-            if(COLUMN_PREFIX.equals(c)){
-                parseColumn(it, root);
-                return;
-            }
-
-            if(LEFT_KUO.equals(c) || RIGHT_KUO.equals(c)){
-                break;
-            }
-
-            chars.add(c);
-        }
-
-        if(CollectionUtils.isNotEmpty(chars)){
-            String functionName = StringUtils.join(chars, "");
-            System.out.println("function:" + functionName);
-
-            FunctionTree functionFunction = new FunctionTree();
-            functionFunction.setFunction(FunctionFactory.createFuntion(functionName));
-
-            root.addInputFunction(functionFunction);
-
-            parseChars(it, functionFunction);
-        }
-
-        parseChars(it, root);
     }
 }

@@ -2,55 +2,72 @@
   "job": {
     "content": [
       {
-        "writer": {
-          "name": "streamwriter",
+        "reader": {
           "parameter": {
-            "print":true,
+            "sliceRecordCount": ["10"],
             "column": [
-              {
-                "name": "id",
-                "type": "int"
-              },
               {
                 "name": "name",
                 "type": "string"
-              }
-            ],
-            "sliceRecordCount":["1000"]
-          }
-        },
-        "reader": {
-          "name": "esreader",
-          "parameter": {
-            "address": "172.16.10.190:9200,172.16.10.193:9200,172.16.10.147:9200",
-            "query": {
-              "match_all": {}
-            },
-            "index": "c_cons",
-            "type": "",
-            "batchSize": 100,
-            "timeout": 10,
-            "column": [
-              {
-                "name": "address",
-                "type": "keyword"
               },
               {
-                "name": "id_card",
-                "type": "keyword"
+                "name": "age",
+                "type": "int",
+                "value": "26"
+              },
+              {
+                "name": "father",
+                "type": "string"
+              },
+              {
+                "name": "adress",
+                "type": "string"
               }
             ]
-          }
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "cf:name",
+                "type": "string"
+              },
+              {
+                "name": "cf:age",
+                "type": "int"
+              },
+              {
+                "name": "cf:father",
+                "type": "string"
+              },
+              {
+                "name": "cf:adress",
+                "type": "string"
+              }
+            ],
+            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
+            "writeBufferSize": 0,
+            "table": "md5_test",
+            "sourceIds": [
+              371
+            ],
+            "hbaseConfig": {
+              "hbase.zookeeper.quorum": "172.16.8.193:2181"
+            }
+          },
+          "name": "hbasewriter"
         }
       }
     ],
     "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
       "errorLimit": {
         "record": 100
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
       }
     }
   }

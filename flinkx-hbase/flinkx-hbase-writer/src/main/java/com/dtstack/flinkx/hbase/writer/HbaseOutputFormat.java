@@ -20,8 +20,11 @@ package com.dtstack.flinkx.hbase.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
+import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
+import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.Validate;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -35,6 +38,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +68,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
-    protected String rowkeyColumn;
+    protected String rowkeyExpress;
 
     protected Integer versionColumnIndex;
 
@@ -74,7 +78,10 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient BufferedMutator bufferedMutator;
 
-    private transient RowKeyFunction rowKeyFunction;
+    private transient FunctionTree functionTree;
+
+    protected List<String> rowKeyColumns = Lists.newArrayList();
+    protected List<Integer> rowKeyColumnIndex = Lists.newArrayList();
 
     @Override
     public void configure(Configuration parameters) {
@@ -99,7 +106,15 @@ public class HbaseOutputFormat extends RichOutputFormat {
             throw new IllegalArgumentException(e);
         }
 
-        rowKeyFunction = new RowKeyFunction(this);
+        functionTree = FunctionParser.parse(rowkeyExpress);
+        rowKeyColumns = FunctionParser.parseRowKeyCol(rowkeyExpress);
+        for (String rowKeyColumn : rowKeyColumns) {
+            int index = columnNames.indexOf(rowKeyColumn);
+            if(index == -1){
+                throw new RuntimeException("Can not get row key column from columns:" + rowKeyColumn);
+            }
+            rowKeyColumnIndex.add(index);
+        }
 
         LOG.info("HbaseOutputFormat configure end");
     }
@@ -167,27 +182,16 @@ public class HbaseOutputFormat extends RichOutputFormat {
     }
 
     private byte[] getRowkey(Row record) {
-        byte[] rowkeyBuffer  = {};
-//        for(int i = 0; i < rowkeyColumnIndices.size(); ++i) {
-//            Integer index = rowkeyColumnIndices.get(i);
-//            String type =  rowkeyColumnTypes.get(i);
-//            ColumnType columnType = ColumnType.getByTypeName(type);
-//            if(index == null) {
-////                String value = rowkeyColumnValues.get(i);
-//
-////                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
-//
-//                byte[] buf = rowKeyFunction.resolve(record, value, columnType);
-//                rowkeyBuffer = Bytes.add(rowkeyBuffer, buf);
-//            } else {
-//                if(index >= record.getArity() || index < 0) {
-//                    throw new IllegalArgumentException("index of rowkeyColumn out of range");
-//                }
-//                byte[] value = getColumnByte(columnType,record.getField(index));
-//                rowkeyBuffer = Bytes.add(rowkeyBuffer, value);
-//            }
+
+        return String.valueOf(System.currentTimeMillis()).getBytes();
+
+//        Map<String, Object> nameValueMap = new HashMap<>();
+//        for (Integer keyColumnIndex : rowKeyColumnIndex) {
+//            nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
 //        }
-        return rowkeyBuffer;
+//
+//        String rowKeyStr = functionTree.evaluate(nameValueMap);
+//        return rowKeyStr.getBytes();
     }
 
     public long getVersion(Row record){

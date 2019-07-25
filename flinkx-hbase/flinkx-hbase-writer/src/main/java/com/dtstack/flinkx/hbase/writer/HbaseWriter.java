@@ -49,7 +49,7 @@ public class HbaseWriter extends DataWriter {
 
     private List<String> columnTypes;
     private List<String> columnNames;
-    private String rowkeyColumn;
+    private String rowkeyExpress;
 
     private Integer versionColumnIndex;
     private String versionColumnValue;
@@ -64,7 +64,7 @@ public class HbaseWriter extends DataWriter {
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);
         writeBufferSize = writerConfig.getParameter().getLongVal(KEY_WRITE_BUFFER_SIZE, DEFAULT_WRITE_BUFFER_SIZE);
-        rowkeyColumn = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
+        rowkeyExpress = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
 
         List columns = writerConfig.getParameter().getColumn();
         if(columns != null || columns.size() != 0) {
@@ -95,7 +95,7 @@ public class HbaseWriter extends DataWriter {
         builder.setWriteBufferSize(writeBufferSize);
         builder.setColumnNames(columnNames);
         builder.setColumnTypes(columnTypes);
-        builder.setRowkeyColumn(rowkeyColumn);
+        builder.setRowkeyExpress(rowkeyExpress);
         builder.setVersionColumnIndex(versionColumnIndex);
         builder.setVersionColumnValues(versionColumnValue);
         builder.setMonitorUrls(monitorUrls);

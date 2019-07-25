@@ -18,21 +18,15 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
-import com.dtstack.flinkx.hbase.writer.function.FunctionFactory;
-import com.dtstack.flinkx.hbase.writer.function.IFunction;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.hbase.writer.function.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-//import org.apache.flink.types.Row;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 
 /**
  * @company: www.dtstack.com
@@ -41,11 +35,44 @@ import java.util.regex.Pattern;
  */
 public class RowKeyFunctionTest {
 
-    public static void main(String[] args) {
-        HbaseOutputFormat format = new HbaseOutputFormat();
-        format.columnNames = Lists.newArrayList("age", "name");
-//        format.rowkeyColumnIndices = Lists.newArrayList(0);
-//        format.rowkeyColumnValues = Lists.newArrayList("md5($(age)asdasd$(name))");
-        new RowKeyFunction(format);
+    @Test
+    public void parseRowKeyColTest(){
+        List<String> expectCol = new ArrayList<>();
+        expectCol.add("col1");
+        expectCol.add("col2");
+
+        List<String> columnNames = FunctionParser.parseRowKeyCol("md5(test_$(col1)_test_$(col2)_test)");
+
+        Assert.assertEquals(expectCol, columnNames);
+    }
+
+    @Test
+    public void noFunc(){
+        String express = "test_$(col1)_test_$(col2)_test";
+
+        String expectVal = new StringFunction().evaluate("test_value1_test_value2_test");
+
+        FunctionTree functionTree = FunctionParser.parse(express);
+
+        Map<String, Object> nameValueMap = new HashMap<>();
+        nameValueMap.put("col1", "value1");
+        nameValueMap.put("col2", "value2");
+
+        Assert.assertEquals(expectVal, functionTree.evaluate(nameValueMap));
+    }
+
+    @Test
+    public void hasFunc(){
+        String express = "md5(test_$(col1)_test_$(col2)_test)";
+
+        String expectVal = new MD5Function().evaluate("test_value1_test_value2_test");
+
+        FunctionTree functionTree = FunctionParser.parse(express);
+
+        Map<String, Object> nameValueMap = new HashMap<>();
+        nameValueMap.put("col1", "value1");
+        nameValueMap.put("col2", "value2");
+
+        Assert.assertEquals(expectVal, functionTree.evaluate(nameValueMap));
     }
 }
