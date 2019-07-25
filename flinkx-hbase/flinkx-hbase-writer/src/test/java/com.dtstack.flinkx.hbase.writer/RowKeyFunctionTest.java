@@ -44,8 +44,8 @@ public class RowKeyFunctionTest {
     public static void main(String[] args) {
         HbaseOutputFormat format = new HbaseOutputFormat();
         format.columnNames = Lists.newArrayList("age", "name");
-        format.rowkeyColumnIndices = Lists.newArrayList(0);
-        format.rowkeyColumnValues = Lists.newArrayList("md5($(age)asdasd$(name))");
+//        format.rowkeyColumnIndices = Lists.newArrayList(0);
+//        format.rowkeyColumnValues = Lists.newArrayList("md5($(age)asdasd$(name))");
         new RowKeyFunction(format);
     }
 }

@@ -29,7 +29,7 @@ public class MD5Function implements IFunction {
 
 
     @Override
-    public String eval(Object str) {
+    public String evaluate(Object str) {
         return getMD5String(str.toString());
     }
 

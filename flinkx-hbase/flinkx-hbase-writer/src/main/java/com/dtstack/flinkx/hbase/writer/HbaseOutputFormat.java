@@ -64,11 +64,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
-    protected List<Integer> rowkeyColumnIndices;
-
-    protected List<String> rowkeyColumnTypes;
-
-    protected List<String> rowkeyColumnValues;
+    protected String rowkeyColumn;
 
     protected Integer versionColumnIndex;
 
@@ -172,25 +168,25 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private byte[] getRowkey(Row record) {
         byte[] rowkeyBuffer  = {};
-        for(int i = 0; i < rowkeyColumnIndices.size(); ++i) {
-            Integer index = rowkeyColumnIndices.get(i);
-            String type =  rowkeyColumnTypes.get(i);
-            ColumnType columnType = ColumnType.getByTypeName(type);
-            if(index == null) {
-                String value = rowkeyColumnValues.get(i);
-
-//                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
-
-                byte[] buf = rowKeyFunction.resolve(record, value, columnType);
-                rowkeyBuffer = Bytes.add(rowkeyBuffer, buf);
-            } else {
-                if(index >= record.getArity() || index < 0) {
-                    throw new IllegalArgumentException("index of rowkeyColumn out of range");
-                }
-                byte[] value = getColumnByte(columnType,record.getField(index));
-                rowkeyBuffer = Bytes.add(rowkeyBuffer, value);
-            }
-        }
+//        for(int i = 0; i < rowkeyColumnIndices.size(); ++i) {
+//            Integer index = rowkeyColumnIndices.get(i);
+//            String type =  rowkeyColumnTypes.get(i);
+//            ColumnType columnType = ColumnType.getByTypeName(type);
+//            if(index == null) {
+////                String value = rowkeyColumnValues.get(i);
+//
+////                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
+//
+//                byte[] buf = rowKeyFunction.resolve(record, value, columnType);
+//                rowkeyBuffer = Bytes.add(rowkeyBuffer, buf);
+//            } else {
+//                if(index >= record.getArity() || index < 0) {
+//                    throw new IllegalArgumentException("index of rowkeyColumn out of range");
+//                }
+//                byte[] value = getColumnByte(columnType,record.getField(index));
+//                rowkeyBuffer = Bytes.add(rowkeyBuffer, value);
+//            }
+//        }
         return rowkeyBuffer;
     }
 

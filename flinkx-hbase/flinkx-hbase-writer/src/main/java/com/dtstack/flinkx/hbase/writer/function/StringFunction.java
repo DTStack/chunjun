@@ -26,7 +26,7 @@ package com.dtstack.flinkx.hbase.writer.function;
 public class StringFunction implements IFunction {
 
     @Override
-    public String eval(Object str) {
+    public String evaluate(Object str) {
         return str.toString();
     }
 }

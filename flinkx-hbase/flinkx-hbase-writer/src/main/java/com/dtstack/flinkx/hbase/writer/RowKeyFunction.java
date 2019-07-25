@@ -77,21 +77,21 @@ public class RowKeyFunction {
             }
         }
         if (function != null) {
-            rowKeyValue = function.eval(rowKeyValue);
+//            rowKeyValue = function.eval(rowKeyValue);
         }
         return format.getValueByte(columnType, rowKeyValue);
     }
 
     private void init() {
         rowKeyColumnNamesMap = new HashMap<>();
-
-        for (int i = 0; i < format.rowkeyColumnTypes.size(); ++i) {
-            Integer index = format.rowkeyColumnIndices.get(i);
-            if (index == null) {
-                String value = format.rowkeyColumnValues.get(i);
-                regalByRules(value);
-            }
-        }
+//
+//        for (int i = 0; i < format.rowkeyColumnTypes.size(); ++i) {
+//            Integer index = format.rowkeyColumnIndices.get(i);
+//            if (index == null) {
+//                String value = format.rowkeyColumnValues.get(i);
+//                regalByRules(value);
+//            }
+//        }
     }
 
     private void regalByRules(String value) {

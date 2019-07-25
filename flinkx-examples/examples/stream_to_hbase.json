@@ -50,12 +50,7 @@
                 "type": "string"
               }
             ],
-            "rowkeyColumn": [
-              {
-                "value": "md5($(cf1:name)_$(cf1:father))",
-                "type": "string"
-              }
-            ],
+            "rowkeyColumn": "md5($(cf1:name)_$(cf1:father))",
             "writeBufferSize": -1,
             "table": "hbase_writer",
             "sourceIds": [
