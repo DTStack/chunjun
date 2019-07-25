@@ -140,6 +140,10 @@ public class HbaseOutputFormat extends RichOutputFormat {
             }
 
             for (; i < record.getArity(); ++i) {
+                if(rowKeyColumnIndex.contains(i)){
+                    continue;
+                }
+
                 String type = columnTypes.get(i);
                 ColumnType columnType = ColumnType.getByTypeName(type);
                 String name =columnNames.get(i);
@@ -182,16 +186,13 @@ public class HbaseOutputFormat extends RichOutputFormat {
     }
 
     private byte[] getRowkey(Row record) {
+        Map<String, Object> nameValueMap = new HashMap<>();
+        for (Integer keyColumnIndex : rowKeyColumnIndex) {
+            nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
+        }
 
-        return String.valueOf(System.currentTimeMillis()).getBytes();
-
-//        Map<String, Object> nameValueMap = new HashMap<>();
-//        for (Integer keyColumnIndex : rowKeyColumnIndex) {
-//            nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
-//        }
-//
-//        String rowKeyStr = functionTree.evaluate(nameValueMap);
-//        return rowKeyStr.getBytes();
+        String rowKeyStr = functionTree.evaluate(nameValueMap);
+        return rowKeyStr.getBytes();
     }
 
     public long getVersion(Row record){
