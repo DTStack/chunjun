@@ -24,8 +24,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.DataConvertUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
@@ -43,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
@@ -131,19 +134,11 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected Object initState;
 
-    protected boolean readyWrite = false;
-
     protected transient BaseMetric outputMetric;
 
+    protected AccumulatorCollector accumulatorCollector;
+
     private long startTime;
-
-    public DirtyDataManager getDirtyDataManager() {
-        return dirtyDataManager;
-    }
-
-    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
-        this.dirtyDataManager = dirtyDataManager;
-    }
 
     public String getDirtyPath() {
         return dirtyPath;
@@ -186,7 +181,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         initStatisticsAccumulator();
         initJobInfo();
-
+        initAccumulatorCollector();
         openErrorLimiter();
         openDirtyDataManager();
 
@@ -204,6 +199,20 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         initRestoreInfo();
     }
 
+    private void initAccumulatorCollector(){
+        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrl, getRuntimeContext(), 2,
+                Arrays.asList(Metrics.NUM_ERRORS,
+                        Metrics.NUM_NULL_ERRORS,
+                        Metrics.NUM_DUPLICATE_ERRORS,
+                        Metrics.NUM_CONVERSION_ERRORS,
+                        Metrics.NUM_OTHER_ERRORS,
+                        Metrics.NUM_WRITES,
+                        Metrics.WRITE_BYTES,
+                        Metrics.NUM_READS,
+                        Metrics.WRITE_DURATION));
+        accumulatorCollector.start();
+    }
+
     private void initRestoreInfo(){
         if(restoreConfig == null){
             restoreConfig = RestoreConfig.defaultConfig();
@@ -214,7 +223,25 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 initState = formatState.getState();
                 numWriteCounter.add(formatState.getNumberWrite());
             }
+
+            putStateToAccumulator();
         }
+    }
+
+    private void putStateToAccumulator(){
+        long val = Long.MAX_VALUE;
+        if(initState != null){
+            Long longObj = DataConvertUtil.toLong(restoreConfig.getRestoreColumnType(), initState);
+            if(longObj != null){
+                val = longObj;
+            }
+        }
+
+        context.getLongCounter(String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, taskNumber)).add(val);
+        LOG.info("Put last write location:{} for channel:{}", val, taskNumber);
+
+        context.getLongCounter( String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, taskNumber)).add(formatState.getNumberWrite());
+        LOG.info("Put last write num:{} for channel:{}", formatState.getNumberWrite(), taskNumber);
     }
 
     private void initJobInfo(){
@@ -238,7 +265,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
         durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
 
-        outputMetric = new BaseMetric(context, "writer");
+        outputMetric = new BaseMetric(context, "writer", StringUtils.isEmpty(monitorUrl));
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
         outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
         outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
@@ -252,11 +279,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     }
 
     private void openErrorLimiter(){
-        if(StringUtils.isNotBlank(monitorUrl)) {
-            if(errors != null || errorRatio != null) {
-                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
-                errorLimiter.start();
-            }
+        if(errors != null || errorRatio != null) {
+            errorLimiter = new ErrorLimiter(accumulatorCollector, errors, errorRatio);
         }
     }
 
@@ -356,10 +380,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     @Override
     public void writeRecord(Row row) throws IOException {
         Row internalRow = setChannelInfo(row);
-        if(!readyWrite(internalRow)){
-            return;
-        }
-
         if(batchInterval <= 1) {
             writeSingleRecord(internalRow);
         } else {
@@ -383,19 +403,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         return internalRow;
     }
 
-    private boolean readyWrite(Row row){
-        if(restoreConfig.isRestore() && !readyWrite && initState != null){
-            Object currentState = row.getField(restoreConfig.getRestoreColumnIndex());
-            if(currentState != null){
-                readyWrite = currentState.toString().compareTo(initState.toString()) > 0;
-            }
-
-            return readyWrite;
-        }
-
-        return true;
-    }
-
     @Override
     public void close() throws IOException {
         LOG.info("subtask[" + taskNumber + "] close()");
@@ -406,10 +413,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             }
 
             updateDuration();
-
-            if(outputMetric != null){
-                outputMetric.waitForReportMetrics();
-            }
 
             if(needWaitBeforeCloseInternal()) {
                 beforeCloseInternal();
@@ -423,13 +426,18 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 }
                 afterCloseInternal();
 
-                outputMetric.waitForReportMetrics();
+                if(outputMetric != null){
+                    outputMetric.waitForReportMetrics();
+                }
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
                 }
 
                 checkErrorLimit();
+                if(accumulatorCollector != null){
+                    accumulatorCollector.close();
+                }
             }
             LOG.info("subtask[" + taskNumber + "] close() finished");
         }
@@ -446,7 +454,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             }
 
             errorLimiter.acquire();
-            errorLimiter.stop();
         }
     }
 

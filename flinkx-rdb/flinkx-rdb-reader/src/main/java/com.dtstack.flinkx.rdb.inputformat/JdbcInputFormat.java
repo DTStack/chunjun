@@ -164,7 +164,6 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
-            dbConn.setAutoCommit(false);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
@@ -396,7 +395,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
         if (StringUtils.isNotEmpty(splitKey)){
             querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions))
-                    .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
+                    .replace("${M}", String.valueOf(indexOfSubtask));
         }
 
         if (restoreConfig.isRestore()){
@@ -489,7 +488,9 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         if (ColumnType.isTimeType(columnType)){
-            if(columnVal instanceof Timestamp){
+            if(columnVal instanceof Long){
+                location = columnVal.toString();
+            } else if(columnVal instanceof Timestamp){
                 long time = ((Timestamp)columnVal).getTime() / 1000;
 
                 String nanosStr = String.valueOf(((Timestamp)columnVal).getNanos());

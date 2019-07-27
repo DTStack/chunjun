@@ -53,6 +53,7 @@ import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
+import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
@@ -64,6 +65,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +93,8 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         String jobPath = TEST_RESOURCE_DIR + "stream_template.json";
-        LocalTest.runJob(new File(jobPath), null, null);
+        JobExecutionResult result = LocalTest.runJob(new File(jobPath), null, null);
+        ResultPrintUtil.printResult(result);
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
@@ -110,7 +114,10 @@ public class LocalTest {
 
         DataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
-        dataStream = dataStream.rebalance();
+
+        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
+                new PartitionTransformation<>(dataStream.getTransformation(),
+                        new DTRebalancePartitioner<>()));
 
         DataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream);

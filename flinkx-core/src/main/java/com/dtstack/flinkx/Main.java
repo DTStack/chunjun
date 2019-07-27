@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
+import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import org.apache.commons.cli.BasicParser;
@@ -30,6 +31,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -39,6 +41,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
@@ -115,7 +119,11 @@ public class Main {
         env.setRestartStrategy(RestartStrategies.noRestart());
         DataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
-        dataStream = dataStream.rebalance();
+
+        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
+                new PartitionTransformation<>(dataStream.getTransformation(),
+                        new DTRebalancePartitioner<>()));
+
         DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         dataWriter.writeData(dataStream);
 
@@ -136,8 +144,10 @@ public class Main {
             }
         }
 
-        env.execute(jobIdString);
-
+        JobExecutionResult result = env.execute(jobIdString);
+        if(env instanceof MyLocalStreamEnvironment){
+            ResultPrintUtil.printResult(result);
+        }
     }
 
     private static Properties parseConf(String confStr) throws Exception{
