@@ -164,10 +164,6 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
-            if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
-                dbConn.setAutoCommit(false);
-            }
-
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
@@ -399,7 +395,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
         if (StringUtils.isNotEmpty(splitKey)){
             querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions))
-                    .replace("${M}", String.valueOf(jdbcInputSplit.getMod()));
+                    .replace("${M}", String.valueOf(indexOfSubtask));
         }
 
         if (restoreConfig.isRestore()){

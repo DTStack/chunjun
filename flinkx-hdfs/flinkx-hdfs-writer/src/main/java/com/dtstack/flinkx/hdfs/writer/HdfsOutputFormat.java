@@ -22,6 +22,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.SysUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
@@ -29,7 +30,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
@@ -161,10 +161,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         configInternal();
 
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        String dateString = formatter.format(currentTime);
-        currentBlockFileNamePrefix = taskNumber + "." + dateString;
+        currentBlockFileNamePrefix = taskNumber + "." + jobId;
         tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
 
@@ -188,6 +185,44 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             } catch (Exception e) {
                 LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
             }
+        } else {
+            alignHistoryFiles();
+        }
+    }
+
+    private void alignHistoryFiles(){
+        try{
+            PathFilter pathFilter = path -> !path.getName().startsWith(".");
+            FileStatus[] files = fs.listStatus(new Path(tmpPath), pathFilter);
+            if(files == null || files.length == 0){
+                return;
+            }
+
+            List<String> fileNames = Lists.newArrayList();
+            for (FileStatus file : files) {
+                fileNames.add(file.getPath().getName());
+            }
+
+            List<String> deleteFiles = Lists.newArrayList();
+            for (String fileName : fileNames) {
+                String targetName = fileName.substring(fileName.indexOf(".")+1);
+                int num = 0;
+                for (String name : fileNames) {
+                    if(targetName.equals(name.substring(name.indexOf(".")+1))){
+                        num++;
+                    }
+                }
+
+                if(num < numTasks){
+                    deleteFiles.add(fileName);
+                }
+            }
+
+            for (String fileName : deleteFiles) {
+                fs.delete(new Path(tmpPath + SP + fileName), true);
+            }
+        } catch (Exception e){
+            throw new RuntimeException("align files error:", e);
         }
     }
 

@@ -65,6 +65,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,7 +114,10 @@ public class LocalTest {
 
         DataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
-        dataStream = dataStream.rebalance();
+
+        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
+                new PartitionTransformation<>(dataStream.getTransformation(),
+                        new DTRebalancePartitioner<>()));
 
         DataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream);

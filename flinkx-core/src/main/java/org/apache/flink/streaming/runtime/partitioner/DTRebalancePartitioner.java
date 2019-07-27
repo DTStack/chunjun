@@ -23,12 +23,12 @@ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.types.Row;
 
 /**
- * Rewrite the [RebalancePartitioner] to distribute data based on the channel specified in the data
+ * Rewrite the [DTRebalancePartitioner] to distribute data based on the channel specified in the data
  *
  * @param <T> Type of the elements in the Stream being rebalanced
  */
 @Internal
-public class RebalancePartitioner<T> extends StreamPartitioner<T> {
+public class DTRebalancePartitioner<T> extends StreamPartitioner<T> {
     private static final long serialVersionUID = 1L;
 
     private final int[] returnArray = new int[] {-1};
