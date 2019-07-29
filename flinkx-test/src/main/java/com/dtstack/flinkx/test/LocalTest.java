@@ -92,7 +92,7 @@ public class LocalTest {
     public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
 
     public static void main(String[] args) throws Exception{
-        String jobPath = TEST_RESOURCE_DIR + "stream_template.json";
+        String jobPath = TEST_RESOURCE_DIR + "es_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), null, null);
         ResultPrintUtil.printResult(result);
     }
