@@ -4,7 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "sliceRecordCount": 0,
+            "sliceRecordCount": ["0"],
             "column": [
               {
                 "name": "name",
@@ -52,11 +52,7 @@
             ],
             "rowkeyColumn": [
               {
-                "index": 0,
-                "type": "string"
-              },
-              {
-                "value": "_postfix1",
+                "value": "md5($(cf1:name)_$(cf1:father))",
                 "type": "string"
               }
             ],

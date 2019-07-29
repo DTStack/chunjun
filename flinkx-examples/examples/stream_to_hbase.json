@@ -4,11 +4,12 @@
       {
         "reader": {
           "parameter": {
-            "sliceRecordCount": ["10"],
+            "sliceRecordCount": ["0"],
             "column": [
               {
                 "name": "name",
-                "type": "string"
+                "type": "string",
+                "value": "xiangqin"
               },
               {
                 "name": "age",
@@ -17,11 +18,13 @@
               },
               {
                 "name": "father",
-                "type": "string"
+                "type": "string",
+                "value": "yongfang"
               },
               {
                 "name": "adress",
-                "type": "string"
+                "type": "string",
+                "value": "zhejiang"
               }
             ]
           },
@@ -31,30 +34,30 @@
           "parameter": {
             "column": [
               {
-                "name": "cf:name",
+                "name": "cf1:name",
                 "type": "string"
               },
               {
-                "name": "cf:age",
+                "name": "cf1:age",
                 "type": "int"
               },
               {
-                "name": "cf:father",
+                "name": "cf1:father",
                 "type": "string"
               },
               {
-                "name": "cf:adress",
+                "name": "cf1:adress",
                 "type": "string"
               }
             ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
+            "rowkeyColumn": "md5($(cf1:name)_$(cf1:father))",
+            "writeBufferSize": -1,
+            "table": "hbase_writer",
             "sourceIds": [
               371
             ],
             "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
+              "hbase.zookeeper.quorum": "172.16.8.193"
             }
           },
           "name": "hbasewriter"
