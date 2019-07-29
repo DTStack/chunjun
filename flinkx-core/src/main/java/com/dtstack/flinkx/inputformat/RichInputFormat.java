@@ -223,7 +223,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void closeInputFormat() throws IOException {
-        updateDuration();
+        if(durationCounter != null){
+            updateDuration();
+        }
 
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
