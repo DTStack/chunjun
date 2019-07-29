@@ -29,9 +29,7 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchScrollRequest;
+import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -158,8 +156,22 @@ public class EsInputFormat extends RichInputFormat {
     @Override
     public void closeInternal() throws IOException {
         if(client != null) {
+            clearScroll();
+
             client.close();
         }
+    }
+
+    private void clearScroll() throws IOException{
+        if(scrollId == null){
+            return;
+        }
+
+        ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
+        clearScrollRequest.addScrollId(scrollId);
+        ClearScrollResponse clearScrollResponse = client.clearScroll(clearScrollRequest);
+        boolean succeeded = clearScrollResponse.isSucceeded();
+        LOG.info("Clear scroll response:{}", succeeded);
     }
 
     @Override
