@@ -164,7 +164,14 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
+
+            // 部分驱动需要关闭事务自动提交，featchSize参数才会起作用
             dbConn.setAutoCommit(false);
+
+            // 读取前先提交事务，确保程序异常退出时，下次再读取PG时的顺序不变
+            if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
+                dbConn.commit();
+            }
 
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
