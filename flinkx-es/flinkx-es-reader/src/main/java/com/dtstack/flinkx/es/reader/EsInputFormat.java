@@ -53,9 +53,9 @@ public class EsInputFormat extends RichInputFormat {
 
     protected String address;
 
-    protected String index;
+    protected String[] index;
 
-    protected String type;
+    protected String[] type;
 
     protected String query;
 

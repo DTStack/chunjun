@@ -167,6 +167,24 @@ public class EsUtil {
         return column;
     }
 
+    public static String[] getStringArray(Object value){
+        if(value == null){
+            return null;
+        }
 
+        if(value instanceof String){
+            String stringValue = value.toString();
+            return stringValue.split(",");
+        } else if(value instanceof List){
+            List list = (List)value;
+            String[] array = new String[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                array[i] = list.get(i).toString();
+            }
 
+            return array;
+        } else {
+            return new String[]{value.toString()};
+        }
+    }
 }
