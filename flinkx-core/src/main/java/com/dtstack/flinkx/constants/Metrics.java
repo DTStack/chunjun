@@ -50,6 +50,8 @@ public class Metrics {
 
     public static String JOB_ID = "<job_id>";
 
+    public static String SUBTASK_INDEX = "<subtask_index>";
+
     public static String NUM_READS = "numRead";
 
     public static String END_LOCATION = "endLocation";

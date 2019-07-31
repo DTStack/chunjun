@@ -82,8 +82,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void open(InputSplit inputSplit) throws IOException {
-        indexOfSubtask = inputSplit.getSplitNumber();
-
         if(!inited){
             initAccumulatorCollector();
             initStatisticsAccumulator();
@@ -123,6 +121,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
             jobId = vars.get(Metrics.JOB_ID);
+        }
+
+        if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
+            indexOfSubtask = Integer.valueOf(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 
