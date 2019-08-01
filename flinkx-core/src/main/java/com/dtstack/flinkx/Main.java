@@ -63,12 +63,6 @@ public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    private static final int FAILURE_RATE = 3;
-
-    private static final int FAILURE_INTERVAL = 6;
-
-    private static final int DELAY_INTERVAL = 10;
-
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
