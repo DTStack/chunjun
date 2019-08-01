@@ -109,7 +109,7 @@ public class Main {
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment();
 
-        openCheckpointConf(env, confProperties);
+        env = openCheckpointConf(env, confProperties);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
@@ -149,47 +149,31 @@ public class Main {
         return objectMapper.readValue(confStr, Properties.class);
     }
 
-    private static void openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
-        if(properties == null){
-            return;
+    private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
+        if(properties!=null){
+            String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
+            if(StringUtils.isNotBlank(interval)){
+                env.enableCheckpointing(Long.valueOf(interval.trim()));
+                LOG.info("Open checkpoint with interval:" + interval);
+            }
+            String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+            if(checkpointTimeoutStr != null){
+                long checkpointTimeout = Long.valueOf(checkpointTimeoutStr.trim());
+                //checkpoints have to complete within one min,or are discard
+                env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
+
+                LOG.info("Set checkpoint timeout:" + checkpointTimeout);
+            }
+            env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+            env.getCheckpointConfig().enableExternalizedCheckpoints(
+                    CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+            String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
+            if(backendPath != null){
+                //set checkpoint save path on file system,hdfs://, file://
+                env.setStateBackend(new FsStateBackend(backendPath.trim()));
+                LOG.info("Set StateBackend:" + backendPath);
+            }
         }
-
-        if(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
-            return;
-        }else{
-            long interval = Long.valueOf(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
-
-            //start checkpoint every ${interval}
-            env.enableCheckpointing(interval);
-
-            LOG.info("Open checkpoint with interval:" + interval);
-        }
-
-        String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
-        if(checkpointTimeoutStr != null){
-            long checkpointTimeout = Long.valueOf(checkpointTimeoutStr);
-            //checkpoints have to complete within one min,or are discard
-            env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
-
-            LOG.info("Set checkpoint timeout:" + checkpointTimeout);
-        }
-
-        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-        env.getCheckpointConfig().enableExternalizedCheckpoints(
-                CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-
-        String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
-        if(backendPath != null){
-            //set checkpoint save path on file system,hdfs://, file://
-            env.setStateBackend(new FsStateBackend(backendPath));
-
-            LOG.info("Set StateBackend:" + backendPath);
-        }
-
-        env.setRestartStrategy(RestartStrategies.failureRateRestart(
-                FAILURE_RATE,
-                Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
-                Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
-        ));
+        return env;
     }
 }
