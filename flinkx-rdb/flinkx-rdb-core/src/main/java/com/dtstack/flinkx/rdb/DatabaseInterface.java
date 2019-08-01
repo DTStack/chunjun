@@ -63,7 +63,7 @@ public interface DatabaseInterface {
 
     String getSplitFilterWithTmpTable(String tmpTable, String columnName);
 
-    String getRowNumColumn();
+    String getRowNumColumn(String orderBy);
 
     int getFetchSize();
 

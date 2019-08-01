@@ -541,7 +541,7 @@ public class DBUtil {
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
                                      String splitKey,String customFilter,boolean isSplitByKey,boolean isIncrement,boolean isRestore) {
         List<String> selectColumns = buildSelectColumns(databaseInterface, metaColumns);
-        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, splitKey);
+        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
@@ -578,12 +578,13 @@ public class DBUtil {
         }
     }
 
-    private static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, String splitKey){
-        if(!ROW_NUM_SPLIT_KEY.equalsIgnoreCase(splitKey)){
+    private static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, boolean isSplitByKey,String splitKey){
+        if(!isSplitByKey || !splitKey.contains("(")){
             return false;
         }
 
-        selectColumns.add(databaseInterface.getRowNumColumn());
+        String orderBy = splitKey.substring(splitKey.indexOf("(")+1, splitKey.indexOf(")"));
+        selectColumns.add(databaseInterface.getRowNumColumn(orderBy));
 
         return true;
     }

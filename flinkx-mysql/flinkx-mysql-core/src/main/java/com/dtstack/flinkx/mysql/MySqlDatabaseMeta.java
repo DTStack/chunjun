@@ -104,7 +104,7 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getRowNumColumn() {
+    public String getRowNumColumn(String orderBy) {
         throw new RuntimeException("Not support row_number function");
     }
 

@@ -117,7 +117,7 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getRowNumColumn() {
+    public String getRowNumColumn(String orderBy) {
         return "ROWID as FLINKX_ROWNUM";
     }
 
