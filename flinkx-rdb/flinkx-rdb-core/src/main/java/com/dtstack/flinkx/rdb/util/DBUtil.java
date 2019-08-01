@@ -66,6 +66,12 @@ public class DBUtil {
 
     public static final String NULL_STRING = "null";
 
+    public static final String ROW_NUM_COLUMN_ALIAS = "FLINKX_ROWNUM";
+
+    public static final String ROW_NUM_SPLIT_KEY = "ROW_NUMBER()";
+
+    public static final String SQL_SPLIT_WITH_ROW_NUM = "SELECT * FROM (%s) tmp WHERE %s";
+
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
@@ -534,28 +540,17 @@ public class DBUtil {
 
     public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
                                      String splitKey,String customFilter,boolean isSplitByKey,boolean isIncrement,boolean isRestore) {
+        List<String> selectColumns = buildSelectColumns(databaseInterface, metaColumns);
+        boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, splitKey);
+
         StringBuilder sb = new StringBuilder();
-
-        List<String> selectColumns = new ArrayList<>();
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
-            selectColumns.add("*");
-        } else {
-            for (MetaColumn metaColumn : metaColumns) {
-                if (metaColumn.getValue() != null){
-                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
-                } else {
-                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
-                }
-            }
-        }
-
         sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
         sb.append(databaseInterface.quoteTable(table));
         sb.append(" WHERE 1=1 ");
 
         StringBuilder filter = new StringBuilder();
 
-        if(isSplitByKey) {
+        if(isSplitByKey && !splitWithRowNum) {
             filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
         }
 
@@ -576,7 +571,38 @@ public class DBUtil {
 
         sb.append(filter);
 
-        return sb.toString();
+        if(isSplitByKey && splitWithRowNum){
+            return String.format(SQL_SPLIT_WITH_ROW_NUM, sb.toString(), databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
+        } else {
+            return sb.toString();
+        }
+    }
+
+    private static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, String splitKey){
+        if(!ROW_NUM_SPLIT_KEY.equalsIgnoreCase(splitKey)){
+            return false;
+        }
+
+        selectColumns.add(databaseInterface.getRowNumColumn());
+
+        return true;
+    }
+
+    private static List<String> buildSelectColumns(DatabaseInterface databaseInterface, List<MetaColumn> metaColumns){
+        List<String> selectColumns = new ArrayList<>();
+        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+            selectColumns.add("*");
+        } else {
+            for (MetaColumn metaColumn : metaColumns) {
+                if (metaColumn.getValue() != null){
+                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+                } else {
+                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+                }
+            }
+        }
+
+        return selectColumns;
     }
 
     public static String formatJdbcUrl(String pluginName,String dbUrl){

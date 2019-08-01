@@ -164,6 +164,11 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
     }
 
     @Override
+    public String getRowNumColumn() {
+        return "row_number() over() as FLINKX_ROWNUM";
+    }
+
+    @Override
     public int getFetchSize(){
         return 1000;
     }

@@ -117,6 +117,11 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getRowNumColumn() {
+        return "ROWID as FLINKX_ROWNUM";
+    }
+
+    @Override
     public int getFetchSize(){
         return 1000;
     }
