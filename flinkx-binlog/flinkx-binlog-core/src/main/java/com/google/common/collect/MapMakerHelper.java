@@ -44,12 +44,4 @@ public class MapMakerHelper {
             throw new RuntimeException(e);
         }
     }
-
-
-
-    public static void main(String[] args) {
-        MapMaker mm = new MapMaker();
-        MapMaker mm1 = softValues(mm);
-        System.out.println(mm1);
-    }
 }

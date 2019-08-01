@@ -51,14 +51,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     @Override
     public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException, InterruptedException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("binlog sink, entries.size:{} entryType:{}", entries.size(), entries.size() > 0 ? entries.get(0).getEntryType() : null);
-        }
-
         for (CanalEntry.Entry entry : entries) {
             CanalEntry.EntryType entryType = entry.getEntryType();
             if (entryType != CanalEntry.EntryType.ROWDATA) {
                 continue;
+            }
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("binlog sink, entryType:{}", entry.getEntryType());
             }
 
             CanalEntry.RowChange rowChange = parseRowChange(entry);

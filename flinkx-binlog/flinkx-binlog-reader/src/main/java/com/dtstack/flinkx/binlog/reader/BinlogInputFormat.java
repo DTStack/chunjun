@@ -78,7 +78,9 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private transient ScheduledExecutorService scheduler;
 
-    private volatile EntryPosition entryPosition = new EntryPosition();
+    private volatile EntryPosition entryPosition;
+
+    private EntryPosition lastEntryPosition;
 
     private List<String> categories = new ArrayList<>();
 
@@ -93,6 +95,11 @@ public class BinlogInputFormat extends RichInputFormat {
     }
 
     private void savePos(){
+        if (entryPosition == null || entryPosition.getPosition() == null || entryPosition.getJournalName() == null
+                || lastEntryPosition != null && lastEntryPosition.getPosition().equals(entryPosition.getPosition()) && lastEntryPosition.getJournalName().equals(entryPosition.getJournalName())
+                ) {
+            return;
+        }
         try {
             BinlogPosUtil.savePos("default_task_id_output", entryPosition);
         } catch (IOException e) {
@@ -158,6 +165,8 @@ public class BinlogInputFormat extends RichInputFormat {
             controller.setParallelBufferSize(bufferSize);
             controller.setParallelThreadSize(2);
             controller.setIsGTIDMode(false);
+
+            controller.setAlarmHandler(new BinlogAlarmHandler(this));
 
             BinlogEventSink sink = new BinlogEventSink(this);
             sink.setPavingData(pavingData);

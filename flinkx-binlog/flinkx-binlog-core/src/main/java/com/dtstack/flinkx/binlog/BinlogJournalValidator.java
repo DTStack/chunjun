@@ -79,8 +79,4 @@ public class BinlogJournalValidator {
         return journalList;
     }
 
-    public static void main(String[] args) {
-        BinlogJournalValidator validator = new BinlogJournalValidator("rdos1", 3306, "canal", "canal");
-        validator.listJournals();
-    }
 }
