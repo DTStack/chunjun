@@ -20,10 +20,17 @@
 package com.dtstack.flinkx.kudu.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.kudu.core.KuduConfig;
+import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
 import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.apache.kudu.client.AsyncKuduClient;
+
+import java.util.List;
 
 /**
  * @author jiangbo
@@ -31,12 +38,45 @@ import org.apache.flink.types.Row;
  */
 public class KuduReader extends DataReader {
 
+    private String table;
+
+    private List<MetaColumn> columns;
+
+    private KuduConfig kuduConfig;
+
+    private String readMode;
+
     protected KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
+
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        ReaderConfig.ParameterConfig parameterConfig = readerConfig.getParameter();
+
+        columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
+        table = parameterConfig.getStringVal("table");
+        readMode = parameterConfig.getStringVal("readMode");
+        kuduConfig = KuduConfigBuilder.getInstance()
+                .withMasterAddresses(parameterConfig.getStringVal("masterAddresses"))
+                .withOpenKerberos(parameterConfig.getBooleanVal("openKerberos", false))
+                .withUser(parameterConfig.getStringVal("user"))
+                .withKeytabPath(parameterConfig.getStringVal("keytabPath"))
+                .withWorkerCount(parameterConfig.getIntVal("workerCount", 2 * Runtime.getRuntime().availableProcessors()))
+                .withBossCount(parameterConfig.getIntVal("bossCount", 1))
+                .withOperationTimeout(parameterConfig.getLongVal("operationTimeout", AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
+                .withAdminOperationTimeout(parameterConfig.getLongVal("adminOperationTimeout", AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
+                .build();
     }
 
     @Override
     public DataStream<Row> readData() {
-        return null;
+        KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
+        builder.setColumns(columns);
+        builder.setMonitorUrls(monitorUrls);
+        builder.setBytes(bytes);
+        builder.setTable(table);
+        builder.setReadMode(readMode);
+        builder.setKuduConfig(kuduConfig);
+
+        return createInput(builder.finish(), "kudureader");
     }
 }

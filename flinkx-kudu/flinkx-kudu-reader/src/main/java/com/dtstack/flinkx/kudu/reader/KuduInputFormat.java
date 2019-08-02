@@ -20,20 +20,65 @@
 package com.dtstack.flinkx.kudu.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.kudu.core.KuduConfig;
+import com.dtstack.flinkx.kudu.core.KuduUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.google.common.collect.Lists;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduScanToken;
+import org.apache.kudu.client.KuduScanner;
+import org.apache.kudu.client.KuduTable;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
 public class KuduInputFormat extends RichInputFormat {
+
+    protected List<MetaColumn> columns;
+
+    protected String table;
+
+    protected String readMode;
+
+    protected KuduConfig kuduConfig;
+
+    private List<String> columnNames;
+
+    private transient KuduClient client;
+
+    private transient KuduTable kuduTable;
+
+    private transient KuduScanner scanner;
+
+    @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        columnNames = Lists.newArrayList();
+        for (MetaColumn column : columns) {
+            columnNames.add(column.getName());
+        }
+
+        try {
+            client = KuduUtil.getKuduClient(kuduConfig);
+        } catch (IOException | InterruptedException e){
+            throw new RuntimeException("Get KuduClient error", e);
+        }
+
+        kuduTable = client.openTable(table);
+    }
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-
+        KuduTableSplit kuduTableSplit = (KuduTableSplit)inputSplit;
+        scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
     }
 
     @Override
@@ -42,22 +87,44 @@ public class KuduInputFormat extends RichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
-
-    }
-
-    @Override
-    public void configure(Configuration parameters) {
-
-    }
-
-    @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
+        List<KuduScanToken> scanTokens = client.newScanTokenBuilder(kuduTable)
+                .setProjectedColumnNames(columnNames)
+                .addPredicate(null)
+                .build();
+
+        KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
+        for (int i = 0; i < scanTokens.size(); i++) {
+            inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);
+        }
+
+        return inputSplits;
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
         return false;
+    }
+
+    @Override
+    protected void closeInternal() throws IOException {
+        if(scanner != null){
+            scanner.close();
+            scanner = null;
+        }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
+
+        if (client != null){
+            client.close();
+        }
+    }
+
+    @Override
+    public void configure(Configuration parameters) {
+
     }
 }

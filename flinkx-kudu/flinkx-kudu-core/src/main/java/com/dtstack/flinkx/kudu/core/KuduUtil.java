@@ -19,7 +19,13 @@
 
 package com.dtstack.flinkx.kudu.core;
 
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kudu.client.AsyncKuduClient;
+import org.apache.kudu.client.KuduClient;
+
+import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 
 /**
  * @author jiangbo
@@ -27,20 +33,27 @@ import org.apache.kudu.client.AsyncKuduClient;
  */
 public class KuduUtil {
 
-
-    public static AsyncKuduClient getKuduClient(String masterAddress){
-        AsyncKuduClient.AsyncKuduClientBuilder builder;
-        if(masterAddress.contains(",")){
-            builder = new AsyncKuduClient.AsyncKuduClientBuilder(masterAddress);
+    public static KuduClient getKuduClient(KuduConfig config) throws IOException,InterruptedException {
+        if(config.getOpenKerberos()){
+            UserGroupInformation.loginUserFromKeytab(config.getUser(), config.getKeytabPath());
+            return UserGroupInformation.getLoginUser().doAs(new PrivilegedExceptionAction<KuduClient>() {
+                @Override
+                public KuduClient run() throws Exception {
+                    return getKuduClientInternal(config);
+                }
+            });
         } else {
-            builder = new AsyncKuduClient.AsyncKuduClientBuilder(masterAddress);
+            return getKuduClientInternal(config);
         }
-
-        return builder.build();
     }
 
-    public static void main(String[] args) {
-        AsyncKuduClient client = getKuduClient("");
-        client.tableExists("");
+    private static KuduClient getKuduClientInternal(KuduConfig config) {
+        return new AsyncKuduClient.AsyncKuduClientBuilder(Arrays.asList(config.getMasterAddresses().split(",")))
+                .workerCount(config.getWorkerCount())
+                .bossCount(config.getBossCount())
+                .defaultAdminOperationTimeoutMs(config.getAdminOperationTimeout())
+                .defaultOperationTimeoutMs(config.getOperationTimeout())
+                .build()
+                .syncClient();
     }
 }
