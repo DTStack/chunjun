@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -77,6 +78,14 @@ public class HbaseOutputFormat extends RichOutputFormat {
     private transient Connection connection;
 
     private transient BufferedMutator bufferedMutator;
+
+    private transient Map<String,String[]> nameMaps = Maps.newConcurrentMap();
+
+    private transient Map<String, byte[][]> nameByteMaps = Maps.newConcurrentMap();
+
+    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal = new ThreadLocal();
+
+    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal = new ThreadLocal();
 
     @Override
     public void configure(Configuration parameters) {
@@ -128,19 +137,26 @@ public class HbaseOutputFormat extends RichOutputFormat {
                 String type = columnTypes.get(i);
                 ColumnType columnType = ColumnType.getByTypeName(type);
                 String name =columnNames.get(i);
-                String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
-                String[] cfAndQualifier = name.split(":");
-
-                Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
-                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
-                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
-
+                String[] cfAndQualifier = nameMaps.get(name);
+                byte[][] cfAndQualifierBytes = nameByteMaps.get(name);
+                if(cfAndQualifier == null || cfAndQualifierBytes==null){
+                    String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
+                    cfAndQualifier = name.split(":");
+                    Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
+                    nameMaps.put(name,cfAndQualifier);
+                    cfAndQualifierBytes = new byte[2][];
+                    cfAndQualifierBytes[0] = Bytes.toBytes(cfAndQualifier[0]);
+                    cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
+                    nameByteMaps.put(name,cfAndQualifierBytes);
+                }
                 byte[] columnBytes = getColumnByte(columnType,record.getField(i));
                 //columnBytes 为null忽略这列
                 if(null != columnBytes){
-                    put.addColumn(Bytes.toBytes(
-                            cfAndQualifier[0]),
-                            Bytes.toBytes(cfAndQualifier[1]),
+                    put.addColumn(
+                            cfAndQualifierBytes[0],
+                            cfAndQualifierBytes[1],
                             columnBytes);
                 }else{
                     continue;
@@ -154,6 +170,24 @@ public class HbaseOutputFormat extends RichOutputFormat {
             }
             throw new WriteRecordException(ex.getMessage(), ex);
         }
+    }
+
+    private SimpleDateFormat getSimpleDateFormat(String sign){
+        SimpleDateFormat format = null;
+        if("sss".equalsIgnoreCase(sign)){
+            format = timesssFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                timesssFormatThreadLocal.set(format);
+            }
+        }else if("SSS".equalsIgnoreCase(sign)){
+            format = timeSSSFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+                timeSSSFormatThreadLocal.set(format);
+            }
+        }
+        return format;
     }
 
     @Override
@@ -203,8 +237,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
             if(record.getField(index)  == null){
                 throw new IllegalArgumentException("null verison column!");
             }
-            SimpleDateFormat df_senconds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat df_ms = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+            SimpleDateFormat df_senconds = getSimpleDateFormat("sss");
+            SimpleDateFormat df_ms = getSimpleDateFormat("SSS");
             Object column = record.getField(index);
             if(column instanceof Long){
                 Long longValue = (Long) column;
