@@ -31,8 +31,10 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
+
 import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
 
 /**
@@ -55,6 +57,9 @@ public class JdbcDataWriter extends DataWriter {
     protected Map<String,List<String>> updateKey;
     protected List<String> fullColumn;
     protected TypeConverterInterface typeConverter;
+
+    /**just for postgresql,use copy replace insert*/
+    protected String insertSqlMode;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
 
@@ -88,6 +93,8 @@ public class JdbcDataWriter extends DataWriter {
 
         updateKey = (Map<String, List<String>>) writerConfig.getParameter().getVal(KEY_UPDATE_KEY);
         fullColumn = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN);
+
+        insertSqlMode = writerConfig.getParameter().getStringVal(KEY_INSERT_SQL_MODE);
     }
 
     @Override
@@ -113,6 +120,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setFullColumn(fullColumn);
         builder.setUpdateKey(updateKey);
         builder.setTypeConverter(typeConverter);
+        builder.setInsertSqlMode(insertSqlMode);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
@@ -124,7 +132,7 @@ public class JdbcDataWriter extends DataWriter {
     /**
      * fix bug:Prepared or callable statement has more than 2000 parameter markers
      */
-    private int getBatchSize(){
+    protected int getBatchSize(){
         if(databaseInterface.getDatabaseType() == EDatabaseType.SQLServer){
             if(column.size() * batchSize >= SQL_SERVER_MAX_PARAMETER_MARKER){
                 batchSize = SQL_SERVER_MAX_PARAMETER_MARKER / column.size();
