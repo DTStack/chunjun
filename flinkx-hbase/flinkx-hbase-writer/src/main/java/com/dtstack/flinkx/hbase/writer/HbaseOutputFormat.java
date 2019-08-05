@@ -80,7 +80,12 @@ public class HbaseOutputFormat extends RichOutputFormat {
     private transient BufferedMutator bufferedMutator;
 
     private transient Map<String,String[]> nameMaps = Maps.newConcurrentMap();
+
     private transient Map<String, byte[][]> nameByteMaps = Maps.newConcurrentMap();
+
+    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal = new ThreadLocal();
+
+    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal = new ThreadLocal();
 
     @Override
     public void configure(Configuration parameters) {
@@ -167,6 +172,24 @@ public class HbaseOutputFormat extends RichOutputFormat {
         }
     }
 
+    private SimpleDateFormat getSimpleDateFormat(String sign){
+        SimpleDateFormat format = null;
+        if("sss".equalsIgnoreCase(sign)){
+            format = timesssFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                timesssFormatThreadLocal.set(format);
+            }
+        }else if("SSS".equalsIgnoreCase(sign)){
+            format = timeSSSFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+                timeSSSFormatThreadLocal.set(format);
+            }
+        }
+        return format;
+    }
+
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
         return "\nHbaseOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
@@ -214,8 +237,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
             if(record.getField(index)  == null){
                 throw new IllegalArgumentException("null verison column!");
             }
-            SimpleDateFormat df_senconds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat df_ms = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+            SimpleDateFormat df_senconds = getSimpleDateFormat("sss");
+            SimpleDateFormat df_ms = getSimpleDateFormat("SSS");
             Object column = record.getField(index);
             if(column instanceof Long){
                 Long longValue = (Long) column;
