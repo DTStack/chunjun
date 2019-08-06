@@ -36,6 +36,10 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format = new JdbcOutputFormat();
     }
 
+    public JdbcOutputFormatBuilder(JdbcOutputFormat format) {
+        super.format = this.format =  format;
+    }
+
     public void setUsername(String username) {
         format.username = username;
     }
@@ -86,6 +90,10 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setTypeConverter(TypeConverterInterface typeConverter ){
         format.typeConverter = typeConverter;
+    }
+
+    public void setInsertSqlMode(String insertSqlMode){
+        format.insertSqlMode = insertSqlMode;
     }
 
     @Override
