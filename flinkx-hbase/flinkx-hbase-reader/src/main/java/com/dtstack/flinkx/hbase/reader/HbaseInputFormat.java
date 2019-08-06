@@ -69,13 +69,13 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
-    private transient Map<String,String[]> nameMaps = Maps.newConcurrentMap();
+    private transient Map<String,String[]> nameMaps;
 
 
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
-
+        nameMaps = Maps.newConcurrentMap();
         try {
             connection = ConnectionFactory.createConnection(getConfig());
         } catch (Exception e) {

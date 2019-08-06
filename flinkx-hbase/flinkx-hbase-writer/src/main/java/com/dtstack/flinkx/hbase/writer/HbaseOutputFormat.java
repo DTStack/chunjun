@@ -79,18 +79,21 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient BufferedMutator bufferedMutator;
 
-    private transient Map<String,String[]> nameMaps = Maps.newConcurrentMap();
+    private transient Map<String,String[]> nameMaps;
 
-    private transient Map<String, byte[][]> nameByteMaps = Maps.newConcurrentMap();
+    private transient Map<String, byte[][]> nameByteMaps ;
 
-    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal = new ThreadLocal();
+    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal;
 
-    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal = new ThreadLocal();
+    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal;
 
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
-
+        nameMaps = Maps.newConcurrentMap();
+        nameByteMaps = Maps.newConcurrentMap();
+        timesssFormatThreadLocal = new ThreadLocal();
+        timeSSSFormatThreadLocal = new ThreadLocal();
         org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
