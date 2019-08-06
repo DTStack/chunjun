@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hbase.reader;
 
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -42,6 +41,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
 
 
 /**
@@ -69,6 +69,8 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
+    private transient Map<String,String[]> nameMaps = Maps.newConcurrentMap();
+
 
     @Override
     public void configure(Configuration configuration) {
@@ -269,9 +271,15 @@ public class HbaseInputFormat extends RichInputFormat {
                     if (columnName.equals("rowkey")) {
                         bytes = next.getRow();
                     } else {
-                        String[] arr = columnName.split(":");
-                        String family = arr[0].trim();
-                        String qualifier = arr[1].trim();
+                        String[] arr = nameMaps.get(columnName);
+                        if(arr == null){
+                            arr = columnName.split(":");
+                            arr[0] = arr[0].trim();
+                            arr[1] = arr[1].trim();
+                            nameMaps.put(columnName,arr);
+                        }
+                        String family = arr[0];
+                        String qualifier = arr[1];
                         bytes = next.getValue(family.getBytes(), qualifier.getBytes());
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
@@ -281,7 +289,6 @@ public class HbaseInputFormat extends RichInputFormat {
                 throw new IOException("Couldn't read data:",e);
             }
         }
-
         return row;
     }
 
@@ -292,7 +299,9 @@ public class HbaseInputFormat extends RichInputFormat {
 
     public Object convertValueToAssignType(String columnType, String constantValue,String dateformat) throws Exception {
         Object column  = null;
-        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) return column;
+        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
+            return column;
+        }
 
         switch (columnType.toUpperCase()) {
             case "BOOLEAN":
