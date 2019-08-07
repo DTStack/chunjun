@@ -57,7 +57,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if(!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
+        if(!checkIsCopyMode(insertSqlMode)){
             super.writeSingleRecordInternal(row);
             return;
         }
@@ -85,7 +85,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if(!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
+        if(!checkIsCopyMode(insertSqlMode)){
             super.writeMultipleRecordsInternal();
             return;
         }
