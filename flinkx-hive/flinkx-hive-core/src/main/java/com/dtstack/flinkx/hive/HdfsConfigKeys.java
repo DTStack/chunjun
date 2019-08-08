@@ -40,6 +40,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_STORE = "store";
 
+    public static final String KEY_PARTITION = "pt";
+
     public static final String KEY_WRITE_MODE = "writeMode";
 
     public static final String KEY_TABLE_COLUMN = "tablesColumn";

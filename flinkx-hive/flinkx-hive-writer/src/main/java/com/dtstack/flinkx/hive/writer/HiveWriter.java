@@ -19,17 +19,18 @@ package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.hive.TableInfo;
+import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.writer.DataWriter;
-import org.apache.commons.collections.CollectionUtils;
+import com.google.gson.Gson;
+import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import parquet.hadoop.ParquetWriter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
@@ -44,11 +45,13 @@ public class HiveWriter extends DataWriter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected String defaultFS;
+//    protected String defaultFS;
 
     protected String fileType;
 
-    protected String path;
+    protected String partition;
+
+//    protected String path;
 
     protected String fieldDelimiter;
 
@@ -56,19 +59,19 @@ public class HiveWriter extends DataWriter {
 
     protected String fileName;
 
-    protected String tablesColumn;
+    protected Map<String, TableInfo> tableInfos;
 
-    protected List<String> columnName;
+//    protected List<String> columnName;
 
-    protected List<String> columnType;
+//    protected List<String> columnType;
 
     protected Map<String,String> hadoopConfig;
 
     protected String charSet;
 
-    protected List<String> fullColumnName;
+//    protected List<String> fullColumnName;
 
-    protected List<String> fullColumnType;
+//    protected List<String> fullColumnType;
 
     protected static final String DATA_SUBDIR = ".data";
 
@@ -76,7 +79,7 @@ public class HiveWriter extends DataWriter {
 
     protected static final String SP = "/";
 
-    protected int rowGroupSize;
+//    protected int rowGroupSize;
 
     protected long maxFileSize;
 
@@ -93,35 +96,41 @@ public class HiveWriter extends DataWriter {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG_MAP);
-        tablesColumn = writerConfig.getParameter().getStringVal(KEY_TABLE_COLUMN);
+        String tablesColumn = writerConfig.getParameter().getStringVal(KEY_TABLE_COLUMN);
         fileType = writerConfig.getParameter().getStringVal(KEY_STORE);
-        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
-        path = writerConfig.getParameter().getStringVal(KEY_PATH);
-        fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
+        partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
+//        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
+//        path = writerConfig.getParameter().getStringVal(KEY_PATH);
+        fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
-        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+//        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
 
-        if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
-            fieldDelimiter = "\001";
-        } else {
-            fieldDelimiter = com.dtstack.flinkx.util.StringUtil.convertRegularExpr(fieldDelimiter);
-        }
-
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
-        fileName = writerConfig.getParameter().getStringVal(KEY_FILE_NAME, "");
-        if(CollectionUtils.isNotEmpty(columns)) {
-            columnName = new ArrayList<>();
-            columnType = new ArrayList<>();
-            for (Object column : columns) {
-                Map sm = (Map) column;
-                columnName.add((String) sm.get(KEY_COLUMN_NAME));
-                columnType.add((String) sm.get(KEY_COLUMN_TYPE));
+
+        if(StringUtil.isNotEmpty(tablesColumn)) {
+            Map<String, Object> tableColumnMap = new Gson().fromJson(tablesColumn, Map.class);
+            for (Map.Entry<String, Object> entry : tableColumnMap.entrySet()) {
+                String tableName = entry.getKey();
+                List<Map<String, Object>> tableColumns = (List<Map<String, Object>>) entry.getValue();
+                TableInfo tableInfo = new TableInfo(tableColumns.size());
+                tableInfo.setDatabase(database);
+                tableInfo.addPartition(partition);
+                tableInfo.setDelimiter(fieldDelimiter);
+                tableInfo.setStore(fileType);
+                tableInfo.setTableName(tableName);
+                for (Map<String, Object> column : tableColumns) {
+                    tableInfo.addColumnAndType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),  HiveUtil.convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
+                }
+                String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
+                tableInfo.setCreateTableSql(createTableSql);
+
+                tableInfos.put(tableName, tableInfo);
             }
         }
 
-        fullColumnName = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
-        fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
+//        fullColumnName = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
+//        fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
     }
@@ -130,24 +139,24 @@ public class HiveWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
-        builder.setPath(path);
+//        builder.setDefaultFS(defaultFS);
+//        builder.setPath(path);
         builder.setFileName(fileName);
         builder.setWriteMode(mode);
-        builder.setColumnNames(columnName);
-        builder.setColumnTypes(columnType);
+//        builder.setColumnNames(columnName);
+//        builder.setColumnTypes(columnType);
         builder.setCompress(compress);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
-        builder.setFullColumnNames(fullColumnName);
-        builder.setFullColumnTypes(fullColumnType);
+//        builder.setFullColumnNames(fullColumnName);
+//        builder.setFullColumnTypes(fullColumnType);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
         builder.setCharSetName(charSet);
         builder.setDelimiter(fieldDelimiter);
-        builder.setRowGroupSize(rowGroupSize);
+//        builder.setRowGroupSize(rowGroupSize);
         builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
 

@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.hive.writer;
 
-import com.dtstack.flinkx.hive.HdfsUtil;
+import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.SysUtil;

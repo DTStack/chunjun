@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.hive;
+package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;

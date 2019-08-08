@@ -22,7 +22,7 @@ package com.dtstack.flinkx.hive.writer;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hive.ECompressType;
-import com.dtstack.flinkx.hive.HdfsUtil;
+import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
