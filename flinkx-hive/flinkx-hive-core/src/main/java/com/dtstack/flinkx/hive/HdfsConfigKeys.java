@@ -33,7 +33,7 @@ public class HdfsConfigKeys {
 //
 //    public static final String KEY_PATH = "path";
 
-    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
+//    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
     public static final String KEY_HADOOP_CONFIG_MAP = "hadoopConfigMap";
 
@@ -41,7 +41,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_STORE = "store";
 
-    public static final String KEY_PARTITION = "pt";
+    public static final String KEY_PARTITION_TYPE = "partitionType";
+    public static final String KEY_PARTITION = "partition";
 
     public static final String KEY_WRITE_MODE = "writeMode";
 

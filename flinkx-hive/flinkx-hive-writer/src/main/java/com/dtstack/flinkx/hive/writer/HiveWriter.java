@@ -19,6 +19,7 @@ package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.hive.EWriteModeType;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.writer.DataWriter;
@@ -29,8 +30,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,50 +46,27 @@ import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
  */
 public class HiveWriter extends DataWriter {
 
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
-
-//    protected String defaultFS;
-
-//    private String fileType;
     private String store;
 
-    private String partition;
+    private String partitionType;
 
-    //    protected String path;
+    private String partition;
 
     private String delimiter;
 
     private String compress;
 
-    private int interval;
+    private long interval;
 
-    private int bufferSize;
-
-//    protected String fileName;
+    private long bufferSize;
 
     private Map<String, TableInfo> tableInfos;
 
     private Map<String, String> distributeTableMapping;
 
-//    protected List<String> columnName;
-
-//    protected List<String> columnType;
-
-    private Map<String, String> hadoopConfig;
+    private Map<String, String> hadoopConfigMap;
 
     private String charSet;
-
-//    protected List<String> fullColumnName;
-
-//    protected List<String> fullColumnType;
-
-//    protected static final String DATA_SUBDIR = ".data";
-//
-//    protected static final String FINISHED_SUBDIR = ".finished";
-//
-//    protected static final String SP = "/";
-
-//    protected int rowGroupSize;
 
     private long maxFileSize;
 
@@ -111,24 +87,18 @@ public class HiveWriter extends DataWriter {
     public HiveWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG_MAP);
+        hadoopConfigMap = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG_MAP);
         store = writerConfig.getParameter().getStringVal(KEY_STORE);
+        partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE);
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
-//        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
-//        path = writerConfig.getParameter().getStringVal(KEY_PATH);
         delimiter = writerConfig.getParameter().getStringVal(KEY_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
-//        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
-
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
-        interval = writerConfig.getParameter().getIntVal(KEY_INTERVAL, 60 * 60 * 1000);
-        bufferSize = writerConfig.getParameter().getIntVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
+        interval = writerConfig.getParameter().getLongVal(KEY_INTERVAL, 60 * 60 * 1000);
+        bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
 
-//        fullColumnName = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_NAME_LIST);
-//        fullColumnType = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN_TYPE_LIST);
-
-        mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
+        mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, EWriteModeType.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
         formatHiveJdbcUrlInfo();
         password = writerConfig.getParameter().getStringVal(KEY_USERNAME);
@@ -208,27 +178,32 @@ public class HiveWriter extends DataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(store);
-        builder.setHadoopConfig(hadoopConfig);
-//        builder.setDefaultFS(defaultFS);
-//        builder.setPath(path);
-//        builder.setFileName(fileName);
+        builder.setHadoopConfigMap(hadoopConfigMap);
         builder.setWriteMode(mode);
-//        builder.setColumnNames(columnName);
-//        builder.setColumnTypes(columnType);
         builder.setCompress(compress);
+        builder.setCharSetName(charSet);
+        builder.setMaxFileSize(maxFileSize);
+
+        builder.setPartition(partition);
+        builder.setPartitionType(partitionType);
+        builder.setInterval(interval);
+        builder.setBufferSize(bufferSize);
+        builder.setJdbcUrl(jdbcUrl);
+        builder.setUsername(username);
+        builder.setPassword(password);
+        builder.setTableBasePath(tableBasePath);
+        builder.setAutoCreateTable(autoCreateTable);
+
+        builder.setDistributeTableMapping(distributeTableMapping);
+        builder.setTableInfos(tableInfos);
+
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
-//        builder.setFullColumnNames(fullColumnName);
-//        builder.setFullColumnTypes(fullColumnType);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
-        builder.setCharSetName(charSet);
-        builder.setDelimiter(delimiter);
-//        builder.setRowGroupSize(rowGroupSize);
         builder.setRestoreConfig(restoreConfig);
-        builder.setMaxFileSize(maxFileSize);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

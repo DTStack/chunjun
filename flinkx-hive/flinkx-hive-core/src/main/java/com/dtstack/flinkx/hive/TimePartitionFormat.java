@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.hive.writer;
+package com.dtstack.flinkx.hive;
 
 
 import com.dtstack.flinkx.hive.util.DateUtil;

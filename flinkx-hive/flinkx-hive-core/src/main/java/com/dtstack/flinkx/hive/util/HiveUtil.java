@@ -50,8 +50,8 @@ public class HiveUtil {
     private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
     private static final Pattern DELIMITER_PATTERN = Pattern.compile("field\\.delim=(.*), ");
     private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
-
     private static final String TEXT_FORMAT = "TextOutputFormat";
+
     private static final String ORC_FORMAT = "OrcOutputFormat";
     private static final String PARQUET_FORMAT = "MapredParquetOutputFormat";
     private static final String NoSuchTableException = "NoSuchTableException";
@@ -60,6 +60,7 @@ public class HiveUtil {
 
     public final static String TABLE_COLUMN_KEY = "key";
     public final static String TABLE_COLUMN_TYPE = "type";
+    public final static String PARTITION_TEMPLATE = "%s=%s";
 
     private String jdbcUrl;
     private String username;
