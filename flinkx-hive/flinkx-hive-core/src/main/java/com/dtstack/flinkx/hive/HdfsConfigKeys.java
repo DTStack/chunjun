@@ -26,17 +26,18 @@ package com.dtstack.flinkx.hive;
  */
 public class HdfsConfigKeys {
 
-    public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
+//    public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
+    public static final String KEY_DELIMITER = "delimiter";
 
-    public static final String KEY_DEFAULT_FS = "defaultFS";
-
-    public static final String KEY_PATH = "path";
+//    public static final String KEY_DEFAULT_FS = "defaultFS";
+//
+//    public static final String KEY_PATH = "path";
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
     public static final String KEY_HADOOP_CONFIG_MAP = "hadoopConfigMap";
 
-    public static final String KEY_FILE_TYPE = "fileType";
+//    public static final String KEY_FILE_TYPE = "fileType";
 
     public static final String KEY_STORE = "store";
 
@@ -44,23 +45,37 @@ public class HdfsConfigKeys {
 
     public static final String KEY_WRITE_MODE = "writeMode";
 
+    public static final String KEY_DISTRIBUTE_TABLE = "distributeTable";
+
     public static final String KEY_TABLE_COLUMN = "tablesColumn";
 
-    public static final String KEY_FULL_COLUMN_NAME_LIST = "fullColumnName";
+    public static final String KEY_ANALYTICAL_RULES = "analyticalRules";
 
-    public static final String KEY_FULL_COLUMN_TYPE_LIST = "fullColumnType";
+    public static final String KEY_JDBC_URL = "jdbcUrl";
 
-    public static final String KEY_COLUMN_NAME = "name";
+    public static final String KEY_USERNAME = "username";
 
-    public static final String KEY_COLUMN_TYPE = "type";
+    public static final String KEY_PASSWORD = "password";
+
+//    public static final String KEY_FULL_COLUMN_NAME_LIST = "fullColumnName";
+//
+//    public static final String KEY_FULL_COLUMN_TYPE_LIST = "fullColumnType";
+//
+//    public static final String KEY_COLUMN_NAME = "name";
+//
+//    public static final String KEY_COLUMN_TYPE = "type";
 
     public static final String KEY_COMPRESS = "compress";
 
-    public static final String KEY_FILE_NAME = "fileName";
+    public static final String KEY_INTERVAL = "interval";
 
-    public static final String KEY_ENCODING = "encoding";
+    public static final String KEY_BUFFER_SIZE = "bufferSize";
 
-    public static final String KEY_ROW_GROUP_SIZE = "rowGroupSize";
+//    public static final String KEY_FILE_NAME = "fileName";
+
+    public static final String KEY_ENCODING = "charsetName";
+
+//    public static final String KEY_ROW_GROUP_SIZE = "rowGroupSize";
 
     public static final String KEY_MAX_FILE_SIZE = "maxFileSize";
 
