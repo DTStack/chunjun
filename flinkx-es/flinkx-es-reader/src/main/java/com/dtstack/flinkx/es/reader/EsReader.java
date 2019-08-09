@@ -21,6 +21,7 @@ package com.dtstack.flinkx.es.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.es.EsConfigKeys;
+import com.dtstack.flinkx.es.EsUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -42,8 +43,8 @@ public class EsReader extends DataReader {
     private String address;
     private String query;
 
-    private String index;
-    private String type;
+    private String[] index;
+    private String[] type;
     private Integer batchSize;
     private Map<String,Object> clientConfig;
 
@@ -55,8 +56,8 @@ public class EsReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
-        index = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
-        type = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
+        index = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_INDEX));
+        type = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_TYPE));
         batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 10);
 
         clientConfig = new HashMap<>();
