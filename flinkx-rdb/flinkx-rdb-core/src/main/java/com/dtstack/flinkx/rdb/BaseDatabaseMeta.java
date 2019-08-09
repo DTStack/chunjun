@@ -164,6 +164,11 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
     }
 
     @Override
+    public String getRowNumColumn(String orderBy) {
+        return String.format("row_number() over(%s) as FLINKX_ROWNUM", orderBy);
+    }
+
+    @Override
     public int getFetchSize(){
         return 1000;
     }

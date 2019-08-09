@@ -188,6 +188,12 @@ public class JdbcInputFormat extends RichInputFormat {
             String querySql = buildQuerySql(inputSplit);
             resultSet = statement.executeQuery(querySql);
             columnCount = resultSet.getMetaData().getColumnCount();
+
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if(splitWithRowCol){
+                columnCount = columnCount-1;
+            }
+
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){

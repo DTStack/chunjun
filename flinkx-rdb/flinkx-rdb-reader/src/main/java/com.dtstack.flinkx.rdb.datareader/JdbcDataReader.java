@@ -118,7 +118,13 @@ public class JdbcDataReader extends DataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setQuery(buildSql());
 
+        RichInputFormat format =  builder.finish();
+        return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
+    }
+
+    private String buildSql(){
         boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
 
         String query;
@@ -129,10 +135,8 @@ public class JdbcDataReader extends DataReader {
             query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey,
                     incrementConfig.isIncrement(), restoreConfig.isRestore());
         }
-        builder.setQuery(query);
 
-        RichInputFormat format =  builder.finish();
-        return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
+        return query;
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){

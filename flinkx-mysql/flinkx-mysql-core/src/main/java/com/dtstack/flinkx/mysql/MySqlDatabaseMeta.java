@@ -103,6 +103,11 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
         return String.format("%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
+    @Override
+    public String getRowNumColumn(String orderBy) {
+        throw new RuntimeException("Not support row_number function");
+    }
+
     private String makeValues(int nCols) {
         return "(" + StringUtils.repeat("?", ",", nCols) + ")";
     }
