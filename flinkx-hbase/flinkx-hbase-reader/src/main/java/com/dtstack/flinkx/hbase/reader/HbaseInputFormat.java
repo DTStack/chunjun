@@ -69,7 +69,7 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
-    private transient Map<String,String[]> nameMaps;
+    private transient Map<String,byte[][]> nameMaps;
 
 
     @Override
@@ -271,16 +271,15 @@ public class HbaseInputFormat extends RichInputFormat {
                     if (columnName.equals("rowkey")) {
                         bytes = next.getRow();
                     } else {
-                        String[] arr = nameMaps.get(columnName);
+                        byte [][] arr = nameMaps.get(columnName);
                         if(arr == null){
-                            arr = columnName.split(":");
-                            arr[0] = arr[0].trim();
-                            arr[1] = arr[1].trim();
+                            arr = new byte[2][];
+                            String[] arr1 = columnName.split(":");
+                            arr[0] = arr1[0].trim().getBytes();
+                            arr[1] = arr1[1].trim().getBytes();
                             nameMaps.put(columnName,arr);
                         }
-                        String family = arr[0];
-                        String qualifier = arr[1];
-                        bytes = next.getValue(family.getBytes(), qualifier.getBytes());
+                        bytes = next.getValue(arr[0], arr[1]);
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
                 }
