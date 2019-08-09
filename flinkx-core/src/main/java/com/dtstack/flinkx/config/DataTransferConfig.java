@@ -18,11 +18,16 @@
 
 package com.dtstack.flinkx.config;
 
+import com.dtstack.flinkx.util.MapUtil;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedHashTreeMap;
+import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.util.Preconditions;
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * The class of Data transfer task configuration
@@ -103,6 +108,7 @@ public class DataTransferConfig extends AbstractConfig {
         Gson gson = new Gson();
         //DataTransferConfig config = gson.fromJson(json, DataTransferConfig.class);
         Map<String,Object> map = gson.fromJson(json, Map.class);
+        map = MapUtil.convertToHashMap(map);
         DataTransferConfig config = new DataTransferConfig(map);
         checkConfig(config);
         return config;
@@ -114,7 +120,6 @@ public class DataTransferConfig extends AbstractConfig {
         checkConfig(config);
         return config;
     }
-
 
 
 }
