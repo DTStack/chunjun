@@ -45,6 +45,10 @@ import java.util.regex.Pattern;
  */
 public class KuduUtil {
 
+    private static String FILTER_SPLIT_REGEX = "(?i)\\s+and\\s+";
+    private static String EXPRESS_REGEX = "(?<column>[^\\=|\\s]+)+\\s*(?<op>[\\>|\\<|\\=]+)\\s*(?<value>.*)";
+    private static Pattern EXPRESS_PATTERN = Pattern.compile(EXPRESS_REGEX);
+
     public static KuduClient getKuduClient(KuduConfig config) throws IOException,InterruptedException {
         if(config.getOpenKerberos()){
             UserGroupInformation.loginUserFromKeytab(config.getUser(), config.getKeytabPath());
@@ -117,7 +121,7 @@ public class KuduUtil {
             nameTypeMap.put(column.getName(), getType(column.getType()));
         }
 
-        String[] filters = filterString.split("(?i)\\s+and\\s+");
+        String[] filters = filterString.split(FILTER_SPLIT_REGEX);
         for (String filter : filters) {
             ExpressResult expressResult = parseExpress(filter, nameTypeMap);
             KuduPredicate predicate = KuduPredicate.newComparisonPredicate(expressResult.getColumnSchema(), expressResult.getOp(), expressResult.getValue());
@@ -125,7 +129,7 @@ public class KuduUtil {
         }
     }
 
-    private static Type getType(String columnType){
+    public static Type getType(String columnType){
         switch (columnType.toLowerCase()){
             case "boolean" :
             case "bool" : return Type.BOOL;
@@ -153,15 +157,13 @@ public class KuduUtil {
     }
 
     public static ExpressResult parseExpress(String express, Map<String, Type> nameTypeMap){
-        String regex = "(?<column>[^=|\\s]+)+\\s*(?<op>(=)|(>)|(>=)|(<)|(<=))\\s*(?<value>.*)";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(express.trim());
+        Matcher matcher = EXPRESS_PATTERN.matcher(express.trim());
         if (matcher.find()) {
             String column = matcher.group("column");
             String op = matcher.group("op");
             String value = matcher.group("value");
 
-            Type type = nameTypeMap.get(column);
+            Type type = nameTypeMap.get(column.trim());
             if(type == null){
                 throw new IllegalArgumentException("Can not find column:" + column + " from column list");
             }
@@ -179,12 +181,12 @@ public class KuduUtil {
         }
     }
 
-    private static Object getValue(String value, Type type){
+    public static Object getValue(String value, Type type){
         if(value == null){
             return null;
         }
 
-        if(value.startsWith("\"") && value.endsWith("\"")){
+        if(value.startsWith("\"") || value.endsWith("'")){
             value = value.substring(1, value.length() - 1);
         }
 

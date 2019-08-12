@@ -32,21 +32,17 @@ import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
 
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_TABLE;
+
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
 public class KuduReader extends DataReader {
 
-    private String table;
-
     private List<MetaColumn> columns;
 
     private KuduConfig kuduConfig;
-
-    private String readMode;
-
-    private String filterString;
 
     protected KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -55,9 +51,6 @@ public class KuduReader extends DataReader {
         ReaderConfig.ParameterConfig parameterConfig = readerConfig.getParameter();
 
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
-        table = parameterConfig.getStringVal("table");
-        readMode = parameterConfig.getStringVal("readMode");
-        filterString = parameterConfig.getStringVal("filter");
         kuduConfig = KuduConfigBuilder.getInstance()
                 .withMasterAddresses(parameterConfig.getStringVal("masterAddresses"))
                 .withOpenKerberos(parameterConfig.getBooleanVal("openKerberos", false))
@@ -67,6 +60,9 @@ public class KuduReader extends DataReader {
                 .withBossCount(parameterConfig.getIntVal("bossCount", 1))
                 .withOperationTimeout(parameterConfig.getLongVal("operationTimeout", AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
                 .withAdminOperationTimeout(parameterConfig.getLongVal("adminOperationTimeout", AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
+                .withTable(parameterConfig.getStringVal(KEY_TABLE))
+                .withReadMode(parameterConfig.getStringVal("readMode"))
+                .withFilter(parameterConfig.getStringVal("filter"))
                 .build();
     }
 
@@ -76,10 +72,7 @@ public class KuduReader extends DataReader {
         builder.setColumns(columns);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
-        builder.setTable(table);
-        builder.setReadMode(readMode);
         builder.setKuduConfig(kuduConfig);
-        builder.setFilterString(filterString);
 
         return createInput(builder.finish(), "kudureader");
     }

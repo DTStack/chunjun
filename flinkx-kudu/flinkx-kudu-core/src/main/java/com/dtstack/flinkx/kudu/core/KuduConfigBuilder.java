@@ -36,6 +36,9 @@ public final class KuduConfigBuilder {
     private Integer bossCount;
     private Long operationTimeout;
     private Long adminOperationTimeout;
+    private String table;
+    private String readMode;
+    private String filterString;
 
     private KuduConfigBuilder() {
     }
@@ -91,6 +94,24 @@ public final class KuduConfigBuilder {
         return this;
     }
 
+    public KuduConfigBuilder withTable(String table){
+        Preconditions.checkArgument(StringUtils.isNotEmpty(table), "Parameter [table] can not be null or empty");
+        this.table = table;
+        return this;
+    }
+
+    public KuduConfigBuilder withReadMode(String readMode){
+        Preconditions.checkArgument(StringUtils.isNotEmpty(readMode), "Parameter [readMode] can not be null or empty");
+        this.readMode = readMode;
+        return this;
+    }
+
+    public KuduConfigBuilder withFilter(String filter){
+        Preconditions.checkArgument(StringUtils.isNotEmpty(filter), "Parameter [filter] can not be null or empty");
+        this.filterString = filter;
+        return this;
+    }
+
     public KuduConfig build() {
         KuduConfig kuduConfig = new KuduConfig();
         kuduConfig.setMasterAddresses(masterAddresses);
@@ -101,6 +122,9 @@ public final class KuduConfigBuilder {
         kuduConfig.setBossCount(bossCount);
         kuduConfig.setOperationTimeout(operationTimeout);
         kuduConfig.setAdminOperationTimeout(adminOperationTimeout);
+        kuduConfig.setTable(table);
+        kuduConfig.setReadMode(readMode);
+        kuduConfig.setFilterString(filterString);
         return kuduConfig;
     }
 }

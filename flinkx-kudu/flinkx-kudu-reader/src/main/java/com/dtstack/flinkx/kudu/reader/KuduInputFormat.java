@@ -23,14 +23,11 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.google.common.collect.Lists;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.kudu.client.KuduClient;
-import org.apache.kudu.client.KuduScanToken;
-import org.apache.kudu.client.KuduScanner;
-import org.apache.kudu.client.KuduTable;
+import org.apache.kudu.Type;
+import org.apache.kudu.client.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,17 +40,13 @@ public class KuduInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> columns;
 
-    protected String table;
-
-    protected String readMode;
-
     protected KuduConfig kuduConfig;
-
-    protected String filterString;
 
     private transient KuduClient client;
 
     private transient KuduScanner scanner;
+
+    private transient RowResultIterator iterator;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -70,18 +63,57 @@ public class KuduInputFormat extends RichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         KuduTableSplit kuduTableSplit = (KuduTableSplit)inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
-
-        scanner.hasMoreRows();
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return null;
+        row = new Row(columns.size());
+        RowResult rowResult = iterator.next();
+
+        for (int i = 0; i < columns.size(); i++) {
+            MetaColumn column = columns.get(i);
+            Type type = KuduUtil.getType(column.getType());
+            if(column.getValue() != null){
+                row.setField(i, KuduUtil.getValue(column.getValue(), type));
+            } else {
+                row.setField(i, getValue(type, rowResult, column.getName()));
+            }
+        }
+
+        return row;
+    }
+
+    private Object getValue(Type type, RowResult rowResult, String name){
+        Object objValue;
+
+        if (Type.BOOL.equals(type)){
+            objValue = rowResult.getBoolean(name);
+        } else if(Type.INT8.equals(type)){
+            objValue = rowResult.getByte(name);
+        } else if(Type.INT16.equals(type)){
+            objValue = rowResult.getShort(name);
+        } else if(Type.INT32.equals(type)){
+            objValue = rowResult.getInt(name);
+        } else if(Type.INT64.equals(type)){
+            objValue = rowResult.getLong(name);
+        } else if(Type.FLOAT.equals(type)){
+            objValue = rowResult.getFloat(name);
+        } else if(Type.DOUBLE.equals(type)){
+            objValue = rowResult.getDouble(name);
+        } else if(Type.DECIMAL.equals(type)){
+            objValue = rowResult.getDecimal(name);
+        } else if(Type.UNIXTIME_MICROS.equals(type)){
+            objValue = rowResult.getTimestamp(name);
+        } else {
+            objValue = rowResult.getString(name);
+        }
+
+        return objValue;
     }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, filterString);
+        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString());
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);
@@ -92,7 +124,19 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return false;
+        if(iterator == null || !iterator.hasNext()){
+            return getNextRows();
+        }
+
+        return true;
+    }
+
+    private boolean getNextRows() throws IOException{
+        if(scanner.hasMoreRows()){
+            iterator = scanner.nextRows();
+        }
+
+        return iterator == null || !iterator.hasNext();
     }
 
     @Override

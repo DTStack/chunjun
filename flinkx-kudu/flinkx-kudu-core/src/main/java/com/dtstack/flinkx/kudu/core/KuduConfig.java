@@ -49,7 +49,17 @@ public class KuduConfig implements Serializable {
 
     private String readMode;
 
+    private String filterString;
+
     private int batchSizeBytes;
+
+    public String getFilterString() {
+        return filterString;
+    }
+
+    public void setFilterString(String filterString) {
+        this.filterString = filterString;
+    }
 
     public int getBatchSizeBytes() {
         return batchSizeBytes;

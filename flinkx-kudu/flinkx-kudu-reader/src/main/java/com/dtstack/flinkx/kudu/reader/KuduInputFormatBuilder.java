@@ -41,20 +41,8 @@ public class KuduInputFormatBuilder extends RichInputFormatBuilder {
         format.columns = columns;
     }
 
-    public void setTable(String table){
-        format.table = table;
-    }
-
-    public void setReadMode(String readMode){
-        format.readMode = readMode;
-    }
-
     public void setKuduConfig(KuduConfig kuduConfig){
         format.kuduConfig = kuduConfig;
-    }
-
-    public void setFilterString(String filterString){
-        format.filterString = filterString;
     }
 
     @Override
