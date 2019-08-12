@@ -45,6 +45,10 @@ public class KuduOutputFormatBuilder extends RichOutputFormatBuilder {
         format.kuduConfig = kuduConfig;
     }
 
+    public void setWriteMode(String writeMode){
+        format.writeMode = writeMode;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){

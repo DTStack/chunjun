@@ -91,11 +91,11 @@ public class KuduOutputFormat extends RichOutputFormat {
     }
 
     private Operation getOperation(){
-        if(EWriteMode.INSERT.name().equals(writeMode)){
+        if(EWriteMode.INSERT.name().equalsIgnoreCase(writeMode)){
             return kuduTable.newInsert();
-        } else if(EWriteMode.UPDATE.name().equals(writeMode)){
+        } else if(EWriteMode.UPDATE.name().equalsIgnoreCase(writeMode)){
             return kuduTable.newUpdate();
-        } else if(EWriteMode.UPSERT.name().equals(writeMode)){
+        } else if(EWriteMode.UPSERT.name().equalsIgnoreCase(writeMode)){
             return kuduTable.newUpsert();
         } else {
             throw new IllegalArgumentException("Not support writeMode:" + writeMode);

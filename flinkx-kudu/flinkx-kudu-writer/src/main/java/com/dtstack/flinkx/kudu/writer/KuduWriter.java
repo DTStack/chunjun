@@ -45,12 +45,15 @@ public class KuduWriter extends DataWriter {
 
     private KuduConfig kuduConfig;
 
+    private String writeMode;
+
     public KuduWriter(DataTransferConfig config) {
         super(config);
 
         WriterConfig.ParameterConfig parameterConfig = config.getJob().getContent().get(0).getWriter().getParameter();
 
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
+        writeMode = parameterConfig.getStringVal("writeMode");
         kuduConfig = KuduConfigBuilder.getInstance()
                 .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
                 .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
@@ -70,6 +73,7 @@ public class KuduWriter extends DataWriter {
         builder.setMonitorUrls(monitorUrls);
         builder.setColumns(columns);
         builder.setKuduConfig(kuduConfig);
+        builder.setWriteMode(writeMode);
 
         DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
