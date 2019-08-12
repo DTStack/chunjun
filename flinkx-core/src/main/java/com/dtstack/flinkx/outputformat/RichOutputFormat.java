@@ -253,9 +253,13 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             writeSingleRecordInternal(row);
 
             // 总记录数加1
-            numWriteCounter.add(1);
+            if(numWriteCounter !=null ){
+                numWriteCounter.add(1);
+            }
         } catch(WriteRecordException e) {
-            errCounter.add(1);
+            if(errCounter !=null ){
+                errCounter.add(1);
+            }
             String errMsg = e.getMessage();
 
             int pos = e.getColIndex();
@@ -294,7 +298,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-        numWriteCounter.add(rows.size());
+        if(numWriteCounter!=null){
+            numWriteCounter.add(rows.size());
+        }
     }
 
     protected abstract void writeMultipleRecordsInternal() throws Exception;
@@ -320,8 +326,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         }
 
         updateDuration();
-
-        bytesWriteCounter.add(row.toString().getBytes().length);
+        if(bytesWriteCounter!=null){
+            bytesWriteCounter.add(row.toString().getBytes().length);
+        }
     }
 
     @Override
@@ -382,8 +389,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     }
 
     private void updateDuration(){
-        durationCounter.resetLocal();
-        durationCounter.add(System.currentTimeMillis() - startTime);
+        if(durationCounter!=null){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
     }
 
     public void closeInternal() throws IOException {

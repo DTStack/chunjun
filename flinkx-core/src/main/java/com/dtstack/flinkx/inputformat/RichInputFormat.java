@@ -89,7 +89,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public Row nextRecord(Row row) throws IOException {
-        numReadCounter.add(1);
+        if(numReadCounter !=null ){
+            numReadCounter.add(1);
+        }
 
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
@@ -98,7 +100,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         updateDuration();
 
         row = nextRecordInternal(row);
-        bytesReadCounter.add(row.toString().getBytes().length);
+        if(bytesReadCounter !=null ){
+            bytesReadCounter.add(row.toString().getBytes().length);
+        }
         return row;
     }
 
@@ -129,8 +133,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     }
 
     private void updateDuration(){
-        durationCounter.resetLocal();
-        durationCounter.add(System.currentTimeMillis() - startTime);
+        if(durationCounter !=null ){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
     }
 
     protected abstract  void closeInternal() throws IOException;
