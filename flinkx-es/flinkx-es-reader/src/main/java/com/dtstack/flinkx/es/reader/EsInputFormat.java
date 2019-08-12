@@ -159,6 +159,7 @@ public class EsInputFormat extends RichInputFormat {
             clearScroll();
 
             client.close();
+            client = null;
         }
     }
 
