@@ -43,6 +43,45 @@ public class KuduConfig implements Serializable {
 
     private Long adminOperationTimeout;
 
+    private Long queryTimeout;
+
+    private String table;
+
+    private String readMode;
+
+    private int batchSizeBytes;
+
+    public int getBatchSizeBytes() {
+        return batchSizeBytes;
+    }
+
+    public void setBatchSizeBytes(int batchSizeBytes) {
+        this.batchSizeBytes = batchSizeBytes;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public void setTable(String table) {
+        this.table = table;
+    }
+
+    public String getReadMode() {
+        return readMode;
+    }
+
+    public void setReadMode(String readMode) {
+        this.readMode = readMode;
+    }
+
+    public Long getQueryTimeout() {
+        return queryTimeout;
+    }
+
+    public void setQueryTimeout(Long queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
 
     public boolean getOpenKerberos() {
         return openKerberos;

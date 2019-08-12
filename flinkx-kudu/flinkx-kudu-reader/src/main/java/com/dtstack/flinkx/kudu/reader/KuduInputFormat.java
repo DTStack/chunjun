@@ -49,11 +49,9 @@ public class KuduInputFormat extends RichInputFormat {
 
     protected KuduConfig kuduConfig;
 
-    private List<String> columnNames;
+    protected String filterString;
 
     private transient KuduClient client;
-
-    private transient KuduTable kuduTable;
 
     private transient KuduScanner scanner;
 
@@ -61,24 +59,19 @@ public class KuduInputFormat extends RichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        columnNames = Lists.newArrayList();
-        for (MetaColumn column : columns) {
-            columnNames.add(column.getName());
-        }
-
         try {
             client = KuduUtil.getKuduClient(kuduConfig);
         } catch (IOException | InterruptedException e){
             throw new RuntimeException("Get KuduClient error", e);
         }
-
-        kuduTable = client.openTable(table);
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         KuduTableSplit kuduTableSplit = (KuduTableSplit)inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
+
+        scanner.hasMoreRows();
     }
 
     @Override
@@ -88,11 +81,7 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        List<KuduScanToken> scanTokens = client.newScanTokenBuilder(kuduTable)
-                .setProjectedColumnNames(columnNames)
-                .addPredicate(null)
-                .build();
-
+        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, filterString);
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);

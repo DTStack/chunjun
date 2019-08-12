@@ -19,13 +19,25 @@
 
 package com.dtstack.flinkx.kudu.core;
 
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.kudu.client.AsyncKuduClient;
-import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.ColumnSchema;
+import org.apache.kudu.Type;
+import org.apache.kudu.client.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.PrivilegedExceptionAction;
+import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
@@ -55,5 +67,196 @@ public class KuduUtil {
                 .defaultOperationTimeoutMs(config.getOperationTimeout())
                 .build()
                 .syncClient();
+    }
+
+    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns,
+                                                       String filterString) throws IOException{
+        KuduClient client = null;
+        try {
+            client = getKuduClient(config);
+            KuduTable kuduTable = client.openTable(config.getTable());
+
+            List<String> columnNames = Lists.newArrayList();
+            for (MetaColumn column : columns) {
+                columnNames.add(column.getName());
+            }
+
+            KuduScanToken.KuduScanTokenBuilder builder = client.newScanTokenBuilder(kuduTable)
+                    .readMode(getReadMode(config.getReadMode()))
+                    .batchSizeBytes(config.getBatchSizeBytes())
+                    .setTimeout(config.getQueryTimeout())
+                    .setProjectedColumnNames(columnNames);
+
+            addPredicates(builder, filterString, columns);
+
+            return builder.build();
+        } catch (Exception e){
+            throw new IOException("Get ScanToken error", e);
+        } finally {
+            if(client != null){
+                client.close();
+            }
+        }
+    }
+
+    private static AsyncKuduScanner.ReadMode getReadMode(String readMode){
+        if(AsyncKuduScanner.ReadMode.READ_LATEST.name().equalsIgnoreCase(readMode)){
+            return AsyncKuduScanner.ReadMode.READ_LATEST;
+        } else {
+            return AsyncKuduScanner.ReadMode.READ_AT_SNAPSHOT;
+        }
+    }
+
+    private static void addPredicates(KuduScanToken.KuduScanTokenBuilder builder, String filterString, List<MetaColumn> columns){
+        if(StringUtils.isEmpty(filterString)){
+            return;
+        }
+
+        Map<String, Type> nameTypeMap = new HashMap<>();
+        for (MetaColumn column : columns) {
+            nameTypeMap.put(column.getName(), getType(column.getType()));
+        }
+
+        String[] filters = filterString.split("(?i)\\s+and\\s+");
+        for (String filter : filters) {
+            ExpressResult expressResult = parseExpress(filter, nameTypeMap);
+            KuduPredicate predicate = KuduPredicate.newComparisonPredicate(expressResult.getColumnSchema(), expressResult.getOp(), expressResult.getValue());
+            builder.addPredicate(predicate);
+        }
+    }
+
+    private static Type getType(String columnType){
+        switch (columnType.toLowerCase()){
+            case "boolean" :
+            case "bool" : return Type.BOOL;
+            case "int8":
+            case "byte" : return  Type.INT8;
+            case "int16":
+            case "short" : return  Type.INT16;
+            case "int32":
+            case "integer":
+            case "int" : return  Type.INT32;
+            case "int64":
+            case "bigint":
+            case "long" : return  Type.INT64;
+            case "float" : return  Type.FLOAT;
+            case "double" : return  Type.DOUBLE;
+            case "decimal" : return  Type.DECIMAL;
+            case "char":
+            case "varchar":
+            case "text":
+            case "string" : return  Type.STRING;
+            case "timestamp" : return  Type.UNIXTIME_MICROS;
+            default:
+                throw new IllegalArgumentException("Not support column type:" + columnType);
+        }
+    }
+
+    public static ExpressResult parseExpress(String express, Map<String, Type> nameTypeMap){
+        String regex = "(?<column>[^=|\\s]+)+\\s*(?<op>(=)|(>)|(>=)|(<)|(<=))\\s*(?<value>.*)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(express.trim());
+        if (matcher.find()) {
+            String column = matcher.group("column");
+            String op = matcher.group("op");
+            String value = matcher.group("value");
+
+            Type type = nameTypeMap.get(column);
+            if(type == null){
+                throw new IllegalArgumentException("Can not find column:" + column + " from column list");
+            }
+
+            ColumnSchema columnSchema = new ColumnSchema.ColumnSchemaBuilder(column, type).build();
+
+            ExpressResult result = new ExpressResult();
+            result.setColumnSchema(columnSchema);
+            result.setOp(getOp(op));
+            result.setValue(getValue(value, type));
+
+            return result;
+        } else {
+            throw new IllegalArgumentException("Illegal filter express:" + express);
+        }
+    }
+
+    private static Object getValue(String value, Type type){
+        if(value == null){
+            return null;
+        }
+
+        if(value.startsWith("\"") && value.endsWith("\"")){
+            value = value.substring(1, value.length() - 1);
+        }
+
+        Object objValue;
+        if (Type.BOOL.equals(type)){
+            objValue = Boolean.valueOf(value);
+        } else if(Type.INT8.equals(type)){
+            objValue = Byte.valueOf(value);
+        } else if(Type.INT16.equals(type)){
+            objValue = Short.valueOf(value);
+        } else if(Type.INT32.equals(type)){
+            objValue = Integer.valueOf(value);
+        } else if(Type.INT64.equals(type)){
+            objValue = Long.valueOf(value);
+        } else if(Type.FLOAT.equals(type)){
+            objValue = Float.valueOf(value);
+        } else if(Type.DOUBLE.equals(type)){
+            objValue = Double.valueOf(value);
+        } else if(Type.DECIMAL.equals(type)){
+            objValue = new BigDecimal(value);
+        } else if(Type.UNIXTIME_MICROS.equals(type)){
+            if(NumberUtils.isNumber(value)){
+                objValue = Long.valueOf(value);
+            } else {
+                objValue = Timestamp.valueOf(value);
+            }
+        } else {
+            objValue = value;
+        }
+
+        return objValue;
+    }
+
+    private static KuduPredicate.ComparisonOp getOp(String opExpress){
+        switch (opExpress){
+            case "=" : return KuduPredicate.ComparisonOp.EQUAL;
+            case ">" : return KuduPredicate.ComparisonOp.GREATER;
+            case ">=" : return KuduPredicate.ComparisonOp.GREATER_EQUAL;
+            case "<" : return KuduPredicate.ComparisonOp.LESS;
+            case "<=" : return KuduPredicate.ComparisonOp.LESS_EQUAL;
+            default:
+                throw new IllegalArgumentException("Comparison express only support '=','>','>=','<','<='");
+        }
+    }
+
+    public static class ExpressResult{
+        private ColumnSchema columnSchema;
+        private KuduPredicate.ComparisonOp op;
+        private Object value;
+
+        public ColumnSchema getColumnSchema() {
+            return columnSchema;
+        }
+
+        public void setColumnSchema(ColumnSchema columnSchema) {
+            this.columnSchema = columnSchema;
+        }
+
+        public KuduPredicate.ComparisonOp getOp() {
+            return op;
+        }
+
+        public void setOp(KuduPredicate.ComparisonOp op) {
+            this.op = op;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
     }
 }

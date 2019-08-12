@@ -53,6 +53,10 @@ public class KuduInputFormatBuilder extends RichInputFormatBuilder {
         format.kuduConfig = kuduConfig;
     }
 
+    public void setFilterString(String filterString){
+        format.filterString = filterString;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){

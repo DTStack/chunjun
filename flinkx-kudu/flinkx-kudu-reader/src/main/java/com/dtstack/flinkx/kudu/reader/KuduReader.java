@@ -46,6 +46,8 @@ public class KuduReader extends DataReader {
 
     private String readMode;
 
+    private String filterString;
+
     protected KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
@@ -55,6 +57,7 @@ public class KuduReader extends DataReader {
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
         table = parameterConfig.getStringVal("table");
         readMode = parameterConfig.getStringVal("readMode");
+        filterString = parameterConfig.getStringVal("filter");
         kuduConfig = KuduConfigBuilder.getInstance()
                 .withMasterAddresses(parameterConfig.getStringVal("masterAddresses"))
                 .withOpenKerberos(parameterConfig.getBooleanVal("openKerberos", false))
@@ -76,6 +79,7 @@ public class KuduReader extends DataReader {
         builder.setTable(table);
         builder.setReadMode(readMode);
         builder.setKuduConfig(kuduConfig);
+        builder.setFilterString(filterString);
 
         return createInput(builder.finish(), "kudureader");
     }
