@@ -25,5 +25,17 @@ package com.dtstack.flinkx.kudu.core;
  */
 public class KuduConfigKeys {
 
+    public final static String KEY_MASTER_ADDRESSES = "masterAddresses";
+    public final static String KEY_AUTHENTICATION = "authentication";
+    public final static String KEY_PRINCIPAL = "principal";
+    public final static String KEY_KEYTABFILE = "keytabFile";
+    public final static String KEY_WORKER_COUNT = "workerCount";
+    public final static String KEY_BOSS_COUNT = "bossCount";
+    public final static String KEY_OPERATION_TIMEOUT = "operationTimeout";
+    public final static String KEY_QUERY_TIMEOUT = "queryTimeout";
+    public final static String KEY_ADMIN_OPERATION_TIMEOUT = "adminOperationTimeout";
     public final static String KEY_TABLE = "table";
+    public final static String KEY_READ_MODE = "readMode";
+    public final static String KEY_FILTER = "filter";
+    public final static String KEY_BATCH_SIZE_BYTES = "batchSizeBytes";
 }

@@ -29,11 +29,11 @@ public class KuduConfig implements Serializable {
 
     private String masterAddresses;
 
-    private boolean openKerberos;
+    private String authentication;
 
-    private String user;
+    private String principal;
 
-    private String keytabPath;
+    private String keytabFile;
 
     private Integer workerCount;
 
@@ -93,28 +93,28 @@ public class KuduConfig implements Serializable {
         this.queryTimeout = queryTimeout;
     }
 
-    public boolean getOpenKerberos() {
-        return openKerberos;
+    public String getAuthentication() {
+        return authentication;
     }
 
-    public void setOpenKerberos(boolean openKerberos) {
-        this.openKerberos = openKerberos;
+    public void setAuthentication(String authentication) {
+        this.authentication = authentication;
     }
 
-    public String getUser() {
-        return user;
+    public String getPrincipal() {
+        return principal;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setPrincipal(String principal) {
+        this.principal = principal;
     }
 
-    public String getKeytabPath() {
-        return keytabPath;
+    public String getKeytabFile() {
+        return keytabFile;
     }
 
-    public void setKeytabPath(String keytabPath) {
-        this.keytabPath = keytabPath;
+    public void setKeytabFile(String keytabFile) {
+        this.keytabFile = keytabFile;
     }
 
     public Integer getBossCount() {

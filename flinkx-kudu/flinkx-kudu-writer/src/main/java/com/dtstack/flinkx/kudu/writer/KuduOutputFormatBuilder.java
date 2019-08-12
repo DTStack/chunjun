@@ -19,7 +19,11 @@
 
 package com.dtstack.flinkx.kudu.writer;
 
+import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
+
+import java.util.List;
 
 /**
  * @author jiangbo
@@ -27,8 +31,24 @@ import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
  */
 public class KuduOutputFormatBuilder extends RichOutputFormatBuilder {
 
+    private KuduOutputFormat format;
+
+    public KuduOutputFormatBuilder() {
+        super.format = format = new KuduOutputFormat();
+    }
+
+    public void setColumns(List<MetaColumn> columns){
+        format.columns = columns;
+    }
+
+    public void setKuduConfig(KuduConfig kuduConfig){
+        format.kuduConfig = kuduConfig;
+    }
+
     @Override
     protected void checkFormat() {
-
+        if (format.columns == null || format.columns.size() == 0){
+            throw new IllegalArgumentException("columns can not be empty");
+        }
     }
 }

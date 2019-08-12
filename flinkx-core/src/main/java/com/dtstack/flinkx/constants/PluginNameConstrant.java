@@ -38,6 +38,7 @@ public class PluginNameConstrant {
     public static final String POSTGRESQL_READER = "postgresqlreader";
     public static final String SQLSERVER_READER = "sqlserverreader";
     public static final String GBASE_READER = "gbasereader";
+    public static final String KUDU_READER = "kudureader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";
@@ -54,4 +55,5 @@ public class PluginNameConstrant {
     public static final String REDIS_WRITER = "rediswriter";
     public static final String SQLSERVER_WRITER = "sqlserverwriter";
     public static final String GBASE_WRITER = "gbasewriter";
+    public static final String KUDU_WRITER = "kuduwriter";
 }

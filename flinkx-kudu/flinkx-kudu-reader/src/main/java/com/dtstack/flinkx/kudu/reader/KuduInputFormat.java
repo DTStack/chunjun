@@ -128,7 +128,7 @@ public class KuduInputFormat extends RichInputFormat {
             return getNextRows();
         }
 
-        return true;
+        return false;
     }
 
     private boolean getNextRows() throws IOException{
@@ -153,6 +153,7 @@ public class KuduInputFormat extends RichInputFormat {
 
         if (client != null){
             client.close();
+            client = null;
         }
     }
 

@@ -19,11 +19,17 @@
 
 package com.dtstack.flinkx.kudu.writer;
 
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.kudu.core.KuduConfig;
+import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.types.Row;
+import org.apache.kudu.client.*;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author jiangbo
@@ -31,23 +37,91 @@ import java.io.IOException;
  */
 public class KuduOutputFormat extends RichOutputFormat {
 
+    protected List<MetaColumn> columns;
+
+    protected KuduConfig kuduConfig;
+
+    protected String writeMode;
+
+    private transient KuduClient client;
+
+    private transient KuduSession session;
+
+    private transient KuduTable kuduTable;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        try{
+            client = KuduUtil.getKuduClient(kuduConfig);
+        } catch (Exception e){
+            throw new RuntimeException("Get KuduClient error", e);
+        }
 
+        session = client.newSession();
+        kuduTable = client.openTable(kuduConfig.getTable());
     }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        writeData(row);
 
+        if(numWriteCounter.getLocalValue() % batchInterval == 0){
+            try {
+                session.flush();
+            } catch (KuduException e) {
+                throw new RuntimeException("Flush data error", e);
+            }
+        }
+    }
+
+    private void writeData(Row row) throws WriteRecordException {
+        int index = 0;
+        try {
+            Operation operation = getOperation();
+            for (int i = 0; i < columns.size(); i++) {
+                index = i;
+                MetaColumn column = columns.get(i);
+                operation.getRow().addObject(column.getName(), row.getField(i));
+            }
+
+            session.apply(operation);
+        } catch (Exception e){
+            throw new WriteRecordException("Write data error", e, index, row);
+        }
+    }
+
+    private Operation getOperation(){
+        if(EWriteMode.INSERT.name().equals(writeMode)){
+            return kuduTable.newInsert();
+        } else if(EWriteMode.UPDATE.name().equals(writeMode)){
+            return kuduTable.newUpdate();
+        } else if(EWriteMode.UPSERT.name().equals(writeMode)){
+            return kuduTable.newUpsert();
+        } else {
+            throw new IllegalArgumentException("Not support writeMode:" + writeMode);
+        }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
+        for (Row row : rows) {
+            writeData(row);
+        }
 
+        session.flush();
     }
 
     @Override
     public void closeInternal() throws IOException {
         super.closeInternal();
+
+        if(session != null){
+            session.flush();
+            session.close();
+        }
+
+        if(client != null){
+            client.close();
+        }
     }
 }

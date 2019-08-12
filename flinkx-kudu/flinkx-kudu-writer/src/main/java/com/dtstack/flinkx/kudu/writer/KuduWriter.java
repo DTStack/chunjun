@@ -20,10 +20,20 @@
 package com.dtstack.flinkx.kudu.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.kudu.core.KuduConfig;
+import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.kudu.client.AsyncKuduClient;
+
+import java.util.List;
+
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
 
 /**
  * @author jiangbo
@@ -31,12 +41,39 @@ import org.apache.flink.types.Row;
  */
 public class KuduWriter extends DataWriter {
 
+    private List<MetaColumn> columns;
+
+    private KuduConfig kuduConfig;
+
     public KuduWriter(DataTransferConfig config) {
         super(config);
+
+        WriterConfig.ParameterConfig parameterConfig = config.getJob().getContent().get(0).getWriter().getParameter();
+
+        columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
+        kuduConfig = KuduConfigBuilder.getInstance()
+                .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
+                .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
+                .withprincipal(parameterConfig.getStringVal(KEY_PRINCIPAL))
+                .withKeytabFile(parameterConfig.getStringVal(KEY_KEYTABFILE))
+                .withWorkerCount(parameterConfig.getIntVal(KEY_WORKER_COUNT, 2 * Runtime.getRuntime().availableProcessors()))
+                .withBossCount(parameterConfig.getIntVal(KEY_BOSS_COUNT, 1))
+                .withOperationTimeout(parameterConfig.getLongVal(KEY_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
+                .withAdminOperationTimeout(parameterConfig.getLongVal(KEY_ADMIN_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
+                .withTable(parameterConfig.getStringVal(KEY_TABLE))
+                .build();
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        return null;
+        KuduOutputFormatBuilder builder = new KuduOutputFormatBuilder();
+        builder.setMonitorUrls(monitorUrls);
+        builder.setColumns(columns);
+        builder.setKuduConfig(kuduConfig);
+
+        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
+        dataStreamSink.name("kuduwriter");
+        return dataStreamSink;
     }
 }

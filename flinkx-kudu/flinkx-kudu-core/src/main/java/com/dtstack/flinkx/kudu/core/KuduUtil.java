@@ -49,9 +49,11 @@ public class KuduUtil {
     private static String EXPRESS_REGEX = "(?<column>[^\\=|\\s]+)+\\s*(?<op>[\\>|\\<|\\=]+)\\s*(?<value>.*)";
     private static Pattern EXPRESS_PATTERN = Pattern.compile(EXPRESS_REGEX);
 
+    public final static String AUTHENTICATION_TYPE = "Kerberos";
+
     public static KuduClient getKuduClient(KuduConfig config) throws IOException,InterruptedException {
-        if(config.getOpenKerberos()){
-            UserGroupInformation.loginUserFromKeytab(config.getUser(), config.getKeytabPath());
+        if(AUTHENTICATION_TYPE.equals(config.getAuthentication())){
+            UserGroupInformation.loginUserFromKeytab(config.getPrincipal(), config.getKeytabFile());
             return UserGroupInformation.getLoginUser().doAs(new PrivilegedExceptionAction<KuduClient>() {
                 @Override
                 public KuduClient run() throws Exception {

@@ -29,16 +29,18 @@ import org.apache.flink.util.Preconditions;
  */
 public final class KuduConfigBuilder {
     private String masterAddresses;
-    private boolean openKerberos;
-    private String user;
-    private String keytabPath;
+    private String authentication;
+    private String principal;
+    private String keytabFile;
     private Integer workerCount;
     private Integer bossCount;
     private Long operationTimeout;
     private Long adminOperationTimeout;
+    private Long queryTimeout;
     private String table;
     private String readMode;
     private String filterString;
+    private int batchSizeBytes;
 
     private KuduConfigBuilder() {
     }
@@ -53,20 +55,18 @@ public final class KuduConfigBuilder {
         return this;
     }
 
-    public KuduConfigBuilder withOpenKerberos(boolean openKerberos) {
-        this.openKerberos = openKerberos;
+    public KuduConfigBuilder withAuthentication(String authentication) {
+        this.authentication = authentication;
         return this;
     }
 
-    public KuduConfigBuilder withUser(String user) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(user), "Parameter [user] can not be null or empty");
-        this.user = user;
+    public KuduConfigBuilder withprincipal(String principal) {
+        this.principal = principal;
         return this;
     }
 
-    public KuduConfigBuilder withKeytabPath(String keytabPath) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(keytabPath), "Parameter [keytabPath] can not be null or empty");
-        this.keytabPath = keytabPath;
+    public KuduConfigBuilder withKeytabFile(String keytabFile) {
+        this.keytabFile = keytabFile;
         return this;
     }
 
@@ -107,24 +107,35 @@ public final class KuduConfigBuilder {
     }
 
     public KuduConfigBuilder withFilter(String filter){
-        Preconditions.checkArgument(StringUtils.isNotEmpty(filter), "Parameter [filter] can not be null or empty");
         this.filterString = filter;
+        return this;
+    }
+
+    public KuduConfigBuilder withQueryTimeout(Long queryTimeout){
+        this.queryTimeout = queryTimeout;
+        return this;
+    }
+
+    public KuduConfigBuilder withBatchSizeBytes(Integer batchSizeBytes){
+        this.batchSizeBytes = batchSizeBytes;
         return this;
     }
 
     public KuduConfig build() {
         KuduConfig kuduConfig = new KuduConfig();
         kuduConfig.setMasterAddresses(masterAddresses);
-        kuduConfig.setOpenKerberos(openKerberos);
-        kuduConfig.setUser(user);
-        kuduConfig.setKeytabPath(keytabPath);
+        kuduConfig.setAuthentication(authentication);
+        kuduConfig.setPrincipal(principal);
+        kuduConfig.setKeytabFile(keytabFile);
         kuduConfig.setWorkerCount(workerCount);
         kuduConfig.setBossCount(bossCount);
         kuduConfig.setOperationTimeout(operationTimeout);
         kuduConfig.setAdminOperationTimeout(adminOperationTimeout);
+        kuduConfig.setQueryTimeout(queryTimeout);
         kuduConfig.setTable(table);
         kuduConfig.setReadMode(readMode);
         kuduConfig.setFilterString(filterString);
+        kuduConfig.setBatchSizeBytes(batchSizeBytes);
         return kuduConfig;
     }
 }

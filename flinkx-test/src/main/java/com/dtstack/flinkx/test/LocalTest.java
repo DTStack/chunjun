@@ -36,6 +36,8 @@ import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
+import com.dtstack.flinkx.kudu.reader.KuduReader;
+import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -92,7 +94,7 @@ public class LocalTest {
     public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
 
     public static void main(String[] args) throws Exception{
-        String jobPath = TEST_RESOURCE_DIR + "stream_template.json";
+        String jobPath = TEST_RESOURCE_DIR + "kudu_reader_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), null, null);
         ResultPrintUtil.printResult(result);
     }
@@ -159,6 +161,7 @@ public class LocalTest {
             case PluginNameConstrant.HDFS_READER : reader = new HdfsReader(config, env); break;
             case PluginNameConstrant.MONGODB_READER : reader = new MongodbReader(config, env); break;
             case PluginNameConstrant.ODPS_READER : reader = new OdpsReader(config, env); break;
+            case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -184,6 +187,7 @@ public class LocalTest {
             case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
             case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
+            case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

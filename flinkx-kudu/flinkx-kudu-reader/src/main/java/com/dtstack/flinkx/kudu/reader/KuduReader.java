@@ -32,7 +32,7 @@ import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
 
-import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_TABLE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
 
 /**
  * @author jiangbo
@@ -44,7 +44,7 @@ public class KuduReader extends DataReader {
 
     private KuduConfig kuduConfig;
 
-    protected KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public KuduReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
@@ -52,17 +52,19 @@ public class KuduReader extends DataReader {
 
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
         kuduConfig = KuduConfigBuilder.getInstance()
-                .withMasterAddresses(parameterConfig.getStringVal("masterAddresses"))
-                .withOpenKerberos(parameterConfig.getBooleanVal("openKerberos", false))
-                .withUser(parameterConfig.getStringVal("user"))
-                .withKeytabPath(parameterConfig.getStringVal("keytabPath"))
-                .withWorkerCount(parameterConfig.getIntVal("workerCount", 2 * Runtime.getRuntime().availableProcessors()))
-                .withBossCount(parameterConfig.getIntVal("bossCount", 1))
-                .withOperationTimeout(parameterConfig.getLongVal("operationTimeout", AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
-                .withAdminOperationTimeout(parameterConfig.getLongVal("adminOperationTimeout", AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
+                .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
+                .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
+                .withprincipal(parameterConfig.getStringVal(KEY_PRINCIPAL))
+                .withKeytabFile(parameterConfig.getStringVal(KEY_KEYTABFILE))
+                .withWorkerCount(parameterConfig.getIntVal(KEY_WORKER_COUNT, 2 * Runtime.getRuntime().availableProcessors()))
+                .withBossCount(parameterConfig.getIntVal(KEY_BOSS_COUNT, 1))
+                .withOperationTimeout(parameterConfig.getLongVal(KEY_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
+                .withQueryTimeout(parameterConfig.getLongVal(KEY_QUERY_TIMEOUT, AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
+                .withAdminOperationTimeout(parameterConfig.getLongVal(KEY_ADMIN_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
                 .withTable(parameterConfig.getStringVal(KEY_TABLE))
-                .withReadMode(parameterConfig.getStringVal("readMode"))
-                .withFilter(parameterConfig.getStringVal("filter"))
+                .withReadMode(parameterConfig.getStringVal(KEY_READ_MODE))
+                .withBatchSizeBytes(parameterConfig.getIntVal(KEY_BATCH_SIZE_BYTES, 1024*1024))
+                .withFilter(parameterConfig.getStringVal(KEY_FILTER))
                 .build();
     }
 
