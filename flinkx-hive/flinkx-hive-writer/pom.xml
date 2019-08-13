@@ -53,7 +53,9 @@ under the License.
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>1.6</version>
+            <version>local-1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/../../jars/flinkx-hdfs-writer-local-1.0.0.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -119,7 +121,7 @@ under the License.
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/hiveswriter">
+                                <copy todir="${basedir}/../../plugins/hivewriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>

@@ -37,12 +37,7 @@ under the License.
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.dtstack.flinkx</groupId>
-                <artifactId>flinkx-hdfs</artifactId>
-                <version>1.6</version>
-                <type>pom</type>
-            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

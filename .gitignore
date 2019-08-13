@@ -9,3 +9,4 @@ nohup.out
 flinkconf/
 hadoopconf/
 /default_task_id_output
+/jars/flinkx-hdfs-writer-local-1.0.0.jar
