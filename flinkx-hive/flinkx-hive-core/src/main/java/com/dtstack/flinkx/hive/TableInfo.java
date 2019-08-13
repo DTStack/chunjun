@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.hive;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author toutian
  */
-public class TableInfo {
+public class TableInfo implements Serializable {
 
     private String database;
     private List<String> columns;

@@ -120,14 +120,30 @@ under the License.
                                 </copy>
                                 <move file="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${git.branch}.jar" />
-
-                                <delete>
-                                    <fileset dir="${basedir}/../../jars" includes="${project.name}-*.jar"/>
-                                </delete>
-                                <copy file="${basedir}/target/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../jars/${project.name}-1.0.0-local.jar" />
                             </tasks>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>hack-binary</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <file>${basedir}/target/${project.name}-${project.version}.jar</file>
+                            <groupId>com.dtstack.flinkx</groupId>
+                            <artifactId>flinkx-hdfs-writer</artifactId>
+                            <version>${version}</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

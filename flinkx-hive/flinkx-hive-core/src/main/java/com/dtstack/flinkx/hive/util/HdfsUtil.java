@@ -84,7 +84,8 @@ public class HdfsUtil {
 
         if (confMap != null){
             for (Map.Entry<String, String> entry : confMap.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
+                Object value = entry.getValue();
+                conf.set(entry.getKey(), value.toString());
             }
         }
 
