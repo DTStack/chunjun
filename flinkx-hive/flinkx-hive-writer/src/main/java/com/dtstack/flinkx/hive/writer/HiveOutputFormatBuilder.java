@@ -40,33 +40,8 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format;
     }
 
-    public void setHadoopConfigMap(Map<String, String> hadoopConfigMap) {
-        this.format.hadoopConfig = hadoopConfigMap;
-    }
-
-    public void setWriteMode(String writeMode) {
-        this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
-    }
-
-    public void setCompress(String compress) {
-        this.format.compress = compress;
-    }
-
-    public void setCharSetName(String charsetName) {
-        if (StringUtils.isNotEmpty(charsetName)) {
-            if (!Charset.isSupported(charsetName)) {
-                throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-            }
-            this.format.charsetName = charsetName;
-        }
-    }
-
     public void setStore(String store) {
         this.format.store = store;
-    }
-
-    public void setMaxFileSize(long maxFileSize) {
-        this.format.maxFileSize = maxFileSize;
     }
 
     public void setPartition(String partition) {
@@ -154,14 +129,35 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         format.defaultFS = defaultFS;
     }
 
+    public void setWriteMode(String writeMode) {
+        this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
+    }
+
     public void setPath(String path) {
         this.format.path = path;
     }
 
     public void setFileName(String fileName) {
-        format.fileName = fileName;
+        this.format.fileName = fileName;
     }
-    
+
+    public void setCompress(String compress) {
+        this.format.compress = compress;
+    }
+
+    public void setCharSetName(String charsetName) {
+        if (StringUtils.isNotEmpty(charsetName)) {
+            if (!Charset.isSupported(charsetName)) {
+                throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
+            }
+            this.format.charsetName = charsetName;
+        }
+
+    }
+
+    public void setMaxFileSize(long maxFileSize){
+        format.maxFileSize = maxFileSize;
+    }
 
     @Override
     protected void checkFormat() {

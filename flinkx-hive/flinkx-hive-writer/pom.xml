@@ -58,18 +58,6 @@ under the License.
             <systemPath>${basedir}/../../jars/flinkx-hdfs-writer-1.0.0-local.jar</systemPath>
         </dependency>
 
-        <dependency>
-            <artifactId>httpcore</artifactId>
-            <groupId>org.apache.httpcomponents</groupId>
-            <version>4.4.5</version>
-        </dependency>
-
-        <dependency>
-            <artifactId>httpclient</artifactId>
-            <groupId>org.apache.httpcomponents</groupId>
-            <version>4.5.2</version>
-        </dependency>
-
     </dependencies>
 
     <build>

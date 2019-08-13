@@ -109,7 +109,11 @@ public abstract class DataWriter {
     }
 
     private void parseSrcColumnNames(List columns){
-        if(CollectionUtils.isEmpty(columns)){
+        if (columns == null) {
+            return;
+        }
+
+        if(columns.isEmpty()){
             throw new RuntimeException("source columns can't be null or empty");
         }
 

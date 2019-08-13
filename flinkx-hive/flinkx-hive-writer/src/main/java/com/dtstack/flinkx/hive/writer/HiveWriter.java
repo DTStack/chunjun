@@ -62,7 +62,7 @@ public class HiveWriter extends DataWriter {
 
     private Map<String, String> distributeTableMapping;
 
-    private Map<String, String> hadoopConfigMap;
+    private Map<String, String> hadoopConfig;
 
     private String charSet;
 
@@ -85,8 +85,8 @@ public class HiveWriter extends DataWriter {
     public HiveWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfigMap = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG_MAP);
-        defaultFS = hadoopConfigMap.get(KEY_FS_DEFAULT_FS);
+        hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        defaultFS = hadoopConfig.get(KEY_FS_DEFAULT_FS);
         store = writerConfig.getParameter().getStringVal(KEY_STORE);
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE);
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
@@ -177,7 +177,7 @@ public class HiveWriter extends DataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
-        builder.setHadoopConfigMap(hadoopConfigMap);
+        builder.setHadoopConfig(hadoopConfig);
         builder.setDefaultFS(defaultFS);
         builder.setWriteMode(mode);
         builder.setCompress(compress);

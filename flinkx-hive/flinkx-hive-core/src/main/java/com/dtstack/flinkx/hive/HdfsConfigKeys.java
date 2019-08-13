@@ -32,9 +32,7 @@ public class HdfsConfigKeys {
 //
 //    public static final String KEY_PATH = "path";
 
-//    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
-
-    public static final String KEY_HADOOP_CONFIG_MAP = "hadoopConfigMap";
+    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
 //    public static final String KEY_FILE_TYPE = "fileType";
 
