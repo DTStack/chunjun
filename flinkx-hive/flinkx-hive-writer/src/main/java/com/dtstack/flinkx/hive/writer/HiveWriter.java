@@ -46,6 +46,8 @@ import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
  */
 public class HiveWriter extends DataWriter {
 
+    private String defaultFS;
+
     private String store;
 
     private String partitionType;
@@ -88,6 +90,7 @@ public class HiveWriter extends DataWriter {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfigMap = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG_MAP);
+        defaultFS = hadoopConfigMap.get(KEY_FS_DEFAULT_FS);
         store = writerConfig.getParameter().getStringVal(KEY_STORE);
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE);
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
@@ -152,7 +155,7 @@ public class HiveWriter extends DataWriter {
     }
 
     private void formatHiveTableInfo(String tablesColumn) {
-        if (StringUtil.isNotEmpty(tablesColumn)) {
+        if (StringUtils.isNotEmpty(tablesColumn)) {
             tableInfos = new HashMap<String, TableInfo>();
             Map<String, Object> tableColumnMap = gson.fromJson(tablesColumn, Map.class);
             for (Map.Entry<String, Object> entry : tableColumnMap.entrySet()) {
@@ -177,12 +180,14 @@ public class HiveWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(store);
+        HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
         builder.setHadoopConfigMap(hadoopConfigMap);
+        builder.setDefaultFS(defaultFS);
         builder.setWriteMode(mode);
         builder.setCompress(compress);
         builder.setCharSetName(charSet);
         builder.setMaxFileSize(maxFileSize);
+        builder.setStore(store);
 
         builder.setPartition(partition);
         builder.setPartitionType(partitionType);

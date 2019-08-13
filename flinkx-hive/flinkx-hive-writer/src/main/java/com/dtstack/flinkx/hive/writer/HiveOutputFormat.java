@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
+import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.dirty.HiveDirtyDataManager;
@@ -61,7 +63,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author sishu.yss
  */
-public abstract class HiveOutputFormat extends RichOutputFormat {
+public class HiveOutputFormat extends RichOutputFormat {
 
     private static final long serialVersionUID = -6012196822223887479L;
 
@@ -83,14 +85,18 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     private String outputFilePath;
 
-    /** hdfs高可用配置 */
-    protected Map<String,String> hadoopConfig;
+    /**
+     * hdfs高可用配置
+     */
+    protected Map<String, String> hadoopConfig;
 
-//    /** 写入模式 */
-//    protected String writeMode;
-//
-//    /** 压缩方式 */
-//    protected String compress;
+    protected String store;
+
+    /** 写入模式 */
+    protected String writeMode;
+
+    /** 压缩方式 */
+    protected String compress;
 
     protected String defaultFS;
 
@@ -112,7 +118,7 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     protected String finishedPath;
 
-//    protected String charsetName = "UTF-8";
+    protected String charsetName;
 
     protected int[] colIndices;
 
@@ -130,7 +136,7 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     protected long rowsOfCurrentBlock;
 
-//    protected  long maxFileSize;
+    protected  long maxFileSize;
 
     private long lastWriteSize;
 
@@ -138,14 +144,8 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     /* ----------以上hdfs原有----------- */
 
-//    protected Map<String, String> hadoopConfigMap;
-//    protected Configuration configuration;
     protected Map<String, TableInfo> tableInfos;
     protected Map<String, String> distributeTableMapping;
-    protected String writeMode;
-    protected String compress;
-    protected String charsetName;
-    protected long maxFileSize;
     protected String partition;
     protected String partitionType;
     protected long interval;
@@ -154,10 +154,7 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
     protected String username;
     protected String password;
     protected String tableBasePath;
-
     protected boolean autoCreateTable;
-
-    private transient Charset charset;
 
     private transient HiveUtil hiveUtil;
 
@@ -167,43 +164,52 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     private transient ScheduledExecutorService executor;
 
-    private Map<String, HiveOutputFormat> outputFormats = Maps.newConcurrentMap();
+    private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
 
     private static Map<String, TableInfo> tableCache = new HashMap<>();
 
     private Lock lock = new ReentrantLock();
 
-    private TimePartitionFormat partitionFormat;
+    private transient TimePartitionFormat partitionFormat;
 
-    private HiveDirtyDataManager hiveDirtyDataManager;
+    private transient HiveDirtyDataManager hiveDirtyDataManager;
+
+    private transient HdfsOutputFormatBuilder hdfsOutputFormatBuilder;
 
     private AtomicBoolean dirtyDataRunning = new AtomicBoolean(false);
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
-        try {
-            hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
-            charset = Charset.forName(charsetName);
-            if (StringUtils.isNotBlank(partitionType) && StringUtils.isNotBlank(partition)) {
-                partitionFormat = TimePartitionFormat.getInstance(partitionType);
-            }
-            setHadoopConfiguration();
-            process();
-        } catch (Exception e) {
-            logger.error("", e);
-            System.exit(-1);
+        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
+        if (StringUtils.isNotBlank(partitionType) && StringUtils.isNotBlank(partition)) {
+            partitionFormat = TimePartitionFormat.getInstance(partitionType);
         }
+
+        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
+        process();
+        setHdfsOutputFormatBuilder();
     }
 
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    }
+
+    @Override
+    public void open(int taskNumber, int numTasks) throws IOException {
+    }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (row.getArity() == 1){
+        if (row.getArity() == 1) {
             Object obj = row.getField(0);
-            if(obj instanceof Map) {
+            if (obj instanceof Map) {
                 emit((Map<String, Object>) obj);
             }
         }
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
     }
 
     private void emit(Map event) {
@@ -211,10 +217,10 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
         try {
             lock.lockInterruptibly();
 
-            HiveOutputFormat format = getHdfsOutputFormat(tablePath, event);
+            HdfsOutputFormat format = getHdfsOutputFormat(tablePath, event);
 
             try {
-                format.writeSingleRecordInternal(Row.of(event));
+                format.writeRecord(Row.of(event));
 //                format.writeRecord(format.convert2Record(event));
                 dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(event));
             } catch (Throwable e) {
@@ -256,22 +262,21 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
         lastTime = System.currentTimeMillis();
     }
 
-    public HiveOutputFormat getHdfsOutputFormat(String tablePath, Map event) throws Exception {
+    public HdfsOutputFormat getHdfsOutputFormat(String tablePath, Map event) throws Exception {
         String hiveTablePath = tablePath;
         String partitionPath = "";
         if (partitionFormat != null) {
             partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionFormat.currentTime());
             hiveTablePath += "/" + partitionPath;
         }
-        HiveOutputFormat outputFormat = outputFormats.get(hiveTablePath);
+        HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         if (outputFormat == null) {
             TableInfo tableInfo = checkCreateTable(tablePath, event);
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + "/" + partitionPath;
 
-            HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder(tableInfo.getStore());
-            builder.setPath(path);
-            outputFormat = (HiveOutputFormat) builder.finish();
+            hdfsOutputFormatBuilder.setPath(path);
+            outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.configInternal();
             outputFormats.put(hiveTablePath, outputFormat);
 
@@ -350,390 +355,38 @@ public abstract class HiveOutputFormat extends RichOutputFormat {
 
     private void closeDirtyDataManagerWriter(boolean reopen) {
         if (dirtyDataRunning.get()) {
-            this.dirtyDataManager.close();
+            this.hiveDirtyDataManager.close();
             if (reopen) {
-                this.dirtyDataManager.open();
+                this.hiveDirtyDataManager.open();
             }
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    protected void initColIndices() {
-        if (fullColumnNames == null || fullColumnNames.size() == 0) {
-            fullColumnNames = columnNames;
-        }
-
-        if (fullColumnTypes == null || fullColumnTypes.size() == 0) {
-            fullColumnTypes = columnTypes;
-        }
-
-        colIndices = new int[fullColumnNames.size()];
-        for(int i = 0; i < fullColumnNames.size(); ++i) {
-            int j = 0;
-            for(; j < columnNames.size(); ++j) {
-                if(fullColumnNames.get(i).equalsIgnoreCase(columnNames.get(j))) {
-                    colIndices[i] = j;
-                    break;
-                }
-            }
-            if(j == columnNames.size()) {
-                colIndices[i] = -1;
-            }
-        }
-    }
-
-    protected void configInternal() {
-
-    }
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(StringUtils.isNotBlank(fileName)) {
-            this.outputFilePath = path + SP + fileName;
-        } else {
-            this.outputFilePath = path;
-        }
-
-        initColIndices();
-
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        fs = FileSystem.get(conf);
-        Path dir = new Path(outputFilePath);
-        // dir不能是文件
-        if(fs.exists(dir) && fs.isFile(dir)){
-            throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
-                    + "One can only write new files under directories");
-        }
-
-        configInternal();
-
-        currentBlockFileNamePrefix = taskNumber + "." + jobId;
-        tmpPath = outputFilePath + SP + DATA_SUBDIR;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
-
-        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
-                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
-
-        beforeOpenInternal();
-        open();
-    }
-
-    @Override
-    protected void beforeOpenInternal(){
-        if(taskNumber > 0){
-            return;
-        }
-
-        if (formatState == null || formatState.getState() == null) {
-            try {
-                LOG.info("Delete [.data] dir before write records");
-                clearTemporaryDataFiles();
-            } catch (Exception e) {
-                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
-            }
-        } else {
-            alignHistoryFiles();
-        }
-    }
-
-    private void alignHistoryFiles(){
-        try{
-            PathFilter pathFilter = path -> !path.getName().startsWith(".");
-            FileStatus[] files = fs.listStatus(new Path(tmpPath), pathFilter);
-            if(files == null || files.length == 0){
-                return;
-            }
-
-            List<String> fileNames = Lists.newArrayList();
-            for (FileStatus file : files) {
-                fileNames.add(file.getPath().getName());
-            }
-
-            List<String> deleteFiles = Lists.newArrayList();
-            for (String fileName : fileNames) {
-                String targetName = fileName.substring(fileName.indexOf(".")+1);
-                int num = 0;
-                for (String name : fileNames) {
-                    if(targetName.equals(name.substring(name.indexOf(".")+1))){
-                        num++;
-                    }
-                }
-
-                if(num < numTasks){
-                    deleteFiles.add(fileName);
-                }
-            }
-
-            for (String fileName : deleteFiles) {
-                fs.delete(new Path(tmpPath + SP + fileName), true);
-            }
-        } catch (Exception e){
-            throw new RuntimeException("align files error:", e);
-        }
-    }
-
-    @Override
-    public FormatState getFormatState() {
-        if (!restoreConfig.isRestore() || lastRow == null){
-            return null;
-        }
-
-        try{
-            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
-            if (readyCheckpoint || overMaxRows){
-                flushBlock();
-
-                numWriteCounter.add(rowsOfCurrentBlock);
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
-
-                rowsOfCurrentBlock = 0;
-                return formatState;
-            }
-
-            return null;
-        }catch (Exception e){
-            try{
-                fs.delete(new Path(tmpPath + SP + currentBlockFileName), true);
-                fs.close();
-                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
-            }catch (Exception e1){
-                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
-            }
-
-            throw new RuntimeException("Get next block error:", e);
-        }
-    }
-
-    protected void moveTemporaryDataBlockFileToDirectory(){
-        try {
-            if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
-                Path src = new Path(tmpPath + SP + currentBlockFileName);
-
-                String dataFileName = currentBlockFileName.replaceFirst("\\.","");
-                Path dist = new Path(tmpPath + SP + dataFileName);
-
-                fs.rename(src, dist);
-                LOG.info("Rename temporary data block file:{} to:{}", src, dist);
-            }
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected abstract void open() throws IOException;
-
-    protected void nextBlock(){
-        if (restoreConfig.isRestore()){
-            moveTemporaryDataBlockFileToDirectory();
-            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-        } else {
-            currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-        }
-
-        nextBlockInternal();
-    }
-
-    /**
-     * Open next file
-     */
-    protected abstract void nextBlockInternal();
-
-    /**
-     * Get file extension
-     */
-    protected abstract String getExtension();
-
-    /**
-     * Close current file stream
-     */
-    protected abstract void flushBlock() throws IOException;
-
-    @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
-    }
-
-    @Override
-    public void tryCleanupOnError() throws Exception {
-        if(!restoreConfig.isRestore() && fs != null) {
-            LOG.info("Clean temporary data in method tryCleanupOnError");
-            clearTemporaryDataFiles();
-        }
-    }
-
-    private void clearTemporaryDataFiles() throws IOException{
-        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-        fs.delete(finishedDir, true);
-        LOG.info("Delete .finished dir:{}", finishedDir);
-
-        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-        fs.delete(tmpDir, true);
-        LOG.info("Delete .data dir:{}", tmpDir);
-    }
-
-    @Override
-    protected void afterCloseInternal()  {
-        try {
-            if(!isTaskEndsNormally()){
-                return;
-            }
-
-            fs.createNewFile(new Path(finishedPath));
-            LOG.info("Create finished tag dir:{}", finishedPath);
-
-            numWriteCounter.add(rowsOfCurrentBlock);
-
-            if(taskNumber == 0) {
-                waitForAllTasksToFinish();
-                coverageData();
-                moveTemporaryDataFileToDirectory();
-
-                LOG.info("The task ran successfully,clear temporary data files");
-                clearTemporaryDataFiles();
-            }
-
-            fs.close();
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    protected boolean isTaskEndsNormally() throws IOException{
-        String state = getTaskState();
-        LOG.info("State of current task is:[{}]", state);
-        if(!RUNNING_STATE.equals(state)){
-            if (!restoreConfig.isRestore()){
-                LOG.info("The task does not end normally, clear the temporary data file");
-                clearTemporaryDataFiles();
-            }
-            fs.close();
-            return false;
-        }
-
-        return true;
-    }
-
-    private void waitForAllTasksToFinish() throws IOException{
-        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-        final int maxRetryTime = 100;
-        int i = 0;
-        for(; i < maxRetryTime; ++i) {
-            if(fs.listStatus(finishedDir).length == numTasks) {
-                break;
-            }
-            SysUtil.sleep(3000);
-        }
-
-        if (i == maxRetryTime) {
-            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR;
-            fs.delete(new Path(subTaskDataPath), true);
-            LOG.info("waitForAllTasksToFinish: delete path:[{}]", subTaskDataPath);
-
-            fs.delete(finishedDir, true);
-            LOG.info("waitForAllTasksToFinish: delete finished dir:[{}]", finishedDir);
-
-            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
-        }
-    }
-
-    private void coverageData() throws IOException{
-        if(APPEND_MODE.equalsIgnoreCase(writeMode)){
-            return;
-        }
-
-        LOG.info("Overwrite the original data");
-        PathFilter pathFilter = path -> !path.getName().startsWith(".");
-
-        Path dir = new Path(outputFilePath);
-        if(fs.exists(dir)) {
-            FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-            for(FileStatus dataFile : dataFiles) {
-                LOG.info("coverageData:delete path:[{}]", dataFile.getPath());
-                fs.delete(dataFile.getPath(), true);
-            }
-
-            LOG.info("coverageData:make dir:[{}]", outputFilePath);
-            fs.mkdirs(dir);
-        }
-    }
-
-    private void moveTemporaryDataFileToDirectory() throws IOException{
-        PathFilter pathFilter = path -> !path.getName().startsWith(".");
-        Path dir = new Path(outputFilePath);
-        List<FileStatus> dataFiles = new ArrayList<>();
-        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-
-        FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
-        for (FileStatus fileStatus : historyTmpDataDir) {
-            if (fileStatus.isFile()){
-                dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
-            }
-        }
-
-        for(FileStatus dataFile : dataFiles) {
-            fs.rename(dataFile.getPath(), dir);
-            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
-        }
-    }
-
-    /**
-     * Get the deviation
-     */
-    protected abstract float getDeviation();
-
-    protected void checkWriteSize() {
-        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
-            return;
-        }
-
-        if (getCurrentFileSize() > maxFileSize){
-            try{
-                flushBlock();
-                lastWriteSize = bytesWriteCounter.getLocalValue();
-            }catch (IOException e){
-                throw new RuntimeException(e);
-            }
-
-            nextBlock();
-        }
-
-        nextNumForCheckDataSize = getNextNumForCheckDataSize();
-        LOG.info("The next record number for check data size is:[{}],current write number is:[{}]", nextNumForCheckDataSize, numWriteCounter.getLocalValue());
-    }
-
-    private long getCurrentFileSize(){
-        long currentFileSize = (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
-        LOG.info("Current file size:[{}]", currentFileSize);
-
-        return  currentFileSize;
-    }
-
-    private long getNextNumForCheckDataSize(){
-        long totalBytesWrite = bytesWriteCounter.getLocalValue();
-        long totalRecordWrite = numWriteCounter.getLocalValue();
-
-        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
-
-        long currentFileSize = getCurrentFileSize();
-        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
-
-        return totalRecordWrite + recordNum;
-    }
-
-    @Override
-    protected boolean needWaitAfterCloseInternal() {
-        return true;
+    private void setHdfsOutputFormatBuilder(){
+        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(store);
+        builder.setHadoopConfig(hadoopConfig);
+        builder.setDefaultFS(defaultFS);
+        builder.setPath(path);
+        builder.setFileName(fileName);
+        builder.setWriteMode(writeMode);
+        builder.setColumnNames(columnName);
+        builder.setColumnTypes(columnType);
+        builder.setCompress(compress);
+//        builder.setMonitorUrls(monitorUrls);
+//        builder.setErrors(errors);
+//        builder.setErrorRatio(errorRatio);
+        builder.setFullColumnNames(fullColumnName);
+        builder.setFullColumnTypes(fullColumnType);
+//        builder.setDirtyPath(dirtyPath);
+//        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+//        builder.setSrcCols(srcCols);
+        builder.setCharSetName(charsetName);
+        builder.setDelimiter(delimiter);
+        builder.setRowGroupSize(rowGroupSize);
+        builder.setRestoreConfig(restoreConfig);
+        builder.setMaxFileSize(maxFileSize);
+
+        hdfsOutputFormatBuilder = builder;
     }
 
 }

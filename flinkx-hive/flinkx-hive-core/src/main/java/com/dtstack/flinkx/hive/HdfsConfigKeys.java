@@ -29,7 +29,9 @@ public class HdfsConfigKeys {
 //    public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
     public static final String KEY_DELIMITER = "delimiter";
 
-//    public static final String KEY_DEFAULT_FS = "defaultFS";
+    public static final String KEY_DEFAULT_FS = "defaultFS";
+
+    public static final String KEY_FS_DEFAULT_FS = "fs.defaultFS";
 //
 //    public static final String KEY_PATH = "path";
 

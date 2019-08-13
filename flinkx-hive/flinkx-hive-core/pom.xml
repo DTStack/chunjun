@@ -35,6 +35,11 @@ under the License.
 
     <dependencies>
         <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-hdfs</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>${hive.version}</version>
