@@ -35,17 +35,21 @@ under the License.
         <module>flinkx-hive-writer</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.dtstack.flinkx</groupId>
+                <artifactId>flinkx-hdfs</artifactId>
+                <version>1.6</version>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hdfs-writer</artifactId>
             <version>1.6</version>
             <scope>provided</scope>
         </dependency>

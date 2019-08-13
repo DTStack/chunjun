@@ -51,6 +51,12 @@ under the License.
         </dependency>
 
         <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-hdfs-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
             <artifactId>httpcore</artifactId>
             <groupId>org.apache.httpcomponents</groupId>
             <version>4.4.5</version>

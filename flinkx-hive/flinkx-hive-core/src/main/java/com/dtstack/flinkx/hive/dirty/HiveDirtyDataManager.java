@@ -41,6 +41,7 @@ public class HiveDirtyDataManager {
 
     private static Logger logger = LoggerFactory.getLogger(HiveDirtyDataManager.class);
 
+    private String taskNumStr;
     private TableInfo tableInfo;
     private Configuration config;
     private JobConf jobConf;
@@ -49,7 +50,8 @@ public class HiveDirtyDataManager {
     private Gson gson = new Gson();
 
 
-    public HiveDirtyDataManager(TableInfo tableInfo, Configuration configuration) {
+    public HiveDirtyDataManager(String taskNumStr, TableInfo tableInfo, Configuration configuration) {
+        this.taskNumStr = taskNumStr;
         this.tableInfo = tableInfo;
         this.config = configuration;
         this.jobConf = new JobConf(config);
@@ -67,7 +69,7 @@ public class HiveDirtyDataManager {
 
     public void open() {
         try {
-            String location = String.format("%s/%s-%d.txt", tableInfo.getPath(), HostUtil.getHostName(), Thread.currentThread().getId());
+            String location = String.format("%s/%s-%d.txt", tableInfo.getPath(), taskNumStr, Thread.currentThread().getId());
             String attempt = "attempt_" + DateUtil.getUnstandardFormatter().format(new Date())
                     + "_0001_m_000000_" +Thread.currentThread().getId();
             jobConf.set("mapreduce.task.attempt.id", attempt);
