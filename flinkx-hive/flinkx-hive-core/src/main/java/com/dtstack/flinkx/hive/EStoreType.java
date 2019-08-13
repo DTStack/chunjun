@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.hive;
 
+/**
+ * @author toutian
+ */
 public enum EStoreType {
     TEXT, ORC
 }

@@ -26,10 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author: haisi
- * @date 2019-06-18 14:44
+ * @author toutian
  */
-
 public class PathConverterUtil {
 
     private static Logger logger = LoggerFactory.getLogger(PathConverterUtil.class);

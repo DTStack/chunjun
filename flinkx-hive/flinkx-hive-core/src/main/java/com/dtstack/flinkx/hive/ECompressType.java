@@ -21,9 +21,7 @@ package com.dtstack.flinkx.hive;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * @author jiangbo
- * @explanation
- * @date 2019/4/3
+ * @author toutian
  */
 public enum ECompressType {
 

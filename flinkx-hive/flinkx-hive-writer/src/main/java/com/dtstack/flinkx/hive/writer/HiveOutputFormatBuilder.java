@@ -28,11 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The builder class of HdfsOutputFormat
- * <p>
- * Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
+ * @author toutian
  */
 public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
 

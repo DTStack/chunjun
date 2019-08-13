@@ -38,6 +38,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author toutian
+ */
 public final class DBUtil {
 
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";

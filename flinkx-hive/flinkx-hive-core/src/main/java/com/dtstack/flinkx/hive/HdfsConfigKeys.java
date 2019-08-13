@@ -19,10 +19,7 @@
 package com.dtstack.flinkx.hive;
 
 /**
- * This class defines configuration keys for HdfsReader and HdfsWriter
- *
- * Company: www.dtstack.com
- * @author huyifan_zju@163.com
+ * @author toutian
  */
 public class HdfsConfigKeys {
 

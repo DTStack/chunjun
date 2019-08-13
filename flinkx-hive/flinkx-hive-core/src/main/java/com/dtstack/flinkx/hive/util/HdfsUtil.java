@@ -36,10 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 
 /**
- * Utilities for HdfsReader and HdfsWriter
- *
- * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ * @author toutian
  */
 public class HdfsUtil {
 

@@ -36,6 +36,8 @@ import java.io.UnsupportedEncodingException;
 
 /** 
  * An {@link OutputFormat} that writes plain text files.
+ *
+ * @author toutian
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable

@@ -18,7 +18,9 @@
 
 package com.dtstack.flinkx.hive;
 
-
+/**
+ * @author toutian
+ */
 public enum EWriteModeType {
     APPEND, OVERWRITE
 }

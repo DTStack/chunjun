@@ -38,11 +38,7 @@ import java.util.Map;
 import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
 
 /**
- * The writer plugin of Hdfs
- * <p>
- * Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
+ * @author toutian
  */
 public class HiveWriter extends DataWriter {
 

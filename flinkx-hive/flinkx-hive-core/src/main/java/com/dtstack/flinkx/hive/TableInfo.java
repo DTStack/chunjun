@@ -21,6 +21,9 @@ package com.dtstack.flinkx.hive;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author toutian
+ */
 public class TableInfo {
 
     private String database;

@@ -37,8 +37,7 @@ import static com.dtstack.flinkx.hive.EStoreType.*;
 import static com.dtstack.flinkx.hive.EWriteModeType.*;
 
 /**
- * @author: haisi
- * @date 2019-07-02 17:47
+ * @author toutian
  */
 public class HiveUtil {
 

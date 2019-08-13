@@ -37,6 +37,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * @author toutian
+ */
 public class HiveDirtyDataManager {
 
     private static Logger logger = LoggerFactory.getLogger(HiveDirtyDataManager.class);

@@ -27,7 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-
+/**
+ * @author toutian
+ */
 public class DateUtil {
 
     private static final String TIME_ZONE = "GMT+8";
