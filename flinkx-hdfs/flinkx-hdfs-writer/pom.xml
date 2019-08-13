@@ -118,6 +118,11 @@ under the License.
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <copy todir="${basedir}/../../jars">
+                                    <fileset dir="target/">
+                                        <include name="${project.name}-1.0.0-local.jar" />
+                                    </fileset>
+                                </copy>
                                 <move file="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${git.branch}.jar" />
                             </tasks>

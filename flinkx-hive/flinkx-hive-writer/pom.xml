@@ -53,9 +53,9 @@ under the License.
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>local-1.0.0</version>
+            <version>1.0.0-local</version>
             <scope>system</scope>
-            <systemPath>${basedir}/../../jars/flinkx-hdfs-writer-local-1.0.0.jar</systemPath>
+            <systemPath>${basedir}/../../jars/flinkx-hdfs-writer-1.0.0-local.jar</systemPath>
         </dependency>
 
         <dependency>
