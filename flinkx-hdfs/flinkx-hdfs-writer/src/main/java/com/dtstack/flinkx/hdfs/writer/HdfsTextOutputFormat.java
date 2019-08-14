@@ -117,7 +117,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
         } else {
-            checkWriteSize();
+            checkFlushBlock();
         }
 
         byte[] bytes = null;

@@ -112,6 +112,13 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
 
+    /**
+     * next interval trigger outputFormat close
+     */
+    protected long flushBlockInterval = 60 * 60 * 1000;
+
+    private long nextNumForCheckFlushBlockTime = System.currentTimeMillis() + flushBlockInterval;
+
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
@@ -436,15 +443,42 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
      */
     protected abstract float getDeviation();
 
-    protected void checkWriteSize() {
-        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
-            return;
+    protected void checkFlushBlock() {
+        if (checkWriteTime() || checkWriteSize()){
+            LOG.info("flush block!");
+            nextNumForCheckFlushBlockTime = System.currentTimeMillis() + flushBlockInterval;
+            lastWriteSize = bytesWriteCounter.getLocalValue();
         }
+    }
+
+    private boolean checkWriteTime() {
+        if (flushBlockInterval != 0 && (System.currentTimeMillis() >= nextNumForCheckFlushBlockTime)) {
+            try{
+                flushBlock();
+            }catch (IOException e){
+                throw new RuntimeException(e);
+            }
+
+            nextBlock();
+            LOG.info("The next record number for check flush block time is::[{}]", nextNumForCheckFlushBlockTime);
+
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkWriteSize() {
+
+        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
+            return false;
+        }
+
+        boolean isWrite = false;
 
         if (getCurrentFileSize() > maxFileSize){
             try{
                 flushBlock();
-                lastWriteSize = bytesWriteCounter.getLocalValue();
+                isWrite = true;
             }catch (IOException e){
                 throw new RuntimeException(e);
             }
@@ -454,6 +488,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         nextNumForCheckDataSize = getNextNumForCheckDataSize();
         LOG.info("The next record number for check data size is:[{}],current write number is:[{}]", nextNumForCheckDataSize, numWriteCounter.getLocalValue());
+
+        return isWrite;
     }
 
     private long getCurrentFileSize(){
