@@ -460,8 +460,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     }
 
     private void updateDuration(){
-        durationCounter.resetLocal();
-        durationCounter.add(System.currentTimeMillis() - startTime);
+        if(durationCounter!=null){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
     }
 
     public void closeInternal() throws IOException {
