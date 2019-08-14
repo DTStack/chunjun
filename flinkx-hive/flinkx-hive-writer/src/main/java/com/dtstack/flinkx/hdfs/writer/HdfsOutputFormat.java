@@ -163,10 +163,10 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         initStatisticsAccumulator();
         initJobInfo();
-        initRestoreInfo();
 
         openInternal(taskNumber, numTasks);
 
+        initRestoreInfo();
     }
 
     @Override

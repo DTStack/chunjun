@@ -229,7 +229,7 @@ public class HiveOutputFormat extends RichOutputFormat {
                         logger.info("tablePath:{} even:{}", tablePath, event);
 
                         String tableName = tablePath;
-                        if (autoCreateTable) {
+                        if (autoCreateTable && event != null) {
                             tableName = MapUtils.getString(event, "table");
                             tableName = distributeTableMapping.getOrDefault(tableName, tableName);
                         }
@@ -275,6 +275,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(interval);
+        builder.setRestoreConfig(RestoreConfig.defaultConfig());
 
         return builder;
     }
