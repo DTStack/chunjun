@@ -24,7 +24,6 @@ import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
-import com.dtstack.flinkx.hive.dirty.HiveDirtyDataManager;
 import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
@@ -65,21 +64,11 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author toutian
  */
-public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> {
+public class HiveOutputFormat extends RichOutputFormat {
 
     private static final long serialVersionUID = -6012196822223887479L;
 
     private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
-
-    private static final int DEFAULT_RECORD_NUM_FOR_CHECK = 1000;
-
-    protected int rowGroupSize;
-
-//    protected static final String APPEND_MODE = "APPEND";
-//
-//    private static final String DATA_SUBDIR = ".data";
-//
-//    private static final String FINISHED_SUBDIR = ".finished";
 
     private static final String SP = "/";
 
@@ -112,19 +101,12 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
 
     protected Configuration conf;
 
-    protected boolean readyCheckpoint;
-
-    protected Row lastRow;
-
-    protected long rowsOfCurrentBlock;
+    protected int rowGroupSize;
 
     protected long maxFileSize;
 
-//    private long lastWriteSize;
 
-//    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
-
-    /* ----------以上hdfs插件参数保持不变----------- */
+    /* ----------以上hdfs插件参数----------- */
 
     protected RestoreConfig restoreConfig;
     protected Map<String, TableInfo> tableInfos;
@@ -145,18 +127,10 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
 
     private transient TimePartitionFormat partitionFormat;
 
-    private transient HiveDirtyDataManager hiveDirtyDataManager;
-
-    private Lock lock = new ReentrantLock();
-
-    private long lastTime = System.currentTimeMillis();
-
-    private AtomicLong dataSize = new AtomicLong(0L);
-
-    private AtomicBoolean dirtyDataRunning = new AtomicBoolean(false);
-
+    private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
     private int numTasks;
+    private Map<String, String> lastPartitionValue;
 
     /**
      * fixme table 注意不要重复创建。需要分布式一致性
@@ -167,51 +141,49 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
-        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
-        if (StringUtils.isNotBlank(partitionType) && StringUtils.isNotBlank(partition)) {
-            partitionFormat = TimePartitionFormat.getInstance(partitionType);
-        }
+        this.parameters = parameters;
 
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
+        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
+        partitionFormat = TimePartitionFormat.getInstance(partitionType);
+        lastPartitionValue = new HashMap<>(tableInfos.size());
     }
 
     @Override
-    public void open(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
     }
 
     @Override
-    public void writeRecord(Row row) throws IOException {
+    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
-            lock.lockInterruptibly();
-            try {
-                if (row.getArity() == 2) {
-                    Object obj = row.getField(0);
-                    if (obj != null && obj instanceof Map) {
-                        emitWithMap((Map<String, Object>) obj, row.getField(1));
-                    }
-                } else {
-                    emitWithRow(row);
+            if (row.getArity() == 2) {
+                Object obj = row.getField(0);
+                if (obj != null && obj instanceof Map) {
+                    emitWithMap((Map<String, Object>) obj, row.getField(1));
                 }
-            } catch (Throwable e) {
-                if (dirtyDataRunning.compareAndSet(false, true)) {
-                    createDirtyData();
-                }
-                hiveDirtyDataManager.writeData(null, e);
-                logger.error("", e);
+            } else {
+                emitWithRow(row);
             }
         } catch (Throwable e) {
-            logger.error("", e);
-        } finally {
-            lock.unlock();
+            logger.error("{}", e);
+            throw new WriteRecordException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+    }
+
+    @Override
+    public void writeRecord(Row row) throws IOException {
+        writeSingleRecord(row);
     }
 
     @Override
     public void close() throws IOException {
         closeHdfsOutputFormats();
-        closeDirtyDataManagerWriter(false);
     }
 
     private void emitWithMap(Map<String, Object> event, Object channel) throws Exception {
@@ -219,8 +191,6 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
         Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tablePath, event);
         Row rowData = setChannelInformation(event, channel, formatPair.getSecond().getColumns());
         formatPair.getFirst().writeRecord(rowData);
-
-        dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(event));
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
@@ -235,21 +205,23 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
     private void emitWithRow(Row rowData) throws Exception {
         Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tableBasePath, null);
         formatPair.getFirst().writeRecord(rowData);
-        dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(rowData));
     }
 
     private Pair<HdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
-        String hiveTablePath = tablePath;
-        String partitionPath = "";
-        if (partitionFormat != null) {
-            partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionFormat.currentTime());
-            hiveTablePath += "/" + partitionPath;
-        }
+        String partitionValue = partitionFormat.currentTime();
+        String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionValue);
+        String hiveTablePath = tablePath + SP + partitionPath;
+
         HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
+            String lastHiveTablePath = lastPartitionValue.put(tablePath, hiveTablePath);
+            if (lastHiveTablePath != null && outputFormats.get(lastHiveTablePath) != null) {
+                outputFormats.remove(lastHiveTablePath).close();
+            }
+
             hiveUtil.createPartition(tableInfo, partitionPath);
-            String path = tableInfo.getPath() + "/" + partitionPath;
+            String path = tableInfo.getPath() + SP + partitionPath;
 
             HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
             hdfsOutputFormatBuilder.setPath(path);
@@ -258,7 +230,7 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
 
             outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.setRuntimeContext(getRuntimeContext());
-            outputFormat.configure(null);
+            outputFormat.configure(parameters);
             outputFormat.open(taskNumber, numTasks);
             outputFormats.put(hiveTablePath, outputFormat);
         }
@@ -311,34 +283,12 @@ public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputF
         }
     }
 
-    private void createDirtyData() {
-//        String taskId = CmdLineParams.getName();
-//        TableInfo tableInfo = hiveUtil.createDirtyDataTable(jobId);
-//
-        this.hiveDirtyDataManager = new HiveDirtyDataManager(taskNumber + "" + numTasks, tableInfo, conf);
-        this.hiveDirtyDataManager.open();
-    }
-
-    private void closeDirtyDataManagerWriter(boolean reopen) {
-        if (dirtyDataRunning.get()) {
-            this.hiveDirtyDataManager.close();
-        }
-    }
-
     private HdfsOutputFormatBuilder getHdfsOutputFormatBuilder() {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
         builder.setDefaultFS(defaultFS);
         builder.setWriteMode(writeMode);
         builder.setCompress(compress);
-//        builder.setMonitorUrls(monitorUrls);
-//        builder.setErrors(errors);
-//        builder.setErrorRatio(errorRatio);
-//        builder.setFullColumnNames(fullColumnName);
-//        builder.setFullColumnTypes(fullColumnType);
-//        builder.setDirtyPath(dirtyPath);
-//        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
-//        builder.setSrcCols(srcCols);
         builder.setCharSetName(charsetName);
         builder.setDelimiter(delimiter);
         builder.setRowGroupSize(rowGroupSize);

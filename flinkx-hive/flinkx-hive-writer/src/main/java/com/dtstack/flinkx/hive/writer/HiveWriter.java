@@ -21,6 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.hive.EWriteModeType;
 import com.dtstack.flinkx.hive.TableInfo;
+import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import com.google.gson.Gson;
@@ -92,7 +93,7 @@ public class HiveWriter extends DataWriter {
         hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         defaultFS = hadoopConfig.get(KEY_FS_DEFAULT_FS);
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
-        partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE);
+        partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
         delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
@@ -205,12 +206,12 @@ public class HiveWriter extends DataWriter {
         builder.setDistributeTableMapping(distributeTableMapping);
         builder.setTableInfos(tableInfos);
 
-//        builder.setMonitorUrls(monitorUrls);
-//        builder.setErrors(errors);
-//        builder.setErrorRatio(errorRatio);
-//        builder.setDirtyPath(dirtyPath);
-//        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
-//        builder.setSrcCols(srcCols);
+        builder.setMonitorUrls(monitorUrls);
+        builder.setErrors(errors);
+        builder.setErrorRatio(errorRatio);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
         builder.setRestoreConfig(restoreConfig);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());

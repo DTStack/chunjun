@@ -70,7 +70,7 @@ public class TimePartitionFormat {
         return partitionEnum;
     }
 
-    enum PartitionEnum {
+    public enum PartitionEnum {
         DAY, HOUR, MINUTE
     }
 
