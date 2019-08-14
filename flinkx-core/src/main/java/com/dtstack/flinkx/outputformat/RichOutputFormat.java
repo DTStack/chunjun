@@ -140,6 +140,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     private long startTime;
 
+    protected boolean initAccumulatorAndDirty = true;
+
     public String getDirtyPath() {
         return dirtyPath;
     }
@@ -181,9 +183,12 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         initStatisticsAccumulator();
         initJobInfo();
-        initAccumulatorCollector();
-        openErrorLimiter();
-        openDirtyDataManager();
+
+        if (initAccumulatorAndDirty) {
+            initAccumulatorCollector();
+            openErrorLimiter();
+            openDirtyDataManager();
+        }
 
         if(needWaitBeforeOpenInternal()) {
             beforeOpenInternal();

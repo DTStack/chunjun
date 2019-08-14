@@ -67,6 +67,10 @@ public abstract class RichOutputFormatBuilder {
         format.restoreConfig = restoreConfig;
     }
 
+    public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {
+        this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
+    }
+
     protected abstract void checkFormat();
 
     public RichOutputFormat finish() {

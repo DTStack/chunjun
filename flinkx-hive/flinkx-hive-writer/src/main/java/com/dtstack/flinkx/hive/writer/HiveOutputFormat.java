@@ -276,6 +276,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(interval);
         builder.setRestoreConfig(RestoreConfig.defaultConfig());
+        builder.setInitAccumulatorAndDirty(false);
 
         return builder;
     }
