@@ -115,9 +115,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int numTasks;
     private Map<String, String> lastPartitionValue;
 
-    /**
-     * fixme table 注意不要重复创建。需要分布式一致性
-     */
     private Map<String, TableInfo> tableCache = new HashMap<>();
 
     private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
@@ -222,29 +219,24 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     private TableInfo checkCreateTable(String tablePath, Map event) throws Exception {
         try {
-            if (!tableCache.containsKey(tablePath)) {
-                synchronized (HiveOutputFormat.class) {
-                    if (!tableCache.containsKey(tablePath)) {
+            TableInfo tableInfo = tableCache.get(tablePath);
+            if (tableInfo == null) {
+                logger.info("tablePath:{} even:{}", tablePath, event);
 
-                        logger.info("tablePath:{} even:{}", tablePath, event);
-
-                        String tableName = tablePath;
-                        if (autoCreateTable && event != null) {
-                            tableName = MapUtils.getString(event, "table");
-                            tableName = distributeTableMapping.getOrDefault(tableName, tableName);
-                        }
-                        TableInfo tableInfo = tableInfos.get(tableName);
-                        if (tableInfo == null) {
-                            throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
-                        }
-                        tableInfo.setTablePath(tablePath);
-                        hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                        tableCache.put(tablePath, tableInfo);
-                        return tableInfo;
-                    }
+                String tableName = tablePath;
+                if (autoCreateTable && event != null) {
+                    tableName = MapUtils.getString(event, "table");
+                    tableName = distributeTableMapping.getOrDefault(tableName, tableName);
                 }
+                tableInfo = tableInfos.get(tableName);
+                if (tableInfo == null) {
+                    throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
+                }
+                tableInfo.setTablePath(tablePath);
+                hiveUtil.createHiveTableWithTableInfo(tableInfo);
+                tableCache.put(tablePath, tableInfo);
             }
-            return tableCache.get(tablePath);
+            return tableInfo;
         } catch (Throwable e) {
             throw new Exception(e);
         }
