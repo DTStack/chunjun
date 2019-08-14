@@ -73,6 +73,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected String mode = EWriteMode.INSERT.name();
 
+    /**just for postgresql,use copy replace insert*/
+    protected String insertSqlMode;
+
     protected String table;
 
     protected List<String> column;

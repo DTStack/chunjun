@@ -303,18 +303,18 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
-
         try {
             writeSingleRecordInternal(row);
-
             if(!restoreConfig.isRestore()){
                 numWriteCounter.add(1);
             }
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
-
-            LOG.error(e.getMessage());
+            // 总记录数加1
+            if(numWriteCounter !=null ){
+                numWriteCounter.add(1);
+            }
         }
     }
 
@@ -356,9 +356,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-
         if(!restoreConfig.isRestore()){
+          if(numWriteCounter!=null){
             numWriteCounter.add(rows.size());
+          }
         }
     }
 
@@ -388,18 +389,18 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 writeRecordInternal();
             }
         }
-
         updateDuration();
-
-        bytesWriteCounter.add(row.toString().length());
+        if(bytesWriteCounter!=null){
+            bytesWriteCounter.add(row.toString().length());
+        }
     }
+
 
     private Row setChannelInfo(Row row){
         Row internalRow = new Row(row.getArity() - 1);
         for (int i = 0; i < internalRow.getArity(); i++) {
             internalRow.setField(i, row.getField(i));
         }
-
         return internalRow;
     }
 
@@ -460,8 +461,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     }
 
     private void updateDuration(){
-        durationCounter.resetLocal();
-        durationCounter.add(System.currentTimeMillis() - startTime);
+        if(durationCounter!=null){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
     }
 
     public void closeInternal() throws IOException {
