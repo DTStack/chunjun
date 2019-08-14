@@ -29,6 +29,8 @@ public class BinlogConfigKeys {
 
     public static final String KEY_PASSWORD = "password";
 
+    public static final String KEY_JDBCURL = "jdbcUrl";
+
     public final static String KEY_START = "start";
 
     public final static String KEY_CATALOG = "cat";
@@ -40,5 +42,7 @@ public class BinlogConfigKeys {
     public final static String KEY_BUFFER_SIZE = "bufferSize";
 
     public final static String KEY_PAVING_DATA = "pavingData";
+
+    public final static String KEY_TABLE = "table";
 
 }

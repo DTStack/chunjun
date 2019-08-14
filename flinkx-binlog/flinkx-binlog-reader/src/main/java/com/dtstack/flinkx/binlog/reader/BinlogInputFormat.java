@@ -308,4 +308,12 @@ public class BinlogInputFormat extends RichInputFormat {
     public void setPavingData(boolean pavingData) {
         this.pavingData = pavingData;
     }
+
+    public void setTable(List<String> table) {
+        this.table = table;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
 }
