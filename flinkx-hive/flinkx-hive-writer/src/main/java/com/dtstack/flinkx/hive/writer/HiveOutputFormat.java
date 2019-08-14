@@ -90,7 +90,7 @@ public class HiveOutputFormat extends RichOutputFormat {
      */
     protected Map<String, String> hadoopConfig;
 
-    protected String store;
+    protected String fileType;
 
     /**
      * 写入模式
@@ -373,7 +373,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private HdfsOutputFormatBuilder getHdfsOutputFormatBuilder() {
-        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(store);
+        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
         builder.setDefaultFS(defaultFS);
         builder.setPath(path);

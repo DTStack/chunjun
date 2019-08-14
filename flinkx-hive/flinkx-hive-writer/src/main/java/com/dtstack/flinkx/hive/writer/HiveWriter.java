@@ -30,11 +30,13 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import parquet.hadoop.ParquetWriter;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
 import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
 
 /**
@@ -44,7 +46,7 @@ public class HiveWriter extends DataWriter {
 
     private String defaultFS;
 
-    private String store;
+    private String fileType;
 
     private String partitionType;
 
@@ -68,6 +70,8 @@ public class HiveWriter extends DataWriter {
 
     private long maxFileSize;
 
+    private int rowGroupSize;
+
     private String jdbcUrl;
 
     private String database;
@@ -87,15 +91,16 @@ public class HiveWriter extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         defaultFS = hadoopConfig.get(KEY_FS_DEFAULT_FS);
-        store = writerConfig.getParameter().getStringVal(KEY_STORE);
+        fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE);
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
-        delimiter = writerConfig.getParameter().getStringVal(KEY_DELIMITER, "\u0001");
+        delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
         interval = writerConfig.getParameter().getLongVal(KEY_INTERVAL, 60 * 60 * 1000);
         bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
+        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, EWriteModeType.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
@@ -124,8 +129,8 @@ public class HiveWriter extends DataWriter {
          * distributeTableMapping 的数据结构为<tableName,groupName>
          * tableInfos的数据结构为<groupName,TableInfo>
          */
+        distributeTableMapping = new HashMap<String, String>();
         if (StringUtils.isNotBlank(distributeTable)) {
-            distributeTableMapping = new HashMap<String, String>();
             Map<String, Object> distributeTableMap = gson.fromJson(distributeTable, Map.class);
             for (Map.Entry<String, Object> entry : distributeTableMap.entrySet()) {
                 String groupName = entry.getKey();
@@ -151,8 +156,8 @@ public class HiveWriter extends DataWriter {
     }
 
     private void formatHiveTableInfo(String tablesColumn) {
+        tableInfos = new HashMap<String, TableInfo>();
         if (StringUtils.isNotEmpty(tablesColumn)) {
-            tableInfos = new HashMap<String, TableInfo>();
             Map<String, Object> tableColumnMap = gson.fromJson(tablesColumn, Map.class);
             for (Map.Entry<String, Object> entry : tableColumnMap.entrySet()) {
                 String tableName = entry.getKey();
@@ -161,7 +166,7 @@ public class HiveWriter extends DataWriter {
                 tableInfo.setDatabase(database);
                 tableInfo.addPartition(partition);
                 tableInfo.setDelimiter(delimiter);
-                tableInfo.setStore(store);
+                tableInfo.setStore(fileType);
                 tableInfo.setTableName(tableName);
                 for (Map<String, Object> column : tableColumns) {
                     tableInfo.addColumnAndType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY), HiveUtil.convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
@@ -183,7 +188,9 @@ public class HiveWriter extends DataWriter {
         builder.setCompress(compress);
         builder.setCharSetName(charSet);
         builder.setMaxFileSize(maxFileSize);
-        builder.setStore(store);
+        builder.setRowGroupSize(rowGroupSize);
+        builder.setFileType(fileType);
+        builder.setDelimiter(delimiter);
 
         builder.setPartition(partition);
         builder.setPartitionType(partitionType);

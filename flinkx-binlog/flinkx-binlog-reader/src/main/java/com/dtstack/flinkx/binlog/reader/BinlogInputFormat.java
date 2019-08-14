@@ -58,11 +58,11 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private String jdbcUrl;
 
-    private static boolean pavingData = false;
+    private boolean pavingData = false;
 
     private Map<String,Object> start;
 
-    private static List<String> table;
+    private List<String> table;
 
     private String filter;
 
@@ -170,6 +170,8 @@ public class BinlogInputFormat extends RichInputFormat {
 
             BinlogEventSink sink = new BinlogEventSink(this);
             sink.setPavingData(pavingData);
+            binlogEventSink = sink;
+
             controller.setEventSink(sink);
 
             controller.setLogPositionManager(new BinlogPositionManager(this));
@@ -301,5 +303,9 @@ public class BinlogInputFormat extends RichInputFormat {
 
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
+    }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
     }
 }

@@ -23,8 +23,7 @@ package com.dtstack.flinkx.hive;
  */
 public class HdfsConfigKeys {
 
-//    public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
-    public static final String KEY_DELIMITER = "delimiter";
+    public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
 
     public static final String KEY_DEFAULT_FS = "defaultFS";
 
@@ -34,9 +33,7 @@ public class HdfsConfigKeys {
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
-//    public static final String KEY_FILE_TYPE = "fileType";
-
-    public static final String KEY_STORE = "store";
+    public static final String KEY_FILE_TYPE = "fileType";
 
     public static final String KEY_PARTITION_TYPE = "partitionType";
     public static final String KEY_PARTITION = "partition";

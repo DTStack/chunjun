@@ -40,8 +40,8 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format;
     }
 
-    public void setStore(String store) {
-        this.format.store = store;
+    public void setFileType(String fileType) {
+        this.format.fileType = fileType;
     }
 
     public void setPartition(String partition) {
@@ -95,22 +95,9 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
     }
     
     
-    
-    
-    public void setColumnNames(List<String> columnNames) {
-        format.columnNames = columnNames;
-    }
-
-    public void setColumnTypes(List<String> columnTypes) {
-        format.columnTypes = columnTypes;
-    }
 
     public void setHadoopConfig(Map<String,String> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
-    }
-
-    public void setFullColumnNames(List<String> fullColumnNames) {
-        format.fullColumnNames = fullColumnNames;
     }
 
     public void setDelimiter(String delimiter) {
@@ -121,24 +108,12 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         format.rowGroupSize = rowGroupSize;
     }
 
-    public void setFullColumnTypes(List<String> fullColumnTypes) {
-        format.fullColumnTypes = fullColumnTypes;
-    }
-
     public void setDefaultFS(String defaultFS) {
         format.defaultFS = defaultFS;
     }
 
     public void setWriteMode(String writeMode) {
         this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
-    }
-
-    public void setPath(String path) {
-        this.format.path = path;
-    }
-
-    public void setFileName(String fileName) {
-        this.format.fileName = fileName;
     }
 
     public void setCompress(String compress) {

@@ -39,4 +39,6 @@ public class BinlogConfigKeys {
 
     public final static String KEY_BUFFER_SIZE = "bufferSize";
 
+    public final static String KEY_PAVING_DATA = "pavingData";
+
 }
