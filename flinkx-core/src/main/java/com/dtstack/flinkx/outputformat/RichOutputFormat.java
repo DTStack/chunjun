@@ -213,7 +213,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         accumulatorCollector.start();
     }
 
-    private void initRestoreInfo(){
+    protected void initRestoreInfo(){
         if(restoreConfig == null){
             restoreConfig = RestoreConfig.defaultConfig();
         } else if(restoreConfig.isRestore()){
@@ -244,7 +244,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         LOG.info("Put last write num:{} for channel:{}", formatState.getNumberWrite(), taskNumber);
     }
 
-    private void initJobInfo(){
+    protected void initJobInfo(){
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
@@ -255,7 +255,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
     }
 
-    private void initStatisticsAccumulator(){
+    protected void initStatisticsAccumulator(){
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
         duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);

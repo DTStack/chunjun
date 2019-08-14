@@ -28,38 +28,21 @@ import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.SysUtil;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author toutian
@@ -182,8 +165,8 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    public void close() throws IOException {
-        closeHdfsOutputFormats();
+    public void closeInternal() throws IOException {
+        closeOutputFormats();
     }
 
     private void emitWithMap(Map<String, Object> event, Object channel) throws Exception {
@@ -268,15 +251,12 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     }
 
-    private void closeHdfsOutputFormats() {
+    private void closeOutputFormats() {
         Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             try {
                 Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
-//                if (entry.getValue().isTimeout(TimePartitionFormat.getPartitionEnum())) {
-//                    entryIterator.remove();
-//                }
             } catch (Exception e) {
                 logger.error("", e);
             }

@@ -2,26 +2,26 @@
     "job": {
         "setting": {
             "speed": {
-                 "channel": 3,
+                 "channel": 1,
                  "bytes": 0
             },
             "errorLimit": {
                 "record": 10000,
                 "percentage": 100
+            },
+            "dirty": {
+                "path": "/tmp/asdasdasd112",
+                "hadoopConfig": {
+                    "dfs.ha.namenodes.ns1" : "nn1,nn2",
+                    "fs.defaultFS" : "hdfs://ns1",
+                    "dfs.namenode.rpc-address.ns1.nn2" : "node002:9000",
+                    "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                    "dfs.namenode.rpc-address.ns1.nn1" : "node001:9000",
+                    "dfs.nameservices" : "ns1",
+                    "fs.hdfs.impl.disable.cache" : "true",
+                    "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
+                }
             }
-//            "dirty": {
-//                "path": "/tmp",
-//                "hadoopConfig": {
-//                    "fs.default.name": "hdfs://ns1",
-//                    "dfs.nameservices": "ns1",
-//                    "dfs.ha.namenodes.ns1": "nn1,nn2",
-//                    "dfs.namenode.rpc-address.ns1.nn1": "node002:9000",
-//                    "dfs.namenode.rpc-address.ns1.nn2": "node003:9000",
-//                    "dfs.ha.automatic-failover.enabled": "true",
-//                    "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-//                    "fs.hdfs.impl.disable.cache": "true"
-//                }
-//            }
         },
         "content": [
             {
@@ -32,8 +32,9 @@
                         "cat" : "insert,update,delete",
                         "jdbcUrl" : "jdbc:mysql://172.16.10.45:3306/test",
                         "host": "172.16.10.45",
+                        "pavingData" : true,
                         "start" : { },
-                        "table" : [ "date_test", "es_sink", "inserttype", "myresult", "pv1", "sales", "stmresult", "subtable3", "subtable4", "test_text", "testmuyun", "time_test", "totalsales", "user_list", "user_sink", "user_source", "xcpv1", "xctime", "ysq_order_fact20_carbon_3" ],
+                        "table" : [ "date_test" ],
                         "username" : "dtstack"
                     }
                 },
@@ -46,40 +47,24 @@
                            "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
                            "dfs.namenode.rpc-address.ns1.nn1" : "node001:9000",
                            "dfs.nameservices" : "ns1",
-                           "fs.hdfs.impl.disable.cache" : true,
+                           "fs.hdfs.impl.disable.cache" : "true",
                            "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
                        },
-//                       "connection": [
-//                           {
-//                               "jdbcUrl": "jdbc:hive2://node03:10000/wujing_test",
-//                               "table": [
-//                                   "kepa_250"
-//                               ]
-//                           }
-//                       ],
-//                       "fieldDelimiter": "",
-//                       "encoding": "utf-8",
-//                       "fullColumnName": [
-//                           "col1",
-//                           "col2"
-//                       ],
-//                       "fileType": "orc",
-//                       "fullColumnType": [
-//                           "string",
-//                           "string"
-//                       ],
 
+                       "fieldDelimiter": "\u0001",
+                       "encoding": "utf-8",
+                       "fileType": "orc",
 
-                       "store" : "orc",
+                       "partitionType" : "MINUTE",
+                       "partition" : "pt",
+
                        "writeMode" : "append",
                        "writeStrategy" : "0",
-                       "analyticalRules" : "stream_${schema}_${table}",
+                       "analyticalRules" : "stream_${schema}_${table}_flinkxtest",
                        "password" : "",
-                       "tablesColumn" : "{\"ysq_test\":[{\"type\":\"VARCHAR\",\"key\":\"before_ysq\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_ysq\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
-                       "delimiter" : "\u0001",
+                       "tablesColumn" : "{\"date_test\":[{\"type\":\"INT\",\"key\":\"before_id\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"INT\",\"key\":\"after_id\"},{\"type\":\"DATETIME\",\"key\":\"before_datetime1\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"DATETIME\",\"key\":\"after_datetime1\"},{\"type\":\"TIMESTAMP\",\"key\":\"before_timestamp\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"TIMESTAMP\",\"key\":\"after_timestamp\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
                        "jdbcUrl" : "jdbc:hive2://node001:10000/data_map",
                        "interval" : 60000,
-                       "writeTableType" : "0",
                        "charsetName" : "utf-8",
                        "username" : ""
                    },
