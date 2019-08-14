@@ -205,12 +205,12 @@ public class HiveWriter extends DataWriter {
         builder.setDistributeTableMapping(distributeTableMapping);
         builder.setTableInfos(tableInfos);
 
-        builder.setMonitorUrls(monitorUrls);
-        builder.setErrors(errors);
-        builder.setErrorRatio(errorRatio);
-        builder.setDirtyPath(dirtyPath);
-        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
-        builder.setSrcCols(srcCols);
+//        builder.setMonitorUrls(monitorUrls);
+//        builder.setErrors(errors);
+//        builder.setErrorRatio(errorRatio);
+//        builder.setDirtyPath(dirtyPath);
+//        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+//        builder.setSrcCols(srcCols);
         builder.setRestoreConfig(restoreConfig);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());

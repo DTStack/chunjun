@@ -18,26 +18,24 @@
 
 package com.dtstack.flinkx.hive.writer;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.hive.TableInfo;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author toutian
  */
-public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
+public class HiveOutputFormatBuilder {
 
     protected HiveOutputFormat format;
 
 
     public HiveOutputFormatBuilder() {
         format = new HiveOutputFormat();
-        super.format = format;
     }
 
     public void setFileType(String fileType) {
@@ -131,14 +129,26 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
     }
 
     public void setMaxFileSize(long maxFileSize){
-        format.maxFileSize = maxFileSize;
+        this.format.maxFileSize = maxFileSize;
     }
 
-    @Override
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.format.restoreConfig = restoreConfig;
+    }
+
+
     protected void checkFormat() {
         if (this.format.tableBasePath == null || this.format.tableBasePath.length() == 0) {
             throw new IllegalArgumentException("No tableBasePath supplied.");
         }
+        if (this.format.tableInfos.isEmpty()){
+            throw new IllegalArgumentException("No tableInfos supplied.");
+        }
+    }
+
+    public HiveOutputFormat finish() {
+        checkFormat();
+        return format;
     }
 
 }

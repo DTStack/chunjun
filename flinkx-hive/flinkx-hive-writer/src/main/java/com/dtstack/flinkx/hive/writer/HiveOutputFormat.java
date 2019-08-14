@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hive.writer;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
@@ -35,6 +36,7 @@ import com.google.common.collect.Maps;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -63,7 +65,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author toutian
  */
-public class HiveOutputFormat extends RichOutputFormat {
+public class HiveOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> {
 
     private static final long serialVersionUID = -6012196822223887479L;
 
@@ -73,11 +75,11 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     protected int rowGroupSize;
 
-    protected static final String APPEND_MODE = "APPEND";
-
-    private static final String DATA_SUBDIR = ".data";
-
-    private static final String FINISHED_SUBDIR = ".finished";
+//    protected static final String APPEND_MODE = "APPEND";
+//
+//    private static final String DATA_SUBDIR = ".data";
+//
+//    private static final String FINISHED_SUBDIR = ".finished";
 
     private static final String SP = "/";
 
@@ -104,50 +106,27 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     protected String defaultFS;
 
-    protected String path;
-
-    protected String fileName;
-
-    protected List<String> columnTypes;
-
-    protected List<String> columnNames;
-
-    protected List<String> fullColumnNames;
-
-    protected List<String> fullColumnTypes;
-
     protected String delimiter;
-
-    protected String tmpPath;
-
-    protected String finishedPath;
 
     protected String charsetName = "UTF-8";
 
-    protected int[] colIndices;
-
     protected Configuration conf;
-
-    protected int blockIndex = 0;
 
     protected boolean readyCheckpoint;
 
     protected Row lastRow;
 
-    private String currentBlockFileNamePrefix;
-
-    protected String currentBlockFileName;
-
     protected long rowsOfCurrentBlock;
 
     protected long maxFileSize;
 
-    private long lastWriteSize;
+//    private long lastWriteSize;
 
-    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
+//    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
 
     /* ----------以上hdfs插件参数保持不变----------- */
 
+    protected RestoreConfig restoreConfig;
     protected Map<String, TableInfo> tableInfos;
     protected Map<String, String> distributeTableMapping;
     protected String partition;
@@ -162,10 +141,6 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     private transient HiveUtil hiveUtil;
 
-    private transient long lastTime = System.currentTimeMillis();
-
-    private transient AtomicLong dataSize = new AtomicLong(0L);
-
     private transient ScheduledExecutorService executor;
 
     private transient TimePartitionFormat partitionFormat;
@@ -173,6 +148,10 @@ public class HiveOutputFormat extends RichOutputFormat {
     private transient HiveDirtyDataManager hiveDirtyDataManager;
 
     private Lock lock = new ReentrantLock();
+
+    private long lastTime = System.currentTimeMillis();
+
+    private AtomicLong dataSize = new AtomicLong(0L);
 
     private AtomicBoolean dirtyDataRunning = new AtomicBoolean(false);
 
@@ -194,45 +173,32 @@ public class HiveOutputFormat extends RichOutputFormat {
         }
 
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        process();
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    public void open(int taskNumber, int numTasks) throws IOException {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (row.getArity() == 1) {
-            Object obj = row.getField(0);
-            if (obj instanceof Map) {
-                emit((Map<String, Object>) obj);
-            }
-        }
-    }
-
-    @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-    }
-
-    private void emit(Map event) {
-        String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+    public void writeRecord(Row row) throws IOException {
         try {
             lock.lockInterruptibly();
-
-            HdfsOutputFormat format = getHdfsOutputFormat(tablePath, event);
-
             try {
-                format.writeRecord(Row.of(event));
-//                format.writeRecord(format.convert2Record(event));
-                dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(event));
+                if (row.getArity() == 2) {
+                    Object obj = row.getField(0);
+                    if (obj != null && obj instanceof Map) {
+                        emitWithMap((Map<String, Object>) obj, row.getField(1));
+                    }
+                } else {
+                    emitWithRow(row);
+                }
             } catch (Throwable e) {
                 if (dirtyDataRunning.compareAndSet(false, true)) {
                     createDirtyData();
                 }
-                hiveDirtyDataManager.writeData(event, e);
+                hiveDirtyDataManager.writeData(null, e);
                 logger.error("", e);
             }
         } catch (Throwable e) {
@@ -242,32 +208,37 @@ public class HiveOutputFormat extends RichOutputFormat {
         }
     }
 
-    public void process() {
-        executor = new ScheduledThreadPoolExecutor(1);
-        executor.scheduleWithFixedDelay(() -> {
-            if ((System.currentTimeMillis() - lastTime >= interval)
-                    || dataSize.get() >= bufferSize) {
-                try {
-                    lock.lockInterruptibly();
-                    closeHdfsOutputFormats();
-                    closeDirtyDataManagerWriter(true);
-                    resetWriteStrategy();
-                    logger.warn("hdfs commit again...");
-                } catch (InterruptedException e) {
-                    logger.error("{}", e);
-                } finally {
-                    lock.unlock();
-                }
-            }
-        }, 1000, 1000, TimeUnit.MILLISECONDS);
+    @Override
+    public void close() throws IOException {
+        closeHdfsOutputFormats();
+        closeDirtyDataManagerWriter(false);
     }
 
-    private void resetWriteStrategy() {
-        dataSize.set(0L);
-        lastTime = System.currentTimeMillis();
+    private void emitWithMap(Map<String, Object> event, Object channel) throws Exception {
+        String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tablePath, event);
+        Row rowData = setChannelInformation(event, channel, formatPair.getSecond().getColumns());
+        formatPair.getFirst().writeRecord(rowData);
+
+        dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(event));
     }
 
-    public HdfsOutputFormat getHdfsOutputFormat(String tablePath, Map event) throws Exception {
+    private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
+        Row rowData = new Row(event.size() + 1);
+        for (int i = 0; i < columns.size(); i++) {
+            rowData.setField(i, event.get(columns.get(i)));
+        }
+        rowData.setField(rowData.getArity() - 1, channel);
+        return rowData;
+    }
+
+    private void emitWithRow(Row rowData) throws Exception {
+        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tableBasePath, null);
+        formatPair.getFirst().writeRecord(rowData);
+        dataSize.addAndGet(ObjectSizeCalculator.getObjectSize(rowData));
+    }
+
+    private Pair<HdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
         String hiveTablePath = tablePath;
         String partitionPath = "";
         if (partitionFormat != null) {
@@ -275,8 +246,8 @@ public class HiveOutputFormat extends RichOutputFormat {
             hiveTablePath += "/" + partitionPath;
         }
         HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
+        TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
-            TableInfo tableInfo = checkCreateTable(tablePath, event);
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + "/" + partitionPath;
 
@@ -286,30 +257,12 @@ public class HiveOutputFormat extends RichOutputFormat {
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
             outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setRuntimeContext(getRuntimeContext());
             outputFormat.configure(null);
             outputFormat.open(taskNumber, numTasks);
             outputFormats.put(hiveTablePath, outputFormat);
-
-
-//            if (EStoreType.TEXT.name().equalsIgnoreCase(tableInfo.getStore())) {
-//                hdfsOutputFormat = new HiveTextOutputFormat(configuration, path, tableInfo.getColumns(), tableInfo.getColumnTypes(),
-//                        compress, writeMode, charset, tableInfo.getDelimiter());
-//            } else if (EStoreType.ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
-//                hdfsOutputFormat = new HiveOrcOutputFormat(configuration, path, tableInfo.getColumns(), tableInfo.getColumnTypes(),
-//                        compress, writeMode, charset);
-//            } else {
-//                throw new UnsupportedOperationException("The hdfs store type is unsupported, please use (" + StoreEnum.listStore() + ")");
-//            }
-//            hdfsOutputFormat.configure();
-//            outputFormats.put(hiveTablePath, hdfsOutputFormat);
         }
-        return outputFormat;
-    }
-
-    @Override
-    public void close() throws IOException {
-        closeHdfsOutputFormats();
-        closeDirtyDataManagerWriter(false);
+        return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
     private TableInfo checkCreateTable(String tablePath, Map event) throws Exception {
@@ -326,6 +279,9 @@ public class HiveOutputFormat extends RichOutputFormat {
                             tableName = distributeTableMapping.getOrDefault(tableName, tableName);
                         }
                         TableInfo tableInfo = tableInfos.get(tableName);
+                        if (tableInfo == null) {
+                            throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
+                        }
                         tableInfo.setTablePath(tablePath);
                         hiveUtil.createHiveTableWithTableInfo(tableInfo);
                         tableCache.put(tablePath, tableInfo);
@@ -357,8 +313,8 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     private void createDirtyData() {
 //        String taskId = CmdLineParams.getName();
-        TableInfo tableInfo = hiveUtil.createDirtyDataTable(jobId);
-
+//        TableInfo tableInfo = hiveUtil.createDirtyDataTable(jobId);
+//
         this.hiveDirtyDataManager = new HiveDirtyDataManager(taskNumber + "" + numTasks, tableInfo, conf);
         this.hiveDirtyDataManager.open();
     }
@@ -366,9 +322,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     private void closeDirtyDataManagerWriter(boolean reopen) {
         if (dirtyDataRunning.get()) {
             this.hiveDirtyDataManager.close();
-            if (reopen) {
-                this.hiveDirtyDataManager.open();
-            }
         }
     }
 
@@ -376,11 +329,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
         builder.setDefaultFS(defaultFS);
-        builder.setPath(path);
-        builder.setFileName(fileName);
         builder.setWriteMode(writeMode);
-//        builder.setColumnNames(columnName);
-//        builder.setColumnTypes(columnType);
         builder.setCompress(compress);
 //        builder.setMonitorUrls(monitorUrls);
 //        builder.setErrors(errors);
@@ -395,6 +344,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setRowGroupSize(rowGroupSize);
         builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
+        builder.setFlushBlockInterval(interval);
 
         return builder;
     }
