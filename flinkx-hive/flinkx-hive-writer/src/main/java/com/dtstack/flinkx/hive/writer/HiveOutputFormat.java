@@ -55,10 +55,6 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     private static final String SP = "/";
 
-    private FileSystem fs;
-
-    private String outputFilePath;
-
     /**
      * hdfs高可用配置
      */
@@ -88,10 +84,8 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     protected long maxFileSize;
 
-
     /* ----------以上hdfs插件参数----------- */
 
-    protected RestoreConfig restoreConfig;
     protected Map<String, TableInfo> tableInfos;
     protected Map<String, String> distributeTableMapping;
     protected String partition;
@@ -105,18 +99,14 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected boolean autoCreateTable;
 
     private transient HiveUtil hiveUtil;
-
-    private transient ScheduledExecutorService executor;
-
     private transient TimePartitionFormat partitionFormat;
 
     private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
     private int numTasks;
+
     private Map<String, String> lastPartitionValue;
-
     private Map<String, TableInfo> tableCache = new HashMap<>();
-
     private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
 
     @Override
@@ -264,7 +254,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setCharSetName(charsetName);
         builder.setDelimiter(delimiter);
         builder.setRowGroupSize(rowGroupSize);
-        builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(interval);
         builder.setRestoreConfig(RestoreConfig.defaultConfig());
