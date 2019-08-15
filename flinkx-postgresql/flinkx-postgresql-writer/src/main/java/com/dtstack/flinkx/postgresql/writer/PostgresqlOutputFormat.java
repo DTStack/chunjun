@@ -118,7 +118,6 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
             throw new RuntimeException("not support insertSqlMode:" + insertMode);
         }
 
-        LOG.info("use insert mode:" + insertMode);
         return true;
     }
 
