@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
@@ -33,13 +51,11 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka09InputFormat.class);
 
-    private Map<String, ConsumerConnector> consumerConnMap = new HashMap<>();
-
     private String encoding;
 
     private String codec;
 
-    private List<String> topics;
+    private String topic;
 
     private Map<String, String> consumerSettings;
 
@@ -47,18 +63,17 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private transient ExecutorService executor;
 
+    private transient ConsumerConnector consumerConnector;
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        for (String topic : topics) {
-            ConsumerConnector consumer = consumerConnMap.get(topic);
-            Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-            topicCountMap.put(topic, 1);
-            Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
+        Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
+        topicCountMap.put(topic, 1);
+        Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumerConnector.createMessageStreams(topicCountMap);
 
-            List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
-            for (final KafkaStream<byte[], byte[]> stream : streams) {
-                executor.submit(new KafkaConsumer(stream, this));
-            }
+        List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
+        for (final KafkaStream<byte[], byte[]> stream : streams) {
+            executor.submit(new KafkaConsumer(stream, this));
         }
     }
 
@@ -74,42 +89,29 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        for (ConsumerConnector consumer : consumerConnMap.values()) {
-            consumer.commitOffsets(true);
-            consumer.shutdown();
-        }
-
+        consumerConnector.commitOffsets(true);
+        consumerConnector.shutdown();
         executor.shutdownNow();
     }
 
     @Override
     public void configure(Configuration parameters) {
-
-
         Properties props = geneConsumerProp();
-        for (String topicName : topics) {
-            ConsumerConnector consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
-            consumerConnMap.put(topicName, consumer);
-        }
+        consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
 
-        executor = Executors.newFixedThreadPool(topics.size());
+        executor = Executors.newFixedThreadPool(1);
         queue = new SynchronousQueue<Row>(false);
-
     }
 
     private Properties geneConsumerProp() {
         Properties props = new Properties();
-
-        Iterator<Map.Entry<String, String>> consumerSetting = consumerSettings
-                .entrySet().iterator();
-
+        Iterator<Map.Entry<String, String>> consumerSetting = consumerSettings.entrySet().iterator();
         while (consumerSetting.hasNext()) {
             Map.Entry<String, String> entry = consumerSetting.next();
             String k = entry.getKey();
             String v = entry.getValue();
             props.put(k, v);
         }
-
         return props;
     }
 
@@ -156,8 +158,8 @@ public class Kafka09InputFormat extends RichInputFormat {
         this.codec = codec;
     }
 
-    public void setTopic(List<String> topics) {
-        this.topics = topics;
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {
