@@ -4,15 +4,16 @@
       {
         "reader": {
           "parameter": {
-            "topic" : "yxabc",
+            "bootstrapServers" : "172.16.8.107:9092",
+            "groupId" : "default",
+            "topic" : "mq03",
             "consumerSettings" : {
               "zookeeper.connect" : "172.16.8.107:2181/kafka",
-              "group.id" : "default",
               "auto.commit.interval.ms" : "1000",
-              "auto.offset.reset" : "smallest"
+              "auto.offset.reset" : "latest"
             }
           },
-          "name": "kafka09reader"
+          "name": "kafka11reader"
         },
         "writer": {
           "parameter": {
@@ -23,7 +24,7 @@
             "topic" : "mufeng_est",
             "brokerList" : "172.16.8.107:9092"
           },
-          "name": "kafka09writer"
+          "name": "kafka11writer"
         }
       }
     ],

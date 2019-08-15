@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-kafka10</artifactId>
+        <artifactId>flinkx-kafka11</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
@@ -69,13 +69,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/kafka10reader">
+                                <copy todir="${basedir}/../../plugins/kafka11reader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/kafka10reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafka10reader/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../plugins/kafka11reader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/kafka11reader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -4,15 +4,15 @@
       {
         "reader": {
           "parameter": {
-            "topic" : "yxabc",
-            "consumerSettings" : {
-              "zookeeper.connect" : "172.16.8.107:2181/kafka",
-              "group.id" : "default",
-              "auto.commit.interval.ms" : "1000",
-              "auto.offset.reset" : "smallest"
-            }
+            "password" : "abc123",
+            "cat" : "insert,update,delete",
+            "jdbcUrl" : "jdbc:mysql://172.16.10.45:3306/test",
+            "host": "172.16.10.45",
+            "start" : { },
+            "table" : [ "date_test", "es_sink", "inserttype", "myresult", "pv1", "sales", "stmresult", "subtable3", "subtable4", "test_text", "testmuyun", "time_test", "totalsales", "user_list", "user_sink", "user_source", "xcpv1", "xctime", "ysq_order_fact20_carbon_3" ],
+            "username" : "dtstack"
           },
-          "name": "kafka09reader"
+          "name": "binlogreader"
         },
         "writer": {
           "parameter": {
@@ -23,7 +23,7 @@
             "topic" : "mufeng_est",
             "brokerList" : "172.16.8.107:9092"
           },
-          "name": "kafka09writer"
+          "name": "kafka11writer"
         }
       }
     ],
