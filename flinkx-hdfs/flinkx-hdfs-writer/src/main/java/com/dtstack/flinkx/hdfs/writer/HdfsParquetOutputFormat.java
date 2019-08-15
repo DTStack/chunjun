@@ -246,8 +246,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
             writer.write(group);
 
-            lastRow = row;
-            rowsOfCurrentBlock++;
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+                rowsOfCurrentBlock++;
+            }
         } catch (Exception e){
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
