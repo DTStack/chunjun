@@ -36,12 +36,8 @@ public class FunctionParser {
     private static final String COL_REGEX = "\\$\\([^\\(\\)]+?\\)";
     private static Pattern COL_PATTERN = Pattern.compile(COL_REGEX);
 
-    private static final String FUNC_REGEX = "[^\\(\\)]+\\(.*\\)";
-    private static Pattern FUNC_PATTERN = Pattern.compile(FUNC_REGEX);
-
     private static String LEFT_KUO = "(";
     private static String RIGHT_KUO = ")";
-    private static String COLUMN_PREFIX = "$";
     private static String DELIM = "_";
 
     public static List<String> parseRowKeyCol(String express){
@@ -65,49 +61,120 @@ public class FunctionParser {
             throw new RuntimeException("Row key column express can not be empty");
         }
 
+        express = replaceColToStringFunc(express);
+
         FunctionTree root = new FunctionTree();
         root.setFunction(new StringFunction());
 
-        if(express.matches(FUNC_REGEX)){
-            parseFunction(express, root);
-        } else {
-            parseColumn(express, root);
+        if(express.startsWith(DELIM)){
+            FunctionTree child = new FunctionTree();
+            child.setFunction(new ConstantFunction(""));
+            root.addInputFunction(child);
+            express = express.substring(1);
+        }
+
+        parseFunction(root, express);
+
+        if(express.endsWith(DELIM)){
+            FunctionTree child = new FunctionTree();
+            child.setFunction(new ConstantFunction(""));
+            root.addInputFunction(child);
         }
 
         return root;
     }
 
-    private static void parseColumn(String express, FunctionTree root){
-        for (String split : express.split(DELIM)) {
-            FunctionTree subFunc = new FunctionTree();
-            if(split.startsWith(COLUMN_PREFIX)){
-                String col = split.substring(split.indexOf(LEFT_KUO)+1, split.indexOf(RIGHT_KUO));
-
-                subFunc.setFunction(new StringFunction());
-                subFunc.setColumnName(col);
-            } else {
-                ConstantFunction function = new ConstantFunction();
-                function.setValue(split);
-                subFunc.setFunction(function);
+    private static void parseFunction(FunctionTree root, String express){
+        int leftBracketsIndex = express.indexOf("(");
+        if (leftBracketsIndex == -1){
+            root.setColumnName(express);
+        } else {
+            int rightBracketsIndex = findRightBrackets(leftBracketsIndex, express);
+            if(rightBracketsIndex == -1){
+                throw new IllegalArgumentException("Illegal express:" + express);
             }
 
-            root.addInputFunction(subFunc);
+            String value = express.substring(0, leftBracketsIndex);
+            if(StringUtils.isEmpty(value)){
+                throw new IllegalArgumentException("Parse function from express fail,function name can not be empty");
+            }
+
+            if(value.startsWith(DELIM)){
+                value = value.substring(1);
+            }
+
+            String[] splits = value.split(DELIM);
+            for (int i = 0; i < splits.length-1; i++) {
+                FunctionTree child = new FunctionTree();
+                child.setFunction(new ConstantFunction(splits[i]));
+                root.addInputFunction(child);
+            }
+
+            FunctionTree child = new FunctionTree();
+            child.setFunction(FunctionFactory.createFuntion(splits[splits.length -1 ]));
+            root.addInputFunction(child);
+
+            String subExpress = express.substring(leftBracketsIndex+1, rightBracketsIndex);
+            parseFunction(child, subExpress);
+
+            String leftExpress = express.substring(rightBracketsIndex+1);
+            processLeftExpress(leftExpress, root);
         }
     }
 
-    private static void parseFunction(String express, FunctionTree root){
-        Matcher matcher = FUNC_PATTERN.matcher(express);
-        if(matcher.find()){
-            String funcExpress = matcher.group();
-            String funcName = funcExpress.substring(0, funcExpress.indexOf(LEFT_KUO));
-
-            FunctionTree subFunc = new FunctionTree();
-            subFunc.setFunction(FunctionFactory.createFuntion(funcName));
-
-            funcExpress = funcExpress.substring(funcExpress.indexOf(LEFT_KUO)+1, funcExpress.lastIndexOf(RIGHT_KUO));
-            parseColumn(funcExpress, subFunc);
-
-            root.addInputFunction(subFunc);
+    private static void processLeftExpress(String leftExpress, FunctionTree root){
+        if(StringUtils.isEmpty(leftExpress)){
+            return;
         }
+
+        if (leftExpress.contains(LEFT_KUO)) {
+            parseFunction(root, leftExpress);
+        } else {
+            if(leftExpress.startsWith(DELIM)){
+                leftExpress = leftExpress.substring(1);
+            }
+
+            if(StringUtils.isEmpty(leftExpress)){
+                return;
+            }
+
+            String[] splits = leftExpress.split(DELIM);
+            for (int i = 0; i < splits.length; i++) {
+                FunctionTree child = new FunctionTree();
+                child.setFunction(new ConstantFunction(splits[i]));
+                root.addInputFunction(child);
+            }
+        }
+    }
+
+    private static int findRightBrackets(int startIndex, String express){
+        boolean hasMeddleBrackets = false;
+        for (int i = startIndex+1; i < express.length(); i++) {
+            char c = express.charAt(i);
+            if('(' == c){
+                hasMeddleBrackets = true;
+            }
+
+            if(')' == c){
+                if(hasMeddleBrackets){
+                    hasMeddleBrackets = false;
+                } else {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public static String replaceColToStringFunc(String express){
+        Matcher matcher = COL_PATTERN.matcher(express);
+        while (matcher.find()) {
+            String columnExpress = matcher.group();
+            String column = columnExpress.substring(2, columnExpress.length() - 1);
+            express = express.replace(columnExpress, String.format("string(%s)", column));
+        }
+
+        return express;
     }
 }
