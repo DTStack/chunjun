@@ -37,10 +37,6 @@ public class KafkaConfigKeys {
 
     public static final String KEY_BOOTSTRAP_SERVERS = "bootstrapServers";
 
-    public static final String KEY_TOPIC_SELECT = "topicSelect";
-
-    public static final String KEY_ENTRY_TOPIC_SELECT = "entryTopicSelect";
-
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
 
 }

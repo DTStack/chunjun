@@ -51,20 +51,16 @@ public class Kafka09OutputFormat extends RichOutputFormat {
             props = new Properties();
             addDefaultKafkaSetting();
         }
-
+        if (producerSettings != null) {
+            props.putAll(producerSettings);
+        }
         if (StringUtils.isBlank(brokerList)) {
             throw new RuntimeException("brokerList can not be empty!");
         }
         props.put("metadata.broker.list", brokerList);
 
-        if (producerSettings != null) {
-            props.putAll(producerSettings);
-        }
-
-        ProducerConfig pconfig = new ProducerConfig(props);
-        if (producer == null) {
-            producer = new Producer<String, byte[]>(pconfig);
-        }
+        ProducerConfig producerConfig = new ProducerConfig(props);
+        producer = new Producer<String, byte[]>(producerConfig);
     }
 
     private void addDefaultKafkaSetting() {
@@ -100,8 +96,14 @@ public class Kafka09OutputFormat extends RichOutputFormat {
             String tp = Formatter.format(event, topic, timezone);
             producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
         } catch (Exception e) {
-            LOG.error("", e);
+            LOG.error("kafka output error:{}", e);
         }
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        producer.close();
+        LOG.warn("output kafka release.");
     }
 
     @Override
