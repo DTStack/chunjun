@@ -31,6 +31,8 @@ public class FormatState implements Serializable {
 
     private Object state;
 
+    private long numberRead;
+
     private long numberWrite;
 
     public FormatState() {
@@ -39,6 +41,14 @@ public class FormatState implements Serializable {
     public FormatState(int numOfSubTask, Object state) {
         this.numOfSubTask = numOfSubTask;
         this.state = state;
+    }
+
+    public long getNumberRead() {
+        return numberRead;
+    }
+
+    public void setNumberRead(long numberRead) {
+        this.numberRead = numberRead;
     }
 
     public long getNumberWrite() {
@@ -70,6 +80,7 @@ public class FormatState implements Serializable {
         return "FormatState{" +
                 "numOfSubTask=" + numOfSubTask +
                 ", state=" + state +
+                ", numberRead=" + numberRead +
                 ", numberWrite=" + numberWrite +
                 '}';
     }

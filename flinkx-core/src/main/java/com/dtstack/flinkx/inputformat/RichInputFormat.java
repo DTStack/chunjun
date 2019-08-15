@@ -155,6 +155,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     }
 
     private void getInitState(){
+        if(formatState != null){
+            numReadCounter.add(formatState.getNumberRead());
+            return;
+        }
+
         formatState = new FormatState();
 
         String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubtask);
@@ -212,6 +217,15 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         return null;
     }
 
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState() {
+        formatState.setNumberRead(numReadCounter.getLocalValue());
+        return formatState;
+    }
+
     protected abstract Row nextRecordInternal(Row row) throws IOException;
 
     @Override
@@ -259,6 +273,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
         return new DefaultInputSplitAssigner(inputSplits);
+    }
+
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     public RestoreConfig getRestoreConfig() {

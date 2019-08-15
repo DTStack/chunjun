@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,8 +22,8 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
-import com.dtstack.flinkx.binlog.BinlogPosUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -60,7 +60,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private boolean pavingData = false;
 
-    private Map<String,Object> start;
+    private Map<String, Object> start;
 
     private List<String> table;
 
@@ -72,40 +72,28 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private int bufferSize;
 
-    /** internal fields */
-
-    private transient MysqlEventParser controller;
-
-    private transient ScheduledExecutorService scheduler;
-
     private volatile EntryPosition entryPosition;
 
-    private EntryPosition lastEntryPosition;
-
     private List<String> categories = new ArrayList<>();
+
+    /**
+     * internal fields
+     */
+
+    private transient MysqlEventParser controller;
 
     private transient BinlogEventSink binlogEventSink;
 
     public void updateLastPos(EntryPosition entryPosition) {
-        this.entryPosition = entryPosition;
+        formatState.setState(entryPosition);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("save pos to local, entryPosition:{}", entryPosition);
+        }
     }
 
     public boolean accept(String type) {
         return categories.isEmpty() || categories.contains(type);
-    }
-
-    private void savePos(){
-        if (entryPosition == null || entryPosition.getPosition() == null || entryPosition.getJournalName() == null
-                || lastEntryPosition != null && lastEntryPosition.getPosition().equals(entryPosition.getPosition()) && lastEntryPosition.getJournalName().equals(entryPosition.getJournalName())
-                ) {
-            return;
-        }
-        try {
-            BinlogPosUtil.savePos("default_task_id_output", entryPosition);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        LOG.debug("save pos to local, entryPosition:{}", entryPosition);
     }
 
     @Override
@@ -113,17 +101,7 @@ public class BinlogInputFormat extends RichInputFormat {
         LOG.info("binlog emit started...");
 
         controller.start();
-
-        LOG.info("binlog scheduleAtFixedRate....");
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                savePos();
-            }
-        }, period, period, TimeUnit.MILLISECONDS);
-
-        LOG.info("binlog emit ended...");
+        LOG.info("binlog controller start...");
     }
 
     @Override
@@ -135,16 +113,11 @@ public class BinlogInputFormat extends RichInputFormat {
     protected void closeInternal() throws IOException {
         LOG.info("binlog release...");
 
-        if(controller != null) {
+        if (controller != null) {
             controller.stop();
         }
 
-        if(scheduler != null) {
-            scheduler.shutdown();
-        }
-
-        savePos();
-        LOG.info("binlog release..., save pos:{}", entryPosition);
+        LOG.info("binlog release..., entryPosition:{}", entryPosition);
     }
 
     @Override
@@ -220,24 +193,24 @@ public class BinlogInputFormat extends RichInputFormat {
 
             LOG.info("binlog prepare ended..");
         } catch (Exception e) {
-            LOG.error("",e);
+            LOG.error("", e);
             System.exit(-1);
         }
     }
 
     private void parseCategories() {
-        if(!StringUtils.isBlank(cat)) {
+        if (!StringUtils.isBlank(cat)) {
             LOG.info("{}", categories);
             categories = Arrays.asList(cat.toUpperCase().split(","));
         }
     }
 
     private EntryPosition findStartPosition() {
-        if(start != null && start.size() != 0) {
+        if (start != null && start.size() != 0) {
             EntryPosition startPosition = new EntryPosition();
             String journalName = (String) start.get("journalName");
-            if(StringUtils.isNotEmpty(journalName)) {
-                if(new BinlogJournalValidator(host, port, username, password).check(journalName)) {
+            if (StringUtils.isNotEmpty(journalName)) {
+                if (new BinlogJournalValidator(host, port, username, password).check(journalName)) {
                     startPosition.setJournalName(journalName);
                 } else {
                     throw new IllegalArgumentException("Can't find journalName: " + journalName);
@@ -249,10 +222,8 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         EntryPosition startPosition = null;
-        try {
-            startPosition = BinlogPosUtil.readPos("default_task_id");
-        } catch(IOException e) {
-            LOG.error("Failed to read pos file: " + e.getMessage());
+        if (formatState != null && formatState.getState() != null) {
+            startPosition = (EntryPosition) formatState.getState();
         }
         return startPosition;
     }
@@ -260,7 +231,7 @@ public class BinlogInputFormat extends RichInputFormat {
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0,1);
+        split[0] = new GenericInputSplit(0, 1);
         return split;
     }
 
