@@ -79,10 +79,10 @@ public class Kafka11OutputFormat extends RichOutputFormat {
 
     private void addDefaultKafkaSetting() {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG,86400000);
-        props.put(ProducerConfig.RETRIES_CONFIG,1000000);
-        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION,1);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
+        props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
     }
 
     @Override

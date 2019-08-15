@@ -56,11 +56,11 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private Map<String, String> producerSettings;
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     private transient KafkaProducer<String, String> producer;
 
     private transient JsonDecoder jsonDecoder = new JsonDecoder();
+
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Configuration parameters) {
