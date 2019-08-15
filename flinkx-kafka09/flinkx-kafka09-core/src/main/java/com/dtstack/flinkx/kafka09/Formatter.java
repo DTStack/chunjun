@@ -45,7 +45,7 @@ public class Formatter {
       return format(event,format,"UTC");
 	}
 	
-	public static String format(Map event, String format, String Timezone) {
+	public static String format(Map event, String format, String timezone) {
 		Matcher m = p.matcher(format);
 		StringBuffer sb = new StringBuffer();
 		while (m.find()) {
@@ -59,7 +59,7 @@ public class Formatter {
 			} else if (key.startsWith("+")) {
 				DateTimeFormatter formatter = DateTimeFormat.forPattern(
 						(String) key.subSequence(1, key.length())).withZone(
-						DateTimeZone.forID(Timezone));
+						DateTimeZone.forID(timezone));
 				Object o = event.get("@timestamp");
 				if (o == null) {
 					DateTime timestamp = new DateTime();
