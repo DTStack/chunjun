@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.kafka10.writer;
+package com.dtstack.flinkx.kafka11.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.kafka10.Formatter;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
+import com.dtstack.flinkx.kafka11.Formatter;
+import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
@@ -42,9 +42,9 @@ import java.util.Properties;
  * author: toutian
  * create: 2019/7/5
  */
-public class Kafka10OutputFormat extends RichOutputFormat {
+public class Kafka11OutputFormat extends RichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Kafka10OutputFormat.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Kafka11OutputFormat.class);
 
     private Properties props;
 
@@ -56,11 +56,11 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private Map<String, String> producerSettings;
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     private transient KafkaProducer<String, String> producer;
 
     private transient JsonDecoder jsonDecoder = new JsonDecoder();
+
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Configuration parameters) {
@@ -79,10 +79,10 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private void addDefaultKafkaSetting() {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
-        props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
-        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG,86400000);
+        props.put(ProducerConfig.RETRIES_CONFIG,1000000);
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION,1);
     }
 
     @Override

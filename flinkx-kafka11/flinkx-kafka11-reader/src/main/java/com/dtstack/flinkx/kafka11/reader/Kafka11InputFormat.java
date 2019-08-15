@@ -17,7 +17,7 @@
  */
 
 
-package com.dtstack.flinkx.kafka10.reader;
+package com.dtstack.flinkx.kafka11.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -42,9 +42,9 @@ import java.util.concurrent.SynchronousQueue;
  * author: toutian
  * create: 2019/7/5
  */
-public class Kafka10InputFormat extends RichInputFormat {
+public class Kafka11InputFormat extends RichInputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Kafka10InputFormat.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Kafka11InputFormat.class);
 
     private String topic;
 

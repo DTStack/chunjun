@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka10.reader;
+package com.dtstack.flinkx.kafka11.reader;
 
-import com.dtstack.flinkx.kafka10.decoder.IDecode;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
-import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
+import com.dtstack.flinkx.kafka11.decoder.IDecode;
+import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
+import com.dtstack.flinkx.kafka11.decoder.PlainDecoder;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class KafkaConsumer {
         this.props = props;
     }
 
-    public KafkaConsumer createClient(String topic, String group, Kafka10InputFormat format) {
+    public KafkaConsumer createClient(String topic, String group, Kafka11InputFormat format) {
         Properties clientProps = new Properties();
         clientProps.putAll(props);
         clientProps.put("group.id", group);
@@ -78,10 +79,10 @@ public class KafkaConsumer {
         private volatile boolean running = true;
         private long pollTimeout;
         private IDecode decode;
-        private Kafka10InputFormat format;
+        private Kafka11InputFormat format;
         private org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer;
 
-        public Client(Properties clientProps, List<String> topics, long pollTimeout, Kafka10InputFormat format) {
+        public Client(Properties clientProps, List<String> topics, long pollTimeout, Kafka11InputFormat format) {
             this.pollTimeout = pollTimeout;
             this.format = format;
             this.decode = createDecoder();

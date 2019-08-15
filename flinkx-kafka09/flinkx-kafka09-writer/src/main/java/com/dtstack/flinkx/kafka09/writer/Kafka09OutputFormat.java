@@ -47,10 +47,8 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration parameters) {
-        if (props == null) {
-            props = new Properties();
-            addDefaultKafkaSetting();
-        }
+        props = new Properties();
+        addDefaultKafkaSetting();
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
