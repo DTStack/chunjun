@@ -4,9 +4,11 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.kafka10.decoder.IDecode;
 import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
+import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +29,6 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka10InputFormat.class);
 
-    private static int threadCount = 1;
-
     private String topic;
 
     private String groupId;
@@ -45,33 +45,22 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     private BlockingQueue<Row> queue;
 
-    static {
-        Thread.currentThread().setContextClassLoader(null);
-    }
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        try {
-            consumer.add(topic, groupId, new KafkaConsumer.Caller() {
-
-                @Override
-                public void processMessage(String message) {
-                    Map<String, Object> event = Kafka10InputFormat.this.getDecode().decode(message);
-                    if (event != null && event.size() > 0) {
-                        Kafka10InputFormat.this.processEvent(event);
-                    }
+        consumer.createClient(topic, groupId, new KafkaConsumer.Caller() {
+            @Override
+            public void processMessage(String message) {
+                Map<String, Object> event = Kafka10InputFormat.this.getDecode().decode(message);
+                if (event != null && event.size() > 0) {
+                    Kafka10InputFormat.this.processEvent(event);
                 }
+            }
 
-                @Override
-                public void catchException(String message, Throwable e) {
-                    LOG.warn("kakfa consumer fetch is error,message={}", message);
-                    LOG.error("kakfa consumer fetch is error", e);
-                }
-            }, Integer.MAX_VALUE, threadCount).execute();
-
-        } catch (Exception e) {
-            LOG.error("kafka emit error", e);
-        }
+            @Override
+            public void catchException(String message, Throwable e) {
+                LOG.error("kakfa consumer fetch is error, message:{}", message, e);
+            }
+        }).execute();
     }
 
     public void processEvent(Map<String, Object> event) {
@@ -101,13 +90,10 @@ public class Kafka10InputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration parameters) {
         Properties props = geneConsumerProp();
-
         props.put("bootstrap.servers", bootstrapServers);
 
-        consumer = KafkaConsumer.init(props);
-
+        consumer = new KafkaConsumer(props);
         queue = new SynchronousQueue<Row>(false);
-
         decode = createDecoder();
     }
 
@@ -141,9 +127,16 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0,1);
-        return split;
+        InputSplit[] splits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            splits[i] = new GenericInputSplit(i, minNumSplits);
+        }
+        return splits;
+    }
+
+    @Override
+    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override

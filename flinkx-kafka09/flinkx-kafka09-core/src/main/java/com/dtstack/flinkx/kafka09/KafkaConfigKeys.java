@@ -19,6 +19,11 @@
 package com.dtstack.flinkx.kafka09;
 
 
+/**
+ * company: www.dtstack.com
+ * author: toutian
+ * create: 2019/7/5
+ */
 public class KafkaConfigKeys {
 
     public static final String KEY_TOPIC = "topic";

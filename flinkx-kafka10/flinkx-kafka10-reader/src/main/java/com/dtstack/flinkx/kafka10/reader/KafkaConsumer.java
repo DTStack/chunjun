@@ -5,9 +5,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,90 +24,60 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * company: www.dtstack.com
+ * author: toutian
+ * create: 2019/7/4
+ */
 public class KafkaConsumer {
 
     private static Logger LOG = LoggerFactory.getLogger(KafkaConsumer.class);
 
-    private volatile Properties props;
+    private Properties props;
 
-    private static List<KafkaConsumer> jconsumerList = new CopyOnWriteArrayList<>();
+    private transient Client client;
 
-    private Map<String, Client> containers = new ConcurrentHashMap<>();
+    private transient ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
-
-    public KafkaConsumer(Properties props) {
-        this.props = props;
-    }
-
-    public static KafkaConsumer init(Properties p) throws IllegalStateException {
-
+    public KafkaConsumer(Properties properties) {
         Properties props = new Properties();
         props.put("max.poll.interval.ms", "86400000");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("auto.offset.reset", "earliest");
-
-        if(p != null) {
-            props.putAll(p);
+        if (properties != null) {
+            props.putAll(properties);
         }
 
-        KafkaConsumer jKafkaConsumer = new KafkaConsumer(props);
-
-        jconsumerList.add(jKafkaConsumer);
-
-        return jKafkaConsumer;
+        this.props = props;
     }
 
-    public static KafkaConsumer init(String bootstrapServer) {
-
-        Properties props = new Properties();
-        props.put("bootstrap.servers", bootstrapServer);
-
-        return init(props);
-    }
-
-    public KafkaConsumer add(String topics, String group, Caller caller, long timeout, int threadCount) {
+    public KafkaConsumer createClient(String topic, String group, Caller caller, long timeout) {
         Properties clientProps = new Properties();
         clientProps.putAll(props);
         clientProps.put("group.id", group);
 
-        if (threadCount < 1) {
-            threadCount = 1;
-        }
-        for (int i = 0; i < threadCount; i++) {
-            containers.put(topics + "_" + i, new Client(clientProps, Arrays.asList(topics.split(",")), caller, timeout));
-        }
-
+        client = new Client(clientProps, Arrays.asList(topic.split(",")), caller, timeout);
         return this;
     }
 
-    public KafkaConsumer add(String topics, String group, Caller caller) {
-        return add(topics, group, caller, Long.MAX_VALUE, 1);
-    }
-
-    public KafkaConsumer add(String topics, String group, Caller caller, int threadCount) {
-        return add(topics, group, caller, Long.MAX_VALUE, threadCount);
+    public KafkaConsumer createClient(String topics, String group, Caller caller) {
+        return createClient(topics, group, caller, Long.MAX_VALUE);
     }
 
     public void execute() {
-        for (Map.Entry<String, Client> c : containers.entrySet()) {
-            executor.execute(c.getValue());
-        }
+        executor.execute(client);
     }
 
     public interface Caller {
 
-        public void processMessage(String message);
+        void processMessage(String message);
 
-        public void catchException(String message, Throwable e);
+        void catchException(String message, Throwable e);
     }
 
     public class Client implements Runnable {
@@ -165,23 +135,14 @@ public class KafkaConsumer {
             try {
                 running = false;
                 consumer.wakeup();
-            } catch(Exception e) {
-                LOG.error("close kafka consumer error",e);
+            } catch (Exception e) {
+                LOG.error("close kafka consumer error", e);
             }
         }
     }
 
     public void close() {
-        for (Map.Entry<String, Client> c : containers.entrySet()) {
-            containers.remove(c.getKey());
-            c.getValue().close();
-        }
-    }
-
-    public static void closeAll() {
-        for (KafkaConsumer c : jconsumerList) {
-            c.close();
-        }
+        client.close();
     }
 
 }
