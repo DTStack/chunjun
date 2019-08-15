@@ -59,7 +59,7 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private Map<String, String> consumerSettings;
 
-    private BlockingQueue<Row> queue;
+    private transient BlockingQueue<Row> queue;
 
     private transient ExecutorService executor;
 

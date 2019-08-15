@@ -40,9 +40,9 @@ public class Kafka09Reader extends DataReader {
 
     private String codec;
 
-    private Map<String, String> consumerSettings;
-
     private String encoding;
+
+    private Map<String, String> consumerSettings;
 
     public Kafka09Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);

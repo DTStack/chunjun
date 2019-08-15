@@ -1,9 +1,25 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package com.dtstack.flinkx.kafka10.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.kafka10.decoder.IDecode;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
-import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -39,28 +55,13 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     private Map<String, String> consumerSettings;
 
-    private KafkaConsumer consumer;
+    private transient BlockingQueue<Row> queue;
 
-    private IDecode decode;
-
-    private BlockingQueue<Row> queue;
+    private transient KafkaConsumer consumer;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        consumer.createClient(topic, groupId, new KafkaConsumer.Caller() {
-            @Override
-            public void processMessage(String message) {
-                Map<String, Object> event = Kafka10InputFormat.this.getDecode().decode(message);
-                if (event != null && event.size() > 0) {
-                    Kafka10InputFormat.this.processEvent(event);
-                }
-            }
-
-            @Override
-            public void catchException(String message, Throwable e) {
-                LOG.error("kakfa consumer fetch is error, message:{}", message, e);
-            }
-        }).execute();
+        consumer.createClient(topic, groupId, this).execute();
     }
 
     public void processEvent(Map<String, Object> event) {
@@ -94,7 +95,6 @@ public class Kafka10InputFormat extends RichInputFormat {
 
         consumer = new KafkaConsumer(props);
         queue = new SynchronousQueue<Row>(false);
-        decode = createDecoder();
     }
 
     private Properties geneConsumerProp() {
@@ -111,18 +111,6 @@ public class Kafka10InputFormat extends RichInputFormat {
         }
 
         return props;
-    }
-
-    private IDecode createDecoder() {
-        if ("json".equals(codec)) {
-            return new JsonDecoder();
-        } else {
-            return new PlainDecoder();
-        }
-    }
-
-    public IDecode getDecode() {
-        return decode;
     }
 
     @Override
@@ -155,6 +143,10 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     public void setCodec(String codec) {
         this.codec = codec;
+    }
+
+    public String getCodec() {
+        return codec;
     }
 
     public void setBootstrapServers(String bootstrapServers) {

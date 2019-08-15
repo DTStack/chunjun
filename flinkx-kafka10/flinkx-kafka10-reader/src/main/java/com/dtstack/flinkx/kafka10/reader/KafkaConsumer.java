@@ -16,6 +16,9 @@
  */
 package com.dtstack.flinkx.kafka10.reader;
 
+import com.dtstack.flinkx.kafka10.decoder.IDecode;
+import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
+import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
@@ -24,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,78 +60,77 @@ public class KafkaConsumer {
         this.props = props;
     }
 
-    public KafkaConsumer createClient(String topic, String group, Caller caller, long timeout) {
+    public KafkaConsumer createClient(String topic, String group, Kafka10InputFormat format) {
         Properties clientProps = new Properties();
         clientProps.putAll(props);
         clientProps.put("group.id", group);
 
-        client = new Client(clientProps, Arrays.asList(topic.split(",")), caller, timeout);
+        client = new Client(clientProps, Arrays.asList(topic.split(",")), Long.MAX_VALUE, format);
         return this;
-    }
-
-    public KafkaConsumer createClient(String topics, String group, Caller caller) {
-        return createClient(topics, group, caller, Long.MAX_VALUE);
     }
 
     public void execute() {
         executor.execute(client);
     }
 
-    public interface Caller {
-
-        void processMessage(String message);
-
-        void catchException(String message, Throwable e);
-    }
-
     public class Client implements Runnable {
 
-        private Caller caller;
-
         private volatile boolean running = true;
-
         private long pollTimeout;
-
+        private IDecode decode;
+        private Kafka10InputFormat format;
         private org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer;
 
-        public Client(Properties clientProps, List<String> topics, Caller caller, long pollTimeout) {
-
+        public Client(Properties clientProps, List<String> topics, long pollTimeout, Kafka10InputFormat format) {
             this.pollTimeout = pollTimeout;
-            this.caller = caller;
-
+            this.format = format;
+            this.decode = createDecoder();
             consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<>(clientProps);
             consumer.subscribe(topics);
         }
 
         @Override
         public void run() {
-
             try {
-
                 while (running) {
 
                     ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                     for (ConsumerRecord<String, String> r : records) {
-
                         if (r.value() == null || "".equals(r.value())) {
                             continue;
                         }
-
                         try {
-                            caller.processMessage(r.value());
-
+                            processMessage(r.value());
                         } catch (Throwable e) {
-                            caller.catchException(r.value(), e);
+                            catchException(r.value(), e);
                         }
                     }
                 }
-
             } catch (WakeupException e) {
                 LOG.warn("WakeupException to close kafka consumer");
             } catch (Throwable e) {
-                caller.catchException("", e);
+                catchException("", e);
             } finally {
                 consumer.close();
+            }
+        }
+
+        public void processMessage(String message) {
+            Map<String, Object> event = decode.decode(message);
+            if (event != null && event.size() > 0) {
+                format.processEvent(event);
+            }
+        }
+
+        public void catchException(String message, Throwable e) {
+            LOG.error("kakfa consumer fetch is error, message:{}", message, e);
+        }
+
+        private IDecode createDecoder() {
+            if ("json".equals(format.getCodec())) {
+                return new JsonDecoder();
+            } else {
+                return new PlainDecoder();
             }
         }
 
