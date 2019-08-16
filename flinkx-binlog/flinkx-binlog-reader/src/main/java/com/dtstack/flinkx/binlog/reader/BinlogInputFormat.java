@@ -223,7 +223,7 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         EntryPosition startPosition = null;
-        if (formatState != null && formatState.getState() != null) {
+        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
             startPosition = (EntryPosition) formatState.getState();
         }
         return startPosition;
