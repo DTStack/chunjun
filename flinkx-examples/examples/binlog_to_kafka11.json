@@ -33,7 +33,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 4
       }
     }
   }

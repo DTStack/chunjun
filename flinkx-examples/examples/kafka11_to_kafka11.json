@@ -7,6 +7,7 @@
             "bootstrapServers" : "172.16.8.107:9092",
             "groupId" : "default",
             "topic" : "mq03",
+            "blankIgnore" : false,
             "consumerSettings" : {
               "zookeeper.connect" : "172.16.8.107:2181/kafka",
               "auto.commit.interval.ms" : "1000",

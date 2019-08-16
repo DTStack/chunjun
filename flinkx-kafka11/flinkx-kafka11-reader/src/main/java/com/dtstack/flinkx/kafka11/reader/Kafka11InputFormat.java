@@ -52,6 +52,8 @@ public class Kafka11InputFormat extends RichInputFormat {
 
     private String codec;
 
+    private boolean blankIgnore;
+
     private String bootstrapServers;
 
     private Map<String, String> consumerSettings;
@@ -148,6 +150,15 @@ public class Kafka11InputFormat extends RichInputFormat {
 
     public String getCodec() {
         return codec;
+    }
+
+
+    public void setBlankIgnore(boolean blankIgnore) {
+        this.blankIgnore = blankIgnore;
+    }
+
+    public boolean getBlankIgnore() {
+        return blankIgnore;
     }
 
     public void setBootstrapServers(String bootstrapServers) {

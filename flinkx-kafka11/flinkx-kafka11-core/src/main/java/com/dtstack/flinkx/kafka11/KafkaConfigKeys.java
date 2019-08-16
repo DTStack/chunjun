@@ -33,6 +33,8 @@ public class KafkaConfigKeys {
 
     public static final String KEY_CODEC = "codec";
 
+    public static final String KEY_BLANK_IGNORE = "blankIgnore";
+
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
 
     public static final String KEY_BOOTSTRAP_SERVERS = "bootstrapServers";

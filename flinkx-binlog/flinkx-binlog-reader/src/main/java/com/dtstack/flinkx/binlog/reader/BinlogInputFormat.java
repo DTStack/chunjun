@@ -87,10 +87,6 @@ public class BinlogInputFormat extends RichInputFormat {
 
     public void updateLastPos(EntryPosition entryPosition) {
         formatState.setState(entryPosition);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("save pos to local, entryPosition:{}", entryPosition);
-        }
     }
 
     public boolean accept(String type) {
@@ -99,10 +95,40 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("binlog emit started...");
+        LOG.info("binlog openInternal start...");
+
+        controller = new MysqlEventParser();
+        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setSlaveId(3344L);
+        controller.setDetectingEnable(false);
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
+        controller.setEnableTsdb(true);
+        controller.setDestination("example");
+        controller.setParallel(true);
+        controller.setParallelBufferSize(bufferSize);
+        controller.setParallelThreadSize(2);
+        controller.setIsGTIDMode(false);
+
+        controller.setAlarmHandler(new BinlogAlarmHandler(this));
+
+        BinlogEventSink sink = new BinlogEventSink(this);
+        sink.setPavingData(pavingData);
+        binlogEventSink = sink;
+
+        controller.setEventSink(sink);
+
+        controller.setLogPositionManager(new BinlogPositionManager(this));
+
+        EntryPosition startPosition = findStartPosition();
+        if (startPosition != null) {
+            controller.setMasterPosition(startPosition);
+        }
+
+        if (filter != null) {
+            controller.setEventFilter(new AviaterRegexFilter(filter));
+        }
 
         controller.start();
-        LOG.info("binlog controller start...");
     }
 
     @Override
@@ -112,98 +138,55 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        LOG.info("binlog release...");
+        LOG.info("binlog closeInternal..., entryPosition:{}", entryPosition);
 
         if (controller != null) {
             controller.stop();
         }
 
-        LOG.info("binlog release..., entryPosition:{}", entryPosition);
     }
 
     @Override
     public void configure(Configuration parameters) {
-        try {
-            LOG.info("binlog prepare started..");
+        LOG.info("binlog configure...");
 
-            parseCategories();
-
-            controller = new MysqlEventParser();
-            controller.setConnectionCharset(Charset.forName("UTF-8"));
-            controller.setSlaveId(3344L);
-            controller.setDetectingEnable(false);
-            controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
-            controller.setEnableTsdb(true);
-            controller.setDestination("example");
-            controller.setParallel(true);
-            controller.setParallelBufferSize(bufferSize);
-            controller.setParallelThreadSize(2);
-            controller.setIsGTIDMode(false);
-
-            controller.setAlarmHandler(new BinlogAlarmHandler(this));
-
-            BinlogEventSink sink = new BinlogEventSink(this);
-            sink.setPavingData(pavingData);
-            binlogEventSink = sink;
-
-            controller.setEventSink(sink);
-
-            controller.setLogPositionManager(new BinlogPositionManager(this));
-
-            EntryPosition startPosition = findStartPosition();
-            if (startPosition != null) {
-                controller.setMasterPosition(startPosition);
-            }
-
-            /**
-             * mysql 数据解析关注的表，Perl正则表达式.
-
-             多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
-
-
-             常见例子：
-
-             1.  所有表：.*   or  .*\\..*
-             2.  canal schema下所有表： canal\\..*
-             3.  canal下的以canal打头的表：canal\\.canal.*
-             4.  canal schema下的一张表：canal\\.test1
-
-             5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
-             */
-            if (table != null && table.size() != 0 && jdbcUrl != null) {
-                int idx = jdbcUrl.lastIndexOf('?');
-                String database = null;
-                if (idx != -1) {
-                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
-                } else {
-                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
-                }
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < table.size(); i++) {
-                    sb.append(database).append(".").append(table.get(i));
-                    if (i != table.size() - 1) {
-                        sb.append(",");
-                    }
-                }
-                filter = sb.toString();
-            }
-
-            if (filter != null) {
-                controller.setEventFilter(new AviaterRegexFilter(filter));
-            }
-
-            LOG.info("binlog prepare ended..");
-        } catch (Exception e) {
-            LOG.error("", e);
-            System.exit(-1);
-        }
-    }
-
-    private void parseCategories() {
         if (!StringUtils.isBlank(cat)) {
             LOG.info("{}", categories);
             categories = Arrays.asList(cat.toUpperCase().split(","));
         }
+        /**
+         * mysql 数据解析关注的表，Perl正则表达式.
+
+         多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
+
+
+         常见例子：
+
+         1.  所有表：.*   or  .*\\..*
+         2.  canal schema下所有表： canal\\..*
+         3.  canal下的以canal打头的表：canal\\.canal.*
+         4.  canal schema下的一张表：canal\\.test1
+
+         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
+         */
+        if (table != null && table.size() != 0 && jdbcUrl != null) {
+            int idx = jdbcUrl.lastIndexOf('?');
+            String database = null;
+            if (idx != -1) {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
+            } else {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < table.size(); i++) {
+                sb.append(database).append(".").append(table.get(i));
+                if (i != table.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            filter = sb.toString();
+        }
+
     }
 
     private EntryPosition findStartPosition() {

@@ -19,9 +19,9 @@ package com.dtstack.flinkx.kafka11.reader;
 import com.dtstack.flinkx.kafka11.decoder.IDecode;
 import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafka11.decoder.PlainDecoder;
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +78,14 @@ public class KafkaConsumer {
 
         private volatile boolean running = true;
         private long pollTimeout;
+        private boolean blankIgnore;
         private IDecode decode;
         private Kafka11InputFormat format;
         private org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer;
 
         public Client(Properties clientProps, List<String> topics, long pollTimeout, Kafka11InputFormat format) {
             this.pollTimeout = pollTimeout;
+            this.blankIgnore = format.getBlankIgnore();
             this.format = format;
             this.decode = createDecoder();
             consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<>(clientProps);
@@ -97,7 +99,7 @@ public class KafkaConsumer {
 
                     ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                     for (ConsumerRecord<String, String> r : records) {
-                        if (r.value() == null || "".equals(r.value())) {
+                        if (r.value() == null || blankIgnore && StringUtils.isBlank(r.value())) {
                             continue;
                         }
                         try {
