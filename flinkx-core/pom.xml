@@ -185,7 +185,7 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <delete dir = "${basedir}/../plugins"/>
+                                <!--<delete dir = "${basedir}/../plugins"/>-->
                                 <copy todir="${basedir}/../plugins/">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />

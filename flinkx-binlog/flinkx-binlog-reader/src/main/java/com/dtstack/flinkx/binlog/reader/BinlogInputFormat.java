@@ -22,6 +22,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang3.StringUtils;
@@ -287,4 +288,10 @@ public class BinlogInputFormat extends RichInputFormat {
     public void setJdbcUrl(String jdbcUrl) {
         this.jdbcUrl = jdbcUrl;
     }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
+    }
+
+
 }

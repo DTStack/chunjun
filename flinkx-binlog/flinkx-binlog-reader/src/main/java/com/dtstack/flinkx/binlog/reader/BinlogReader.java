@@ -19,6 +19,7 @@ package com.dtstack.flinkx.binlog.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -98,6 +99,9 @@ public class BinlogReader extends DataReader {
         format.setBufferSize(bufferSize);
         format.setPavingData(pavingData);
         format.setTable(table);
+
+        format.setRestoreConfig(RestoreConfig.restoreTrue());
+
         return createInput(format, "binlogreader");
     }
 
