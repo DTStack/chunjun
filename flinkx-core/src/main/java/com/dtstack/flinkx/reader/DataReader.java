@@ -64,6 +64,14 @@ public abstract class DataReader {
      */
     protected Map<String, String> hadoopConfig;
 
+    public int getNumPartitions() {
+        return numPartitions;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
+
     public List<String> getSrcCols() {
         return srcCols;
     }

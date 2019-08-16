@@ -67,6 +67,8 @@ public class JdbcDataReader extends DataReader {
 
     protected String customSql;
 
+    protected String orderByColumn;
+
     protected IncrementConfig incrementConfig;
 
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
@@ -92,13 +94,13 @@ public class JdbcDataReader extends DataReader {
         queryTimeOut = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_QUERY_TIME_OUT,0);
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
+        orderByColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_ORDER_BY_COLUMN,null);
 
         buildIncrementConfig(readerConfig);
     }
 
     @Override
     public DataStream<Row> readData() {
-        // Read from JDBC
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
@@ -118,25 +120,12 @@ public class JdbcDataReader extends DataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setQuery(buildSql());
+
+        QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);
+        builder.setQuery(sqlBuilder.buildSql());
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
-    }
-
-    private String buildSql(){
-        boolean isSplitByKey = numPartitions > 1 && StringUtils.isNotEmpty(splitKey);
-
-        String query;
-        if (StringUtils.isNotEmpty(customSql)){
-            query = DBUtil.buildQuerySqlWithCustomSql(databaseInterface, customSql, isSplitByKey, splitKey,
-                    incrementConfig.isIncrement(), restoreConfig.isRestore());
-        } else {
-            query = DBUtil.getQuerySql(databaseInterface, table, metaColumns, splitKey, where, isSplitByKey,
-                    incrementConfig.isIncrement(), restoreConfig.isRestore());
-        }
-
-        return query;
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){
