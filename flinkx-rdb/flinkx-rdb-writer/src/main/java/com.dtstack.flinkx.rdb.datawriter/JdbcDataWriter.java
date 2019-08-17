@@ -30,8 +30,10 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
+
 import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
 
 /**
@@ -54,6 +56,9 @@ public class JdbcDataWriter extends DataWriter {
     protected Map<String,List<String>> updateKey;
     protected List<String> fullColumn;
     protected TypeConverterInterface typeConverter;
+
+    /**just for postgresql,use copy replace insert*/
+    protected String insertSqlMode;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
 
@@ -85,6 +90,8 @@ public class JdbcDataWriter extends DataWriter {
 
         updateKey = (Map<String, List<String>>) writerConfig.getParameter().getVal(KEY_UPDATE_KEY);
         fullColumn = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN);
+
+        insertSqlMode = writerConfig.getParameter().getStringVal(KEY_INSERT_SQL_MODE);
     }
 
     @Override
@@ -111,6 +118,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setUpdateKey(updateKey);
         builder.setTypeConverter(typeConverter);
         builder.setRestoreConfig(restoreConfig);
+        builder.setInsertSqlMode(insertSqlMode);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

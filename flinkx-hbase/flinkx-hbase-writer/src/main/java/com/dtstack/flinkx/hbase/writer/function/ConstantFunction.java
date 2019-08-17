@@ -27,6 +27,13 @@ public class ConstantFunction implements IFunction {
 
     private Object value;
 
+    public ConstantFunction() {
+    }
+
+    public ConstantFunction(Object value) {
+        this.value = value;
+    }
+
     @Override
     public String evaluate(Object val) {
         return String.valueOf(value);

@@ -21,7 +21,9 @@ package com.dtstack.flinkx.hbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
@@ -64,7 +66,6 @@ public class HbaseWriter extends DataWriter {
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);
         writeBufferSize = writerConfig.getParameter().getLongVal(KEY_WRITE_BUFFER_SIZE, DEFAULT_WRITE_BUFFER_SIZE);
-        rowkeyExpress = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
 
         List columns = writerConfig.getParameter().getColumn();
         if(columns != null || columns.size() != 0) {
@@ -77,11 +78,48 @@ public class HbaseWriter extends DataWriter {
             }
         }
 
+        Object rowKeyInfo = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
+        rowkeyExpress = buildRowKeyExpress(rowKeyInfo);
+
         Map<String,Object> versionColumn = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_VERSION_COLUMN);
         if(versionColumn != null) {
             versionColumnIndex = (Integer) versionColumn.get(KEY_VERSION_COLUMN_INDEX);
             versionColumnValue = (String) versionColumn.get(KEY_VERSION_COLUMN_VALUE);
         }
+    }
+
+    /**
+     * Compatible with old formats
+     */
+    private String buildRowKeyExpress(Object rowKeyInfo){
+        if (rowKeyInfo == null){
+            return null;
+        }
+
+        if(rowKeyInfo instanceof String){
+            return rowKeyInfo.toString();
+        }
+
+        if(!(rowKeyInfo instanceof List)){
+            return null;
+        }
+
+        StringBuilder expressBuilder = new StringBuilder();
+
+        for (Map item : ((List<Map>) rowKeyInfo)) {
+            Integer index = ValueUtil.getInt(item.get(KEY_ROW_KEY_COLUMN_INDEX));
+            if (index != null && index != -1) {
+                expressBuilder.append(String.format("$(%s)", columnNames.get(index)));
+                continue;
+            }
+
+            String value = (String) item.get(KEY_ROW_KEY_COLUMN_VALUE);
+            if (StringUtils.isNotEmpty(value)) {
+                expressBuilder.append(value);
+            }
+        }
+
+        return expressBuilder.toString();
     }
 
     @Override

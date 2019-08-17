@@ -48,9 +48,9 @@ public class RowKeyFunctionTest {
 
     @Test
     public void noFunc(){
-        String express = "test_$(col1)_test_$(col2)_test";
+        String express = "_test_$(col1)_test_$(col2)_test_";
 
-        String expectVal = new StringFunction().evaluate("test_value1_test_value2_test");
+        String expectVal = new StringFunction().evaluate("_test_value1_test_value2_test_");
 
         FunctionTree functionTree = FunctionParser.parse(express);
 
@@ -63,9 +63,10 @@ public class RowKeyFunctionTest {
 
     @Test
     public void hasFunc(){
-        String express = "md5(test_$(col1)_test_$(col2)_test)";
+        String express = "_md5(test_$(col1)_test_$(col2)_test)_";
 
         String expectVal = new MD5Function().evaluate("test_value1_test_value2_test");
+        expectVal = String.format("_%s_", expectVal);
 
         FunctionTree functionTree = FunctionParser.parse(express);
 
@@ -74,5 +75,14 @@ public class RowKeyFunctionTest {
         nameValueMap.put("col2", "value2");
 
         Assert.assertEquals(expectVal, functionTree.evaluate(nameValueMap));
+    }
+
+    @Test
+    public void replaceColToStringFuncTest(){
+        String express = "$(cf:name)_md5($(cf:id)_split_$(cf:age))";
+        String expect = "string(cf:name)_md5(string(cf:id)_split_string(cf:age))";
+
+        express = FunctionParser.replaceColToStringFunc(express);
+        Assert.assertEquals(expect, express);
     }
 }
