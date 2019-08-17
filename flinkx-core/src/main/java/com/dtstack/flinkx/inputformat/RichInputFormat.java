@@ -186,10 +186,13 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         if(numReadCounter !=null ){
             numReadCounter.add(1);
         }
+
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
+
         updateDuration();
+
         Row internalRow = nextRecordInternal(row);
         internalRow = setChannelInformation(internalRow);
         if(bytesReadCounter!=null){
@@ -208,6 +211,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
             return rowWithChannel;
         }
+
         return null;
     }
 

@@ -119,6 +119,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setTypeConverter(typeConverter);
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
+
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
         String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();

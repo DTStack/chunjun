@@ -83,6 +83,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected List<String> rowKeyColumns = Lists.newArrayList();
     protected List<Integer> rowKeyColumnIndex = Lists.newArrayList();
+
     private transient Map<String,String[]> nameMaps;
 
     private transient Map<String, byte[][]> nameByteMaps ;

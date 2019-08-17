@@ -107,6 +107,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             "AND i.uniqueness = 'UNIQUE' " +
             "AND t.table_name = '%s'";
 
+    protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
+
     protected PreparedStatement prepareTemplates() throws SQLException {
         if(fullColumn == null || fullColumn.size() == 0) {
             fullColumn = column;
@@ -204,11 +206,21 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
             preparedStatement.execute();
         } catch (Exception e) {
-            if(index < row.getArity()) {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
-            }
-            throw new WriteRecordException(e.getMessage(), e);
+            processWriteException(e, index, row);
         }
+    }
+
+    protected void processWriteException(Exception e, int index, Row row) throws WriteRecordException{
+        if(e instanceof SQLException){
+            if(e.getMessage().contains(CONN_CLOSE_ERROR_MSG)){
+                throw new RuntimeException("Connection maybe closed", e);
+            }
+        }
+
+        if(index < row.getArity()) {
+            throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+        }
+        throw new WriteRecordException(e.getMessage(), e);
     }
 
     @Override

@@ -304,8 +304,10 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
+
         try {
             writeSingleRecordInternal(row);
+
             if(!restoreConfig.isRestore()){
                 numWriteCounter.add(1);
             }
@@ -316,6 +318,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             if(numWriteCounter !=null ){
                 numWriteCounter.add(1);
             }
+
+            LOG.error(e.getMessage());
         }
     }
 
@@ -390,12 +394,12 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 writeRecordInternal();
             }
         }
+
         updateDuration();
         if(bytesWriteCounter!=null){
             bytesWriteCounter.add(row.toString().length());
         }
     }
-
 
     private Row setChannelInfo(Row row){
         Row internalRow = new Row(row.getArity() - 1);

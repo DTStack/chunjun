@@ -76,10 +76,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
             ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes());
             copyManager.copyIn(copySql, bi);
         } catch (Exception e) {
-            if(index < row.getArity()) {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
-            }
-            throw new WriteRecordException(e.getMessage(), e);
+            processWriteException(e, index, row);
         }
     }
 
