@@ -46,5 +46,7 @@ public class JdbcConfigKeys {
 
     public static final String KEY_CUSTOM_SQL = "customSql";
 
+    public static final String KEY_ORDER_BY_COLUMN = "orderByColumn";
+
     public static final String KEY_USE_MAX_FUNC = "useMaxFunc";
 }

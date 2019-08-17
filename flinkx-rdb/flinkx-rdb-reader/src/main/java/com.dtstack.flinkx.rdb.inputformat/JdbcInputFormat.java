@@ -150,7 +150,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
 
-            if (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc()){
+            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
                 getMaxValue(inputSplit);
             }
 
@@ -394,6 +394,10 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) split;
+        if(jdbcInputSplit.getStartLocation() == null && jdbcInputSplit.getEndLocation() == null){
+            return true;
+        }
+
         return !StringUtils.equals(jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
     }
 

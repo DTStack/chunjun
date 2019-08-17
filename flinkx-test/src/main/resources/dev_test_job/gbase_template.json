@@ -4,192 +4,53 @@
       {
         "reader": {
           "parameter": {
-            "password": "",
+            "password": "123456",
             "customSql": "",
             "startLocation": "",
-            "increColumn": "",
+            "increColumn": "id",
+            "useMaxFunc": false,
             "column": [
               {
-                "name": "tinyint_col",
-                "type": "tinyint"
+                "name": "x",
+                "type": "string"
               },
               {
-                "name": "smallint_col",
-                "type": "smallint"
-              },
-              {
-                "name": "int_col",
-                "type": "int"
-              },
-              {
-                "name": "bigint_col",
-                "type": "bigint"
-              },
-              {
-                "name": "float_col",
+                "name": "y",
                 "type": "float"
               },
               {
-                "name": "double_col",
-                "type": "double"
+                "name": "s",
+                "type": "int"
               },
               {
-                "name": "decimal_col",
-                "type": "decimal"
-              },
-              {
-                "name": "numeric_col",
-                "type": "numeric"
-              },
-              {
-                "name": "char_col",
-                "type": "char"
-              },
-              {
-                "name": "varchar_col",
-                "type": "varchar"
-              },
-              {
-                "name": "text_col",
-                "type": "text"
-              },
-              {
-                "name": "blob_col",
-                "type": "blob"
-              },
-              {
-                "name": "longblob_col",
-                "type": "longblob"
-              },
-              {
-                "name": "date_col",
-                "type": "date"
-              },
-              {
-                "name": "datetime_col",
-                "type": "datetime"
-              },
-              {
-                "name": "time_col",
-                "type": "time"
-              },
-              {
-                "name": "timestamp_col",
-                "type": "timestamp"
+                "name": "id",
+                "type": "int"
               }
             ],
-            "splitPk": "int_col",
+            "orderByColumn": "name",
+            "splitPk": "id",
             "connection": [
               {
-                "password": "",
+                "password": "123456",
                 "jdbcUrl": [
-                  "jdbc:gbase://172.16.8.193:5258/dtstack"
+                  "jdbc:postgresql://172.16.8.193:5432/DTstack?useCursorFetch=true"
                 ],
                 "type": 1,
                 "table": [
-                  "gbase_all_type"
+                  "pg_list2"
                 ],
                 "username": "root"
               }
             ],
             "username": "root"
           },
-          "name": "gbasereader"
+          "name": "postgresqlreader"
         },
         "writer": {
           "parameter": {
-            "password": "",
-            "column": [
-              {
-                "name": "tinyint_col",
-                "type": "tinyint"
-              },
-              {
-                "name": "smallint_col",
-                "type": "smallint"
-              },
-              {
-                "name": "int_col",
-                "type": "int"
-              },
-              {
-                "name": "bigint_col",
-                "type": "bigint"
-              },
-              {
-                "name": "float_col",
-                "type": "float"
-              },
-              {
-                "name": "double_col",
-                "type": "double"
-              },
-              {
-                "name": "decimal_col",
-                "type": "decimal"
-              },
-              {
-                "name": "numeric_col",
-                "type": "numeric"
-              },
-              {
-                "name": "char_col",
-                "type": "char"
-              },
-              {
-                "name": "varchar_col",
-                "type": "varchar"
-              },
-              {
-                "name": "text_col",
-                "type": "text"
-              },
-              {
-                "name": "blob_col",
-                "type": "blob"
-              },
-              {
-                "name": "longblob_col",
-                "type": "longblob"
-              },
-              {
-                "name": "date_col",
-                "type": "date"
-              },
-              {
-                "name": "datetime_col",
-                "type": "datetime"
-              },
-              {
-                "name": "time_col",
-                "type": "time"
-              },
-              {
-                "name": "timestamp_col",
-                "type": "timestamp"
-              }
-            ],
-            "splitPk": "int_col",
-            "connection": [
-              {
-                "password": "",
-                "jdbcUrl": [
-                  "jdbc:gbase://172.16.8.193:5258/dtstack"
-                ],
-                "type": 1,
-                "table": [
-                  "gbase_all_type_write"
-                ],
-                "username": "root"
-              }
-            ],
-            "writeMode": "replace",
-            "username": "root",
-            "updateKey": {
-              "index": ["int_col"]
-            }
+            "print": true
           },
-          "name": "gbasewriter"
+          "name": "streamwriter"
         }
       }
     ],
@@ -199,7 +60,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 3
+        "channel": 2
       }
     }
   }

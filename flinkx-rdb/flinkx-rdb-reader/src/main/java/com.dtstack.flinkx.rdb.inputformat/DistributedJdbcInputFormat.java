@@ -22,6 +22,7 @@ import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -117,8 +118,8 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         DataSource currentSource = sourceList.get(sourceIndex);
         currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
-        String queryTemplate = DBUtil.getQuerySql(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
-                where, currentSource.isSplitByKey(), false, false);
+        String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
+                where, currentSource.isSplitByKey(), false, false).buildSql();
         currentStatement = currentConn.createStatement(resultSetType, resultSetConcurrency);
 
         if (currentSource.isSplitByKey()){
