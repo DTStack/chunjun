@@ -28,6 +28,7 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.DataConvertUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
@@ -321,7 +322,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     private void saveErrorData(Row row, WriteRecordException e){
         errCounter.add(1);
 
-        String errMsg = e.getMessage();
+        String errMsg = ExceptionUtil.getErrorMessage(e);
         int pos = e.getColIndex();
         if (pos != -1) {
             errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
