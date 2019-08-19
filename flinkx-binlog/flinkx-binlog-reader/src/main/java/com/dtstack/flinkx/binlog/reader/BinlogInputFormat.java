@@ -73,8 +73,6 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private int bufferSize;
 
-    private volatile EntryPosition entryPosition;
-
     private List<String> categories = new ArrayList<>();
 
     /**
@@ -138,7 +136,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        LOG.info("binlog closeInternal..., entryPosition:{}", entryPosition);
+        LOG.info("binlog closeInternal..., entryPosition:{}", formatState != null ? formatState.getState() : null);
 
         if (controller != null) {
             controller.stop();

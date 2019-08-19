@@ -92,29 +92,29 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (row.getArity() == 1) {
-            Object obj = row.getField(0);
-            if (obj instanceof Map) {
-                emit((Map<String, Object>) obj);
-            } else if (obj instanceof String) {
-                emit(jsonDecoder.decode(obj.toString()));
+        try {
+            if (row.getArity() == 1) {
+                Object obj = row.getField(0);
+                if (obj instanceof Map) {
+                    emit((Map<String, Object>) obj);
+                } else if (obj instanceof String) {
+                    emit(jsonDecoder.decode(obj.toString()));
+                }
             }
+        } catch (Throwable e) {
+            LOG.error("kafka writeSingleRecordInternal error:{}", e);
         }
     }
 
-    private void emit(Map event) {
-        try {
-            String tp = Formatter.format(event, topic, timezone);
-            producer.send(new ProducerRecord<String, String>(tp, event.toString(), objectMapper.writeValueAsString(event)));
-        } catch (Exception e) {
-            LOG.error("kafka output error to block error:{}", e);
-        }
+    private void emit(Map event) throws IOException {
+        String tp = Formatter.format(event, topic, timezone);
+        producer.send(new ProducerRecord<String, String>(tp, event.toString(), objectMapper.writeValueAsString(event)));
     }
 
     @Override
     public void closeInternal() throws IOException {
+        LOG.warn("kafka output closeInternal.");
         producer.close();
-        LOG.warn("output kafka release.");
     }
 
     @Override
