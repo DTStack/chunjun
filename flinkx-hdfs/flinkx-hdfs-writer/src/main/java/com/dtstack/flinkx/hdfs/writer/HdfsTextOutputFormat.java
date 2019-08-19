@@ -213,8 +213,10 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
 
-            lastRow = row;
-            rowsOfCurrentBlock++;
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+                rowsOfCurrentBlock++;
+            }
 
             if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {
                 this.stream.flush();

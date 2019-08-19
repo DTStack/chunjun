@@ -168,8 +168,10 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
 
-            lastRow = row;
-            rowsOfCurrentBlock++;
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+                rowsOfCurrentBlock++;
+            }
         } catch(Exception e) {
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);

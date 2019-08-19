@@ -336,7 +336,9 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
             fs.createNewFile(new Path(finishedPath));
             LOG.info("Create finished tag dir:{}", finishedPath);
 
-            numWriteCounter.add(rowsOfCurrentBlock);
+            if(restoreConfig.isRestore()){
+                numWriteCounter.add(rowsOfCurrentBlock);
+            }
 
             if(taskNumber == 0) {
                 waitForAllTasksToFinish();
