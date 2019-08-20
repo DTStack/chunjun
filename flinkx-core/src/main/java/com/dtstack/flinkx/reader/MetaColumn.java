@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -155,13 +157,14 @@ public class MetaColumn implements Serializable {
         return columnNames;
     }
 
-    public static int getColumnIndex(List<MetaColumn> columns, String name){
-        for (int i = 0; i < columns.size(); i++) {
-            if(columns.get(i).getName().equals(name)){
-                return i;
+    public static MetaColumn getMetaColumn(List columns, String name){
+        List<MetaColumn> metaColumns = getMetaColumns(columns);
+        for (MetaColumn metaColumn : metaColumns) {
+            if(StringUtils.isNotEmpty(metaColumn.getName()) && metaColumn.getName().equals(name)){
+                return metaColumn;
             }
         }
 
-        return -1;
+        return null;
     }
 }

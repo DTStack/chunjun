@@ -66,12 +66,12 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
-    public EsInputFormatBuilder setIndex(String index){
+    public EsInputFormatBuilder setIndex(String[] index){
         format.index = index;
         return this;
     }
 
-    public EsInputFormatBuilder setType(String type){
+    public EsInputFormatBuilder setType(String[] type){
         format.type = type;
         return this;
     }
@@ -90,6 +90,8 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

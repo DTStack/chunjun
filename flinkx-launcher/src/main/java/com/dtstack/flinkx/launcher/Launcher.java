@@ -20,15 +20,18 @@ package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -52,6 +55,17 @@ public class Launcher {
         argList.add(launcherOptions.getJobid());
         argList.add("-pluginRoot");
         argList.add(launcherOptions.getPlugin());
+
+        if (StringUtils.isNotEmpty(launcherOptions.getConfProp())){
+            argList.add("-confProp");
+            argList.add(launcherOptions.getConfProp());
+        }
+
+        if(StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
+            argList.add("-s");
+            argList.add(launcherOptions.getSavepoint());
+        }
+
         return argList;
     }
 
@@ -101,6 +115,11 @@ public class Launcher {
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
             String[] remoteArgs = argList.toArray(new String[argList.size()]);
             PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+
+            if (StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
+                program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getSavepoint()));
+            }
+
             clusterClient.run(program, launcherOptions.getParallelism());
             clusterClient.shutdown();
         }

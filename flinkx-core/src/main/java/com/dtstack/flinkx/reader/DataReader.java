@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.api.common.io.InputFormat;
@@ -52,12 +53,24 @@ public abstract class DataReader {
 
     protected PluginLoader pluginLoader;
 
+    protected RestoreConfig restoreConfig;
+
     protected List<String> srcCols = new ArrayList<>();
+
+    protected long exceptionIndex;
 
     /**
      * reuse hadoopConfig for metric
      */
     protected Map<String, String> hadoopConfig;
+
+    public int getNumPartitions() {
+        return numPartitions;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -71,7 +84,6 @@ public abstract class DataReader {
         return pluginLoader;
     }
 
-
     public void setPluginLoader(PluginLoader pluginLoader) {
         this.pluginLoader = pluginLoader;
     }
@@ -83,6 +95,8 @@ public abstract class DataReader {
         this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
+        this.exceptionIndex = config.getJob().getContent().get(0).getReader().getParameter().getLongVal("exceptionIndex",0);
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
         if (dirtyConfig != null) {
@@ -90,6 +104,16 @@ public abstract class DataReader {
             if (hadoopConfig != null) {
                 this.hadoopConfig = hadoopConfig;
             }
+        }
+
+        if(restoreConfig.isRestore()){
+            List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if(metaColumn == null){
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+            }
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
         }
     }
 

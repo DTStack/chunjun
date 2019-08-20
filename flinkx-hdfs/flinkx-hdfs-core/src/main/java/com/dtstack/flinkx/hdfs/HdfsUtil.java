@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Map;
 
 /**
  * Utilities for HdfsReader and HdfsWriter
@@ -79,6 +80,21 @@ public class HdfsUtil {
 
     public static String getDefaultFs(){
         return configuration.get("fs.defaultFS");
+    }
+
+    public static Configuration getHadoopConfig(Map<String,String> confMap, String defaultFS){
+        Configuration conf = new Configuration();
+
+        if (confMap != null){
+            for (Map.Entry<String, String> entry : confMap.entrySet()) {
+                conf.set(entry.getKey(), entry.getValue());
+            }
+        }
+
+        conf.set("fs.default.name", defaultFS);
+        conf.set("fs.hdfs.impl.disable.cache", "true");
+
+        return conf;
     }
 
     public static Object string2col(String str, String type, SimpleDateFormat customDateFormat) {
@@ -152,6 +168,8 @@ public class HdfsUtil {
             ret = ((ByteWritable) writable).get();
         } else if(clz == DateWritable.class) {
             ret = ((DateWritable) writable).get();
+        } else if(writable instanceof DoubleWritable){
+            ret = ((DoubleWritable) writable).get();
         } else if(writable instanceof Writable) {
             ret = writable.toString();
         } else {

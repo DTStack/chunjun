@@ -1,8 +1,8 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
-import com.dtstack.flinkx.ftp.StandardFtpHandler;
 
 import java.io.*;
 import java.util.*;
@@ -11,7 +11,7 @@ public class FtpTest {
 
     public static void main(String[] args) throws IOException {
 
-        FtpHandler ftpHandler = new StandardFtpHandler();
+        IFtpHandler ftpHandler = new FtpHandler();
         ftpHandler.loginFtpServer("node02",
                 "test",
                 "qbI#5pNd",

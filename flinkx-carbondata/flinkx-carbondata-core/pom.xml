@@ -19,13 +19,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>org.apache.carbondata</groupId>
             <artifactId>carbondata-hadoop</artifactId>
             <version>1.5.0</version>

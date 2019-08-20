@@ -110,7 +110,6 @@ public class OdpsOutputFormat extends RichOutputFormat {
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
-
     }
 
     @Override

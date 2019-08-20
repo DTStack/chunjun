@@ -52,6 +52,10 @@ public class LauncherOptionParser {
 
     public static final String OPTION_FLINK_LIB_JAR = "flinkLibJar";
 
+    public static final String OPTION_CONF_PROP = "confProp";
+
+    public static final String OPTION_SAVEPOINT = "s";
+
     private Options options = new Options();
 
     private BasicParser parser = new BasicParser();
@@ -67,6 +71,8 @@ public class LauncherOptionParser {
         options.addOption(OPTION_YARN_CONF_DIR, true, "Yarn and hadoop configuration directory");
         options.addOption(OPTION_QUEUE, true, "yarn job queue");
         options.addOption(OPTION_FLINK_LIB_JAR, true, "flink lib jar path");
+        options.addOption(OPTION_CONF_PROP, true, "checkpoint conf");
+        options.addOption(OPTION_SAVEPOINT,true,"savepoint dir");
         try {
             CommandLine cl = parser.parse(options, args);
 
@@ -99,6 +105,8 @@ public class LauncherOptionParser {
             }
             launcherOptions.setQueue(cl.getOptionValue(OPTION_QUEUE,"default"));
             launcherOptions.setFlinkLibJar(cl.getOptionValue(OPTION_FLINK_LIB_JAR));
+            launcherOptions.setConfProp(cl.getOptionValue(OPTION_CONF_PROP));
+            launcherOptions.setSavepoint(cl.getOptionValue(OPTION_SAVEPOINT));
         } catch (Exception e) {
             printUsage();
             throw new RuntimeException(e);

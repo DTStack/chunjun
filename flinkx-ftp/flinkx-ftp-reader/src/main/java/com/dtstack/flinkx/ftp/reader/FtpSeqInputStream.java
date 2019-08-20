@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -31,11 +31,11 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public class FtpSeqInputStream extends InputStream {
-    private FtpHandler ftpHandler;
+    private IFtpHandler ftpHandler;
     private Iterator<String> iter;
     private InputStream in;
 
-    public FtpSeqInputStream(FtpHandler ftpHandler, List<String> files) {
+    public FtpSeqInputStream(IFtpHandler ftpHandler, List<String> files) {
         this.ftpHandler = ftpHandler;
         this.iter = files.iterator();
         try {

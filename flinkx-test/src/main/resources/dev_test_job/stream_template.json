@@ -4,81 +4,60 @@
       {
         "reader": {
           "parameter": {
+            "sliceRecordCount": ["10"],
             "column": [
               {
-                "name": "tinyint_col",
-                "type": "tinyint"
+                "name": "name",
+                "type": "string"
               },
               {
-                "name": "smallint_col",
-                "type": "smallint"
+                "name": "age",
+                "type": "int",
+                "value": "26"
               },
               {
-                "name": "int_col",
-                "type": "int"
+                "name": "father",
+                "type": "string"
               },
               {
-                "name": "bigint_col",
-                "type": "bigint"
-              },
-              {
-                "name": "float_col",
-                "type": "float"
-              },
-              {
-                "name": "double_col",
-                "type": "double"
-              },
-              {
-                "name": "decimal_col",
-                "type": "decimal"
-              },
-              {
-                "name": "numeric_col",
-                "type": "numeric"
-              },
-              {
-                "name": "char_col",
-                "type": "char"
-              },
-              {
-                "name": "varchar_col",
-                "type": "varchar"
-              },
-              {
-                "name": "text_col",
-                "type": "text"
-              },
-              {
-                "name": "blob_col",
-                "type": "blob"
-              },
-              {
-                "name": "longblob_col",
-                "type": "longblob"
-              },
-              {
-                "name": "date_col",
-                "type": "date"
-              },
-              {
-                "name": "datetime_col",
-                "type": "datetime"
-              },
-              {
-                "name": "time_col",
-                "type": "time"
+                "name": "adress",
+                "type": "string"
               }
-            ],
-            "sliceRecordCount": ["1000"]
+            ]
           },
           "name": "streamreader"
         },
         "writer": {
           "parameter": {
-            "print": true
+            "column": [
+              {
+                "name": "cf:name",
+                "type": "string"
+              },
+              {
+                "name": "cf:age",
+                "type": "int"
+              },
+              {
+                "name": "cf:father",
+                "type": "string"
+              },
+              {
+                "name": "cf:adress",
+                "type": "string"
+              }
+            ],
+            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
+            "writeBufferSize": 0,
+            "table": "md5_test",
+            "sourceIds": [
+              371
+            ],
+            "hbaseConfig": {
+              "hbase.zookeeper.quorum": "172.16.8.193:2181"
+            }
           },
-          "name": "streamwriter"
+          "name": "hbasewriter"
         }
       }
     ],

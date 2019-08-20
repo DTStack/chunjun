@@ -1,0 +1,42 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic" : {
+              "yxabc" : "1"
+            },
+            "consumerSettings" : {
+              "zookeeper.connect" : "172.16.8.107:2181/kafka",
+              "group.id" : "default",
+              "auto.commit.interval.ms" : "1000",
+              "auto.offset.reset" : "smallest"
+            }
+          },
+          "name": "kafka09reader"
+        },
+        "writer": {
+          "parameter": {
+            "producerSettings" : {
+              "zookeeper.connect" : "172.16.8.107:2181/kafka"
+            },
+            "bootstrapServers" : "172.16.8.107:9092",
+            "topic" : "mufeng_est",
+            "brokerList" : "172.16.8.107:9092"
+          },
+          "name": "kafka09writer"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 1
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}

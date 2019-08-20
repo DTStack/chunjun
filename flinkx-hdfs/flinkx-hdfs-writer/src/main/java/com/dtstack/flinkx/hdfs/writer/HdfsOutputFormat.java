@@ -18,29 +18,36 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.SysUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.hadoop.conf.Configuration;
+
+
 /**
  * The Hdfs implementation of OutputFormat
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
+public abstract class HdfsOutputFormat extends RichOutputFormat {
+
+    private static final int DEFAULT_RECORD_NUM_FOR_CHECK = 1000;
 
     protected int rowGroupSize;
+
+    protected static final String APPEND_MODE = "APPEND";
 
     protected static final String DATA_SUBDIR = ".data";
 
@@ -87,6 +94,24 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
     protected Configuration conf;
 
+    protected int blockIndex = 0;
+
+    protected boolean readyCheckpoint;
+
+    protected Row lastRow;
+
+    protected String currentBlockFileNamePrefix;
+
+    protected String currentBlockFileName;
+
+    protected long rowsOfCurrentBlock;
+
+    protected  long maxFileSize;
+
+    protected long lastWriteSize;
+
+    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
+
     protected void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
@@ -125,16 +150,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
         initColIndices();
 
-        conf = new Configuration();
-
-        if(hadoopConfig != null) {
-            for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
-            }
-        }
-
-        conf.set("fs.default.name", defaultFS);
-        conf.set("fs.hdfs.impl.disable.cache", "true");
+        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         fs = FileSystem.get(conf);
         Path dir = new Path(outputFilePath);
         // dir不能是文件
@@ -144,15 +160,148 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         }
 
         configInternal();
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        String dateString = formatter.format(currentTime);
-        tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + taskNumber + "." + dateString;
+
+        currentBlockFileNamePrefix = taskNumber + "." + jobId;
+        tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
+
+        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
+                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
+
+        beforeOpenInternal();
         open();
     }
 
+    @Override
+    protected void beforeOpenInternal(){
+        if(taskNumber > 0){
+            return;
+        }
+
+        if (formatState == null || formatState.getState() == null) {
+            try {
+                LOG.info("Delete [.data] dir before write records");
+                clearTemporaryDataFiles();
+            } catch (Exception e) {
+                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+            }
+        } else {
+            alignHistoryFiles();
+        }
+    }
+
+    private void alignHistoryFiles(){
+        try{
+            PathFilter pathFilter = path -> !path.getName().startsWith(".");
+            FileStatus[] files = fs.listStatus(new Path(tmpPath), pathFilter);
+            if(files == null || files.length == 0){
+                return;
+            }
+
+            List<String> fileNames = Lists.newArrayList();
+            for (FileStatus file : files) {
+                fileNames.add(file.getPath().getName());
+            }
+
+            List<String> deleteFiles = Lists.newArrayList();
+            for (String fileName : fileNames) {
+                String targetName = fileName.substring(fileName.indexOf(".")+1);
+                int num = 0;
+                for (String name : fileNames) {
+                    if(targetName.equals(name.substring(name.indexOf(".")+1))){
+                        num++;
+                    }
+                }
+
+                if(num < numTasks){
+                    deleteFiles.add(fileName);
+                }
+            }
+
+            for (String fileName : deleteFiles) {
+                fs.delete(new Path(tmpPath + SP + fileName), true);
+            }
+        } catch (Exception e){
+            throw new RuntimeException("align files error:", e);
+        }
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        if (!restoreConfig.isRestore() || lastRow == null){
+            return null;
+        }
+
+        try{
+            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
+            if (readyCheckpoint || overMaxRows){
+                flushBlock();
+
+                numWriteCounter.add(rowsOfCurrentBlock);
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                formatState.setNumberWrite(numWriteCounter.getLocalValue());
+
+                rowsOfCurrentBlock = 0;
+                return formatState;
+            }
+
+            return null;
+        }catch (Exception e){
+            try{
+                fs.delete(new Path(tmpPath + SP + currentBlockFileName), true);
+                fs.close();
+                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
+            }catch (Exception e1){
+                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
+            }
+
+            throw new RuntimeException("Get next block error:", e);
+        }
+    }
+
+    protected void moveTemporaryDataBlockFileToDirectory(){
+        try {
+            if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
+                Path src = new Path(tmpPath + SP + currentBlockFileName);
+
+                String dataFileName = currentBlockFileName.replaceFirst("\\.","");
+                Path dist = new Path(tmpPath + SP + dataFileName);
+
+                fs.rename(src, dist);
+                LOG.info("Rename temporary data block file:{} to:{}", src, dist);
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
     protected abstract void open() throws IOException;
+
+    protected void nextBlock(){
+        if (restoreConfig.isRestore()){
+            moveTemporaryDataBlockFileToDirectory();
+            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
+        } else {
+            currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
+        }
+
+        nextBlockInternal();
+    }
+
+    /**
+     * Open next file
+     */
+    protected abstract void nextBlockInternal();
+
+    /**
+     * Get file extension
+     */
+    protected abstract String getExtension();
+
+    /**
+     * Close current file stream
+     */
+    protected abstract void flushBlock() throws IOException;
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
@@ -161,84 +310,175 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(fs != null) {
-            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-            fs.delete(finishedDir, true);
-            fs.delete(tmpDir, true);
+        if(!restoreConfig.isRestore() && fs != null) {
+            LOG.info("Clean temporary data in method tryCleanupOnError");
+            clearTemporaryDataFiles();
         }
-        LOG.info(jobName + ": tryCleanupOnError over!");
     }
 
+    private void clearTemporaryDataFiles() throws IOException{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        fs.delete(finishedDir, true);
+        LOG.info("Delete .finished dir:{}", finishedDir);
+
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+        fs.delete(tmpDir, true);
+        LOG.info("Delete .data dir:{}", tmpDir);
+    }
 
     @Override
     protected void afterCloseInternal()  {
         try {
-            // write finished file
-            fs.createNewFile(new Path(finishedPath));
-
-            // task_0 move tmp data into destination
-            if(taskNumber == 0) {
-                Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-                final int maxRetryTime = 100;
-                int i = 0;
-                for(; i < maxRetryTime; ++i) {
-                    if(fs.listStatus(finishedDir).length == numTasks) {
-                        break;
-                    }
-                    SysUtil.sleep(3000);
-                }
-
-                // 等待所有subtask都执行到close方法了
-                if(StringUtils.isNotBlank(monitorUrl)) {
-                    SysUtil.sleep(3000);
-                    System.out.println("finally acquire");
-                    if(errorLimiter != null) {
-                        errorLimiter.acquire();
-                    }
-                }
-
-                Path dir = new Path(outputFilePath);
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-                if (writeMode != null && writeMode.trim().length() != 0 && !writeMode.equalsIgnoreCase("APPEND")) {
-                    if(fs.exists(dir)) {
-                        PathFilter pathFilter = new PathFilter() {
-                            @Override
-                            public boolean accept(Path path) {
-                                return !path.getName().startsWith(".");
-                            }
-                        } ;
-                        FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-                        for(FileStatus dataFile : dataFiles) {
-                            fs.delete(dataFile.getPath(), true);
-                        }
-                        fs.mkdirs(dir);
-                    }
-                }
-
-                if (i == maxRetryTime) {
-                    fs.delete(tmpDir, true);
-                    fs.delete(finishedDir, true);
-                    throw new RuntimeException("timeout when gathering finish tags for each subtasks");
-                }
-
-                FileStatus[] dataFiles = fs.listStatus(tmpDir);
-                for(FileStatus dataFile : dataFiles) {
-                    fs.rename(dataFile.getPath(), dir);
-                }
-                fs.delete(tmpDir, true);
-                fs.delete(finishedDir, true);
+            if(!isTaskEndsNormally()){
+                return;
             }
+
+            fs.createNewFile(new Path(finishedPath));
+            LOG.info("Create finished tag dir:{}", finishedPath);
+
+            if(restoreConfig.isRestore()){
+                numWriteCounter.add(rowsOfCurrentBlock);
+            }
+
+            if(taskNumber == 0) {
+                waitForAllTasksToFinish();
+                coverageData();
+                moveTemporaryDataFileToDirectory();
+
+                LOG.info("The task ran successfully,clear temporary data files");
+                clearTemporaryDataFiles();
+            }
+
             fs.close();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
 
+    protected boolean isTaskEndsNormally() throws IOException{
+        String state = getTaskState();
+        LOG.info("State of current task is:[{}]", state);
+        if(!RUNNING_STATE.equals(state)){
+            if (!restoreConfig.isRestore()){
+                LOG.info("The task does not end normally, clear the temporary data file");
+                clearTemporaryDataFiles();
+            }
+            fs.close();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void waitForAllTasksToFinish() throws IOException{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        final int maxRetryTime = 100;
+        int i = 0;
+        for(; i < maxRetryTime; ++i) {
+            if(fs.listStatus(finishedDir).length == numTasks) {
+                break;
+            }
+            SysUtil.sleep(3000);
+        }
+
+        if (i == maxRetryTime) {
+            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR;
+            fs.delete(new Path(subTaskDataPath), true);
+            LOG.info("waitForAllTasksToFinish: delete path:[{}]", subTaskDataPath);
+
+            fs.delete(finishedDir, true);
+            LOG.info("waitForAllTasksToFinish: delete finished dir:[{}]", finishedDir);
+
+            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+        }
+    }
+
+    private void coverageData() throws IOException{
+        if(APPEND_MODE.equalsIgnoreCase(writeMode)){
+            return;
+        }
+
+        LOG.info("Overwrite the original data");
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+
+        Path dir = new Path(outputFilePath);
+        if(fs.exists(dir)) {
+            FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
+            for(FileStatus dataFile : dataFiles) {
+                LOG.info("coverageData:delete path:[{}]", dataFile.getPath());
+                fs.delete(dataFile.getPath(), true);
+            }
+
+            LOG.info("coverageData:make dir:[{}]", outputFilePath);
+            fs.mkdirs(dir);
+        }
+    }
+
+    private void moveTemporaryDataFileToDirectory() throws IOException{
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+        Path dir = new Path(outputFilePath);
+        List<FileStatus> dataFiles = new ArrayList<>();
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+
+        FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
+        for (FileStatus fileStatus : historyTmpDataDir) {
+            if (fileStatus.isFile()){
+                dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
+            }
+        }
+
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
+    }
+
+    /**
+     * Get the deviation
+     */
+    protected abstract float getDeviation();
+
+    protected void checkWriteSize() {
+        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
+            return;
+        }
+
+        if (getCurrentFileSize() > maxFileSize){
+            try{
+                flushBlock();
+                lastWriteSize = bytesWriteCounter.getLocalValue();
+            }catch (IOException e){
+                throw new RuntimeException(e);
+            }
+
+            nextBlock();
+        }
+
+        nextNumForCheckDataSize = getNextNumForCheckDataSize();
+        LOG.info("The next record number for check data size is:[{}],current write number is:[{}]", nextNumForCheckDataSize, numWriteCounter.getLocalValue());
+    }
+
+    private long getCurrentFileSize(){
+        long currentFileSize = (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
+        LOG.info("Current file size:[{}]", currentFileSize);
+
+        return  currentFileSize;
+    }
+
+    private long getNextNumForCheckDataSize(){
+        long totalBytesWrite = bytesWriteCounter.getLocalValue();
+        long totalRecordWrite = numWriteCounter.getLocalValue();
+
+        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
+
+        long currentFileSize = getCurrentFileSize();
+        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
+
+        return totalRecordWrite + recordNum;
     }
 
     @Override
     protected boolean needWaitAfterCloseInternal() {
         return true;
     }
-
 }

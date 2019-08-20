@@ -111,6 +111,10 @@ public class HdfsOutputFormatBuilder extends RichOutputFormatBuilder {
 
     }
 
+    public void setMaxFileSize(long maxFileSize){
+        format.maxFileSize = maxFileSize;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.path == null || format.path.length() == 0) {

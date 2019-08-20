@@ -50,7 +50,7 @@ public class Metrics {
 
     public static String JOB_ID = "<job_id>";
 
-    public static String NUM_BEFORES = "nBefores";
+    public static String SUBTASK_INDEX = "<subtask_index>";
 
     public static String NUM_READS = "numRead";
 
@@ -64,8 +64,10 @@ public class Metrics {
 
     public static String METRIC_GROUP_KEY_FLINKX = "flinkx";
 
-    public static String METRIC_GROUP_VALUE_INPUT = "input";
-
     public static String METRIC_GROUP_VALUE_OUTPUT = "output";
+
+    public static String LAST_WRITE_LOCATION_PREFIX = "last_write_location";
+
+    public static String LAST_WRITE_NUM__PREFIX = "last_write_num";
 
 }

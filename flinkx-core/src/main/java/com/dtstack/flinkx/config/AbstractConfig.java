@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class AbstractConfig {
+public abstract class AbstractConfig implements Serializable {
 
     protected Map<String,Object> internalMap;
 

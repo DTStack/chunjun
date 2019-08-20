@@ -20,7 +20,10 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -56,6 +59,8 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     private Map<String, Map<String,Integer>> decimalColInfo;
 
+    private MessageType schema;
+
     private static final String KEY_PRECISION = "precision";
 
     private static final String KEY_SCALE = "scale";
@@ -79,24 +84,92 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void open() throws IOException {
-        MessageType schema = buildSchema();
-        GroupWriteSupport.setSchema(schema,conf);
-        Path writePath = new Path(tmpPath);
+    protected void nextBlockInternal() {
+        if (writer != null){
+            return;
+        }
 
-        ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
-                .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                .withCompressionCodec(CompressionCodecName.SNAPPY)
-                .withConf(conf)
-                .withType(schema)
-                .withRowGroupSize(rowGroupSize);
-        writer = builder.build();
+        try {
+            String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
+            Path writePath = new Path(currentBlockTmpPath);
+            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
+                    .withWriteMode(ParquetFileWriter.Mode.CREATE)
+                    .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                    .withCompressionCodec(getCompressType())
+                    .withConf(conf)
+                    .withType(schema)
+                    .withRowGroupSize(rowGroupSize);
+            writer = builder.build();
+
+            blockIndex++;
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    private CompressionCodecName getCompressType(){
+        // Compatible with old code
+        if(StringUtils.isEmpty(compress)){
+            compress = ECompressType.PARQUET_SNAPPY.getType();
+        }
+
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        if(ECompressType.PARQUET_SNAPPY.equals(compressType)){
+            return CompressionCodecName.SNAPPY;
+        }else if(ECompressType.PARQUET_GZIP.equals(compressType)){
+            return CompressionCodecName.GZIP;
+        }else if(ECompressType.PARQUET_LZO.equals(compressType)){
+            return CompressionCodecName.LZO;
+        } else {
+            return CompressionCodecName.UNCOMPRESSED;
+        }
+    }
+
+    @Override
+    protected String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        return compressType.getSuffix();
+    }
+
+    @Override
+    protected void flushBlock() throws IOException{
+        LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
+        if (writer != null){
+            writer.close();
+            writer = null;
+        }
+    }
+
+    @Override
+    protected float getDeviation(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
+        return compressType.getDeviation();
+    }
+
+    @Override
+    protected void open() throws IOException {
+        schema = buildSchema();
+        GroupWriteSupport.setSchema(schema,conf);
         groupFactory = new SimpleGroupFactory(schema);
+        nextBlock();
     }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        if (restoreConfig.isRestore()){
+            if(writer == null){
+                nextBlock();
+            }
+
+            if(lastRow != null){
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
+                        row.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+        } else {
+            checkWriteSize();
+        }
+
         Group group = groupFactory.newGroup();
         int i = 0;
         try {
@@ -172,6 +245,11 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             }
 
             writer.write(group);
+
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+                rowsOfCurrentBlock++;
+            }
         } catch (Exception e){
             if(i < row.getArity()) {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
@@ -210,8 +288,13 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        readyCheckpoint = false;
         if (writer != null){
             writer.close();
+
+            if(isTaskEndsNormally()){
+                moveTemporaryDataBlockFileToDirectory();
+            }
         }
     }
 

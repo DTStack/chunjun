@@ -48,6 +48,26 @@ public class LauncherOptions {
 
       private String flinkLibJar;
 
+    private String confProp;
+
+    private String savepoint;
+
+    public String getSavepoint() {
+        return savepoint;
+    }
+
+    public void setSavepoint(String savepoint) {
+        this.savepoint = savepoint;
+    }
+
+    public String getConfProp() {
+        return confProp;
+    }
+
+    public void setConfProp(String confProp) {
+        this.confProp = confProp;
+    }
+
     public int getParallelism() {
         return parallelism;
     }

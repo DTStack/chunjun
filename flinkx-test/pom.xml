@@ -172,7 +172,25 @@
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
+            <artifactId>flinkx-rdb-core</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-core</artifactId>
             <version>1.6</version>
         </dependency>
 
@@ -187,6 +205,7 @@
             <artifactId>flinkx-gbase-writer</artifactId>
             <version>1.6</version>
         </dependency>
+
     </dependencies>
 
 
