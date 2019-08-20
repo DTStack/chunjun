@@ -44,6 +44,12 @@ public class RestoreConfig extends AbstractConfig {
         return new RestoreConfig(map);
     }
 
+    public static RestoreConfig restoreTrue(){
+        Map<String, Object> map = new HashMap<>(1);
+        map.put(KEY_IS_RESTORE, true);
+        return new RestoreConfig(map);
+    }
+
     public boolean isRestore(){
         return getBooleanVal(KEY_IS_RESTORE, false);
     }

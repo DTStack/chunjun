@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,26 +20,22 @@ package com.dtstack.flinkx.kafka09.decoder;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
- * 
- * Reason: TODO ADD REASON(可选)
- * Date: 2016年8月31日 下午1:26:00
- * Company: www.dtstack.com
- * @author sishu.yss
- *
+ * company: www.dtstack.com
+ * author: toutian
+ * create: 2019/7/5
  */
 public class PlainDecoder implements IDecode {
 
-	@SuppressWarnings("serial")
-	@Override
-	public Map<String, Object> decode(final String message) {
-		HashMap<String, Object> event = new HashMap<String, Object>() {
-			{
-				put("message", message);
-			}
-		};
-		return event;
-	}
+    @SuppressWarnings("serial")
+    @Override
+    public Map<String, Object> decode(final String message) {
+        HashMap<String, Object> event = new HashMap<String, Object>() {
+            {
+                put("message", message);
+            }
+        };
+        return event;
+    }
 
 }

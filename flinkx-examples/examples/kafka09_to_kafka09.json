@@ -4,9 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "topic" : {
-              "yxabc" : "1"
-            },
+            "topic" : "yxabc",
             "consumerSettings" : {
               "zookeeper.connect" : "172.16.8.107:2181/kafka",
               "group.id" : "default",

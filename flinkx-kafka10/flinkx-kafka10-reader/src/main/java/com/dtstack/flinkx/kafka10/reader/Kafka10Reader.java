@@ -42,6 +42,11 @@ public class Kafka10Reader extends DataReader {
 
     private String codec;
 
+    /**
+     * true: allow blank
+     */
+    private boolean blankIgnore;
+
     private String bootstrapServers;
 
     private Map<String, String> consumerSettings;
@@ -52,6 +57,7 @@ public class Kafka10Reader extends DataReader {
         topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
         groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC);
+        blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
         bootstrapServers = readerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
     }
@@ -62,6 +68,7 @@ public class Kafka10Reader extends DataReader {
         format.setTopic(topic);
         format.setGroupId(groupId);
         format.setCodec(codec);
+        format.setBlankIgnore(blankIgnore);
         format.setBootstrapServers(bootstrapServers);
         format.setConsumerSettings(consumerSettings);
 

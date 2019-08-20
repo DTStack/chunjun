@@ -1,12 +1,32 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
+import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,48 +51,30 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka09InputFormat.class);
 
-    private Map<String, ConsumerConnector> consumerConnMap = new HashMap<>();
-
-    private Map<String, ExecutorService> executorMap = new HashMap<>();
-
     private String encoding;
 
     private String codec;
 
-    private Map<String, Object> topic;
+    private String topic;
 
     private Map<String, String> consumerSettings;
 
-    private BlockingQueue<Row> queue;
+    private transient BlockingQueue<Row> queue;
+
+    private transient ExecutorService executor;
+
+    private transient ConsumerConnector consumerConnector;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        Iterator<Map.Entry<String, Object>> topicIT = topic.entrySet().iterator();
-        while (topicIT.hasNext()) {
-
-            Map.Entry<String, Object> entry = topicIT.next();
-            String topic = entry.getKey();
-            Integer threads = Integer.valueOf(entry.getValue().toString());
-            addNewConsumer(topic, threads);
-        }
-    }
-
-    public void addNewConsumer(String topic, Integer threads){
-        ConsumerConnector consumer = consumerConnMap.get(topic);
-        Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = null;
-
         Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-        topicCountMap.put(topic, threads);
-        consumerMap = consumer.createMessageStreams(topicCountMap);
+        topicCountMap.put(topic, 1);
+        Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumerConnector.createMessageStreams(topicCountMap);
 
         List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
-        ExecutorService executor = Executors.newFixedThreadPool(threads);
-
         for (final KafkaStream<byte[], byte[]> stream : streams) {
             executor.submit(new KafkaConsumer(stream, this));
         }
-
-        executorMap.put(topic, executor);
     }
 
     @Override
@@ -87,50 +89,44 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        for(ConsumerConnector consumer : consumerConnMap.values()){
-            consumer.commitOffsets(true);
-            consumer.shutdown();
-        }
-
-        for(ExecutorService executor : executorMap.values()){
-            executor.shutdownNow();
-        }
+        consumerConnector.commitOffsets(true);
+        consumerConnector.shutdown();
+        executor.shutdownNow();
     }
 
     @Override
     public void configure(Configuration parameters) {
         Properties props = geneConsumerProp();
+        consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
 
-        for(String topicName : topic.keySet()){
-            ConsumerConnector consumer = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
-            consumerConnMap.put(topicName, consumer);
-        }
-
+        executor = Executors.newFixedThreadPool(1);
         queue = new SynchronousQueue<Row>(false);
-
     }
 
-    private Properties geneConsumerProp(){
+    private Properties geneConsumerProp() {
         Properties props = new Properties();
-
-        Iterator<Map.Entry<String, String>> consumerSetting = consumerSettings
-                .entrySet().iterator();
-
+        Iterator<Map.Entry<String, String>> consumerSetting = consumerSettings.entrySet().iterator();
         while (consumerSetting.hasNext()) {
             Map.Entry<String, String> entry = consumerSetting.next();
             String k = entry.getKey();
             String v = entry.getValue();
             props.put(k, v);
         }
-
         return props;
     }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0,1);
-        return split;
+        InputSplit[] splits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            splits[i] = new GenericInputSplit(i, minNumSplits);
+        }
+        return splits;
+    }
+
+    @Override
+    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
@@ -162,19 +158,12 @@ public class Kafka09InputFormat extends RichInputFormat {
         this.codec = codec;
     }
 
-    public void setTopic(Map<String, Object> topic) {
+    public void setTopic(String topic) {
         this.topic = topic;
-    }
-
-    public Map<String, Object> getTopic() {
-        return topic;
     }
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
     }
 
-    public Map<String, String> getConsumerSettings() {
-        return consumerSettings;
-    }
 }

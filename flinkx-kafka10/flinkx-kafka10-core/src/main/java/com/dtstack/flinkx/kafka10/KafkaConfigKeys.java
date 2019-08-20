@@ -18,7 +18,11 @@
 
 package com.dtstack.flinkx.kafka10;
 
-
+/**
+ * company: www.dtstack.com
+ * author: toutian
+ * create: 2019/7/5
+ */
 public class KafkaConfigKeys {
 
     public static final String KEY_TOPIC = "topic";
@@ -29,13 +33,11 @@ public class KafkaConfigKeys {
 
     public static final String KEY_CODEC = "codec";
 
+    public static final String KEY_BLANK_IGNORE = "blankIgnore";
+
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
 
     public static final String KEY_BOOTSTRAP_SERVERS = "bootstrapServers";
-
-    public static final String KEY_TOPIC_SELECT = "topicSelect";
-
-    public static final String KEY_ENTRY_TOPIC_SELECT = "entryTopicSelect";
 
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
 
