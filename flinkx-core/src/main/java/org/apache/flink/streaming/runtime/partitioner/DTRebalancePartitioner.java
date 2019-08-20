@@ -31,14 +31,10 @@ import org.apache.flink.types.Row;
 public class DTRebalancePartitioner<T> extends StreamPartitioner<T> {
     private static final long serialVersionUID = 1L;
 
-    private final int[] returnArray = new int[] {-1};
-
     @Override
-    public int[] selectChannels(SerializationDelegate<StreamRecord<T>> record,
-                                int numberOfOutputChannels) {
-        Row row = (Row) record.getInstance().getValue();
-        this.returnArray[0] = (Integer)row.getField(row.getArity() - 1);
-        return returnArray;
+    public int selectChannel(SerializationDelegate<StreamRecord<T>> streamRecordSerializationDelegate) {
+        Row row = (Row) streamRecordSerializationDelegate.getInstance().getValue();
+        return (Integer)row.getField(row.getArity() - 1);
     }
 
     @Override
