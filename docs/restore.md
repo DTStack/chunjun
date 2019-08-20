@@ -83,10 +83,8 @@ id > ${restoreLocatio}
 
 ## 4 支持的插件
 
-| reader     | writer                                |
-| ---------- | ------------------------------------- |
-| mysql      | hdfs                                  |
-| oracle     | ftp                                   |
-| sqlserver  | mysql，oracle，sqlserver，db2，postgresql |
-| db2        |                                       |
-| postgresql |                                       |
+| reader                                      | writer                                      |
+| ------------------------------------------- | ------------------------------------------- |
+| mysql，oracle，sqlserver，db2，postgresql，gbase | hdfs                                        |
+|                                             | ftp                                         |
+|                                             | mysql，oracle，sqlserver，db2，postgresql，gbase |
