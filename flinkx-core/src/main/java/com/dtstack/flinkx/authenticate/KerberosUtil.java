@@ -27,12 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author jiangbo
@@ -44,35 +41,42 @@ public class KerberosUtil {
 
     private static final String HOST_PLACEHOLDER = "_HOST";
     private static final String PRINCIPAL_SPLIT_REGEX = "[/@]";
-    private static final String SFTP_FILE_SCHEMA = "sftp";
 
     private static final String KEYWORD_PRINCIPAL = "principal";
     private static final String KEYWORD_KEYTAB = "keytab";
 
-    private static final String KEY_IDENTIFY = "identify";
-    private static final String KEY_LOCAL_PATH = "localPath";
+    private static final String KEY_SFTP_CONF = "sftpConf";
+    private static final String KEY_REMOTE_DIR = "remoteDir";
+    private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
 
-    private static final String DEFAULT_LOCAL_PATH = "/tmp/dtstack/keytab";
+    private static final String LOCAL_DIR = "/tmp/dtstack/flinkx/keytab";
 
-    public static void loadKeyTabFilesAndReplaceHost(Map<String, String> kerberosConfig) {
+    public static void loadKeyTabFilesAndReplaceHost(Map<String, Object> kerberosConfig, String jobId) {
         if(kerberosConfig == null || kerberosConfig.isEmpty()){
             throw new IllegalArgumentException("The kerberos config is null");
         }
 
-        String localPath = MapUtils.getString(kerberosConfig, KEY_LOCAL_PATH, DEFAULT_LOCAL_PATH)
-                + File.separator
-                + MapUtils.getString(kerberosConfig, KEY_IDENTIFY, UUID.randomUUID().toString());
-        boolean isFirstLoad = checkAndCreateLocalPath(localPath);
+        createLocalDir(jobId);
 
         SFTPHandler handler = null;
         try {
-            handler = SFTPHandler.getInstance(kerberosConfig);
+            handler = SFTPHandler.getInstance(MapUtils.getMap(kerberosConfig, KEY_SFTP_CONF));
+
+            boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
+            String remoteDir = MapUtils.getString(kerberosConfig, KEY_REMOTE_DIR);
+            String hostname = InetAddress.getLocalHost().getCanonicalHostName();
 
             for (String key : kerberosConfig.keySet()) {
                 if (key.contains(KEYWORD_PRINCIPAL)) {
-                    kerberosConfig.put(key, replaceHost(kerberosConfig.get(key)));
+                    kerberosConfig.put(key, replaceHost(MapUtils.getString(kerberosConfig, key)));
                 } else if(key.contains(KEYWORD_KEYTAB)){
-                    String keytabPath = loadKeyTabFile(kerberosConfig.get(key), localPath, handler, isFirstLoad);
+                    String keytabPath;
+                    if(useLocalFile){
+                        keytabPath = loadFromLocal(MapUtils.getString(kerberosConfig, key));
+                    } else {
+                        keytabPath = loadFromSftp(MapUtils.getString(kerberosConfig, key), remoteDir, hostname, jobId, handler);
+                    }
+
                     kerberosConfig.put(key, keytabPath);
                 }
             }
@@ -85,21 +89,28 @@ public class KerberosUtil {
         }
     }
 
-    private static boolean checkAndCreateLocalPath(String localPath){
-        File file = new File(localPath);
+    public static void clear(String jobId){
+        File file = new File(LOCAL_DIR + File.separator + jobId);
         if (file.exists()){
-            if (file.isFile()){
-                throw new RuntimeException("local path is a file,not a directory:" + localPath);
-            }
-
-            return false;
-        } else {
-            boolean result = file.mkdir();
+            boolean result = file.delete();
             if (!result){
-                throw new RuntimeException();
+                LOG.warn("Delete file failure:[{}]", LOCAL_DIR + File.separator + jobId);
             }
+        }
+    }
 
-            return true;
+    private static void createLocalDir(String jobId){
+        File file = new File(LOCAL_DIR + File.separator + jobId);
+        if (file.exists()){
+            boolean result = file.delete();
+            if (!result) {
+                throw new RuntimeException("Delete file failure:" + LOCAL_DIR + File.separator + jobId);
+            }
+        }
+
+        boolean result = file.mkdirs();
+        if (!result){
+            throw new RuntimeException();
         }
     }
 
@@ -113,53 +124,28 @@ public class KerberosUtil {
     }
 
     private static String replacePattern(String[] components) throws IOException {
-        String fqdn = InetAddress.getLocalHost().getCanonicalHostName();
-        return components[0] + "/" + fqdn.toLowerCase(Locale.US) + "@" + components[2];
+        String hostname = InetAddress.getLocalHost().getCanonicalHostName();
+        return components[0] + "/" + hostname.toLowerCase(Locale.US) + "@" + components[2];
     }
 
-    private static String loadKeyTabFile(String remoteFile, String localPath, SFTPHandler handler, boolean isFirstLoad){
-        if(remoteFile.contains(HOST_PLACEHOLDER)){
-            try {
-                String fqdn = InetAddress.getLocalHost().getCanonicalHostName();
-                remoteFile = remoteFile.replace(HOST_PLACEHOLDER, fqdn);
-            } catch (IOException e){
-                throw new RuntimeException("Replace host placeholder error:" + remoteFile, e);
-            }
+    private static String loadFromLocal(String localFilePath) throws Exception{
+        if(localFilePath.contains(HOST_PLACEHOLDER)){
+            String hostname = InetAddress.getLocalHost().getCanonicalHostName();
+            localFilePath = localFilePath.replace(HOST_PLACEHOLDER, hostname);
         }
 
-        URI uri;
-        try {
-            uri = new URI(remoteFile);
-        } catch (URISyntaxException e){
-            throw new RuntimeException("", e);
+        if(!isFileExistLocal(localFilePath)){
+            throw new RuntimeException("File not exists:" + localFilePath);
         }
 
-        // 没有指定存储方式，则从本地路径查找
-        if(uri.getScheme() == null){
-            if(isFileExistLocal(uri.getPath())){
-                return uri.getPath();
-            } else {
-                throw new RuntimeException("keytab file not exists:" + uri.getPath());
-            }
-        }
+        return localFilePath;
+    }
 
-        if(!uri.getScheme().equals(SFTP_FILE_SCHEMA)){
-            throw new RuntimeException("Only support download from sftp");
-        }
-
-        String fileName = getFileName(remoteFile);
-        String localFile = localPath + File.separator + fileName;
-        if(!isFirstLoad && isFileExistLocal(localFile)){
-            return localFile;
-        }
-
-        handler.downloadFile(uri.getPath(), localFile);
+    private static String loadFromSftp(String fileName, String remoteDir, String hostname, String jobId, SFTPHandler handler){
+        String remoteFilePath = remoteDir + "/"  + hostname.toLowerCase(Locale.US) + "/" + fileName;
+        String localFile = LOCAL_DIR + File.separator + jobId + File.separator + fileName;
+        handler.downloadFile(remoteFilePath, localFile);
         return localFile;
-    }
-
-    private static String getFileName(String remoteFile){
-        String[] splits = remoteFile.split("/");
-        return splits[splits.length - 1];
     }
 
     private static boolean isFileExistLocal(String localFile){
@@ -168,16 +154,20 @@ public class KerberosUtil {
     }
 
     public static void main(String[] args) {
-        Map<String, String> kerberosConfig = new HashMap<>();
-        kerberosConfig.put("principal", "hbase/_HOST@DTSTACK>COM");
-        kerberosConfig.put("keytab", "sftp:///root/_HOST.hbase.keytab");
-        kerberosConfig.put("host", "172.16.10.69");
-        kerberosConfig.put("port", "22");
-        kerberosConfig.put("username", "root");
-        kerberosConfig.put("password", "abc123");
-        kerberosConfig.put("localPath", "D:\\");
-        kerberosConfig.put("identify", "localtest_dwdas");
+        Map<String, Object> kerberosConfig = new HashMap<>();
+        kerberosConfig.put("principal", "hbase/_HOST@DTSTACK.COM");
+        kerberosConfig.put("keytab", "D://hbase.keytab");
+        kerberosConfig.put("remoteDir", "/root");
+        kerberosConfig.put("useLocalFile", "true");
 
-        loadKeyTabFilesAndReplaceHost(kerberosConfig);
+        Map<String, String> sftpConf = new HashMap<>();
+        sftpConf.put("host", "172.16.10.69");
+        sftpConf.put("port", "22");
+        sftpConf.put("username", "root");
+        sftpConf.put("password", "abc123");
+
+        kerberosConfig.put("sftpConf", sftpConf);
+
+        loadKeyTabFilesAndReplaceHost(kerberosConfig, "dhueawhuxnsjahu");
     }
 }

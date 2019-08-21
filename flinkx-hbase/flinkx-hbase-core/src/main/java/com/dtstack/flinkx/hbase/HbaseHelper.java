@@ -64,11 +64,11 @@ public class HbaseHelper {
             KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL
     );
 
-    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,String> hbaseConfigMap) {
+    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId) {
         Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
-            login(hbaseConfigMap);
+            login(hbaseConfigMap, jobId);
         }
 
         try {
@@ -80,16 +80,18 @@ public class HbaseHelper {
         }
     }
 
-    public static Configuration getConfig(Map<String,String> hbaseConfigMap){
+    public static Configuration getConfig(Map<String,Object> hbaseConfigMap){
         Configuration hConfiguration = HBaseConfiguration.create();
-        for (Map.Entry<String, String> entry : hbaseConfigMap.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : hbaseConfigMap.entrySet()) {
+            if(entry.getValue() != null && !(entry.getValue() instanceof Map)){
+                hConfiguration.set(entry.getKey(), entry.getValue().toString());
+            }
         }
 
         return hConfiguration;
     }
 
-    private static boolean openKerberos(Map<String,String> hbaseConfigMap){
+    private static boolean openKerberos(Map<String,Object> hbaseConfigMap){
         if(!MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION)){
             return false;
         }
@@ -97,7 +99,7 @@ public class HbaseHelper {
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
     }
 
-    private static void login(Map<String,String> hbaseConfigMap){
+    private static void login(Map<String,Object> hbaseConfigMap, String jobId){
         for (String key : KEYS_KERBEROS_REQUIRED) {
             if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
                 throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
@@ -106,7 +108,7 @@ public class HbaseHelper {
 
         hbaseConfigMap.put(KEY_HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
 
-        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap);
+        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap, jobId);
 
         String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
         String path = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);

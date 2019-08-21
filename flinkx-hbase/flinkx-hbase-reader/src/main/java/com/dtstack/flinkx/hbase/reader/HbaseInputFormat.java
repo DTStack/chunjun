@@ -51,7 +51,7 @@ import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
  */
 public class HbaseInputFormat extends RichInputFormat {
 
-    protected Map<String,String> hbaseConfig;
+    protected Map<String,Object> hbaseConfig;
     protected String tableName;
     protected String startRowkey;
     protected String endRowkey;
@@ -75,7 +75,7 @@ public class HbaseInputFormat extends RichInputFormat {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
 
-        connection = HbaseHelper.getHbaseConnection(hbaseConfig);
+        connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId);
 
         LOG.info("HbaseOutputFormat configure end");
     }
@@ -211,7 +211,7 @@ public class HbaseInputFormat extends RichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if(null == connection || connection.isClosed()){
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId);
         }
 
         table = connection.getTable(TableName.valueOf(tableName));
