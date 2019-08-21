@@ -54,7 +54,7 @@ public class KerberosUtil {
 
     private static final String DEFAULT_LOCAL_PATH = "/tmp/dtstack/keytab";
 
-    public static void loadKeyTabFilesAndRepalceHost(Map<String, String> kerberosConfig) {
+    public static void loadKeyTabFilesAndReplaceHost(Map<String, String> kerberosConfig) {
         if(kerberosConfig == null || kerberosConfig.isEmpty()){
             throw new IllegalArgumentException("The kerberos config is null");
         }
@@ -178,6 +178,6 @@ public class KerberosUtil {
         kerberosConfig.put("localPath", "D:\\");
         kerberosConfig.put("identify", "localtest_dwdas");
 
-        loadKeyTabFilesAndRepalceHost(kerberosConfig);
+        loadKeyTabFilesAndReplaceHost(kerberosConfig);
     }
 }

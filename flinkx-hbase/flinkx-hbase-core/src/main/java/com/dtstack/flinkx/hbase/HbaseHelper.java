@@ -106,7 +106,7 @@ public class HbaseHelper {
 
         hbaseConfigMap.put(KEY_HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
 
-        KerberosUtil.loadKeyTabFilesAndRepalceHost(hbaseConfigMap);
+        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap);
 
         String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
         String path = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
