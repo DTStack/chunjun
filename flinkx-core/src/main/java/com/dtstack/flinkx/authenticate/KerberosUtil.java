@@ -56,13 +56,16 @@ public class KerberosUtil {
             throw new IllegalArgumentException("The kerberos config is null");
         }
 
-        createLocalDir(jobId, plugin);
+        boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
+
+        if(!useLocalFile){
+            createLocalDir(jobId, plugin);
+        }
 
         SFTPHandler handler = null;
         try {
             handler = SFTPHandler.getInstance(MapUtils.getMap(kerberosConfig, KEY_SFTP_CONF));
 
-            boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
             String remoteDir = MapUtils.getString(kerberosConfig, KEY_REMOTE_DIR);
             String hostname = InetAddress.getLocalHost().getCanonicalHostName();
 
