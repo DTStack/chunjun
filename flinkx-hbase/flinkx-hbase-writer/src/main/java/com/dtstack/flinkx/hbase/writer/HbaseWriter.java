@@ -43,7 +43,7 @@ import static com.dtstack.flinkx.hbase.HbaseConfigKeys.*;
 public class HbaseWriter extends DataWriter {
 
     private String tableName;
-    private Map<String,String> hbaseConfig;
+    private Map<String,Object> hbaseConfig;
     private String encoding;
     private String nullMode;
     private Boolean walFlag;
@@ -61,7 +61,7 @@ public class HbaseWriter extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         tableName = writerConfig.getParameter().getStringVal(KEY_TABLE);
-        hbaseConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HBASE_CONFIG);
+        hbaseConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HBASE_CONFIG);
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);

@@ -38,7 +38,7 @@ public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format = new HbaseInputFormat();
     }
 
-    public void setHbaseConfig(Map<String,String> hbaseConfig) {
+    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 

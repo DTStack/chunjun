@@ -43,7 +43,7 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         format.tableName = tableName;
     }
 
-    public void setHbaseConfig(Map<String,String> hbaseConfig) {
+    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 
