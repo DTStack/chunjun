@@ -115,6 +115,10 @@ public class HdfsOutputFormatBuilder extends RichOutputFormatBuilder {
         format.maxFileSize = maxFileSize;
     }
 
+    public void setFlushBlockInterval(long interval){
+        format.flushBlockInterval = interval;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.path == null || format.path.length() == 0) {

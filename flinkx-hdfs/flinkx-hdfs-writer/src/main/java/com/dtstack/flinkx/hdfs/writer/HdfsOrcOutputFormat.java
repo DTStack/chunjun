@@ -156,7 +156,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
         } else {
-            checkWriteSize();
+            checkFlushBlock();
         }
 
         int i = 0;

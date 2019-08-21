@@ -26,7 +26,6 @@ import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 import java.util.Map;
-import java.util.Set;
 
 import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;
 
@@ -45,10 +44,6 @@ public class Kafka09Writer extends DataWriter {
 
     private String brokerList;
 
-    private Map<String, Map<String, String>> topicSelect;
-
-    private Set<Map.Entry<String, Map<String, String>>> entryTopicSelect;
-
     private Map<String, String> producerSettings;
 
     public Kafka09Writer(DataTransferConfig config) {
@@ -58,8 +53,6 @@ public class Kafka09Writer extends DataWriter {
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING, "utf-8");
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         brokerList = writerConfig.getParameter().getStringVal(KEY_BROKER_LIST);
-        topicSelect = (Map<String, Map<String, String>>) writerConfig.getParameter().getVal(KEY_TOPIC_SELECT);
-        entryTopicSelect = (Set<Map.Entry<String, Map<String, String>>>) writerConfig.getParameter().getVal(KEY_ENTRY_TOPIC_SELECT);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
     }
 
@@ -70,8 +63,6 @@ public class Kafka09Writer extends DataWriter {
         format.setEncoding(encoding);
         format.setTopic(topic);
         format.setBrokerList(brokerList);
-        format.setTopicSelect(topicSelect);
-        format.setEntryTopicSelect(entryTopicSelect);
         format.setProducerSettings(producerSettings);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(format);

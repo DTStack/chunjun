@@ -167,7 +167,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
         } else {
-            checkWriteSize();
+            checkFlushBlock();
         }
 
         Group group = groupFactory.newGroup();
