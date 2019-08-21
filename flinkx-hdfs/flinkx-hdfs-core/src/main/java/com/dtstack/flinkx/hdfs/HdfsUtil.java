@@ -43,6 +43,8 @@ import java.text.SimpleDateFormat;
  */
 public class HdfsUtil {
 
+    public static final String NULL_VALUE = "\\N";
+
     private static final String HADOOP_CONFIGE = System.getProperty("user.dir") + "/conf/hadoop/";
 
     private static final String HADOOP_CONF_DIR = System.getenv("HADOOP_CONF_DIR");

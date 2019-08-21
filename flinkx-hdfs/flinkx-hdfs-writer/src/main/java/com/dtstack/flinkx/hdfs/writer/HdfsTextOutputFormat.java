@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.common.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -87,13 +88,14 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                 Object column = row.getField(j);
 
                 if(column == null) {
+                    sb.append(HdfsUtil.NULL_VALUE);
                     continue;
                 }
 
                 String rowData = column.toString();
                 ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
 
-                if(rowData == null || rowData.length() == 0){
+                if(rowData.length() == 0){
                     sb.append("");
                 } else {
                     switch (columnType) {
