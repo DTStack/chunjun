@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hbase.reader;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.commons.lang.ArrayUtils;
@@ -70,12 +71,14 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Result next;
     private transient Map<String,byte[][]> nameMaps;
 
+    private boolean openKerberos = false;
+
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
 
-        connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId);
+        connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
 
         LOG.info("HbaseOutputFormat configure end");
     }
@@ -211,8 +214,10 @@ public class HbaseInputFormat extends RichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if(null == connection || connection.isClosed()){
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId);
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
         }
+
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
 
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
@@ -272,6 +277,10 @@ public class HbaseInputFormat extends RichInputFormat {
     @Override
     public void closeInternal() throws IOException {
         HbaseHelper.closeConnection(connection);
+
+        if(openKerberos){
+            KerberosUtil.clear(jobId);
+        }
     }
 
     public Object convertValueToAssignType(String columnType, String constantValue,String dateformat) throws Exception {

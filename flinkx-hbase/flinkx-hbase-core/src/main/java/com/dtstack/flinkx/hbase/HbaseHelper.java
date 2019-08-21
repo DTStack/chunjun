@@ -64,11 +64,11 @@ public class HbaseHelper {
             KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL
     );
 
-    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId) {
+    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId, String plugin) {
         Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
-            login(hbaseConfigMap, jobId);
+            login(hbaseConfigMap, jobId, plugin);
         }
 
         try {
@@ -91,7 +91,7 @@ public class HbaseHelper {
         return hConfiguration;
     }
 
-    private static boolean openKerberos(Map<String,Object> hbaseConfigMap){
+    public static boolean openKerberos(Map<String,Object> hbaseConfigMap){
         if(!MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION)){
             return false;
         }
@@ -99,7 +99,7 @@ public class HbaseHelper {
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
     }
 
-    private static void login(Map<String,Object> hbaseConfigMap, String jobId){
+    private static void login(Map<String,Object> hbaseConfigMap, String jobId, String plugin){
         for (String key : KEYS_KERBEROS_REQUIRED) {
             if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
                 throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
@@ -108,7 +108,7 @@ public class HbaseHelper {
 
         hbaseConfigMap.put(KEY_HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
 
-        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap, jobId);
+        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap, jobId, plugin);
 
         String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
         String path = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);

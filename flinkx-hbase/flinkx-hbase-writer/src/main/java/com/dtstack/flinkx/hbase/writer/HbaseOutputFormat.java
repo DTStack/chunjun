@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
@@ -92,6 +93,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal;
 
+    private boolean openKerberos = false;
+
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
@@ -102,7 +105,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId);
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "writer");
 
             org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
             bufferedMutator = connection.getBufferedMutator(
@@ -130,6 +133,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
     }
 
     @Override
@@ -476,6 +480,10 @@ public class HbaseOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
+
+        if(openKerberos){
+            KerberosUtil.clear(jobId);
+        }
     }
 
 }

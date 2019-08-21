@@ -51,12 +51,12 @@ public class KerberosUtil {
 
     private static final String LOCAL_DIR = "/tmp/dtstack/flinkx/keytab";
 
-    public static void loadKeyTabFilesAndReplaceHost(Map<String, Object> kerberosConfig, String jobId) {
+    public static void loadKeyTabFilesAndReplaceHost(Map<String, Object> kerberosConfig, String jobId, String plugin) {
         if(kerberosConfig == null || kerberosConfig.isEmpty()){
             throw new IllegalArgumentException("The kerberos config is null");
         }
 
-        createLocalDir(jobId);
+        createLocalDir(jobId, plugin);
 
         SFTPHandler handler = null;
         try {
@@ -99,8 +99,8 @@ public class KerberosUtil {
         }
     }
 
-    private static void createLocalDir(String jobId){
-        File file = new File(LOCAL_DIR + File.separator + jobId);
+    private static void createLocalDir(String jobId, String plugin){
+        File file = new File(LOCAL_DIR + File.separator + jobId + File.separator + plugin);
         if (file.exists()){
             boolean result = file.delete();
             if (!result) {
@@ -168,6 +168,6 @@ public class KerberosUtil {
 
         kerberosConfig.put("sftpConf", sftpConf);
 
-        loadKeyTabFilesAndReplaceHost(kerberosConfig, "dhueawhuxnsjahu");
+        loadKeyTabFilesAndReplaceHost(kerberosConfig, "dhueawhuxnsjahu", "reader");
     }
 }
