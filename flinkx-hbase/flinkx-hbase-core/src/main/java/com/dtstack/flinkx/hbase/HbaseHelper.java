@@ -18,16 +18,22 @@
 
 package com.dtstack.flinkx.hbase;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,25 +46,83 @@ import java.util.Map;
 public class HbaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HbaseHelper.class);
 
-    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,String> hbaseConfigMap) {
-        org.apache.hadoop.conf.Configuration hConfiguration = HBaseConfiguration.create();
-        try {
-            Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
-            for (Map.Entry<String, String> entry : hbaseConfigMap.entrySet()) {
-                hConfiguration.set(entry.getKey(), entry.getValue());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        org.apache.hadoop.hbase.client.Connection hConnection = null;
-        try {
-            hConnection = ConnectionFactory.createConnection(hConfiguration);
+    private final static String AUTHENTICATION_TYPE = "Kerberos";
+    private final static String KEY_HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
+    private final static String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
+    private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
+    private final static String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL = "hbase.master.kerberos.principal";
+    private final static String KEY_HBASE_MASTER_KEYTAB_FILE = "hbase.master.keytab.file";
+    private final static String KEY_HBASE_REGIONSERVER_KEYTAB_FILE = "hbase.regionserver.keytab.file";
+    private final static String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL = "hbase.regionserver.kerberos.principal";
+    private final static String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
-        } catch (Exception e) {
-            HbaseHelper.closeConnection(hConnection);
+    private static List<String> KEYS_KERBEROS_REQUIRED = Arrays.asList(
+            KEY_HBASE_SECURITY_AUTHENTICATION,
+            KEY_HBASE_MASTER_KERBEROS_PRINCIPAL,
+            KEY_HBASE_MASTER_KEYTAB_FILE,
+            KEY_HBASE_REGIONSERVER_KEYTAB_FILE,
+            KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL
+    );
+
+    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,String> hbaseConfigMap) {
+        Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
+
+        if(openKerberos(hbaseConfigMap)){
+            login(hbaseConfigMap);
+        }
+
+        try {
+            Configuration hConfiguration = getConfig(hbaseConfigMap);
+            return ConnectionFactory.createConnection(hConfiguration);
+        } catch (IOException e) {
+            LOG.error("Get connection fail with config:{}", hbaseConfigMap);
             throw new RuntimeException(e);
         }
-        return hConnection;
+    }
+
+    public static Configuration getConfig(Map<String,String> hbaseConfigMap){
+        Configuration hConfiguration = HBaseConfiguration.create();
+        for (Map.Entry<String, String> entry : hbaseConfigMap.entrySet()) {
+            hConfiguration.set(entry.getKey(), entry.getValue());
+        }
+
+        return hConfiguration;
+    }
+
+    private static boolean openKerberos(Map<String,String> hbaseConfigMap){
+        if(!MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION)){
+            return false;
+        }
+
+        return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
+    }
+
+    private static void login(Map<String,String> hbaseConfigMap){
+        for (String key : KEYS_KERBEROS_REQUIRED) {
+            if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
+                throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
+            }
+        }
+
+        hbaseConfigMap.put(KEY_HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+
+        KerberosUtil.loadKeyTabFilesAndRepalceHost(hbaseConfigMap);
+
+        String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
+        String path = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        String krb5Conf = MapUtils.getString(hbaseConfigMap, KEY_JAVA_SECURITY_KRB5_CONF);
+
+        if(StringUtils.isNotEmpty(krb5Conf)){
+            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
+        }
+
+        UserGroupInformation.setConfiguration(getConfig(hbaseConfigMap));
+        try {
+            UserGroupInformation.loginUserFromKeytab(principal, path);
+        } catch (IOException e){
+            LOG.error("Login fail with config:{}", hbaseConfigMap);
+            throw new RuntimeException("Login fail", e);
+        }
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable){
@@ -149,5 +213,4 @@ public class HbaseHelper {
             throw new RuntimeException(e);
         }
     }
-
 }

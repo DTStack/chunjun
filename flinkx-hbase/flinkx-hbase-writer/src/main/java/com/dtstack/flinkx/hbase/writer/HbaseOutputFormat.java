@@ -99,15 +99,12 @@ public class HbaseOutputFormat extends RichOutputFormat {
         nameByteMaps = Maps.newConcurrentMap();
         timesssFormatThreadLocal = new ThreadLocal();
         timeSSSFormatThreadLocal = new ThreadLocal();
-        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
-        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
-        }
-
         try {
-            connection = ConnectionFactory.createConnection(hConfiguration);
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
+
+            org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
             bufferedMutator = connection.getBufferedMutator(
                     new BufferedMutatorParams(TableName.valueOf(tableName))
                             .pool(HTable.getDefaultExecutor(hConfiguration))

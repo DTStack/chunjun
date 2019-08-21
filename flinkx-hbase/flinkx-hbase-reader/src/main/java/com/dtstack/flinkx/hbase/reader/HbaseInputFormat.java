@@ -22,7 +22,6 @@ import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -71,30 +70,14 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Result next;
     private transient Map<String,byte[][]> nameMaps;
 
-
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
-        try {
-            connection = ConnectionFactory.createConnection(getConfig());
-        } catch (Exception e) {
-            HbaseHelper.closeConnection(connection);
-            throw new IllegalArgumentException(e);
-        }
+
+        connection = HbaseHelper.getHbaseConnection(hbaseConfig);
 
         LOG.info("HbaseOutputFormat configure end");
-    }
-
-    public org.apache.hadoop.conf.Configuration getConfig(){
-        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
-        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
-
-        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
-        }
-
-        return hConfiguration;
     }
 
     @Override
@@ -228,12 +211,7 @@ public class HbaseInputFormat extends RichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if(null == connection || connection.isClosed()){
-            try {
-                connection = ConnectionFactory.createConnection(getConfig());
-            } catch (Exception e) {
-                HbaseHelper.closeConnection(connection);
-                throw new IllegalArgumentException(e);
-            }
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
         }
 
         table = connection.getTable(TableName.valueOf(tableName));
