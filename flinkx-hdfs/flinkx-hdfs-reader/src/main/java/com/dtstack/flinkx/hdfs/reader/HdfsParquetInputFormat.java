@@ -74,6 +74,8 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
+    private static final String EXCLUDE_FILE = "_SUCCESS";
+
     @Override
     protected void configureAnythingElse() {
         FileSystem fs = null;
@@ -250,11 +252,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 for (HdfsParquetSplit split : splits) {
                     if (it.hasNext()){
                         split.getPaths().add(it.next());
-                    } else {
-                        return splits;
                     }
                 }
             }
+
+            return splits;
         }
 
         return new HdfsParquetSplit[0];
@@ -289,7 +291,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
-        if(fs.isFile(inputPath)){
+        if(fs.isFile(inputPath) && !inputPath.getName().equals(EXCLUDE_FILE)){
             pathList.add(tableLocation);
             return pathList;
         } else {
@@ -297,7 +299,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             for (FileStatus status : fsStatus) {
                 if(status.isDirectory()){
                     pathList.addAll(getAllPartitionPath(status.getPath().toString(), fs));
-                } else {
+                } else if(!status.getPath().getName().equals(EXCLUDE_FILE)){
                     pathList.add(status.getPath().toString());
                 }
             }
