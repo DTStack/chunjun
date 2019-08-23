@@ -28,6 +28,9 @@ import org.apache.flink.metrics.MetricGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * @author jiangbo
@@ -49,6 +52,8 @@ public class BaseMetric {
 
     private long maxWaitMill;
 
+    private final Map<String, LongCounter> metricCounters = new HashMap<>();
+
     public BaseMetric(RuntimeContext runtimeContext, String sourceName, boolean isLocal) {
         this.sourceName = sourceName;
 
@@ -69,7 +74,12 @@ public class BaseMetric {
     }
 
     public void addMetric(String metricName, LongCounter counter){
+        metricCounters.put(metricName, counter);
         flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<Long>(counter));
+    }
+
+    public Map<String, LongCounter> getMetricCounters() {
+        return metricCounters;
     }
 
     public void waitForReportMetrics(){

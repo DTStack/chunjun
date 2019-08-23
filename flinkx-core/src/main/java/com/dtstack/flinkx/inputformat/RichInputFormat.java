@@ -156,7 +156,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private void getInitState(){
         if(formatState != null){
-            numReadCounter.add(formatState.getNumberRead());
+//            numReadCounter.add(formatState.getNumberRead());
+
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
             return;
         }
 
@@ -225,7 +229,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
      * @return DataRecoverPoint
      */
     public FormatState getFormatState() {
-        formatState.setNumberRead(numReadCounter.getLocalValue());
+
+//        formatState.setNumberRead(numReadCounter.getLocalValue());
+
+        formatState.setState(numReadCounter.getLocalValue());
+        formatState.setMetric(inputMetric.getMetricCounters());
         return formatState;
     }
 

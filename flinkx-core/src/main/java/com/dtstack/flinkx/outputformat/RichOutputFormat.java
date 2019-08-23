@@ -227,7 +227,17 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 formatState = new FormatState(taskNumber, null);
             } else {
                 initState = formatState.getState();
-                numWriteCounter.add(formatState.getNumberWrite());
+
+//                numWriteCounter.add(formatState.getNumberWrite());
+
+                errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+                nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+                duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+                conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+                otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+                numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
+                bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+                durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
             }
 
             putStateToAccumulator();
@@ -527,6 +537,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
      * @return DataRecoverPoint
      */
     public FormatState getFormatState(){
+        if (formatState != null){
+            formatState.setMetric(outputMetric.getMetricCounters());
+        }
         return formatState;
     }
 

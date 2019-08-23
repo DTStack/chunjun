@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.hive.EWriteModeType;
 import com.dtstack.flinkx.hive.TableInfo;
@@ -29,7 +30,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import parquet.hadoop.ParquetWriter;
 
@@ -212,13 +212,9 @@ public class HiveWriter extends DataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
-        builder.setRestoreConfig(restoreConfig);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        builder.setRestoreConfig(RestoreConfig.restoreTrue());
 
-        dataStreamSink.name("hivewriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "hivewriter");
     }
 }

@@ -25,7 +25,6 @@ import com.dtstack.flinkx.writer.DataWriter;
 import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 import java.util.HashMap;
@@ -100,10 +99,6 @@ public class MongodbWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
-        dataStreamSink.name("mongodbwriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "mongodbwriter");
     }
 }

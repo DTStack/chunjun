@@ -23,11 +23,14 @@ import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -154,5 +157,17 @@ public abstract class DataWriter {
     }
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
+
+    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
+        Preconditions.checkNotNull(dataSet);
+        Preconditions.checkNotNull(sinkName);
+        Preconditions.checkNotNull(outputFormat);
+
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        dataStreamSink.name(sinkName);
+
+        return dataStreamSink;
+    }
 
 }

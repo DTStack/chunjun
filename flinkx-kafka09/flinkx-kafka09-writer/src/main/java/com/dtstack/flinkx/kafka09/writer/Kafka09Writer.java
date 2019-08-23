@@ -22,7 +22,6 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 import java.util.Map;
@@ -65,10 +64,6 @@ public class Kafka09Writer extends DataWriter {
         format.setBrokerList(brokerList);
         format.setProducerSettings(producerSettings);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(format);
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("kafka09writer");
-        return dataStreamSink;
+        return createOutput(dataSet, format, "kafka09writer");
     }
 }
