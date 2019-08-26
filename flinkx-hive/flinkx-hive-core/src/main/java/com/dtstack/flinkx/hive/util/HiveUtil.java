@@ -61,45 +61,21 @@ public class HiveUtil {
     public final static String TABLE_COLUMN_TYPE = "type";
     public final static String PARTITION_TEMPLATE = "%s=%s";
 
-    private String jdbcUrl;
-    private String username;
-    private String password;
     private String writeMode;
-    private Map<String, Object> hadoopConf;
+    private DBUtil.ConnectionInfo connectionInfo;
 
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(String jdbcUrl, String username, String password, String writeMode, Map<String, Object> hadoopConf) {
-        this.jdbcUrl = jdbcUrl;
-        this.username = username;
-        this.password = password;
+    public HiveUtil(DBUtil.ConnectionInfo connectionInfo, String writeMode) {
+        this.connectionInfo = connectionInfo;
         this.writeMode = writeMode;
-        this.hadoopConf = hadoopConf;
-    }
-
-    public TableInfo createDirtyDataTable(String tableName) {
-        Connection connection = null;
-        try {
-            connection = DBUtil.getConnection(jdbcUrl, username, password);
-            String sql = String.format(CREATE_DIRTY_DATA_TABLE_TEMPLATE, tableName);
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
-            TableInfo tableInfo = new TableInfo(0);
-            tableInfo.setTablePath(tableName);
-            fillTableInfo(connection, tableInfo);
-            return tableInfo;
-        } catch (Exception e) {
-            logger.error("", e);
-            throw e;
-        } finally {
-            DBUtil.closeDBResources(null, null, connection);
-        }
     }
 
     public void createHiveTableWithTableInfo(TableInfo tableInfo) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(jdbcUrl, username, password);
+            connection = DBUtil.getConnection(connectionInfo);
             createTable(connection, tableInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
@@ -116,7 +92,7 @@ public class HiveUtil {
     public void createPartition(TableInfo tableInfo, String partition) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(jdbcUrl, username, password);
+            connection = DBUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             DBUtil.executeSqlWithoutResultSet(connection, sql);
         } catch (Exception e) {

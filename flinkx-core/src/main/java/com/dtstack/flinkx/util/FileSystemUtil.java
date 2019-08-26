@@ -25,9 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.security.UserGroupInformation;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -36,17 +34,21 @@ import java.util.Map;
  */
 public class FileSystemUtil {
 
-    private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
     private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
     private static final String KEY_HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
+    private static final String KEY_DFS_NAMENODE_KERBEROS_RINCIPAL = "dfs.namenode.kerberos.principal";
+    private static final String KEY_DFS_NAMENODE_KEYTAB_FILE = "dfs.namenode.keytab.file";
+    private static final String KEY_FS_DEFAULT_NAME = "fs.default.name";
+    private static final String KEY_FS_HDFS_IMPL_DISABLE_CACHE = "fs.hdfs.impl.disable.cache";
+    private static final String KEY_FS_DEFAULTFS = "fs.defaultFS";
 
     public static FileSystem getFileSystem(Map<String, Object> hadoopConfig, String defaultFS, String jobId, String plugin) throws Exception {
         if(openKerberos(hadoopConfig)){
-            login(hadoopConfig, jobId, plugin);
+            KerberosUtil.login(hadoopConfig, jobId, plugin, KEY_DFS_NAMENODE_KERBEROS_RINCIPAL, KEY_DFS_NAMENODE_KEYTAB_FILE);
         }
 
-        Configuration conf = getHadoopConfig(hadoopConfig, defaultFS);
+        Configuration conf = getConfiguration(hadoopConfig, defaultFS);
         return FileSystem.get(conf);
     }
 
@@ -58,23 +60,7 @@ public class FileSystemUtil {
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
     }
 
-    private static void login(Map<String, Object> hadoopConfig, String jobId, String plugin) throws IOException {
-        KerberosUtil.loadKeyTabFilesAndReplaceHost(hadoopConfig, jobId, plugin);
-
-        Configuration conf = getHadoopConfig(hadoopConfig, null);
-        if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
-            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
-        }
-
-        UserGroupInformation.setConfiguration(conf);
-
-        // TODO get principal and keytab
-        String principal = "";
-        String keytab = "";
-        UserGroupInformation.loginUserFromKeytab(principal, keytab);
-    }
-
-    public static Configuration getHadoopConfig(Map<String, Object> confMap, String defaultFS) {
+    public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFS) {
         Configuration conf = new Configuration();
 
         if (confMap != null) {
@@ -86,15 +72,15 @@ public class FileSystemUtil {
         }
 
         if(defaultFS != null){
-            conf.set("fs.default.name", defaultFS);
+            conf.set(KEY_FS_DEFAULT_NAME, defaultFS);
         } else {
-            defaultFS = MapUtils.getString(confMap, "fs.defaultFS");
+            defaultFS = MapUtils.getString(confMap, KEY_FS_DEFAULTFS);
             if(StringUtils.isNotEmpty(defaultFS)){
-                conf.set("fs.default.name", defaultFS);
+                conf.set(KEY_FS_DEFAULT_NAME, defaultFS);
             }
         }
 
-        conf.set("fs.hdfs.impl.disable.cache", "true");
+        conf.set(KEY_FS_HDFS_IMPL_DISABLE_CACHE, "true");
 
         return conf;
     }
@@ -111,10 +97,10 @@ public class FileSystemUtil {
         }
 
         if(defaultFS != null){
-            conf.set("fs.default.name", defaultFS);
+            conf.set(KEY_FS_DEFAULT_NAME, defaultFS);
         }
 
-        conf.set("fs.hdfs.impl.disable.cache", "true");
+        conf.set(KEY_FS_HDFS_IMPL_DISABLE_CACHE, "true");
 
         return conf;
     }

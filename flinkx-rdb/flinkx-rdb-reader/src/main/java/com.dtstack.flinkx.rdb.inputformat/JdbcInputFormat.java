@@ -533,7 +533,7 @@ public class JdbcInputFormat extends RichInputFormat {
     private void uploadMetricData() throws IOException {
         FSDataOutputStream out = null;
         try {
-            org.apache.hadoop.conf.Configuration conf = FileSystemUtil.getHadoopConfig(hadoopConfig, null);
+            org.apache.hadoop.conf.Configuration conf = FileSystemUtil.getConfiguration(hadoopConfig, null);
 
             Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
             String jobId = vars.get("<job_id>");

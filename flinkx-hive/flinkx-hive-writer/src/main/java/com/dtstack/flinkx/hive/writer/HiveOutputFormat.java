@@ -24,15 +24,14 @@ import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
+import com.dtstack.flinkx.hive.util.DBUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +110,15 @@ public class HiveOutputFormat extends RichOutputFormat {
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
 
-        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode, hadoopConfig);
+        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        connectionInfo.setJdbcUrl(jdbcUrl);
+        connectionInfo.setUsername(username);
+        connectionInfo.setPassword(password);
+        connectionInfo.setHiveConf(hadoopConfig);
+        connectionInfo.setJobId(jobId);
+        connectionInfo.setPlugin("writer");
+
+        hiveUtil = new HiveUtil(connectionInfo, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         lastPartitionValue = new HashMap<>(tableInfos.size());
     }

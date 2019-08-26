@@ -47,7 +47,6 @@ public interface IFtpHandler {
     /**
      *
      * @Title: LogoutFtpServer
-     * todo 方法名首字母
      * @Description: 断开与ftp服务器的连接
      * @param
      * @return void

@@ -158,7 +158,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         initColIndices();
 
         try{
-            conf = FileSystemUtil.getHadoopConfig(hadoopConfig, defaultFS);
+            conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
             fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
         } catch (Exception e){
             throw new IOException("Get FileSystem error", e);

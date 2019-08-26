@@ -19,8 +19,11 @@
 
 package com.dtstack.flinkx.authenticate;
 
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +51,24 @@ public class KerberosUtil {
     private static final String KEY_SFTP_CONF = "sftpConf";
     private static final String KEY_REMOTE_DIR = "remoteDir";
     private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
+    private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
     private static final String LOCAL_DIR = "/tmp/dtstack/flinkx/keytab";
+
+    public static void login(Map<String, Object> config, String jobId, String plugin, String principalKey, String keytabKey) throws IOException {
+        KerberosUtil.loadKeyTabFilesAndReplaceHost(config, jobId, plugin);
+
+        Configuration conf = FileSystemUtil.getConfiguration(config, null);
+        if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
+            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
+        }
+
+        UserGroupInformation.setConfiguration(conf);
+
+        String principal = conf.get(principalKey);
+        String keytab = conf.get(keytabKey);
+        UserGroupInformation.loginUserFromKeytab(principal, keytab);
+    }
 
     public static void loadKeyTabFilesAndReplaceHost(Map<String, Object> kerberosConfig, String jobId, String plugin) {
         if(kerberosConfig == null || kerberosConfig.isEmpty()){
