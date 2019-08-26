@@ -42,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -73,12 +74,24 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
+    private static final String EXCLUDE_FILE = "_SUCCESS";
+
     @Override
     protected void configureAnythingElse() {
+        FileSystem fs = null;
         try {
-            allFilePaths = getAllPartitionPath(inputPath);
+            fs = FileSystem.get(conf);
+            allFilePaths = getAllPartitionPath(inputPath, fs);
         } catch (Exception e){
             throw new RuntimeException(e);
+        } finally {
+            if(fs != null){
+                try {
+                    fs.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Close FileSystem error after get all files", e);
+                }
+            }
         }
     }
 
@@ -229,18 +242,24 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     @Override
     public HdfsParquetSplit[] createInputSplits(int minNumSplits) throws IOException {
         if(allFilePaths != null && allFilePaths.size() > 0){
-            int step = allFilePaths.size() / minNumSplits;
             HdfsParquetSplit[] splits = new HdfsParquetSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
-                int start = i * step;
-                int end = (i+1) * step > allFilePaths.size() ? allFilePaths.size() : (i+1) * step;
-                splits[i] = new HdfsParquetSplit(i,new ArrayList<>(allFilePaths.subList(start,end)));
+                splits[i] = new HdfsParquetSplit(i, new ArrayList<>());
+            }
+
+            Iterator<String> it = allFilePaths.iterator();
+            while (it.hasNext()) {
+                for (HdfsParquetSplit split : splits) {
+                    if (it.hasNext()){
+                        split.getPaths().add(it.next());
+                    }
+                }
             }
 
             return splits;
         }
 
-        return null;
+        return new HdfsParquetSplit[0];
     }
 
     @Override
@@ -268,33 +287,25 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return bg.toString();
     }
 
-    private List<String> getAllPartitionPath(String tableLocation) throws IOException {
-        FileSystem fs = null;
+    private static List<String> getAllPartitionPath(String tableLocation, FileSystem fs) throws IOException {
         List<String> pathList = Lists.newArrayList();
-        try {
-            Path inputPath = new Path(tableLocation);
-            fs =  FileSystem.get(conf);
+        Path inputPath = new Path(tableLocation);
 
+        if(fs.isFile(inputPath) && !inputPath.getName().equals(EXCLUDE_FILE)){
+            pathList.add(tableLocation);
+            return pathList;
+        } else {
             FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
-            if(fsStatus == null || fsStatus.length == 0){
-                pathList.add(tableLocation);
-                return pathList;
-            }
-
             for (FileStatus status : fsStatus) {
                 if(status.isDirectory()){
-                    pathList.addAll(getAllPartitionPath(status.getPath().toString()));
-                } else {
+                    pathList.addAll(getAllPartitionPath(status.getPath().toString(), fs));
+                } else if(!status.getPath().getName().equals(EXCLUDE_FILE)){
                     pathList.add(status.getPath().toString());
                 }
             }
-
-            return pathList;
-        } finally {
-            if (fs != null){
-                fs.close();
-            }
         }
+
+        return pathList;
     }
 
     private String getTypeName(String method){
