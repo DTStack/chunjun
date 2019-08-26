@@ -62,7 +62,7 @@ public abstract class DataReader {
     /**
      * reuse hadoopConfig for metric
      */
-    protected Map<String, String> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     public int getNumPartitions() {
         return numPartitions;
@@ -100,7 +100,7 @@ public abstract class DataReader {
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
         if (dirtyConfig != null) {
-            Map<String, String> hadoopConfig = dirtyConfig.getHadoopConfig();
+            Map<String, Object> hadoopConfig = dirtyConfig.getHadoopConfig();
             if (hadoopConfig != null) {
                 this.hadoopConfig = hadoopConfig;
             }

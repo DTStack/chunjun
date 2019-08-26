@@ -65,15 +65,17 @@ public class HiveUtil {
     private String username;
     private String password;
     private String writeMode;
+    private Map<String, Object> hadoopConf;
 
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(String jdbcUrl, String username, String password, String writeMode) {
+    public HiveUtil(String jdbcUrl, String username, String password, String writeMode, Map<String, Object> hadoopConf) {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
         this.writeMode = writeMode;
+        this.hadoopConf = hadoopConf;
     }
 
     public TableInfo createDirtyDataTable(String tableName) {

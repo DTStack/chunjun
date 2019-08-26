@@ -24,16 +24,15 @@ import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
-import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author toutian
@@ -58,7 +56,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     /**
      * hdfs高可用配置
      */
-    protected Map<String, String> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     protected String fileType;
 
@@ -78,7 +76,7 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     protected String charsetName = "UTF-8";
 
-    protected Configuration conf;
+//    protected Configuration conf;
 
     protected int rowGroupSize;
 
@@ -113,8 +111,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
 
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
+        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode, hadoopConfig);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         lastPartitionValue = new HashMap<>(tableInfos.size());
     }

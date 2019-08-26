@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -80,7 +81,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     protected void configureAnythingElse() {
         FileSystem fs = null;
         try {
-            fs = FileSystem.get(conf);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
             allFilePaths = getAllPartitionPath(inputPath, fs);
         } catch (Exception e){
             throw new RuntimeException(e);

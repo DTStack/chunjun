@@ -39,7 +39,7 @@ public abstract class RichOutputFormatBuilder {
         format.setDirtyPath(dirtyPath);
     }
 
-    public void setDirtyHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+    public void setDirtyHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
         format.setDirtyHadoopConfig(dirtyHadoopConfig);
     }
 

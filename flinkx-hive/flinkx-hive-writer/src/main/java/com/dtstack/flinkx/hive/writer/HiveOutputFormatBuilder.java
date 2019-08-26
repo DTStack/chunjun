@@ -95,7 +95,7 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
     
     
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 

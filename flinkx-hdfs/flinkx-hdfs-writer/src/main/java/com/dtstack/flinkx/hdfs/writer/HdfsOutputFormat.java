@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -60,7 +60,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     protected String outputFilePath;
 
     /** hdfs高可用配置 */
-    protected Map<String,String> hadoopConfig;
+    protected Map<String,Object> hadoopConfig;
 
     /** 写入模式 */
     protected String writeMode;
@@ -157,8 +157,13 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         initColIndices();
 
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        fs = FileSystem.get(conf);
+        try{
+            conf = FileSystemUtil.getHadoopConfig(hadoopConfig, defaultFS);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
+        } catch (Exception e){
+            throw new IOException("Get FileSystem error", e);
+        }
+
         Path dir = new Path(outputFilePath);
         // dir不能是文件
         if(fs.exists(dir) && fs.isFile(dir)){

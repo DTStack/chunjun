@@ -98,7 +98,7 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.customSql = customSql;
     }
 
-    public void setHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+    public void setHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
         format.hadoopConfig = dirtyHadoopConfig;
     }
 

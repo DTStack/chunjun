@@ -132,7 +132,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             format = new HdfsTextInputFormat();
         }
 
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
+        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
             format.hadoopConfig = hadoopConfig;
             return this;
         }

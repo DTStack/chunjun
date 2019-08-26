@@ -24,6 +24,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Map;
  * @author jiangbo
  * @date 2019/8/21
  */
-public class HdfsUtil {
+public class FileSystemUtil {
 
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
     private static final String AUTHENTICATION_TYPE = "Kerberos";
@@ -67,6 +68,7 @@ public class HdfsUtil {
 
         UserGroupInformation.setConfiguration(conf);
 
+        // TODO get principal and keytab
         String principal = "";
         String keytab = "";
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
@@ -74,6 +76,31 @@ public class HdfsUtil {
 
     public static Configuration getHadoopConfig(Map<String, Object> confMap, String defaultFS) {
         Configuration conf = new Configuration();
+
+        if (confMap != null) {
+            for (Map.Entry<String, Object> entry : confMap.entrySet()) {
+                if(entry.getValue() != null && !(entry.getValue() instanceof Map)){
+                    conf.set(entry.getKey(), entry.getValue().toString());
+                }
+            }
+        }
+
+        if(defaultFS != null){
+            conf.set("fs.default.name", defaultFS);
+        } else {
+            defaultFS = MapUtils.getString(confMap, "fs.defaultFS");
+            if(StringUtils.isNotEmpty(defaultFS)){
+                conf.set("fs.default.name", defaultFS);
+            }
+        }
+
+        conf.set("fs.hdfs.impl.disable.cache", "true");
+
+        return conf;
+    }
+
+    public static JobConf getJobConf(Map<String, Object> confMap, String defaultFS){
+        JobConf conf = new JobConf();
 
         if (confMap != null) {
             for (Map.Entry<String, Object> entry : confMap.entrySet()) {

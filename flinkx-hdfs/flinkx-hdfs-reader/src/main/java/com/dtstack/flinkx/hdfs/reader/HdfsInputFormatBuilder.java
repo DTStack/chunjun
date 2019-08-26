@@ -48,7 +48,7 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format;
     }
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 
