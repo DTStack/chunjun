@@ -228,8 +228,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             } else {
                 initState = formatState.getState();
 
-//                numWriteCounter.add(formatState.getNumberWrite());
-
                 errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
                 nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
                 duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
