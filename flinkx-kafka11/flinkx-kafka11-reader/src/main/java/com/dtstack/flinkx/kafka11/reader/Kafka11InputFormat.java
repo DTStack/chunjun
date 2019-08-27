@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.kafka11.reader;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
@@ -167,5 +168,9 @@ public class Kafka11InputFormat extends RichInputFormat {
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }
