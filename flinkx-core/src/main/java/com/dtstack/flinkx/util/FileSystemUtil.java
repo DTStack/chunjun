@@ -53,7 +53,7 @@ public class FileSystemUtil {
     }
 
     private static boolean openKerberos(Map<String, Object> hadoopConfig){
-        if(!MapUtils.getBoolean(hadoopConfig, KEY_HADOOP_SECURITY_AUTHORIZATION)){
+        if(!MapUtils.getBoolean(hadoopConfig, KEY_HADOOP_SECURITY_AUTHORIZATION, false)){
             return false;
         }
 
