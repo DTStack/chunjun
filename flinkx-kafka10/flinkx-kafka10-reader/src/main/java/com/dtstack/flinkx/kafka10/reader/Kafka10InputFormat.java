@@ -27,7 +27,6 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +53,6 @@ public class Kafka10InputFormat extends RichInputFormat {
     private String codec;
 
     private boolean blankIgnore;
-
-    private String bootstrapServers;
 
     private Map<String, String> consumerSettings;
 
@@ -95,7 +92,6 @@ public class Kafka10InputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration parameters) {
         Properties props = geneConsumerProp();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
         consumer = new KafkaConsumer(props);
         queue = new SynchronousQueue<Row>(false);
@@ -159,10 +155,6 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     public String getCodec() {
         return codec;
-    }
-
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
     }
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {

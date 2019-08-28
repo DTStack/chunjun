@@ -24,6 +24,7 @@ import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 import java.util.Map;
 
@@ -40,8 +41,6 @@ public class Kafka11Writer extends DataWriter {
 
     private String topic;
 
-    private String bootstrapServers;
-
     private Map<String, String> producerSettings;
 
     public Kafka11Writer(DataTransferConfig config) {
@@ -49,8 +48,11 @@ public class Kafka11Writer extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
-        bootstrapServers = writerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
+
+        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            throw new IllegalArgumentException("bootstrap.servers must set in producerSettings");
+        }
     }
 
     @Override
@@ -58,7 +60,6 @@ public class Kafka11Writer extends DataWriter {
         Kafka11OutputFormat format = new Kafka11OutputFormat();
         format.setTimezone(timezone);
         format.setTopic(topic);
-        format.setBootstrapServers(bootstrapServers);
         format.setProducerSettings(producerSettings);
 
         format.setRestoreConfig(RestoreConfig.restoreTrue());
