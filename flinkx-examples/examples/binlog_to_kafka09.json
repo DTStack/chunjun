@@ -16,12 +16,13 @@
         },
         "writer": {
           "parameter": {
-            "producerSettings" : {
+            "timezone" : "",//选填
+            "encoding" : "utf-8",//选填
+            "producerSettings" : {//必填
               "zookeeper.connect" : "172.16.8.107:2181/kafka"
             },
-            "bootstrapServers" : "172.16.8.107:9092",
-            "topic" : "mufeng_est",
-            "brokerList" : "172.16.8.107:9092"
+            "topic" : "mufeng_est",//必填
+            "brokerList" : "172.16.8.107:9092"//必填
           },
           "name": "kafka09writer"
         }

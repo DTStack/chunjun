@@ -24,6 +24,7 @@ import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 import java.util.Map;
 
@@ -48,8 +49,6 @@ public class Kafka10Reader extends DataReader {
      */
     private boolean blankIgnore;
 
-    private String bootstrapServers;
-
     private Map<String, String> consumerSettings;
 
     public Kafka10Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -57,10 +56,13 @@ public class Kafka10Reader extends DataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
         groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
-        codec = readerConfig.getParameter().getStringVal(KEY_CODEC);
+        codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
         blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
-        bootstrapServers = readerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+
+        if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
+        }
     }
 
     @Override
@@ -70,7 +72,6 @@ public class Kafka10Reader extends DataReader {
         format.setGroupId(groupId);
         format.setCodec(codec);
         format.setBlankIgnore(blankIgnore);
-        format.setBootstrapServers(bootstrapServers);
         format.setConsumerSettings(consumerSettings);
 
         format.setRestoreConfig(RestoreConfig.restoreTrue());
