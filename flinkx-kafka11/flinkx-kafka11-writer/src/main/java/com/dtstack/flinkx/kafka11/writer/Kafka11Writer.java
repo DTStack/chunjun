@@ -51,7 +51,7 @@ public class Kafka11Writer extends DataWriter {
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
 
         if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
-            throw new IllegalArgumentException("bootstrap.servers must set in producerSettings");
+            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
         }
     }
 

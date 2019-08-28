@@ -61,7 +61,7 @@ public class Kafka10Reader extends DataReader {
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
 
         if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
-            throw new IllegalArgumentException("bootstrap.servers must set in consumerSettings");
+            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
         }
     }
 

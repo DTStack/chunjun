@@ -25,7 +25,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;

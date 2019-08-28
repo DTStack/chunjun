@@ -4,11 +4,12 @@
       {
         "reader": {
           "parameter": {
-            "bootstrapServers" : "172.16.8.107:9092",
-            "groupId" : "default",
-            "topic" : "mq03",
-            "blankIgnore" : false,
-            "consumerSettings" : {
+            "groupId" : "default",//必填
+            "topic" : "mq03",//必填
+            "blankIgnore" : false, //选填
+            "codec" : "plain", //选填
+            "consumerSettings" : {//必填
+              "bootstrap.servers" : "172.16.8.107:9092", //必填
               "zookeeper.connect" : "172.16.8.107:2181/kafka",
               "auto.commit.interval.ms" : "1000",
               "auto.offset.reset" : "latest"
@@ -18,12 +19,12 @@
         },
         "writer": {
           "parameter": {
-            "producerSettings" : {
-              "zookeeper.connect" : "172.16.8.107:2181/kafka"
+            "timezone" : "",//选填
+            "producerSettings" : { //必填
+              "zookeeper.connect" : "172.16.8.107:2181/kafka",
+              "bootstrap.servers" : "172.16.8.107:9092" //必填
             },
-            "bootstrapServers" : "172.16.8.107:9092",
-            "topic" : "mufeng_est",
-            "brokerList" : "172.16.8.107:9092"
+            "topic" : "mufeng_est"//必填
           },
           "name": "kafka11writer"
         }
