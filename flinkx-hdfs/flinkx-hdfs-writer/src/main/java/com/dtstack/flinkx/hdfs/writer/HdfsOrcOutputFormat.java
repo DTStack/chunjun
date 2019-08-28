@@ -60,9 +60,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
-
     @Override
-    protected void configInternal() {
+    protected void openSource() {
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
@@ -106,7 +105,15 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlockInternal() {
+    public float getDeviation(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getDeviation();
+    }
+
+    @Override
+    protected void nextBlock(){
+        super.nextBlock();
+
         if (recordWriter != null){
             return;
         }
@@ -124,39 +131,11 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void flushBlock() throws IOException{
-        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
-
-        if (recordWriter != null){
-            recordWriter.close(Reporter.NULL);
-            recordWriter = null;
-        }
-    }
-
-    @Override
-    protected float getDeviation(){
-        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
-        return compressType.getDeviation();
-    }
-
-    @Override
-    public void open() throws IOException {
-        nextBlock();
-    }
-
-    @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore()){
-            if(recordWriter == null){
-                nextBlock();
-            }
+        super.writeSingleRecordInternal(row);
 
-            if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-        } else {
-            checkFlushBlock();
+        if (recordWriter == null){
+            nextBlock();
         }
 
         int i = 0;
@@ -177,6 +156,16 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
             throw new WriteRecordException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void flushData() throws IOException {
+        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
+        if (recordWriter != null){
+            recordWriter.close(Reporter.NULL);
+            recordWriter = null;
         }
     }
 
@@ -267,18 +256,14 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        readyCheckpoint = false;
+    protected void closeSource() throws IOException {
+        super.closeSource();
+
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
         }
-
-        if(isTaskEndsNormally()){
-            moveTemporaryDataBlockFileToDirectory();
-        }
     }
-
 }

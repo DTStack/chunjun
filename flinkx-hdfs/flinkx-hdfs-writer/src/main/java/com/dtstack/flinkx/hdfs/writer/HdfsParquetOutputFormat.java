@@ -22,7 +22,6 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
@@ -84,7 +83,16 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlockInternal() {
+    protected void openSource(){
+        schema = buildSchema();
+        GroupWriteSupport.setSchema(schema,conf);
+        groupFactory = new SimpleGroupFactory(schema);
+    }
+
+    @Override
+    protected void nextBlock(){
+        super.nextBlock();
+
         if (writer != null){
             return;
         }
@@ -132,7 +140,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void flushBlock() throws IOException{
+    public void flushData() throws IOException{
         LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
         if (writer != null){
@@ -142,32 +150,17 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected float getDeviation(){
+    public float getDeviation(){
         ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "parquet");
         return compressType.getDeviation();
     }
 
     @Override
-    protected void open() throws IOException {
-        schema = buildSchema();
-        GroupWriteSupport.setSchema(schema,conf);
-        groupFactory = new SimpleGroupFactory(schema);
-        nextBlock();
-    }
+    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        super.writeSingleRecordInternal(row);
 
-    @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore()){
-            if(writer == null){
-                nextBlock();
-            }
-
-            if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-        } else {
-            checkFlushBlock();
+        if(writer == null){
+            nextBlock();
         }
 
         Group group = groupFactory.newGroup();
@@ -287,14 +280,11 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        readyCheckpoint = false;
+    protected void closeSource() throws IOException {
+        super.closeSource();
+
         if (writer != null){
             writer.close();
-
-            if(isTaskEndsNormally()){
-                moveTemporaryDataBlockFileToDirectory();
-            }
         }
     }
 

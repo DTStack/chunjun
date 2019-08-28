@@ -105,7 +105,7 @@ public class FtpWriter extends DataWriter{
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setDelimiter(fieldDelimiter);
-        builder.setEncoding(encoding);
+        builder.setCharSetName(encoding);
         builder.setErrors(errors);
         builder.setHost(host);
         builder.setConnectPattern(connectPattern);
