@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
 
 /**
  * @author toutian
@@ -96,7 +96,7 @@ public class HiveWriter extends DataWriter {
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
         delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
-        charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
+        charSet = writerConfig.getParameter().getStringVal(KEY_CHARSET_NAME);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
         interval = writerConfig.getParameter().getLongVal(KEY_INTERVAL, 60 * 60 * 1000);
