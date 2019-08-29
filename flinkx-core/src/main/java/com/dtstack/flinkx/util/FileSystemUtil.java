@@ -45,11 +45,10 @@ public class FileSystemUtil {
 
     public static FileSystem getFileSystem(Map<String, Object> hadoopConfig, String defaultFS, String jobId, String plugin) throws Exception {
         if(openKerberos(hadoopConfig)){
-            KerberosUtil.login(hadoopConfig, jobId, plugin, KEY_DFS_NAMENODE_KERBEROS_RINCIPAL, KEY_DFS_NAMENODE_KEYTAB_FILE);
+            loginHdfs(hadoopConfig, jobId, plugin);
         }
 
-        Configuration conf = getConfiguration(hadoopConfig, defaultFS);
-        return FileSystem.get(conf);
+        return FileSystem.get(getConfiguration(hadoopConfig, defaultFS));
     }
 
     private static boolean openKerberos(Map<String, Object> hadoopConfig){
@@ -58,6 +57,34 @@ public class FileSystemUtil {
         }
 
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
+    }
+
+    private static void loginHdfs(Map<String, Object> hadoopConfig, String jobId, String plugin) throws Exception{
+        String keytab = getKeytab(hadoopConfig);
+        String principal = getPrincipal(hadoopConfig);
+
+        keytab = KerberosUtil.loadKeyTabFile(hadoopConfig, keytab, jobId, plugin);
+        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+
+        KerberosUtil.login(getConfiguration(hadoopConfig, null), principal, keytab);
+    }
+
+    private static String getPrincipal(Map<String, Object> hadoopConfig){
+        String principal = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KERBEROS_RINCIPAL);
+        if(StringUtils.isNotEmpty(principal)){
+            return principal;
+        }
+
+        throw new IllegalArgumentException("Can not find principal from hadoopConfig");
+    }
+
+    private static String getKeytab(Map<String, Object> hadoopConfig){
+        String keytab = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KEYTAB_FILE);
+        if(StringUtils.isNotEmpty(keytab)){
+            return keytab;
+        }
+
+        throw new IllegalArgumentException("Can not find keytab from hadoopConfig");
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFS) {

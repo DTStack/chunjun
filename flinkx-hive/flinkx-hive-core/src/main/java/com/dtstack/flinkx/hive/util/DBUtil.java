@@ -19,10 +19,14 @@
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -59,6 +63,7 @@ public final class DBUtil {
     public static final String PORT_KEY = "port";
     public static final String DB_KEY = "db";
     public static final String PARAM_KEY = "param";
+    public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY = "hive.server2.authentication.kerberos.keytab";
 
     private static ReentrantLock lock = new ReentrantLock();
 
@@ -83,7 +88,7 @@ public final class DBUtil {
                 }
             }, 1, 1000L, false);
         } catch (Exception e1) {
-            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), e1.getMessage()));
+            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
         }
     }
 
@@ -106,14 +111,47 @@ public final class DBUtil {
     private static void login(ConnectionInfo info){
         try {
             if(info.getHiveConf() == null || info.getHiveConf().isEmpty()){
-                throw new IllegalArgumentException("");
+                throw new IllegalArgumentException("hiveConf can not be null or empty");
             }
 
-            // TODO
-            KerberosUtil.login(info.getHiveConf(), info.getJobId(), info.getPlugin(), "", "");
+            String keytab = getKeytab(info.getHiveConf());
+            String principal = getPrincipal(info.getJdbcUrl());
+
+            keytab = KerberosUtil.loadKeyTabFile(info.getHiveConf(), keytab, info.getJobId(), info.getPlugin());
+            principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+
+            Configuration conf = FileSystemUtil.getConfiguration(info.getHiveConf(), null);
+            conf.set("hadoop.security.authentication", "Kerberos");
+
+            KerberosUtil.login(conf, principal, keytab);
         } catch (IOException e) {
             throw new RuntimeException("Login kerberos for hive error", e);
         }
+    }
+
+    private static String getPrincipal(String jdbcUrl){
+        String[] splits = jdbcUrl.split(JDBC_REGEX);
+        if (splits.length == 2) {
+            String paramsStr = splits[1];
+            String[] paramArray = paramsStr.split(PARAM_DELIM);
+            for (String param : paramArray) {
+                String[] keyVal = param.split(KEY_VAL_DELIM);
+                if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
+                    return keyVal[1];
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Can not find principal from jdbcUrl");
+    }
+
+    private static String getKeytab(Map<String, Object> hiveConf){
+        String keytab = MapUtils.getString(hiveConf, HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY);
+        if(StringUtils.isNotEmpty(keytab)){
+            return keytab;
+        }
+
+        throw new IllegalArgumentException("can not find keytab from hiveConf");
     }
 
     public static Connection connect(ConnectionInfo connectionInfo) {
@@ -135,8 +173,14 @@ public final class DBUtil {
         }
 
         Properties prop = new Properties();
-        prop.put("user", connectionInfo.getUsername());
-        prop.put("password", connectionInfo.getPassword());
+        if(connectionInfo.getUsername() != null){
+            prop.put("user", connectionInfo.getUsername());
+        }
+
+        if(connectionInfo.getPassword() != null){
+            prop.put("password", connectionInfo.getPassword());
+        }
+
         return connect(connectionInfo.getJdbcUrl(), prop);
     }
 
@@ -153,10 +197,10 @@ public final class DBUtil {
             } else if (SQLSTATE_CANNOT_ACQUIRE_CONNECT.equals(e.getSQLState())) {
                 throw new RuntimeException("应用程序服务器拒绝建立连接.");
             } else {
-                throw new RuntimeException("连接信息：" + url + " 错误信息：" + e.getMessage());
+                throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e));
             }
         } catch (Exception e1) {
-            throw new RuntimeException("连接信息：" + url + " 错误信息：" + e1.getMessage());
+            throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
         }
@@ -185,7 +229,7 @@ public final class DBUtil {
 
         if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
             param = param == null ? "" : param;
-            url = String.format("jdbc:hive2://%s:%s%s", host, port, param);
+            url = String.format("jdbc:hive2://%s:%s/%s%s", host, port, db, param);
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
                 try {
