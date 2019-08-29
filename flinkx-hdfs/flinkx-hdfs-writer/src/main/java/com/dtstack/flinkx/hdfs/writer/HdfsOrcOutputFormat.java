@@ -61,7 +61,9 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private JobConf jobConf;
 
     @Override
-    protected void openSource() {
+    protected void openSource() throws IOException{
+        super.openSource();
+
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
@@ -131,7 +133,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
         super.writeSingleRecordInternal(row);
 
         if (recordWriter == null){
@@ -160,7 +162,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void flushData() throws IOException {
+    public void flushDataInternal() throws IOException {
         LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
         if (recordWriter != null){

@@ -83,7 +83,9 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void openSource(){
+    protected void openSource() throws IOException{
+        super.openSource();
+
         schema = buildSchema();
         GroupWriteSupport.setSchema(schema,conf);
         groupFactory = new SimpleGroupFactory(schema);
@@ -140,7 +142,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void flushData() throws IOException{
+    public void flushDataInternal() throws IOException{
         LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
         if (writer != null){
@@ -156,7 +158,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
         super.writeSingleRecordInternal(row);
 
         if(writer == null){

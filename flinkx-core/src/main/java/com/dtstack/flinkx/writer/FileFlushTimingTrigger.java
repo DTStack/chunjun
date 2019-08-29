@@ -20,6 +20,8 @@
 package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,13 +33,11 @@ import java.util.concurrent.TimeUnit;
  * @author jiangbo
  * @date 2019/8/28
  */
-public class FileSizeChecker {
+public class FileFlushTimingTrigger {
+
+    protected final Logger LOG = LoggerFactory.getLogger(FileFlushTimingTrigger.class);
 
     private static final String THREAD_NAME = "file-size-checker-thread";
-
-    private long nextNumForCheckDataSize = 1000;
-
-    private long lastWriteSize;
 
     private FileOutputFormat outputFormat;
 
@@ -45,7 +45,7 @@ public class FileSizeChecker {
 
     private ScheduledExecutorService scheduledExecutorService;
 
-    public FileSizeChecker(FileOutputFormat outputFormat, long period) {
+    public FileFlushTimingTrigger(FileOutputFormat outputFormat, long period) {
         this.outputFormat = outputFormat;
         this.period = period;
 
@@ -59,52 +59,20 @@ public class FileSizeChecker {
 
     public void start(){
         scheduledExecutorService.scheduleAtFixedRate(
-                this::checkSize,
+                this::flush,
                 0,
                 (period * 1000),
                 TimeUnit.MILLISECONDS
         );
     }
 
-    private void checkSize(){
-        if (outputFormat.getMaxFileSize() <= 0){
-            flush();
-        }
-
-        if(outputFormat.getNumWriteCounter().getLocalValue() < nextNumForCheckDataSize){
-            return;
-        }
-
-        if(getCurrentFileSize() > outputFormat.getMaxFileSize()){
-            flush();
-            lastWriteSize = outputFormat.getBytesWriteCounter().getLocalValue();
-        }
-
-        nextNumForCheckDataSize = getNextNumForCheckDataSize();
-    }
-
     private void flush(){
         try {
             outputFormat.flushData();
+            LOG.info("Flush data by time interval:{}", period);
         } catch (IOException e){
             throw new RuntimeException("Flush data error", e);
         }
-    }
-
-    private long getCurrentFileSize(){
-        return  (long)(outputFormat.getDeviation() * (outputFormat.getBytesWriteCounter().getLocalValue() - lastWriteSize));
-    }
-
-    private long getNextNumForCheckDataSize(){
-        long totalBytesWrite = outputFormat.getBytesWriteCounter().getLocalValue();
-        long totalRecordWrite = outputFormat.getNumWriteCounter().getLocalValue();
-
-        float eachRecordSize = (totalBytesWrite * outputFormat.getDeviation()) / totalRecordWrite;
-
-        long currentFileSize = getCurrentFileSize();
-        long recordNum = (long)((outputFormat.getMaxFileSize() - currentFileSize) / eachRecordSize);
-
-        return totalRecordWrite + recordNum;
     }
 
     public void stop(){

@@ -21,12 +21,14 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.writer.FileSizeChecker;
+import com.dtstack.flinkx.writer.FileFlushTimingTrigger;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author jiangbo
@@ -78,12 +80,16 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected boolean makeDir = true;
 
-    private transient FileSizeChecker fileSizeChecker;
+    private transient FileFlushTimingTrigger fileSizeChecker;
+
+    private long nextNumForCheckDataSize = 1000;
+
+    private long lastWriteSize;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(!restoreConfig.isRestore()){
-            fileSizeChecker = new FileSizeChecker(this, flushInterval);
+        if(!restoreConfig.isRestore() && flushInterval > 0){
+            fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
             fileSizeChecker.start();
         }
 
@@ -109,7 +115,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
     }
 
-    private void actionBeforeWriteData(){
+    protected void actionBeforeWriteData(){
         if(taskNumber > 0){
             return;
         }
@@ -136,6 +142,47 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
         }
+
+        checkSize();
+
+        synchronized (this){
+            writeSingleRecordToFile(row);
+        }
+    }
+
+    private void checkSize() {
+        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
+            return;
+        }
+
+        if(getCurrentFileSize() > maxFileSize){
+            try {
+                flushData();
+                LOG.info("Flush data by check file size");
+            } catch (Exception e){
+                throw new RuntimeException("Flush data error", e);
+            }
+
+            lastWriteSize = bytesWriteCounter.getLocalValue();
+        }
+
+        nextNumForCheckDataSize = getNextNumForCheckDataSize();
+    }
+
+    private long getCurrentFileSize(){
+        return  (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
+    }
+
+    private long getNextNumForCheckDataSize(){
+        long totalBytesWrite = bytesWriteCounter.getLocalValue();
+        long totalRecordWrite = numWriteCounter.getLocalValue();
+
+        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
+
+        long currentFileSize = getCurrentFileSize();
+        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
+
+        return totalRecordWrite + recordNum;
     }
 
     protected void nextBlock(){
@@ -259,13 +306,20 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         return true;
     }
 
-    public long getMaxFileSize() {
-        return maxFileSize;
-    }
-
     public String getPath() {
         return path;
     }
+
+    public void flushData() throws IOException{
+        synchronized (this){
+            flushDataInternal();
+            LOG.info("flush file:{}", currentBlockFileName);
+        }
+    }
+
+    protected abstract void flushDataInternal() throws IOException;
+
+    protected abstract void writeSingleRecordToFile(Row row) throws WriteRecordException;
 
     protected abstract void createFinishedTag() throws IOException;
 
@@ -286,8 +340,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     protected abstract void alignHistoryFiles();
 
     protected abstract void clearTemporaryDataFiles() throws IOException;
-
-    public abstract void flushData() throws IOException;
 
     public abstract float getDeviation();
 

@@ -34,7 +34,8 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
     private FtpOutputFormat format;
 
     public FtpOutputFormatBuilder() {
-        super.format = format = new FtpOutputFormat();
+        format = new FtpOutputFormat();
+        super.setFormat(format);
     }
 
     public void setProtocol(String protocol) {

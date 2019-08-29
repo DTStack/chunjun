@@ -65,8 +65,8 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        super.openInternal(taskNumber, numTasks);
         initColIndices();
+        super.openInternal(taskNumber, numTasks);
     }
 
     @Override
@@ -75,7 +75,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
             Path dir = new Path(outputFilePath);
 
             if(fs.exists(dir)){
-                if(fs.isDirectory(dir)){
+                if(fs.isFile(dir)){
                     throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
                             + "One can only write new files under directories");
                 }

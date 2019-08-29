@@ -88,6 +88,28 @@ public class FtpOutputFormat extends FileOutputFormat {
     }
 
     @Override
+    protected void actionBeforeWriteData(){
+        if(taskNumber > 0){
+            return;
+        }
+
+        checkOutputDir();
+
+        if (formatState == null || formatState.getState() == null) {
+            try {
+                LOG.info("Delete [.data] dir before write records");
+                clearTemporaryDataFiles();
+            } catch (Exception e) {
+                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+            }
+
+            ftpHandler.mkDirRecursive(tmpPath);
+        } else {
+            alignHistoryFiles();
+        }
+    }
+
+    @Override
     protected void checkOutputDir() {
         if(!ftpHandler.isDirExist(outputFilePath)){
             if(!makeDir){
@@ -147,7 +169,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             return;
         }
 
-        os = ftpHandler.getOutputStream(currentBlockFileName);
+        os = ftpHandler.getOutputStream(tmpPath + SP + currentBlockFileName);
         blockIndex++;
     }
 
@@ -168,9 +190,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        super.writeSingleRecordInternal(row);
-
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
         if(os == null){
             nextBlock();
         }
@@ -264,6 +284,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     protected void closeSource() throws IOException {
         if (os != null){
             os.flush();
+            os.close();
             os = null;
         }
     }
@@ -278,7 +299,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     }
 
     @Override
-    public void flushData() throws IOException {
+    public void flushDataInternal() throws IOException {
         closeSource();
     }
 

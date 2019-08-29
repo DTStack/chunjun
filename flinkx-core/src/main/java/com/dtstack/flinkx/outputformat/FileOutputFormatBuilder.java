@@ -32,6 +32,11 @@ public class FileOutputFormatBuilder extends RichOutputFormatBuilder {
 
     protected FileOutputFormat format;
 
+    public void setFormat(FileOutputFormat format) {
+        this.format = format;
+        super.format = format;
+    }
+
     public void setWriteMode(String writeMode) {
         this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
     }

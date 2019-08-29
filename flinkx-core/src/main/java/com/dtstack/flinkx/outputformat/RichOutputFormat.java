@@ -590,12 +590,4 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
     }
-
-    public LongCounter getNumWriteCounter() {
-        return numWriteCounter;
-    }
-
-    public LongCounter getBytesWriteCounter() {
-        return bytesWriteCounter;
-    }
 }

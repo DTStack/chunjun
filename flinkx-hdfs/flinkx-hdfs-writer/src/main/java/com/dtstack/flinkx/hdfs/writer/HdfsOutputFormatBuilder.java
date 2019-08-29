@@ -47,7 +47,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
                 throw new IllegalArgumentException("Unsupported HDFS file type: " + type);
         }
 
-        super.format = format;
+        super.setFormat(format);
     }
 
     public void setColumnNames(List<String> columnNames) {

@@ -50,7 +50,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     private static final int BUFFER_SIZE = 1000;
 
     @Override
-    public void flushData() throws IOException {
+    public void flushDataInternal() throws IOException {
         LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
         if (stream != null){
@@ -103,7 +103,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
         super.writeSingleRecordInternal(row);
 
         if(stream == null){
