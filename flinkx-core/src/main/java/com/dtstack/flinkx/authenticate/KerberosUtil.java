@@ -54,7 +54,7 @@ public class KerberosUtil {
 
     static {
         String systemInfo = System.getProperty("os.name");
-        if(systemInfo.toLowerCase().startsWith("win")){
+        if(systemInfo.toLowerCase().startsWith("windows")){
             LOCAL_DIR = System.getProperty("user.dir");
         } else {
             LOCAL_DIR = "/tmp/flinkx/keytab";
@@ -62,6 +62,10 @@ public class KerberosUtil {
     }
 
     public static void login(Configuration conf, String principal, String keytab) throws IOException {
+        if (conf == null) {
+            throw new IllegalArgumentException("kerberos conf can not be null");
+        }
+
         if (StringUtils.isEmpty(principal)) {
             throw new IllegalArgumentException("principal can not be null");
         }
@@ -70,30 +74,39 @@ public class KerberosUtil {
             throw new IllegalArgumentException("keytab can not be null");
         }
 
-        if(conf != null){
-            if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
-                System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
-            }
-
-            UserGroupInformation.setConfiguration(conf);
+        if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
+            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
         }
+
+        conf.set("hadoop.security.authentication", "Kerberos");
+        UserGroupInformation.setConfiguration(conf);
 
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
     }
 
-    public static String loadKeyTabFile(Map<String, Object> kerberosConfig, String keytab, String jobId, String plugin) {
-        boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
-        if(useLocalFile){
-            checkFileExists(keytab);
-        } else {
-            if(keytab.contains(SP)){
-                keytab = keytab.substring(keytab.lastIndexOf(SP) + 1);
-            }
-
-            keytab = loadKeytabFromSFTP(kerberosConfig, keytab, jobId, plugin);
+    public static void loadKrb5Conf(Map<String, Object> kerberosConfig, String jobId, String plugin){
+        String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
+        if(StringUtils.isEmpty(krb5FilePath)){
+            return;
         }
 
-        return keytab;
+        krb5FilePath = loadFile(kerberosConfig, krb5FilePath, jobId, plugin);
+        kerberosConfig.put(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
+    }
+
+    public static String loadFile(Map<String, Object> kerberosConfig, String filePath, String jobId, String plugin) {
+        boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
+        if(useLocalFile){
+            checkFileExists(filePath);
+        } else {
+            if(filePath.contains(SP)){
+                filePath = filePath.substring(filePath.lastIndexOf(SP) + 1);
+            }
+
+            filePath = loadFromSFTP(kerberosConfig, filePath, jobId, plugin);
+        }
+
+        return filePath;
     }
 
     private static void checkFileExists(String keytab){
@@ -107,7 +120,7 @@ public class KerberosUtil {
        }
     }
 
-    private static String loadKeytabFromSFTP(Map<String, Object> config, String keytab, String jobId, String plugin){
+    private static String loadFromSFTP(Map<String, Object> config, String keytab, String jobId, String plugin){
         String localDir = createLocalDir(jobId, plugin);
         String localPath = localDir + SP + keytab;
 

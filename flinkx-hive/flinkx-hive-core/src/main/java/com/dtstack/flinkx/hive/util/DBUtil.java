@@ -117,8 +117,9 @@ public final class DBUtil {
             String keytab = getKeytab(info.getHiveConf());
             String principal = getPrincipal(info.getJdbcUrl());
 
-            keytab = KerberosUtil.loadKeyTabFile(info.getHiveConf(), keytab, info.getJobId(), info.getPlugin());
+            keytab = KerberosUtil.loadFile(info.getHiveConf(), keytab, info.getJobId(), info.getPlugin());
             principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+            KerberosUtil.loadKrb5Conf(info.getHiveConf(), info.getJobId(), info.getPlugin());
 
             Configuration conf = FileSystemUtil.getConfiguration(info.getHiveConf(), null);
             conf.set("hadoop.security.authentication", "Kerberos");

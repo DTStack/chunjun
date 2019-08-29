@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.hbase;
 
 import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -28,7 +29,6 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -47,14 +47,12 @@ public class HbaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HbaseHelper.class);
 
     private final static String AUTHENTICATION_TYPE = "Kerberos";
-    private final static String KEY_HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
     private final static String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private final static String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL = "hbase.master.kerberos.principal";
     private final static String KEY_HBASE_MASTER_KEYTAB_FILE = "hbase.master.keytab.file";
     private final static String KEY_HBASE_REGIONSERVER_KEYTAB_FILE = "hbase.regionserver.keytab.file";
     private final static String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL = "hbase.regionserver.kerberos.principal";
-    private final static String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
     private static List<String> KEYS_KERBEROS_REQUIRED = Arrays.asList(
             KEY_HBASE_SECURITY_AUTHENTICATION,
@@ -66,6 +64,11 @@ public class HbaseHelper {
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId, String plugin) {
         Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
+        for (String key : KEYS_KERBEROS_REQUIRED) {
+            if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
+                throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
+            }
+        }
 
         if(openKerberos(hbaseConfigMap)){
             login(hbaseConfigMap, jobId, plugin);
@@ -100,31 +103,37 @@ public class HbaseHelper {
     }
 
     private static void login(Map<String,Object> hbaseConfigMap, String jobId, String plugin){
-        for (String key : KEYS_KERBEROS_REQUIRED) {
-            if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
-                throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
-            }
-        }
-
-        hbaseConfigMap.put(KEY_HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
-
-        KerberosUtil.loadKeyTabFilesAndReplaceHost(hbaseConfigMap, jobId, plugin);
-
-        String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
-        String path = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
-        String krb5Conf = MapUtils.getString(hbaseConfigMap, KEY_JAVA_SECURITY_KRB5_CONF);
-
-        if(StringUtils.isNotEmpty(krb5Conf)){
-            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
-        }
-
-        UserGroupInformation.setConfiguration(getConfig(hbaseConfigMap));
         try {
-            UserGroupInformation.loginUserFromKeytab(principal, path);
-        } catch (IOException e){
-            LOG.error("Login fail with config:{}", hbaseConfigMap);
-            throw new RuntimeException("Login fail", e);
+            String principal = getPrincipal(hbaseConfigMap);
+            String keytab = getKeytab(hbaseConfigMap);
+
+            keytab = KerberosUtil.loadFile(hbaseConfigMap, keytab, jobId, plugin);
+            principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+            KerberosUtil.loadKrb5Conf(hbaseConfigMap, jobId, plugin);
+
+            Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
+            KerberosUtil.login(conf, principal, keytab);
+        } catch (Exception e){
+            throw new RuntimeException("login kerberos error", e);
         }
+    }
+
+    private static String getKeytab(Map<String,Object> hbaseConfigMap){
+        String keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        if(StringUtils.isNotEmpty(keytab)){
+            return keytab;
+        }
+
+        throw new IllegalArgumentException("");
+    }
+
+    private static String getPrincipal(Map<String,Object> hbaseConfigMap){
+        String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
+        if(StringUtils.isNotEmpty(principal)){
+            return principal;
+        }
+
+        throw new IllegalArgumentException("");
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable){

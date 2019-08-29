@@ -63,8 +63,9 @@ public class FileSystemUtil {
         String keytab = getKeytab(hadoopConfig);
         String principal = getPrincipal(hadoopConfig);
 
-        keytab = KerberosUtil.loadKeyTabFile(hadoopConfig, keytab, jobId, plugin);
+        keytab = KerberosUtil.loadFile(hadoopConfig, keytab, jobId, plugin);
         principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+        KerberosUtil.loadKrb5Conf(hadoopConfig, jobId, plugin);
 
         KerberosUtil.login(getConfiguration(hadoopConfig, null), principal, keytab);
     }
