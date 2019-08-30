@@ -55,6 +55,7 @@ public class FtpWriter extends DataWriter{
     private List<String> columnName;
     private List<String> columnType;
     private Integer timeout;
+    protected long maxFileSize;
 
     public FtpWriter(DataTransferConfig config) {
         super(config);
@@ -75,6 +76,7 @@ public class FtpWriter extends DataWriter{
         connectPattern = writerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN, DEFAULT_FTP_CONNECT_PATTERN);
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         timeout = writerConfig.getParameter().getIntVal(KEY_TIMEOUT, FtpConfigConstants.DEFAULT_TIMEOUT);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
 
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
         if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
@@ -105,11 +107,12 @@ public class FtpWriter extends DataWriter{
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setDelimiter(fieldDelimiter);
-        builder.setEncoding(encoding);
+        builder.setCharSetName(encoding);
         builder.setErrors(errors);
         builder.setHost(host);
         builder.setConnectPattern(connectPattern);
         builder.setWriteMode(writeMode);
+        builder.setMaxFileSize(maxFileSize);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);

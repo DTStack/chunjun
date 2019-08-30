@@ -67,12 +67,6 @@ public class HdfsWriter extends DataWriter {
 
     protected List<String> fullColumnType;
 
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String SP = "/";
-
     protected int rowGroupSize;
 
     protected long maxFileSize;

@@ -25,7 +25,6 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -51,7 +50,32 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     private static final int BUFFER_SIZE = 1000;
 
     @Override
-    protected void nextBlockInternal() {
+    public void flushDataInternal() throws IOException {
+        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
+        if (stream != null){
+            stream.flush();
+            stream.close();
+            stream = null;
+        }
+    }
+
+    @Override
+    public float getDeviation(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
+        return compressType.getDeviation();
+    }
+
+    @Override
+    public String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
+        return compressType.getSuffix();
+    }
+
+    @Override
+    protected void nextBlock(){
+        super.nextBlock();
+
         if (stream != null){
             return;
         }
@@ -79,46 +103,11 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void flushBlock() throws IOException {
-        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
+        super.writeSingleRecordInternal(row);
 
-        if (stream != null){
-            stream.flush();
-            stream.close();
-            stream = null;
-        }
-    }
-
-    @Override
-    protected float getDeviation(){
-        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
-        return compressType.getDeviation();
-    }
-
-    @Override
-    protected String getExtension() {
-        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "text");
-        return compressType.getSuffix();
-    }
-
-    @Override
-    public void open() throws IOException {
-        nextBlock();
-    }
-
-    @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore()){
-            if(stream == null){
-                nextBlock();
-            }
-
-            if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-        } else {
-            checkFlushBlock();
+        if(stream == null){
+            nextBlock();
         }
 
         byte[] bytes = null;

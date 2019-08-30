@@ -275,10 +275,6 @@ public class SFtpHandler implements IFtpHandler {
     @Override
     public OutputStream getOutputStream(String filePath) {
         try {
-//            this.printWorkingDirectory();
-//            String parentDir = filePath.substring(0,StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR));
-//            this.channelSftp.cd(parentDir);
-//            this.printWorkingDirectory();
             OutputStream writeOutputStream = this.channelSftp.put(filePath, ChannelSftp.APPEND);
             if (null == writeOutputStream) {
                 String message = String.format(
