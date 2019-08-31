@@ -66,6 +66,7 @@ public class PostgresqlWriter extends JdbcDataWriter {
         builder.setFullColumn(fullColumn);
         builder.setUpdateKey(updateKey);
         builder.setTypeConverter(typeConverter);
+        builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
 
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
