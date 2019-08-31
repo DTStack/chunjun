@@ -104,6 +104,10 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         String rowVal = sb.toString();
         ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes());
         copyManager.copyIn(copySql, bi);
+
+        if(restoreConfig.isRestore()){
+            rowsOfCurrentTransaction += rows.size();
+        }
     }
 
     private boolean checkIsCopyMode(String insertMode){
