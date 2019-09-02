@@ -74,8 +74,15 @@ public class BaseMetric {
     }
 
     public void addMetric(String metricName, LongCounter counter){
+        addMetric(metricName, counter, false);
+    }
+
+    public void addMetric(String metricName, LongCounter counter, boolean meterView){
         metricCounters.put(metricName, counter);
         flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<Long>(counter));
+        if (meterView){
+            flinkxOutput.meter(metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 60));
+        }
     }
 
     public Map<String, LongCounter> getMetricCounters() {
