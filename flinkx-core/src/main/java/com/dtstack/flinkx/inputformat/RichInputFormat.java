@@ -141,8 +141,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
 
         inputMetric = new BaseMetric(getRuntimeContext(), "reader", StringUtils.isEmpty(monitorUrls));
-        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
-        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
     }
 

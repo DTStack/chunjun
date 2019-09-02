@@ -285,8 +285,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
-        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
-        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter, true);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
 
         startTime = System.currentTimeMillis();
