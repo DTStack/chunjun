@@ -50,6 +50,7 @@ public class PostgresqlWriter extends JdbcDataWriter {
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
+        builder.setBatchInterval(batchSize);
         builder.setMonitorUrls(monitorUrls);
         builder.setPreSql(preSql);
         builder.setPostSql(postSql);
@@ -67,6 +68,7 @@ public class PostgresqlWriter extends JdbcDataWriter {
         builder.setTypeConverter(typeConverter);
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
+
         OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
         String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
