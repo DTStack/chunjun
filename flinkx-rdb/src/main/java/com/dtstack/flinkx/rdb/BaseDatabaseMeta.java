@@ -18,11 +18,10 @@
 
 package com.dtstack.flinkx.rdb;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Abstract base parent class of other database prototype implementations
@@ -77,16 +76,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
 
     @Override
     public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getInsertStatement(column, table);
-        }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeReplaceValues(column,fullColumn) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(fullColumn, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
+        throw new UnsupportedOperationException("replace mode is not supported");
     }
 
     protected String makeReplaceValues(List<String> column, List<String> fullColumn){
@@ -124,12 +114,36 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
             return getInsertStatement(column, table);
         }
 
+        List<String> updateColumns = getUpdateColumns(column, updateKey);
+        if(CollectionUtils.isEmpty(updateColumns)){
+            return getInsertStatement(column, table);
+        }
+
         return "MERGE INTO " + quoteTable(table) + " T1 USING "
                 + "(" + makeValues(column) + ") T2 ON ("
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, "T1", "T2") + " WHEN NOT MATCHED THEN "
+                + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
                 + quoteColumns(column, "T2") + ")";
+    }
+
+    /**
+     * 获取都需要更新数据的字段
+     */
+    protected List<String> getUpdateColumns(List<String> column, Map<String,List<String>> updateKey){
+        Set<String> indexColumns = new HashSet<>();
+        for (List<String> value : updateKey.values()) {
+            indexColumns.addAll(value);
+        }
+
+        List<String> updateColumns = new ArrayList<>();
+        for (String col : column) {
+            if(!indexColumns.contains(col)){
+                updateColumns.add(col);
+            }
+        }
+
+        return updateColumns;
     }
 
     abstract protected String makeValues(List<String> column);

@@ -21,6 +21,7 @@ package com.dtstack.flinkx.gbase;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -42,29 +43,20 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
         if(updateKey == null || updateKey.isEmpty()) {
             return getInsertStatement(column, table);
         }
 
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(select " + makeReplaceValues(column,fullColumn) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(fullColumn, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
-    }
-
-    @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
+        List<String> updateColumns = getUpdateColumns(column, updateKey);
+        if(CollectionUtils.isEmpty(updateColumns)){
             return getInsertStatement(column, table);
         }
 
         return "MERGE INTO " + quoteTable(table) + " T1 USING "
                 + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
                 + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, "T1", "T2") + " WHEN NOT MATCHED THEN "
+                + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
                 + "INSERT (" + quoteColumns(column) + ") VALUES ("
                 + quoteColumns(column, "T2") + ")";
     }
