@@ -88,7 +88,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(!restoreConfig.isRestore() && flushInterval > 0){
+        if(restoreConfig.isStream() && flushInterval > 0){
             fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
             fileSizeChecker.start();
         }

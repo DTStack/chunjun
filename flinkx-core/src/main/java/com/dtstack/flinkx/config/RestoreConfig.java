@@ -51,7 +51,14 @@ public class RestoreConfig extends AbstractConfig {
     }
 
     public boolean isRestore(){
-        return getBooleanVal(KEY_IS_RESTORE, false);
+        return getBooleanVal(KEY_IS_RESTORE, false) && getRestoreColumnIndex() != -1 && getRestoreColumnType() != null;
+    }
+
+    public boolean isStream(){
+        if (getBooleanVal(KEY_IS_RESTORE, false) && getRestoreColumnIndex() == -1 && getRestoreColumnType() == null) {
+            return true;
+        }
+        return false;
     }
 
     public int getRestoreColumnIndex(){

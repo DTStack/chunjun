@@ -321,7 +321,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         try {
             writeSingleRecordInternal(row);
 
-            if(!restoreConfig.isRestore()){
+            if(!restoreConfig.isRestore() || restoreConfig.isStream()){
                 numWriteCounter.add(1);
             }
         } catch(WriteRecordException e) {
@@ -374,7 +374,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-        if(!restoreConfig.isRestore()){
+        if(!restoreConfig.isRestore() || restoreConfig.isStream()){
           if(numWriteCounter!=null){
             numWriteCounter.add(rows.size());
           }
