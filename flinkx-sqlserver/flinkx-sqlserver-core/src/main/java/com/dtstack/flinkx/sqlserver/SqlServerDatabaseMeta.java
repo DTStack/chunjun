@@ -91,15 +91,19 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
 
         List<String> updateColumns = getUpdateColumns(column, updateKey);
         if(CollectionUtils.isEmpty(updateColumns)){
-            return getInsertStatement(column, table);
+            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(" + makeValues(column) + ") T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ");";
+        } else {
+            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(" + makeValues(column) + ") T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                    + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ");";
         }
-
-        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeValues(column) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ");";
     }
 
     @Override

@@ -50,15 +50,19 @@ public class GbaseDatabaseMeta extends BaseDatabaseMeta {
 
         List<String> updateColumns = getUpdateColumns(column, updateKey);
         if(CollectionUtils.isEmpty(updateColumns)){
-            return getInsertStatement(column, table);
+            return "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ")";
+        } else {
+            return "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                    + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ")";
         }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(select " + makeValues(column) + " from " + quoteTable(table) + "  limit 1) T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(updateColumns, "T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
     }
 
     @Override

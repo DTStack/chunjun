@@ -78,6 +78,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        throw new UnsupportedOperationException("PostgreSQL not support update mode");
+    }
+
+    @Override
     public String getSplitFilter(String columnName) {
         return String.format(" mod(%s,${N}) = ${M}", getStartQuote() + columnName + getEndQuote());
     }
