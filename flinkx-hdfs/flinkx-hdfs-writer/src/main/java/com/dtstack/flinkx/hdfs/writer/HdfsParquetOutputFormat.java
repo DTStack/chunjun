@@ -221,8 +221,15 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         group.add(colName, Binary.fromConstantByteArray(dst));
                         break;
                     case "decimal" :
-                        HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
                         ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(colName);
+
+                        HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
+                        hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                        if(hiveDecimal == null){
+                            throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
+                                    decimalInfo.getPrecision(), decimalInfo.getScale()), null, i, row);
+                        }
+
                         group.add(colName,decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
                         break;
                     case "date" :
@@ -240,10 +247,11 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                 rowsOfCurrentBlock++;
             }
         } catch (Exception e){
-            if(i < row.getArity()) {
+            if(e instanceof WriteRecordException){
+                throw (WriteRecordException) e;
+            } else {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
-            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 
