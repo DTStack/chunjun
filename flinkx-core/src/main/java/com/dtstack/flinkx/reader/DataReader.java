@@ -106,6 +106,10 @@ public abstract class DataReader {
             }
         }
 
+        if (restoreConfig.isStream()){
+            return;
+        }
+
         if(restoreConfig.isRestore()){
             List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
             MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());

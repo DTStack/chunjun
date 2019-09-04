@@ -94,7 +94,7 @@ public class BinlogReader extends DataReader {
         format.setPavingData(pavingData);
         format.setTable(table);
 
-        format.setRestoreConfig(RestoreConfig.restoreTrue());
+        format.setRestoreConfig(RestoreConfig.configStream());
 
         return createInput(format, "binlogreader");
     }

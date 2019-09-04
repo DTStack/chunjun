@@ -27,8 +27,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author jiangbo

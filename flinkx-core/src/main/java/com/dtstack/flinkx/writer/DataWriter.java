@@ -101,6 +101,10 @@ public abstract class DataWriter {
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
         parseSrcColumnNames(columns);
 
+        if (restoreConfig.isStream()){
+            return;
+        }
+
         if(restoreConfig.isRestore()){
             MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
             if(metaColumn == null){

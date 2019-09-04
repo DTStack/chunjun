@@ -61,7 +61,7 @@ public class Kafka09Reader extends DataReader {
         format.setConsumerSettings(consumerSettings);
         format.setEncoding(encoding);
 
-        format.setRestoreConfig(RestoreConfig.restoreTrue());
+        format.setRestoreConfig(RestoreConfig.configStream());
 
         return createInput(format, "kafka09reader");
     }

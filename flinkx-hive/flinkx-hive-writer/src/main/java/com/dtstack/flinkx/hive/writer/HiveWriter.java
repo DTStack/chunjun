@@ -213,7 +213,7 @@ public class HiveWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        builder.setRestoreConfig(RestoreConfig.restoreTrue());
+        builder.setRestoreConfig(RestoreConfig.configStream());
 
         return createOutput(dataSet, builder.finish(), "hivewriter");
     }

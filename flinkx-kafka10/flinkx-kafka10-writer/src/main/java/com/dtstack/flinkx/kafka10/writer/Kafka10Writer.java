@@ -62,7 +62,7 @@ public class Kafka10Writer extends DataWriter {
         format.setTopic(topic);
         format.setProducerSettings(producerSettings);
 
-        format.setRestoreConfig(RestoreConfig.restoreTrue());
+        format.setRestoreConfig(RestoreConfig.configStream());
 
         return createOutput(dataSet, format, "kafka10writer");
     }
