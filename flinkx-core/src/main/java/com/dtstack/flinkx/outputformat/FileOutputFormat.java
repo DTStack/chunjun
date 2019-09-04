@@ -134,7 +134,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore()){
+        if (restoreConfig.isRestore() && !restoreConfig.isStream()){
             if(lastRow != null){
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                         row.getField(restoreConfig.getRestoreColumnIndex()));
@@ -200,11 +200,13 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         try{
             boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
-            if (readyCheckpoint || overMaxRows){
+            if (restoreConfig.isStream() || readyCheckpoint || overMaxRows){
                 flushData();
 
                 numWriteCounter.add(rowsOfCurrentBlock);
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                if (!restoreConfig.isStream()){
+                    formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+                }
                 formatState.setNumberWrite(numWriteCounter.getLocalValue());
 
                 rowsOfCurrentBlock = 0;
@@ -311,6 +313,9 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public void flushData() throws IOException{
         synchronized (this){
             flushDataInternal();
+            if (restoreConfig.isStream()) {
+                moveTemporaryDataFileToDirectory();
+            }
             LOG.info("flush file:{}", currentBlockFileName);
         }
     }
