@@ -313,8 +313,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
-
-            LOG.error(e.getMessage());
         }
     }
 
