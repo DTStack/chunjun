@@ -134,7 +134,6 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        super.writeSingleRecordInternal(row);
 
         if (recordWriter == null){
             nextBlock();

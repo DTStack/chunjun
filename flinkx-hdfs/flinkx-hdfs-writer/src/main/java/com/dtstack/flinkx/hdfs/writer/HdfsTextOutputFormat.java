@@ -104,7 +104,6 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        super.writeSingleRecordInternal(row);
 
         if(stream == null){
             nextBlock();

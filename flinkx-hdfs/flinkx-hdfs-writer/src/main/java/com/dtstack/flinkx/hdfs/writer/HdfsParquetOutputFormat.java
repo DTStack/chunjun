@@ -159,7 +159,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        super.writeSingleRecordInternal(row);
 
         if(writer == null){
             nextBlock();
