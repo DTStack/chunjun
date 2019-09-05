@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -61,8 +60,6 @@ public class Kafka10Writer extends DataWriter {
         format.setTimezone(timezone);
         format.setTopic(topic);
         format.setProducerSettings(producerSettings);
-
-        format.setRestoreConfig(RestoreConfig.configStream());
 
         return createOutput(dataSet, format, "kafka10writer");
     }

@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.hive.EWriteModeType;
 import com.dtstack.flinkx.hive.TableInfo;
@@ -213,7 +212,7 @@ public class HiveWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        builder.setRestoreConfig(RestoreConfig.configStream());
+        restoreConfig.configStream();
 
         return createOutput(dataSet, builder.finish(), "hivewriter");
     }

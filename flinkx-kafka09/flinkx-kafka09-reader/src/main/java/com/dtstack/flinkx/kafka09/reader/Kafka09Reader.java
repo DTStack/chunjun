@@ -19,7 +19,6 @@ package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -61,7 +60,7 @@ public class Kafka09Reader extends DataReader {
         format.setConsumerSettings(consumerSettings);
         format.setEncoding(encoding);
 
-        format.setRestoreConfig(RestoreConfig.configStream());
+        restoreConfig.configStream();
 
         return createInput(format, "kafka09reader");
     }

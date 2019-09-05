@@ -45,12 +45,8 @@ public class RestoreConfig extends AbstractConfig {
         return new RestoreConfig(map);
     }
 
-    public static RestoreConfig configStream(){
-        Map<String, Object> map = new HashMap<>(2);
-        //need store the metric
-        map.put(KEY_IS_RESTORE, true);
-        map.put(KEY_IS_STREAM, true);
-        return new RestoreConfig(map);
+    public void configStream(){
+        setBooleanVal(KEY_IS_STREAM, true);
     }
 
     public boolean isRestore(){

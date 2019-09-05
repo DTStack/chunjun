@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -64,8 +63,6 @@ public class Kafka09Writer extends DataWriter {
         format.setTopic(topic);
         format.setBrokerList(brokerList);
         format.setProducerSettings(producerSettings);
-
-        format.setRestoreConfig(RestoreConfig.configStream());
 
         return createOutput(dataSet, format, "kafka09writer");
     }

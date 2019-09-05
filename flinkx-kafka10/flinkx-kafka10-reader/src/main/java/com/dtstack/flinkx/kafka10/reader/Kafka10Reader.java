@@ -19,7 +19,6 @@ package com.dtstack.flinkx.kafka10.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -74,7 +73,7 @@ public class Kafka10Reader extends DataReader {
         format.setBlankIgnore(blankIgnore);
         format.setConsumerSettings(consumerSettings);
 
-        format.setRestoreConfig(RestoreConfig.configStream());
+        restoreConfig.configStream();
 
         return createInput(format, "kafka10reader");
     }
