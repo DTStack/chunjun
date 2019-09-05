@@ -84,6 +84,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     private long lastWriteSize;
 
+    protected long lastWriteTime = System.currentTimeMillis();
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         if(!restoreConfig.isRestore() && restoreConfig.isStream() && flushInterval > 0){
@@ -146,6 +148,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         synchronized (this){
             writeSingleRecordToFile(row);
         }
+
+        lastWriteTime = System.currentTimeMillis();
     }
 
     private void checkSize() {
@@ -318,6 +322,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             }
             LOG.info("flush file:{}", currentBlockFileName);
         }
+    }
+
+    public long getLastWriteTime() {
+        return lastWriteTime;
     }
 
     protected abstract void flushDataInternal() throws IOException;

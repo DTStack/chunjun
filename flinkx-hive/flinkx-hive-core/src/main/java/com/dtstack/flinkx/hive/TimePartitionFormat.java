@@ -29,6 +29,10 @@ import java.util.Date;
 
 public class TimePartitionFormat {
 
+    private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2;
+    private static final long CONSTANT_TWO_HOUR_TIME = 1000 * 60 * 60 * 2;
+    private static final long CONSTANT_TWO_MINUTE_TIME = 1000 * 60 * 2;
+
     private static PartitionEnum partitionEnum;
 
     private static TimePartitionFormat timePartitionFormat = new TimePartitionFormat();
@@ -72,6 +76,20 @@ public class TimePartitionFormat {
 
     public enum PartitionEnum {
         DAY, HOUR, MINUTE
+    }
+
+    public boolean isTimeout(long lastWriteTime) {
+        if (null == partitionEnum) {
+            return false;
+        } else if (TimePartitionFormat.PartitionEnum.DAY == partitionEnum) {
+            return (System.currentTimeMillis() - lastWriteTime) >= CONSTANT_TWO_DAY_TIME;
+        } else if (TimePartitionFormat.PartitionEnum.HOUR == partitionEnum) {
+            return (System.currentTimeMillis() - lastWriteTime) >= CONSTANT_TWO_HOUR_TIME;
+        } else if (TimePartitionFormat.PartitionEnum.MINUTE == partitionEnum) {
+            return (System.currentTimeMillis() - lastWriteTime) >= CONSTANT_TWO_MINUTE_TIME;
+        } else {
+            return true;
+        }
     }
 
 }

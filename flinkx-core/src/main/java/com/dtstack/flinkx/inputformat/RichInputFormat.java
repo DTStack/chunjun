@@ -225,8 +225,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
      * @return DataRecoverPoint
      */
     public FormatState getFormatState() {
-        formatState.setState(numReadCounter.getLocalValue());
-        formatState.setMetric(inputMetric.getMetricCounters());
+        if (formatState != null) {
+            formatState.setState(numReadCounter.getLocalValue());
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
         return formatState;
     }
 

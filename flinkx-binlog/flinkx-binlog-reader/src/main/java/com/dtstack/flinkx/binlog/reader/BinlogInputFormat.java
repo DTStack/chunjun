@@ -88,6 +88,11 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     public FormatState getFormatState() {
+        if (!restoreConfig.isRestore()){
+            LOG.info("return null for formatState");
+            return null;
+        }
+
         super.getFormatState();
         formatState.setState(entryPosition);
         return formatState;
