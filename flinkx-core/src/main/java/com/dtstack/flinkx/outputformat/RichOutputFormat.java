@@ -57,7 +57,7 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
+public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -83,6 +83,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     /** 总记录数 */
     protected LongCounter numWriteCounter;
+
+    /** snapshot 中记录的总记录数 */
+    protected LongCounter snapshotWriteCounter;
 
     /** 错误记录数 */
     protected LongCounter errCounter;
@@ -233,7 +236,11 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
                 conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
                 otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
-                numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
+
+                //use snapshot write count
+                numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+
+                snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
                 bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
                 durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
             }
@@ -276,6 +283,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
         otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        snapshotWriteCounter = context.getLongCounter(Metrics.SNAPSHOT_WRITES);
         bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
         durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
 
@@ -286,6 +294,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
         outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter, true);
+        outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
 
@@ -321,16 +330,19 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         try {
             writeSingleRecordInternal(row);
 
-            if(!restoreConfig.isRestore()){
-                numWriteCounter.add(1);
-            }
+//            if(!restoreConfig.isRestore()){
+//                numWriteCounter.add(1);
+//            }
+            numWriteCounter.add(1);
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
             // 总记录数加1
-            if(numWriteCounter !=null ){
-                numWriteCounter.add(1);
-            }
+//            if(numWriteCounter !=null ){
+//                numWriteCounter.add(1);
+//            }
+            numWriteCounter.add(1);
+            snapshotWriteCounter.add(1);
 
             LOG.error(e.getMessage());
         }
@@ -375,7 +387,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
         if(!restoreConfig.isRestore()){
-          if(numWriteCounter!=null){
+          if(numWriteCounter != null){
             numWriteCounter.add(rows.size());
           }
         }

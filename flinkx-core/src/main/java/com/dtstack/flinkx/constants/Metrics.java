@@ -46,6 +46,8 @@ public class Metrics {
 
     public static final String NUM_WRITES = "numWrite";
 
+    public static final String SNAPSHOT_WRITES = "snapshotWrite";
+
     public static final String JOB_NAME = "<job_name>";
 
     public static final String JOB_ID = "<job_id>";

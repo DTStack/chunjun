@@ -40,11 +40,13 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected String currentBlockFileName;
 
+    protected long sumRowsOfBlock;
+
     protected long rowsOfCurrentBlock;
 
     protected  long maxFileSize;
 
-    protected long flushInterval = 60 * 60;
+    protected long flushInterval = 0;
 
     protected static final String APPEND_MODE = "APPEND";
 
@@ -88,7 +90,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(!restoreConfig.isRestore() && restoreConfig.isStream() && flushInterval > 0){
+        if(restoreConfig.isStream() && flushInterval > 0){
             fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
             fileSizeChecker.start();
         }
@@ -205,13 +207,18 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         try{
             boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
             if (restoreConfig.isStream() || readyCheckpoint || overMaxRows){
-                flushData();
 
-                numWriteCounter.add(rowsOfCurrentBlock);
+//                flushData();
+//                numWriteCounter.add(rowsOfCurrentBlock);
+//                formatState.setNumberWrite(numWriteCounter.getLocalValue());
+
+                moveTemporaryDataFileToDirectory();
+                snapshotWriteCounter.add(sumRowsOfBlock);
+                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+
                 if (!restoreConfig.isStream()){
                     formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 }
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
 
                 rowsOfCurrentBlock = 0;
                 return formatState;
@@ -237,7 +244,9 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         readyCheckpoint = false;
-        if(isTaskEndsNormally()){
+
+        //no checkpoint
+        if(!restoreConfig.isRestore() && isTaskEndsNormally()){
             moveTemporaryDataBlockFileToDirectory();
         }
 
@@ -253,9 +262,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
             createFinishedTag();
 
-            if(restoreConfig.isRestore()){
-                numWriteCounter.add(rowsOfCurrentBlock);
-            }
+            //fixme 正常的也不能直接提交数据，要根据checkpoint来提交数据，才能保证 writecount 的统计值
+//            if(restoreConfig.isRestore()){
+//                numWriteCounter.add(rowsOfCurrentBlock);
+//            }
 
             if(taskNumber == 0) {
                 waitForAllTasksToFinish();
@@ -264,7 +274,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     coverageData();
                 }
 
-                moveTemporaryDataFileToDirectory();
+//                moveTemporaryDataFileToDirectory();
+                if(!restoreConfig.isRestore()) {
+                    moveTemporaryDataFileToDirectory();
+                }
 
                 LOG.info("The task ran successfully,clear temporary data files");
                 clearTemporaryDataFiles();
@@ -317,10 +330,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public void flushData() throws IOException{
         synchronized (this){
             flushDataInternal();
-            if (restoreConfig.isStream()) {
-                moveTemporaryDataFileToDirectory();
-            }
-            LOG.info("flush file:{}", currentBlockFileName);
+            sumRowsOfBlock += rowsOfCurrentBlock;
+            LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
         }
     }
 
