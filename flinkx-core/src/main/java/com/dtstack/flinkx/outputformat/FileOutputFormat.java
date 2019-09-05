@@ -124,17 +124,17 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         checkOutputDir();
 
-        if (restoreConfig.isRestore()) {
+//        if (restoreConfig.isRestore()) {
             try {
                 LOG.info("Delete [.data] dir before write records");
                 clearTemporaryDataFiles();
             } catch (Exception e) {
                 LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
             }
-        } else {
-            //fixme
-            alignHistoryFiles();
-        }
+//        } else {
+//            fixme
+//            alignHistoryFiles();
+//        }
     }
 
     @Override
@@ -246,8 +246,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         if(!restoreConfig.isRestore() && isTaskEndsNormally()){
             moveTemporaryDataBlockFileToDirectory();
         }
-
-        closeSource();
     }
 
     @Override

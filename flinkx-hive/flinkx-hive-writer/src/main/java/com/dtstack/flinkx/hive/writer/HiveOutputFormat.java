@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.hive.writer;
 
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
@@ -157,7 +156,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         while (entryIterator.hasNext()) {
             try {
                 Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
-                entry.getValue().flushData();
+                entry.getValue().getFormatState();
                 if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                     entry.getValue().close();
                     entryIterator.remove();
@@ -276,7 +275,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setDelimiter(delimiter);
         builder.setRowGroupSize(rowGroupSize);
         builder.setMaxFileSize(maxFileSize);
-        builder.setRestoreConfig(RestoreConfig.defaultConfig());
+        builder.setRestoreConfig(restoreConfig);
         builder.setInitAccumulatorAndDirty(false);
 
         return builder;
