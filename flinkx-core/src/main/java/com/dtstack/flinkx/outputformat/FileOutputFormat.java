@@ -124,7 +124,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         checkOutputDir();
 
-        if (formatState == null || formatState.getState() == null) {
+        if (restoreConfig.isRestore()) {
             try {
                 LOG.info("Delete [.data] dir before write records");
                 clearTemporaryDataFiles();
@@ -132,6 +132,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
             }
         } else {
+            //fixme
             alignHistoryFiles();
         }
     }
@@ -191,7 +192,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected void nextBlock(){
         if (restoreConfig.isRestore()){
-            moveTemporaryDataBlockFileToDirectory();
             currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
         } else {
             currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
@@ -205,17 +205,14 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         try{
-//            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
             if (restoreConfig.isStream() || readyCheckpoint){
+                flushData();
 
-//                flushData();
-//                numWriteCounter.add(rowsOfCurrentBlock);
-//                formatState.setNumberWrite(numWriteCounter.getLocalValue());
-
-                moveTemporaryDataFileToDirectory();
+                if (sumRowsOfBlock != 0) {
+                    moveTemporaryDataFileToDirectory();
+                }
                 snapshotWriteCounter.add(sumRowsOfBlock);
                 formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-
                 if (!restoreConfig.isStream()){
                     formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 }
@@ -262,11 +259,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
             createFinishedTag();
 
-            //fixme 正常的也不能直接提交数据，要根据checkpoint来提交数据，才能保证 writecount 的统计值
-//            if(restoreConfig.isRestore()){
-//                numWriteCounter.add(rowsOfCurrentBlock);
-//            }
-
             if(taskNumber == 0) {
                 waitForAllTasksToFinish();
 
@@ -274,7 +266,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     coverageData();
                 }
 
-//                moveTemporaryDataFileToDirectory();
                 if(!restoreConfig.isRestore()) {
                     moveTemporaryDataFileToDirectory();
                 }
@@ -329,10 +320,17 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     public void flushData() throws IOException{
         synchronized (this){
-            flushDataInternal();
-            sumRowsOfBlock += rowsOfCurrentBlock;
-            LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
-            rowsOfCurrentBlock = 0;
+            if (restoreConfig.isRestore()) {
+                if (rowsOfCurrentBlock != 0){
+                    flushDataInternal();
+                    moveTemporaryDataBlockFileToDirectory();
+                    sumRowsOfBlock += rowsOfCurrentBlock;
+                    LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
+                    rowsOfCurrentBlock = 0;
+                }
+            } else {
+                flushDataInternal();
+            }
         }
     }
 

@@ -60,6 +60,7 @@ public class Kafka10Writer extends DataWriter {
         format.setTimezone(timezone);
         format.setTopic(topic);
         format.setProducerSettings(producerSettings);
+        format.setRestoreConfig(restoreConfig);
 
         return createOutput(dataSet, format, "kafka10writer");
     }

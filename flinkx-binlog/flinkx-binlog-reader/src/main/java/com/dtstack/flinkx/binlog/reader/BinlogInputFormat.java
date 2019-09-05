@@ -94,7 +94,9 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         super.getFormatState();
-        formatState.setState(entryPosition);
+        if (formatState != null){
+            formatState.setState(entryPosition);
+        }
         return formatState;
     }
 

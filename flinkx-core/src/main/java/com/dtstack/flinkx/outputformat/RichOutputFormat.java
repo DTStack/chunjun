@@ -194,6 +194,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             openDirtyDataManager();
         }
 
+        initRestoreInfo();
+
         if(needWaitBeforeOpenInternal()) {
             beforeOpenInternal();
             waitWhile("#1");
@@ -205,7 +207,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             waitWhile("#2");
         }
 
-        initRestoreInfo();
     }
 
     private void initAccumulatorCollector(){
@@ -330,17 +331,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-//            if(!restoreConfig.isRestore()){
-//                numWriteCounter.add(1);
-//            }
             numWriteCounter.add(1);
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
             // 总记录数加1
-//            if(numWriteCounter !=null ){
-//                numWriteCounter.add(1);
-//            }
             numWriteCounter.add(1);
             snapshotWriteCounter.add(1);
 
