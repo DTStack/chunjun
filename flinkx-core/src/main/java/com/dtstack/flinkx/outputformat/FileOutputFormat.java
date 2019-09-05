@@ -205,8 +205,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         try{
-            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
-            if (restoreConfig.isStream() || readyCheckpoint || overMaxRows){
+//            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
+            if (restoreConfig.isStream() || readyCheckpoint){
 
 //                flushData();
 //                numWriteCounter.add(rowsOfCurrentBlock);
@@ -220,7 +220,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 }
 
-                rowsOfCurrentBlock = 0;
+                sumRowsOfBlock = 0;
                 return formatState;
             }
 
@@ -332,6 +332,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             flushDataInternal();
             sumRowsOfBlock += rowsOfCurrentBlock;
             LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
+            rowsOfCurrentBlock = 0;
         }
     }
 
