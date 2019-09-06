@@ -28,7 +28,6 @@ import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -47,8 +46,6 @@ import java.util.Map;
  */
 public class HiveOutputFormat extends RichOutputFormat {
 
-    private static final long serialVersionUID = -6012196822223887479L;
-
     private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
     private static final String SP = "/";
@@ -56,7 +53,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     /**
      * hdfs高可用配置
      */
-    protected Map<String, String> hadoopConfig;
+    protected transient Map<String, String> hadoopConfig;
 
     protected String fileType;
 
@@ -95,15 +92,14 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected String tableBasePath;
     protected boolean autoCreateTable;
 
-    private transient HiveUtil hiveUtil;
-    private transient TimePartitionFormat partitionFormat;
-
     private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
     private int numTasks;
 
-    private Map<String, TableInfo> tableCache = new HashMap<>();
-    private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
+    private transient HiveUtil hiveUtil;
+    private transient TimePartitionFormat partitionFormat;
+    private transient Map<String, TableInfo> tableCache = new HashMap<>();
+    private transient Map<String, HdfsOutputFormat> outputFormats = new HashMap();
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
