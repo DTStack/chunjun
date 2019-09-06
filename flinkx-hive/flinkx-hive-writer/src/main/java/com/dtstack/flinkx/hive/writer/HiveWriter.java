@@ -29,7 +29,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import parquet.hadoop.ParquetWriter;
 
@@ -38,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hive.HdfsConfigKeys.*;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
 
 /**
  * @author toutian
@@ -56,8 +55,6 @@ public class HiveWriter extends DataWriter {
     private String delimiter;
 
     private String compress;
-
-    private long interval;
 
     private long bufferSize;
 
@@ -96,10 +93,9 @@ public class HiveWriter extends DataWriter {
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
         delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
-        charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
+        charSet = writerConfig.getParameter().getStringVal(KEY_CHARSET_NAME);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
-        interval = writerConfig.getParameter().getLongVal(KEY_INTERVAL, 60 * 60 * 1000);
         bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
@@ -195,7 +191,6 @@ public class HiveWriter extends DataWriter {
 
         builder.setPartition(partition);
         builder.setPartitionType(partitionType);
-        builder.setInterval(interval);
         builder.setBufferSize(bufferSize);
         builder.setJdbcUrl(jdbcUrl);
         builder.setUsername(username);
@@ -212,13 +207,9 @@ public class HiveWriter extends DataWriter {
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+
         builder.setRestoreConfig(restoreConfig);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("hivewriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "hivewriter");
     }
 }

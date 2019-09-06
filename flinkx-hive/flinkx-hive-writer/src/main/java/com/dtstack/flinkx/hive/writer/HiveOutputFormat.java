@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.hive.writer;
 
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
@@ -28,12 +27,12 @@ import com.dtstack.flinkx.hive.util.HdfsUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author toutian
@@ -90,7 +88,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected Map<String, String> distributeTableMapping;
     protected String partition;
     protected String partitionType;
-    protected long interval;
     protected long bufferSize;
     protected String jdbcUrl;
     protected String username;
@@ -105,7 +102,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int taskNumber;
     private int numTasks;
 
-    private Map<String, String> lastPartitionValue;
     private Map<String, TableInfo> tableCache = new HashMap<>();
     private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
 
@@ -116,7 +112,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
-        lastPartitionValue = new HashMap<>(tableInfos.size());
     }
 
     @Override
@@ -139,6 +134,36 @@ public class HiveOutputFormat extends RichOutputFormat {
         } catch (Throwable e) {
             logger.error("{}", e);
             throw new WriteRecordException(e.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public FormatState getFormatState() {
+        if (!restoreConfig.isRestore()){
+            LOG.info("return null for formatState");
+            return null;
+        }
+
+        flushOutputFormat();
+
+        super.getFormatState();
+        return formatState;
+    }
+
+    private void flushOutputFormat() {
+        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        while (entryIterator.hasNext()) {
+            try {
+                Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+                entry.getValue().getFormatState();
+                if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
+                    entry.getValue().close();
+                    entryIterator.remove();
+                }
+            } catch (Exception e) {
+                logger.error("", e);
+            }
         }
     }
 
@@ -185,11 +210,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
-            String lastHiveTablePath = lastPartitionValue.put(tablePath, hiveTablePath);
-            if (lastHiveTablePath != null && outputFormats.get(lastHiveTablePath) != null) {
-                outputFormats.remove(lastHiveTablePath).close();
-            }
-
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
@@ -255,8 +275,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setDelimiter(delimiter);
         builder.setRowGroupSize(rowGroupSize);
         builder.setMaxFileSize(maxFileSize);
-        builder.setFlushBlockInterval(interval);
-        builder.setRestoreConfig(RestoreConfig.defaultConfig());
+        builder.setRestoreConfig(restoreConfig);
         builder.setInitAccumulatorAndDirty(false);
 
         return builder;

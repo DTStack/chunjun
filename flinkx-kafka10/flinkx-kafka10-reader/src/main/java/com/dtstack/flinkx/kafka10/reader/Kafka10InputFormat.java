@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.kafka10.reader;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
@@ -26,7 +27,6 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +53,6 @@ public class Kafka10InputFormat extends RichInputFormat {
     private String codec;
 
     private boolean blankIgnore;
-
-    private String bootstrapServers;
 
     private Map<String, String> consumerSettings;
 
@@ -94,7 +92,6 @@ public class Kafka10InputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration parameters) {
         Properties props = geneConsumerProp();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
         consumer = new KafkaConsumer(props);
         queue = new SynchronousQueue<Row>(false);
@@ -160,11 +157,11 @@ public class Kafka10InputFormat extends RichInputFormat {
         return codec;
     }
 
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
-    }
-
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }

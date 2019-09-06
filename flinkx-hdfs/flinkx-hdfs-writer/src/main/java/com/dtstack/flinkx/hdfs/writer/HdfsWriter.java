@@ -23,7 +23,6 @@ import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +66,6 @@ public class HdfsWriter extends DataWriter {
     protected List<String> fullColumnName;
 
     protected List<String> fullColumnType;
-
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String SP = "/";
 
     protected int rowGroupSize;
 
@@ -144,11 +137,6 @@ public class HdfsWriter extends DataWriter {
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(flushInterval);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("hdfswriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "hdfswriter");
     }
 }

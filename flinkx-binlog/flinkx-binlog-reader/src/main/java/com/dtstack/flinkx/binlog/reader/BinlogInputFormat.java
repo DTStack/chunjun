@@ -40,9 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class BinlogInputFormat extends RichInputFormat {
@@ -73,6 +70,8 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private int bufferSize;
 
+    private volatile EntryPosition entryPosition;
+
     private List<String> categories = new ArrayList<>();
 
     /**
@@ -84,7 +83,21 @@ public class BinlogInputFormat extends RichInputFormat {
     private transient BinlogEventSink binlogEventSink;
 
     public void updateLastPos(EntryPosition entryPosition) {
-        formatState.setState(entryPosition);
+        this.entryPosition = entryPosition;
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        if (!restoreConfig.isRestore()){
+            LOG.info("return null for formatState");
+            return null;
+        }
+
+        super.getFormatState();
+        if (formatState != null){
+            formatState.setState(entryPosition);
+        }
+        return formatState;
     }
 
     public boolean accept(String type) {

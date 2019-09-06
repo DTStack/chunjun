@@ -19,13 +19,10 @@
 package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -42,38 +39,16 @@ import org.apache.hadoop.conf.Configuration;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsOutputFormat extends RichOutputFormat {
-
-    private static final int DEFAULT_RECORD_NUM_FOR_CHECK = 1000;
+public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     protected int rowGroupSize;
 
-    protected static final String APPEND_MODE = "APPEND";
-
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String SP = "/";
-
     protected FileSystem fs;
-
-    protected String outputFilePath;
 
     /** hdfs高可用配置 */
     protected Map<String,String> hadoopConfig;
 
-    /** 写入模式 */
-    protected String writeMode;
-
-    /** 压缩方式 */
-    protected String compress;
-
     protected String defaultFS;
-
-    protected String path;
-
-    protected String fileName;
 
     protected List<String> columnTypes;
 
@@ -85,44 +60,45 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
     protected String delimiter;
 
-    protected String tmpPath;
-
-    protected String finishedPath;
-
-    protected String charsetName = "UTF-8";
-
     protected int[] colIndices;
 
     protected Configuration conf;
 
-    protected int blockIndex = 0;
-
-    protected boolean readyCheckpoint;
-
-    protected Row lastRow;
-
-    protected String currentBlockFileNamePrefix;
-
-    protected String currentBlockFileName;
-
-    protected long rowsOfCurrentBlock;
-
-    protected  long maxFileSize;
-
-    protected long lastWriteSize;
-
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        initColIndices();
+        super.openInternal(taskNumber, numTasks);
+    }
 
-    /**
-     * next interval trigger outputFormat close
-     */
-    protected long flushBlockInterval = 60 * 60 * 1000;
+    @Override
+    protected void checkOutputDir() {
+        try{
+            Path dir = new Path(outputFilePath);
 
-    private long nextNumForCheckFlushBlockTime = System.currentTimeMillis() + flushBlockInterval;
+            if(fs.exists(dir)){
+                if(fs.isFile(dir)){
+                    throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
+                            + "One can only write new files under directories");
+                }
+            } else {
+                if(!makeDir){
+                    throw new RuntimeException("Output path not exists:" + outputFilePath);
+                }
+            }
+        } catch (IOException e){
+            throw new RuntimeException("Check output path error", e);
+        }
+    }
 
-    protected void initColIndices() {
+    @Override
+    protected void openSource() throws IOException{
+        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
+        fs = FileSystem.get(conf);
+    }
+
+    private void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
         }
@@ -146,61 +122,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    protected void configInternal() {
-
-    }
-
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(StringUtils.isNotBlank(fileName)) {
-            this.outputFilePath = path + SP + fileName;
-        } else {
-            this.outputFilePath = path;
-        }
-
-        initColIndices();
-
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        fs = FileSystem.get(conf);
-        Path dir = new Path(outputFilePath);
-        // dir不能是文件
-        if(fs.exists(dir) && fs.isFile(dir)){
-            throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
-                    + "One can only write new files under directories");
-        }
-
-        configInternal();
-
-        currentBlockFileNamePrefix = taskNumber + "." + jobId;
-        tmpPath = outputFilePath + SP + DATA_SUBDIR;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
-
-        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
-                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
-
-        beforeOpenInternal();
-        open();
-    }
-
-    @Override
-    protected void beforeOpenInternal(){
-        if(taskNumber > 0){
-            return;
-        }
-
-        if (formatState == null || formatState.getState() == null) {
-            try {
-                LOG.info("Delete [.data] dir before write records");
-                clearTemporaryDataFiles();
-            } catch (Exception e) {
-                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
-            }
-        } else {
-            alignHistoryFiles();
-        }
-    }
-
-    private void alignHistoryFiles(){
+    protected void alignHistoryFiles(){
         try{
             PathFilter pathFilter = path -> !path.getName().startsWith(".");
             FileStatus[] files = fs.listStatus(new Path(tmpPath), pathFilter);
@@ -237,38 +160,6 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() {
-        if (!restoreConfig.isRestore() || lastRow == null){
-            return null;
-        }
-
-        try{
-            boolean overMaxRows = rowsOfCurrentBlock > restoreConfig.getMaxRowNumForCheckpoint();
-            if (readyCheckpoint || overMaxRows){
-                flushBlock();
-
-                numWriteCounter.add(rowsOfCurrentBlock);
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
-
-                rowsOfCurrentBlock = 0;
-                return formatState;
-            }
-
-            return null;
-        }catch (Exception e){
-            try{
-                fs.delete(new Path(tmpPath + SP + currentBlockFileName), true);
-                fs.close();
-                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
-            }catch (Exception e1){
-                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
-            }
-
-            throw new RuntimeException("Get next block error:", e);
-        }
-    }
-
     protected void moveTemporaryDataBlockFileToDirectory(){
         try {
             if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
@@ -285,48 +176,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    protected abstract void open() throws IOException;
-
-    protected void nextBlock(){
-        if (restoreConfig.isRestore()){
-            moveTemporaryDataBlockFileToDirectory();
-            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-        } else {
-            currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-        }
-
-        nextBlockInternal();
-    }
-
-    /**
-     * Open next file
-     */
-    protected abstract void nextBlockInternal();
-
-    /**
-     * Get file extension
-     */
-    protected abstract String getExtension();
-
-    /**
-     * Close current file stream
-     */
-    protected abstract void flushBlock() throws IOException;
-
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
-    }
-
-    @Override
-    public void tryCleanupOnError() throws Exception {
-        if(!restoreConfig.isRestore() && fs != null) {
-            LOG.info("Clean temporary data in method tryCleanupOnError");
-            clearTemporaryDataFiles();
-        }
-    }
-
-    private void clearTemporaryDataFiles() throws IOException{
+    protected void clearTemporaryDataFiles() throws IOException{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         fs.delete(finishedDir, true);
         LOG.info("Delete .finished dir:{}", finishedDir);
@@ -337,50 +188,20 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    protected void afterCloseInternal()  {
-        try {
-            if(!isTaskEndsNormally()){
-                return;
-            }
-
-            fs.createNewFile(new Path(finishedPath));
-            LOG.info("Create finished tag dir:{}", finishedPath);
-
-            if(restoreConfig.isRestore()){
-                numWriteCounter.add(rowsOfCurrentBlock);
-            }
-
-            if(taskNumber == 0) {
-                waitForAllTasksToFinish();
-                coverageData();
-                moveTemporaryDataFileToDirectory();
-
-                LOG.info("The task ran successfully,clear temporary data files");
-                clearTemporaryDataFiles();
-            }
-
+    protected void closeSource() throws IOException {
+        if(fs != null){
             fs.close();
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
         }
     }
 
-    protected boolean isTaskEndsNormally() throws IOException{
-        String state = getTaskState();
-        LOG.info("State of current task is:[{}]", state);
-        if(!RUNNING_STATE.equals(state)){
-            if (!restoreConfig.isRestore()){
-                LOG.info("The task does not end normally, clear the temporary data file");
-                clearTemporaryDataFiles();
-            }
-            fs.close();
-            return false;
-        }
-
-        return true;
+    @Override
+    protected void createFinishedTag() throws IOException{
+        fs.createNewFile(new Path(finishedPath));
+        LOG.info("Create finished tag dir:{}", finishedPath);
     }
 
-    private void waitForAllTasksToFinish() throws IOException{
+    @Override
+    protected void waitForAllTasksToFinish() throws IOException{
         Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
         final int maxRetryTime = 100;
         int i = 0;
@@ -403,11 +224,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void coverageData() throws IOException{
-        if(APPEND_MODE.equalsIgnoreCase(writeMode)){
-            return;
-        }
-
+    @Override
+    protected void coverageData() throws IOException{
         LOG.info("Overwrite the original data");
         PathFilter pathFilter = path -> !path.getName().startsWith(".");
 
@@ -424,7 +242,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    private void moveTemporaryDataFileToDirectory() throws IOException{
+    @Override
+    protected void moveTemporaryDataFileToDirectory() throws IOException{
         PathFilter pathFilter = path -> !path.getName().startsWith(".");
         Path dir = new Path(outputFilePath);
         List<FileStatus> dataFiles = new ArrayList<>();
@@ -443,81 +262,4 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
         }
     }
 
-    /**
-     * Get the deviation
-     */
-    protected abstract float getDeviation();
-
-    protected void checkFlushBlock() {
-        if (checkWriteTime() || checkWriteSize()){
-            LOG.info("flush block!");
-            nextNumForCheckFlushBlockTime = System.currentTimeMillis() + flushBlockInterval;
-            lastWriteSize = bytesWriteCounter.getLocalValue();
-        }
-    }
-
-    private boolean checkWriteTime() {
-        if (flushBlockInterval != 0 && (System.currentTimeMillis() >= nextNumForCheckFlushBlockTime)) {
-            try{
-                flushBlock();
-            }catch (IOException e){
-                throw new RuntimeException(e);
-            }
-
-            nextBlock();
-            LOG.info("The next record number for check flush block time is::[{}]", nextNumForCheckFlushBlockTime);
-
-            return true;
-        }
-        return false;
-    }
-
-    private boolean checkWriteSize() {
-
-        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
-            return false;
-        }
-
-        boolean isWrite = false;
-
-        if (getCurrentFileSize() > maxFileSize){
-            try{
-                flushBlock();
-                isWrite = true;
-            }catch (IOException e){
-                throw new RuntimeException(e);
-            }
-
-            nextBlock();
-        }
-
-        nextNumForCheckDataSize = getNextNumForCheckDataSize();
-        LOG.info("The next record number for check data size is:[{}],current write number is:[{}]", nextNumForCheckDataSize, numWriteCounter.getLocalValue());
-
-        return isWrite;
-    }
-
-    private long getCurrentFileSize(){
-        long currentFileSize = (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
-        LOG.info("Current file size:[{}]", currentFileSize);
-
-        return  currentFileSize;
-    }
-
-    private long getNextNumForCheckDataSize(){
-        long totalBytesWrite = bytesWriteCounter.getLocalValue();
-        long totalRecordWrite = numWriteCounter.getLocalValue();
-
-        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
-
-        long currentFileSize = getCurrentFileSize();
-        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
-
-        return totalRecordWrite + recordNum;
-    }
-
-    @Override
-    protected boolean needWaitAfterCloseInternal() {
-        return true;
-    }
 }

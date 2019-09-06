@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.kafka09.writer;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka09.Formatter;
 import com.dtstack.flinkx.kafka09.decoder.JsonDecoder;
@@ -129,5 +130,9 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     public void setProducerSettings(Map<String, String> producerSettings) {
         this.producerSettings = producerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }

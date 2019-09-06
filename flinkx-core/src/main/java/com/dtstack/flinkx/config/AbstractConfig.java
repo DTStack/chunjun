@@ -50,6 +50,10 @@ public abstract class AbstractConfig implements Serializable {
         setVal(key, value);
     }
 
+    public void setBooleanVal(String key, boolean value) {
+        setVal(key, value);
+    }
+
     public void setIntVal(String key, int value) {
         setVal(key, value);
     }
