@@ -90,7 +90,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(restoreConfig.isStream() && flushInterval > 0){
+        //不开启checkpoint
+        if(!restoreConfig.isRestore() && restoreConfig.isStream() && flushInterval > 0){
             fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
             fileSizeChecker.start();
         }
@@ -124,17 +125,12 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         checkOutputDir();
 
-//        if (restoreConfig.isRestore()) {
-            try {
-                LOG.info("Delete [.data] dir before write records");
-                clearTemporaryDataFiles();
-            } catch (Exception e) {
-                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
-            }
-//        } else {
-//            fixme
-//            alignHistoryFiles();
-//        }
+        try {
+            LOG.info("Delete [.data] dir before write records");
+            clearTemporaryDataFiles();
+        } catch (Exception e) {
+            LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+        }
     }
 
     @Override
@@ -242,8 +238,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         readyCheckpoint = false;
 
-        //no checkpoint
-        if(!restoreConfig.isRestore() && isTaskEndsNormally()){
+        //任务正常结束时最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
+        if(isTaskEndsNormally()){
             moveTemporaryDataBlockFileToDirectory();
         }
     }
@@ -264,9 +260,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     coverageData();
                 }
 
-                if(!restoreConfig.isRestore()) {
-                    moveTemporaryDataFileToDirectory();
-                }
+                //任务正常被close，触发 .data 目录下的文件移动到数据目录做准备
+                moveTemporaryDataFileToDirectory();
 
                 LOG.info("The task ran successfully,clear temporary data files");
                 clearTemporaryDataFiles();

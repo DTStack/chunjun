@@ -226,16 +226,13 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        readyCheckpoint = false;
+        super.closeSource();
+
         OutputStream s = this.stream;
         if(s != null) {
             s.flush();
             this.stream = null;
             s.close();
-
-            if(!restoreConfig.isRestore() && isTaskEndsNormally()){
-                moveTemporaryDataBlockFileToDirectory();
-            }
         }
     }
 
