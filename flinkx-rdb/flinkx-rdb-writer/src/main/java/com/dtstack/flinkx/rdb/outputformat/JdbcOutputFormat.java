@@ -426,27 +426,27 @@ public class JdbcOutputFormat extends RichOutputFormat {
         DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
 
-        //FIXME TEST
-        //oracle
-        if (EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
-            String oracleTimeoutPollingThreadName = "OracleTimeoutPollingThread";
-            Thread thread = getThreadByName(oracleTimeoutPollingThreadName);
-            if(thread != null){
-                thread.interrupt();
-                LOG.warn("----close curr oracle polling thread: " + oracleTimeoutPollingThreadName);
-            }
-        }
+//        //FIXME TEST
+//        //oracle
+//        if (EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
+//            String oracleTimeoutPollingThreadName = "OracleTimeoutPollingThread";
+//            Thread thread = getThreadByName(oracleTimeoutPollingThreadName);
+//            if(thread != null){
+//                thread.interrupt();
+//                LOG.warn("----close curr oracle polling thread: " + oracleTimeoutPollingThreadName);
+//            }
+//        }
     }
 
-    public Thread getThreadByName(String name){
-        for(Thread t : Thread.getAllStackTraces().keySet()){
-            if(t.getName().equals(name)){
-                return t;
-            }
-        }
-
-        return null;
-    }
+//    public Thread getThreadByName(String name){
+//        for(Thread t : Thread.getAllStackTraces().keySet()){
+//            if(t.getName().equals(name)){
+//                return t;
+//            }
+//        }
+//
+//        return null;
+//    }
 
     @Override
     protected boolean needWaitBeforeWriteRecords() {

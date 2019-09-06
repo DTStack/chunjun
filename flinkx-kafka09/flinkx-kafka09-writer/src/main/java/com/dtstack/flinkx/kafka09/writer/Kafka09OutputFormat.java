@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.kafka09.writer;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka09.Formatter;
 import com.dtstack.flinkx.kafka09.decoder.JsonDecoder;
@@ -7,6 +8,7 @@ import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -16,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * company: www.dtstack.com
@@ -27,11 +28,7 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka09OutputFormat.class);
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     private Properties props;
-
-    private transient Producer<String, byte[]> producer;
 
     private String encoding;
 
@@ -41,48 +38,28 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     private String brokerList;
 
-    private Map<String, Map<String, String>> topicSelect;
-
-    private Set<Map.Entry<String, Map<String, String>>> entryTopicSelect;
-
     private Map<String, String> producerSettings;
+
+    private transient Producer<String, byte[]> producer;
 
     private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
-    static {
-        Thread.currentThread().setContextClassLoader(null);
-    }
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Configuration parameters) {
-        try {
-            if (topicSelect != null) {
-                entryTopicSelect = topicSelect.entrySet();
-            }
-
-            if (props == null) {
-                props = new Properties();
-                addDefaultKafkaSetting();
-            }
-
-            if (producerSettings != null) {
-                props.putAll(producerSettings);
-            }
-
-            if (!brokerList.trim().equals("")) {
-                props.put("metadata.broker.list", brokerList);
-            } else {
-                throw new Exception("brokerList can not be empty!");
-            }
-
-            ProducerConfig pconfig = new ProducerConfig(props);
-            if (producer == null) {
-                producer = new Producer<String, byte[]>(pconfig);
-            }
-        } catch (Exception e) {
-            LOG.error("", e);
-            System.exit(1);
+        props = new Properties();
+        addDefaultKafkaSetting();
+        if (producerSettings != null) {
+            props.putAll(producerSettings);
         }
+        if (StringUtils.isBlank(brokerList)) {
+            throw new RuntimeException("brokerList can not be empty!");
+        }
+        props.put("metadata.broker.list", brokerList);
+
+        ProducerConfig producerConfig = new ProducerConfig(props);
+        producer = new Producer<String, byte[]>(producerConfig);
     }
 
     private void addDefaultKafkaSetting() {
@@ -103,39 +80,30 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (row.getArity() == 1){
-            Object obj = row.getField(0);
-            if(obj instanceof Map) {
-                emit((Map<String, Object>) obj);
-            } else if (obj instanceof String) {
-                emit(jsonDecoder.decode(obj.toString()));
+        try {
+            if (row.getArity() == 1) {
+                Object obj = row.getField(0);
+                if (obj != null && obj instanceof Map) {
+                    emit((Map<String, Object>) obj);
+                } else if (obj instanceof String) {
+                    emit(jsonDecoder.decode(obj.toString()));
+                }
             }
+        } catch (Throwable e) {
+            LOG.error("kafka writeSingleRecordInternal error:{}", e);
+            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 
-    private void emit(Map<String, Object> event) {
-        try {
-            String tp = null;
-            if(entryTopicSelect != null){
-                for(Map.Entry<String,Map<String,String>> entry : entryTopicSelect){
-                    String key = entry.getKey();
-                    Map<String,String> value = entry.getValue();
-                    Set<Map.Entry<String,String>> sets = value.entrySet();
-                    for(Map.Entry<String,String> ey:sets){
-                        if(ey.getKey().equals(event.get(key))){
-                            tp = Formatter.format(event, ey.getValue(), timezone);
-                            break;
-                        }
-                    }
-                }
-            }
-            if(tp==null){
-                tp = Formatter.format(event, topic, timezone);
-            }
-            producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
-        } catch (Exception e) {
-            LOG.error("", e);
-        }
+    private void emit(Map<String, Object> event) throws IOException {
+        String tp = Formatter.format(event, topic, timezone);
+        producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        LOG.warn("kafka output closeInternal.");
+        producer.close();
     }
 
     @Override
@@ -160,15 +128,11 @@ public class Kafka09OutputFormat extends RichOutputFormat {
         this.brokerList = brokerList;
     }
 
-    public void setTopicSelect(Map<String, Map<String, String>> topicSelect) {
-        this.topicSelect = topicSelect;
-    }
-
-    public void setEntryTopicSelect(Set<Map.Entry<String, Map<String, String>>> entryTopicSelect) {
-        this.entryTopicSelect = entryTopicSelect;
-    }
-
     public void setProducerSettings(Map<String, String> producerSettings) {
         this.producerSettings = producerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }

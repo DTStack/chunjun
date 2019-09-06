@@ -30,7 +30,8 @@
                     "compress": "SNAPPY",
                     "path": "/test",
                     "writeMode": "append",
-                    "fieldDelimiter": "\\001"
+                    "fieldDelimiter": "\\001",
+                    "maxFileSize":1073741824‬
                 }
             }
         }]
@@ -121,3 +122,11 @@
   * 描述：写文件的编码配置。<br />
   * 必选：否
   * 默认值：utf-8
+
+* **maxFileSize**
+  
+  * 描述：hdfs文件最大大小，单位字节
+  
+  * 必须：否
+  
+  * 默认值：1073741824‬（1G）

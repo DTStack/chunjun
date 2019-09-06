@@ -42,6 +42,7 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -57,11 +58,13 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
+public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static final String RUNNING_STATE = "RUNNING";
+
+    public static final int LOG_PRINT_INTERNAL = 2000;
 
     /** Dirty data manager */
     protected DirtyDataManager dirtyDataManager;
@@ -83,6 +86,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     /** 总记录数 */
     protected LongCounter numWriteCounter;
+
+    /** snapshot 中记录的总记录数 */
+    protected LongCounter snapshotWriteCounter;
 
     /** 错误记录数 */
     protected LongCounter errCounter;
@@ -141,6 +147,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
     private long startTime;
 
+    protected boolean initAccumulatorAndDirty = true;
+
     public String getDirtyPath() {
         return dirtyPath;
     }
@@ -182,9 +190,14 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
 
         initStatisticsAccumulator();
         initJobInfo();
-        initAccumulatorCollector();
-        openErrorLimiter();
-        openDirtyDataManager();
+
+        if (initAccumulatorAndDirty) {
+            initAccumulatorCollector();
+            openErrorLimiter();
+            openDirtyDataManager();
+        }
+
+        initRestoreInfo();
 
         if(needWaitBeforeOpenInternal()) {
             beforeOpenInternal();
@@ -197,7 +210,6 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
             waitWhile("#2");
         }
 
-        initRestoreInfo();
     }
 
     private void initAccumulatorCollector(){
@@ -214,7 +226,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         accumulatorCollector.start();
     }
 
-    private void initRestoreInfo(){
+    protected void initRestoreInfo(){
         if(restoreConfig == null){
             restoreConfig = RestoreConfig.defaultConfig();
         } else if(restoreConfig.isRestore()){
@@ -222,7 +234,19 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 formatState = new FormatState(taskNumber, null);
             } else {
                 initState = formatState.getState();
-                numWriteCounter.add(formatState.getNumberWrite());
+
+                errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+                nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+                duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+                conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+                otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+
+                //use snapshot write count
+                numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+
+                snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+                bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+                durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
             }
 
             putStateToAccumulator();
@@ -245,7 +269,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         LOG.info("Put last write num:{} for channel:{}", formatState.getNumberWrite(), taskNumber);
     }
 
-    private void initJobInfo(){
+    protected void initJobInfo(){
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
@@ -256,13 +280,14 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         }
     }
 
-    private void initStatisticsAccumulator(){
+    protected void initStatisticsAccumulator(){
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
         duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
         conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
         otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
         numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        snapshotWriteCounter = context.getLongCounter(Metrics.SNAPSHOT_WRITES);
         bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
         durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
 
@@ -272,8 +297,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
         outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
         outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
-        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter);
-        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter, true);
+        outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
 
         startTime = System.currentTimeMillis();
@@ -308,18 +334,17 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
         try {
             writeSingleRecordInternal(row);
 
-            if(!restoreConfig.isRestore()){
-                numWriteCounter.add(1);
-            }
+            numWriteCounter.add(1);
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
             // 总记录数加1
-            if(numWriteCounter !=null ){
-                numWriteCounter.add(1);
-            }
+            numWriteCounter.add(1);
+            snapshotWriteCounter.add(1);
 
-            LOG.error(e.getMessage());
+            if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
+                LOG.error(e.getMessage());
+            }
         }
     }
 
@@ -362,7 +387,7 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
         if(!restoreConfig.isRestore()){
-          if(numWriteCounter!=null){
+          if(numWriteCounter != null){
             numWriteCounter.add(rows.size());
           }
         }
@@ -522,6 +547,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
      * @return DataRecoverPoint
      */
     public FormatState getFormatState(){
+        if (formatState != null){
+            formatState.setMetric(outputMetric.getMetricCounters());
+        }
         return formatState;
     }
 

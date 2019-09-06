@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,8 +22,9 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
-import com.dtstack.flinkx.binlog.BinlogPosUtil;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -39,9 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class BinlogInputFormat extends RichInputFormat {
@@ -58,11 +56,11 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private String jdbcUrl;
 
-    private static boolean pavingData = false;
+    private boolean pavingData = false;
 
-    private Map<String,Object> start;
+    private Map<String, Object> start;
 
-    private static List<String> table;
+    private List<String> table;
 
     private String filter;
 
@@ -72,15 +70,15 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private int bufferSize;
 
-    /** internal fields */
-
-    private transient MysqlEventParser controller;
-
-    private transient ScheduledExecutorService scheduler;
-
-    private volatile EntryPosition entryPosition = new EntryPosition();
+    private volatile EntryPosition entryPosition;
 
     private List<String> categories = new ArrayList<>();
+
+    /**
+     * internal fields
+     */
+
+    private transient MysqlEventParser controller;
 
     private transient BinlogEventSink binlogEventSink;
 
@@ -88,35 +86,60 @@ public class BinlogInputFormat extends RichInputFormat {
         this.entryPosition = entryPosition;
     }
 
+    @Override
+    public FormatState getFormatState() {
+        if (!restoreConfig.isRestore()){
+            LOG.info("return null for formatState");
+            return null;
+        }
+
+        super.getFormatState();
+        if (formatState != null){
+            formatState.setState(entryPosition);
+        }
+        return formatState;
+    }
+
     public boolean accept(String type) {
         return categories.isEmpty() || categories.contains(type);
     }
 
-    private void savePos(){
-        try {
-            BinlogPosUtil.savePos("default_task_id_output", entryPosition);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        LOG.debug("save pos to local, entryPosition:{}", entryPosition);
-    }
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("binlog emit started...");
+        LOG.info("binlog openInternal start...");
+
+        controller = new MysqlEventParser();
+        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setSlaveId(3344L);
+        controller.setDetectingEnable(false);
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
+        controller.setEnableTsdb(true);
+        controller.setDestination("example");
+        controller.setParallel(true);
+        controller.setParallelBufferSize(bufferSize);
+        controller.setParallelThreadSize(2);
+        controller.setIsGTIDMode(false);
+
+        controller.setAlarmHandler(new BinlogAlarmHandler(this));
+
+        BinlogEventSink sink = new BinlogEventSink(this);
+        sink.setPavingData(pavingData);
+        binlogEventSink = sink;
+
+        controller.setEventSink(sink);
+
+        controller.setLogPositionManager(new BinlogPositionManager(this));
+
+        EntryPosition startPosition = findStartPosition();
+        if (startPosition != null) {
+            controller.setMasterPosition(startPosition);
+        }
+
+        if (filter != null) {
+            controller.setEventFilter(new AviaterRegexFilter(filter));
+        }
 
         controller.start();
-
-        LOG.info("binlog scheduleAtFixedRate....");
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                savePos();
-            }
-        }, period, period, TimeUnit.MILLISECONDS);
-
-        LOG.info("binlog emit ended...");
     }
 
     @Override
@@ -126,107 +149,63 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        LOG.info("binlog release...");
+        LOG.info("binlog closeInternal..., entryPosition:{}", formatState != null ? formatState.getState() : null);
 
-        if(controller != null) {
+        if (controller != null) {
             controller.stop();
         }
 
-        if(scheduler != null) {
-            scheduler.shutdown();
-        }
-
-        savePos();
-        LOG.info("binlog release..., save pos:{}", entryPosition);
     }
 
     @Override
     public void configure(Configuration parameters) {
-        try {
-            LOG.info("binlog prepare started..");
+        LOG.info("binlog configure...");
 
-            parseCategories();
-
-            controller = new MysqlEventParser();
-            controller.setConnectionCharset(Charset.forName("UTF-8"));
-            controller.setSlaveId(3344L);
-            controller.setDetectingEnable(false);
-            controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
-            controller.setEnableTsdb(true);
-            controller.setDestination("example");
-            controller.setParallel(true);
-            controller.setParallelBufferSize(bufferSize);
-            controller.setParallelThreadSize(2);
-            controller.setIsGTIDMode(false);
-
-            BinlogEventSink sink = new BinlogEventSink(this);
-            sink.setPavingData(pavingData);
-            controller.setEventSink(sink);
-
-            controller.setLogPositionManager(new BinlogPositionManager(this));
-
-            EntryPosition startPosition = findStartPosition();
-            if (startPosition != null) {
-                controller.setMasterPosition(startPosition);
-            }
-
-            /**
-             * mysql 数据解析关注的表，Perl正则表达式.
-
-             多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
-
-
-             常见例子：
-
-             1.  所有表：.*   or  .*\\..*
-             2.  canal schema下所有表： canal\\..*
-             3.  canal下的以canal打头的表：canal\\.canal.*
-             4.  canal schema下的一张表：canal\\.test1
-
-             5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
-             */
-            if (table != null && table.size() != 0 && jdbcUrl != null) {
-                int idx = jdbcUrl.lastIndexOf('?');
-                String database = null;
-                if (idx != -1) {
-                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
-                } else {
-                    database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
-                }
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < table.size(); i++) {
-                    sb.append(database).append(".").append(table.get(i));
-                    if (i != table.size() - 1) {
-                        sb.append(",");
-                    }
-                }
-                filter = sb.toString();
-            }
-
-            if (filter != null) {
-                controller.setEventFilter(new AviaterRegexFilter(filter));
-            }
-
-            LOG.info("binlog prepare ended..");
-        } catch (Exception e) {
-            LOG.error("",e);
-            System.exit(-1);
-        }
-    }
-
-    private void parseCategories() {
-        if(!StringUtils.isBlank(cat)) {
+        if (!StringUtils.isBlank(cat)) {
             LOG.info("{}", categories);
             categories = Arrays.asList(cat.toUpperCase().split(","));
         }
+        /**
+         * mysql 数据解析关注的表，Perl正则表达式.
+
+         多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
+
+
+         常见例子：
+
+         1.  所有表：.*   or  .*\\..*
+         2.  canal schema下所有表： canal\\..*
+         3.  canal下的以canal打头的表：canal\\.canal.*
+         4.  canal schema下的一张表：canal\\.test1
+
+         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
+         */
+        if (table != null && table.size() != 0 && jdbcUrl != null) {
+            int idx = jdbcUrl.lastIndexOf('?');
+            String database = null;
+            if (idx != -1) {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
+            } else {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < table.size(); i++) {
+                sb.append(database).append(".").append(table.get(i));
+                if (i != table.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            filter = sb.toString();
+        }
+
     }
 
     private EntryPosition findStartPosition() {
-        if(start != null && start.size() != 0) {
+        if (start != null && start.size() != 0) {
             EntryPosition startPosition = new EntryPosition();
             String journalName = (String) start.get("journalName");
-            if(StringUtils.isNotEmpty(journalName)) {
-                if(new BinlogJournalValidator(host, port, username, password).check(journalName)) {
+            if (StringUtils.isNotEmpty(journalName)) {
+                if (new BinlogJournalValidator(host, port, username, password).check(journalName)) {
                     startPosition.setJournalName(journalName);
                 } else {
                     throw new IllegalArgumentException("Can't find journalName: " + journalName);
@@ -238,10 +217,8 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         EntryPosition startPosition = null;
-        try {
-            startPosition = BinlogPosUtil.readPos("default_task_id");
-        } catch(IOException e) {
-            LOG.error("Failed to read pos file: " + e.getMessage());
+        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
+            startPosition = (EntryPosition) formatState.getState();
         }
         return startPosition;
     }
@@ -249,7 +226,7 @@ public class BinlogInputFormat extends RichInputFormat {
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0,1);
+        split[0] = new GenericInputSplit(0, 1);
         return split;
     }
 
@@ -293,4 +270,22 @@ public class BinlogInputFormat extends RichInputFormat {
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
     }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
+    }
+
+    public void setTable(List<String> table) {
+        this.table = table;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
+    }
+
+
 }

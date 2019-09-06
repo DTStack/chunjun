@@ -141,8 +141,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
 
         inputMetric = new BaseMetric(getRuntimeContext(), "reader", StringUtils.isEmpty(monitorUrls));
-        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter);
-        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter);
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
     }
 
@@ -155,6 +155,13 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     }
 
     private void getInitState(){
+        if(formatState != null){
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
+            return;
+        }
+
         formatState = new FormatState();
 
         String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubtask);
@@ -183,18 +190,16 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public Row nextRecord(Row row) throws IOException {
-        if(numReadCounter !=null ){
-            numReadCounter.add(1);
-        }
-
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
-
-        updateDuration();
-
         Row internalRow = nextRecordInternal(row);
         internalRow = setChannelInformation(internalRow);
+
+        updateDuration();
+        if(numReadCounter !=null ){
+            numReadCounter.add(1);
+        }
         if(bytesReadCounter!=null){
             bytesReadCounter.add(internalRow.toString().length());
         }
@@ -213,6 +218,18 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         return null;
+    }
+
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState() {
+        if (formatState != null) {
+            formatState.setState(numReadCounter.getLocalValue());
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
+        return formatState;
     }
 
     protected abstract Row nextRecordInternal(Row row) throws IOException;
@@ -264,6 +281,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
         return new DefaultInputSplitAssigner(inputSplits);
+    }
+
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     public RestoreConfig getRestoreConfig() {

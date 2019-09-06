@@ -1,12 +1,31 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package com.dtstack.flinkx.kafka10.reader;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.kafka10.decoder.IDecode;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
-import com.dtstack.flinkx.kafka10.decoder.PlainDecoder;
+import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,51 +46,23 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Kafka10InputFormat.class);
 
-    private static int threadCount = 1;
-
     private String topic;
 
     private String groupId;
 
     private String codec;
 
-    private String bootstrapServers;
+    private boolean blankIgnore;
 
     private Map<String, String> consumerSettings;
 
-    private KafkaConsumer consumer;
+    private transient BlockingQueue<Row> queue;
 
-    private IDecode decode;
-
-    private BlockingQueue<Row> queue;
-
-    static {
-        Thread.currentThread().setContextClassLoader(null);
-    }
+    private transient KafkaConsumer consumer;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        try {
-            consumer.add(topic, groupId, new KafkaConsumer.Caller() {
-
-                @Override
-                public void processMessage(String message) {
-                    Map<String, Object> event = Kafka10InputFormat.this.getDecode().decode(message);
-                    if (event != null && event.size() > 0) {
-                        Kafka10InputFormat.this.processEvent(event);
-                    }
-                }
-
-                @Override
-                public void catchException(String message, Throwable e) {
-                    LOG.warn("kakfa consumer fetch is error,message={}", message);
-                    LOG.error("kakfa consumer fetch is error", e);
-                }
-            }, Integer.MAX_VALUE, threadCount).execute();
-
-        } catch (Exception e) {
-            LOG.error("kafka emit error", e);
-        }
+        consumer.createClient(topic, groupId, this).execute();
     }
 
     public void processEvent(Map<String, Object> event) {
@@ -102,13 +93,8 @@ public class Kafka10InputFormat extends RichInputFormat {
     public void configure(Configuration parameters) {
         Properties props = geneConsumerProp();
 
-        props.put("bootstrap.servers", bootstrapServers);
-
-        consumer = KafkaConsumer.init(props);
-
+        consumer = new KafkaConsumer(props);
         queue = new SynchronousQueue<Row>(false);
-
-        decode = createDecoder();
     }
 
     private Properties geneConsumerProp() {
@@ -127,23 +113,18 @@ public class Kafka10InputFormat extends RichInputFormat {
         return props;
     }
 
-    private IDecode createDecoder() {
-        if ("json".equals(codec)) {
-            return new JsonDecoder();
-        } else {
-            return new PlainDecoder();
+    @Override
+    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+        InputSplit[] splits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            splits[i] = new GenericInputSplit(i, minNumSplits);
         }
-    }
-
-    public IDecode getDecode() {
-        return decode;
+        return splits;
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0,1);
-        return split;
+    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
@@ -164,11 +145,23 @@ public class Kafka10InputFormat extends RichInputFormat {
         this.codec = codec;
     }
 
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
+    public void setBlankIgnore(boolean blankIgnore) {
+        this.blankIgnore = blankIgnore;
+    }
+
+    public boolean getBlankIgnore() {
+        return blankIgnore;
+    }
+
+    public String getCodec() {
+        return codec;
     }
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }

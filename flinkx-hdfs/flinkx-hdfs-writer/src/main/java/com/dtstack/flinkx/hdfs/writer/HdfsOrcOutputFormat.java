@@ -23,8 +23,8 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -45,6 +45,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -60,9 +61,12 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
+    private static ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
 
     @Override
-    protected void configInternal() {
+    protected void openSource() throws IOException{
+        super.openSource();
+
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
@@ -71,11 +75,15 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
-        for(String columnType : fullColumnTypes) {
-            columnType = columnType.toUpperCase();
-            if(columnType.startsWith("DECIMAL")) {
-                columnType = "DECIMAL";
+        decimalColInfo = new HashMap<>();
+        for (int i = 0; i < fullColumnTypes.size(); i++) {
+            String columnType = fullColumnTypes.get(i);
+
+            if(ColumnTypeUtil.isDecimalType(columnType)) {
+                ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
+                decimalColInfo.put(fullColumnNames.get(i), decimalInfo);
             }
+
             ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
@@ -106,7 +114,15 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void nextBlockInternal() {
+    public float getDeviation(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getDeviation();
+    }
+
+    @Override
+    protected void nextBlock(){
+        super.nextBlock();
+
         if (recordWriter != null){
             return;
         }
@@ -124,39 +140,10 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    protected void flushBlock() throws IOException{
-        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
 
-        if (recordWriter != null){
-            recordWriter.close(Reporter.NULL);
-            recordWriter = null;
-        }
-    }
-
-    @Override
-    protected float getDeviation(){
-        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
-        return compressType.getDeviation();
-    }
-
-    @Override
-    public void open() throws IOException {
-        nextBlock();
-    }
-
-    @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore()){
-            if(recordWriter == null){
-                nextBlock();
-            }
-
-            if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-        } else {
-            checkWriteSize();
+        if (recordWriter == null){
+            nextBlock();
         }
 
         int i = 0;
@@ -173,14 +160,25 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 rowsOfCurrentBlock++;
             }
         } catch(Exception e) {
-            if(i < row.getArity()) {
+            if(e instanceof WriteRecordException){
+                throw (WriteRecordException) e;
+            } else {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
-            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 
-    private void getData(List<Object> recordList, int index, Row row){
+    @Override
+    public void flushDataInternal() throws IOException {
+        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
+        if (recordWriter != null){
+            recordWriter.close(Reporter.NULL);
+            recordWriter = null;
+        }
+    }
+
+    private void getData(List<Object> recordList, int index, Row row) throws WriteRecordException{
         int j = colIndices[index];
         if(j == -1) {
             recordList.add(null);
@@ -230,7 +228,14 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(Double.valueOf(rowData));
                 break;
             case DECIMAL:
+                ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(fullColumnNames.get(index));
                 HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
+                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                if(hiveDecimal == null){
+                    throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
+                            decimalInfo.getPrecision(), decimalInfo.getScale()), null, index, row);
+                }
+
                 HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
                 recordList.add(hiveDecimalWritable);
                 break;
@@ -267,18 +272,14 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        readyCheckpoint = false;
+    protected void closeSource() throws IOException {
+        super.closeSource();
+
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
         }
-
-        if(isTaskEndsNormally()){
-            moveTemporaryDataBlockFileToDirectory();
-        }
     }
-
 }

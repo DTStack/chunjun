@@ -22,11 +22,10 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 import java.util.Map;
-import java.util.Set;
 
 import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
 
@@ -41,12 +40,6 @@ public class Kafka10Writer extends DataWriter {
 
     private String topic;
 
-    private Map<String, Map<String, String>> topicSelect;
-
-    private Set<Map.Entry<String, Map<String, String>>> entryTopicSelect;
-
-    private String bootstrapServers;
-
     private Map<String, String> producerSettings;
 
     public Kafka10Writer(DataTransferConfig config) {
@@ -54,10 +47,11 @@ public class Kafka10Writer extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
-        topicSelect = (Map<String, Map<String, String>>) writerConfig.getParameter().getVal(KEY_TOPIC_SELECT);
-        entryTopicSelect = (Set<Map.Entry<String, Map<String, String>>>) writerConfig.getParameter().getVal(KEY_ENTRY_TOPIC_SELECT);
-        bootstrapServers = writerConfig.getParameter().getStringVal(KEY_BOOTSTRAP_SERVERS);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
+
+        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
+        }
     }
 
     @Override
@@ -65,15 +59,9 @@ public class Kafka10Writer extends DataWriter {
         Kafka10OutputFormat format = new Kafka10OutputFormat();
         format.setTimezone(timezone);
         format.setTopic(topic);
-        format.setTopicSelect(topicSelect);
-        format.setEntryTopicSelect(entryTopicSelect);
-        format.setBootstrapServers(bootstrapServers);
         format.setProducerSettings(producerSettings);
+        format.setRestoreConfig(restoreConfig);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(format);
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("kafka10writer");
-        return dataStreamSink;
+        return createOutput(dataSet, format, "kafka10writer");
     }
 }
