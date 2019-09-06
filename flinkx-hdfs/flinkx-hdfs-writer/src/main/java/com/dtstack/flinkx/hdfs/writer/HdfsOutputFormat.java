@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
@@ -62,6 +63,8 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected int[] colIndices;
 
     protected Configuration conf;
+
+    protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
