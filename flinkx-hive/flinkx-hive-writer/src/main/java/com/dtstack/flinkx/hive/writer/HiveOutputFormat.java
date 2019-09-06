@@ -99,7 +99,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     private transient HiveUtil hiveUtil;
     private transient TimePartitionFormat partitionFormat;
     private transient Map<String, TableInfo> tableCache = new HashMap<>();
-    private transient Map<String, HdfsOutputFormat> outputFormats = new HashMap();
+    private transient Map<String, HdfsOutputFormat> outputFormats = new HashMap<String, HdfsOutputFormat>();
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
