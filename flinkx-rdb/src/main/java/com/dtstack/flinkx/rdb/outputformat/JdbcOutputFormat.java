@@ -115,6 +115,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             throw new IllegalArgumentException("Unknown write mode:" + mode);
         }
 
+        LOG.info("write sql:{}", singleSql);
+
         return dbConn.prepareStatement(singleSql);
     }
 
