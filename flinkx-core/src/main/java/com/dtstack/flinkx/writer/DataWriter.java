@@ -55,7 +55,7 @@ public abstract class DataWriter {
 
     protected String dirtyPath;
 
-    protected Map<String,String> dirtyHadoopConfig;
+    protected Map<String,Object> dirtyHadoopConfig;
 
     protected RestoreConfig restoreConfig;
 
@@ -89,7 +89,7 @@ public abstract class DataWriter {
         DirtyConfig dirtyConfig =  config.getJob().getSetting().getDirty();
         if(dirtyConfig != null) {
             String dirtyPath = dirtyConfig.getPath();
-            Map<String,String> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
+            Map<String,Object> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
             if(dirtyPath != null) {
                 this.dirtyPath = dirtyPath;
             }

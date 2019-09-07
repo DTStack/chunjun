@@ -58,7 +58,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.columnTypes = columnTypes;
     }
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
     }
 

@@ -23,7 +23,7 @@ import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
-import com.dtstack.flinkx.hive.util.HdfsUtil;
+import com.dtstack.flinkx.hive.util.DBUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
@@ -53,7 +53,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     /**
      * hdfs高可用配置
      */
-    protected Map<String, String> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     protected String fileType;
 
@@ -106,8 +106,15 @@ public class HiveOutputFormat extends RichOutputFormat {
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
 
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
+        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        connectionInfo.setJdbcUrl(jdbcUrl);
+        connectionInfo.setUsername(username);
+        connectionInfo.setPassword(password);
+        connectionInfo.setHiveConf(hadoopConfig);
+        connectionInfo.setJobId(jobId);
+        connectionInfo.setPlugin("writer");
+
+        hiveUtil = new HiveUtil(connectionInfo, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         tableCache = new HashMap<String, TableInfo>();
         outputFormats = new HashMap<String, HdfsOutputFormat>();

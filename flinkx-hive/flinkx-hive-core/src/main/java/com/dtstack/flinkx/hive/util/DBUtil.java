@@ -18,11 +18,17 @@
 
 package com.dtstack.flinkx.hive.util;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -47,12 +53,17 @@ public final class DBUtil {
 
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
 
+    public static final String JDBC_REGEX = "[\\?|;|#]";
+    public static final String KEY_VAL_DELIM = "=";
+    public static final String PARAM_DELIM = "&";
+    public static final String KEY_PRINCIPAL = "principal";
 
     public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[0-9a-zA-Z\\.]+):(?<port>\\d+)/(?<db>[0-9a-z_%]+)(?<param>[\\?;#].*)*");
     public static final String HOST_KEY = "host";
     public static final String PORT_KEY = "port";
     public static final String DB_KEY = "db";
     public static final String PARAM_KEY = "param";
+    public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY = "hive.server2.authentication.kerberos.keytab";
 
     private static ReentrantLock lock = new ReentrantLock();
 
@@ -64,29 +75,89 @@ public final class DBUtil {
     private DBUtil() {
     }
 
-    public static Connection getConnection(final String jdbcUrl, final String username, final String password) {
-
-        return getConnection(jdbcUrl, username, password, String.valueOf(10000));
-    }
-
-    public static Connection getConnection(final String jdbcUrl, final String username, final String password, final String socketTimeout) {
+    public static Connection getConnection(ConnectionInfo connectionInfo) {
+        if(openKerberos(connectionInfo.getJdbcUrl())){
+            login(connectionInfo);
+        }
 
         try {
             return RetryUtil.executeWithRetry(new Callable<Connection>() {
                 @Override
                 public Connection call() throws Exception {
-                    return DBUtil.connect(jdbcUrl, username,
-                            password, socketTimeout);
+                    return DBUtil.connect(connectionInfo);
                 }
             }, 1, 1000L, false);
         } catch (Exception e1) {
-            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", jdbcUrl, e1.getMessage()));
+            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
         }
     }
 
-    public static Connection connect(String url, String user, String pass, String socketTimeout) {
+    private static boolean openKerberos(final String jdbcUrl){
+        String[] splits = jdbcUrl.split(JDBC_REGEX);
+        if (splits.length == 2) {
+            String paramsStr = splits[1];
+            String[] paramArray = paramsStr.split(PARAM_DELIM);
+            for (String param : paramArray) {
+                String[] keyVal = param.split(KEY_VAL_DELIM);
+                if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
+                    return true;
+                }
+            }
+        }
 
-        String addr = parseIpAndPort(url);
+        return false;
+    }
+
+    private static void login(ConnectionInfo info){
+        try {
+            if(info.getHiveConf() == null || info.getHiveConf().isEmpty()){
+                throw new IllegalArgumentException("hiveConf can not be null or empty");
+            }
+
+            String keytab = getKeytab(info.getHiveConf());
+            String principal = getPrincipal(info.getJdbcUrl());
+
+            keytab = KerberosUtil.loadFile(info.getHiveConf(), keytab, info.getJobId(), info.getPlugin());
+            principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+            KerberosUtil.loadKrb5Conf(info.getHiveConf(), info.getJobId(), info.getPlugin());
+
+            Configuration conf = FileSystemUtil.getConfiguration(info.getHiveConf(), null);
+            conf.set("hadoop.security.authentication", "Kerberos");
+
+            KerberosUtil.login(conf, principal, keytab);
+        } catch (IOException e) {
+            throw new RuntimeException("Login kerberos for hive error", e);
+        }
+    }
+
+    private static String getPrincipal(String jdbcUrl){
+        String[] splits = jdbcUrl.split(JDBC_REGEX);
+        if (splits.length == 2) {
+            String paramsStr = splits[1];
+            String[] paramArray = paramsStr.split(PARAM_DELIM);
+            for (String param : paramArray) {
+                String[] keyVal = param.split(KEY_VAL_DELIM);
+                if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
+                    return keyVal[1];
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Can not find principal from jdbcUrl");
+    }
+
+    private static String getKeytab(Map<String, Object> hiveConf){
+        String keytab = MapUtils.getString(hiveConf, HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY);
+        if(StringUtils.isNotEmpty(keytab)){
+            return keytab;
+        }
+
+        throw new IllegalArgumentException("can not find keytab from hiveConf");
+    }
+
+    public static Connection connect(ConnectionInfo connectionInfo) {
+
+        String addr = parseIpAndPort(connectionInfo.getJdbcUrl());
         String[] addrs = addr.split(":");
         boolean check;
         if (addrs.length == 1) {
@@ -99,13 +170,19 @@ public final class DBUtil {
         }
 
         if (!check) {
-            throw new RuntimeException("连接信息：" + url + " 数据库服务器端口连接失败,请检查您的数据库配置或服务状态.");
+            throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 数据库服务器端口连接失败,请检查您的数据库配置或服务状态.");
         }
 
         Properties prop = new Properties();
-        prop.put("user", user);
-        prop.put("password", pass);
-        return connect(url, prop);
+        if(connectionInfo.getUsername() != null){
+            prop.put("user", connectionInfo.getUsername());
+        }
+
+        if(connectionInfo.getPassword() != null){
+            prop.put("password", connectionInfo.getPassword());
+        }
+
+        return connect(connectionInfo.getJdbcUrl(), prop);
     }
 
     private static Connection connect(String url, Properties prop) {
@@ -121,10 +198,10 @@ public final class DBUtil {
             } else if (SQLSTATE_CANNOT_ACQUIRE_CONNECT.equals(e.getSQLState())) {
                 throw new RuntimeException("应用程序服务器拒绝建立连接.");
             } else {
-                throw new RuntimeException("连接信息：" + url + " 错误信息：" + e.getMessage());
+                throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e));
             }
         } catch (Exception e1) {
-            throw new RuntimeException("连接信息：" + url + " 错误信息：" + e1.getMessage());
+            throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
         }
@@ -153,7 +230,7 @@ public final class DBUtil {
 
         if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
             param = param == null ? "" : param;
-            url = String.format("jdbc:hive2://%s:%s%s", host, port, param);
+            url = String.format("jdbc:hive2://%s:%s/%s%s", host, port, db, param);
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
                 try {
@@ -255,6 +332,71 @@ public final class DBUtil {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+    }
 
+    public static class ConnectionInfo{
+        private String jdbcUrl;
+        private String username;
+        private String password;
+        private String socketTimeout;
+        private String jobId;
+        private String plugin;
+        private Map<String, Object> hiveConf;
+
+        public String getJobId() {
+            return jobId;
+        }
+
+        public void setJobId(String jobId) {
+            this.jobId = jobId;
+        }
+
+        public String getPlugin() {
+            return plugin;
+        }
+
+        public void setPlugin(String plugin) {
+            this.plugin = plugin;
+        }
+
+        public String getJdbcUrl() {
+            return jdbcUrl;
+        }
+
+        public void setJdbcUrl(String jdbcUrl) {
+            this.jdbcUrl = jdbcUrl;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getSocketTimeout() {
+            return socketTimeout;
+        }
+
+        public void setSocketTimeout(String socketTimeout) {
+            this.socketTimeout = socketTimeout;
+        }
+
+        public Map<String, Object> getHiveConf() {
+            return hiveConf;
+        }
+
+        public void setHiveConf(Map<String, Object> hiveConf) {
+            this.hiveConf = hiveConf;
+        }
     }
 }

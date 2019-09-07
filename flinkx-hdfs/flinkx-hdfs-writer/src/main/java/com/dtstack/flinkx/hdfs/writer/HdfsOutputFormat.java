@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
@@ -46,7 +47,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected FileSystem fs;
 
     /** hdfs高可用配置 */
-    protected Map<String,String> hadoopConfig;
+    protected Map<String,Object> hadoopConfig;
 
     protected String defaultFS;
 
@@ -94,8 +95,12 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     @Override
     protected void openSource() throws IOException{
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
-        fs = FileSystem.get(conf);
+        try{
+            conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
+        } catch (Exception e){
+            throw new IOException("Get FileSystem error", e);
+        }
     }
 
     private void initColIndices() {

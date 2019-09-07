@@ -20,7 +20,7 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -62,7 +62,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         inputFormat = new OrcInputFormat();
         org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
         try {
-            FileSystem fs = FileSystem.get(conf);
+            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
             OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
             readerOptions.filesystem(fs);
 

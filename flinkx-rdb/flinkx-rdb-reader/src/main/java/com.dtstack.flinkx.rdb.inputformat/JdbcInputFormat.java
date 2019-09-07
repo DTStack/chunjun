@@ -26,10 +26,7 @@ import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.util.*;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
@@ -123,7 +120,7 @@ public class JdbcInputFormat extends RichInputFormat {
     /**
      * The hadoop config for metric
      */
-    protected Map<String,String> hadoopConfig;
+    protected Map<String,Object> hadoopConfig;
 
     public JdbcInputFormat() {
         resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -536,13 +533,7 @@ public class JdbcInputFormat extends RichInputFormat {
     private void uploadMetricData() throws IOException {
         FSDataOutputStream out = null;
         try {
-            org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-
-            if(hadoopConfig != null) {
-                for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                    conf.set(entry.getKey(), entry.getValue());
-                }
-            }
+            org.apache.hadoop.conf.Configuration conf = FileSystemUtil.getConfiguration(hadoopConfig, null);
 
             Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
             String jobId = vars.get("<job_id>");
@@ -551,7 +542,8 @@ public class JdbcInputFormat extends RichInputFormat {
             LOG.info("jobId:{} taskId:{} subtaskIndex:{}", jobId, taskId, subtaskIndex);
 
             Path remotePath = new Path(conf.get("fs.defaultFS"), "/tmp/logs/admin/logs/" + jobId + "/" + taskId + "_" + subtaskIndex);
-            out = FileSystem.create(remotePath.getFileSystem(conf), remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
+            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, null, jobId, "metric");
+            out = FileSystem.create(fs, remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
 
             Map<String,Object> metrics = new HashMap<>(3);
             metrics.put(Metrics.TABLE_COL, table + "-" + incrementConfig.getColumnName());
@@ -562,6 +554,9 @@ public class JdbcInputFormat extends RichInputFormat {
                 metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
             }
             out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
+        } catch (Exception e) {
+            LOG.error("hadoop conf:{}", hadoopConfig);
+            throw new IOException("Upload metric to HDFS error", e);
         } finally {
             IOUtils.closeStream(out);
         }

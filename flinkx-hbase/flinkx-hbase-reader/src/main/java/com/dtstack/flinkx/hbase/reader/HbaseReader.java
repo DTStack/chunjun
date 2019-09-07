@@ -43,7 +43,7 @@ public class HbaseReader extends DataReader {
     protected List<String> columnValue;
     protected List<String> columnFormat;
     protected String encoding;
-    protected Map<String,String> hbaseConfig;
+    protected Map<String,Object> hbaseConfig;
     protected String startRowkey;
     protected String endRowkey;
     protected boolean isBinaryRowkey;
@@ -55,7 +55,7 @@ public class HbaseReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         tableName = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_TABLE);
-        hbaseConfig = (Map<String, String>) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
+        hbaseConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
 
         Map range = (Map) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_RANGE);
         if(range != null) {

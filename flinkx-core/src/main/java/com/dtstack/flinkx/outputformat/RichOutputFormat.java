@@ -73,7 +73,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected String dirtyPath;
 
     /** The hadoop config for dirty data storage */
-    protected Map<String,String> dirtyHadoopConfig;
+    protected Map<String,Object> dirtyHadoopConfig;
 
     /** The source table field names  */
     protected List<String> srcFieldNames;
@@ -157,11 +157,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         this.dirtyPath = dirtyPath;
     }
 
-    public Map<String, String> getDirtyHadoopConfig() {
+    public Map<String, Object> getDirtyHadoopConfig() {
         return dirtyHadoopConfig;
     }
 
-    public void setDirtyHadoopConfig(Map<String, String> dirtyHadoopConfig) {
+    public void setDirtyHadoopConfig(Map<String, Object> dirtyHadoopConfig) {
         this.dirtyHadoopConfig = dirtyHadoopConfig;
     }
 
@@ -295,7 +295,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     private void openDirtyDataManager(){
         if(StringUtils.isNotBlank(dirtyPath)) {
-            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]));
+            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]), jobId);
             dirtyDataManager.open();
         }
     }

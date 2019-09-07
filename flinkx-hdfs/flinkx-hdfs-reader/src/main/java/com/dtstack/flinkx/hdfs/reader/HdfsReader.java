@@ -44,7 +44,7 @@ public class HdfsReader extends DataReader {
     protected String path;
     protected String fieldDelimiter;
     private List<MetaColumn> metaColumns;
-    protected Map<String,String> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -52,7 +52,7 @@ public class HdfsReader extends DataReader {
         defaultFS = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_DEFAULT_FS);
         path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
-        hadoopConfig = (Map<String, String>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
+        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
 
         fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
 

@@ -20,12 +20,12 @@ package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RowUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import java.io.BufferedWriter;
@@ -47,9 +47,10 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 public class DirtyDataManager {
 
     private String location;
-    private Configuration config;
+    private Map<String, Object> config;
     private BufferedWriter bw;
     private String[] fieldNames;
+    private String jobId;
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
@@ -64,16 +65,11 @@ public class DirtyDataManager {
         PRIMARY_CONFLICT_KEYWORDS.add("primary key constraint");
     }
 
-    public DirtyDataManager(String path, Map<String,String> configMap, String[] fieldNames) {
+    public DirtyDataManager(String path, Map<String, Object> configMap, String[] fieldNames, String jobId) {
         this.fieldNames = fieldNames;
         location = path + "/" + UUID.randomUUID() + ".txt";
-        config = new Configuration();
-        if(configMap != null) {
-            for(Map.Entry<String,String> entry : configMap.entrySet()) {
-                config.set(entry.getKey(), entry.getValue());
-            }
-        }
-        config.set("fs.hdfs.impl.disable.cache", "true");
+        this.config = configMap;
+        this.jobId = jobId;
     }
 
     public String writeData(Row row, WriteRecordException ex) {
@@ -104,11 +100,11 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystem.get(config);
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null, jobId, "dirty");
             Path path = new Path(location);
             bw = new BufferedWriter(new OutputStreamWriter(fs.create(path, true)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Open dirty manager error", e);
         }
     }
 

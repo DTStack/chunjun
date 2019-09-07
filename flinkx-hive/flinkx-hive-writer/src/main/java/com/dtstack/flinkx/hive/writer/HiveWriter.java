@@ -62,7 +62,7 @@ public class HiveWriter extends DataWriter {
 
     private Map<String, String> distributeTableMapping;
 
-    private Map<String, String> hadoopConfig;
+    private Map<String, Object> hadoopConfig;
 
     private String charSet;
 
@@ -87,8 +87,8 @@ public class HiveWriter extends DataWriter {
     public HiveWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
-        defaultFS = hadoopConfig.get(KEY_FS_DEFAULT_FS);
+        hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        defaultFS = MapUtils.getString(hadoopConfig, KEY_DEFAULT_FS);
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");

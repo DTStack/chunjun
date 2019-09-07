@@ -59,7 +59,7 @@ public class HdfsWriter extends DataWriter {
 
     protected List<String> columnType;
 
-    protected Map<String,String> hadoopConfig;
+    protected Map<String,Object> hadoopConfig;
 
     protected String charSet;
 
@@ -76,7 +76,7 @@ public class HdfsWriter extends DataWriter {
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         List columns = writerConfig.getParameter().getColumn();
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
         defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);

@@ -43,8 +43,8 @@ public class DirtyConfig extends AbstractConfig {
         setStringVal(KEY_DIRTY_PATH, path);
     }
 
-    public Map<String, String> getHadoopConfig() {
-        return (Map<String, String>) getVal(KEY_DIRTY_HADOOP_CONFIG);
+    public Map<String, Object> getHadoopConfig() {
+        return (Map<String, Object>) getVal(KEY_DIRTY_HADOOP_CONFIG);
     }
 
     public void setHadoopConfig(Map<String, String> hadoopConfig) {
