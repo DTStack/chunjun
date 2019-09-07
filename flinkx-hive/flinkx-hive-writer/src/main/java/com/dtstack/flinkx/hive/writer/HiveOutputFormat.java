@@ -133,7 +133,7 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     public FormatState getFormatState() {
-        if (!restoreConfig.isRestore()){
+        if (!restoreConfig.isRestore()) {
             LOG.info("return null for formatState");
             return null;
         }
