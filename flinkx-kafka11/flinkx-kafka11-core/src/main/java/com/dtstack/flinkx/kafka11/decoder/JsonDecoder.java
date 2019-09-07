@@ -34,7 +34,6 @@ public class JsonDecoder implements IDecode {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    @SuppressWarnings({"unchecked", "serial"})
     @Override
     public Map<String, Object> decode(final String message) {
         Map<String, Object> event = null;
@@ -45,11 +44,8 @@ public class JsonDecoder implements IDecode {
             }
         } catch (Exception e) {
             LOG.error(e.getMessage());
-            event = new HashMap<String, Object>() {
-                {
-                    put("message", message);
-                }
-            };
+            event = new HashMap<String, Object>();
+            event.put("message", message);
             return event;
         }
         return event;

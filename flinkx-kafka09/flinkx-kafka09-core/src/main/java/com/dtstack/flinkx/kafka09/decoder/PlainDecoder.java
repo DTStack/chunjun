@@ -27,14 +27,10 @@ import java.util.Map;
  */
 public class PlainDecoder implements IDecode {
 
-    @SuppressWarnings("serial")
     @Override
     public Map<String, Object> decode(final String message) {
-        HashMap<String, Object> event = new HashMap<String, Object>() {
-            {
-                put("message", message);
-            }
-        };
+        HashMap<String, Object> event = new HashMap<String, Object>();
+        event.put("message", message);
         return event;
     }
 
