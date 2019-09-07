@@ -59,7 +59,7 @@ public class QuerySqlBuilder {
         table = reader.table;
         metaColumns = reader.metaColumns;
         splitKey = reader.splitKey;
-        customFilter = reader.customSql;
+        customFilter = reader.where;
         customSql = reader.customSql;
         isSplitByKey = reader.getNumPartitions() > 1 && StringUtils.isNotEmpty(splitKey);
         isIncrement = reader.incrementConfig.isIncrement();
