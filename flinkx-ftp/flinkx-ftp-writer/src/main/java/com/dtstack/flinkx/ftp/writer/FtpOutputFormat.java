@@ -269,7 +269,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
-                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                if (fileName.endsWith(FILE_SUFFIX) && fileName.startsWith(String.valueOf(taskNumber))){
                     String newPath = path + SP + fileName;
                     LOG.info("Move file {} to path {}", file, newPath);
                     ftpHandler.rename(file, newPath);

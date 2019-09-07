@@ -244,7 +244,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     @Override
     protected void moveTemporaryDataFileToDirectory() throws IOException{
-        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+        PathFilter pathFilter = path -> path.getName().startsWith(String.valueOf(taskNumber));
         Path dir = new Path(outputFilePath);
         List<FileStatus> dataFiles = new ArrayList<>();
         Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
