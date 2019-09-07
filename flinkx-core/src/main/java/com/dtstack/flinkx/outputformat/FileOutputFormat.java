@@ -260,10 +260,14 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 if(!APPEND_MODE.equalsIgnoreCase(writeMode)){
                     coverageData();
                 }
+            }
 
-                //任务正常被close，触发 .data 目录下的文件移动到数据目录做准备
+            //离线任务正常被close，触发 .data 目录下的文件移动到数据目录做准备
+            if (!restoreConfig.isStream()) {
                 moveTemporaryDataFileToDirectory();
+            }
 
+            if (taskNumber == 0){
                 LOG.info("The task ran successfully,clear temporary data files");
                 clearTemporaryDataFiles();
             }
