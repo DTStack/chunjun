@@ -126,27 +126,6 @@ under the License.
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>hack-binary</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <file>${basedir}/target/${project.name}-${project.version}.jar</file>
-                            <groupId>com.dtstack.flinkx</groupId>
-                            <artifactId>flinkx-hdfs-writer</artifactId>
-                            <version>${version}</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
