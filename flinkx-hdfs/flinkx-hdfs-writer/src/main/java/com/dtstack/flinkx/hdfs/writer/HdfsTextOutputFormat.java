@@ -225,9 +225,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        super.closeSource();
-
+    public void closeSource() throws IOException {
         OutputStream s = this.stream;
         if(s != null) {
             s.flush();
