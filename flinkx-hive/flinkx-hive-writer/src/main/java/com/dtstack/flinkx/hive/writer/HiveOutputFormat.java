@@ -121,25 +121,12 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        try {
-            if (row.getArity() == 2) {
-                Object obj = row.getField(0);
-                if (obj != null && obj instanceof Map) {
-                    emitWithMap((Map<String, Object>) obj, row.getField(1));
-                }
-            } else {
-                emitWithRow(row);
-            }
-        } catch (Throwable e) {
-            logger.error("{}", e);
-            throw new WriteRecordException(e.getMessage(), e);
-        }
     }
 
 
     @Override
     public FormatState getFormatState() {
-        if (!restoreConfig.isRestore()){
+        if (!restoreConfig.isRestore()) {
             LOG.info("return null for formatState");
             return null;
         }
@@ -172,7 +159,18 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     public void writeRecord(Row row) throws IOException {
-        writeSingleRecord(row);
+        try {
+            if (row.getArity() == 2) {
+                Object obj = row.getField(0);
+                if (obj != null && obj instanceof Map) {
+                    emitWithMap((Map<String, Object>) obj, row.getField(1));
+                }
+            } else {
+                emitWithRow(row);
+            }
+        } catch (Throwable e) {
+            logger.error("{}", e);
+        }
     }
 
     @Override

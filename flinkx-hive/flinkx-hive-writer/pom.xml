@@ -53,7 +53,7 @@ under the License.
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>${version}</version>
+            <version>1.6</version>
         </dependency>
 
     </dependencies>
