@@ -281,11 +281,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
-                numWriteCounter.add(rowsOfCurrentTransaction);
+                snapshotWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
+                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 LOG.info("format state:{}", formatState.getState());
 
                 return formatState;
@@ -419,34 +419,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        if(restoreConfig.isRestore()){
-            numWriteCounter.add(rowsOfCurrentTransaction);
-        }
-
         DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
-
-//        //FIXME TEST
-//        //oracle
-//        if (EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
-//            String oracleTimeoutPollingThreadName = "OracleTimeoutPollingThread";
-//            Thread thread = getThreadByName(oracleTimeoutPollingThreadName);
-//            if(thread != null){
-//                thread.interrupt();
-//                LOG.warn("----close curr oracle polling thread: " + oracleTimeoutPollingThreadName);
-//            }
-//        }
     }
-
-//    public Thread getThreadByName(String name){
-//        for(Thread t : Thread.getAllStackTraces().keySet()){
-//            if(t.getName().equals(name)){
-//                return t;
-//            }
-//        }
-//
-//        return null;
-//    }
 
     @Override
     protected boolean needWaitBeforeWriteRecords() {
