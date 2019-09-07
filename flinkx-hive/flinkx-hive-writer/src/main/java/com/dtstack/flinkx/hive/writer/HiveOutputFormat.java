@@ -53,7 +53,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     /**
      * hdfs高可用配置
      */
-    protected transient Map<String, String> hadoopConfig;
+    protected Map<String, String> hadoopConfig;
 
     protected String fileType;
 
@@ -92,14 +92,15 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected String tableBasePath;
     protected boolean autoCreateTable;
 
+    private transient HiveUtil hiveUtil;
+    private transient TimePartitionFormat partitionFormat;
+
     private org.apache.flink.configuration.Configuration parameters;
     private int taskNumber;
     private int numTasks;
 
-    private transient HiveUtil hiveUtil;
-    private transient TimePartitionFormat partitionFormat;
-    private transient Map<String, TableInfo> tableCache = new HashMap<>();
-    private transient Map<String, HdfsOutputFormat> outputFormats = new HashMap<String, HdfsOutputFormat>();
+    private Map<String, TableInfo> tableCache;
+    private Map<String, HdfsOutputFormat> outputFormats;
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
@@ -108,6 +109,8 @@ public class HiveOutputFormat extends RichOutputFormat {
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
+        tableCache = new HashMap<String, TableInfo>();
+        outputFormats = new HashMap<String, HdfsOutputFormat>();
     }
 
     @Override
@@ -185,7 +188,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
-        Row rowData = new Row(event.size() + 1);
+        Row rowData = new Row(columns.size() + 1);
         for (int i = 0; i < columns.size(); i++) {
             rowData.setField(i, event.get(columns.get(i)));
         }

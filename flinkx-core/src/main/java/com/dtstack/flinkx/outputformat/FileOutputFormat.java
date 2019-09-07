@@ -240,6 +240,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         //任务正常结束时最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
         if(isTaskEndsNormally()){
+            flushData();
             moveTemporaryDataBlockFileToDirectory();
         }
     }
@@ -313,16 +314,14 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     public void flushData() throws IOException{
         synchronized (this){
-            if (restoreConfig.isRestore()) {
-                if (rowsOfCurrentBlock != 0){
-                    flushDataInternal();
+            if (rowsOfCurrentBlock != 0) {
+                flushDataInternal();
+                if (restoreConfig.isRestore()) {
                     moveTemporaryDataBlockFileToDirectory();
                     sumRowsOfBlock += rowsOfCurrentBlock;
                     LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
-                    rowsOfCurrentBlock = 0;
                 }
-            } else {
-                flushDataInternal();
+                rowsOfCurrentBlock = 0;
             }
         }
     }

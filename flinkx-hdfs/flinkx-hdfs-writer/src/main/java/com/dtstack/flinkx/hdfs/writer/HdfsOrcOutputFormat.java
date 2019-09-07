@@ -154,10 +154,10 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
             }
 
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
+            rowsOfCurrentBlock++;
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
-                rowsOfCurrentBlock++;
             }
         } catch(Exception e) {
             if(e instanceof WriteRecordException){
@@ -273,8 +273,6 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void closeSource() throws IOException {
-        super.closeSource();
-
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);

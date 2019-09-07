@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 
 
 public class BinlogInputFormat extends RichInputFormat {
@@ -106,7 +107,12 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("binlog openInternal start...");
+        if (inputSplit.getSplitNumber() != 0) {
+            LOG.info("binlog openInternal split number:{} abort...", inputSplit.getSplitNumber());
+            return;
+        }
+
+        LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
 
         controller = new MysqlEventParser();
         controller.setConnectionCharset(Charset.forName("UTF-8"));
@@ -144,7 +150,13 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return binlogEventSink.takeEvent();
+        if (binlogEventSink != null) {
+            return binlogEventSink.takeEvent();
+        }
+        LOG.warn("binlog park start");
+        LockSupport.park(this);
+        LOG.warn("binlog park end...");
+        return Row.of();
     }
 
     @Override
@@ -201,8 +213,11 @@ public class BinlogInputFormat extends RichInputFormat {
     }
 
     private EntryPosition findStartPosition() {
-        if (start != null && start.size() != 0) {
-            EntryPosition startPosition = new EntryPosition();
+        EntryPosition startPosition = null;
+        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
+            startPosition = (EntryPosition) formatState.getState();
+        } else if (start != null && start.size() != 0) {
+            startPosition = new EntryPosition();
             String journalName = (String) start.get("journalName");
             if (StringUtils.isNotEmpty(journalName)) {
                 if (new BinlogJournalValidator(host, port, username, password).check(journalName)) {
@@ -213,21 +228,18 @@ public class BinlogInputFormat extends RichInputFormat {
             }
             startPosition.setTimestamp((Long) start.get("timestamp"));
             startPosition.setPosition((Long) start.get("position"));
-            return startPosition;
         }
 
-        EntryPosition startPosition = null;
-        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
-            startPosition = (EntryPosition) formatState.getState();
-        }
         return startPosition;
     }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        InputSplit[] split = new InputSplit[1];
-        split[0] = new GenericInputSplit(0, 1);
-        return split;
+        InputSplit[] splits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            splits[i] = new GenericInputSplit(i, minNumSplits);
+        }
+        return splits;
     }
 
     @Override
