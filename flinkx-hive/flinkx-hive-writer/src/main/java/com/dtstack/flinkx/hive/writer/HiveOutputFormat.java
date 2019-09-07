@@ -28,7 +28,6 @@ import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -46,8 +45,6 @@ import java.util.Map;
  * @author toutian
  */
 public class HiveOutputFormat extends RichOutputFormat {
-
-    private static final long serialVersionUID = -6012196822223887479L;
 
     private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
