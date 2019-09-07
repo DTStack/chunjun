@@ -28,7 +28,6 @@ import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -46,8 +45,6 @@ import java.util.Map;
  * @author toutian
  */
 public class HiveOutputFormat extends RichOutputFormat {
-
-    private static final long serialVersionUID = -6012196822223887479L;
 
     private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
@@ -102,8 +99,8 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int taskNumber;
     private int numTasks;
 
-    private Map<String, TableInfo> tableCache = new HashMap<>();
-    private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
+    private Map<String, TableInfo> tableCache;
+    private Map<String, HdfsOutputFormat> outputFormats;
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
@@ -112,6 +109,8 @@ public class HiveOutputFormat extends RichOutputFormat {
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         hiveUtil = new HiveUtil(jdbcUrl, username, password, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
+        tableCache = new HashMap<String, TableInfo>();
+        outputFormats = new HashMap<String, HdfsOutputFormat>();
     }
 
     @Override
@@ -189,7 +188,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
-        Row rowData = new Row(event.size() + 1);
+        Row rowData = new Row(columns.size() + 1);
         for (int i = 0; i < columns.size(); i++) {
             rowData.setField(i, event.get(columns.get(i)));
         }

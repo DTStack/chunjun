@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.config;
 
+import com.google.gson.internal.LinkedTreeMap;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -67,7 +69,14 @@ public abstract class AbstractConfig implements Serializable {
     }
 
     public Object getVal(String key) {
-        return internalMap.get(key);
+        Object obj = internalMap.get(key);
+        if (obj instanceof LinkedTreeMap) {
+            LinkedTreeMap treeMap = (LinkedTreeMap) obj;
+            Map<String, Object> newMap = new HashMap<>(treeMap.size());
+            newMap.putAll(treeMap);
+            return newMap;
+        }
+        return obj;
     }
 
     public Object getVal(String key, Object defaultValue) {

@@ -202,10 +202,10 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             bytes = sb.toString().getBytes(this.charsetName);
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
+            rowsOfCurrentBlock++;
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
-                rowsOfCurrentBlock++;
             }
 
             if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {
