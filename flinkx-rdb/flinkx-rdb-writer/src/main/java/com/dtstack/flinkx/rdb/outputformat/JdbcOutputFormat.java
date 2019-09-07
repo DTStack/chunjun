@@ -94,7 +94,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private boolean readyCheckpoint;
 
-    private long rowsOfCurrentTransaction;
+    protected long rowsOfCurrentTransaction;
 
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
@@ -248,7 +248,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
 
             preparedStatement.executeBatch();
-            rowsOfCurrentTransaction += rows.size();
+
+            if(restoreConfig.isRestore()){
+                rowsOfCurrentTransaction += rows.size();
+            }
         } catch (Exception e){
             if (restoreConfig.isRestore()){
                 LOG.warn("writeMultipleRecordsInternal:Start rollback");
@@ -278,11 +281,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
-                numWriteCounter.add(rowsOfCurrentTransaction);
+                snapshotWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
+                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 LOG.info("format state:{}", formatState.getState());
 
                 return formatState;
@@ -415,8 +418,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (Exception e){
             LOG.error("Get task status error:{}", e.getMessage());
         }
-
-        numWriteCounter.add(rowsOfCurrentTransaction);
 
         DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;

@@ -29,6 +29,7 @@ import java.util.Map;
 public class RestoreConfig extends AbstractConfig {
 
     private static final String KEY_IS_RESTORE = "isRestore";
+    private static final String KEY_IS_STREAM = "isStream";
     private static final String KEY_RESTORE_COLUMN_NAME = "restoreColumnName";
     private static final String KEY_RESTORE_COLUMN_TYPE = "restoreColumnType";
     private static final String KEY_RESTORE_COLUMN_INDEX = "restoreColumnIndex";
@@ -44,14 +45,16 @@ public class RestoreConfig extends AbstractConfig {
         return new RestoreConfig(map);
     }
 
-    public static RestoreConfig restoreTrue(){
-        Map<String, Object> map = new HashMap<>(1);
-        map.put(KEY_IS_RESTORE, true);
-        return new RestoreConfig(map);
+    public void configStream(){
+        setBooleanVal(KEY_IS_STREAM, true);
     }
 
     public boolean isRestore(){
         return getBooleanVal(KEY_IS_RESTORE, false);
+    }
+
+    public boolean isStream(){
+        return isRestore() && getBooleanVal(KEY_IS_STREAM, false);
     }
 
     public int getRestoreColumnIndex(){

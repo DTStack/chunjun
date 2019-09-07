@@ -50,4 +50,6 @@ public class FtpConfigKeys {
 
     public static final String KEY_TIMEOUT = "timeout";
 
+    public static final String KEY_MAX_FILE_SIZE = "maxFileSize";
+
 }

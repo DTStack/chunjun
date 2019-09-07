@@ -18,11 +18,11 @@
 
 package com.dtstack.flinkx.kafka11.writer;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka11.Formatter;
 import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -52,8 +52,6 @@ public class Kafka11OutputFormat extends RichOutputFormat {
 
     private String topic;
 
-    private String bootstrapServers;
-
     private Map<String, String> producerSettings;
 
     private transient KafkaProducer<String, String> producer;
@@ -69,10 +67,6 @@ public class Kafka11OutputFormat extends RichOutputFormat {
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
-        if (StringUtils.isBlank(bootstrapServers)) {
-            throw new RuntimeException("bootstrapServers can not be empty!");
-        }
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
         producer = new KafkaProducer<>(props);
     }
@@ -132,11 +126,11 @@ public class Kafka11OutputFormat extends RichOutputFormat {
         this.topic = topic;
     }
 
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
-    }
-
     public void setProducerSettings(Map<String, String> producerSettings) {
         this.producerSettings = producerSettings;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }

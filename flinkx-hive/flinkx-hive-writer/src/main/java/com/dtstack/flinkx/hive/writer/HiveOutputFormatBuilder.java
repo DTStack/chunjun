@@ -52,13 +52,6 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
     }
 
     /**
-     * 间隔 interval 时间对 outputFormat 进行一次 close，触发输出文件的合并
-     */
-    public void setInterval(long interval) {
-        this.format.interval = interval;
-    }
-
-    /**
      * 字节数量超过 bufferSize 时，outputFormat 进行一次 close，触发输出文件的合并
      */
     public void setBufferSize(long bufferSize) {

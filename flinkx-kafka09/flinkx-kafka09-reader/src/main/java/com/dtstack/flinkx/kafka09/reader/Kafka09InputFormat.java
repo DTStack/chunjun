@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.kafka09.reader;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -166,4 +167,7 @@ public class Kafka09InputFormat extends RichInputFormat {
         this.consumerSettings = consumerSettings;
     }
 
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
+    }
 }

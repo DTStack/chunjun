@@ -3,272 +3,72 @@
     "content": [
       {
         "reader": {
+          "name": "streamreader",
           "parameter": {
-            "path": "hdfs://ns1/hive_test/",
             "column": [
               {
-                "name": "bdczbrq",
-                "index": 0,
-                "type": "date",
-                "key": "bdczbrq"
+                "name": "id",
+                "type": "int"
               },
               {
-                "name": "bglx",
-                "index": 1,
-                "type": "string",
-                "key": "bglx"
+                "name": "name",
+                "type": "string"
+              },              {
+                "name": "name2",
+                "type": "string"
               },
               {
-                "name": "branch",
-                "index": 2,
-                "type": "string",
-                "key": "branch"
-              },
-              {
-                "name": "bwdate",
-                "index": 3,
-                "type": "string",
-                "key": "bwdate"
-              },
-              {
-                "name": "bzrl",
-                "index": 4,
-                "type": "decimal(16,2)",
-                "key": "bzrl"
-              },
-              {
-                "name": "changeby",
-                "index": 5,
-                "type": "string",
-                "key": "changeby"
-              },
-              {
-                "name": "changedate",
-                "index": 6,
-                "type": "string",
-                "key": "changedate"
-              },
-              {
-                "name": "changenum",
-                "index": 7,
-                "type": "string",
-                "key": "changenum"
-              },
-              {
-                "name": "createby",
-                "index": 8,
-                "type": "string",
-                "key": "createby"
-              },
-              {
-                "name": "createdate",
-                "index": 9,
-                "type": "string",
-                "key": "createdate"
-              },
-              {
-                "name": "czbrq",
-                "index": 10,
-                "type": "string",
-                "key": "czbrq"
-              },
-              {
-                "name": "description",
-                "index": 11,
-                "type": "string",
-                "key": "description"
-              },
-              {
-                "name": "fdsj",
-                "index": 12,
-                "type": "string",
-                "key": "fdsj"
-              },
-              {
-                "name": "hasld",
-                "index": 13,
-                "type": "int",
-                "key": "hasld"
-              },
-              {
-                "name": "isrunning",
-                "index": 14,
-                "type": "string",
-                "key": "isrunning"
-              },
-              {
-                "name": "jccydl",
-                "index": 15,
-                "type": "decimal(16,2)",
-                "key": "jccydl"
-              },
-              {
-                "name": "jxts",
-                "index": 16,
-                "type": "string",
-                "key": "jxts"
-              },
-              {
-                "name": "length",
-                "index": 17,
-                "type": "decimal(10,2)",
-                "key": "length"
-              },
-              {
-                "name": "mainmodels",
-                "index": 18,
-                "type": "string",
-                "key": "mainmodels"
-              },
-              {
-                "name": "management",
-                "index": 19,
-                "type": "string",
-                "key": "management"
-              },
-              {
-                "name": "recordnum",
-                "index": 20,
-                "type": "string",
-                "key": "recordnum"
-              },
-              {
-                "name": "operationmode",
-                "index": 21,
-                "type": "string",
-                "key": "operationmode"
-              },
-              {
-                "name": "orgid",
-                "index": 22,
-                "type": "string",
-                "key": "orgid"
-              },
-              {
-                "name": "pxh",
-                "index": 23,
-                "type": "int",
-                "key": "pxh"
-              },
-              {
-                "name": "qs",
-                "index": 24,
-                "type": "string",
-                "key": "qs"
-              },
-              {
-                "name": "rowstamp",
-                "index": 25,
-                "type": "string",
-                "key": "rowstamp"
-              },
-              {
-                "name": "sfc240",
-                "index": 26,
-                "type": "int",
-                "key": "sfc240"
-              },
-              {
-                "name": "siteid",
-                "index": 27,
-                "type": "string",
-                "key": "siteid"
-              },
-              {
-                "name": "status",
-                "index": 28,
-                "type": "string",
-                "key": "status"
-              },
-              {
-                "name": "tcrq",
-                "index": 29,
-                "type": "string",
-                "key": "tcrq"
-              },
-              {
-                "name": "udbainfoid",
-                "index": 30,
-                "type": "bigint",
-                "key": "udbainfoid"
-              },
-              {
-                "name": "udbainfonum",
-                "index": 31,
-                "type": "string",
-                "key": "udbainfonum"
-              },
-              {
-                "name": "udbelong",
-                "index": 32,
-                "type": "string",
-                "key": "udbelong"
-              },
-              {
-                "name": "voltage",
-                "index": 33,
-                "type": "string",
-                "key": "voltage"
-              },
-              {
-                "name": "xmjx",
-                "index": 34,
-                "type": "string",
-                "key": "xmjx"
-              },
-              {
-                "name": "xmmc",
-                "index": 35,
-                "type": "string",
-                "key": "xmmc"
-              },
-              {
-                "name": "xmqy",
-                "index": 36,
-                "type": "string",
-                "key": "xmqy"
-              },
-              {
-                "name": "xmrl",
-                "index": 37,
-                "type": "string",
-                "key": "xmrl"
+                "name": "name3",
+                "type": "string"
               }
             ],
-            "defaultFS": "hdfs://ns1",
-            "hadoopConfig": {
-              "dfs.ha.namenodes.ns1": "nn1,nn2",
-              "dfs.namenode.rpc-address.ns1.nn2": "node002:9000",
-              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-              "dfs.namenode.rpc-address.ns1.nn1": "node001:9000",
-              "dfs.nameservices": "ns1"
-            },
-            "fieldDelimiter": "\u0001",
-            "encoding": "utf-8",
-            "fileType": "orc"
-          },
-          "name": "hdfsreader"
+            "sliceRecordCount": [
+              "0"
+            ]
+          }
         },
         "writer": {
+          "name": "ftpwriter",
           "parameter": {
-          },
-          "name": "streamwriter"
+            "path": "/root/flinkx",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },              {
+                "name": "name2",
+                "type": "string"
+              },
+              {
+                "name": "name3",
+                "type": "string"
+              }
+            ],
+            "host": "172.16.10.79",
+            "port": 22,
+            "protocol": "sftp",
+            "username": "root",
+            "password": "abc123",
+            "fieldDelimiter": "\u0001",
+            "encoding": "utf-8",
+            "fileName": "",
+            "writeMode": "append",
+            "maxFileSize": "1048576"
+          }
         }
       }
     ],
     "setting": {
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
+      "speed": {
+        "channel": 1,
+        "bytes": 0
       },
       "errorLimit": {
         "record": 100
-      },
-      "speed": {
-        "bytes": 20971520,
-        "channel": 6
       }
     }
   }

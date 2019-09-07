@@ -19,17 +19,10 @@ package com.dtstack.flinkx.binlog.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.reader.DataReader;
-import org.apache.flink.api.common.io.InputFormat;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
-import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
 
 import java.util.List;
 import java.util.Map;
@@ -99,18 +92,9 @@ public class BinlogReader extends DataReader {
         format.setBufferSize(bufferSize);
         format.setPavingData(pavingData);
         format.setTable(table);
-
-        format.setRestoreConfig(RestoreConfig.restoreTrue());
+        format.setRestoreConfig(restoreConfig);
 
         return createInput(format, "binlogreader");
     }
 
-    @Override
-    protected DataStream<Row> createInput(InputFormat inputFormat, String sourceName) {
-        Preconditions.checkNotNull(sourceName);
-        Preconditions.checkNotNull(inputFormat);
-        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        InputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
-        return env.addSource(function, sourceName, typeInfo);
-    }
 }

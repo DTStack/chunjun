@@ -21,7 +21,7 @@ package com.dtstack.flinkx.hive;
 /**
  * @author toutian
  */
-public class HdfsConfigKeys {
+public class HiveConfigKeys {
 
     public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
 
@@ -68,7 +68,7 @@ public class HdfsConfigKeys {
 
 //    public static final String KEY_FILE_NAME = "fileName";
 
-    public static final String KEY_ENCODING = "charsetName";
+    public static final String KEY_CHARSET_NAME = "charsetName";
 
 //    public static final String KEY_ROW_GROUP_SIZE = "rowGroupSize";
 

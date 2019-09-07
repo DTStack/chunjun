@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.hive.writer;
 
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
@@ -28,10 +27,11 @@ import com.dtstack.flinkx.hive.util.DBUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.google.common.collect.Maps;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,6 @@ import java.util.Map;
  * @author toutian
  */
 public class HiveOutputFormat extends RichOutputFormat {
-
-    private static final long serialVersionUID = -6012196822223887479L;
 
     private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
@@ -75,7 +73,7 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     protected String charsetName = "UTF-8";
 
-//    protected Configuration conf;
+    protected Configuration conf;
 
     protected int rowGroupSize;
 
@@ -87,7 +85,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected Map<String, String> distributeTableMapping;
     protected String partition;
     protected String partitionType;
-    protected long interval;
     protected long bufferSize;
     protected String jdbcUrl;
     protected String username;
@@ -102,9 +99,8 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int taskNumber;
     private int numTasks;
 
-    private Map<String, String> lastPartitionValue;
-    private Map<String, TableInfo> tableCache = new HashMap<>();
-    private Map<String, HdfsOutputFormat> outputFormats = Maps.newConcurrentMap();
+    private Map<String, TableInfo> tableCache;
+    private Map<String, HdfsOutputFormat> outputFormats;
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
@@ -120,7 +116,8 @@ public class HiveOutputFormat extends RichOutputFormat {
 
         hiveUtil = new HiveUtil(connectionInfo, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
-        lastPartitionValue = new HashMap<>(tableInfos.size());
+        tableCache = new HashMap<String, TableInfo>();
+        outputFormats = new HashMap<String, HdfsOutputFormat>();
     }
 
     @Override
@@ -146,6 +143,36 @@ public class HiveOutputFormat extends RichOutputFormat {
         }
     }
 
+
+    @Override
+    public FormatState getFormatState() {
+        if (!restoreConfig.isRestore()){
+            LOG.info("return null for formatState");
+            return null;
+        }
+
+        flushOutputFormat();
+
+        super.getFormatState();
+        return formatState;
+    }
+
+    private void flushOutputFormat() {
+        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        while (entryIterator.hasNext()) {
+            try {
+                Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+                entry.getValue().getFormatState();
+                if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
+                    entry.getValue().close();
+                    entryIterator.remove();
+                }
+            } catch (Exception e) {
+                logger.error("", e);
+            }
+        }
+    }
+
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
     }
@@ -168,7 +195,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
-        Row rowData = new Row(event.size() + 1);
+        Row rowData = new Row(columns.size() + 1);
         for (int i = 0; i < columns.size(); i++) {
             rowData.setField(i, event.get(columns.get(i)));
         }
@@ -189,11 +216,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
-            String lastHiveTablePath = lastPartitionValue.put(tablePath, hiveTablePath);
-            if (lastHiveTablePath != null && outputFormats.get(lastHiveTablePath) != null) {
-                outputFormats.remove(lastHiveTablePath).close();
-            }
-
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
@@ -259,8 +281,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         builder.setDelimiter(delimiter);
         builder.setRowGroupSize(rowGroupSize);
         builder.setMaxFileSize(maxFileSize);
-        builder.setFlushBlockInterval(interval);
-        builder.setRestoreConfig(RestoreConfig.defaultConfig());
+        builder.setRestoreConfig(restoreConfig);
         builder.setInitAccumulatorAndDirty(false);
 
         return builder;

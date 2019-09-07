@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.test;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -36,6 +37,13 @@ import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
+import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
+import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
+import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
+import com.dtstack.flinkx.kafka10.writer.Kafka10Writer;
+import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
+import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -159,6 +167,10 @@ public class LocalTest {
             case PluginNameConstrant.HDFS_READER : reader = new HdfsReader(config, env); break;
             case PluginNameConstrant.MONGODB_READER : reader = new MongodbReader(config, env); break;
             case PluginNameConstrant.ODPS_READER : reader = new OdpsReader(config, env); break;
+            case PluginNameConstrant.BINLOG_READER : reader = new BinlogReader(config, env); break;
+            case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
+            case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
+            case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -184,6 +196,10 @@ public class LocalTest {
             case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
             case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
+            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
+            case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
+            case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
+            case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
