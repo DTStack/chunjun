@@ -235,10 +235,10 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             }
 
             writer.write(group);
+            rowsOfCurrentBlock++;
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
-                rowsOfCurrentBlock++;
             }
         } catch (Exception e){
             if(e instanceof WriteRecordException){
@@ -279,8 +279,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
     @Override
     protected void closeSource() throws IOException {
-        super.closeSource();
-
         if (writer != null){
             writer.close();
         }
