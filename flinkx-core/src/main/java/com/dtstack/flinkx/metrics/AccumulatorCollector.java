@@ -206,7 +206,7 @@ public class AccumulatorCollector {
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get(KEY_ACCUMULATORS);
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
-                    if(name != null) {
+                    if(name != null && !"tableCol".equalsIgnoreCase(name)) {
                         long value = Double.valueOf((String) accumulator.get(KEY_VALUE)).longValue();
                         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
                         if(valueAccumulator != null){
