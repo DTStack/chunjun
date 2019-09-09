@@ -20,6 +20,7 @@ package com.dtstack.flinkx.sqlserver;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -88,26 +89,21 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
             return getInsertStatement(column, table);
         }
 
-        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeValues(column) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ");";
-    }
-
-    @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getInsertStatement(column, table);
+        List<String> updateColumns = getUpdateColumns(column, updateKey);
+        if(CollectionUtils.isEmpty(updateColumns)){
+            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(" + makeValues(column) + ") T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ");";
+        } else {
+            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+                    + "(" + makeValues(column) + ") T2 ON ("
+                    + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
+                    + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                    + "INSERT (" + quoteColumns(column) + ") VALUES ("
+                    + quoteColumns(column, "T2") + ");";
         }
-
-        return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeReplaceValues(column,fullColumn) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getSqlServerUpdateSql(fullColumn, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ");";
     }
 
     @Override
