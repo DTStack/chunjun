@@ -25,6 +25,7 @@ import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -226,8 +227,9 @@ public class BinlogInputFormat extends RichInputFormat {
                     throw new IllegalArgumentException("Can't find journalName: " + journalName);
                 }
             }
-            startPosition.setTimestamp((Long) start.get("timestamp"));
-            startPosition.setPosition((Long) start.get("position"));
+
+            startPosition.setTimestamp(MapUtils.getLong(start, "timestamp"));
+            startPosition.setPosition(MapUtils.getLong(start, "position"));
         }
 
         return startPosition;
