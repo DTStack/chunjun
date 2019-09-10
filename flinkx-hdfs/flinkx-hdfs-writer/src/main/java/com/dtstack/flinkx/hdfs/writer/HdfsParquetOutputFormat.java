@@ -221,7 +221,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                         hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                         if(hiveDecimal == null){
                             throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
-                                    decimalInfo.getPrecision(), decimalInfo.getScale()), null, i, row);
+                                    decimalInfo.getPrecision(), decimalInfo.getScale()), new IllegalArgumentException(), i, row);
                         }
 
                         group.add(colName,decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
