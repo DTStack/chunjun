@@ -30,7 +30,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
@@ -88,28 +87,6 @@ public class FtpOutputFormat extends FileOutputFormat {
     }
 
     @Override
-    protected void actionBeforeWriteData(){
-        if(taskNumber > 0){
-            return;
-        }
-
-        checkOutputDir();
-
-        if (formatState == null || formatState.getState() == null) {
-            try {
-                LOG.info("Delete [.data] dir before write records");
-                clearTemporaryDataFiles();
-            } catch (Exception e) {
-                LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
-            }
-
-            ftpHandler.mkDirRecursive(tmpPath);
-        } else {
-            alignHistoryFiles();
-        }
-    }
-
-    @Override
     protected void checkOutputDir() {
         if(!ftpHandler.isDirExist(outputFilePath)){
             if(!makeDir){
@@ -122,42 +99,6 @@ public class FtpOutputFormat extends FileOutputFormat {
                 ftpHandler.deleteAllFilesInDir(outputFilePath, null);
                 ftpHandler.mkDirRecursive(outputFilePath);
             }
-        }
-    }
-
-    @Override
-    protected void alignHistoryFiles() {
-        try{
-            List<String> fileNames = new ArrayList<>();
-
-            List<String> files = ftpHandler.getFiles(tmpPath);
-            for (String file : files) {
-                String fileName = file.substring(file.lastIndexOf(SP) + 1);
-                if(!fileName.startsWith(".")){
-                    fileNames.add(file);
-                }
-            }
-
-            List<String> deleteFiles = new ArrayList<>();
-            for (String fileName : fileNames) {
-                String targetName = fileName.substring(fileName.indexOf(".")+1);
-                int num = 0;
-                for (String name : fileNames) {
-                    if(targetName.equals(name.substring(name.indexOf(".")+1))){
-                        num++;
-                    }
-                }
-
-                if(num < numTasks){
-                    deleteFiles.add(fileName);
-                }
-            }
-
-            for (String fileName : deleteFiles) {
-                ftpHandler.deleteAllFilesInDir(tmpPath + SP + fileName, null);
-            }
-        } catch (Exception e){
-            throw new RuntimeException("align files error:", e);
         }
     }
 
@@ -181,6 +122,11 @@ public class FtpOutputFormat extends FileOutputFormat {
 
         try{
             String src = path + SP + tmpPath + SP + currentBlockFileName;
+            if (!ftpHandler.isFileExist(src)) {
+                LOG.warn("block file {} not exists", src);
+                return;
+            }
+
             currentBlockFileName = currentBlockFileName.replaceFirst("\\.", StringUtils.EMPTY);
             String dist = path + SP + tmpPath + SP + currentBlockFileName;
             ftpHandler.rename(src, dist);
@@ -222,7 +168,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             String state = getTaskState();
             if(!RUNNING_STATE.equals(state)){
                 if (!restoreConfig.isRestore()){
-                    ftpHandler.deleteAllFilesInDir(path + SP + tmpPath, null);
+                    ftpHandler.deleteAllFilesInDir(tmpPath, null);
                 }
 
                 ftpHandler.logoutFtpServer();
@@ -233,6 +179,26 @@ public class FtpOutputFormat extends FileOutputFormat {
         }
 
         return true;
+    }
+
+    @Override
+    protected void createActionFinishedTag() {
+        ftpHandler.mkDirRecursive(tmpPath + SP + ACTION_FINISHED);
+    }
+
+    @Override
+    protected void waitForActionFinishedBeforeWrite() {
+        boolean readyWrite = ftpHandler.isDirExist(tmpPath + SP + ACTION_FINISHED);
+        int n = 0;
+        while (!readyWrite){
+            if(n > SECOND_WAIT){
+                throw new RuntimeException("Wait action finished before write timeout");
+            }
+
+            SysUtil.sleep(1000);
+            readyWrite = ftpHandler.isDirExist(tmpPath + SP + ACTION_FINISHED);
+            n++;
+        }
     }
 
     @Override
