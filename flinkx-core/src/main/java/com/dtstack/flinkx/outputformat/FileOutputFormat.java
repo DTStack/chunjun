@@ -54,6 +54,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected static final String FINISHED_SUBDIR = ".finished";
 
+    protected static final String ACTION_FINISHED = ".action_finished";
+
+    protected static final int SECOND_WAIT = 30;
+
     protected static final String SP = "/";
 
     protected String charsetName = "UTF-8";
@@ -120,6 +124,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected void actionBeforeWriteData(){
         if(taskNumber > 0){
+            waitForActionFinishedBeforeWrite();
             return;
         }
 
@@ -130,6 +135,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             clearTemporaryDataFiles();
         } catch (Exception e) {
             LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+        } finally {
+            createActionFinishedTag();
         }
     }
 
@@ -200,13 +207,21 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             return null;
         }
 
+        if (restoreConfig.isStream() || readyCheckpoint){
         try{
-            if (restoreConfig.isStream() || readyCheckpoint){
                 flushData();
+            } catch (Exception e){
+                throw new RuntimeException("Flush data error when create snapshot:", e);
+            }
 
+            try{
                 if (sumRowsOfBlock != 0) {
                     moveTemporaryDataFileToDirectory();
                 }
+            } catch (Exception e){
+                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
+            }
+
                 snapshotWriteCounter.add(sumRowsOfBlock);
                 formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 if (!restoreConfig.isStream()){
@@ -218,16 +233,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             }
 
             return null;
-        }catch (Exception e){
-            try{
-                closeSource();
-                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
-            }catch (Exception e1){
-                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
-            }
-
-            throw new RuntimeException("Get next block error:", e);
-        }
     }
 
     @Override
@@ -334,6 +339,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         return lastWriteTime;
     }
 
+    protected abstract void createActionFinishedTag();
+
+    protected abstract void waitForActionFinishedBeforeWrite();
+
     protected abstract void flushDataInternal() throws IOException;
 
     protected abstract void writeSingleRecordToFile(Row row) throws WriteRecordException;
@@ -353,8 +362,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     protected abstract void openSource() throws IOException;
 
     protected abstract void closeSource() throws IOException;
-
-    protected abstract void alignHistoryFiles();
 
     protected abstract void clearTemporaryDataFiles() throws IOException;
 

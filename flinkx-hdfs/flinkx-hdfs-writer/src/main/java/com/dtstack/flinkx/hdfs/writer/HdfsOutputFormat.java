@@ -22,7 +22,6 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
-import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -93,6 +92,36 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     }
 
     @Override
+    protected void createActionFinishedTag() {
+        try {
+            fs.create(new Path(tmpPath + SP + ACTION_FINISHED));
+            LOG.info("create action finished tag:{}", tmpPath + SP + ACTION_FINISHED);
+        } catch (Exception e){
+            throw new RuntimeException("create action finished tag error:", e);
+        }
+    }
+
+    @Override
+    protected void waitForActionFinishedBeforeWrite() {
+        try {
+            Path path = new Path(tmpPath + SP + ACTION_FINISHED);
+            boolean readyWrite = fs.exists(path);
+            int n = 0;
+            while (!readyWrite){
+                if(n > SECOND_WAIT){
+                    throw new RuntimeException("Wait action finished before write timeout");
+                }
+
+                SysUtil.sleep(1000);
+                readyWrite = fs.exists(path);
+                n++;
+            }
+        } catch (Exception e){
+
+        }
+    }
+
+    @Override
     protected void openSource() throws IOException{
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         fs = FileSystem.get(conf);
@@ -123,47 +152,14 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     }
 
     @Override
-    protected void alignHistoryFiles(){
-        try{
-            PathFilter pathFilter = path -> !path.getName().startsWith(".");
-            FileStatus[] files = fs.listStatus(new Path(tmpPath), pathFilter);
-            if(files == null || files.length == 0){
-                return;
-            }
-
-            List<String> fileNames = Lists.newArrayList();
-            for (FileStatus file : files) {
-                fileNames.add(file.getPath().getName());
-            }
-
-            List<String> deleteFiles = Lists.newArrayList();
-            for (String fileName : fileNames) {
-                String targetName = fileName.substring(fileName.indexOf(".")+1);
-                int num = 0;
-                for (String name : fileNames) {
-                    if(targetName.equals(name.substring(name.indexOf(".")+1))){
-                        num++;
-                    }
-                }
-
-                if(num < numTasks){
-                    deleteFiles.add(fileName);
-                }
-            }
-
-            for (String fileName : deleteFiles) {
-                fs.delete(new Path(tmpPath + SP + fileName), true);
-            }
-        } catch (Exception e){
-            throw new RuntimeException("align files error:", e);
-        }
-    }
-
-    @Override
     protected void moveTemporaryDataBlockFileToDirectory(){
         try {
             if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
                 Path src = new Path(tmpPath + SP + currentBlockFileName);
+                if (!fs.exists(src)) {
+                    LOG.warn("block file {} not exists", currentBlockFileName);
+                    return;
+                }
 
                 String dataFileName = currentBlockFileName.replaceFirst("\\.","");
                 Path dist = new Path(tmpPath + SP + dataFileName);
@@ -246,16 +242,9 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected void moveTemporaryDataFileToDirectory() throws IOException{
         PathFilter pathFilter = path -> path.getName().startsWith(String.valueOf(taskNumber));
         Path dir = new Path(outputFilePath);
-        List<FileStatus> dataFiles = new ArrayList<>();
-        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+        Path tmpDir = new Path(tmpPath);
 
-        FileStatus[] historyTmpDataDir = fs.listStatus(tmpDir);
-        for (FileStatus fileStatus : historyTmpDataDir) {
-            if (fileStatus.isFile()){
-                dataFiles.addAll(Arrays.asList(fs.listStatus(fileStatus.getPath(), pathFilter)));
-            }
-        }
-
+        FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
         for(FileStatus dataFile : dataFiles) {
             fs.rename(dataFile.getPath(), dir);
             LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
