@@ -64,13 +64,14 @@ public class HbaseHelper {
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId, String plugin) {
         Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
-        for (String key : KEYS_KERBEROS_REQUIRED) {
-            if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
-                throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
-            }
-        }
 
         if(openKerberos(hbaseConfigMap)){
+            for (String key : KEYS_KERBEROS_REQUIRED) {
+                if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
+                    throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
+                }
+            }
+
             login(hbaseConfigMap, jobId, plugin);
         }
 

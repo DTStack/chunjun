@@ -43,15 +43,16 @@ public class HbaseHelperTest {
         hbaseConfig.put("hbase.security.authorization", "true");
         hbaseConfig.put("hbase.security.authentication", "kerberos");
         hbaseConfig.put("hbase.master.kerberos.principal", "hbase/cdh01@HADOOP.COM");
-        hbaseConfig.put("hbase.master.keytab.file", "D:\\cdh_cluster\\hbase.keytab");
+        hbaseConfig.put("hbase.master.keytab.file", "D:\\cdh_cluster\\cdh2\\hbase.keytab");
         hbaseConfig.put("hbase.regionserver.kerberos.principal", "hbase/cdh01@HADOOP.COM");
-        hbaseConfig.put("hbase.regionserver.keytab.file", "D:\\cdh_cluster\\hbase.keytab");
-        hbaseConfig.put("java.security.krb5.conf", "D:\\cdh_cluster\\krb5.conf");
+        hbaseConfig.put("hbase.regionserver.keytab.file", "D:\\cdh_cluster\\cdh2\\hbase.keytab");
+        hbaseConfig.put("java.security.krb5.conf", "D:\\cdh_cluster\\cdh2\\krb5.conf");
         hbaseConfig.put("useLocalFile", "true");
-        hbaseConfig.put("sftpConf", sftpConf);
-        hbaseConfig.put("remoteDir", "/home/sftp/keytab/jiangbo");
+//        hbaseConfig.put("sftpConf", sftpConf);
+//        hbaseConfig.put("remoteDir", "/home/sftp/keytab/jiangbo");
 
-        hbaseConfig.put("hbase.zookeeper.quorum", "cdh01:2181,cdh02:2181,cdh03:2181");
+//        hbaseConfig.put("hbase.zookeeper.quorum", "cdh01:2181,cdh02:2181,cdh03:2181");
+        hbaseConfig.put("hbase.zookeeper.quorum", "172.16.10.201:2181");
         hbaseConfig.put("hbase.rpc.timeout", "60000");
         hbaseConfig.put("ipc.socket.timeout", "20000");
         hbaseConfig.put("hbase.client.retries.number", "3");
@@ -59,14 +60,15 @@ public class HbaseHelperTest {
         hbaseConfig.put("zookeeper.recovery.retry", "3");
 
         Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig, "", "");
-        Table table = connection.getTable(TableName.valueOf("jiangbo"));
+        Table table = connection.getTable(TableName.valueOf("tb1"));
 
         ResultScanner rs = table.getScanner(new Scan());
         Result result = rs.next();
+        if(result != null){
+            System.out.println(result.getRow());
+        }
 
-        System.out.println(result.getRow());
-
-        HbaseHelper.getRegionLocator(connection, "jiangbo");
+        HbaseHelper.getRegionLocator(connection, "tb1");
 
         connection.close();
     }
