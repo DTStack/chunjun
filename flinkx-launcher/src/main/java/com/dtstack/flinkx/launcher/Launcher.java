@@ -20,18 +20,22 @@ package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
+import org.apache.flink.client.program.PackagedProgramUtils;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -103,25 +107,59 @@ public class Launcher {
             String[] localArgs = argList.toArray(new String[argList.size()]);
             com.dtstack.flinkx.Main.main(localArgs);
         } else {
-            ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
-            String monitor = clusterClient.getWebInterfaceURL();
-            argList.add("-monitor");
-            argList.add(monitor);
-
             String pluginRoot = launcherOptions.getPlugin();
             String content = launcherOptions.getJob();
             String coreJarName = getCoreJarFileName(pluginRoot);
             File jarFile = new File(pluginRoot + File.separator + coreJarName);
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
-            String[] remoteArgs = argList.toArray(new String[argList.size()]);
-            PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+            if(mode.equals(ClusterMode.yarn.name())){
+                ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
+                String monitor = clusterClient.getWebInterfaceURL();
+                argList.add("-monitor");
+                argList.add(monitor);
 
-            if (StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
-                program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getSavepoint()));
+                String[] remoteArgs = argList.toArray(new String[0]);
+                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+
+                if (StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
+                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getSavepoint()));
+                }
+
+                clusterClient.run(program, launcherOptions.getParallelism());
+                clusterClient.shutdown();
+            }else if(mode.equals(ClusterMode.yarnPer.name())){
+                String confProp = launcherOptions.getConfProp();
+                if (StringUtils.isBlank(confProp)){
+                    throw new IllegalArgumentException("per-job mode must have confProp!");
+                }
+
+                String libJar = launcherOptions.getFlinkLibJar();
+                if (StringUtils.isBlank(libJar)){
+                    throw new IllegalArgumentException("per-job mode must have flink lib path!");
+                }
+
+                argList.add("-monitor");
+                argList.add("application_default");
+
+                //jdk内在优化，使用空数组效率更高
+                String[] remoteArgs = argList.toArray(new String[0]);
+                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+                String flinkConfDir = launcherOptions.getFlinkconf();
+                Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
+                JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, launcherOptions.getParallelism());
+
+                File[] jars = new File(launcherOptions.getFlinkLibJar()).listFiles();
+                if(jars != null){
+                    for (File jar : jars) {
+                        URL url = jar.toURI().toURL();
+                        if(!url.toString().contains("flink-dist")){
+                            jobGraph.addJar(new Path(url.toString()));
+                        }
+                    }
+                }
+
+                PerJobSubmitter.submit(launcherOptions, jobGraph);
             }
-
-            clusterClient.run(program, launcherOptions.getParallelism());
-            clusterClient.shutdown();
         }
     }
 
