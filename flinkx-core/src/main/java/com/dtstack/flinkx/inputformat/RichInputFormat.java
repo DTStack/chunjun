@@ -152,7 +152,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             if(formatState == null){
                 formatState = new FormatState(indexOfSubtask, null);
             } else {
-                numReadCounter.add(formatState.getNumberRead());
+                numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
                 bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
                 durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
             }
