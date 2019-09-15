@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.test;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -100,9 +102,22 @@ public class LocalTest {
     public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
 
     public static void main(String[] args) throws Exception{
+        setLogLevel(Level.INFO.toString());
+
+        Properties confProperties = new Properties();
+        confProperties.put("flink.checkpoint.interval", "10000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///D:/flink_checkpoint/");
+
         String jobPath = TEST_RESOURCE_DIR + "gbase_template.json";
-        JobExecutionResult result = LocalTest.runJob(new File(jobPath), null, null);
+        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
+    }
+
+    private static void setLogLevel(String level){
+        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
+        //设置全局日志级别
+        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{

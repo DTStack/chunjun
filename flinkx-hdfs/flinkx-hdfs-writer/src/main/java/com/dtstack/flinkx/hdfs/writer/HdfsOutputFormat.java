@@ -95,8 +95,8 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void createActionFinishedTag() {
         try {
-            fs.create(new Path(tmpPath + SP + ACTION_FINISHED));
-            LOG.info("create action finished tag:{}", tmpPath + SP + ACTION_FINISHED);
+            fs.create(new Path(actionFinishedTag));
+            LOG.info("create action finished tag:{}", actionFinishedTag);
         } catch (Exception e){
             throw new RuntimeException("create action finished tag error:", e);
         }
@@ -105,7 +105,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void waitForActionFinishedBeforeWrite() {
         try {
-            Path path = new Path(tmpPath + SP + ACTION_FINISHED);
+            Path path = new Path(actionFinishedTag);
             boolean readyWrite = fs.exists(path);
             int n = 0;
             while (!readyWrite){

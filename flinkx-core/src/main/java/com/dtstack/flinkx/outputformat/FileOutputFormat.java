@@ -72,6 +72,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected String finishedPath;
 
+    protected String actionFinishedTag;
+
     /** 写入模式 */
     protected String writeMode;
 
@@ -117,6 +119,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         currentBlockFileNamePrefix = taskNumber + "." + jobId;
         tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
+        actionFinishedTag = tmpPath + SP + ACTION_FINISHED + "_" + jobId;
 
         LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
@@ -208,8 +211,9 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         if (restoreConfig.isStream() || readyCheckpoint){
-        try{
+            try{
                 flushData();
+                lastWriteSize = bytesWriteCounter.getLocalValue();
             } catch (Exception e){
                 throw new RuntimeException("Flush data error when create snapshot:", e);
             }
@@ -222,17 +226,19 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
             }
 
-                snapshotWriteCounter.add(sumRowsOfBlock);
-                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-                if (!restoreConfig.isStream()){
-                    formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                }
-
-                sumRowsOfBlock = 0;
-                return formatState;
+            snapshotWriteCounter.add(sumRowsOfBlock);
+            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+            if (!restoreConfig.isStream()){
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
 
-            return null;
+            sumRowsOfBlock = 0;
+
+            super.getFormatState();
+            return formatState;
+        }
+
+        return null;
     }
 
     @Override
@@ -324,7 +330,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public void flushData() throws IOException{
         synchronized (this){
             if (rowsOfCurrentBlock != 0) {
-                flushDataInternal();
+                    flushDataInternal();
                 if (restoreConfig.isRestore()) {
                     moveTemporaryDataBlockFileToDirectory();
                     sumRowsOfBlock += rowsOfCurrentBlock;
