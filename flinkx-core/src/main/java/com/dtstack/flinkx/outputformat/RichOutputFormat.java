@@ -273,7 +273,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
         durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
 
-        outputMetric = new BaseMetric(context, "writer", StringUtils.isEmpty(monitorUrl));
+        outputMetric = new BaseMetric(context);
         outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
         outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
         outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
