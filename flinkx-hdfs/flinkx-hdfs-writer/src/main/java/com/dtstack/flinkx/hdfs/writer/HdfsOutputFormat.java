@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
