@@ -20,17 +20,19 @@
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.util.SysUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.metrics.MetricGroup;
+import org.apache.flink.metrics.reporter.MetricReporter;
+import org.apache.flink.metrics.reporter.Scheduled;
+import org.apache.flink.runtime.metrics.MetricRegistryImpl;
+import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * @author jiangbo
@@ -40,37 +42,16 @@ public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private final static Long DEFAULT_PERIOD_MILLISECONDS = 10000L;
-
-    private Long delayPeriodMill;
-
     private MetricGroup flinkxOutput;
 
-    private String sourceName;
-
-    private long totalWaitMill = 0;
-
-    private long maxWaitMill;
+    private RuntimeContext runtimeContext;
 
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
-    public BaseMetric(RuntimeContext runtimeContext, String sourceName, boolean isLocal) {
-        this.sourceName = sourceName;
+    public BaseMetric(RuntimeContext runtimeContext) {
+        this.runtimeContext = runtimeContext;
 
-        maxWaitMill = TaskManagerOptions.TASK_CANCELLATION_INTERVAL.defaultValue();
         flinkxOutput = runtimeContext.getMetricGroup().addGroup(Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
-
-        if (isLocal){
-            delayPeriodMill = 0L;
-        } else {
-            if(sourceName.contains("writer")){
-                delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 2.5);
-            } else {
-                delayPeriodMill = (long)(DEFAULT_PERIOD_MILLISECONDS * 1.2);
-            }
-        }
-
-        LOG.info("delayPeriodMill:[{}]", delayPeriodMill);
     }
 
     public void addMetric(String metricName, LongCounter counter){
@@ -89,25 +70,25 @@ public class BaseMetric {
         return metricCounters;
     }
 
-    public void waitForReportMetrics(){
-        if(delayPeriodMill == 0){
-            return;
-        }
-
-        if(totalWaitMill + delayPeriodMill > maxWaitMill){
-            return;
-        }
-
+    public void waitForReportMetrics() {
         try {
-            Thread.sleep(delayPeriodMill);
-            LOG.info("Wait [{}] millisecond for [{}]", delayPeriodMill, sourceName);
+            MetricGroup mgObj = runtimeContext.getMetricGroup();
+            Class<AbstractMetricGroup> amgCls = (Class<AbstractMetricGroup>) mgObj.getClass().getSuperclass().getSuperclass();
+            Field registryField = amgCls.getDeclaredField("registry");
+            registryField.setAccessible(true);
+            MetricRegistryImpl registryImplObj = (MetricRegistryImpl) registryField.get(mgObj);
+            if (registryImplObj.getReporters().isEmpty()) {
+                return;
+            }
 
-            totalWaitMill += delayPeriodMill;
-            LOG.info("wait [{}] mill for source [{}]", totalWaitMill, sourceName);
-        } catch (InterruptedException e){
-            SysUtil.sleep(delayPeriodMill);
-            totalWaitMill += delayPeriodMill;
-            LOG.info("Task [{}] thread is interrupted,wait [{}] mill for source [{}]", sourceName, totalWaitMill, sourceName);
+            for (MetricReporter reporter : registryImplObj.getReporters()) {
+                if(reporter instanceof Scheduled){
+                    ((Scheduled) reporter).report();
+                    LOG.info("report metric");
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("{}", e);
         }
     }
 }
