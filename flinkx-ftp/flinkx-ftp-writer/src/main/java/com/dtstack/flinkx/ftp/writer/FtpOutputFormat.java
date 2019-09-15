@@ -183,12 +183,12 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     @Override
     protected void createActionFinishedTag() {
-        ftpHandler.mkDirRecursive(tmpPath + SP + ACTION_FINISHED);
+        ftpHandler.mkDirRecursive(actionFinishedTag);
     }
 
     @Override
     protected void waitForActionFinishedBeforeWrite() {
-        boolean readyWrite = ftpHandler.isDirExist(tmpPath + SP + ACTION_FINISHED);
+        boolean readyWrite = ftpHandler.isDirExist(actionFinishedTag);
         int n = 0;
         while (!readyWrite){
             if(n > SECOND_WAIT){

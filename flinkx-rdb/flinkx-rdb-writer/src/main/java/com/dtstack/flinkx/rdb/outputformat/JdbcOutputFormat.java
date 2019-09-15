@@ -290,6 +290,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 LOG.info("format state:{}", formatState.getState());
 
+                super.getFormatState();
                 return formatState;
             }
 
