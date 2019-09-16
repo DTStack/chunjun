@@ -209,7 +209,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             beforeWriteRecords();
             waitWhile("#2");
         }
-
     }
 
     private void initAccumulatorCollector(){
@@ -437,9 +436,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             try{
                 closeInternal();
                 if(needWaitAfterCloseInternal()) {
+                    afterCloseInternal();
                     waitWhile("#4");
                 }
-                afterCloseInternal();
 
                 if(outputMetric != null){
                     outputMetric.waitForReportMetrics();
