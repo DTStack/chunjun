@@ -3,22 +3,31 @@
     "content" : [ {
       "reader" : {
         "parameter" : {
-          "groupId" : "default",
-          "topic" : "kafka10_hdfs",
-          "consumerSettings" : {
-            "zookeeper.connect" : "172.16.8.107:2181/kafka",
-            "bootstrap.servers" : "172.16.8.107:9092",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "latest"
-          }
+          "schema" : "test",
+          "password" : "abc123",
+          "cat" : "insert,update,delete",
+          "jdbcUrl" : "jdbc:mysql://172.16.10.45:3306/test",
+          "host" : "172.16.10.45",
+          "start" : {
+          },
+          "table" : [ "myresult" ],
+          "pavingData" : true,
+          "username" : "dtstack"
         },
-        "name" : "kafka11reader",
-        "type" : 14
+        "name" : "binlogreader",
+        "type" : 1
       },
       "writer" : {
         "parameter" : {
-          "path" : "/tmp/kafka_hdfs",
-          "fileName" : "kafka_hdfs_fen",
+          "fileName" : "pt",
+          "writeMode" : "append",
+          "fieldDelimiter" : "\u0001",
+          "partitionType" : "HOUR",
+          "path" : "",
+          "analyticalRules" : "stream_${schema}_${table}_jiangbo",
+          "password" : "******",
+          "tablesColumn" : "{\"myresult\":[{\"type\":\"VARCHAR\",\"key\":\"before_pv\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_pv\"},{\"type\":\"VARCHAR\",\"key\":\"before_channel\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_channel\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+          "partition" : "pt",
           "hadoopConfig" : {
             "dfs.ha.namenodes.ns1" : "nn1,nn2",
             "fs.defaultFS" : "hdfs://ns1",
@@ -29,19 +38,15 @@
             "fs.hdfs.impl.disable.cache" : "true",
             "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
           },
-          "column" : [ {
-            "name" : "message",
-            "index" : 0,
-            "type" : "string"
-          } ],
+          "jdbcUrl" : "jdbc:hive2://node1:10000/data_science",
           "defaultFS" : "hdfs://ns1",
-          "writeMode" : "APPEND",
-          "fieldDelimiter" : ",",
-          "fileType" : "text",
-          "charsetName" : "utf-8"
+          "fileType" : "orc",
+          "charsetName" : "utf-8",
+          "username" : "",
+          "bufferSize" : 10485760
         },
-        "name" : "hdfswriter",
-        "type" : 6
+        "name" : "hivewriter",
+        "type" : 7
       }
     } ],
     "setting" : {
@@ -49,10 +54,11 @@
         "isRestore" : true,
         "isStream" : true
       },
-      "errorLimit" : { },
+      "errorLimit" : {
+      },
       "speed" : {
-        "bytes" : 2097152,
-        "channel" : 4
+        "bytes" : -1048576,
+        "channel" : 1
       }
     }
   }
