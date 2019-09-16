@@ -28,7 +28,7 @@ import com.dtstack.flinkx.util.SysUtil;
  */
 public abstract class Latch {
 
-    protected int MAX_RETRY_TIMES = 10;
+    protected int MAX_RETRY_TIMES = 100;
 
     public abstract int getVal();
 
