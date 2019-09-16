@@ -2,6 +2,7 @@ package com.dtstack.flinkx.util;
 
 import com.google.gson.internal.LinkedHashTreeMap;
 import com.google.gson.internal.LinkedTreeMap;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,9 @@ import java.util.Map;
  */
 
 public class MapUtil {
+
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * convert LinkedTreeMap or LinkedHashTreeMap Map to HashMap,for LinkedTreeMap,LinkedHashTreeMap can not serialize
@@ -34,4 +38,10 @@ public class MapUtil {
 
         return target;
     }
+
+
+    public static Map<String,Object> ObjectToMap(Object obj) throws Exception{
+        return objectMapper.readValue(objectMapper.writeValueAsBytes(obj), Map.class);
+    }
+
 }
