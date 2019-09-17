@@ -72,8 +72,6 @@ public class HiveWriter extends DataWriter {
 
     private String jdbcUrl;
 
-    private String database;
-
     private String username;
 
     private String password;
@@ -104,7 +102,6 @@ public class HiveWriter extends DataWriter {
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, EWriteModeType.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
-        formatHiveJdbcUrlInfo();
         password = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         username = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
 
@@ -142,19 +139,6 @@ public class HiveWriter extends DataWriter {
         }
     }
 
-    private void formatHiveJdbcUrlInfo() {
-        if (jdbcUrl.contains(";principal=")) {
-            String[] jdbcStr = jdbcUrl.split(";principal=");
-            jdbcUrl = jdbcStr[0];
-        }
-        int anythingIdx = StringUtils.indexOf(jdbcUrl, '?');
-        if (anythingIdx != -1) {
-            database = StringUtils.substring(jdbcUrl, StringUtils.lastIndexOf(jdbcUrl, '/') + 1, anythingIdx);
-        } else {
-            database = StringUtils.substring(jdbcUrl, StringUtils.lastIndexOf(jdbcUrl, '/') + 1);
-        }
-    }
-
     private void formatHiveTableInfo(String tablesColumn) {
         tableInfos = new HashMap<String, TableInfo>();
         if (StringUtils.isNotEmpty(tablesColumn)) {
@@ -163,7 +147,6 @@ public class HiveWriter extends DataWriter {
                 String tableName = entry.getKey();
                 List<Map<String, Object>> tableColumns = (List<Map<String, Object>>) entry.getValue();
                 TableInfo tableInfo = new TableInfo(tableColumns.size());
-                tableInfo.setDatabase(database);
                 tableInfo.addPartition(partition);
                 tableInfo.setDelimiter(delimiter);
                 tableInfo.setStore(fileType);
