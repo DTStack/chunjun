@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -109,6 +110,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
     protected  long maxFileSize;
 
     protected long lastWriteSize;
+
+    protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
     private long nextNumForCheckDataSize = DEFAULT_RECORD_NUM_FOR_CHECK;
 

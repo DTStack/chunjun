@@ -50,6 +50,7 @@ public class PostgresqlWriter extends JdbcDataWriter {
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
+        builder.setBatchInterval(batchSize);
         builder.setMonitorUrls(monitorUrls);
         builder.setPreSql(preSql);
         builder.setPostSql(postSql);
