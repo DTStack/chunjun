@@ -21,7 +21,6 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.writer.FileFlushTimingTrigger;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
@@ -86,8 +85,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected boolean makeDir = true;
 
-    private transient FileFlushTimingTrigger fileSizeChecker;
-
     private long nextNumForCheckDataSize = 1000;
 
     private long lastWriteSize;
@@ -96,12 +93,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        //不开启checkpoint
-        if(!restoreConfig.isRestore() && restoreConfig.isStream() && flushInterval > 0){
-            fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
-            fileSizeChecker.start();
-        }
-
         initPath();
         openSource();
         actionBeforeWriteData();
@@ -154,9 +145,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         checkSize();
 
-        synchronized (this){
-            writeSingleRecordToFile(row);
-        }
+        writeSingleRecordToFile(row);
 
         lastWriteTime = System.currentTimeMillis();
     }
@@ -243,10 +232,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(fileSizeChecker != null){
-            fileSizeChecker.stop();
-        }
-
         readyCheckpoint = false;
 
         //任务正常结束时最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
@@ -328,16 +313,14 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     }
 
     public void flushData() throws IOException{
-        synchronized (this){
-            if (rowsOfCurrentBlock != 0) {
-                    flushDataInternal();
-                if (restoreConfig.isRestore()) {
-                    moveTemporaryDataBlockFileToDirectory();
-                    sumRowsOfBlock += rowsOfCurrentBlock;
-                    LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
-                }
-                rowsOfCurrentBlock = 0;
+        if (rowsOfCurrentBlock != 0) {
+            flushDataInternal();
+            if (restoreConfig.isRestore()) {
+                moveTemporaryDataBlockFileToDirectory();
+                sumRowsOfBlock += rowsOfCurrentBlock;
+                LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
             }
+            rowsOfCurrentBlock = 0;
         }
     }
 
