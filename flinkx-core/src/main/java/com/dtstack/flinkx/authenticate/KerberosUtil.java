@@ -75,18 +75,21 @@ public class KerberosUtil {
         }
 
         if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
+            LOG.info("set krb5 file:{}", conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
             System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
         }
 
         conf.set("hadoop.security.authentication", "Kerberos");
         UserGroupInformation.setConfiguration(conf);
 
+        LOG.info("login user:{} with keytab:{}", principal, keytab);
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
     }
 
     public static void loadKrb5Conf(Map<String, Object> kerberosConfig, String jobId, String plugin){
         String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
         if(StringUtils.isEmpty(krb5FilePath)){
+            LOG.info("krb5 file is empty,will use default file");
             return;
         }
 
@@ -97,6 +100,7 @@ public class KerberosUtil {
     public static String loadFile(Map<String, Object> kerberosConfig, String filePath, String jobId, String plugin) {
         boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
         if(useLocalFile){
+            LOG.info("will use local file:{}", filePath);
             checkFileExists(filePath);
         } else {
             if(filePath.contains(SP)){
@@ -132,11 +136,15 @@ public class KerberosUtil {
             String filePathOnSFTP = remoteDir + "/" + keytab;
             if(handler.isFileExist(filePathOnSFTP)){
                 handler.downloadFile(filePathOnSFTP, localPath);
+
+                LOG.info("download file:{} to local:{}", filePathOnSFTP, localDir);
                 return localPath;
             } else {
                 String hostname = InetAddress.getLocalHost().getCanonicalHostName().toLowerCase(Locale.US);
                 filePathOnSFTP = remoteDir + "/" + hostname + "/" + keytab;
                 handler.downloadFile(filePathOnSFTP, localPath);
+
+                LOG.info("download file:{} to local:{}", filePathOnSFTP, localDir);
                 return localPath;
             }
         } catch (Exception e){
@@ -148,13 +156,14 @@ public class KerberosUtil {
         }
     }
 
-    public static String findPrincipalFromKeytab(String principal, String keytab) {
+    public static String findPrincipalFromKeytab(String principal, String keytabFile) {
         String serverName = principal.split(PRINCIPAL_SPLIT_REGEX)[0];
 
-        KeyTab keyTab = KeyTab.getInstance(keytab);
+        KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
             String princ = entry.getService().getName();
             if(princ.startsWith(serverName)){
+                LOG.info("parse principal:{} from keytab:{}", princ, keytabFile);
                 return princ;
             }
         }
@@ -187,6 +196,7 @@ public class KerberosUtil {
             throw new RuntimeException();
         }
 
+        LOG.info("create local dir:{}", path);
         return path;
     }
 }
