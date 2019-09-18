@@ -42,6 +42,7 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -62,6 +63,8 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static final String RUNNING_STATE = "RUNNING";
+
+    public static final int LOG_PRINT_INTERNAL = 2000;
 
     /** Dirty data manager */
     protected DirtyDataManager dirtyDataManager;
@@ -319,7 +322,9 @@ public abstract class  RichOutputFormat extends org.apache.flink.api.common.io.R
                 numWriteCounter.add(1);
             }
 
-            LOG.error(e.getMessage());
+            if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
+                LOG.error(e.getMessage());
+            }
         }
     }
 
