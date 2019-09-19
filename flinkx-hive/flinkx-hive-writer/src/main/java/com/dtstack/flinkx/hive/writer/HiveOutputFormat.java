@@ -171,7 +171,7 @@ public class HiveOutputFormat extends RichOutputFormat {
             if (row.getArity() == 2) {
                 Object obj = row.getField(0);
                 if (obj != null && obj instanceof Map) {
-                    emitWithMap((Map<String, Object>) obj, row.getField(1));
+                    emitWithMap((Map<String, Object>) obj, row);
                 }
             } else {
                 emitWithRow(row);
@@ -186,11 +186,15 @@ public class HiveOutputFormat extends RichOutputFormat {
         closeOutputFormats();
     }
 
-    private void emitWithMap(Map<String, Object> event, Object channel) throws Exception {
+    private void emitWithMap(Map<String, Object> event, Row row) throws Exception {
         String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
         Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tablePath, event);
-        Row rowData = setChannelInformation(event, channel, formatPair.getSecond().getColumns());
+        Row rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
         formatPair.getFirst().writeRecord(rowData);
+        //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
+        if(bytesWriteCounter != null){
+            bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
+        }
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
