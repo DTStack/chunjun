@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.krb5.Config;
 import sun.security.krb5.internal.ktab.KeyTab;
 import sun.security.krb5.internal.ktab.KeyTabEntry;
 
@@ -75,8 +76,7 @@ public class KerberosUtil {
         }
 
         if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
-            LOG.info("set krb5 file:{}", conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
-            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
+            reloadKrb5Conf(conf);
         }
 
         conf.set("hadoop.security.authentication", "Kerberos");
@@ -84,6 +84,20 @@ public class KerberosUtil {
 
         LOG.info("login user:{} with keytab:{}", principal, keytab);
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
+    }
+
+    private static void reloadKrb5Conf(Configuration conf){
+        String krb5File = conf.get(KEY_JAVA_SECURITY_KRB5_CONF);
+        LOG.info("set krb5 file:{}", krb5File);
+        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
+
+        try {
+            if (!System.getProperty("java.vendor").contains("IBM")) {
+                Config.refresh();
+            }
+        } catch (Exception e){
+            LOG.warn("reload krb5 file:{} error:", krb5File, e);
+        }
     }
 
     public static void loadKrb5Conf(Map<String, Object> kerberosConfig, String jobId, String plugin){

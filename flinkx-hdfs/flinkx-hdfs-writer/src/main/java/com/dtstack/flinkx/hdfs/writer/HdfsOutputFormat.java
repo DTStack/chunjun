@@ -128,7 +128,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
             conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
             fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
         } catch (Exception e){
-            throw new IOException("Get FileSystem error", e);
+            throw new RuntimeException("Get FileSystem error", e);
         }
     }
 
@@ -197,8 +197,10 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     @Override
     protected void createFinishedTag() throws IOException{
-        fs.createNewFile(new Path(finishedPath));
-        LOG.info("Create finished tag dir:{}", finishedPath);
+        if(fs != null){
+            fs.createNewFile(new Path(finishedPath));
+            LOG.info("Create finished tag dir:{}", finishedPath);
+        }
     }
 
     @Override
