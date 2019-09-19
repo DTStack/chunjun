@@ -106,15 +106,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
 
-        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
-        connectionInfo.setJdbcUrl(jdbcUrl);
-        connectionInfo.setUsername(username);
-        connectionInfo.setPassword(password);
-        connectionInfo.setHiveConf(hadoopConfig);
-        connectionInfo.setJobId(jobId);
-        connectionInfo.setPlugin("writer");
-
-        hiveUtil = new HiveUtil(connectionInfo, writeMode);
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         tableCache = new HashMap<String, TableInfo>();
         outputFormats = new HashMap<String, HdfsOutputFormat>();
@@ -124,6 +115,16 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
+
+        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        connectionInfo.setJdbcUrl(jdbcUrl);
+        connectionInfo.setUsername(username);
+        connectionInfo.setPassword(password);
+        connectionInfo.setHiveConf(hadoopConfig);
+        connectionInfo.setJobId(jobId);
+        connectionInfo.setPlugin("writer");
+
+        hiveUtil = new HiveUtil(connectionInfo, writeMode);
     }
 
     @Override

@@ -185,15 +185,12 @@ public class KerberosUtil {
         String path = LOCAL_DIR + SP + jobId + SP + plugin;
         File file = new File(path);
         if (file.exists()){
-            boolean result = file.delete();
-            if (!result) {
-                throw new RuntimeException("Delete file failure:" + LOCAL_DIR + SP + jobId);
-            }
+            return path;
         }
 
         boolean result = file.mkdirs();
         if (!result){
-            throw new RuntimeException();
+            LOG.warn("Create dir failure:{}", path);
         }
 
         LOG.info("create local dir:{}", path);
