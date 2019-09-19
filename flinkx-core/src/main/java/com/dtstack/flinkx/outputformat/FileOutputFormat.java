@@ -91,6 +91,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected long lastWriteTime = System.currentTimeMillis();
 
+    private volatile Throwable cause;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         initPath();
@@ -141,6 +143,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
                         row.getField(restoreConfig.getRestoreColumnIndex()));
             }
+        }
+
+        if (cause != null){
+            throw new RuntimeException(cause);
         }
 
         checkSize();
@@ -204,6 +210,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 flushData();
                 lastWriteSize = bytesWriteCounter.getLocalValue();
             } catch (Exception e){
+                cause = e;
                 throw new RuntimeException("Flush data error when create snapshot:", e);
             }
 
@@ -212,6 +219,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     moveTemporaryDataFileToDirectory();
                 }
             } catch (Exception e){
+                cause = e;
                 throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
             }
 
