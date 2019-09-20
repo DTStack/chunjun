@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,27 +26,27 @@ package com.dtstack.flinkx.launcher;
  */
 public class LauncherOptions {
 
-      private String mode;
+    private String mode;
 
-      private String job;
+    private String job;
 
-      private String monitor;
+    private String monitor;
 
-      private String jobid;
+    private String jobid;
 
-      private String flinkconf;
+    private String flinkconf;
 
-      private String plugin;
+    private String plugin;
 
-      private String yarnconf;
+    private String yarnconf;
 
-      private int parallelism = 1;
+    private int parallelism = 1;
 
     private int priority = 1;
 
-      private String queue;
+    private String queue;
 
-      private String flinkLibJar;
+    private String flinkLibJar;
 
     private String confProp;
 
@@ -154,5 +154,24 @@ public class LauncherOptions {
 
     public void setFlinkLibJar(String flinkLibJar) {
         this.flinkLibJar = flinkLibJar;
+    }
+
+    @Override
+    public String toString() {
+        return "LauncherOptions{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", plugin='" + plugin + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism=" + parallelism +
+                ", priority=" + priority +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", savepoint='" + savepoint + '\'' +
+                '}';
     }
 }
