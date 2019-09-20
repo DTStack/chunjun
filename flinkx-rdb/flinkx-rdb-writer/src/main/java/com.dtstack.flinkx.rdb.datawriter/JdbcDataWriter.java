@@ -68,6 +68,7 @@ public class JdbcDataWriter extends DataWriter {
         this.databaseInterface = databaseInterface;
     }
 
+    @SuppressWarnings("unchecked")
     public JdbcDataWriter(DataTransferConfig config) {
 
         super(config);
@@ -92,7 +93,7 @@ public class JdbcDataWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(databaseInterface);
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(databaseInterface.getDatabaseType().name());
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);

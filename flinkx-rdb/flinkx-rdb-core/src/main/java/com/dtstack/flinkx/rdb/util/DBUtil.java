@@ -373,8 +373,6 @@ public class DBUtil {
      * @return  格式化后jdbc连接URL字符串
      */
     public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
-//        if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_WRITER)
-//                || pluginName.equalsIgnoreCase(PluginNameConstrant.GBASE_WRITER) ){
         String[] splits = DB_PATTERN.split(dbUrl);
 
         Map<String,String> paramMap = new HashMap<String,String>();

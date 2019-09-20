@@ -33,8 +33,8 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
 
     private JdbcOutputFormat format;
 
-    public JdbcOutputFormatBuilder(DatabaseInterface databaseInterface) {
-        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(databaseInterface.getDatabaseType().name(), JdbcFormatLoader.OUTPUT_FORMAT);
+    public JdbcOutputFormatBuilder(String dataType) {
+        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(dataType, JdbcFormatLoader.OUTPUT_FORMAT);
         super.format = format = (JdbcOutputFormat) jdbcFormatLoader.getFormatInstance();
     }
 

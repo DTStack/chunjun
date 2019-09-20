@@ -42,7 +42,6 @@ import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
  */
 public class MysqlInputFormat extends JdbcInputFormat {
 
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
@@ -97,7 +96,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
         }
 
-        LOG.info("JdbcInputFormat[" + jobName + "]open: end");
+        LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
     @Override

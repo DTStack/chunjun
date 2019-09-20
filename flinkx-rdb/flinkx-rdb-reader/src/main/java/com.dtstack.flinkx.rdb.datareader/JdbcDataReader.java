@@ -140,7 +140,7 @@ public class JdbcDataReader extends DataReader {
 
             String incrementColStr = String.valueOf(incrementColumn);
             if(NumberUtils.isNumber(incrementColStr)){
-                MetaColumn metaColumn = metaColumns.get(Integer.valueOf(incrementColStr));
+                MetaColumn metaColumn = metaColumns.get(Integer.parseInt(incrementColStr));
                 type = metaColumn.getType();
                 name = metaColumn.getName();
                 index = metaColumn.getIndex();

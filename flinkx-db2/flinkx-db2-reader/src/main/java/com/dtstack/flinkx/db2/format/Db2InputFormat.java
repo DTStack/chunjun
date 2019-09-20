@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.mysql.format;
+package com.dtstack.flinkx.db2.format;
 
-import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 
 /**
- * Date: 2019/09/19
+ * Date: 2019/09/20
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class MysqlOutputFormat extends JdbcOutputFormat {
+public class Db2InputFormat extends JdbcInputFormat {
 }

@@ -36,6 +36,7 @@ import java.util.ArrayList;
  * @author tudou
  */
 public class GbaseInputFormat extends JdbcInputFormat {
+
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
