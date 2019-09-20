@@ -60,6 +60,8 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     private Map<String, String> consumerSettings;
 
+    private volatile boolean running = false;
+
     private transient BlockingQueue<Row> queue;
 
     private transient ExecutorService executor;
@@ -76,6 +78,7 @@ public class Kafka09InputFormat extends RichInputFormat {
         for (final KafkaStream<byte[], byte[]> stream : streams) {
             executor.submit(new KafkaConsumer(stream, this));
         }
+        running = true;
     }
 
     @Override
@@ -90,9 +93,13 @@ public class Kafka09InputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        consumerConnector.commitOffsets(true);
-        consumerConnector.shutdown();
-        executor.shutdownNow();
+        if (running) {
+            consumerConnector.commitOffsets(true);
+            consumerConnector.shutdown();
+            executor.shutdownNow();
+            running = false;
+            LOG.warn("input kafka release.");
+        }
     }
 
     @Override

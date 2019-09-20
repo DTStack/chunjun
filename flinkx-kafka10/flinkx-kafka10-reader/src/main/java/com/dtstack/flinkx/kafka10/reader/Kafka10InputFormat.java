@@ -56,6 +56,8 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     private Map<String, String> consumerSettings;
 
+    private volatile boolean running = false;
+
     private transient BlockingQueue<Row> queue;
 
     private transient KafkaConsumer consumer;
@@ -63,6 +65,7 @@ public class Kafka10InputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         consumer.createClient(topic, groupId, this).execute();
+        running = true;
     }
 
     public void processEvent(Map<String, Object> event) {
@@ -85,8 +88,11 @@ public class Kafka10InputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        consumer.close();
-        LOG.warn("input kafka release.");
+        if (running) {
+            consumer.close();
+            running = false;
+            LOG.warn("input kafka release.");
+        }
     }
 
     @Override
