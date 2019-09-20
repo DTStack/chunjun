@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.launcher.perJob;
 
-import com.dtstack.flinkx.launcher.LauncherOptions;
+import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
@@ -45,7 +45,7 @@ public class PerJobSubmitter {
      * @return
      * @throws Exception
      */
-    public static String submit(LauncherOptions options, JobGraph jobGraph) throws Exception{
+    public static String submit(Options options, JobGraph jobGraph) throws Exception{
         LOG.info("start to submit per-job task, LauncherOptions = {}", options.toString());
         Properties conProp = JsonUtils.jsonStrToObject(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FLinkPerJobResourceUtil.createClusterSpecification(conProp);

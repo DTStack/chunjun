@@ -20,16 +20,23 @@ package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
+import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
+import org.apache.flink.client.program.PackagedProgramUtils;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
@@ -82,11 +89,6 @@ public class Launcher {
             String[] localArgs = argList.toArray(new String[argList.size()]);
             com.dtstack.flinkx.Main.main(localArgs);
         } else {
-            ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
-            String monitor = clusterClient.getWebInterfaceURL();
-            argList.add("-monitor");
-            argList.add(monitor);
-
             String pluginRoot = launcherOptions.getPluginRoot();
             String content = launcherOptions.getJob();
             String coreJarName = getCoreJarFileName(pluginRoot);
@@ -101,13 +103,13 @@ public class Launcher {
                 String[] remoteArgs = argList.toArray(new String[0]);
                 PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
 
-            if (StringUtils.isNotEmpty(launcherOptions.getS())){
-                program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
-            }
+                if (StringUtils.isNotEmpty(launcherOptions.getS())){
+                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
+                }
 
-            clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
-            clusterClient.shutdown();
-                clusterClient.run(program, launcherOptions.getParallelism());
+                clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
+                clusterClient.shutdown();
+                clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
                 clusterClient.shutdown();
             }else if(mode.equals(ClusterMode.yarnPer.name())){
                 String confProp = launcherOptions.getConfProp();
@@ -126,12 +128,12 @@ public class Launcher {
                 //jdk内在优化，使用空数组效率更高
                 String[] remoteArgs = argList.toArray(new String[0]);
                 PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
-                if (StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
-                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getSavepoint()));
+                if (StringUtils.isNotEmpty(launcherOptions.getS())){
+                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
                 }
                 String flinkConfDir = launcherOptions.getFlinkconf();
                 Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
-                JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, launcherOptions.getParallelism());
+                JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, Integer.parseInt(launcherOptions.getParallelism()));
 
                 File[] jars = new File(launcherOptions.getFlinkLibJar()).listFiles();
                 if(jars != null){
