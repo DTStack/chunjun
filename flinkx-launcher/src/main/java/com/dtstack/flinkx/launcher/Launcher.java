@@ -143,6 +143,9 @@ public class Launcher {
                 //jdk内在优化，使用空数组效率更高
                 String[] remoteArgs = argList.toArray(new String[0]);
                 PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+                if (StringUtils.isNotEmpty(launcherOptions.getSavepoint())){
+                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getSavepoint()));
+                }
                 String flinkConfDir = launcherOptions.getFlinkconf();
                 Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
                 JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, launcherOptions.getParallelism());
