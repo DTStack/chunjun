@@ -96,6 +96,8 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                 }
             }
 
+            LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
+
             blockIndex++;
         } catch (Exception e){
             throw new RuntimeException(e);

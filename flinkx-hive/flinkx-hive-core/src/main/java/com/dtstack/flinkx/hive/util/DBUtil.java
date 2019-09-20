@@ -230,7 +230,7 @@ public final class DBUtil {
 
         if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
             param = param == null ? "" : param;
-            url = String.format("jdbc:hive2://%s:%s/%s%s", host, port, db, param);
+            url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
                 try {

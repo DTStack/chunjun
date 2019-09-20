@@ -25,6 +25,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.krb5.Config;
 import sun.security.krb5.internal.ktab.KeyTab;
 import sun.security.krb5.internal.ktab.KeyTabEntry;
 
@@ -75,18 +76,34 @@ public class KerberosUtil {
         }
 
         if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
-            System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, conf.get(KEY_JAVA_SECURITY_KRB5_CONF));
+            reloadKrb5Conf(conf);
         }
 
         conf.set("hadoop.security.authentication", "Kerberos");
         UserGroupInformation.setConfiguration(conf);
 
+        LOG.info("login user:{} with keytab:{}", principal, keytab);
         UserGroupInformation.loginUserFromKeytab(principal, keytab);
+    }
+
+    private static void reloadKrb5Conf(Configuration conf){
+        String krb5File = conf.get(KEY_JAVA_SECURITY_KRB5_CONF);
+        LOG.info("set krb5 file:{}", krb5File);
+        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
+
+        try {
+            if (!System.getProperty("java.vendor").contains("IBM")) {
+                Config.refresh();
+            }
+        } catch (Exception e){
+            LOG.warn("reload krb5 file:{} error:", krb5File, e);
+        }
     }
 
     public static void loadKrb5Conf(Map<String, Object> kerberosConfig, String jobId, String plugin){
         String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
         if(StringUtils.isEmpty(krb5FilePath)){
+            LOG.info("krb5 file is empty,will use default file");
             return;
         }
 
@@ -97,6 +114,7 @@ public class KerberosUtil {
     public static String loadFile(Map<String, Object> kerberosConfig, String filePath, String jobId, String plugin) {
         boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
         if(useLocalFile){
+            LOG.info("will use local file:{}", filePath);
             checkFileExists(filePath);
         } else {
             if(filePath.contains(SP)){
@@ -132,11 +150,15 @@ public class KerberosUtil {
             String filePathOnSFTP = remoteDir + "/" + keytab;
             if(handler.isFileExist(filePathOnSFTP)){
                 handler.downloadFile(filePathOnSFTP, localPath);
+
+                LOG.info("download file:{} to local:{}", filePathOnSFTP, localDir);
                 return localPath;
             } else {
                 String hostname = InetAddress.getLocalHost().getCanonicalHostName().toLowerCase(Locale.US);
                 filePathOnSFTP = remoteDir + "/" + hostname + "/" + keytab;
                 handler.downloadFile(filePathOnSFTP, localPath);
+
+                LOG.info("download file:{} to local:{}", filePathOnSFTP, localDir);
                 return localPath;
             }
         } catch (Exception e){
@@ -148,13 +170,14 @@ public class KerberosUtil {
         }
     }
 
-    public static String findPrincipalFromKeytab(String principal, String keytab) {
+    public static String findPrincipalFromKeytab(String principal, String keytabFile) {
         String serverName = principal.split(PRINCIPAL_SPLIT_REGEX)[0];
 
-        KeyTab keyTab = KeyTab.getInstance(keytab);
+        KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
             String princ = entry.getService().getName();
             if(princ.startsWith(serverName)){
+                LOG.info("parse principal:{} from keytab:{}", princ, keytabFile);
                 return princ;
             }
         }
@@ -176,17 +199,15 @@ public class KerberosUtil {
         String path = LOCAL_DIR + SP + jobId + SP + plugin;
         File file = new File(path);
         if (file.exists()){
-            boolean result = file.delete();
-            if (!result) {
-                throw new RuntimeException("Delete file failure:" + LOCAL_DIR + SP + jobId);
-            }
+            return path;
         }
 
         boolean result = file.mkdirs();
         if (!result){
-            throw new RuntimeException();
+            LOG.warn("Create dir failure:{}", path);
         }
 
+        LOG.info("create local dir:{}", path);
         return path;
     }
 }

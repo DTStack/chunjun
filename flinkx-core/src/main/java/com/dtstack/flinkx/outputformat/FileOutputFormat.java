@@ -21,7 +21,6 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.writer.FileFlushTimingTrigger;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
@@ -54,6 +53,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected static final String FINISHED_SUBDIR = ".finished";
 
+    protected static final String ACTION_FINISHED = ".action_finished";
+
+    protected static final int SECOND_WAIT = 30;
+
     protected static final String SP = "/";
 
     protected String charsetName = "UTF-8";
@@ -68,6 +71,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected String finishedPath;
 
+    protected String actionFinishedTag;
+
     /** 写入模式 */
     protected String writeMode;
 
@@ -80,8 +85,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected boolean makeDir = true;
 
-    private transient FileFlushTimingTrigger fileSizeChecker;
-
     private long nextNumForCheckDataSize = 1000;
 
     private long lastWriteSize;
@@ -90,12 +93,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        //不开启checkpoint
-        if(!restoreConfig.isRestore() && restoreConfig.isStream() && flushInterval > 0){
-            fileSizeChecker = new FileFlushTimingTrigger(this, flushInterval);
-            fileSizeChecker.start();
-        }
-
         initPath();
         openSource();
         actionBeforeWriteData();
@@ -113,6 +110,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         currentBlockFileNamePrefix = taskNumber + "." + jobId;
         tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
+        actionFinishedTag = tmpPath + SP + ACTION_FINISHED + "_" + jobId;
 
         LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
@@ -120,6 +118,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected void actionBeforeWriteData(){
         if(taskNumber > 0){
+            waitForActionFinishedBeforeWrite();
             return;
         }
 
@@ -130,6 +129,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             clearTemporaryDataFiles();
         } catch (Exception e) {
             LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
+        } finally {
+            createActionFinishedTag();
         }
     }
 
@@ -144,9 +145,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         checkSize();
 
-        synchronized (this){
-            writeSingleRecordToFile(row);
-        }
+        writeSingleRecordToFile(row);
 
         lastWriteTime = System.currentTimeMillis();
     }
@@ -200,42 +199,39 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             return null;
         }
 
-        try{
-            if (restoreConfig.isStream() || readyCheckpoint){
+        if (restoreConfig.isStream() || readyCheckpoint){
+            try{
                 flushData();
+                lastWriteSize = bytesWriteCounter.getLocalValue();
+            } catch (Exception e){
+                throw new RuntimeException("Flush data error when create snapshot:", e);
+            }
 
+            try{
                 if (sumRowsOfBlock != 0) {
                     moveTemporaryDataFileToDirectory();
                 }
-                snapshotWriteCounter.add(sumRowsOfBlock);
-                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-                if (!restoreConfig.isStream()){
-                    formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                }
-
-                sumRowsOfBlock = 0;
-                return formatState;
+            } catch (Exception e){
+                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
             }
 
-            return null;
-        }catch (Exception e){
-            try{
-                closeSource();
-                LOG.info("getFormatState:delete block file:[{}]", tmpPath + SP + currentBlockFileName);
-            }catch (Exception e1){
-                throw new RuntimeException("Delete tmp file:" + currentBlockFileName + " failed when get next block error", e1);
+            snapshotWriteCounter.add(sumRowsOfBlock);
+            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+            if (!restoreConfig.isStream()){
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
 
-            throw new RuntimeException("Get next block error:", e);
+            sumRowsOfBlock = 0;
+
+            super.getFormatState();
+            return formatState;
         }
+
+        return null;
     }
 
     @Override
     public void closeInternal() throws IOException {
-        if(fileSizeChecker != null){
-            fileSizeChecker.stop();
-        }
-
         readyCheckpoint = false;
 
         //任务正常结束时最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
@@ -317,22 +313,24 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     }
 
     public void flushData() throws IOException{
-        synchronized (this){
-            if (rowsOfCurrentBlock != 0) {
-                flushDataInternal();
-                if (restoreConfig.isRestore()) {
-                    moveTemporaryDataBlockFileToDirectory();
-                    sumRowsOfBlock += rowsOfCurrentBlock;
-                    LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
-                }
-                rowsOfCurrentBlock = 0;
+        if (rowsOfCurrentBlock != 0) {
+            flushDataInternal();
+            if (restoreConfig.isRestore()) {
+                moveTemporaryDataBlockFileToDirectory();
+                sumRowsOfBlock += rowsOfCurrentBlock;
+                LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
             }
+            rowsOfCurrentBlock = 0;
         }
     }
 
     public long getLastWriteTime() {
         return lastWriteTime;
     }
+
+    protected abstract void createActionFinishedTag();
+
+    protected abstract void waitForActionFinishedBeforeWrite();
 
     protected abstract void flushDataInternal() throws IOException;
 
@@ -353,8 +351,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     protected abstract void openSource() throws IOException;
 
     protected abstract void closeSource() throws IOException;
-
-    protected abstract void alignHistoryFiles();
 
     protected abstract void clearTemporaryDataFiles() throws IOException;
 

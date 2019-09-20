@@ -27,7 +27,6 @@ import java.util.List;
  */
 public class TableInfo implements Serializable {
 
-    private String database;
     private List<String> columns;
     private List<String> columnTypes;
     private String createTableSql;
@@ -47,14 +46,6 @@ public class TableInfo implements Serializable {
     public void addColumnAndType(String columnName, String columnType) {
         columns.add(columnName);
         columnTypes.add(columnType);
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
     }
 
     public List<String> getColumns() {
@@ -136,7 +127,6 @@ public class TableInfo implements Serializable {
     @Override
     public String toString() {
         return "TableInfo{" +
-                "database='" + database + '\'' +
                 ", columns=" + columns +
                 ", columnTypes=" + columnTypes +
                 ", createTableSql='" + createTableSql + '\'' +

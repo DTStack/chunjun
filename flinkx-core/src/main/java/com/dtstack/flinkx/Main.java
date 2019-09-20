@@ -21,19 +21,16 @@ package com.dtstack.flinkx;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,10 +41,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
 import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
@@ -55,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The main class entry
@@ -70,29 +64,13 @@ public class Main {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
-
-        // 解析命令行参数
-        Options options = new Options();
-        options.addOption("mode", true, "Job run mode");
-        options.addOption("job", true, "Job config.");
-        options.addOption("jobid", true, "Job unique id.");
-        options.addOption("monitor", true, "Monitor Addresses");
-        options.addOption("pluginRoot", true, "plugin path root");
-        options.addOption("confProp", true, "env properties");
-        options.addOption("s", true, "savepoint path");
-
-        BasicParser parser = new BasicParser();
-        CommandLine cl = parser.parse(options, args);
-        String job = cl.getOptionValue("job");
-        String mode=cl.getOptionValue("mode");
-        String jobIdString = cl.getOptionValue("jobid");
-        String monitor = cl.getOptionValue("monitor");
-        String pluginRoot = cl.getOptionValue("pluginRoot");
-        String savepointPath = cl.getOptionValue("s");
-        Properties confProperties = parseConf(cl.getOptionValue("confProp"));
-
-        Preconditions.checkNotNull(job, "Must provide --job argument");
-        Preconditions.checkNotNull(jobIdString, "Must provide --jobid argument");
+        com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
+        String job = options.getJob();
+        String jobIdString = options.getJobid();
+        String monitor = options.getMonitor();
+        String pluginRoot = options.getPluginRoot();
+        String savepointPath = options.getS();
+        Properties confProperties = parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
         DataTransferConfig config = DataTransferConfig.parse(job);

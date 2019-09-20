@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher;
+package com.dtstack.flinkx.enums;
 
 /**
  * This class defines three running mode of FlinkX

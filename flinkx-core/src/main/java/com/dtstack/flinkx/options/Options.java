@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher;
+package com.dtstack.flinkx.options;
+
+import com.dtstack.flinkx.enums.ClusterMode;
 
 /**
  * This class define commandline options for the Launcher program
@@ -24,40 +26,56 @@ package com.dtstack.flinkx.launcher;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class LauncherOptions {
+public class Options {
 
-      private String mode;
+      @OptionRequired(description = "Running mode")
+      private String mode = ClusterMode.local.name();
 
+      @OptionRequired(required = true,description = "Job config")
       private String job;
 
+      @OptionRequired(description = "Monitor Addresses")
       private String monitor;
 
-      private String jobid;
+      @OptionRequired(description = "Job unique id")
+      private String jobid = "Flink Job";
 
-      private String flinkconf;
+    @OptionRequired(description = "Flink configuration directory")
+    private String flinkconf;
 
-      private String plugin;
+    @OptionRequired(required = true,description = "env properties")
+    private String pluginRoot;
 
-      private String yarnconf;
+    @OptionRequired(description = "Yarn and Hadoop configuration directory")
+    private String yarnconf;
 
-      private int parallelism = 1;
+    @OptionRequired(description = "Task parallelism")
+    private String parallelism = "1";
 
-    private int priority = 1;
+    @OptionRequired(description = "Task priority")
+    private String priority = "1";
 
-      private String queue;
+    @OptionRequired(description = "Yarn queue")
+    private String queue = "default";
 
-      private String flinkLibJar;
+    @OptionRequired(description = "ext flinkLibJar")
+    private String flinkLibJar;
 
-    private String confProp;
+    @OptionRequired(description = "env properties")
+    private String confProp = "{}";
 
-    private String savepoint;
+    /**
+     * savepoint
+     */
+    @OptionRequired(description = "savepoint path")
+    private String s;
 
-    public String getSavepoint() {
-        return savepoint;
+    public String getS() {
+        return s;
     }
 
-    public void setSavepoint(String savepoint) {
-        this.savepoint = savepoint;
+    public void setS(String s) {
+        this.s = s;
     }
 
     public String getConfProp() {
@@ -68,11 +86,11 @@ public class LauncherOptions {
         this.confProp = confProp;
     }
 
-    public int getParallelism() {
+    public String getParallelism() {
         return parallelism;
     }
 
-    public void setParallelism(int parallelism) {
+    public void setParallelism(String parallelism) {
         this.parallelism = parallelism;
     }
 
@@ -116,12 +134,12 @@ public class LauncherOptions {
         this.flinkconf = flinkconf;
     }
 
-    public String getPlugin() {
-        return plugin;
+    public String getPluginRoot() {
+        return pluginRoot;
     }
 
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    public void setPluginRoot(String pluginRoot) {
+        this.pluginRoot = pluginRoot;
     }
 
     public String getYarnconf() {
@@ -132,11 +150,11 @@ public class LauncherOptions {
         this.yarnconf = yarnconf;
     }
 
-    public int getPriority() {
+    public String getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 
