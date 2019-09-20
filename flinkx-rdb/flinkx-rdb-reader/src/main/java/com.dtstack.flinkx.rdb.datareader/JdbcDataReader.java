@@ -99,7 +99,7 @@ public class JdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(databaseInterface);
+        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(databaseInterface.getDatabaseType().name());
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);

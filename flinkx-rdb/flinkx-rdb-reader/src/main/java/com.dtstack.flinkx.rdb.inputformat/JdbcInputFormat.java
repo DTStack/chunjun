@@ -101,6 +101,9 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int fetchSize;
 
+    /**
+     * 各DatabaseMeta.getQueryTimeout()返回的超时时间,默认1000ms
+     */
     protected int queryTimeOut;
 
     protected int numPartitions;
@@ -167,22 +170,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
             dbConn = DBUtil.getConnection(dbURL, username, password);
 
-            // 部分驱动需要关闭事务自动提交，featchSize参数才会起作用
+            // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
-
-//            // 读取前先提交事务，确保程序异常退出时，下次再读取PG时的顺序不变
-//            if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
-//                dbConn.commit();
-//            }
-//
-//            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-//            if(EDatabaseType.MySQL == databaseInterface.getDatabaseType()
-//                    || EDatabaseType.GBase == databaseInterface.getDatabaseType()){
-//                statement.setFetchSize(Integer.MIN_VALUE);
-//            } else {
-//                statement.setFetchSize(fetchSize);
-//            }
-//
+            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
             resultSet = statement.executeQuery(querySql);
@@ -208,7 +199,7 @@ public class JdbcInputFormat extends RichInputFormat {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
 
-        LOG.info("JdbcInputFormat[" + jobName + "]open: end");
+        LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
 
@@ -311,9 +302,15 @@ public class JdbcInputFormat extends RichInputFormat {
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
     }
 
+    /**
+     * 将增量任务的数据最大值设置到累加器中
+     * @param inputSplit 数据分片
+     */
     protected void getMaxValue(InputSplit inputSplit){
         String maxValue = null;
+        //第0个通道新建累加器并保存最大值，多通道下其他通道从historyServer中获取最大值
         if (inputSplit.getSplitNumber() == 0){
+            //从数据库中获取当前增量字段的最大值
             maxValue = getMaxValueFromDb();
             maxValueAccumulator = new StringAccumulator();
             maxValueAccumulator.add(maxValue);
@@ -343,6 +340,7 @@ public class JdbcInputFormat extends RichInputFormat {
                  */
                 int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
 
+                //当前重试次数
                 int acquireTimes = 0;
                 while (StringUtils.isEmpty(maxValue) && acquireTimes < maxAcquireTimes){
                     try {
@@ -365,6 +363,13 @@ public class JdbcInputFormat extends RichInputFormat {
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
+    /**
+     * 从historyServer中获取增量最大值
+     * @param httpClient httpClient
+     * @param monitors   请求的URL数组
+     * @return
+     */
+    @SuppressWarnings("unchecked")
     private String getMaxvalueFromAccumulator(CloseableHttpClient httpClient,String[] monitors){
         String maxValue = null;
         Gson gson = new Gson();
@@ -395,6 +400,12 @@ public class JdbcInputFormat extends RichInputFormat {
         return maxValue;
     }
 
+    /**
+     * 判断增量任务是否还能继续读取数据
+     *     增量任务，startLocation = endLocation且两者都不为null，返回false，其余情况返回true
+     * @param split 数据分片
+     * @return
+     */
     protected boolean canReadData(InputSplit split){
         if (!incrementConfig.isIncrement()){
             return true;
@@ -418,7 +429,7 @@ public class JdbcInputFormat extends RichInputFormat {
         String querySql = queryTemplate;
 
         if (inputSplit == null){
-            LOG.warn(String.format("Executing sql is: '%s'", querySql));
+            LOG.warn("Executing sql is: '{}'", querySql);
             return querySql;
         }
 
@@ -428,6 +439,7 @@ public class JdbcInputFormat extends RichInputFormat {
             querySql = queryTemplate.replace("${N}", String.valueOf(numPartitions)) .replace("${M}", String.valueOf(indexOfSubtask));
         }
 
+        //是否开启断点续传
         if (restoreConfig.isRestore()){
             if(formatState == null){
                 querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
@@ -456,11 +468,17 @@ public class JdbcInputFormat extends RichInputFormat {
             querySql = buildIncrementSql(jdbcInputSplit, querySql);
         }
 
-        LOG.warn(String.format("Executing sql is: '%s'", querySql));
+        LOG.warn("Executing sql is: '{}}'", querySql);
 
         return querySql;
     }
 
+    /**
+     * 构造增量任务查询sql
+     * @param jdbcInputSplit 数据切片
+     * @param querySql       已经创建的查询sql
+     * @return
+     */
     private String buildIncrementSql(JdbcInputSplit jdbcInputSplit, String querySql){
         String incrementFilter = buildIncrementFilter(incrementConfig.getColumnType(),
                                                         incrementConfig.getColumnName(),
@@ -476,6 +494,16 @@ public class JdbcInputFormat extends RichInputFormat {
         return querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
     }
 
+    /**
+     * 构建增量任务查询sql的过滤条件
+     * @param incrementColType  增量字段类型
+     * @param incrementCol      增量字段名称
+     * @param startLocation     开始位置
+     * @param endLocation       结束位置
+     * @param customSql         用户自定义sql
+     * @param useMaxFunc        是否保存结束位置数据
+     * @return
+     */
     protected String buildIncrementFilter(String incrementColType,String incrementCol, String startLocation,String endLocation, String customSql, boolean useMaxFunc){
         StringBuilder filter = new StringBuilder(128);
 
@@ -502,6 +530,14 @@ public class JdbcInputFormat extends RichInputFormat {
         return filter.toString();
     }
 
+    /**
+     * 构建起始位置sql
+     * @param incrementColType  增量字段类型
+     * @param incrementCol      增量字段名称
+     * @param startLocation     开始位置
+     * @param useMaxFunc        是否保存结束位置数据
+     * @return
+     */
     protected String buildStartLocationSql(String incrementColType, String incrementCol, String startLocation, boolean useMaxFunc){
         if(org.apache.commons.lang.StringUtils.isEmpty(startLocation) || DBUtil.NULL_STRING.equalsIgnoreCase(startLocation)){
             return null;
@@ -512,6 +548,13 @@ public class JdbcInputFormat extends RichInputFormat {
         return getLocationSql(incrementColType, incrementCol, startLocation, operator);
     }
 
+    /**
+     * 构建结束位置sql
+     * @param incrementColType  增量字段类型
+     * @param incrementCol      增量字段名称
+     * @param endLocation       结束位置
+     * @return
+     */
     public String buildEndLocationSql(String incrementColType, String incrementCol, String endLocation){
         if(org.apache.commons.lang.StringUtils.isEmpty(endLocation) || DBUtil.NULL_STRING.equalsIgnoreCase(endLocation)){
             return null;
@@ -520,13 +563,19 @@ public class JdbcInputFormat extends RichInputFormat {
         return getLocationSql(incrementColType, incrementCol, endLocation, " < ");
     }
 
-    private String getLocationSql(String incrementColType, String incrementCol, String location, String operator) {
+    /**
+     * 构建边界位置sql
+     * @param incrementColType  增量字段类型
+     * @param incrementCol      增量字段名称
+     * @param location          边界位置(起始/结束)
+     * @param operator          判断符( >, >=,  <)
+     * @return
+     */
+    protected String getLocationSql(String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
-//        boolean isTimeType = ColumnType.isTimeType(incrementColType)
-//                || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(incrementColType));
         if(ColumnType.isTimeType(incrementColType)){
-            endTimeStr = getTimeStr(Long.parseLong(location));
+            endTimeStr = getTimeStr(Long.parseLong(location), incrementColType);
             endLocationSql = incrementCol + operator + endTimeStr;
         } else if(ColumnType.isNumberType(incrementColType)){
             endLocationSql = incrementCol + operator + location;
@@ -538,31 +587,27 @@ public class JdbcInputFormat extends RichInputFormat {
         return endLocationSql;
     }
 
-    protected String getTimeStr(Long startLocation){
+    /**
+     * 构建时间边界字符串
+     * @param location          边界位置(起始/结束)
+     * @param incrementColType  增量字段类型
+     * @return
+     */
+    protected String getTimeStr(Long location, String incrementColType){
         String timeStr;
-        Timestamp ts = new Timestamp(DBUtil.getMillis(startLocation));
-        ts.setNanos(DBUtil.getNanos(startLocation));
+        Timestamp ts = new Timestamp(DBUtil.getMillis(location));
+        ts.setNanos(DBUtil.getNanos(location));
         timeStr = DBUtil.getNanosTimeStr(ts.toString());
-
-//        if(databaseType == EDatabaseType.SQLServer){
-//            timeStr = timeStr.substring(0,23);
-//        }
-//        if (databaseType == EDatabaseType.Oracle){
-//            if(ColumnType.TIMESTAMP.name().equals(incrementColType)){
-//                timeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",timeStr);
-//            } else {
-//                timeStr = timeStr.substring(0, 19);
-//                timeStr = String.format("TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')", timeStr);
-//            }
-//        }
-
         timeStr = timeStr.substring(0,26);
         timeStr = String.format("'%s'",timeStr);
 
         return timeStr;
     }
 
-
+    /**
+     * 从数据库中查询增量字段的最大值
+     * @return
+     */
     private String getMaxValueFromDb() {
         String maxValue = null;
         Connection conn = null;
@@ -607,6 +652,12 @@ public class JdbcInputFormat extends RichInputFormat {
         }
     }
 
+    /**
+     * 边界位置值转字符串
+     * @param columnType 边界字段类型
+     * @param columnVal  边界值
+     * @return
+     */
     private String getLocation(String columnType, Object columnVal){
         String location;
         if (columnVal == null){
@@ -641,6 +692,10 @@ public class JdbcInputFormat extends RichInputFormat {
         return location;
     }
 
+    /**
+     * 上传累加器数据
+     * @throws IOException
+     */
     private void uploadMetricData() throws IOException {
         FSDataOutputStream out = null;
         try {

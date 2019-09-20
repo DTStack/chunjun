@@ -302,7 +302,6 @@ public class DBUtil {
         }
     }
 
-
     public static Object clobToString(Object obj) throws Exception{
         String dataStr;
         if(obj instanceof Clob){
@@ -374,9 +373,7 @@ public class DBUtil {
      * @return  格式化后jdbc连接URL字符串
      */
     public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
-//        if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)
-//                || pluginName.equalsIgnoreCase(PluginNameConstrant.POSTGRESQL_READER)
-//                || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_WRITER)
+//        if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_WRITER)
 //                || pluginName.equalsIgnoreCase(PluginNameConstrant.GBASE_WRITER) ){
         String[] splits = DB_PATTERN.split(dbUrl);
 
@@ -389,14 +386,11 @@ public class DBUtil {
             }
         }
 
-        paramMap.put("useCursorFetch", "true");
-        paramMap.put("rewriteBatchedStatements", "true");
         if(!CollectionUtil.isNullOrEmpty(extParamMap)){
             paramMap.putAll(extParamMap);
         }
-//        if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)){
-//            paramMap.put("zeroDateTimeBehavior","convertToNull");
-//        }
+        paramMap.put("useCursorFetch", "true");
+        paramMap.put("rewriteBatchedStatements", "true");
 
         StringBuffer sb = new StringBuffer(dbUrl.length() + 128);
         sb.append(splits[0]).append("?");

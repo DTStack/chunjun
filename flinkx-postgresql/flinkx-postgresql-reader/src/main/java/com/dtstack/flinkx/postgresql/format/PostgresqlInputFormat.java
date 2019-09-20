@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.mysql.format;
+
+package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -35,13 +35,12 @@ import java.util.ArrayList;
 import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
 
 /**
- * Date: 2019/09/19
+ * Date: 2019/09/20
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class MysqlInputFormat extends JdbcInputFormat {
-
+public class PostgresqlInputFormat extends JdbcInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
@@ -68,10 +67,10 @@ public class MysqlInputFormat extends JdbcInputFormat {
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
 
+            // 读取前先提交事务，确保程序异常退出时，下次再读取PG时的顺序不变
+            dbConn.commit();
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-
-            statement.setFetchSize(Integer.MIN_VALUE);
-
+            statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
             resultSet = statement.executeQuery(querySql);
@@ -94,10 +93,10 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
 
         } catch (SQLException se) {
-            throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
+            throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
 
-        LOG.info("JdbcInputFormat[" + jobName + "]open: end");
+        LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
     @Override
@@ -112,16 +111,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
                     if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
-                        if("year".equalsIgnoreCase(columnType)) {
-                            java.util.Date date = (java.util.Date) obj;
-                            obj = DateUtil.dateToYearString(date);
-                        } else if("tinyint".equalsIgnoreCase(columnType)
-                                    || "bit".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
-                                obj = ((Boolean) obj ? 1 : 0);
-                            }
-                        }
+                        obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
                     }
                     obj = clobToString(obj);
                 }
@@ -133,5 +123,4 @@ public class MysqlInputFormat extends JdbcInputFormat {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }
-
 }

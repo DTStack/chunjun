@@ -39,8 +39,8 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
 
-    public JdbcInputFormatBuilder(DatabaseInterface databaseInterface) {
-        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(databaseInterface.getDatabaseType().name(), JdbcFormatLoader.INPUT_FORMAT);
+    public JdbcInputFormatBuilder(String dataType) {
+        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(dataType, JdbcFormatLoader.INPUT_FORMAT);
         super.format = format = (JdbcInputFormat) jdbcFormatLoader.getFormatInstance();
     }
 
