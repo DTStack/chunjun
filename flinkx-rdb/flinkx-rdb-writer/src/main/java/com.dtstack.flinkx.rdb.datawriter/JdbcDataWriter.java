@@ -23,7 +23,6 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -76,8 +75,6 @@ public class JdbcDataWriter extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         dbUrl = writerConfig.getParameter().getConnection().get(0).getJdbcUrl();
-        dbUrl = DBUtil.formatJdbcUrl(writerConfig.getName(), dbUrl);
-
         username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
         table = writerConfig.getParameter().getConnection().get(0).getTable().get(0);
@@ -95,7 +92,7 @@ public class JdbcDataWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder();
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(databaseInterface);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);

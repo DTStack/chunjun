@@ -19,6 +19,7 @@ package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.loader.JdbcFormatLoader;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 
 import java.util.List;
@@ -32,8 +33,9 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
 
     private JdbcOutputFormat format;
 
-    public JdbcOutputFormatBuilder() {
-        super.format = format = new JdbcOutputFormat();
+    public JdbcOutputFormatBuilder(DatabaseInterface databaseInterface) {
+        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(databaseInterface.getDatabaseType().name(), JdbcFormatLoader.OUTPUT_FORMAT);
+        super.format = format = (JdbcOutputFormat) jdbcFormatLoader.getFormatInstance();
     }
 
     public JdbcOutputFormatBuilder(JdbcOutputFormat format) {

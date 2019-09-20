@@ -111,7 +111,8 @@ public class DistributedJdbcDataReader extends DataReader {
                     ? username : connectionConfig.getUsername();
             String curPassword = (connectionConfig.getPassword() == null || connectionConfig.getPassword().length() == 0)
                     ? password : connectionConfig.getPassword();
-            String curJdbcUrl = DBUtil.formatJdbcUrl(pluginName,connectionConfig.getJdbcUrl().get(0));
+            //todo mysql添加额外参数
+            String curJdbcUrl = DBUtil.formatJdbcUrl(connectionConfig.getJdbcUrl().get(0), null);
             for (String table : connectionConfig.getTable()) {
                 DataSource source = new DataSource();
                 source.setTable(table);

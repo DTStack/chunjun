@@ -20,11 +20,10 @@ package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +83,6 @@ public class JdbcDataReader extends DataReader {
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         dbUrl = readerConfig.getParameter().getConnection().get(0).getJdbcUrl().get(0);
-        dbUrl = DBUtil.formatJdbcUrl(readerConfig.getName(),dbUrl);
         username = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_USER_NAME);
         password = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_PASSWORD);
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
@@ -101,7 +99,7 @@ public class JdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder();
+        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(databaseInterface);
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);

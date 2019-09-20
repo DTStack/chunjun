@@ -160,7 +160,8 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             hasNext = currentResultSet.next();
             if (hasNext){
                 currentRecord = new Row(columnCount);
-                DBUtil.getRow(databaseInterface.getDatabaseType(),currentRecord,descColumnTypeList,currentResultSet,typeConverter);
+                //todo
+//                DBUtil.getRow(databaseInterface.getDatabaseType(),currentRecord,descColumnTypeList,currentResultSet,typeConverter);
                 if(!"*".equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         Object val = currentRecord.getField(i);

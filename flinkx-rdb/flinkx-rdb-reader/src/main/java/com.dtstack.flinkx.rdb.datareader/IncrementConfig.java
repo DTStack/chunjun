@@ -27,8 +27,17 @@ import java.io.Serializable;
  */
 public class IncrementConfig implements Serializable {
 
+    /**
+     * 是否为增量任务
+     */
     private boolean increment;
 
+    /**
+     * 用于标记是否保存endLocation位置的一条或多条数据
+     *  true：不保存
+     *  false(默认)：保存
+     *  某些情况下可能出现最后几条数据被重复记录的情况，可能
+     */
     private boolean useMaxFunc;
 
     private int columnIndex;
