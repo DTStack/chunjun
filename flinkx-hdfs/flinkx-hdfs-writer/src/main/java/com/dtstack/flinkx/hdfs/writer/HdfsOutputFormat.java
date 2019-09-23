@@ -223,19 +223,14 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void coverageData() throws IOException{
         LOG.info("Overwrite the original data");
-        PathFilter pathFilter = path -> !path.getName().startsWith(".");
 
         Path dir = new Path(outputFilePath);
-        if(fs.exists(dir)) {
-            FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-            for(FileStatus dataFile : dataFiles) {
-                LOG.info("coverageData:delete path:[{}]", dataFile.getPath());
-                fs.delete(dataFile.getPath(), true);
-            }
-
-            LOG.info("coverageData:make dir:[{}]", outputFilePath);
-            fs.mkdirs(dir);
+        if(!fs.exists(dir)){
+            return;
         }
+
+        fs.delete(dir, true);
+        fs.mkdirs(dir);
     }
 
     @Override
