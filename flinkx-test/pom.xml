@@ -10,7 +10,44 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-test</artifactId>
+
+    <properties>
+        <flink.version>1.8.1</flink.version>
+        <prometheus.version>0.3.0</prometheus.version>
+    </properties>
+
     <dependencies>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-metrics-core</artifactId>
+            <version>1.8.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-metrics-prometheus_2.11</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_httpserver</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_pushgateway</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
