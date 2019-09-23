@@ -223,24 +223,32 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void coverageData() throws IOException{
         LOG.info("Overwrite the original data");
-        PathFilter pathFilter = path -> !path.getName().startsWith(".");
 
         Path dir = new Path(outputFilePath);
-        if(fs.exists(dir)) {
-            FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-            for(FileStatus dataFile : dataFiles) {
-                LOG.info("coverageData:delete path:[{}]", dataFile.getPath());
-                fs.delete(dataFile.getPath(), true);
-            }
-
-            LOG.info("coverageData:make dir:[{}]", outputFilePath);
-            fs.mkdirs(dir);
+        if(!fs.exists(dir)){
+            return;
         }
+
+        fs.delete(dir, true);
+        fs.mkdirs(dir);
     }
 
     @Override
     protected void moveTemporaryDataFileToDirectory() throws IOException{
         PathFilter pathFilter = path -> path.getName().startsWith(String.valueOf(taskNumber));
+        Path dir = new Path(outputFilePath);
+        Path tmpDir = new Path(tmpPath);
+
+        FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
+    }
+
+    @Override
+    protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
         Path dir = new Path(outputFilePath);
         Path tmpDir = new Path(tmpPath);
 
