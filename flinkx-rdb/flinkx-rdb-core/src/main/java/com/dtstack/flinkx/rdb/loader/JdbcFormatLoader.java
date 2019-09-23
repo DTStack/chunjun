@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.util.Preconditions;
 
 /**
@@ -55,7 +56,7 @@ public class JdbcFormatLoader {
      */
     public JdbcFormatLoader(String dataType, int formatType){
 
-        Preconditions.checkArgument(dataType != null && dataType.trim().length() != 0);
+        Preconditions.checkArgument(StringUtils.isNotBlank(dataType));
         Preconditions.checkArgument(formatType == INPUT_FORMAT || formatType == OUTPUT_FORMAT);
 
         dataType = dataType.toLowerCase();
@@ -67,6 +68,10 @@ public class JdbcFormatLoader {
         this.formatClassName = String.format(pkgPrefixFormat, dataType, this.formatName.substring(0, 1).toUpperCase() + this.formatName.substring(1));
     }
 
+    /**
+     * 获取format实例对象
+     * @return
+     */
     public Object getFormatInstance() {
         Object format = null;
         try {

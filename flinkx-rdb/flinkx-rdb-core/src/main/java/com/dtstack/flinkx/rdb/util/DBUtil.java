@@ -21,6 +21,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -48,23 +48,55 @@ public class DBUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(DBUtil.class);
 
+    /**
+     * 数据库连接的最大重试次数
+     */
     private static int MAX_RETRY_TIMES = 3;
 
+    /**
+     * 秒级时间戳的长度为10位
+     */
     private static int SECOND_LENGTH = 10;
+    /**
+     * 毫秒级时间戳的长度为13位
+     */
     private static int MILLIS_LENGTH = 13;
+    /**
+     * 微秒级时间戳的长度为16位
+     */
     private static int MICRO_LENGTH = 16;
+    /**
+     * 纳秒级时间戳的长度为19位
+     */
     private static int NANOS_LENGTH = 19;
 
+    /**
+     * jdbc连接URL的分割正则，用于获取URL?后的连接参数
+     */
     public static final Pattern DB_PATTERN = Pattern.compile("\\?");
 
+    /**
+     * 增量任务过滤条件占位符
+     */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
 
+    /**
+     * 断点续传过滤条件占位符
+     */
     public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
 
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
 
     public static final String NULL_STRING = "null";
 
+    /**
+     * 获取jdbc连接(超时10S)
+     * @param url       url
+     * @param username  账号
+     * @param password  密码
+     * @return
+     * @throws SQLException
+     */
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
@@ -83,6 +115,14 @@ public class DBUtil {
         return dbConn;
     }
 
+    /**
+     * 获取jdbc连接(重试3次)
+     * @param url       url
+     * @param username  账号
+     * @param password  密码
+     * @return
+     * @throws SQLException
+     */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         boolean failed = true;
         Connection dbConn = null;
@@ -107,45 +147,21 @@ public class DBUtil {
         return dbConn;
     }
 
-
-    public static List<Map<String,Object>> executeQuery(Connection connection, String sql) {
-        List<Map<String,Object>> result = com.google.common.collect.Lists.newArrayList();
-        ResultSet res = null;
-        Statement statement = null;
-        try{
-            statement = connection.createStatement();
-            res =  statement.executeQuery(sql);
-            int columns = res.getMetaData().getColumnCount();
-            List<String> columnName = com.google.common.collect.Lists.newArrayList();
-            for(int i = 0; i < columns; i++){
-                columnName.add(res.getMetaData().getColumnName(i + 1));
-            }
-
-            while(res.next()){
-                Map<String,Object> row = com.google.common.collect.Maps.newHashMap();
-                for(int i = 0;i < columns; i++){
-                    row.put(columnName.get(i), res.getObject(i + 1));
-                }
-                result.add(row);
-            }
-        }catch(Exception e){
-            throw new RuntimeException(e);
-        }
-        finally{
-            DBUtil.closeDBResources(res, statement, null, false);
-        }
-        return result;
-    }
-
-    public static void closeDBResources(ResultSet rs, Statement stmt,
-                                        Connection conn, boolean commit) {
+    /**
+     * 关闭连接资源
+     * @param rs        ResultSet
+     * @param stmt      Statement
+     * @param conn      Connection
+     * @param commit
+     */
+    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 LOG.info("Start close resultSet");
                 rs.close();
                 LOG.info("Close resultSet successful");
             } catch (SQLException e) {
-                LOG.warn("Close resultSet error:{}",e);
+                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -155,7 +171,7 @@ public class DBUtil {
                 stmt.close();
                 LOG.info("Close statement successful");
             } catch (SQLException e) {
-                LOG.warn("Close statement error:{}",e);
+                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -169,11 +185,15 @@ public class DBUtil {
                 conn.close();
                 LOG.info("Close connection successful");
             } catch (SQLException e) {
-                LOG.warn("Close connection error:{}",e);
+                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
     }
 
+    /**
+     * 手动提交事物
+     * @param conn Connection
+     */
     public static void commit(Connection conn){
         try {
             if (!conn.isClosed() && !conn.getAutoCommit()){
@@ -182,10 +202,15 @@ public class DBUtil {
                 LOG.info("Commit connection successful");
             }
         } catch (SQLException e){
-            LOG.warn("commit error:{}",e);
+            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
+    /**
+     * 批量执行sql
+     * @param dbConn Connection
+     * @param sqls   sql列表
+     */
     public static void executeBatch(Connection dbConn, List<String> sqls) {
         if(sqls == null || sqls.size() == 0) {
             return;
@@ -204,6 +229,13 @@ public class DBUtil {
         }
     }
 
+    /**
+     * 获取某数据库某表的主键和唯一索引
+     * @param table     表名
+     * @param dbConn    数据库连接
+     * @return
+     * @throws SQLException
+     */
     public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
         Map<String,List<String>> keyMap = new HashMap<>();
         DatabaseMetaData meta = dbConn.getMetaData();
@@ -219,26 +251,38 @@ public class DBUtil {
         return keyMap;
     }
 
+    /**
+     * 封装channel通道顺序
+     * @param channels
+     * @return
+     */
     public static Object[][] getParameterValues(final int channels){
-        ParameterValuesProvider provider = new ParameterValuesProvider() {
-            @Override
-            public Serializable[][] getParameterValues() {
-                Integer[][] parameters = new Integer[channels][];
-                for(int i = 0; i < channels; ++i) {
-                    parameters[i] = new Integer[2];
-                    parameters[i][0] = channels;
-                    parameters[i][1] = i;
-                }
-                return parameters;
+        ParameterValuesProvider provider = () -> {
+            Integer[][] parameters = new Integer[channels][];
+            for(int i = 0; i < channels; ++i) {
+                parameters[i] = new Integer[2];
+                parameters[i][0] = channels;
+                parameters[i][1] = i;
             }
+            return parameters;
         };
 
         return provider.getParameterValues();
     }
 
-    public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
-                                            String table,List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>();
+    /**
+     * 获取表列名类型列表
+     * @param dbURL             jdbc url
+     * @param username          数据库账号
+     * @param password          数据库密码
+     * @param databaseInterface DatabaseInterface
+     * @param table             表名
+     * @param metaColumns       MetaColumn列表
+     * @return
+     */
+    public static List<String> analyzeTable(String dbURL, String username, String password, DatabaseInterface databaseInterface,
+                                            String table, List<MetaColumn> metaColumns) {
+        List<String> ret = new ArrayList<>(metaColumns.size());
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -248,7 +292,7 @@ public class DBUtil {
             rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
-            Map<String,String> nameTypeMap = new HashMap<>();
+            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
@@ -269,6 +313,13 @@ public class DBUtil {
         return ret;
     }
 
+    /**
+     * 占位符设值
+     * @param param         参数
+     * @param statement     PreparedStatement
+     * @param i             占位符位置
+     * @throws SQLException
+     */
     public static void setParameterValue(Object param,PreparedStatement statement,int i) throws SQLException{
         if (param instanceof String) {
             statement.setString(i + 1, (String) param);
@@ -302,6 +353,12 @@ public class DBUtil {
         }
     }
 
+    /**
+     * clob转string
+     * @param obj   clob
+     * @return
+     * @throws Exception
+     */
     public static Object clobToString(Object obj) throws Exception{
         String dataStr;
         if(obj instanceof Clob){
@@ -320,16 +377,23 @@ public class DBUtil {
         return dataStr;
     }
 
-
-
+    /**
+     * 获取纳秒字符串
+     * @param timeStr
+     * @return
+     */
     public static String getNanosTimeStr(String timeStr){
         if(timeStr.length() < 29){
             timeStr += StringUtils.repeat("0",29 - timeStr.length());
         }
-
         return timeStr;
     }
 
+    /**
+     * 将边界位置时间转换成对应饿的纳秒时间
+     * @param startLocation 边界位置(起始/结束)
+     * @return
+     */
     public static int getNanos(long startLocation){
         String timeStr = String.valueOf(startLocation);
         int nanos;
@@ -348,6 +412,11 @@ public class DBUtil {
         return nanos;
     }
 
+    /**
+     * 将边界位置时间转换成对应饿的毫秒时间
+      * @param startLocation 边界位置(起始/结束)
+     * @return
+     */
     public static long getMillis(long startLocation){
         String timeStr = String.valueOf(startLocation);
         long millisSecond;
