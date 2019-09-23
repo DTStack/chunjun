@@ -247,6 +247,23 @@ public class FtpOutputFormat extends FileOutputFormat {
     }
 
     @Override
+    protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        try{
+            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            for (String file : files) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                    String newPath = path + SP + fileName;
+                    LOG.info("Move file {} to path {}", file, newPath);
+                    ftpHandler.rename(file, newPath);
+                }
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Rename temp file error:", e);
+        }
+    }
+
+    @Override
     protected void closeSource() throws IOException {
         if (os != null){
             os.flush();

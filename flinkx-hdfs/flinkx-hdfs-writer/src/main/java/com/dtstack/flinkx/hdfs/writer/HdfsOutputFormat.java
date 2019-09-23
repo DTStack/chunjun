@@ -251,4 +251,17 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
         }
     }
 
+    @Override
+    protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+        Path dir = new Path(outputFilePath);
+        Path tmpDir = new Path(tmpPath);
+
+        FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
+    }
+
 }
