@@ -39,6 +39,11 @@
                     </goals>
                     <configuration>
                         <artifactSet>
+                            <excludes>
+                                <exclude>org.slf4j:*</exclude>
+                                <exclude>log4j:*</exclude>
+                                <exclude>ch.qos.logback:*</exclude>
+                            </excludes>
                         </artifactSet>
                         <filters>
                             <filter>
