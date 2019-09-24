@@ -43,7 +43,7 @@
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>xerces:xercesImpl</exclude>
                                     <exclude>org.slf4j:*</exclude>
-                                    <exclude>log4j:*</exclude>
+                                    <!--<exclude>log4j:*</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>

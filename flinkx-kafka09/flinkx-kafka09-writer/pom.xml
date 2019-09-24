@@ -35,7 +35,7 @@
                         <artifactSet>
                             <excludes>
                                 <exclude>org.slf4j:*</exclude>
-                                <exclude>log4j:*</exclude>
+                                <!--<exclude>log4j:*</exclude>-->
                                 <exclude>ch.qos.logback:*</exclude>
                                 <exclude>netty-all:io.netty</exclude>
                                 <exclude>com.google.guava:guava</exclude>

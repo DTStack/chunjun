@@ -80,7 +80,7 @@ under the License.
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.slf4j:*</exclude>
-                                    <exclude>log4j:*</exclude>
+                                    <!--<exclude>log4j:*</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
