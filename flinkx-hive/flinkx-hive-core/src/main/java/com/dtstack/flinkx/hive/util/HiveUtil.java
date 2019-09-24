@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.dtstack.flinkx.hive.EStoreType.*;
-import static com.dtstack.flinkx.hive.EWriteModeType.*;
+import static com.dtstack.flinkx.hive.EWriteModeType.OVERWRITE;
 
 /**
  * @author toutian
@@ -119,7 +119,7 @@ public class HiveUtil {
             DBUtil.executeSqlWithoutResultSet(connection, sql);
         } catch (Exception e) {
             if (overwrite || !e.getMessage().contains(TableExistException) && !e.getMessage().contains(TableAlreadyExistsException)) {
-                logger.error("create table happens error:{}", e);
+                logger.error("create table happens error:", e);
                 throw new RuntimeException("create table happens error", e);
             } else {
                 if (logger.isDebugEnabled()) {
@@ -153,7 +153,9 @@ public class HiveUtil {
                                 }
                             } else if (matcher.group(3).contains(ORC_FORMAT)) {
                                 tableInfo.setStore(ORC.name());
-                            } else {
+                            } else if (matcher.group(3).contains(PARQUET_FORMAT)) {
+                                tableInfo.setStore(PARQUET.name());
+                            }else {
                                 throw new RuntimeException("Unsupported fileType:" + matcher.group(3));
                             }
                         }
@@ -193,8 +195,10 @@ public class HiveUtil {
             fieldsb.append(" ROW FORMAT DELIMITED FIELDS TERMINATED BY '");
             fieldsb.append(tableInfo.getDelimiter());
             fieldsb.append("' LINES TERMINATED BY '\\n' STORED AS TEXTFILE ");
-        } else {
+        } else if(ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
             fieldsb.append(" STORED AS ORC ");
+        }else{
+            fieldsb.append(" STORED AS PARQUET ");
         }
         return fieldsb.toString();
     }
@@ -271,7 +275,7 @@ public class HiveUtil {
     }
 
     public static ObjectInspector columnTypeToObjectInspetor(String columnType) {
-        ObjectInspector objectInspector = null;
+        ObjectInspector objectInspector;
         switch (columnType.toUpperCase()) {
             case "TINYINT":
                 objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
