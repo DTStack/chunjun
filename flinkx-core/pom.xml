@@ -95,6 +95,12 @@
         </dependency>
 
         <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
@@ -151,6 +157,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.google.guava:*</include>
+                                    <include>org.slf4j:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -171,7 +178,7 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <delete dir = "${basedir}/../plugins"/>
+                                <!--<delete dir = "${basedir}/../plugins"/>-->
                                 <copy todir="${basedir}/../plugins/">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
