@@ -62,7 +62,7 @@ public class KerberosUtil {
         }
     }
 
-    public static void login(Configuration conf, String principal, String keytab) throws IOException {
+    public static UserGroupInformation loginAndReturnUGI(Configuration conf, String principal, String keytab) throws IOException {
         if (conf == null) {
             throw new IllegalArgumentException("kerberos conf can not be null");
         }
@@ -83,7 +83,7 @@ public class KerberosUtil {
         UserGroupInformation.setConfiguration(conf);
 
         LOG.info("login user:{} with keytab:{}", principal, keytab);
-        UserGroupInformation.loginUserFromKeytab(principal, keytab);
+        return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
     }
 
     private static void reloadKrb5Conf(Configuration conf){
