@@ -27,14 +27,10 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.security.auth.Subject;
-import javax.security.auth.kerberos.KerberosPrincipal;
-import javax.security.auth.kerberos.KeyTab;
-import java.io.File;
-import java.io.IOException;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -55,6 +51,8 @@ import java.util.regex.Pattern;
  * @author toutian
  */
 public final class DBUtil {
+
+    private static Logger LOG = LoggerFactory.getLogger(DBUtil.class);
 
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";
 
@@ -84,27 +82,53 @@ public final class DBUtil {
 
     public static Connection getConnection(ConnectionInfo connectionInfo) {
         if(openKerberos(connectionInfo.getJdbcUrl())){
-            Subject subject = login(connectionInfo);
-            return Subject.doAs(subject, new PrivilegedAction<Connection>() {
+            return getConnectionWithKerberos(connectionInfo);
+        } else {
+            return getConnectionWithRetry(connectionInfo);
+        }
+    }
+
+    private static Connection getConnectionWithRetry(ConnectionInfo connectionInfo){
+        try {
+            return RetryUtil.executeWithRetry(new Callable<Connection>() {
                 @Override
-                public Connection run(){
+                public Connection call() throws Exception {
                     return DBUtil.connect(connectionInfo);
                 }
-            });
+            }, 1, 1000L, false);
+        } catch (Exception e1) {
+            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
+        }
+    }
+
+    private static Connection getConnectionWithKerberos(ConnectionInfo connectionInfo){
+        if(connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()){
+            throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
 
-        return null;
+        String keytab = getKeytab(connectionInfo.getHiveConf());
+        String principal = getPrincipal(connectionInfo.getJdbcUrl());
 
-//        try {
-//            return RetryUtil.executeWithRetry(new Callable<Connection>() {
-//                @Override
-//                public Connection call() throws Exception {
-//                    return DBUtil.connect(connectionInfo);
-//                }
-//            }, 1, 1000L, false);
-//        } catch (Exception e1) {
-//            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
-//        }
+        keytab = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytab, connectionInfo.getJobId(), connectionInfo.getPlugin());
+        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), connectionInfo.getJobId(), connectionInfo.getPlugin());
+
+        Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
+
+        UserGroupInformation ugi;
+        try {
+            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytab);
+        } catch (Exception e){
+            throw new RuntimeException("Login kerberos error:", e);
+        }
+
+        LOG.info("current ugi:{}", ugi);
+        return ugi.doAs(new PrivilegedAction<Connection>() {
+            @Override
+            public Connection run(){
+                return getConnectionWithRetry(connectionInfo);
+            }
+        });
     }
 
     private static boolean openKerberos(final String jdbcUrl){
@@ -121,38 +145,6 @@ public final class DBUtil {
         }
 
         return false;
-    }
-
-    private static Subject login(ConnectionInfo info){
-        try {
-            if(info.getHiveConf() == null || info.getHiveConf().isEmpty()){
-                throw new IllegalArgumentException("hiveConf can not be null or empty");
-            }
-
-            String keytab = getKeytab(info.getHiveConf());
-            String principal = getPrincipal(info.getJdbcUrl());
-
-            keytab = KerberosUtil.loadFile(info.getHiveConf(), keytab, info.getJobId(), info.getPlugin());
-            principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
-            KerberosUtil.loadKrb5Conf(info.getHiveConf(), info.getJobId(), info.getPlugin());
-
-            KerberosPrincipal kerberosPrincipal = new KerberosPrincipal(principal);
-            KeyTab keyTab = KeyTab.getInstance(kerberosPrincipal, new File(keytab));
-
-            AccessControlContext context = AccessController.getContext();
-            Subject subject = Subject.getSubject(context);
-
-            subject.getPrivateCredentials().add(keyTab);
-
-            return subject;
-
-//            Configuration conf = FileSystemUtil.getConfiguration(info.getHiveConf(), null);
-//            conf.set("hadoop.security.authentication", "Kerberos");
-//
-//            KerberosUtil.login(conf, principal, keytab);
-        } catch (Exception e) {
-            throw new RuntimeException("Login kerberos for hive error", e);
-        }
     }
 
     private static String getPrincipal(String jdbcUrl){

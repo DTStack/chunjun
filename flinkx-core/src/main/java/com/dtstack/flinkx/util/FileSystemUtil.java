@@ -25,7 +25,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.UserGroupInformation;
 
+import java.security.PrivilegedAction;
 import java.util.Map;
 
 /**
@@ -45,7 +47,7 @@ public class FileSystemUtil {
 
     public static FileSystem getFileSystem(Map<String, Object> hadoopConfig, String defaultFS, String jobId, String plugin) throws Exception {
         if(openKerberos(hadoopConfig)){
-            loginHdfs(hadoopConfig, jobId, plugin);
+            return getFsWithKerberos(hadoopConfig, jobId, plugin, defaultFS);
         }
 
         return FileSystem.get(getConfiguration(hadoopConfig, defaultFS));
@@ -59,7 +61,7 @@ public class FileSystemUtil {
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
     }
 
-    private static void loginHdfs(Map<String, Object> hadoopConfig, String jobId, String plugin) throws Exception{
+    private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String jobId, String plugin, String defaultFS) throws Exception{
         String keytab = getKeytab(hadoopConfig);
         String principal = getPrincipal(hadoopConfig);
 
@@ -67,7 +69,17 @@ public class FileSystemUtil {
         principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
         KerberosUtil.loadKrb5Conf(hadoopConfig, jobId, plugin);
 
-        KerberosUtil.login(getConfiguration(hadoopConfig, null), principal, keytab);
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFS), principal, keytab);
+        return ugi.doAs(new PrivilegedAction<FileSystem>() {
+            @Override
+            public FileSystem run(){
+                try {
+                    return FileSystem.get(getConfiguration(hadoopConfig, defaultFS));
+                } catch (Exception e){
+                    throw new RuntimeException("Get FileSystem with kerberos error:", e);
+                }
+            }
+        });
     }
 
     private static String getPrincipal(Map<String, Object> hadoopConfig){
