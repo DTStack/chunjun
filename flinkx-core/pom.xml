@@ -27,12 +27,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.21</version>
@@ -163,7 +157,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.google.guava:*</include>
-                                    <include>ch.qos.logback:*</include>
                                     <include>org.slf4j:*</include>
                                 </includes>
                             </artifactSet>

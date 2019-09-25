@@ -69,6 +69,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -99,16 +100,25 @@ public class LocalTest {
 
     private static final int DELAY_INTERVAL = 10;
 
-    public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
+    public static final String TEST_RESOURCE_DIR = "flinkx-examples/examples/";
+
+    public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
         setLogLevel(Level.INFO.toString());
 
         Properties confProperties = new Properties();
         confProperties.put("flink.checkpoint.interval", "10000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///D:/flink_checkpoint/");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 
-        String jobPath = TEST_RESOURCE_DIR + "gbase_template.json";
+        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
+        conf.setString("metrics.reporter.promgateway.port","9091");
+        conf.setString("metrics.reporter.promgateway.jobName","108job");
+        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+
+        String jobPath = TEST_RESOURCE_DIR + "binlog_to_hive.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -128,7 +138,7 @@ public class LocalTest {
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
 
-        MyLocalStreamEnvironment env = new MyLocalStreamEnvironment();
+        MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 
         openCheckpointConf(env, confProperties);
 
@@ -250,14 +260,6 @@ public class LocalTest {
         env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
         env.getCheckpointConfig().enableExternalizedCheckpoints(
                 CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-
-        String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
-        if(backendPath != null){
-            //set checkpoint save path on file system,hdfs://, file://
-            env.setStateBackend(new FsStateBackend(backendPath));
-
-            LOG.info("Set StateBackend:" + backendPath);
-        }
 
         env.setRestartStrategy(RestartStrategies.failureRateRestart(
                 FAILURE_RATE,
