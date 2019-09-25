@@ -46,6 +46,8 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
     protected static final String FINISHED_SUBDIR = ".finished";
 
+    protected static final String ACTION_FINISHED_TAG = ".actionFinished";
+
     protected static final String SP = "/";
 
     protected FileSystem fs;
@@ -149,7 +151,58 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         String dateString = formatter.format(currentTime);
         tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + taskNumber + "." + dateString;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
+
+        beforeWrite();
         open();
+    }
+
+    private void beforeWrite(){
+        if(numTasks > 0){
+            waitBeforeWrite();
+            return;
+        }
+
+        try{
+            LOG.info("Delete [.data] dir before write records");
+            cleanTemporaryDataFiles();
+        } catch (Exception e){
+            throw new RuntimeException("Clean .data dir error:", e);
+        }
+
+        try {
+            fs.create(new Path(tmpPath + SP + ACTION_FINISHED_TAG));
+        } catch (Exception e){
+            throw new RuntimeException("Clean .data dir error:", e);
+        }
+    }
+
+    private void waitBeforeWrite(){
+        try {
+            Path path = new Path(tmpPath + SP + ACTION_FINISHED_TAG);
+            boolean readyWrite = fs.exists(path);
+            int n = 0;
+            while (!readyWrite){
+                if(n > 60){
+                    throw new RuntimeException("Wait action finished before write timeout");
+                }
+
+                SysUtil.sleep(1000);
+                readyWrite = fs.exists(path);
+                n++;
+            }
+        } catch (Exception e){
+            throw new RuntimeException("wait before write error:", e);
+        }
+    }
+
+    private void cleanTemporaryDataFiles() throws IOException{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        fs.delete(finishedDir, true);
+        LOG.info("Delete .finished dir:{}", finishedDir);
+
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+        fs.delete(tmpDir, true);
+        LOG.info("Delete .data dir:{}", tmpDir);
     }
 
     protected abstract void open() throws IOException;
