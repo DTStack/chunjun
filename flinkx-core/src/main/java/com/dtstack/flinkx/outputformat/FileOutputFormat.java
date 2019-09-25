@@ -21,6 +21,7 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
@@ -130,7 +131,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 coverageData();
             }
         } catch (Exception e){
-            throw new RuntimeException("");
+            LOG.error("writeMode = {}, formatState = {}, e = {}", writeMode, formatState.getState(), ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
         }
 
         try {
