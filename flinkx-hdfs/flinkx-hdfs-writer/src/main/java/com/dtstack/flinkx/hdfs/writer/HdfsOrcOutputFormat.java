@@ -243,7 +243,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                 if(hiveDecimal == null){
                     throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
-                            decimalInfo.getPrecision(), decimalInfo.getScale()), null, index, row);
+                            decimalInfo.getPrecision(), decimalInfo.getScale()), new IllegalArgumentException(), index, row);
                 }
 
                 HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
