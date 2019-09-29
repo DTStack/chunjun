@@ -27,31 +27,90 @@ import java.io.Serializable;
  */
 public class KuduConfig implements Serializable {
 
+    /**
+     * master节点地址:端口，多个以,隔开
+     */
     private String masterAddresses;
 
+    /**
+     * 认证方式，如:Kerberos
+     */
     private String authentication;
 
+    /**
+     * 用户名
+     */
     private String principal;
 
+    /**
+     * keytab文件路径
+     */
     private String keytabFile;
 
+    /**
+     * worker线程数，默认为cpu*2
+     */
     private Integer workerCount;
 
+    /**
+     * boss线程数，默认为1
+     */
     private Integer bossCount;
 
+    /**
+     * 设置普通操作超时时间，默认30S
+     */
     private Long operationTimeout;
 
+    /**
+     * 设置管理员操作(建表，删表)超时时间，默认30S
+     */
     private Long adminOperationTimeout;
 
+    /**
+     * 连接scan token的超时时间，如果不设置，则与operationTimeout一致
+     */
     private Long queryTimeout;
 
+    /**
+     * kudu表名
+     */
     private String table;
 
+    /**
+     * kudu读取模式：
+     *  1、READ_LATEST 默认的读取模式
+     *  该模式下，服务器将始终在收到请求时返回已提交的写操作。这种类型的读取不会返回快照时间戳，并且不可重复。
+     *  用ACID术语表示，它对应于隔离模式：“读已提交”
+     *
+     *  2、READ_AT_SNAPSHOT
+     *  该模式下，服务器将尝试在提供的时间戳上执行读取。如果未提供时间戳，则服务器将当前时间作为快照时间戳。
+     *  在这种模式下，读取是可重复的，即将来所有在相同时间戳记下的读取将产生相同的数据。
+     *  执行此操作的代价是等待时间戳小于快照的时间戳的正在进行的正在进行的事务，因此可能会导致延迟损失。用ACID术语，这本身就相当于隔离模式“可重复读取”。
+     *  如果对已扫描tablet的所有写入均在外部保持一致，则这对应于隔离模式“严格可序列化”。
+     *  注意：当前存在“空洞”，在罕见的边缘条件下会发生，通过这种空洞有时即使在采取措施使写入如此时，它们在外部也不一致。
+     *  在这些情况下，隔离可能会退化为“读取已提交”模式。
+     *  3、READ_YOUR_WRITES 不支持该模式
+     */
     private String readMode;
 
+    /**
+     * 过滤条件字符串，如：id >= 1 and time > 1565586665372
+     */
     private String filterString;
 
+    /**
+     * kudu scan一次性最大读取字节数，默认为1MB
+     */
     private int batchSizeBytes;
+
+    /**
+     * writer写入时session刷新模式
+     *  auto_flush_sync（默认）
+     *  auto_flush_background
+     *  manual_flush
+     */
+    private String flushMode;
 
     public String getFilterString() {
         return filterString;
@@ -155,5 +214,13 @@ public class KuduConfig implements Serializable {
 
     public void setAdminOperationTimeout(Long adminOperationTimeout) {
         this.adminOperationTimeout = adminOperationTimeout;
+    }
+
+    public String getFlushMode() {
+        return flushMode;
+    }
+
+    public void setFlushMode(String flushMode) {
+        this.flushMode = flushMode;
     }
 }

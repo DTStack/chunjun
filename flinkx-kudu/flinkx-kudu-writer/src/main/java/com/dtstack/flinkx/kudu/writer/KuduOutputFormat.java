@@ -25,6 +25,7 @@ import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.types.Row;
 import org.apache.kudu.client.*;
 
@@ -58,7 +59,19 @@ public class KuduOutputFormat extends RichOutputFormat {
         }
 
         session = client.newSession();
+        session.setMutationBufferSpace(batchInterval);
         kuduTable = client.openTable(kuduConfig.getTable());
+
+        switch (kuduConfig.getFlushMode().toLowerCase()){
+            case "auto_flush_background":
+                session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
+                break;
+            case "manual_flush":
+                session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
+                break;
+            default:
+                session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
+        }
     }
 
     @Override
@@ -66,6 +79,7 @@ public class KuduOutputFormat extends RichOutputFormat {
         writeData(row);
 
         if(numWriteCounter.getLocalValue() % batchInterval == 0){
+            LOG.info("writeSingleRecordInternal, numWriteCounter = {}", numWriteCounter.getLocalValue());
             try {
                 session.flush();
             } catch (KuduException e) {
@@ -86,6 +100,7 @@ public class KuduOutputFormat extends RichOutputFormat {
 
             session.apply(operation);
         } catch (Exception e){
+            LOG.error("Write data error, index = {}, row = {}, e = {}", index, row, ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException("Write data error", e, index, row);
         }
     }
@@ -104,10 +119,10 @@ public class KuduOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
+        LOG.info("writeRecordInternal, row size = {}", rows.size());
         for (Row row : rows) {
             writeData(row);
         }
-
         session.flush();
     }
 

@@ -39,6 +39,7 @@ public final class KuduConfigBuilder {
     private Long queryTimeout;
     private String table;
     private String readMode;
+    private String flushMode;
     private String filterString;
     private int batchSizeBytes;
 
@@ -106,6 +107,11 @@ public final class KuduConfigBuilder {
         return this;
     }
 
+    public KuduConfigBuilder withFlushMode(String flushMode){
+        this.flushMode = flushMode;
+        return this;
+    }
+
     public KuduConfigBuilder withFilter(String filter){
         this.filterString = filter;
         return this;
@@ -134,6 +140,7 @@ public final class KuduConfigBuilder {
         kuduConfig.setQueryTimeout(queryTimeout);
         kuduConfig.setTable(table);
         kuduConfig.setReadMode(readMode);
+        kuduConfig.setFlushMode(flushMode);
         kuduConfig.setFilterString(filterString);
         kuduConfig.setBatchSizeBytes(batchSizeBytes);
         return kuduConfig;

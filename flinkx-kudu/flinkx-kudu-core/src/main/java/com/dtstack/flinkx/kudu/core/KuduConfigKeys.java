@@ -36,6 +36,7 @@ public class KuduConfigKeys {
     public final static String KEY_ADMIN_OPERATION_TIMEOUT = "adminOperationTimeout";
     public final static String KEY_TABLE = "table";
     public final static String KEY_READ_MODE = "readMode";
-    public final static String KEY_FILTER = "filter";
+    public final static String KEY_FLUSH_MODE = "flushMode";
+    public final static String KEY_FILTER = "where";
     public final static String KEY_BATCH_SIZE_BYTES = "batchSizeBytes";
 }

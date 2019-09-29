@@ -218,6 +218,8 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MongoDB读取插件](docs/mongodbreader.md)
 * [Stream读取插件](docs/streamreader.md)
 * [Carbondata读取插件](docs/carbondatareader.md)
+* [Kudu读取插件](docs/kudureader.md)
+
 
 ### 5.2 写入插件
 
@@ -231,6 +233,8 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Redis写入插件](docs/rediswriter.md)
 * [Stream写入插件](docs/streamwriter.md)
 * [Carbondata写入插件](docs/carbondatawriter.md)
+* [Kudu写入插件](docs/kuduwriter.md)
+
 
 ## 6.版本说明
 

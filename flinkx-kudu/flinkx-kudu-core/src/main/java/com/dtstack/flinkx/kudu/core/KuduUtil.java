@@ -20,7 +20,6 @@
 package com.dtstack.flinkx.kudu.core;
 
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -32,10 +31,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.PrivilegedExceptionAction;
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,14 +71,13 @@ public class KuduUtil {
                 .syncClient();
     }
 
-    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns,
-                                                       String filterString) throws IOException{
-        KuduClient client = null;
-        try {
-            client = getKuduClient(config);
+    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString) throws IOException{
+        try (
+                KuduClient client = getKuduClient(config)
+        ) {
             KuduTable kuduTable = client.openTable(config.getTable());
 
-            List<String> columnNames = Lists.newArrayList();
+            List<String> columnNames = new ArrayList<>(columns.size());
             for (MetaColumn column : columns) {
                 columnNames.add(column.getName());
             }
@@ -93,15 +88,12 @@ public class KuduUtil {
                     .setTimeout(config.getQueryTimeout())
                     .setProjectedColumnNames(columnNames);
 
+            //添加过滤条件
             addPredicates(builder, filterString, columns);
 
             return builder.build();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new IOException("Get ScanToken error", e);
-        } finally {
-            if(client != null){
-                client.close();
-            }
         }
     }
 
@@ -148,6 +140,7 @@ public class KuduUtil {
             case "float" : return  Type.FLOAT;
             case "double" : return  Type.DOUBLE;
             case "decimal" : return  Type.DECIMAL;
+            case "binary" : return Type.BINARY;
             case "char":
             case "varchar":
             case "text":

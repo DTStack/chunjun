@@ -47,6 +47,8 @@ public class KuduWriter extends DataWriter {
 
     private String writeMode;
 
+    private int batchInterval;
+
     public KuduWriter(DataTransferConfig config) {
         super(config);
 
@@ -54,6 +56,7 @@ public class KuduWriter extends DataWriter {
 
         columns = MetaColumn.getMetaColumns(parameterConfig.getColumn());
         writeMode = parameterConfig.getStringVal("writeMode");
+        batchInterval = parameterConfig.getIntVal("batchInterval", 1);
         kuduConfig = KuduConfigBuilder.getInstance()
                 .withMasterAddresses(parameterConfig.getStringVal(KEY_MASTER_ADDRESSES))
                 .withAuthentication(parameterConfig.getStringVal(KEY_AUTHENTICATION))
@@ -64,6 +67,7 @@ public class KuduWriter extends DataWriter {
                 .withOperationTimeout(parameterConfig.getLongVal(KEY_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_OPERATION_TIMEOUT_MS))
                 .withAdminOperationTimeout(parameterConfig.getLongVal(KEY_ADMIN_OPERATION_TIMEOUT, AsyncKuduClient.DEFAULT_KEEP_ALIVE_PERIOD_MS))
                 .withTable(parameterConfig.getStringVal(KEY_TABLE))
+                .withFlushMode(parameterConfig.getStringVal(KEY_FLUSH_MODE))
                 .build();
     }
 
@@ -74,6 +78,7 @@ public class KuduWriter extends DataWriter {
         builder.setColumns(columns);
         builder.setKuduConfig(kuduConfig);
         builder.setWriteMode(writeMode);
+        builder.setBatchInterval(batchInterval);
 
         DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);

@@ -50,18 +50,20 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public void openInputFormat() throws IOException {
+        LOG.info("execute openInputFormat");
         super.openInputFormat();
 
         try {
             client = KuduUtil.getKuduClient(kuduConfig);
-        } catch (IOException | InterruptedException e){
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Get KuduClient error", e);
         }
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        KuduTableSplit kuduTableSplit = (KuduTableSplit)inputSplit;
+        LOG.info("execute openInternal,splitNumber = {}, indexOfSubtask  = {}", inputSplit.getSplitNumber(), indexOfSubtask);
+        KuduTableSplit kuduTableSplit = (KuduTableSplit) inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
     }
 
@@ -73,36 +75,39 @@ public class KuduInputFormat extends RichInputFormat {
         for (int i = 0; i < columns.size(); i++) {
             MetaColumn column = columns.get(i);
             Type type = KuduUtil.getType(column.getType());
-            if(column.getValue() != null){
+            if (column.getValue() != null) {
                 row.setField(i, KuduUtil.getValue(column.getValue(), type));
             } else {
                 row.setField(i, getValue(type, rowResult, column.getName()));
             }
         }
 
+        LOG.info("nextRecordInternal, numReadCounter = {}", numReadCounter.getLocalValue());
         return row;
     }
 
-    private Object getValue(Type type, RowResult rowResult, String name){
+    private Object getValue(Type type, RowResult rowResult, String name) {
         Object objValue;
 
-        if (Type.BOOL.equals(type)){
+        if (Type.BOOL.equals(type)) {
             objValue = rowResult.getBoolean(name);
-        } else if(Type.INT8.equals(type)){
+        } else if (Type.INT8.equals(type)) {
             objValue = rowResult.getByte(name);
-        } else if(Type.INT16.equals(type)){
+        } else if (Type.INT16.equals(type)) {
             objValue = rowResult.getShort(name);
-        } else if(Type.INT32.equals(type)){
+        } else if (Type.INT32.equals(type)) {
             objValue = rowResult.getInt(name);
-        } else if(Type.INT64.equals(type)){
+        } else if (Type.INT64.equals(type)) {
             objValue = rowResult.getLong(name);
-        } else if(Type.FLOAT.equals(type)){
+        } else if (Type.FLOAT.equals(type)) {
             objValue = rowResult.getFloat(name);
-        } else if(Type.DOUBLE.equals(type)){
+        } else if (Type.DOUBLE.equals(type)) {
             objValue = rowResult.getDouble(name);
-        } else if(Type.DECIMAL.equals(type)){
+        } else if (Type.DECIMAL.equals(type)) {
             objValue = rowResult.getDecimal(name);
-        } else if(Type.UNIXTIME_MICROS.equals(type)){
+        } else if (Type.BINARY.equals(type)) {
+            objValue = rowResult.getBinary(name);
+        } else if (Type.UNIXTIME_MICROS.equals(type)) {
             objValue = rowResult.getTimestamp(name);
         } else {
             objValue = rowResult.getString(name);
@@ -113,6 +118,7 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+        LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
         List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString());
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
@@ -124,15 +130,17 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        if(iterator == null || !iterator.hasNext()){
+        LOG.info("execute reachedEnd, indexOfSubtask = {}", indexOfSubtask);
+        if (iterator == null || !iterator.hasNext()) {
             return getNextRows();
         }
 
         return false;
     }
 
-    private boolean getNextRows() throws IOException{
-        if(scanner.hasMoreRows()){
+    private boolean getNextRows() throws IOException {
+        LOG.info("execute getNextRows, scanner is closed : {}", scanner.isClosed());
+        if (scanner.hasMoreRows()) {
             iterator = scanner.nextRows();
         }
 
@@ -141,7 +149,8 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if(scanner != null){
+        LOG.info("execute closeInternal, indexOfSubtask = {}", indexOfSubtask);
+        if (scanner != null) {
             scanner.close();
             scanner = null;
         }
@@ -151,7 +160,7 @@ public class KuduInputFormat extends RichInputFormat {
     public void closeInputFormat() throws IOException {
         super.closeInputFormat();
 
-        if (client != null){
+        if (client != null) {
             client.close();
             client = null;
         }
