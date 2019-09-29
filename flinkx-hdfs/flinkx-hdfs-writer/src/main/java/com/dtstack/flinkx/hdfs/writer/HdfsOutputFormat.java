@@ -157,7 +157,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
     }
 
     private void beforeWrite(){
-        if(numTasks > 0){
+        if(taskNumber > 0){
             waitBeforeWrite();
             return;
         }
