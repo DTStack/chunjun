@@ -117,9 +117,11 @@ public class KuduUtil {
 
         String[] filters = filterString.split(FILTER_SPLIT_REGEX);
         for (String filter : filters) {
-            ExpressResult expressResult = parseExpress(filter, nameTypeMap);
-            KuduPredicate predicate = KuduPredicate.newComparisonPredicate(expressResult.getColumnSchema(), expressResult.getOp(), expressResult.getValue());
-            builder.addPredicate(predicate);
+            if(StringUtils.isNotBlank(filter)){
+                ExpressResult expressResult = parseExpress(filter, nameTypeMap);
+                KuduPredicate predicate = KuduPredicate.newComparisonPredicate(expressResult.getColumnSchema(), expressResult.getOp(), expressResult.getValue());
+                builder.addPredicate(predicate);
+            }
         }
     }
 
