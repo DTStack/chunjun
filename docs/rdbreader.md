@@ -37,7 +37,8 @@
                     "requestAccumulatorInterval": 2,
                     "increColumn": "id",
                     "startLocation": null,
-                    "useMaxFunc": true
+                    "useMaxFunc": true,
+                    "orderByColumn": "id"
                 },
                 "name": "mysqlreader"
             },
@@ -56,7 +57,7 @@
 
 * **name**
   
-  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader。    
+  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader，gbasereader。    
     * 必选：是 
     
     * 默认值：无 
@@ -76,6 +77,8 @@
     - [PostgreSql官方文档](https://jdbc.postgresql.org/documentation/head/connect.html)
     
     - [Db2官方文档](https://www.ibm.com/analytics/us/en/db2/)
+    
+    - [Gbase官方文档](http://www.gbase.cn/download.html)
   
   * 必选：是
   
@@ -219,10 +222,10 @@
     
     ```
     "column": [{
-    	"name": "col",
-    	"type": "datetime",
-    	"format": "yyyy-MM-dd hh:mm:ss",
-    	"value": "value"
+        "name": "col",
+        "type": "datetime",
+        "format": "yyyy-MM-dd hh:mm:ss",
+        "value": "value"
     }]
     ```
   
@@ -237,5 +240,13 @@
     * value：如果数据库里不存在指定的字段，则会把value的值作为常量列返回，如果指定的字段存在，当指定字段的值为null时，会以此value值作为默认值返回
   
   * 必选：是
+  
+  * 默认值：无
+
+* **orderByColumn**
+  
+  * 描述：排序字段，读取PostgreSQL数据时，如果中途任务失败，没有关闭事务，会导致表里的数据顺序改变，再次运行任务时由于数据顺序不对会影响数据的准确性，因此使用orderByColumn指定的字段进行排序避免这种情况。
+  
+  * 必选：否
   
   * 默认值：无

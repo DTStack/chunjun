@@ -4,33 +4,33 @@
 
 ```
 {
-	"job": {
-		"content": [{
-			"reader": {},
-			"writer": {
-				"name": "*writer",
+    "job": {
+        "content": [{
+            "reader": {},
+            "writer": {
+                "name": "*writer",
 
-				"parameter": {
-					"connection": [{
-						"jdbcUrl": "jdbc:mysql://127.0.0.1:3306/test?useCursorFetch=true",
-						"table": [
-							"tableTest"
-						]
-					}],
-					"username": "username",
-					"password": "password",
-					"column": [],
+                "parameter": {
+                    "connection": [{
+                        "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/test?useCursorFetch=true",
+                        "table": [
+                            "tableTest"
+                        ]
+                    }],
+                    "username": "username",
+                    "password": "password",
+                    "column": [],
 
-					"writeMode": "insert",
-					"batchSize": 1024,
-					"preSql": "",
-					"postSql": "",
-					"updateKey": ""
-				}
-			}
-		}]
-	},
-	"setting": {}
+                    "writeMode": "insert",
+                    "batchSize": 1024,
+                    "preSql": "",
+                    "postSql": "",
+                    "updateKey": ""
+                }
+            }
+        }]
+    },
+    "setting": {}
 }
 ```
 
@@ -38,7 +38,8 @@
 
 * **name**
   
-  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer
+  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter
+  
   * 必选：是
     
     默认值：无
