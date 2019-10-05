@@ -251,6 +251,10 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 [断点续传和实时采集功能介绍](docs/restore.md)
 
+[数据源开启Kerberos](docs/kerberos.md)
+
+[统计指标说明](docs/statistics.md)
+
 ## 6.版本说明
 
  1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.5.0 对应 flink1.5.0,版本说明：

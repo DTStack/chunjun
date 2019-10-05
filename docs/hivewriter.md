@@ -52,7 +52,7 @@
 
 * **name**
   
-  * 描述：插件名称hivewriter，hivewriter一般结合mysql binlog插件使用，hive插件底层使用的是hdfswriter插件的共，所以需要填写hdfswriter插件需要的参数。hivewriter插件支持同时写入多张表的多个分区，以及自动创建hive表。
+  * 描述：插件名称hivewriter，hivewriter一般结合mysql binlog插件使用，hive插件底层使用的是hdfswriter插件的共，所以需要填写hdfswriter插件需要的参数。hivewriter插件支持同时写入多张表的多个分区，以及自动创建hive表。开启kerberos的话参考文档[数据源开启Kerberos](kerberos.md)。
   
   * 必选：是
   
