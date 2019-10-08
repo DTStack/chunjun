@@ -2,7 +2,7 @@
 
 ## 1. 配置样例
 
-```
+```json
 {
     "job": {
         "setting": {
@@ -17,7 +17,13 @@
                             "hbase.rootdir": "hdfs://ns1/hbase",
                             "hbase.cluster.distributed": "true",
                             "hbase.zookeeper.quorum": "host1,host2,host3",
-                            "zookeeper.znode.parent": "/hbase"
+                            "zookeeper.znode.parent": "/hbase",
+                         "hbase.security.authentication":"Kerberos",
+ "hbase.security.authorization":true,
+ "hbase.master.kerberos.principal":"hbase/node1@TEST.COM",
+ "hbase.master.keytab.file":"hbase.keytab",
+ "hbase.regionserver.keytab.file":"hbase.keytab",
+ "hbase.regionserver.kerberos.principal":"hbase/node1@TEST.COM"
                         },
                         "table": "tableTest",
                         "rowkeyColumn": [{
@@ -50,7 +56,7 @@
 
 * **hbaseConfig**
   
-  * 描述：hbase的连接配置，以json的形式组织 (见hbase-site.xml)
+  * 描述：hbase的连接配置，以json的形式组织 (见hbase-site.xml)，开启kerberos的话参考文档[数据源开启Kerberos](kerberos.md)
   
   * 必选：是 
   

@@ -44,16 +44,7 @@
               "zookeeper.znode.parent": "/hbase"
             },
             "table": "tb1",
-            "rowkeyColumn": [
-              {
-                "index": 0,
-                "type": "string"
-              },
-              {
-                "value": "_postfix",
-                "type": "string"
-              }
-            ],
+            "rowkeyColumn": "col1#col2",
             "column": [
               {
                 "name": "cf1:id",

@@ -43,7 +43,7 @@
 
 * **defaultFS**
   
-  * 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9000<br />
+  * 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9
   
   * 必选：是 <br />
   

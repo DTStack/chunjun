@@ -231,6 +231,8 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MongoDB读取插件](docs/mongodbreader.md)
 * [Stream读取插件](docs/streamreader.md)
 * [Carbondata读取插件](docs/carbondatareader.md)
+* [MySQL binlog读取插件](docs/binlog.md)
+* [KafKa读取插件](docs/kafkareader.md)
 
 ### 5.2 写入插件
 
@@ -244,10 +246,23 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Redis写入插件](docs/rediswriter.md)
 * [Stream写入插件](docs/streamwriter.md)
 * [Carbondata写入插件](docs/carbondatawriter.md)
+* [Kafka写入插件](docs/kafkawriter.md)
+* [Hive写入插件](docs/hivewriter.md)
+
+[断点续传和实时采集功能介绍](docs/restore.md)
+
+[数据源开启Kerberos](docs/kerberos.md)
+
+[统计指标说明](docs/statistics.md)
 
 ## 6.版本说明
 
- 1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.4.0 对应 flink1.4.0,现在支持flink1.4和1.5
+ 1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.5.0 对应 flink1.5.0,版本说明：
+
+| 插件版本  | flink版本 |
+| ----- | ------- |
+| 1.5.x | 1.5.4   |
+| 1.8.x | 1.8.1   |
 
 ## 7.招聘信息
 

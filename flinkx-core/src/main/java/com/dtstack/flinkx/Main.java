@@ -151,12 +151,6 @@ public class Main {
             env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
             env.getCheckpointConfig().enableExternalizedCheckpoints(
                     CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-            String backendPath = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_DATAURI_KEY);
-            if(backendPath != null){
-                //set checkpoint save path on file system,hdfs://, file://
-                env.setStateBackend(new FsStateBackend(backendPath.trim()));
-                LOG.info("Set StateBackend:" + backendPath);
-            }
         }
         return env;
     }
