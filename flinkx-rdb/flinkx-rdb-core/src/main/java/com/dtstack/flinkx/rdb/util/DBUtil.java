@@ -124,27 +124,31 @@ public class DBUtil {
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
-        boolean failed = true;
-        Connection dbConn = null;
-        for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
-            try {
-                dbConn = getConnectionInternal(url, username, password);
-                dbConn.createStatement().execute("select 111");
-                failed = false;
-            } catch (Exception e) {
-                if (dbConn != null) {
-                    dbConn.close();
-                }
+        if (!url.startsWith("jdbc:mysql")) {
+            return getConnectionInternal(url, username, password);
+        } else {
+            boolean failed = true;
+            Connection dbConn = null;
+            for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
+                try {
+                    dbConn = getConnectionInternal(url, username, password);
+                    dbConn.createStatement().execute("select 111");
+                    failed = false;
+                } catch (Exception e) {
+                    if (dbConn != null) {
+                        dbConn.close();
+                    }
 
-                if (i == MAX_RETRY_TIMES - 1) {
-                    throw e;
-                } else {
-                    SysUtil.sleep(3000);
+                    if (i == MAX_RETRY_TIMES - 1) {
+                        throw e;
+                    } else {
+                        SysUtil.sleep(3000);
+                    }
                 }
             }
-        }
 
-        return dbConn;
+            return dbConn;
+        }
     }
 
     /**

@@ -23,11 +23,14 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
 
 /**
  * Date: 2019/09/20
@@ -52,7 +55,6 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             if(!canReadData(inputSplit)){
                 LOG.warn("Not read data when the start location are equal to end location");
-
                 hasNext = false;
                 return;
             }
@@ -61,8 +63,8 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
-            statement.setFetchSize(Integer.MIN_VALUE);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement.setFetchSize(Integer.MIN_VALUE);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
@@ -90,5 +92,26 @@ public class GbaseInputFormat extends JdbcInputFormat {
         }
 
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
+    }
+
+    @Override
+    public Row nextRecordInternal(Row row) throws IOException {
+        if (!hasNext) {
+            return null;
+        }
+        row = new Row(columnCount);
+        try {
+            for (int pos = 0; pos < row.getArity(); pos++) {
+                Object obj = resultSet.getObject(pos + 1);
+                if(obj != null) {
+                    obj = clobToString(obj);
+                }
+
+                row.setField(pos, obj);
+            }
+            return super.nextRecordInternal(row);
+        }catch (Exception e) {
+            throw new IOException("Couldn't read data - " + e.getMessage(), e);
+        }
     }
 }
