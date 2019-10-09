@@ -21,6 +21,7 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
@@ -123,6 +124,16 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         checkOutputDir();
+
+        try{
+            // 覆盖模式并且不是从检查点恢复时先删除数据目录
+            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState.getState() == null){
+                coverageData();
+            }
+        } catch (Exception e){
+            LOG.error("writeMode = {}, formatState = {}, e = {}", writeMode, formatState.getState(), ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
+        }
 
         try {
             LOG.info("Delete [.data] dir before write records");
@@ -234,10 +245,13 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         readyCheckpoint = false;
 
-        //任务正常结束时最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
+        //最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
         if(isTaskEndsNormally()){
             flushData();
-            moveTemporaryDataBlockFileToDirectory();
+            //restore == false 需要主动执行
+            if (!restoreConfig.isRestore()) {
+                moveTemporaryDataBlockFileToDirectory();
+            }
         }
     }
 
@@ -248,24 +262,18 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 return;
             }
 
-            createFinishedTag();
-
-            if(taskNumber == 0) {
-                waitForAllTasksToFinish();
-
-                if(!APPEND_MODE.equalsIgnoreCase(writeMode)){
-                    coverageData();
-                }
-            }
-
-            //离线任务正常被close，触发 .data 目录下的文件移动到数据目录做准备
             if (!restoreConfig.isStream()) {
-                moveTemporaryDataFileToDirectory();
-            }
+                createFinishedTag();
 
-            if (taskNumber == 0){
-                LOG.info("The task ran successfully,clear temporary data files");
-                clearTemporaryDataFiles();
+                if(taskNumber == 0) {
+                    waitForAllTasksToFinish();
+
+                    //正常被close，触发 .data 目录下的文件移动到数据目录
+                    moveAllTemporaryDataFileToDirectory();
+
+                    LOG.info("The task ran successfully,clear temporary data files");
+                    clearTemporaryDataFiles();
+                }
             }
 
             closeSource();
@@ -345,6 +353,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     protected abstract void coverageData() throws IOException;
 
     protected abstract void moveTemporaryDataFileToDirectory() throws IOException;
+
+    protected abstract void moveAllTemporaryDataFileToDirectory() throws IOException;
 
     protected abstract void checkOutputDir();
 

@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The Parser of Launcher commandline options
@@ -88,7 +89,7 @@ public class LauncherOptionParser {
             FileInputStream in = new FileInputStream(file);
             byte[] filecontent = new byte[(int) file.length()];
             in.read(filecontent);
-            String content = new String(filecontent, "UTF-8");
+            String content = new String(filecontent, StandardCharsets.UTF_8);
             launcherOptions.setJob(content);
 
             String pluginRoot = Preconditions.checkNotNull(cl.getOptionValue(OPTION_PLUGIN_ROOT));

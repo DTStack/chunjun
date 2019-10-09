@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.binlog.reader;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
@@ -100,6 +99,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             message.put("schema", schema);
             message.put("table", table);
             message.put("ts", ts);
+            message.put("ingestion", System.nanoTime());
 
             if (pavingData){
                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
