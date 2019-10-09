@@ -170,7 +170,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         }
 
         try {
-            fs.create(new Path(tmpPath + SP + ACTION_FINISHED_TAG));
+            fs.create(new Path(outputFilePath + SP + DATA_SUBDIR + SP + ACTION_FINISHED_TAG));
         } catch (Exception e){
             throw new RuntimeException("Clean .data dir error:", e);
         }
@@ -178,7 +178,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
     private void waitBeforeWrite(){
         try {
-            Path path = new Path(tmpPath + SP + ACTION_FINISHED_TAG);
+            Path path = new Path(outputFilePath + SP + DATA_SUBDIR + SP + ACTION_FINISHED_TAG);
             boolean readyWrite = fs.exists(path);
             int n = 0;
             while (!readyWrite){
