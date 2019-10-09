@@ -73,6 +73,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected String mode = EWriteMode.INSERT.name();
 
+    /**just for postgresql,use copy replace insert*/
+    protected String insertSqlMode;
+
     protected String table;
 
     protected List<String> column;
@@ -91,7 +94,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     private boolean readyCheckpoint;
 
-    private long rowsOfCurrentTransaction;
+    protected long rowsOfCurrentTransaction;
 
     private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
@@ -103,6 +106,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             "t.index_name = i.index_name " +
             "AND i.uniqueness = 'UNIQUE' " +
             "AND t.table_name = '%s'";
+
+    protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
 
     protected PreparedStatement prepareTemplates() throws SQLException {
         if(fullColumn == null || fullColumn.size() == 0) {
@@ -119,6 +124,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + mode);
         }
+
+        LOG.info("write sql:{}", singleSql);
 
         return dbConn.prepareStatement(singleSql);
     }
@@ -201,11 +208,21 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
             preparedStatement.execute();
         } catch (Exception e) {
-            if(index < row.getArity()) {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
-            }
-            throw new WriteRecordException(e.getMessage(), e);
+            processWriteException(e, index, row);
         }
+    }
+
+    protected void processWriteException(Exception e, int index, Row row) throws WriteRecordException{
+        if(e instanceof SQLException){
+            if(e.getMessage().contains(CONN_CLOSE_ERROR_MSG)){
+                throw new RuntimeException("Connection maybe closed", e);
+            }
+        }
+
+        if(index < row.getArity()) {
+            throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+        }
+        throw new WriteRecordException(e.getMessage(), e);
     }
 
     @Override
@@ -233,7 +250,10 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
 
             preparedStatement.executeBatch();
-            rowsOfCurrentTransaction += rows.size();
+
+            if(restoreConfig.isRestore()){
+                rowsOfCurrentTransaction += rows.size();
+            }
         } catch (Exception e){
             if (restoreConfig.isRestore()){
                 LOG.warn("writeMultipleRecordsInternal:Start rollback");
@@ -263,13 +283,14 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
-                numWriteCounter.add(rowsOfCurrentTransaction);
+                snapshotWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(numWriteCounter.getLocalValue());
+                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 LOG.info("format state:{}", formatState.getState());
 
+                super.getFormatState();
                 return formatState;
             }
 
@@ -401,31 +422,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        numWriteCounter.add(rowsOfCurrentTransaction);
-
         DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
-
-        //FIXME TEST
-        //oracle
-        if (EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
-            String oracleTimeoutPollingThreadName = "OracleTimeoutPollingThread";
-            Thread thread = getThreadByName(oracleTimeoutPollingThreadName);
-            if(thread != null){
-                thread.interrupt();
-                LOG.warn("----close curr oracle polling thread: " + oracleTimeoutPollingThreadName);
-            }
-        }
-    }
-
-    public Thread getThreadByName(String name){
-        for(Thread t : Thread.getAllStackTraces().keySet()){
-            if(t.getName().equals(name)){
-                return t;
-            }
-        }
-
-        return null;
     }
 
     @Override

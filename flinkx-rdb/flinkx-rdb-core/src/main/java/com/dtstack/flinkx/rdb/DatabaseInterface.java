@@ -59,15 +59,11 @@ public interface DatabaseInterface {
 
     String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey);
 
-//    String getMultiInsertStatement(List<String> column, String table, int batchSize);
-
-//    String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey);
-
-//    String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey);
-
     String getSplitFilter(String columnName);
 
     String getSplitFilterWithTmpTable(String tmpTable, String columnName);
+
+    String getRowNumColumn(String orderBy);
 
     int getFetchSize();
 

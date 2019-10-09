@@ -100,18 +100,24 @@ public class EsOutputFormat extends RichOutputFormat {
 
         BulkResponse response = client.bulk(bulkRequest);
         if (response.hasFailures()){
-            if (dirtyDataManager != null){
-                BulkItemResponse[] itemResponses = response.getItems();
-                WriteRecordException exception;
-                for (int i = 0; i < itemResponses.length; i++) {
-                    if(itemResponses[i].isFailed()){
-                        exception = new WriteRecordException(itemResponses[i].getFailureMessage()
-                                ,itemResponses[i].getFailure().getCause());
-                        dirtyDataManager.writeData(rows.get(i), exception);
-                    }
+            processFailResponse(response);
+        }
+    }
+
+    private void processFailResponse(BulkResponse response){
+        BulkItemResponse[] itemResponses = response.getItems();
+        WriteRecordException exception;
+        for (int i = 0; i < itemResponses.length; i++) {
+            if(itemResponses[i].isFailed()){
+                if (dirtyDataManager != null){
+                    exception = new WriteRecordException(itemResponses[i].getFailureMessage()
+                            ,itemResponses[i].getFailure().getCause());
+                    dirtyDataManager.writeData(rows.get(i), exception);
                 }
-            } else {
-                LOG.warn(response.buildFailureMessage());
+
+                if(numWriteCounter != null ){
+                    numWriteCounter.add(1);
+                }
             }
         }
     }

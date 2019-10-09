@@ -31,6 +31,7 @@ public class FunctionFactory {
         if (StringUtils.isBlank(functionName)) {
             throw new UnsupportedOperationException("function name can't be null!");
         }
+
         IFunction function = null;
         switch (functionName.toUpperCase()) {
             case "MD5":
@@ -39,8 +40,11 @@ public class FunctionFactory {
             case "STRING":
                 function = new StringFunction();
                 break;
+            case "CONSTANT":
+                function = new ConstantFunction();
+                break;
             default:
-                throw new UnsupportedOperationException("function name don't exist!");
+                throw new UnsupportedOperationException(String.format("function name[%s] don't exist!", functionName));
         }
         return function;
     }

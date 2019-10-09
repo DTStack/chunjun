@@ -62,8 +62,6 @@ public class DBUtil {
 
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
 
-    public static final String CUSTOM_SQL_TEMPLATE = "select * from (%s) %s";
-
     public static final String NULL_STRING = "null";
 
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
@@ -509,74 +507,6 @@ public class DBUtil {
         }
 
         return millisSecond;
-    }
-
-    public static String buildQuerySqlWithCustomSql(DatabaseInterface databaseInterface,String customSql,
-                                                    boolean isSplitByKey,String splitKey,boolean isIncrement,boolean isRestore){
-        StringBuilder querySql = new StringBuilder();
-        querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
-        querySql.append(" WHERE 1=1 ");
-
-        if (isSplitByKey){
-            querySql.append(" And ").append(databaseInterface.getSplitFilterWithTmpTable(TEMPORARY_TABLE_NAME, splitKey));
-        }
-
-        if(isIncrement){
-            querySql.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
-        }
-
-        if(isRestore){
-            querySql.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
-        }
-
-        return querySql.toString();
-    }
-
-    public static String getQuerySql(DatabaseInterface databaseInterface,String table,List<MetaColumn> metaColumns,
-                                     String splitKey,String customFilter,boolean isSplitByKey,boolean isIncrement,boolean isRestore) {
-        StringBuilder sb = new StringBuilder();
-
-        List<String> selectColumns = new ArrayList<>();
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
-            selectColumns.add("*");
-        } else {
-            for (MetaColumn metaColumn : metaColumns) {
-                if (metaColumn.getValue() != null){
-                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
-                } else {
-                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
-                }
-            }
-        }
-
-        sb.append("SELECT ").append(StringUtils.join(selectColumns,",")).append(" FROM ");
-        sb.append(databaseInterface.quoteTable(table));
-        sb.append(" WHERE 1=1 ");
-
-        StringBuilder filter = new StringBuilder();
-
-        if(isSplitByKey) {
-            filter.append(" AND ").append(databaseInterface.getSplitFilter(splitKey));
-        }
-
-        if (customFilter != null){
-            customFilter = customFilter.trim();
-            if (customFilter.length() > 0){
-                filter.append(" AND ").append(customFilter);
-            }
-        }
-
-        if(isIncrement){
-            filter.append(" ").append(INCREMENT_FILTER_PLACEHOLDER);
-        }
-
-        if(isRestore){
-            filter.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
-        }
-
-        sb.append(filter);
-
-        return sb.toString();
     }
 
     public static String formatJdbcUrl(String pluginName,String dbUrl){

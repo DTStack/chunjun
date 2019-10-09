@@ -23,11 +23,14 @@ import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.plugin.PluginLoader;
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +101,10 @@ public abstract class DataWriter {
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
         parseSrcColumnNames(columns);
 
+        if (restoreConfig.isStream()){
+            return;
+        }
+
         if(restoreConfig.isRestore()){
             MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
             if(metaColumn == null){
@@ -109,7 +116,11 @@ public abstract class DataWriter {
     }
 
     private void parseSrcColumnNames(List columns){
-        if(CollectionUtils.isEmpty(columns)){
+        if (columns == null) {
+            return;
+        }
+
+        if(columns.isEmpty()){
             throw new RuntimeException("source columns can't be null or empty");
         }
 
@@ -150,5 +161,17 @@ public abstract class DataWriter {
     }
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
+
+    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
+        Preconditions.checkNotNull(dataSet);
+        Preconditions.checkNotNull(sinkName);
+        Preconditions.checkNotNull(outputFormat);
+
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        dataStreamSink.name(sinkName);
+
+        return dataStreamSink;
+    }
 
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,34 +25,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
- * Reason: TODO ADD REASON(可选)
- * Date: 2016年8月31日 下午1:25:56
- * Company: www.dtstack.com
- * @author sishu.yss
- *
+ * company: www.dtstack.com
+ * author: toutian
+ * create: 2019/7/5
  */
 public class JsonDecoder implements IDecode {
     private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
 
-	private static ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
-    @SuppressWarnings({ "unchecked", "serial" })
     @Override
     public Map<String, Object> decode(final String message) {
         Map<String, Object> event = null;
         try {
             event = objectMapper.readValue(message, Map.class);
-            if(!event.containsKey("message")){
-            	event.put("message", message);
-            } 
+            if (!event.containsKey("message")) {
+                event.put("message", message);
+            }
         } catch (Exception e) {
             LOG.error(e.getMessage());
-            event = new HashMap<String, Object>() {
-                {
-                    put("message", message);
-                }
-            };
+            event = new HashMap<String, Object>();
+            event.put("message", message);
             return event;
         }
         return event;

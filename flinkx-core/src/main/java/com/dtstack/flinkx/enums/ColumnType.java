@@ -57,6 +57,10 @@ public enum ColumnType {
     }
 
     public static ColumnType getType(String type){
+        if(type.contains("(")){
+            type = type.substring(0, type.indexOf("("));
+        }
+
         if(type.toLowerCase().contains("timestamp")){
             return TIMESTAMP;
         }

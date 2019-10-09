@@ -150,7 +150,7 @@ public class JdbcInputFormat extends RichInputFormat {
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
 
-            if (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc()){
+            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
                 getMaxValue(inputSplit);
             }
 
@@ -188,6 +188,12 @@ public class JdbcInputFormat extends RichInputFormat {
             String querySql = buildQuerySql(inputSplit);
             resultSet = statement.executeQuery(querySql);
             columnCount = resultSet.getMetaData().getColumnCount();
+
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if(splitWithRowCol){
+                columnCount = columnCount-1;
+            }
+
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
@@ -388,6 +394,10 @@ public class JdbcInputFormat extends RichInputFormat {
         }
 
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) split;
+        if(jdbcInputSplit.getStartLocation() == null && jdbcInputSplit.getEndLocation() == null){
+            return true;
+        }
+
         return !StringUtils.equals(jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
     }
 

@@ -39,6 +39,10 @@ public class PluginNameConstrant {
     public static final String SQLSERVER_READER = "sqlserverreader";
     public static final String GBASE_READER = "gbasereader";
     public static final String KUDU_READER = "kudureader";
+    public static final String BINLOG_READER = "binlogreader";
+    public static final String KAFKA09_READER = "kafka09reader";
+    public static final String KAFKA10_READER = "kafka10reader";
+    public static final String KAFKA11_READER = "kafka11reader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";
@@ -56,4 +60,8 @@ public class PluginNameConstrant {
     public static final String SQLSERVER_WRITER = "sqlserverwriter";
     public static final String GBASE_WRITER = "gbasewriter";
     public static final String KUDU_WRITER = "kuduwriter";
+    public static final String HIVE_WRITER = "hivewriter";
+    public static final String KAFKA09_WRITER = "kafka09writer";
+    public static final String KAFKA10_WRITER = "kafka10writer";
+    public static final String KAFKA11_WRITER = "kafka11writer";
 }

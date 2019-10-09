@@ -123,6 +123,11 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getRowNumColumn(String orderBy) {
+        return "rownum as FLINKX_ROWNUM";
+    }
+
+    @Override
     public int getFetchSize(){
         return 1000;
     }

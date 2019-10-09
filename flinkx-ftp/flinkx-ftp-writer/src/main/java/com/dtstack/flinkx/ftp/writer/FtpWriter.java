@@ -25,7 +25,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +55,7 @@ public class FtpWriter extends DataWriter{
     private List<String> columnName;
     private List<String> columnType;
     private Integer timeout;
+    protected long maxFileSize;
 
     public FtpWriter(DataTransferConfig config) {
         super(config);
@@ -76,6 +76,7 @@ public class FtpWriter extends DataWriter{
         connectPattern = writerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN, DEFAULT_FTP_CONNECT_PATTERN);
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         timeout = writerConfig.getParameter().getIntVal(KEY_TIMEOUT, FtpConfigConstants.DEFAULT_TIMEOUT);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
 
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
         if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
@@ -106,22 +107,18 @@ public class FtpWriter extends DataWriter{
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setDelimiter(fieldDelimiter);
-        builder.setEncoding(encoding);
+        builder.setCharSetName(encoding);
         builder.setErrors(errors);
         builder.setHost(host);
         builder.setConnectPattern(connectPattern);
         builder.setWriteMode(writeMode);
+        builder.setMaxFileSize(maxFileSize);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
         builder.setTimeout(timeout);
         builder.setRestoreConfig(restoreConfig);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("ftpwriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "ftpwriter");
     }
 }

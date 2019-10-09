@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.test;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -36,8 +39,13 @@ import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
-import com.dtstack.flinkx.kudu.reader.KuduReader;
-import com.dtstack.flinkx.kudu.writer.KuduWriter;
+import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
+import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
+import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
+import com.dtstack.flinkx.kafka10.writer.Kafka10Writer;
+import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
+import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -61,6 +69,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -91,12 +100,34 @@ public class LocalTest {
 
     private static final int DELAY_INTERVAL = 10;
 
-    public static final String TEST_RESOURCE_DIR = "flinkx-test/src/main/resources/dev_test_job/";
+    public static final String TEST_RESOURCE_DIR = "flinkx-examples/examples/";
+
+    public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        String jobPath = TEST_RESOURCE_DIR + "kudu_writer_template.json";
-        JobExecutionResult result = LocalTest.runJob(new File(jobPath), null, null);
+        setLogLevel(Level.INFO.toString());
+
+        Properties confProperties = new Properties();
+        confProperties.put("flink.checkpoint.interval", "10000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+
+        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
+        conf.setString("metrics.reporter.promgateway.port","9091");
+        conf.setString("metrics.reporter.promgateway.jobName","108job");
+        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+
+        String jobPath = TEST_RESOURCE_DIR + "binlog_to_hive.json";
+        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
+    }
+
+    private static void setLogLevel(String level){
+        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
+        //设置全局日志级别
+        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
@@ -107,7 +138,7 @@ public class LocalTest {
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
 
-        MyLocalStreamEnvironment env = new MyLocalStreamEnvironment();
+        MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 
         openCheckpointConf(env, confProperties);
 
@@ -161,7 +192,10 @@ public class LocalTest {
             case PluginNameConstrant.HDFS_READER : reader = new HdfsReader(config, env); break;
             case PluginNameConstrant.MONGODB_READER : reader = new MongodbReader(config, env); break;
             case PluginNameConstrant.ODPS_READER : reader = new OdpsReader(config, env); break;
-            case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
+            case PluginNameConstrant.BINLOG_READER : reader = new BinlogReader(config, env); break;
+            case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
+            case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
+            case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -187,7 +221,10 @@ public class LocalTest {
             case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
             case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
-            case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
+            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
+            case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
+            case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
+            case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

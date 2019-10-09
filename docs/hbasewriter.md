@@ -4,45 +4,45 @@
 
 ```
 {
-	"job": {
-		"setting": {
-			"speed": {},
-			"content": [{
-				"reader": {},
-				"writer": {
-					"name": "hbasewriter",
-					"parameter": {
-						"hbaseConfig": {
-							"hbase.zookeeper.property.clientPort": "2181",
-							"hbase.rootdir": "hdfs://ns1/hbase",
-							"hbase.cluster.distributed": "true",
-							"hbase.zookeeper.quorum": "host1,host2,host3",
-							"zookeeper.znode.parent": "/hbase"
-						},
-						"table": "tableTest",
-						"rowkeyColumn": [{
-								"index": 0,
-								"type": "string"
-							},
-							{
-								"value": "_postfix",
-								"type": "string"
-							}
-						],
-						"column": [{
-								"name": "cf1:id",
-								"type": "string"
-							},
-							{
-								"name": "cf1:vv",
-								"type": "string"
-							}
-						]
-					}
-				}
-			}]
-		}
-	}
+    "job": {
+        "setting": {
+            "speed": {},
+            "content": [{
+                "reader": {},
+                "writer": {
+                    "name": "hbasewriter",
+                    "parameter": {
+                        "hbaseConfig": {
+                            "hbase.zookeeper.property.clientPort": "2181",
+                            "hbase.rootdir": "hdfs://ns1/hbase",
+                            "hbase.cluster.distributed": "true",
+                            "hbase.zookeeper.quorum": "host1,host2,host3",
+                            "zookeeper.znode.parent": "/hbase"
+                        },
+                        "table": "tableTest",
+                        "rowkeyColumn": [{
+                                "index": 0,
+                                "type": "string"
+                            },
+                            {
+                                "value": "_postfix",
+                                "type": "string"
+                            }
+                        ],
+                        "column": [{
+                                "name": "cf1:id",
+                                "type": "string"
+                            },
+                            {
+                                "name": "cf1:vv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                }
+            }]
+        }
+    }
 }
 ```
 
@@ -81,25 +81,33 @@
 
 * **rowkeyColumn**
   
-  * 描述：用于构造rowkey的若干个列，每列形式如下
+  * 描述：用于构造rowkey的描述信息，支持两种格式，每列形式如下
     
-    * 普通列
+    * 字符串格式
       
-      ```
-      {
-        "index": 0,  // 该列在column属性中的序号，从0开始
-        "type": "string" 列的类型，默认为string
-      }
-      ```
+      字符串格式为：$(cf:col)，可以多个字段组合：\$(cf:col1)_$(cf:col2)，
+      
+      可以使用md5函数：md5($(cf:col))
     
-    * 常数列
+    * 数组格式
       
-      ```
-      {
-        "value": "ffff", // 常数值
-        "type": "string" // 常数列的类型，默认为string
-      }
-      ```
+      * 普通列
+        
+        ```
+        {
+          "index": 0,  // 该列在column属性中的序号，从0开始
+          "type": "string" 列的类型，默认为string
+        }
+        ```
+      
+      * 常数列
+        
+        ```
+        {
+          "value": "ffff", // 常数值
+          "type": "string" // 常数列的类型，默认为string
+        }
+        ```
   
   * 必选：否 
     

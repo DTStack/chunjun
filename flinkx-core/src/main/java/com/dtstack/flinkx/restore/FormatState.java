@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.restore;
 
+import org.apache.flink.api.common.accumulators.LongCounter;
+
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -31,6 +34,13 @@ public class FormatState implements Serializable {
 
     private Object state;
 
+    /**
+     * store metric info
+     */
+    private Map<String, LongCounter> metric;
+
+    private long numberRead;
+
     private long numberWrite;
 
     public FormatState() {
@@ -39,6 +49,14 @@ public class FormatState implements Serializable {
     public FormatState(int numOfSubTask, Object state) {
         this.numOfSubTask = numOfSubTask;
         this.state = state;
+    }
+
+    public long getNumberRead() {
+        return numberRead;
+    }
+
+    public void setNumberRead(long numberRead) {
+        this.numberRead = numberRead;
     }
 
     public long getNumberWrite() {
@@ -65,12 +83,27 @@ public class FormatState implements Serializable {
         this.state = state;
     }
 
+    public Map<String, LongCounter> getMetric() {
+        return metric;
+    }
+
+    public long getMetricValue(String key) {
+        if (metric != null) {
+            return metric.get(key).getLocalValue();
+        }
+        return 0;
+    }
+
+    public void setMetric(Map<String, LongCounter> metric) {
+        this.metric = metric;
+    }
+
     @Override
     public String toString() {
         return "FormatState{" +
                 "numOfSubTask=" + numOfSubTask +
                 ", state=" + state +
-                ", numberWrite=" + numberWrite +
+                ", metric=" + metric +
                 '}';
     }
 }
