@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+
+package com.dtstack.flinkx.kudu.reader;
+
+import org.apache.flink.core.io.InputSplit;
+
 
 /**
- * Data write type
- *
- * Company: www.dtstack.com
  * @author jiangbo
+ * @date 2019/8/2
  */
-public enum EWriteMode {
+public class KuduTableSplit implements InputSplit {
 
-    /**
-     * insert into
-     */
-    INSERT,
+    private byte[] token;
 
-    /**
-     * insert into ... on duplicate key update
-     */
-    UPDATE,
+    private int splitNumber;
 
-    /**
-     * replace into
-     */
-    REPLACE,
+    public KuduTableSplit(byte[] token, int splitNumber) {
+        this.token = token;
+        this.splitNumber = splitNumber;
+    }
 
-    UPSERT
+    @Override
+    public int getSplitNumber() {
+        return splitNumber;
+    }
+
+    public byte[] getToken() {
+        return token;
+    }
 }
