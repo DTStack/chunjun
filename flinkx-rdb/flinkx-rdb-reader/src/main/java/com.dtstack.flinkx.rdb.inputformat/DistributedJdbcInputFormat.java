@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
@@ -32,10 +33,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,15 +66,15 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected List<DataSource> sourceList;
 
-    protected transient int sourceIndex;
+    private transient int sourceIndex;
 
-    protected transient Connection currentConn;
+    private transient Connection currentConn;
 
-    protected transient Statement currentStatement;
+    private transient Statement currentStatement;
 
-    protected transient ResultSet currentResultSet;
+    private transient ResultSet currentResultSet;
 
-    protected transient Row currentRecord;
+    private transient Row currentRecord;
 
     protected String username;
 
@@ -113,10 +111,10 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             throw new IllegalArgumentException("open() failed." + e.getMessage(), e);
         }
 
-        LOG.info("JdbcInputFormat[{}}]open: end", jobName);
+        LOG.info("JdbcInputFormat[" + jobName + "]open: end");
     }
 
-    protected void openNextSource() throws SQLException{
+    private void openNextSource() throws SQLException{
         DataSource currentSource = sourceList.get(sourceIndex);
         currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
@@ -135,7 +133,12 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             }
         }
 
-        currentStatement.setFetchSize(fetchSize);
+        if(databaseInterface.getDatabaseType() == EDatabaseType.MySQL){
+            currentStatement.setFetchSize(Integer.MIN_VALUE);
+        } else {
+            currentStatement.setFetchSize(fetchSize);
+        }
+
         currentStatement.setQueryTimeout(queryTimeOut);
         currentResultSet = currentStatement.executeQuery(queryTemplate);
         columnCount = currentResultSet.getMetaData().getColumnCount();
@@ -145,10 +148,10 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                     currentSource.getPassword(),databaseInterface, currentSource.getTable(),metaColumns);
         }
 
-        LOG.info("open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
+        LOG.info("open source:" + currentSource.getJdbcUrl() + ",table:" + currentSource.getTable());
     }
 
-    protected boolean readNextRecord() throws IOException{
+    private boolean readNextRecord() throws IOException{
         try{
             if(currentConn == null){
                 openNextSource();
@@ -157,6 +160,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             hasNext = currentResultSet.next();
             if (hasNext){
                 currentRecord = new Row(columnCount);
+                DBUtil.getRow(databaseInterface.getDatabaseType(),currentRecord,descColumnTypeList,currentResultSet,typeConverter);
                 if(!"*".equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         Object val = currentRecord.getField(i);
@@ -191,7 +195,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         return currentRecord;
     }
 
-    protected void closeCurrentSource(){
+    private void closeCurrentSource(){
         try {
             DBUtil.closeDBResources(currentResultSet,currentStatement,currentConn, true);
             currentConn = null;

@@ -19,8 +19,10 @@
 
 package com.dtstack.flinkx.rdb.datareader;
 
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -32,25 +34,25 @@ import java.util.List;
  */
 public class QuerySqlBuilder {
 
-    protected static final String CUSTOM_SQL_TEMPLATE = "select * from (%s) %s";
-    protected static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
-    protected static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
-    protected static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
-    protected static final String SQL_SPLIT_WITH_ROW_NUM = "SELECT * FROM (%s) tmp WHERE %s";
-    protected static final String ROW_NUM_COLUMN_ALIAS = "FLINKX_ROWNUM";
+    private static final String CUSTOM_SQL_TEMPLATE = "select * from (%s) %s";
+    private static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
+    private static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
+    private static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
+    private static final String SQL_SPLIT_WITH_ROW_NUM = "SELECT * FROM (%s) tmp WHERE %s";
+    private static final String ROW_NUM_COLUMN_ALIAS = "FLINKX_ROWNUM";
 
-    protected DatabaseInterface databaseInterface;
-    protected String table;
-    protected List<MetaColumn> metaColumns;
-    protected String splitKey;
-    protected String customFilter;
-    protected String customSql;
-    protected boolean isSplitByKey;
-    protected boolean isIncrement;
-    protected String incrementColumn;
-    protected String restoreColumn;
-    protected boolean isRestore;
-    protected String orderByColumn;
+    private DatabaseInterface databaseInterface;
+    private String table;
+    private List<MetaColumn> metaColumns;
+    private String splitKey;
+    private String customFilter;
+    private String customSql;
+    private boolean isSplitByKey;
+    private boolean isIncrement;
+    private String incrementColumn;
+    private String restoreColumn;
+    private boolean isRestore;
+    private String orderByColumn;
 
     public QuerySqlBuilder(JdbcDataReader reader) {
         databaseInterface = reader.databaseInterface;
@@ -90,7 +92,7 @@ public class QuerySqlBuilder {
         return query;
     }
 
-    protected String buildQuerySql(){
+    private String buildQuerySql(){
         List<String> selectColumns = buildSelectColumns(databaseInterface, metaColumns);
         boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
@@ -122,6 +124,10 @@ public class QuerySqlBuilder {
 
         sb.append(filter);
 
+        if(EDatabaseType.PostgreSQL.equals(databaseInterface.getDatabaseType())){
+            sb.append(buildOrderSql());
+        }
+
         if(isSplitByKey && splitWithRowNum){
             return String.format(SQL_SPLIT_WITH_ROW_NUM, sb.toString(), databaseInterface.getSplitFilter(ROW_NUM_COLUMN_ALIAS));
         } else {
@@ -129,7 +135,7 @@ public class QuerySqlBuilder {
         }
     }
 
-    protected String buildOrderSql(){
+    private String buildOrderSql(){
         String column;
         if(isIncrement){
             column = incrementColumn;
@@ -162,7 +168,7 @@ public class QuerySqlBuilder {
         return querySql.toString();
     }
 
-    protected static List<String> buildSelectColumns(DatabaseInterface databaseInterface, List<MetaColumn> metaColumns){
+    private static List<String> buildSelectColumns(DatabaseInterface databaseInterface, List<MetaColumn> metaColumns){
         List<String> selectColumns = new ArrayList<>();
         if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             selectColumns.add("*");
@@ -179,7 +185,7 @@ public class QuerySqlBuilder {
         return selectColumns;
     }
 
-    protected static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, boolean isSplitByKey,String splitKey){
+    private static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, boolean isSplitByKey,String splitKey){
         if(!isSplitByKey || !splitKey.contains("(")){
             return false;
         }

@@ -21,7 +21,6 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
-import com.dtstack.flinkx.rdb.loader.JdbcFormatLoader;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
@@ -39,9 +38,8 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
 
     private JdbcInputFormat format;
 
-    public JdbcInputFormatBuilder(String dataType) {
-        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(dataType, JdbcFormatLoader.INPUT_FORMAT);
-        super.format = format = (JdbcInputFormat) jdbcFormatLoader.getFormatInstance();
+    public JdbcInputFormatBuilder() {
+        super.format = format = new JdbcInputFormat();
     }
 
     public void setDrivername(String drivername) {
