@@ -17,26 +17,27 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.constants.PluginNameConstrant;
+import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
+import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.SysUtil;
-import com.dtstack.flinkx.util.TelnetUtil;
+import com.dtstack.flinkx.util.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.util.CollectionUtil;
+import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -48,55 +49,21 @@ public class DBUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(DBUtil.class);
 
-    /**
-     * 数据库连接的最大重试次数
-     */
     private static int MAX_RETRY_TIMES = 3;
 
-    /**
-     * 秒级时间戳的长度为10位
-     */
     private static int SECOND_LENGTH = 10;
-    /**
-     * 毫秒级时间戳的长度为13位
-     */
     private static int MILLIS_LENGTH = 13;
-    /**
-     * 微秒级时间戳的长度为16位
-     */
     private static int MICRO_LENGTH = 16;
-    /**
-     * 纳秒级时间戳的长度为19位
-     */
     private static int NANOS_LENGTH = 19;
 
-    /**
-     * jdbc连接URL的分割正则，用于获取URL?后的连接参数
-     */
-    public static final Pattern DB_PATTERN = Pattern.compile("\\?");
-
-    /**
-     * 增量任务过滤条件占位符
-     */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
 
-    /**
-     * 断点续传过滤条件占位符
-     */
     public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
 
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
 
     public static final String NULL_STRING = "null";
 
-    /**
-     * 获取jdbc连接(超时10S)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
-     * @return
-     * @throws SQLException
-     */
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
         synchronized (ClassUtil.lock_str){
@@ -115,14 +82,6 @@ public class DBUtil {
         return dbConn;
     }
 
-    /**
-     * 获取jdbc连接(重试3次)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
-     * @return
-     * @throws SQLException
-     */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         if (!url.startsWith("jdbc:mysql")) {
             return getConnectionInternal(url, username, password);
@@ -151,21 +110,45 @@ public class DBUtil {
         }
     }
 
-    /**
-     * 关闭连接资源
-     * @param rs        ResultSet
-     * @param stmt      Statement
-     * @param conn      Connection
-     * @param commit
-     */
-    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+
+    public static List<Map<String,Object>> executeQuery(Connection connection, String sql) {
+        List<Map<String,Object>> result = com.google.common.collect.Lists.newArrayList();
+        ResultSet res = null;
+        Statement statement = null;
+        try{
+            statement = connection.createStatement();
+            res =  statement.executeQuery(sql);
+            int columns = res.getMetaData().getColumnCount();
+            List<String> columnName = com.google.common.collect.Lists.newArrayList();
+            for(int i = 0; i < columns; i++){
+                columnName.add(res.getMetaData().getColumnName(i + 1));
+            }
+
+            while(res.next()){
+                Map<String,Object> row = com.google.common.collect.Maps.newHashMap();
+                for(int i = 0;i < columns; i++){
+                    row.put(columnName.get(i), res.getObject(i + 1));
+                }
+                result.add(row);
+            }
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        finally{
+            DBUtil.closeDBResources(res, statement, null, false);
+        }
+        return result;
+    }
+
+    public static void closeDBResources(ResultSet rs, Statement stmt,
+                                        Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 LOG.info("Start close resultSet");
                 rs.close();
                 LOG.info("Close resultSet successful");
             } catch (SQLException e) {
-                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
+                LOG.warn("Close resultSet error:{}",e);
             }
         }
 
@@ -175,7 +158,7 @@ public class DBUtil {
                 stmt.close();
                 LOG.info("Close statement successful");
             } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
+                LOG.warn("Close statement error:{}",e);
             }
         }
 
@@ -189,15 +172,11 @@ public class DBUtil {
                 conn.close();
                 LOG.info("Close connection successful");
             } catch (SQLException e) {
-                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
+                LOG.warn("Close connection error:{}",e);
             }
         }
     }
 
-    /**
-     * 手动提交事物
-     * @param conn Connection
-     */
     public static void commit(Connection conn){
         try {
             if (!conn.isClosed() && !conn.getAutoCommit()){
@@ -206,15 +185,10 @@ public class DBUtil {
                 LOG.info("Commit connection successful");
             }
         } catch (SQLException e){
-            LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+            LOG.warn("commit error:{}",e);
         }
     }
 
-    /**
-     * 批量执行sql
-     * @param dbConn Connection
-     * @param sqls   sql列表
-     */
     public static void executeBatch(Connection dbConn, List<String> sqls) {
         if(sqls == null || sqls.size() == 0) {
             return;
@@ -233,13 +207,6 @@ public class DBUtil {
         }
     }
 
-    /**
-     * 获取某数据库某表的主键和唯一索引
-     * @param table     表名
-     * @param dbConn    数据库连接
-     * @return
-     * @throws SQLException
-     */
     public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
         Map<String,List<String>> keyMap = new HashMap<>();
         DatabaseMetaData meta = dbConn.getMetaData();
@@ -255,38 +222,26 @@ public class DBUtil {
         return keyMap;
     }
 
-    /**
-     * 封装channel通道顺序
-     * @param channels
-     * @return
-     */
     public static Object[][] getParameterValues(final int channels){
-        ParameterValuesProvider provider = () -> {
-            Integer[][] parameters = new Integer[channels][];
-            for(int i = 0; i < channels; ++i) {
-                parameters[i] = new Integer[2];
-                parameters[i][0] = channels;
-                parameters[i][1] = i;
+        ParameterValuesProvider provider = new ParameterValuesProvider() {
+            @Override
+            public Serializable[][] getParameterValues() {
+                Integer[][] parameters = new Integer[channels][];
+                for(int i = 0; i < channels; ++i) {
+                    parameters[i] = new Integer[2];
+                    parameters[i][0] = channels;
+                    parameters[i][1] = i;
+                }
+                return parameters;
             }
-            return parameters;
         };
 
         return provider.getParameterValues();
     }
 
-    /**
-     * 获取表列名类型列表
-     * @param dbURL             jdbc url
-     * @param username          数据库账号
-     * @param password          数据库密码
-     * @param databaseInterface DatabaseInterface
-     * @param table             表名
-     * @param metaColumns       MetaColumn列表
-     * @return
-     */
-    public static List<String> analyzeTable(String dbURL, String username, String password, DatabaseInterface databaseInterface,
-                                            String table, List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>(metaColumns.size());
+    public static List<String> analyzeTable(String dbURL,String username,String password,DatabaseInterface databaseInterface,
+                                            String table,List<MetaColumn> metaColumns) {
+        List<String> ret = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -296,7 +251,7 @@ public class DBUtil {
             rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            Map<String,String> nameTypeMap = new HashMap<>();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
@@ -317,13 +272,6 @@ public class DBUtil {
         return ret;
     }
 
-    /**
-     * 占位符设值
-     * @param param         参数
-     * @param statement     PreparedStatement
-     * @param i             占位符位置
-     * @throws SQLException
-     */
     public static void setParameterValue(Object param,PreparedStatement statement,int i) throws SQLException{
         if (param instanceof String) {
             statement.setString(i + 1, (String) param);
@@ -357,12 +305,53 @@ public class DBUtil {
         }
     }
 
-    /**
-     * clob转string
-     * @param obj   clob
-     * @return
-     * @throws Exception
-     */
+    public static void getRow(EDatabaseType dbType, Row row, List<String> descColumnTypeList, ResultSet resultSet,
+                              TypeConverterInterface typeConverter) throws Exception{
+        for (int pos = 0; pos < row.getArity(); pos++) {
+            Object obj = resultSet.getObject(pos + 1);
+            if(obj != null) {
+                if (EDatabaseType.Oracle == dbType) {
+                    if((obj instanceof java.util.Date || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                        obj = resultSet.getTimestamp(pos + 1);
+                    }
+                } else if(EDatabaseType.MySQL == dbType) {
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        if(descColumnTypeList.get(pos).equalsIgnoreCase("year")) {
+                            java.util.Date date = (java.util.Date) obj;
+                            String year = DateUtil.dateToYearString(date);
+                            System.out.println(year);
+                            obj = year;
+                        } else if(descColumnTypeList.get(pos).equalsIgnoreCase("tinyint")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        } else if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        }
+                    }
+                } else if(EDatabaseType.SQLServer == dbType) {
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                            if(obj instanceof Boolean) {
+                                obj = ((Boolean) obj ? 1 : 0);
+                            }
+                        }
+                    }
+                } else if(EDatabaseType.PostgreSQL == dbType){
+                    if(descColumnTypeList != null && descColumnTypeList.size() != 0) {
+                        obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
+                    }
+                }
+
+                obj = clobToString(obj);
+            }
+
+            row.setField(pos, obj);
+        }
+    }
+
     public static Object clobToString(Object obj) throws Exception{
         String dataStr;
         if(obj instanceof Clob){
@@ -381,24 +370,110 @@ public class DBUtil {
         return dataStr;
     }
 
-    /**
-     * 获取纳秒字符串
-     * @param timeStr
-     * @return
-     */
-    public static String getNanosTimeStr(String timeStr){
-        if(timeStr.length() < 29){
-            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+    public static String buildIncrementFilter(DatabaseInterface databaseInterface,String incrementColType,String incrementCol,
+                                              String startLocation,String endLocation, String customSql, boolean useMaxFunc){
+        StringBuilder filter = new StringBuilder();
+
+        if (StringUtils.isNotEmpty(customSql)){
+            incrementCol = String.format("%s.%s", TEMPORARY_TABLE_NAME, databaseInterface.quoteColumn(incrementCol));
+        } else {
+            incrementCol = databaseInterface.quoteColumn(incrementCol);
         }
+
+        String startFilter = buildStartLocationSql(databaseInterface, incrementColType, incrementCol, startLocation, useMaxFunc);
+        if (StringUtils.isNotEmpty(startFilter)){
+            filter.append(startFilter);
+        }
+
+        String endFilter = buildEndLocationSql(databaseInterface, incrementColType, incrementCol, endLocation);
+        if (StringUtils.isNotEmpty(endFilter)){
+            if (filter.length() > 0){
+                filter.append(" and ").append(endFilter);
+            } else {
+                filter.append(endFilter);
+            }
+        }
+
+        return filter.toString();
+    }
+
+    public static String buildStartLocationSql(DatabaseInterface databaseInterface,String incrementColType,
+                                               String incrementCol,String startLocation,boolean useMaxFunc){
+        if(StringUtils.isEmpty(startLocation) || NULL_STRING.equalsIgnoreCase(startLocation)){
+            return null;
+        }
+
+        String operator = " >= ";
+        if(!useMaxFunc){
+            operator = " > ";
+        }
+
+        return getLocationSql(databaseInterface, incrementColType, incrementCol, startLocation, operator);
+    }
+
+    public static String buildEndLocationSql(DatabaseInterface databaseInterface,String incrementColType,String incrementCol,
+                                             String endLocation){
+        if(StringUtils.isEmpty(endLocation) || NULL_STRING.equalsIgnoreCase(endLocation)){
+            return null;
+        }
+
+        return getLocationSql(databaseInterface, incrementColType, incrementCol, endLocation, " < ");
+    }
+
+    private static String getLocationSql(DatabaseInterface databaseInterface, String incrementColType, String incrementCol,
+                                  String location, String operator) {
+        String endTimeStr;
+        String endLocationSql;
+        boolean isTimeType = ColumnType.isTimeType(incrementColType)
+                || (databaseInterface.getDatabaseType() == EDatabaseType.SQLServer && ColumnType.NVARCHAR.name().equals(incrementColType));
+        if(isTimeType){
+            endTimeStr = getTimeStr(databaseInterface.getDatabaseType(), Long.parseLong(location), incrementColType);
+            endLocationSql = incrementCol + operator + endTimeStr;
+        } else if(ColumnType.isNumberType(incrementColType)){
+            endLocationSql = incrementCol + operator + location;
+        } else {
+            endTimeStr = String.format("'%s'",location);
+            endLocationSql = incrementCol + operator + endTimeStr;
+        }
+
+        return endLocationSql;
+    }
+
+    private static String getTimeStr(EDatabaseType databaseType,Long startLocation,String incrementColType){
+        String timeStr;
+        Timestamp ts = new Timestamp(getMillis(startLocation));
+        ts.setNanos(getNanos(startLocation));
+        timeStr = getNanosTimeStr(ts.toString());
+
+        if(databaseType == EDatabaseType.SQLServer){
+            timeStr = timeStr.substring(0,23);
+        } else {
+            timeStr = timeStr.substring(0,26);
+        }
+
+        if (databaseType == EDatabaseType.Oracle){
+            if(ColumnType.TIMESTAMP.name().equals(incrementColType)){
+                timeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",timeStr);
+            } else {
+                timeStr = timeStr.substring(0, 19);
+                timeStr = String.format("TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')", timeStr);
+            }
+        } else {
+            timeStr = String.format("'%s'",timeStr);
+        }
+
         return timeStr;
     }
 
-    /**
-     * 将边界位置时间转换成对应饿的纳秒时间
-     * @param startLocation 边界位置(起始/结束)
-     * @return
-     */
-    public static int getNanos(long startLocation){
+    private static String getNanosTimeStr(String timeStr){
+        if(timeStr.length() < 29){
+            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+        }
+
+        return timeStr;
+    }
+
+    private static int getNanos(long startLocation){
         String timeStr = String.valueOf(startLocation);
         int nanos;
         if (timeStr.length() == SECOND_LENGTH){
@@ -416,12 +491,7 @@ public class DBUtil {
         return nanos;
     }
 
-    /**
-     * 将边界位置时间转换成对应饿的毫秒时间
-      * @param startLocation 边界位置(起始/结束)
-     * @return
-     */
-    public static long getMillis(long startLocation){
+    private static long getMillis(long startLocation){
         String timeStr = String.valueOf(startLocation);
         long millisSecond;
         if (timeStr.length() == SECOND_LENGTH){
@@ -439,41 +509,46 @@ public class DBUtil {
         return millisSecond;
     }
 
-    /**
-     * 格式化jdbc连接
-     * @param dbUrl         原jdbc连接
-     * @param extParamMap   需要额外添加的参数
-     * @return  格式化后jdbc连接URL字符串
-     */
-    public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
-        String[] splits = DB_PATTERN.split(dbUrl);
+    public static String formatJdbcUrl(String pluginName,String dbUrl){
+        if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_READER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.POSTGRESQL_READER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_WRITER)
+                || pluginName.equalsIgnoreCase(PluginNameConstrant.GBASE_WRITER) ){
+            String[] splits = dbUrl.split("\\?");
 
-        Map<String,String> paramMap = new HashMap<String,String>();
-        if(splits.length > 1) {
-            String[] pairs = splits[1].split("&");
-            for(String pair : pairs) {
-                String[] leftRight = pair.split("=");
-                paramMap.put(leftRight[0], leftRight[1]);
+            Map<String,String> paramMap = new HashMap<String,String>();
+            if(splits.length > 1) {
+                String[] pairs = splits[1].split("&");
+                for(String pair : pairs) {
+                    String[] leftRight = pair.split("=");
+                    paramMap.put(leftRight[0], leftRight[1]);
+                }
             }
-        }
 
-        if(!CollectionUtil.isNullOrEmpty(extParamMap)){
-            paramMap.putAll(extParamMap);
-        }
-        paramMap.put("useCursorFetch", "true");
-        paramMap.put("rewriteBatchedStatements", "true");
-
-        StringBuffer sb = new StringBuffer(dbUrl.length() + 128);
-        sb.append(splits[0]).append("?");
-        int index = 0;
-        for(Map.Entry<String,String> entry : paramMap.entrySet()) {
-            if(index != 0) {
-                sb.append("&");
+            paramMap.put("useCursorFetch", "true");
+            paramMap.put("rewriteBatchedStatements", "true");
+            if(pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQL_READER)
+                    || pluginName.equalsIgnoreCase(PluginNameConstrant.MYSQLD_READER)){
+                paramMap.put("zeroDateTimeBehavior","convertToNull");
             }
-            sb.append(entry.getKey()).append("=").append(entry.getValue());
-            index++;
+
+            StringBuffer sb = new StringBuffer(splits[0]);
+            if(paramMap.size() != 0) {
+                sb.append("?");
+                int index = 0;
+                for(Map.Entry<String,String> entry : paramMap.entrySet()) {
+                    if(index != 0) {
+                        sb.append("&");
+                    }
+                    sb.append(entry.getKey() + "=" + entry.getValue());
+                    index++;
+                }
+            }
+
+            dbUrl = sb.toString();
         }
 
-        return sb.toString();
+        return dbUrl;
     }
 }
