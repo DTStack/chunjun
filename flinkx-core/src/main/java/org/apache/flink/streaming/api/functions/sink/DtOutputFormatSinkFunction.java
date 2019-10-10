@@ -32,6 +32,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.InputTypeConfigurable;
 import org.apache.flink.configuration.Configuration;
 
+import org.apache.flink.runtime.state.CheckpointListener;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -52,7 +53,7 @@ import java.util.Map;
  */
 @PublicEvolving
 @Deprecated
-public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction {
+public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction, CheckpointListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -135,9 +136,16 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
+    }
+
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) throws Exception {
+        LOG.info("notifyCheckpointComplete checkpointId = {}", checkpointId);
         FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
+        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).flushOutputFormat();
         if (formatState != null){
-            LOG.info("OutputFormat format state:{}", formatState.toString());
+            LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }

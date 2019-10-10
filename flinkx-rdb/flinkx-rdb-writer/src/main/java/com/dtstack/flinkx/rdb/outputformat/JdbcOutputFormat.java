@@ -271,7 +271,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.info("return null for formatState");
             return null;
         }
+        super.getFormatState();
+        return formatState;
+    }
 
+    @Override
+    public void flushOutputFormat() {
         try {
             LOG.info("readyCheckpoint:" + readyCheckpoint);
             LOG.info("rowsOfCurrentTransaction:" + rowsOfCurrentTransaction);
@@ -289,12 +294,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
                 formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
                 LOG.info("format state:{}", formatState.getState());
-
-                super.getFormatState();
-                return formatState;
             }
-
-            return null;
         } catch (Exception e){
             try {
                 LOG.warn("getFormatState:Start rollback");
