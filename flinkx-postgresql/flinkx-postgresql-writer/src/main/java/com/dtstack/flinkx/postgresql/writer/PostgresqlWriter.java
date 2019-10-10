@@ -21,6 +21,7 @@ package com.dtstack.flinkx.postgresql.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
+import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import org.apache.flink.streaming.api.datastream.DataStream;

@@ -32,6 +32,11 @@ public class ExceptionUtil {
 
     private static Logger logger = LoggerFactory.getLogger(ExceptionUtil.class);
 
+    /**
+     * 获取错误的堆栈信息
+     * @param e throwable
+     * @return 堆栈信息
+     */
     public static String getErrorMessage(Throwable e) {
         StringWriter stringWriter = null;
         PrintWriter writer = null;
@@ -47,16 +52,16 @@ public class ExceptionUtil {
                 logger.error("",ee);
 
         }finally {
-                if(writer!=null){
-                        writer.close();
+            if(writer!=null){
+                writer.close();
+            }
+            if(stringWriter!=null){
+                try{
+                    stringWriter.close();
+                }catch (Throwable ee){
+                    logger.error("",ee);
                 }
-                if(stringWriter!=null){
-                        try{
-                                stringWriter.close();
-                        }catch (Throwable ee){
-                                logger.error("",ee);
-                        }
-                }
+            }
         }
         return null;
     }
