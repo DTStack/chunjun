@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
@@ -27,13 +28,14 @@ import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +86,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected List<String> fullColumnType;
 
-    protected List<String> columnType = new ArrayList<>();
+    private List<String> columnType = new ArrayList<>();
 
     protected TypeConverterInterface typeConverter;
 
@@ -94,7 +96,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected long rowsOfCurrentTransaction;
 
-    protected final static String GET_ORACLE_INDEX_SQL = "SELECT " +
+    private final static String GET_ORACLE_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
             "FROM " +
@@ -108,7 +110,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
 
     protected PreparedStatement prepareTemplates() throws SQLException {
-        if(CollectionUtils.isEmpty(fullColumn)) {
+        if(fullColumn == null || fullColumn.size() == 0) {
             fullColumn = column;
         }
 
@@ -129,7 +131,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks){
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DBUtil.getConnection(dbURL, username, password);
@@ -138,7 +140,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 dbConn.setAutoCommit(false);
             }
 
-            if(CollectionUtils.isEmpty(fullColumn)) {
+            if(fullColumn == null || fullColumn.size() == 0) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
 
@@ -164,7 +166,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             preparedStatement = prepareTemplates();
             readyCheckpoint = false;
 
-            LOG.info("subTask[{}}] wait finished", taskNumber);
+            LOG.info("subtask[" + taskNumber + "] wait finished");
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         }
@@ -182,7 +184,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 ret.add(rd.getColumnTypeName(i+1));
             }
 
-            if(CollectionUtils.isEmpty(fullColumn)){
+            if(fullColumn == null || fullColumn.size() == 0){
                 for(int i = 0; i < rd.getColumnCount(); ++i) {
                     fullColumn.add(rd.getColumnName(i+1));
                 }
@@ -271,7 +273,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         try {
-            LOG.info("readyCheckpoint: {}, rowsOfCurrentTransaction: {}", readyCheckpoint, rowsOfCurrentTransaction);
+            LOG.info("readyCheckpoint:" + readyCheckpoint);
+            LOG.info("rowsOfCurrentTransaction:" + rowsOfCurrentTransaction);
 
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
 
@@ -318,21 +321,75 @@ public class JdbcOutputFormat extends RichOutputFormat {
             field = ((java.util.Date) field).getTime();
         }
 
+        field=dealOracleTimestampToVarcharOrLong(databaseInterface.getDatabaseType(),field,type);
+
+
+        if(EDatabaseType.PostgreSQL == databaseInterface.getDatabaseType()){
+            field = typeConverter.convert(field,type);
+        }
+
+        return field;
+    }
+
+    /**
+     * oracle timestamp to oracle varchar or varchar2 or long field format
+     * @param databaseType
+     * @param field
+     * @param type
+     * @return
+     */
+    private Object dealOracleTimestampToVarcharOrLong(EDatabaseType databaseType, Object field, String type) {
+        if (EDatabaseType.Oracle!=databaseInterface.getDatabaseType()){
+            return field;
+        }
+
+        if (!(field instanceof Timestamp)){
+            return field;
+        }
+
+        if (type.equalsIgnoreCase(ColumnType.VARCHAR.name()) || type.equalsIgnoreCase(ColumnType.VARCHAR2.name())){
+            SimpleDateFormat format = DateUtil.getDateTimeFormatter();
+            field= format.format(field);
+        }
+
+        if (type.equalsIgnoreCase(ColumnType.LONG.name()) ){
+            field = ((Timestamp) field).getTime();
+        }
         return field;
     }
 
     protected List<String> probeFullColumns(String table, Connection dbConn) throws SQLException {
+        String schema =null;
+        if(EDatabaseType.Oracle == databaseInterface.getDatabaseType()) {
+            String[] parts = table.split("\\.");
+            if(parts.length == 2) {
+                schema = parts[0].toUpperCase();
+                table = parts[1];
+            }
+        }
+
         List<String> ret = new ArrayList<>();
-        ResultSet rs = dbConn.getMetaData().getColumns(null, null, table, null);
+        ResultSet rs = dbConn.getMetaData().getColumns(null, schema, table, null);
         while(rs.next()) {
             ret.add(rs.getString("COLUMN_NAME"));
         }
         return ret;
     }
 
+
+
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
         Map<String, List<String>> map = new HashMap<>();
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
+        ResultSet rs;
+        if(EDatabaseType.Oracle == databaseInterface.getDatabaseType()){
+            PreparedStatement ps = dbConn.prepareStatement(String.format(GET_ORACLE_INDEX_SQL,table));
+            rs = ps.executeQuery();
+        } else if(EDatabaseType.DB2 == databaseInterface.getDatabaseType()){
+            rs = dbConn.getMetaData().getIndexInfo(null, null, table.toUpperCase(), true, false);
+        } else {
+            rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
+        }
+
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
             if(!map.containsKey(indexName)) {
@@ -371,7 +428,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected boolean needWaitBeforeWriteRecords() {
-        return  CollectionUtils.isNotEmpty(preSql);
+        return  preSql != null && preSql.size() != 0;
     }
 
     @Override
@@ -383,7 +440,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected boolean needWaitBeforeCloseInternal() {
-        return  CollectionUtils.isNotEmpty(postSql);
+        return postSql != null && postSql.size() != 0;
     }
 
     @Override

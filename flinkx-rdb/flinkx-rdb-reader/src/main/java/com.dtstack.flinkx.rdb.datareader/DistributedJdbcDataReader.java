@@ -28,7 +28,6 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -64,7 +63,7 @@ public class DistributedJdbcDataReader extends DataReader {
 
     protected int queryTimeOut;
 
-    protected List<ReaderConfig.ParameterConfig.ConnectionConfig> connectionConfigs;
+    private List<ReaderConfig.ParameterConfig.ConnectionConfig> connectionConfigs;
 
     private static String DISTRIBUTED_TAG = "d";
 
@@ -85,7 +84,7 @@ public class DistributedJdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        DistributedJdbcInputFormatBuilder builder = new DistributedJdbcInputFormatBuilder(databaseInterface.getDatabaseType().name());
+        DistributedJdbcInputFormatBuilder builder = new DistributedJdbcInputFormatBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setUsername(username);
         builder.setPassword(password);
@@ -105,12 +104,14 @@ public class DistributedJdbcDataReader extends DataReader {
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());
     }
 
-    protected List<DataSource> buildConnections(){
-        List<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
+    private List<DataSource> buildConnections(){
+        List<DataSource> sourceList = new ArrayList<>();
         for (ReaderConfig.ParameterConfig.ConnectionConfig connectionConfig : connectionConfigs) {
-            String curUsername = (StringUtils.isBlank(connectionConfig.getUsername())) ? username : connectionConfig.getUsername();
-            String curPassword = (StringUtils.isBlank(connectionConfig.getPassword())) ? password : connectionConfig.getPassword();
-            String curJdbcUrl = DBUtil.formatJdbcUrl(connectionConfig.getJdbcUrl().get(0), null);
+            String curUsername = (connectionConfig.getUsername() == null || connectionConfig.getUsername().length() == 0)
+                    ? username : connectionConfig.getUsername();
+            String curPassword = (connectionConfig.getPassword() == null || connectionConfig.getPassword().length() == 0)
+                    ? password : connectionConfig.getPassword();
+            String curJdbcUrl = DBUtil.formatJdbcUrl(pluginName,connectionConfig.getJdbcUrl().get(0));
             for (String table : connectionConfig.getTable()) {
                 DataSource source = new DataSource();
                 source.setTable(table);
