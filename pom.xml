@@ -35,7 +35,6 @@
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
-        <module>flinkx-kudu</module>
     </modules>
 
     <properties>
