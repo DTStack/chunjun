@@ -127,7 +127,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         try{
             // 覆盖模式并且不是从检查点恢复时先删除数据目录
-            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState.getState() == null){
+            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState != null && formatState.getState() == null){
                 coverageData();
             }
         } catch (Exception e){
@@ -211,11 +211,26 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         if (restoreConfig.isStream() || readyCheckpoint){
+            lastWriteSize = bytesWriteCounter.getLocalValue();
+            snapshotWriteCounter.add(sumRowsOfBlock);
+            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+            if (!restoreConfig.isStream()){
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+            super.getFormatState();
+            return formatState;
+        }
+
+        return null;
+    }
+
+    @Override
+    public void flushOutputFormat() {
+        if (restoreConfig.isStream() || readyCheckpoint){
             try{
                 flushData();
-                lastWriteSize = bytesWriteCounter.getLocalValue();
             } catch (Exception e){
-                throw new RuntimeException("Flush data error when create snapshot:", e);
+                throw new RuntimeException("Flush data error :", e);
             }
 
             try{
@@ -223,22 +238,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     moveTemporaryDataFileToDirectory();
                 }
             } catch (Exception e){
-                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
+                throw new RuntimeException("Move temporary file to data directory error when flush data:", e);
             }
-
-            snapshotWriteCounter.add(sumRowsOfBlock);
-            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-            if (!restoreConfig.isStream()){
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-
             sumRowsOfBlock = 0;
-
-            super.getFormatState();
-            return formatState;
         }
-
-        return null;
     }
 
     @Override
