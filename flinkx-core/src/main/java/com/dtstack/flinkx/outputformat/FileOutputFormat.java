@@ -211,6 +211,13 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         if (restoreConfig.isStream() || readyCheckpoint){
+            lastWriteSize = bytesWriteCounter.getLocalValue();
+            snapshotWriteCounter.add(sumRowsOfBlock);
+            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+            if (!restoreConfig.isStream()){
+                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+            }
+            sumRowsOfBlock = 0;
             super.getFormatState();
             return formatState;
         }
@@ -223,9 +230,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         if (restoreConfig.isStream() || readyCheckpoint){
             try{
                 flushData();
-                lastWriteSize = bytesWriteCounter.getLocalValue();
             } catch (Exception e){
-                throw new RuntimeException("Flush data error when create snapshot:", e);
+                throw new RuntimeException("Flush data error :", e);
             }
 
             try{
@@ -233,15 +239,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     moveTemporaryDataFileToDirectory();
                 }
             } catch (Exception e){
-                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
+                throw new RuntimeException("Move temporary file to data directory error when flush data:", e);
             }
-
-            snapshotWriteCounter.add(sumRowsOfBlock);
-            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-            if (!restoreConfig.isStream()){
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-            }
-            sumRowsOfBlock = 0;
         }
     }
 

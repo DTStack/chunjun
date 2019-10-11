@@ -271,7 +271,12 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.info("return null for formatState");
             return null;
         }
+        snapshotWriteCounter.add(rowsOfCurrentTransaction);
+        rowsOfCurrentTransaction = 0;
+        formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
         super.getFormatState();
+        LOG.info("format state:{}", formatState.getState());
         return formatState;
     }
 
@@ -280,20 +285,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
         try {
             LOG.info("readyCheckpoint:" + readyCheckpoint);
             LOG.info("rowsOfCurrentTransaction:" + rowsOfCurrentTransaction);
-
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
-
                 LOG.info("getFormatState:Start commit connection");
                 preparedStatement.executeBatch();
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
-
-                snapshotWriteCounter.add(rowsOfCurrentTransaction);
-                rowsOfCurrentTransaction = 0;
-
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-                formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-                LOG.info("format state:{}", formatState.getState());
             }
         } catch (Exception e){
             try {
@@ -303,7 +299,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
             } catch (SQLException sqlE){
                 throw new RuntimeException("Rollback error:", e);
             }
-
             throw new RuntimeException("Return format state error:", e);
         }
     }

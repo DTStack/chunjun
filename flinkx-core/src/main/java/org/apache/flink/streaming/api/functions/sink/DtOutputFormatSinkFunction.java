@@ -136,19 +136,18 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
-    }
-
-    @Override
-    public void notifyCheckpointComplete(long checkpointId) throws Exception {
-        LOG.info("notifyCheckpointComplete checkpointId = {}", checkpointId);
         FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
-        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).flushOutputFormat();
         if (formatState != null){
             LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
+    }
+
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) throws Exception {
+        LOG.info("notifyCheckpointComplete checkpointId = {}", checkpointId);
+        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).flushOutputFormat();
     }
 
     @Override
