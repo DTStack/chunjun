@@ -217,7 +217,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             if (!restoreConfig.isStream()){
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
-            sumRowsOfBlock = 0;
             super.getFormatState();
             return formatState;
         }
@@ -241,6 +240,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             } catch (Exception e){
                 throw new RuntimeException("Move temporary file to data directory error when flush data:", e);
             }
+            sumRowsOfBlock = 0;
         }
     }
 

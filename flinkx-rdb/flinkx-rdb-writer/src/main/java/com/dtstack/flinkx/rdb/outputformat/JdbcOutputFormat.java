@@ -272,7 +272,6 @@ public class JdbcOutputFormat extends RichOutputFormat {
             return null;
         }
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
-        rowsOfCurrentTransaction = 0;
         formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
         formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
         super.getFormatState();
@@ -286,6 +285,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.info("readyCheckpoint:" + readyCheckpoint);
             LOG.info("rowsOfCurrentTransaction:" + rowsOfCurrentTransaction);
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
+                rowsOfCurrentTransaction = 0;
                 LOG.info("getFormatState:Start commit connection");
                 preparedStatement.executeBatch();
                 dbConn.commit();
