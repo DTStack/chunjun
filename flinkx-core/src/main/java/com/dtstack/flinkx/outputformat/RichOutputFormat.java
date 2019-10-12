@@ -241,7 +241,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
                 //use snapshot write count
-                numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+                numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
 
                 snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
                 bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
