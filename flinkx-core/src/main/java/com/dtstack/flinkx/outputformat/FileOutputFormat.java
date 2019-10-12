@@ -213,7 +213,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         if (restoreConfig.isStream() || readyCheckpoint){
             lastWriteSize = bytesWriteCounter.getLocalValue();
             snapshotWriteCounter.add(sumRowsOfBlock);
-            formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+            formatState.setNumberWrite(numWriteCounter.getLocalValue());
             if (!restoreConfig.isStream()){
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
