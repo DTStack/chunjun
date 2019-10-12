@@ -137,10 +137,12 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     public void flushOutputFormat() {
+        LOG.info("flushOutputFormat start");
         Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
-            entry.getValue().getFormatState();
+            entry.getValue().flushOutputFormat();
+            LOG.info("flushOutputFormat entry = {}", entry);
             if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                 try {
                     entry.getValue().close();

@@ -236,11 +236,11 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             try{
                 if (sumRowsOfBlock != 0) {
                     moveTemporaryDataFileToDirectory();
+                    sumRowsOfBlock = 0;
                 }
             } catch (Exception e){
                 throw new RuntimeException("Move temporary file to data directory error when flush data:", e);
             }
-            sumRowsOfBlock = 0;
         }
     }
 
