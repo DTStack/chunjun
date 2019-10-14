@@ -130,6 +130,11 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState != null && formatState.getState() == null){
                 coverageData();
             }
+
+            // 处理上次任务因异常失败产生的脏数据
+            if (restoreConfig.isRestore() && formatState != null) {
+                cleanDirtyData();
+            }
         } catch (Exception e){
             LOG.error("writeMode = {}, formatState = {}, e = {}", writeMode, formatState.getState(), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
@@ -338,6 +343,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public long getLastWriteTime() {
         return lastWriteTime;
     }
+
+    protected abstract void cleanDirtyData();
 
     protected abstract void createActionFinishedTag();
 
