@@ -131,6 +131,11 @@ public class HiveOutputFormat extends RichOutputFormat {
             LOG.info("return null for formatState");
             return null;
         }
+        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        while (entryIterator.hasNext()) {
+            Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+            entry.getValue().getFormatState();
+        }
         super.getFormatState();
         return formatState;
     }
@@ -141,8 +146,8 @@ public class HiveOutputFormat extends RichOutputFormat {
         Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
-            entry.getValue().flushOutputFormat();
             LOG.info("flushOutputFormat entry = {}", entry);
+            entry.getValue().flushOutputFormat();
             if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                 try {
                     entry.getValue().close();
