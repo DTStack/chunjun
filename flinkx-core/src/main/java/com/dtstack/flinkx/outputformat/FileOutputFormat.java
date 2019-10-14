@@ -222,6 +222,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             if (!restoreConfig.isStream()){
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
+
+            formatState.setJobId(jobId);
+            formatState.setFileIndex(blockIndex);
+
             super.getFormatState();
             return formatState;
         }
