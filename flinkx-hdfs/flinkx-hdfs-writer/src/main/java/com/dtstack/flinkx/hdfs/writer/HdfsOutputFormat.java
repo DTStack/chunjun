@@ -22,6 +22,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -126,6 +127,10 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected void cleanDirtyData() {
         int fileIndex = formatState.getFileIndex();
         String lastJobId = formatState.getJobId();
+        LOG.info("fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        if(StringUtils.isBlank(lastJobId)){
+            return;
+        }
 
         PathFilter filter = new PathFilter() {
             @Override
