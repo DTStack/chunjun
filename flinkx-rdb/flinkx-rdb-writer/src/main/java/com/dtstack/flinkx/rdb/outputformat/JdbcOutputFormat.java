@@ -273,7 +273,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
         super.getFormatState();
         LOG.info("format state:{}", formatState.getState());
         return formatState;
