@@ -116,7 +116,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             public boolean test(String file) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if(!fileName.contains(lastJobId)){
-                    return false;
+                    return true;
                 }
 
                 String[] splits = fileName.split("\\.");
