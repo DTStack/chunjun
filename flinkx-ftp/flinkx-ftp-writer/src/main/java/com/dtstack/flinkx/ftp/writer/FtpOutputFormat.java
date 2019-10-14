@@ -109,7 +109,10 @@ public class FtpOutputFormat extends FileOutputFormat {
     protected void cleanDirtyData() {
         int fileIndex = formatState.getFileIndex();
         String lastJobId = formatState.getJobId();
-
+        LOG.info("fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        if(org.apache.commons.lang3.StringUtils.isBlank(lastJobId)){
+            return;
+        }
         List<String> files = ftpHandler.getFiles(outputFilePath);
         files.removeIf(new Predicate<String>() {
             @Override
