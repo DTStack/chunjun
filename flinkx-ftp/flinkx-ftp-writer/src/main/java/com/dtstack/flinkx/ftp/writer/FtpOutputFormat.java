@@ -26,12 +26,15 @@ import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
+
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
 
 /**
@@ -98,6 +101,36 @@ public class FtpOutputFormat extends FileOutputFormat {
             if(OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(outputFilePath)){
                 ftpHandler.deleteAllFilesInDir(outputFilePath, null);
                 ftpHandler.mkDirRecursive(outputFilePath);
+            }
+        }
+    }
+
+    @Override
+    protected void cleanDirtyData() {
+        int fileIndex = formatState.getFileIndex();
+        String lastJobId = formatState.getJobId();
+
+        List<String> files = ftpHandler.getFiles(outputFilePath);
+        files.removeIf(new Predicate<String>() {
+            @Override
+            public boolean test(String file) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if(!fileName.contains(lastJobId)){
+                    return true;
+                }
+
+                String[] splits = fileName.split("\\.");
+                if (splits.length == 3) {
+                    return Integer.parseInt(splits[2]) <= fileIndex;
+                }
+
+                return true;
+            }
+        });
+
+        if(CollectionUtils.isNotEmpty(files)){
+            for (String file : files) {
+                ftpHandler.deleteAllFilesInDir(file, null);
             }
         }
     }
