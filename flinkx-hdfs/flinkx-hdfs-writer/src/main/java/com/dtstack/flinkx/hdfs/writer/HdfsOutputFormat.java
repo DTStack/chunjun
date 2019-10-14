@@ -123,6 +123,42 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     }
 
     @Override
+    protected void cleanDirtyData() {
+        int fileIndex = formatState.getFileIndex();
+        String lastJobId = formatState.getJobId();
+
+        PathFilter filter = new PathFilter() {
+            @Override
+            public boolean accept(Path path) {
+                String fileName = path.getName();
+                if(!fileName.contains(lastJobId)){
+                    return false;
+                }
+
+                String[] splits = fileName.split("\\.");
+                if (splits.length == 3) {
+                    return Integer.parseInt(splits[2]) > fileIndex;
+                }
+
+                return false;
+            }
+        };
+
+        try{
+            FileStatus[] dirtyData = fs.listStatus(new Path(outputFilePath), filter);
+            if(dirtyData != null && dirtyData.length > 0){
+                for (FileStatus dirtyDatum : dirtyData) {
+                    fs.delete(dirtyDatum.getPath(), false);
+                    LOG.info("Delete dirty data file:{}", dirtyDatum.getPath());
+                }
+            }
+        } catch (Exception e){
+            LOG.error("Clean dirty data error:", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     protected void openSource() throws IOException{
         conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
         fs = FileSystem.get(conf);
