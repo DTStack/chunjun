@@ -240,7 +240,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
                 otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
-                numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
+                //use snapshot write count
+                numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
 
                 snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
                 bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
@@ -532,11 +533,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         }
         return formatState;
     }
-
-    /**
-     * flush the data after saving checkPoint successfully
-     */
-    public void flushOutputFormat() {}
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;

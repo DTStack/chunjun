@@ -124,6 +124,10 @@ public class FormatState implements Serializable {
                 "numOfSubTask=" + numOfSubTask +
                 ", state=" + state +
                 ", metric=" + metric +
+                ", numberRead=" + numberRead +
+                ", numberWrite=" + numberWrite +
+                ", jobId='" + jobId + '\'' +
+                ", fileIndex=" + fileIndex +
                 '}';
     }
 }
