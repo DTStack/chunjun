@@ -216,41 +216,37 @@ public abstract class FileOutputFormat extends RichOutputFormat {
         }
 
         if (restoreConfig.isStream() || readyCheckpoint){
-            lastWriteSize = bytesWriteCounter.getLocalValue();
+            try{
+                flushData();
+                lastWriteSize = bytesWriteCounter.getLocalValue();
+            } catch (Exception e){
+                throw new RuntimeException("Flush data error when create snapshot:", e);
+            }
+
+            try{
+                if (sumRowsOfBlock != 0) {
+                    moveTemporaryDataFileToDirectory();
+                }
+            } catch (Exception e){
+                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
+            }
+
             snapshotWriteCounter.add(sumRowsOfBlock);
             formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
             if (!restoreConfig.isStream()){
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
 
+            sumRowsOfBlock = 0;
             formatState.setJobId(jobId);
-            formatState.setFileIndex(blockIndex);
+            formatState.setFileIndex(blockIndex-1);
+            LOG.info("jobId = {}, blockIndex = {}", jobId, blockIndex);
 
             super.getFormatState();
             return formatState;
         }
 
         return null;
-    }
-
-    @Override
-    public void flushOutputFormat() {
-        if (restoreConfig.isStream() || readyCheckpoint){
-            try{
-                flushData();
-            } catch (Exception e){
-                throw new RuntimeException("Flush data error :", e);
-            }
-
-            try{
-                if (sumRowsOfBlock != 0) {
-                    moveTemporaryDataFileToDirectory();
-                    sumRowsOfBlock = 0;
-                }
-            } catch (Exception e){
-                throw new RuntimeException("Move temporary file to data directory error when flush data:", e);
-            }
-        }
     }
 
     @Override
