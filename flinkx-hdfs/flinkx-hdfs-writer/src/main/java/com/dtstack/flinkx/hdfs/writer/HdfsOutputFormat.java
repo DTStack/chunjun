@@ -128,7 +128,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected void cleanDirtyData() {
         int fileIndex = formatState.getFileIndex();
         String lastJobId = formatState.getJobId();
-        LOG.info("fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        LOG.info("start to cleanDirtyData, fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
         if(StringUtils.isBlank(lastJobId)){
             return;
         }

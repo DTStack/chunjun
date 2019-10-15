@@ -534,11 +534,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         return formatState;
     }
 
-    /**
-     * flush the data after saving checkPoint successfully
-     */
-    public void flushOutputFormat() {}
-
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
     }

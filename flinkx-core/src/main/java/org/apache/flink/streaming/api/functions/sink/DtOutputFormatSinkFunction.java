@@ -53,7 +53,7 @@ import java.util.Map;
  */
 @PublicEvolving
 @Deprecated
-public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction, CheckpointListener {
+public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction {
 
     private static final long serialVersionUID = 1L;
 
@@ -142,12 +142,6 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
-    }
-
-    @Override
-    public void notifyCheckpointComplete(long checkpointId) throws Exception {
-        LOG.info("notifyCheckpointComplete checkpointId = {}", checkpointId);
-        ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).flushOutputFormat();
     }
 
     @Override
