@@ -26,6 +26,7 @@ import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
@@ -119,6 +120,8 @@ public class JdbcInputFormat extends RichInputFormat {
     protected StringAccumulator startLocationAccumulator;
 
     private MetaColumn restoreColumn;
+
+    private Row lastRow = null;
 
     /**
      * The hadoop config for metric
@@ -268,12 +271,27 @@ public class JdbcInputFormat extends RichInputFormat {
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();
+
+            if (restoreConfig.isRestore()) {
+                lastRow = row;
+            }
+
             return row;
         } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
         }
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        super.getFormatState();
+
+        if (formatState != null && lastRow != null) {
+            formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+        return formatState;
     }
 
     private void initMetric(InputSplit split){
