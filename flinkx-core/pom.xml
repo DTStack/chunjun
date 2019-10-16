@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <version>19.0</version>
         </dependency>
 
         <!-- Flink dependencies -->
@@ -153,8 +153,11 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals> <goal>shade</goal> </goals>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.dtstack.flinkx.Main</mainClass>
@@ -167,6 +170,12 @@
                                     <include>org.slf4j:*</include>
                                 </includes>
                             </artifactSet>
+                            <relocations>
+                               <relocation>
+                                   <pattern>com.google.guava</pattern>
+                                   <shadedPattern>shade.core.com.google.guava</shadedPattern>
+                               </relocation>
+                           </relocations>
                         </configuration>
                     </execution>
                 </executions>
