@@ -27,6 +27,11 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.*;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
@@ -121,6 +126,8 @@ public class JdbcInputFormat extends RichInputFormat {
     protected StringAccumulator startLocationAccumulator;
 
     private MetaColumn restoreColumn;
+
+    private Row lastRow = null;
 
     /**
      * The hadoop config for metric
@@ -248,10 +255,27 @@ public class JdbcInputFormat extends RichInputFormat {
 
             //update hasNext after we've read the record
             hasNext = resultSet.next();
+
+            if (restoreConfig.isRestore()) {
+                lastRow = row;
+            }
+
             return row;
-        } catch (SQLException e) {
-            throw new IOException("Couldn't access resultSet", e);
+        } catch (SQLException se) {
+            throw new IOException("Couldn't read data - " + se.getMessage(), se);
+        } catch (Exception npe) {
+            throw new IOException("Couldn't access resultSet", npe);
         }
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        super.getFormatState();
+
+        if (formatState != null && lastRow != null) {
+            formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+        }
+        return formatState;
     }
 
     @Override
