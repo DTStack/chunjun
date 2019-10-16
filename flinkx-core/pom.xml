@@ -157,6 +157,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.dtstack.flinkx.Main</mainClass>
@@ -169,25 +170,12 @@
                                     <include>org.slf4j:*</include>
                                 </includes>
                             </artifactSet>
-<!--                            <relocations>-->
-<!--                               <relocation>-->
-<!--                                   <pattern>com</pattern>-->
-<!--                                   <shadedPattern>shade.dtcore.com</shadedPattern>-->
-<!--                                   <excludes>-->
-<!--                                       <exclude>com.dtstack.*</exclude>-->
-<!--                                   </excludes>-->
-<!--                               </relocation>-->
-
-<!--                               <relocation>-->
-<!--                                   <pattern>org</pattern>-->
-<!--                                   <shadedPattern>shade.dtcore.org</shadedPattern>-->
-<!--                                   <excludes>-->
-<!--                                       <exclude>org.apache.flink.*</exclude>-->
-<!--                                       <exclude>org.slf4j.*</exclude>-->
-<!--                                       <exclude>org.apache.hadoop.*</exclude>-->
-<!--                                   </excludes>-->
-<!--                               </relocation>-->
-<!--                           </relocations>-->
+                            <relocations>
+                               <relocation>
+                                   <pattern>com.google.guava</pattern>
+                                   <shadedPattern>shade.core.com.google.guava</shadedPattern>
+                               </relocation>
+                           </relocations>
                         </configuration>
                     </execution>
                 </executions>

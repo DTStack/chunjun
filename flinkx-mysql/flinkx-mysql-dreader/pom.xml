@@ -38,38 +38,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
                                 <relocation>
-                                    <pattern>com</pattern>
-                                    <shadedPattern>shade.dtmysql.com</shadedPattern>
-                                    <excludes>
-                                        <exclude>com.dtstack.*</exclude>
-                                        <exclude>com.mysql.*</exclude>
-                                    </excludes>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>shade.mysqlDreader.io.netty</shadedPattern>
                                 </relocation>
-
                                 <relocation>
-                                    <pattern>org</pattern>
-                                    <shadedPattern>shade.dtmysql.org</shadedPattern>
-                                    <excludes>
-                                        <exclude>org.apache.flink.*</exclude>
-                                        <exclude>org.gjt.mm.mysql.*</exclude>
-                                    </excludes>
+                                    <pattern>com.google.guava</pattern>
+                                    <shadedPattern>shade.mysqlDreader.com.google.guava</shadedPattern>
                                 </relocation>
                             </relocations>
-
                         </configuration>
                     </execution>
                 </executions>

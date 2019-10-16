@@ -20,41 +20,33 @@
     </dependencies>
 
     <build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>1.4</version>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>shade</goal>
-                    </goals>
-                    <configuration>
-                        <artifactSet>
-                            <excludes>
-                                <exclude>org.slf4j:slf4j-log4j12</exclude>
-                                <exclude>log4j:log4j</exclude>
-                                <exclude>org.slf4j:slf4j-api</exclude>
-                                <exclude>netty-all:io.netty</exclude>
-                                <exclude>com.google.guava:guava</exclude>
-                            </excludes>
-                        </artifactSet>
-                        <filters>
-                            <filter>
-                                <artifact>*:*</artifact>
-                                <excludes>
-                                    <exclude>META-INF/*.SF</exclude>
-                                    <exclude>META-INF/*.DSA</exclude>
-                                    <exclude>META-INF/*.RSA</exclude>
-                                </excludes>
-                            </filter>
-                        </filters>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>shade.binlogReader.com.google</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>shade.binlogReader.io.netty</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -71,11 +63,11 @@
                             <tasks>
                                 <copy todir="${basedir}/../../plugins/binlogreader">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar" />
+                                        <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/binlogreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/binlogreader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/binlogreader/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
