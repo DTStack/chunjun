@@ -30,7 +30,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -50,6 +50,26 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com</pattern>
+                                    <shadedPattern>shade.dtmysql.com</shadedPattern>
+                                    <excludes>
+                                        <exclude>com.dtstack.*</exclude>
+                                        <exclude>com.mysql.*</exclude>
+                                    </excludes>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>org</pattern>
+                                    <shadedPattern>shade.dtmysql.org</shadedPattern>
+                                    <excludes>
+                                        <exclude>org.apache.flink.*</exclude>
+                                        <exclude>org.gjt.mm.mysql.*</exclude>
+                                    </excludes>
+                                </relocation>
+                            </relocations>
+
                         </configuration>
                     </execution>
                 </executions>

@@ -95,6 +95,28 @@ under the License.
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com</pattern>
+                                    <shadedPattern>shade.dthdfs.com</shadedPattern>
+                                    <excludes>
+                                        <exclude>com.dtstack.*</exclude>
+                                        <exclude>com.sum.*</exclude>
+                                    </excludes>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>org</pattern>
+                                    <shadedPattern>shade.dthdfs.org</shadedPattern>
+                                    <excludes>
+                                        <exclude>org.apache.flink.*</exclude>
+                                        <exclude>org.apache.hadoop.*</exclude>
+                                        <exclude>org.slf4j.*</exclude>
+                                        <exclude>org.apache.log4j.*</exclude>
+                                    </excludes>
+                                </relocation>
+                            </relocations>
+
                         </configuration>
                     </execution>
                 </executions>
