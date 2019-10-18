@@ -26,6 +26,7 @@ import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.kudu.client.*;
 
@@ -62,17 +63,21 @@ public class KuduOutputFormat extends RichOutputFormat {
         session.setMutationBufferSpace(batchInterval);
         kuduTable = client.openTable(kuduConfig.getTable());
 
-        switch (kuduConfig.getFlushMode().toLowerCase()){
-            case "auto_flush_background":
-                session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
-                break;
-            case "manual_flush":
-                session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
-                break;
-            default:
-                session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
+        if(StringUtils.isBlank(kuduConfig.getFlushMode())){
+            session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
+        }else {
+            switch (kuduConfig.getFlushMode().toLowerCase()) {
+                case "auto_flush_background":
+                    session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND);
+                    break;
+                case "manual_flush":
+                    session.setFlushMode(SessionConfiguration.FlushMode.MANUAL_FLUSH);
+                    break;
+                default:
+                    session.setFlushMode(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC);
+                }
+            }
         }
-    }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
