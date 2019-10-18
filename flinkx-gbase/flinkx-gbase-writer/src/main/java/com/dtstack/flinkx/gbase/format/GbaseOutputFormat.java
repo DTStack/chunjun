@@ -15,28 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.gbase.format;
 
-package com.dtstack.flinkx.mysql.reader;
-
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
-import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
-import com.dtstack.flinkx.rdb.util.DBUtil;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.util.Collections;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 
 /**
- * MySQL reader plugin
- *
+ * Date: 2019/09/20
  * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ *
+ * @author tudou
  */
-public class MysqlReader extends JdbcDataReader {
-
-    public MysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        setDatabaseInterface(new MySqlDatabaseMeta());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
-    }
+public class GbaseOutputFormat extends JdbcOutputFormat {
 }

@@ -127,8 +127,13 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         try{
             // 覆盖模式并且不是从检查点恢复时先删除数据目录
-            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState.getState() == null){
+            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState != null && formatState.getState() == null){
                 coverageData();
+            }
+
+            // 处理上次任务因异常失败产生的脏数据
+            if (restoreConfig.isRestore() && formatState != null) {
+                cleanDirtyData();
             }
         } catch (Exception e){
             LOG.error("writeMode = {}, formatState = {}, e = {}", writeMode, formatState.getState(), ExceptionUtil.getErrorMessage(e));
@@ -233,6 +238,9 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             }
 
             sumRowsOfBlock = 0;
+            formatState.setJobId(jobId);
+            formatState.setFileIndex(blockIndex-1);
+            LOG.info("jobId = {}, blockIndex = {}", jobId, blockIndex);
 
             super.getFormatState();
             return formatState;
@@ -335,6 +343,8 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     public long getLastWriteTime() {
         return lastWriteTime;
     }
+
+    protected abstract void cleanDirtyData();
 
     protected abstract void createActionFinishedTag();
 
