@@ -18,10 +18,13 @@
 
 package com.dtstack.flinkx.writer;
 
-import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.classloader.ClassLoaderManager;
+import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
+
 import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.Set;
 
 /**
  * The factory of Writer plugins
@@ -34,14 +37,16 @@ public class DataWriterFactory {
     private DataWriterFactory() {}
 
     public static DataWriter getDataWriter(DataTransferConfig config) {
-
-        WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        PluginLoader pluginLoader = new PluginLoader(writerConfig.getName(), config.getPluginRoot());
-        Class<?> clz = pluginLoader.getPluginClass();
-
         try {
-            Constructor constructor = clz.getConstructor(DataTransferConfig.class);
-            return (DataWriter) constructor.newInstance(config);
+            String pluginName = config.getJob().getContent().get(0).getWriter().getName();
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot());
+
+            return ClassLoaderManager.newInstance(urlList, cl -> {
+                Class<?> clazz = cl.loadClass(pluginClassName);
+                Constructor constructor = clazz.getConstructor(DataTransferConfig.class);
+                return (DataWriter)constructor.newInstance(config);
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

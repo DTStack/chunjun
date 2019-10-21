@@ -21,7 +21,6 @@ package com.dtstack.flinkx.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
@@ -51,8 +50,6 @@ public abstract class DataReader {
 
     protected String monitorUrls;
 
-    protected PluginLoader pluginLoader;
-
     protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
@@ -79,16 +76,6 @@ public abstract class DataReader {
     public void setSrcCols(List<String> srcCols) {
         this.srcCols = srcCols;
     }
-
-    public PluginLoader getPluginLoader() {
-        return pluginLoader;
-    }
-
-    public void setPluginLoader(PluginLoader pluginLoader) {
-        this.pluginLoader = pluginLoader;
-    }
-
-    protected List<String> jarNameList = new ArrayList<>();
 
     protected DataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;

@@ -21,7 +21,6 @@ package com.dtstack.flinkx.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;
@@ -47,8 +46,6 @@ public abstract class DataWriter {
 
     protected String monitorUrls;
 
-    protected PluginLoader pluginLoader;
-
     protected Integer errors;
 
     protected Double errorRatio;
@@ -67,14 +64,6 @@ public abstract class DataWriter {
 
     public void setSrcCols(List<String> srcCols) {
         this.srcCols = srcCols;
-    }
-
-    public PluginLoader getPluginLoader() {
-        return pluginLoader;
-    }
-
-    public void setPluginLoader(PluginLoader pluginLoader) {
-        this.pluginLoader = pluginLoader;
     }
 
     public DataWriter(DataTransferConfig config) {
