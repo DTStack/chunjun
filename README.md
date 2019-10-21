@@ -250,10 +250,9 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Carbondata写入插件](docs/carbondatawriter.md)
 * [Kafka写入插件](docs/kafkawriter.md)
 * [Hive写入插件](docs/hivewriter.md)
-
-[断点续传和实时采集功能介绍](docs/restore.md)
 * [Kudu写入插件](docs/kuduwriter.md)
 
+[断点续传和实时采集功能介绍](docs/restore.md)
 
 [数据源开启Kerberos](docs/kerberos.md)
 
