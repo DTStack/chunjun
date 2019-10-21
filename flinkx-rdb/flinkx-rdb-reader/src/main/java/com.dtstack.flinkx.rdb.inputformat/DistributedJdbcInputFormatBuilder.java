@@ -21,6 +21,7 @@ package com.dtstack.flinkx.rdb.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.loader.JdbcFormatLoader;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
@@ -35,10 +36,12 @@ import java.util.List;
  */
 public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
 
+    private static String DISTRIBUTED_TAG = "d";
     private DistributedJdbcInputFormat format;
 
-    public DistributedJdbcInputFormatBuilder() {
-        super.format = this.format = new DistributedJdbcInputFormat();
+    public DistributedJdbcInputFormatBuilder(String name) {
+        JdbcFormatLoader jdbcFormatLoader = new JdbcFormatLoader(name + DISTRIBUTED_TAG, JdbcFormatLoader.INPUT_FORMAT);
+        super.format = format = (DistributedJdbcInputFormat) jdbcFormatLoader.getFormatInstance();
     }
 
     public void setDrivername(String driverName) {
