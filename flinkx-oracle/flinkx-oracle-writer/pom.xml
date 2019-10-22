@@ -48,7 +48,7 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>shade.oracleWriter.com.google.guava</shadedPattern>
+                                    <shadedPattern>shade.oracleWriter.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

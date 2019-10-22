@@ -47,7 +47,7 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>shade.oracleReader.com.google.guava</shadedPattern>
+                                    <shadedPattern>shade.oracleReader.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -47,6 +47,10 @@ under the License.
                     <artifactId>httpclient</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -86,7 +90,7 @@ under the License.
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>shade.hdfsReader.com.google.guava</shadedPattern>
+                                    <shadedPattern>shade.hdfsReader.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
