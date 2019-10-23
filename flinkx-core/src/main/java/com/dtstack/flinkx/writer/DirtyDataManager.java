@@ -28,14 +28,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 
 /**
@@ -46,11 +46,15 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  */
 public class DirtyDataManager {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DirtyDataManager.class);
+
     private String location;
     private Map<String, Object> config;
     private BufferedWriter bw;
     private String[] fieldNames;
     private String jobId;
+    private long lastFlushTime;
+    private long flushInterval = 60000;
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
@@ -79,6 +83,12 @@ public class DirtyDataManager {
         try {
             bw.write(line);
             bw.write(LINE_DELIMITER);
+            long currentTimeMillis = System.currentTimeMillis();
+            if(currentTimeMillis >= lastFlushTime + flushInterval){
+                LOG.info("flush dirty data, currentTimeMillis = {}, lastFlushTime = {}", currentTimeMillis, lastFlushTime);
+                bw.flush();
+                lastFlushTime = currentTimeMillis;
+            }
             return errorType;
         } catch (IOException e) {
             throw new RuntimeException(e);
