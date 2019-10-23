@@ -52,7 +52,6 @@ public class DirtyDataManager {
     private Configuration config;
     private BufferedWriter bw;
     private String[] fieldNames;
-    private String jobId;
     private long lastFlushTime;
     private long flushInterval = 60000;
 
