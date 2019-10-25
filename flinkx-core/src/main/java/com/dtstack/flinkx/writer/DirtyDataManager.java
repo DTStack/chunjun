@@ -53,7 +53,6 @@ public class DirtyDataManager {
 
     private String location;
     private Configuration config;
-    private BufferedWriter bw;
     private String[] fieldNames;
     FSDataOutputStream stream;
     EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
@@ -115,7 +114,6 @@ public class DirtyDataManager {
         try {
             FileSystem fs = FileSystem.get(config);
             Path path = new Path(location);
-            bw = new BufferedWriter(new OutputStreamWriter(fs.create(path, true)));
             stream = fs.create(path, true);
         } catch (Exception e) {
             throw new RuntimeException("Open dirty manager error", e);
@@ -123,10 +121,10 @@ public class DirtyDataManager {
     }
 
     public void close() {
-        if(bw != null) {
+        if(stream != null) {
             try {
-                bw.flush();
-                bw.close();
+                stream.flush();
+                stream.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
