@@ -20,7 +20,6 @@ package com.dtstack.flinkx.postgresql.format;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
-import com.google.common.base.Strings;
 import org.apache.flink.types.Row;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -135,7 +134,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
     }
 
     private boolean checkIsCopyMode(String insertMode){
-        if(Strings.isNullOrEmpty(insertMode)){
+        if(insertMode == null || insertMode.length() == 0){
             return false;
         }
 
