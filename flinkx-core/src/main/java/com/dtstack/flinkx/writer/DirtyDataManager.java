@@ -26,14 +26,13 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.hadoop.hdfs.DFSOutputStream;
+import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.*;
 
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
@@ -46,14 +45,11 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  */
 public class DirtyDataManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DirtyDataManager.class);
-
     private String location;
     private Configuration config;
-    private BufferedWriter bw;
     private String[] fieldNames;
-    private long lastFlushTime;
-    private long flushInterval = 60000;
+    private FSDataOutputStream stream;
+    private EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
@@ -85,14 +81,10 @@ public class DirtyDataManager {
         String errorType = retrieveCategory(ex);
         String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
         try {
-            bw.write(line);
-            bw.write(LINE_DELIMITER);
-            long currentTimeMillis = System.currentTimeMillis();
-            if(currentTimeMillis >= lastFlushTime + flushInterval){
-                LOG.info("flush dirty data, currentTimeMillis = {}, lastFlushTime = {}", currentTimeMillis, lastFlushTime);
-                bw.flush();
-                lastFlushTime = currentTimeMillis;
-            }
+            stream.writeChars(line);
+            stream.writeChars(LINE_DELIMITER);
+            DFSOutputStream dfsOutputStream = (DFSOutputStream) stream.getWrappedStream();
+            dfsOutputStream.hsync(syncFlags);
             return errorType;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -116,21 +108,20 @@ public class DirtyDataManager {
         try {
             FileSystem fs = FileSystem.get(config);
             Path path = new Path(location);
-            bw = new BufferedWriter(new OutputStreamWriter(fs.create(path, true)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            stream = fs.create(path, true);
+        } catch (Exception e) {
+            throw new RuntimeException("Open dirty manager error", e);
         }
     }
 
     public void close() {
-        if(bw != null) {
+        if(stream != null) {
             try {
-                bw.flush();
-                bw.close();
+                stream.flush();
+                stream.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
-
 }
