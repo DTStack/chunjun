@@ -48,8 +48,8 @@ public class DirtyDataManager {
     private String location;
     private Configuration config;
     private String[] fieldNames;
-    FSDataOutputStream stream;
-    EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
+    private FSDataOutputStream stream;
+    private EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
