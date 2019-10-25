@@ -31,12 +31,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSOutputStream;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.*;
 
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
@@ -48,8 +44,6 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * @author huyifan.zju@163.com
  */
 public class DirtyDataManager {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DirtyDataManager.class);
 
     private String location;
     private Configuration config;
