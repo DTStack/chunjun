@@ -16,6 +16,12 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-binlog-core</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>logback-core</artifactId>
+                    <groupId>ch.qos.logback</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -34,14 +40,30 @@
                     <configuration>
                         <minimizeJar>true</minimizeJar>
                         <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                            </filter>
+                            <filter>
+                                <artifact>com.googlecode.aviator:aviator</artifact>
+                                <includes>
+                                    <include>**</include>
+                                </includes>
+                            </filter>
+                        </filters>
                         <relocations>
                             <relocation>
                                 <pattern>io.netty</pattern>
                                 <shadedPattern>shade.binlogreader.io.netty</shadedPattern>
                             </relocation>
                             <relocation>
-                                <pattern>com.google</pattern>
-                                <shadedPattern>shade.binlogreader.com.google</shadedPattern>
+                                <pattern>com.google.common</pattern>
+                                <shadedPattern>shade.binlogreader.com.google.common</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
