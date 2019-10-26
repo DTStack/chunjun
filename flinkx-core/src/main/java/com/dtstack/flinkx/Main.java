@@ -144,8 +144,16 @@ public class Main {
             Field field = env.getClass().getDeclaredField("ctx");
             field.setAccessible(true);
             ContextEnvironment contextEnvironment= (ContextEnvironment) field.get(env);
-            for(URL url : classPathSet){
-                contextEnvironment.getClasspaths().add(url);
+
+            List<String> originUrlList = new ArrayList<>();
+            for (URL url : contextEnvironment.getClasspaths()) {
+                originUrlList.add(url.toString());
+            }
+
+            for (URL url : classPathSet) {
+                if (!originUrlList.contains(url.toString())){
+                    contextEnvironment.getClasspaths().add(url);
+                }
             }
         }
     }
