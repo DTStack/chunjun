@@ -109,8 +109,6 @@ public class Launcher {
 
                 clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
                 clusterClient.shutdown();
-                clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
-                clusterClient.shutdown();
             }else if(mode.equals(ClusterMode.yarnPer.name())){
                 String confProp = launcherOptions.getConfProp();
                 if (StringUtils.isBlank(confProp)){
