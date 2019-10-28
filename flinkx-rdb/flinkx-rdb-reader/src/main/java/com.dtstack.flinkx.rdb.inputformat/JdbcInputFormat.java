@@ -444,8 +444,12 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             } else {
                 String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
+                if(StringUtils.isNotBlank(startLocation)){
+                    LOG.info("update startLocation, before = {}, after = {}", jdbcInputSplit.getStartLocation(), startLocation);
+                    jdbcInputSplit.setStartLocation(startLocation);
+                }
                 String restoreFilter = DBUtil.buildIncrementFilter(databaseInterface, restoreColumn.getType(),
-                        restoreColumn.getName(), startLocation, jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
+                        restoreColumn.getName(), jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation(), customSql, incrementConfig.isUseMaxFunc());
 
                 if(StringUtils.isNotEmpty(restoreFilter)){
                     restoreFilter = " and " + restoreFilter;
