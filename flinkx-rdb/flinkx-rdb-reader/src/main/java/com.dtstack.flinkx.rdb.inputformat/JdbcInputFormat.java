@@ -155,7 +155,7 @@ public class JdbcInputFormat extends RichInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            LOG.info(inputSplit.toString());
+            LOG.info("inputSplit = {}", inputSplit);
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
 
@@ -449,7 +449,7 @@ public class JdbcInputFormat extends RichInputFormat {
         String querySql = queryTemplate;
 
         if (inputSplit == null){
-            LOG.warn("Executing sql is: '{}'", querySql);
+            LOG.warn("inputSplit = null, Executing sql is: '{}'", querySql);
             return querySql;
         }
 
@@ -469,9 +469,13 @@ public class JdbcInputFormat extends RichInputFormat {
                 }
             } else {
                 String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
+                if(StringUtils.isNotBlank(startLocation)){
+                    LOG.info("update startLocation, before = {}, after = {}", jdbcInputSplit.getStartLocation(), startLocation);
+                    jdbcInputSplit.setStartLocation(startLocation);
+                }
                 String restoreFilter = buildIncrementFilter(restoreColumn.getType(),
                                                             restoreColumn.getName(),
-                                                            startLocation,
+                                                            jdbcInputSplit.getStartLocation(),
                                                             jdbcInputSplit.getEndLocation(),
                                                             customSql,
                                                             incrementConfig.isUseMaxFunc());
@@ -484,7 +488,7 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
-        } else if (incrementConfig.isIncrement()){
+        }else if (incrementConfig.isIncrement()){
             querySql = buildIncrementSql(jdbcInputSplit, querySql);
         }
 
@@ -506,7 +510,6 @@ public class JdbcInputFormat extends RichInputFormat {
                                                         jdbcInputSplit.getEndLocation(),
                                                         customSql,
                                                         incrementConfig.isUseMaxFunc());
-
         if(StringUtils.isNotEmpty(incrementFilter)){
             incrementFilter = " and " + incrementFilter;
         }
@@ -524,7 +527,8 @@ public class JdbcInputFormat extends RichInputFormat {
      * @param useMaxFunc        是否保存结束位置数据
      * @return
      */
-    protected String buildIncrementFilter(String incrementColType,String incrementCol, String startLocation,String endLocation, String customSql, boolean useMaxFunc){
+    protected String buildIncrementFilter(String incrementColType, String incrementCol, String startLocation, String endLocation, String customSql, boolean useMaxFunc){
+        LOG.info("buildIncrementFilter, incrementColType = {}, incrementCol = {}, startLocation = {}, endLocation = {}, customSql = {}, useMaxFunc = {}", incrementColType, incrementCol, startLocation, endLocation, customSql, useMaxFunc);
         StringBuilder filter = new StringBuilder(128);
 
         if (org.apache.commons.lang.StringUtils.isNotEmpty(customSql)){

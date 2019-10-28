@@ -46,6 +46,8 @@ public class MongodbReader extends DataReader {
 
     protected String password;
 
+    protected String url;
+
     protected String database;
 
     protected String collection;
@@ -65,6 +67,7 @@ public class MongodbReader extends DataReader {
         hostPorts = readerConfig.getParameter().getStringVal(KEY_HOST_PORTS);
         username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
+        url = readerConfig.getParameter().getStringVal(KEY_URL);
         database = readerConfig.getParameter().getStringVal(KEY_DATABASE);
         collection = readerConfig.getParameter().getStringVal(KEY_COLLECTION);
         filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
@@ -75,6 +78,7 @@ public class MongodbReader extends DataReader {
         mongodbConfig.put(KEY_HOST_PORTS, hostPorts);
         mongodbConfig.put(KEY_USERNAME, username);
         mongodbConfig.put(KEY_PASSWORD, password);
+        mongodbConfig.put(KEY_URL, url);
         mongodbConfig.put(KEY_DATABASE, database);
     }
 

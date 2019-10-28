@@ -23,7 +23,6 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-import com.google.common.collect.Lists;
 import com.mongodb.*;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.collections.MapUtils;
@@ -36,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -83,12 +83,15 @@ public class MongodbUtil {
             String username = MapUtils.getString(mongodbConfig, KEY_USERNAME);
             String password = MapUtils.getString(mongodbConfig, KEY_PASSWORD);
             String database = MapUtils.getString(mongodbConfig, KEY_DATABASE);
+            String url = MapUtils.getString(mongodbConfig, KEY_URL);
 
-            if(StringUtils.isEmpty(username)){
+            if(StringUtils.isNotBlank(url)){
+                mongoClient = new MongoClient(new MongoClientURI(url));
+            }else if(StringUtils.isEmpty(username)){
                 mongoClient = new MongoClient(serverAddress,options);
             } else {
                 MongoCredential credential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
-                List<MongoCredential> credentials = Lists.newArrayList();
+                List<MongoCredential> credentials = new ArrayList<>();
                 credentials.add(credential);
 
                 mongoClient = new MongoClient(serverAddress,credentials,options);
@@ -147,7 +150,7 @@ public class MongodbUtil {
      * parse server address from hostPorts string
      */
     private static List<ServerAddress> getServerAddress(String hostPorts) {
-        List<ServerAddress> addresses = Lists.newArrayList();
+        List<ServerAddress> addresses = new ArrayList<>();
 
         for (String hostPort : hostPorts.split(HOST_SPLIT_REGEX)) {
             if(hostPort.length() == 0){
