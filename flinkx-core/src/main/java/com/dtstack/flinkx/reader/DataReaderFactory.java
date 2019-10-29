@@ -18,11 +18,13 @@
 
 package com.dtstack.flinkx.reader;
 
-import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.classloader.ClassLoaderManager;
+import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.Set;
 
 /**
  * The factory of DataReader
@@ -35,20 +37,19 @@ public class DataReaderFactory {
     private DataReaderFactory() {
     }
 
-
     public static DataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-
-        PluginLoader pluginLoader = new PluginLoader(readerConfig.getName().toLowerCase(), config.getPluginRoot());
-        Class<?> clz = pluginLoader.getPluginClass();
-
         try {
-            Constructor constructor = clz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
-            return (DataReader) constructor.newInstance(config, env);
+            String pluginName = config.getJob().getContent().get(0).getReader().getName();
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot());
+
+            return ClassLoaderManager.newInstance(urlList, cl -> {
+                Class<?> clazz = cl.loadClass(pluginClassName);
+                Constructor constructor = clazz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
+                return (DataReader)constructor.newInstance(config, env);
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 }
