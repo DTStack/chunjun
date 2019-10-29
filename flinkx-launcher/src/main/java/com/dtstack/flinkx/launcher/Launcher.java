@@ -33,6 +33,7 @@ import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.net.MalformedURLException;
@@ -76,7 +77,8 @@ public class Launcher {
 
         List<URL> urlList = new ArrayList<>();
 
-        DataTransferConfig config = DataTransferConfig.parse(content);
+        String jobJson = readJob(content);
+        DataTransferConfig config = DataTransferConfig.parse(jobJson);
 
         Preconditions.checkNotNull(pluginRoot);
 
@@ -176,5 +178,18 @@ public class Launcher {
         }
 
         return coreJarFileName;
+    }
+
+    private static String readJob(String job) {
+        try {
+            File file = new File(job);
+            FileInputStream in = new FileInputStream(file);
+            byte[] fileContent = new byte[(int) file.length()];
+            in.read(fileContent);
+            in.close();
+            return new String(fileContent, "UTF-8");
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 }
