@@ -32,8 +32,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>com.data-artisans:*</exclude>
+                                    <exclude>org.scala-lang:*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>log4j:log4j</exclude>
+                                    <exclude>ch.qos.logback:*</exclude>
+                                </excludes>
+                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -42,12 +51,6 @@
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>elasticsearch-rest-high-level-client:org.elasticsearch.client</artifact>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
                                 </filter>
                             </filters>
                             <relocations>
