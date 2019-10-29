@@ -17,6 +17,7 @@
 
 package org.apache.flink.streaming.api.functions.source;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
@@ -88,7 +89,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 		}
 
         if (format instanceof com.dtstack.flinkx.inputformat.RichInputFormat){
-            isStream = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getRestoreConfig().isStream();
+			RestoreConfig restoreConfig = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getRestoreConfig();
+			isStream = restoreConfig != null && restoreConfig.isStream();
             if(formatStateMap != null){
                 ((com.dtstack.flinkx.inputformat.RichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
