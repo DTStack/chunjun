@@ -165,6 +165,14 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         this.dirtyHadoopConfig = dirtyHadoopConfig;
     }
 
+    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
+        this.dirtyDataManager = dirtyDataManager;
+    }
+
+    public void setErrorLimiter(ErrorLimiter errorLimiter) {
+        this.errorLimiter = errorLimiter;
+    }
+
     public void setSrcFieldNames(List<String> srcFieldNames) {
         this.srcFieldNames = srcFieldNames;
     }
@@ -296,6 +304,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         if(StringUtils.isNotBlank(dirtyPath)) {
             dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]), jobId);
             dirtyDataManager.open();
+            LOG.info("init dirtyDataManager, {}", this.dirtyDataManager);
         }
     }
 

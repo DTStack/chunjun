@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public class HiveOutputFormat extends RichOutputFormat {
 
-    private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
+    private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
     private static final String SP = "/";
 
@@ -230,6 +230,8 @@ public class HiveOutputFormat extends RichOutputFormat {
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
             outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setDirtyDataManager(dirtyDataManager);
+            outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
             outputFormat.configure(parameters);
             outputFormat.open(taskNumber, numTasks);

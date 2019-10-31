@@ -17,6 +17,7 @@
 
 package org.apache.flink.streaming.api.functions.source;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
@@ -69,6 +70,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private transient ListState<FormatState> unionOffsetStates;
 
+    private boolean isStream;
+
 	@SuppressWarnings("unchecked")
 	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
 		super(format, typeInfo);
@@ -85,8 +88,12 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 			((RichInputFormat) format).setRuntimeContext(context);
 		}
 
-        if (format instanceof com.dtstack.flinkx.inputformat.RichInputFormat && formatStateMap != null){
-			((com.dtstack.flinkx.inputformat.RichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+        if (format instanceof com.dtstack.flinkx.inputformat.RichInputFormat){
+			RestoreConfig restoreConfig = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getRestoreConfig();
+			isStream = restoreConfig != null && restoreConfig.isStream();
+            if(formatStateMap != null){
+                ((com.dtstack.flinkx.inputformat.RichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+            }
         }
 
 		format.configure(parameters);
@@ -114,13 +121,18 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				// was called by checking the isRunning flag
 
 				while (isRunning && !format.reachedEnd()) {
-                    synchronized (ctx.getCheckpointLock()){
+				    if(isStream){
                         nextElement = format.nextRecord(nextElement);
-                        if (nextElement != null) {
-                            ctx.collect(nextElement);
-                        } else {
-                            break;
+                    } else {
+                        synchronized (ctx.getCheckpointLock()){
+                            nextElement = format.nextRecord(nextElement);
                         }
+                    }
+
+                    if (nextElement != null) {
+                        ctx.collect(nextElement);
+                    } else {
+                        break;
                     }
 				}
 				format.close();
