@@ -25,6 +25,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
@@ -40,13 +41,17 @@ public class Kafka10Writer extends DataWriter {
 
     private String topic;
 
+    private List<String> tableFields;
+
     private Map<String, String> producerSettings;
 
+    @SuppressWarnings("unchecked")
     public Kafka10Writer(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
+        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLEFIELDS);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
 
         if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
@@ -59,6 +64,7 @@ public class Kafka10Writer extends DataWriter {
         Kafka10OutputFormat format = new Kafka10OutputFormat();
         format.setTimezone(timezone);
         format.setTopic(topic);
+        format.setTableFields(tableFields);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
 

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka11.Formatter;
 import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -96,7 +97,7 @@ public class Kafka11OutputFormat extends RichOutputFormat {
                 }
             }
         } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", e);
+            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(e.getMessage(), e);
         }
     }

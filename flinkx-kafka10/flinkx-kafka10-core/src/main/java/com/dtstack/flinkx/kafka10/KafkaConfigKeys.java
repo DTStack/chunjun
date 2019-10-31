@@ -41,4 +41,6 @@ public class KafkaConfigKeys {
 
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
 
+    public static final String KEY_TABLEFIELDS = "tableFields";
+
 }

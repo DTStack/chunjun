@@ -23,8 +23,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka10.Formatter;
 import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -34,8 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * company: www.dtstack.com
@@ -52,11 +53,11 @@ public class Kafka10OutputFormat extends RichOutputFormat {
 
     private String topic;
 
+    private List<String> tableFields;
+
     private Map<String, String> producerSettings;
 
     private transient KafkaProducer<String, String> producer;
-
-    private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -86,22 +87,25 @@ public class Kafka10OutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
-            if (row.getArity() == 1) {
-                Object obj = row.getField(0);
-                if (obj instanceof Map) {
-                    emit((Map<String, Object>) obj);
-                } else if (obj instanceof String) {
-                    emit(jsonDecoder.decode(obj.toString()));
+            Map<String, Object> map;
+            int arity = row.getArity();
+            if(tableFields != null && tableFields.size() == arity){
+                map = new LinkedHashMap<>((arity<<2)/3);
+                for (int i = 0; i < arity; i++) {
+                    map.put(tableFields.get(i), StringUtils.arrayAwareToString(row.getField(i)));
                 }
+            }else{
+               map = Collections.singletonMap("message", row.toString());
             }
+            emit(map);
         } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", e);
+            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
     private void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<String, String>(tp, event.toString(), objectMapper.writeValueAsString(event)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)));
     }
 
     @Override
@@ -124,10 +128,13 @@ public class Kafka10OutputFormat extends RichOutputFormat {
         this.topic = topic;
     }
 
+    public void setTableFields(List<String> tableFields) {
+        this.tableFields = tableFields;
+    }
+
     public void setProducerSettings(Map<String, String> producerSettings) {
         this.producerSettings = producerSettings;
     }
-
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
