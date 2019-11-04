@@ -55,15 +55,23 @@
                                     <include>**</include>
                                 </includes>
                             </filter>
+                            <filter>
+                                <artifact>scala-library:org.scala-lang</artifact>
+                                <includes>
+                                    <include>**</include>
+                                </includes>
+                            </filter>
+                            <filter>
+                                <artifact>org.apache.kafka:kafka_2.11</artifact>
+                                <includes>
+                                    <include>**</include>
+                                </includes>
+                            </filter>
                         </filters>
                         <relocations>
                             <relocation>
-                                <pattern>io.netty</pattern>
-                                <shadedPattern>shade.kafka09reader.io.netty</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.google</pattern>
-                                <shadedPattern>shade.kafka09reader.com.google</shadedPattern>
+                                <pattern>scala</pattern>
+                                <shadedPattern>shade.kafka09reader.scala</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
