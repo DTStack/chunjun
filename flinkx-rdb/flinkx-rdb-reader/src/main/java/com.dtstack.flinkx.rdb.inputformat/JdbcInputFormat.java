@@ -103,18 +103,12 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected int fetchSize;
 
-    /**
-     * 各DatabaseMeta.getQueryTimeout()返回的超时时间,默认1000ms
-     */
     protected int queryTimeOut;
 
     protected int numPartitions;
 
     protected String customSql;
 
-    /**
-     * 增量任务配置
-     */
     protected IncrementConfig incrementConfig;
 
     protected StringAccumulator tableColAccumulator;
@@ -295,23 +289,19 @@ public class JdbcInputFormat extends RichInputFormat {
             return;
         }
 
-        //获取所有的累加器
         Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
-        //如果没有tableCol累加器，则创建一个用来记录表名-增量字段并保存到context上下文
         if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
             tableColAccumulator = new StringAccumulator();
             tableColAccumulator.add(table + "-" + incrementConfig.getColumnName());
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
         }
 
-        //创建一个记录起始位置的累加器
         startLocationAccumulator = new StringAccumulator();
         if (incrementConfig.getStartLocation() != null){
             startLocationAccumulator.add(incrementConfig.getStartLocation());
         }
         getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
 
-        //创建一个记录结束位置的累加器
         endLocationAccumulator = new MaximumAccumulator();
         String endLocation = ((JdbcInputSplit)split).getEndLocation();
         if(endLocation != null && incrementConfig.isUseMaxFunc()){
@@ -328,9 +318,7 @@ public class JdbcInputFormat extends RichInputFormat {
      */
     protected void getMaxValue(InputSplit inputSplit){
         String maxValue = null;
-        //第0个通道新建累加器并保存最大值，多通道下其他通道从historyServer中获取最大值
         if (inputSplit.getSplitNumber() == 0){
-            //从数据库中获取当前增量字段的最大值
             maxValue = getMaxValueFromDb();
             maxValueAccumulator = new StringAccumulator();
             maxValueAccumulator.add(maxValue);
@@ -360,7 +348,6 @@ public class JdbcInputFormat extends RichInputFormat {
                  */
                 int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
 
-                //当前重试次数
                 int acquireTimes = 0;
                 while (StringUtils.isEmpty(maxValue) && acquireTimes < maxAcquireTimes){
                     try {
