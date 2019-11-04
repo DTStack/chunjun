@@ -64,6 +64,7 @@ public class URLUtil {
                     respBody = EntityUtils.toString(entity,charset);
                 }
 
+                response.close();
                 return respBody;
             }
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);

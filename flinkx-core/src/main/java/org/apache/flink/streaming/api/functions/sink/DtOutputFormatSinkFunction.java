@@ -32,6 +32,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.InputTypeConfigurable;
 import org.apache.flink.configuration.Configuration;
 
+import org.apache.flink.runtime.state.CheckpointListener;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -137,7 +138,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
         if (formatState != null){
-            LOG.info("OutputFormat format state:{}", formatState.toString());
+            LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }

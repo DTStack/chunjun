@@ -27,7 +27,6 @@ import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.DataConvertUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
@@ -42,14 +41,15 @@ import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpC
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 
 /**
@@ -163,6 +163,14 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     public void setDirtyHadoopConfig(Map<String, Object> dirtyHadoopConfig) {
         this.dirtyHadoopConfig = dirtyHadoopConfig;
+    }
+
+    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
+        this.dirtyDataManager = dirtyDataManager;
+    }
+
+    public void setErrorLimiter(ErrorLimiter errorLimiter) {
+        this.errorLimiter = errorLimiter;
     }
 
     public void setSrcFieldNames(List<String> srcFieldNames) {
@@ -296,6 +304,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         if(StringUtils.isNotBlank(dirtyPath)) {
             dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]), jobId);
             dirtyDataManager.open();
+            LOG.info("init dirtyDataManager, {}", this.dirtyDataManager);
         }
     }
 

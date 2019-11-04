@@ -43,12 +43,32 @@ public class FormatState implements Serializable {
 
     private long numberWrite;
 
+    private String jobId;
+
+    private int fileIndex;
+
     public FormatState() {
     }
 
     public FormatState(int numOfSubTask, Object state) {
         this.numOfSubTask = numOfSubTask;
         this.state = state;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
+    }
+
+    public int getFileIndex() {
+        return fileIndex;
+    }
+
+    public void setFileIndex(int fileIndex) {
+        this.fileIndex = fileIndex;
     }
 
     public long getNumberRead() {
@@ -104,6 +124,10 @@ public class FormatState implements Serializable {
                 "numOfSubTask=" + numOfSubTask +
                 ", state=" + state +
                 ", metric=" + metric +
+                ", numberRead=" + numberRead +
+                ", numberWrite=" + numberWrite +
+                ", jobId='" + jobId + '\'' +
+                ", fileIndex=" + fileIndex +
                 '}';
     }
 }
