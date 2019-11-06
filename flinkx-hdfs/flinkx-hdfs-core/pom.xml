@@ -91,6 +91,17 @@ under the License.
             <artifactId>snappy-java</artifactId>
             <version>1.1.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.4.1</version>
+        </dependency>
     </dependencies>
 
 </project>
