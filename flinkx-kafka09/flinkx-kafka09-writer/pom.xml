@@ -32,8 +32,16 @@
                         <goal>shade</goal>
                     </goals>
                     <configuration>
-                        <minimizeJar>true</minimizeJar>
                         <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <artifactSet>
+                            <excludes>
+                                <exclude>org.slf4j:slf4j-api</exclude>
+                                <!--<exclude>log4j:log4j</exclude>-->
+                                <exclude>ch.qos.logback:*</exclude>
+                                <exclude>netty-all:io.netty</exclude>
+                                <exclude>com.google.guava:guava</exclude>
+                            </excludes>
+                        </artifactSet>
                         <filters>
                             <filter>
                                 <artifact>*:*</artifact>
@@ -43,37 +51,7 @@
                                     <exclude>META-INF/*.RSA</exclude>
                                 </excludes>
                             </filter>
-                            <filter>
-                                <artifact>org.apache.kafka:kafka_2.10</artifact>
-                                <includes>
-                                    <include>**</include>
-                                </includes>
-                            </filter>
-                            <filter>
-                                <artifact>joda-time:joda-time</artifact>
-                                <includes>
-                                    <include>**</include>
-                                </includes>
-                            </filter>
-                            <filter>
-                                <artifact>scala-library:org.scala-lang</artifact>
-                                <includes>
-                                    <include>**</include>
-                                </includes>
-                            </filter>
-                            <filter>
-                                <artifact>org.apache.kafka:kafka_2.11</artifact>
-                                <includes>
-                                    <include>**</include>
-                                </includes>
-                            </filter>
                         </filters>
-                        <relocations>
-                            <relocation>
-                                <pattern>scala</pattern>
-                                <shadedPattern>shade.kafka09reader.scala</shadedPattern>
-                            </relocation>
-                        </relocations>
                     </configuration>
                 </execution>
             </executions>

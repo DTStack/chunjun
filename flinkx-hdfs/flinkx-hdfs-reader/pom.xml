@@ -47,10 +47,6 @@ under the License.
                     <artifactId>httpclient</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
             </exclusions>
         </dependency>
 
@@ -81,18 +77,27 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.hdfsReader.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>shade.hdfsReader.com.google</shadedPattern>
-                                </relocation>
-                            </relocations>
+                            <artifactSet>
+                                <excludes>
+                                    <!--<exclude>org.slf4j:slf4j-api</exclude>-->
+                                    <!--<exclude>log4j:log4j</exclude>-->
+                                    <!--<exclude>ch.qos.logback:*</exclude>-->
+                                    <exclude>com.data-artisans:*</exclude>
+                                    <exclude>org.scala-lang:*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

@@ -47,10 +47,6 @@ under the License.
                     <artifactId>httpclient</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>hive-metastore</artifactId>
-                    <groupId>org.apache.hive</groupId>
-                </exclusion>
             </exclusions>
         </dependency>
 
@@ -58,12 +54,6 @@ under the License.
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
             <version>1.6</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hive-serde</artifactId>
-                    <groupId>org.apache.hive</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
     </dependencies>
@@ -81,8 +71,18 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <!--<exclude>log4j:log4j</exclude>-->
+                                    <exclude>ch.qos.logback:*</exclude>
+                                    <exclude>com.google.code.gson:*</exclude>
+                                    <exclude>com.data-artisans:*</exclude>
+                                    <exclude>org.scala-lang:*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                </excludes>
+                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -92,28 +92,11 @@ under the License.
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
-                                <filter>
-                                    <artifact>org.apache.*:*</artifact>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                </filter>
                             </filters>
-                            <relocations>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.hivewriter.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.hivewriter.com.google</shadedPattern>
-                                </relocation>
-                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
