@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.loader;
+package com.dtstack.flinkx.classloader;
 
 import java.net.URL;
 import java.net.URLClassLoader;

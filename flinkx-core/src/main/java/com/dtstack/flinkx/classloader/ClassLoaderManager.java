@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,21 +35,21 @@ public class ClassLoaderManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderManager.class);
 
-    private static Map<String, URLClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
+    private static Map<String, DTClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
 
     public static <R> R newInstance(Set<URL> jarUrls, ClassLoaderSupplier<R> supplier) throws Exception {
         ClassLoader classLoader = retrieveClassLoad(new ArrayList<>(jarUrls));
         return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
     }
 
-    private static ClassLoader retrieveClassLoad(List<URL> jarUrls) {
+    private static DTClassLoader retrieveClassLoad(List<URL> jarUrls) {
         jarUrls.sort(Comparator.comparing(URL::toString));
         String jarUrlkey = StringUtils.join(jarUrls, "_");
         return pluginClassLoader.computeIfAbsent(jarUrlkey, k -> {
             try {
                 URL[] urls = jarUrls.toArray(new URL[jarUrls.size()]);
                 ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
-                URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
+                DTClassLoader classLoader = new DTClassLoader(urls, parentClassLoader);
                 LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
                 return classLoader;
             } catch (Throwable e) {
@@ -62,7 +61,7 @@ public class ClassLoaderManager {
 
     public static Set<URL> getClassPath() {
         Set<URL> classPaths = new HashSet<>();
-        for (Map.Entry<String, URLClassLoader> entry : pluginClassLoader.entrySet()) {
+        for (Map.Entry<String, DTClassLoader> entry : pluginClassLoader.entrySet()) {
             classPaths.addAll(Arrays.asList(entry.getValue().getURLs()));
         }
         return classPaths;
