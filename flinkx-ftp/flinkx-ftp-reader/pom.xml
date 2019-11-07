@@ -71,16 +71,6 @@ under the License.
                                     </excludes>
                                 </filter>
                             </filters>
-                            <relocations>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.ftpreader.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.ftpreader.com.google</shadedPattern>
-                                </relocation>
-                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
