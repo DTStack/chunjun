@@ -11,30 +11,30 @@
 
     <modules>
         <module>flinkx-core</module>
-        <module>flinkx-rdb</module>
-        <module>flinkx-es</module>
-        <module>flinkx-ftp</module>
-        <module>flinkx-odps</module>
-        <module>flinkx-examples</module>
-        <module>flinkx-mysql</module>
-        <module>flinkx-hbase</module>
-        <module>flinkx-hdfs</module>
-        <module>flinkx-hive</module>
-        <module>flinkx-oracle</module>
-        <module>flinkx-sqlserver</module>
-        <module>flinkx-redis</module>
-        <module>flinkx-mongodb</module>
-        <module>flinkx-postgresql</module>
+<!--        <module>flinkx-rdb</module>-->
+<!--        <module>flinkx-es</module>-->
+<!--        <module>flinkx-ftp</module>-->
+<!--        <module>flinkx-odps</module>-->
+<!--        <module>flinkx-examples</module>-->
+<!--        <module>flinkx-mysql</module>-->
+<!--        <module>flinkx-hbase</module>-->
+<!--        <module>flinkx-hdfs</module>-->
+<!--        <module>flinkx-hive</module>-->
+<!--        <module>flinkx-oracle</module>-->
+<!--        <module>flinkx-sqlserver</module>-->
+<!--        <module>flinkx-redis</module>-->
+<!--        <module>flinkx-mongodb</module>-->
+<!--        <module>flinkx-postgresql</module>-->
         <module>flinkx-stream</module>
-        <module>flinkx-carbondata</module>
-        <module>flinkx-db2</module>
-        <module>flinkx-test</module>
-        <module>flinkx-gbase</module>
-        <module>flinkx-binlog</module>
-        <module>flinkx-kafka09</module>
-        <module>flinkx-kafka10</module>
-        <module>flinkx-kafka11</module>
-        <module>flinkx-kudu</module>
+<!--        <module>flinkx-carbondata</module>-->
+<!--        <module>flinkx-db2</module>-->
+<!--        <module>flinkx-test</module>-->
+<!--        <module>flinkx-gbase</module>-->
+<!--        <module>flinkx-binlog</module>-->
+<!--        <module>flinkx-kafka09</module>-->
+<!--        <module>flinkx-kafka10</module>-->
+<!--        <module>flinkx-kafka11</module>-->
+<!--        <module>flinkx-kudu</module>-->
         <module>flinkx-launcher</module>
         <module>flinkx-clickhouse</module>
     </modules>

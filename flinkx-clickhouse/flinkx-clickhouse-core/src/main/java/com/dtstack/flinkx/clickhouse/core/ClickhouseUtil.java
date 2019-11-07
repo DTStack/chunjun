@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
+import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -42,8 +43,8 @@ public class ClickhouseUtil {
     private static final int MAX_RETRY_TIMES = 3;
 
     public static Connection getConnection(String url, String username, String password, Properties properties) throws SQLException {
-        ClickHouseProperties p = new ClickHouseProperties(properties);
-        p.withCredentials(username, password);
+        properties.put(ClickHouseQueryParam.USER, username);
+        properties.put(ClickHouseQueryParam.PASSWORD, password);
         boolean failed = true;
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
@@ -92,8 +93,13 @@ public class ClickhouseUtil {
         }
     }
 
-    public static Object getValue(ResultSet rs, String name, String type) throws SQLException{
+    public static Object getValue(ResultSet rs, String name, String type) throws SQLException {
         switch (type.toLowerCase()) {
+            case "UInt64":
+                return rs.getBigDecimal(name);
+            case "UInt32":
+            case "Int64":
+                return rs.getLong(name);
             case "IntervalYear":
             case "IntervalQuarter":
             case "IntervalMonth":
@@ -102,13 +108,13 @@ public class ClickhouseUtil {
             case "IntervalHour":
             case "IntervalMinute":
             case "IntervalSecond":
-            case "UInt32":
-            case "UInt16":
             case "UInt8":
-            case "Int32":   return rs.getInt(name);
-            case "UInt64":
-            case "Int64":
-            default:    return rs.getString(name);
+            case "Int32":
+            case "UInt16":
+            case "Int16":
+                return rs.getInt(name);
+            default:
+                return rs.getString(name);
         }
     }
 }

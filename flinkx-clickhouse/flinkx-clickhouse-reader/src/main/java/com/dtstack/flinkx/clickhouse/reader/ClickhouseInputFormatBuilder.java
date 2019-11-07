@@ -30,7 +30,7 @@ public class ClickhouseInputFormatBuilder extends RichInputFormatBuilder {
     private ClickhouseInputFormat format;
 
     public ClickhouseInputFormatBuilder() {
-        super.format = format = new ClickhouseInputFormat();
+        super.format = this.format = new ClickhouseInputFormat();
     }
 
     public void setClickhouseConfig(ClickhouseConfig clickhouseConfig){
