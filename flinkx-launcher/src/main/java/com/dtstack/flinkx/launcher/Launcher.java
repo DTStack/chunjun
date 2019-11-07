@@ -84,48 +84,7 @@ public class Launcher {
         return urlList;
     }
 
-
-    @SuppressWarnings("all")
     public static void main(String[] args) throws Exception {
-        String mode = "local";
-//        String mode = "yarnPer";
-        List<String> list = new ArrayList<>(32);
-        list.add("-mode");
-        list.add(mode);
-        list.add("-job");
-        list.add("/Users/tudou/Library/Preferences/IntelliJIdea2019.2/scratches/json/kudu_to_kudu.json");
-        list.add("--pluginRoot");
-        list.add("/opt/dtstack/180_flinkplugin/syncplugin");
-        list.add("-flinkconf");
-        list.add("/opt/dtstack/flink-1.8.1/conf");
-        list.add("-flinkLibJar");
-        list.add("/opt/dtstack/flink-1.8.1/lib");
-        if(ClusterMode.yarnPer.equals(mode)){
-            list.add("-yarnconf");
-            list.add("/opt/dtstack/hadoop-2.7.3/etc/hadoop");
-            list.add("-flinkLibJar");
-            list.add("/opt/dtstack/flink-1.8.1/lib");
-            list.add("-confProp");
-            Map<String, Object> map = new HashMap<>();
-            map.put("mr.job.parallelism", 1);
-            map.put("sql.checkpoint.interval", 60000);
-            map.put("sql.env.parallelism", 1);
-            map.put("jobmanager.memory.mb", 1276);
-            map.put("taskmanager.memory.mb", 1276);
-            map.put("taskmanager.num", 2);
-            map.put("taskmanager.slots", 2);
-            map.put("jobmanager.archive.fs.dir", "hdfs://ns1/flink180/completed-jobs");
-            list.add(new Gson().toJson(map));
-            list.add("-queue");
-            list.add("c");
-        }
-        String[] strs = new String[list.size()];
-        run(list.toArray(strs));
-
-    }
-
-
-    public static void run(String[] args) throws Exception {
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
         String mode = launcherOptions.getMode();

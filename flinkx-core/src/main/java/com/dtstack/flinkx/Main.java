@@ -63,6 +63,7 @@ import java.util.*;
 public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -111,32 +112,15 @@ public class Main {
         }
 
         Set<URL> classPathSet = ClassLoaderManager.getClassPath();
-        addEnvClassPath(env, classPathSet);
-
+        int i = 0;
+        for(URL url : classPathSet){
+            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+            env.registerCachedFile(url.getPath(),  classFileName, true);
+            i++;
+        }
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
             ResultPrintUtil.printResult(result);
-        }
-    }
-
-    private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{
-        if(env instanceof MyLocalStreamEnvironment){
-            ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(classPathSet));
-        } else if(env instanceof StreamContextEnvironment){
-            Field field = env.getClass().getDeclaredField("ctx");
-            field.setAccessible(true);
-            ContextEnvironment contextEnvironment= (ContextEnvironment) field.get(env);
-
-            List<String> originUrlList = new ArrayList<>();
-            for (URL url : contextEnvironment.getClasspaths()) {
-                originUrlList.add(url.toString());
-            }
-
-            for (URL url : classPathSet) {
-                if (!originUrlList.contains(url.toString())){
-                    contextEnvironment.getClasspaths().add(url);
-                }
-            }
         }
     }
 
