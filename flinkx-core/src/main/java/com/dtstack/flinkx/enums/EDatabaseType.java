@@ -39,6 +39,5 @@ public enum EDatabaseType {
     ODPS,
     STREAM,
     Carbondata,
-    GBase,
-    clickhouse
+    GBase
 }

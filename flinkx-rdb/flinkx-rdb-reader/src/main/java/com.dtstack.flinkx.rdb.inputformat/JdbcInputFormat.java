@@ -125,9 +125,9 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected StringAccumulator startLocationAccumulator;
 
-    protected MetaColumn restoreColumn;
+    private MetaColumn restoreColumn;
 
-    protected Row lastRow = null;
+    private Row lastRow = null;
 
     /**
      * The hadoop config for metric
