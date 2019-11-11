@@ -79,6 +79,8 @@
     - [Db2官方文档](https://www.ibm.com/analytics/us/en/db2/)
     
     - [Gbase官方文档](http://www.gbase.cn/download.html)
+    
+    - [ClickHouse官方文档](https://clickhouse.yandex/docs/zh/)
   
   * 必选：是
   

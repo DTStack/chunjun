@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,18 +17,16 @@
  */
 package com.dtstack.flinkx.clickhouse.core;
 
-import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
-import ru.yandex.clickhouse.settings.ClickHouseProperties;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -42,7 +40,8 @@ public class ClickhouseUtil {
 
     private static final int MAX_RETRY_TIMES = 3;
 
-    public static Connection getConnection(String url, String username, String password, Properties properties) throws SQLException {
+    public static Connection getConnection(String url, String username, String password) throws SQLException {
+        Properties properties = new Properties();
         properties.put(ClickHouseQueryParam.USER, username);
         properties.put(ClickHouseQueryParam.PASSWORD, password);
         boolean failed = true;
@@ -67,39 +66,18 @@ public class ClickhouseUtil {
         return conn;
     }
 
-    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn) {
-        if (null != rs) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != stmt) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != conn) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-    }
-
-    public static Object getValue(ResultSet rs, String name, String type) throws SQLException {
+    public static Object getValue(ResultSet rs, Integer idx, String type) throws SQLException {
         switch (type.toLowerCase()) {
-            case "UInt64":
-                return rs.getBigDecimal(name);
+            case "String":
+            case "FixedString":
+            case "Nested":
+            case "Tuple":
+            case "AggregateFunction":
+            case "Unknown":
+                return rs.getString(idx);
             case "UInt32":
             case "Int64":
-                return rs.getLong(name);
+                return rs.getLong(idx);
             case "IntervalYear":
             case "IntervalQuarter":
             case "IntervalMonth":
@@ -112,9 +90,26 @@ public class ClickhouseUtil {
             case "Int32":
             case "UInt16":
             case "Int16":
-                return rs.getInt(name);
+            case "Int8":
+                return rs.getInt(idx);
+            case "Date":
+                return DateUtil.dateToString(rs.getDate(idx));
+            case "DateTime":
+                return DateUtil.dateToString(rs.getTimestamp(idx));
+            case "Float32":
+                return rs.getFloat(idx);
+            case "Float64":
+                return rs.getDouble(idx);
+            case "Decimal32":
+            case "Decimal64":
+            case "Decimal128":
+            case "Decimal":
+            case "UInt64":
+                return rs.getBigDecimal(idx);
+            case "Array":
+                return rs.getArray(idx);
             default:
-                return rs.getString(name);
+                return rs.getObject(idx);
         }
     }
 }
