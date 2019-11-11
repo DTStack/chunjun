@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,30 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.clickhouse.reader;
 
-package com.dtstack.flinkx.enums;
-
+import com.dtstack.flinkx.clickhouse.core.ClickhouseDatabaseMeta;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 /**
- * Database type
- *
+ * Date: 2019/11/05
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author tudou
  */
-public enum EDatabaseType {
+public class ClickhouseReader extends JdbcDataReader {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse
+    public ClickhouseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+        setDatabaseInterface(new ClickhouseDatabaseMeta());
+    }
 }

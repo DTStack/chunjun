@@ -25,7 +25,6 @@
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
         <module>flinkx-postgresql</module>
-        <module>flinkx-launcher</module>
         <module>flinkx-stream</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-db2</module>
@@ -36,6 +35,8 @@
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kudu</module>
+        <module>flinkx-launcher</module>
+        <module>flinkx-clickhouse</module>
     </modules>
 
     <properties>
