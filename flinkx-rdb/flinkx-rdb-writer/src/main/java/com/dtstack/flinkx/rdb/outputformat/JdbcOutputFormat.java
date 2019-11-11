@@ -88,9 +88,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    protected Row lastRow = null;
+    private Row lastRow = null;
 
-    protected boolean readyCheckpoint;
+    private boolean readyCheckpoint;
 
     protected long rowsOfCurrentTransaction;
 
@@ -170,7 +170,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
     }
 
-    protected List<String> analyzeTable() {
+    private List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
         Statement stmt = null;
         ResultSet rs = null;
