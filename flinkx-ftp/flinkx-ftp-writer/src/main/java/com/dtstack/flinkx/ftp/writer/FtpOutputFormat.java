@@ -24,6 +24,7 @@ import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -96,10 +97,12 @@ public class FtpOutputFormat extends FileOutputFormat {
                 throw new RuntimeException("Output path not exists:" + outputFilePath);
             }
 
+            flush();
             ftpHandler.mkDirRecursive(outputFilePath);
         } else {
             if(OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(outputFilePath)){
                 ftpHandler.deleteAllFilesInDir(outputFilePath, null);
+                flush();
                 ftpHandler.mkDirRecursive(outputFilePath);
             }
         }
@@ -195,6 +198,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void createFinishedTag() throws IOException {
         LOG.info("Subtask [{}] finished, create dir {}", taskNumber, finishedPath);
+        flush();
         ftpHandler.mkDirRecursive(finishedPath);
     }
 
@@ -219,6 +223,7 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     @Override
     protected void createActionFinishedTag() {
+        flush();
         ftpHandler.mkDirRecursive(actionFinishedTag);
     }
 
@@ -285,7 +290,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
         try{
-            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
@@ -330,6 +335,16 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected String getExtension() {
         return ".csv";
+    }
+
+    private void flush() {
+        if(os != null){
+            try {
+                os.flush();
+            }catch (IOException e){
+                LOG.error("error to flush os, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
+        }
     }
 
 }
