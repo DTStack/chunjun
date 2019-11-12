@@ -121,8 +121,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             }
 
             for (MetaColumn metaColumn : metaColumns) {
-                if(fullColNames.contains(metaColumn.getName().toUpperCase())){
-                    metaColumn.setIndex(fullColNames.indexOf(metaColumn.getName().toUpperCase()));
+                String name = metaColumn.getName().toUpperCase();
+                if(fullColNames.contains(name)){
+                    metaColumn.setIndex(fullColNames.indexOf(name));
+                    metaColumn.setName(name);
                 } else {
                     metaColumn.setIndex(-1);
                 }
