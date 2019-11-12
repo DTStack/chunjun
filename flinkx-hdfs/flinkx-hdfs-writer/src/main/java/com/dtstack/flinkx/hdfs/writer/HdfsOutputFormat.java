@@ -23,14 +23,16 @@ import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import java.io.IOException;
-import java.util.*;
 
-import org.apache.hadoop.conf.Configuration;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -119,6 +121,46 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
             }
         } catch (Exception e){
 
+        }
+    }
+
+    @Override
+    protected void cleanDirtyData() {
+        int fileIndex = formatState.getFileIndex();
+        String lastJobId = formatState.getJobId();
+        LOG.info("start to cleanDirtyData, fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        if(StringUtils.isBlank(lastJobId)){
+            return;
+        }
+
+        PathFilter filter = new PathFilter() {
+            @Override
+            public boolean accept(Path path) {
+                String fileName = path.getName();
+                if(!fileName.contains(lastJobId)){
+                    return false;
+                }
+
+                String[] splits = fileName.split("\\.");
+                if (splits.length == 3) {
+                    return Integer.parseInt(splits[2]) > fileIndex;
+                }
+
+                return false;
+            }
+        };
+
+        try{
+            FileStatus[] dirtyData = fs.listStatus(new Path(outputFilePath), filter);
+            if(dirtyData != null && dirtyData.length > 0){
+                for (FileStatus dirtyDatum : dirtyData) {
+                    fs.delete(dirtyDatum.getPath(), false);
+                    LOG.info("Delete dirty data file:{}", dirtyDatum.getPath());
+                }
+            }
+        } catch (Exception e){
+            LOG.error("Clean dirty data error:", e);
+            throw new RuntimeException(e);
         }
     }
 

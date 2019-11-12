@@ -28,6 +28,7 @@ import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -46,7 +47,7 @@ import java.util.Map;
  */
 public class HiveOutputFormat extends RichOutputFormat {
 
-    private static Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
+    private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
     private static final String SP = "/";
 
@@ -154,7 +155,7 @@ public class HiveOutputFormat extends RichOutputFormat {
                 try {
                     entry.getValue().close();
                 } catch (Exception e) {
-                    logger.error("", e);
+                    logger.error(ExceptionUtil.getErrorMessage(e));
                 } finally {
                     entryIterator.remove();
                 }
@@ -229,6 +230,8 @@ public class HiveOutputFormat extends RichOutputFormat {
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
             outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setDirtyDataManager(dirtyDataManager);
+            outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
             outputFormat.configure(parameters);
             outputFormat.open(taskNumber, numTasks);

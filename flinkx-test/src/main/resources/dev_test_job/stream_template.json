@@ -4,7 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "sliceRecordCount": ["10"],
+            "sliceRecordCount": ["1000"],
             "column": [
               {
                 "name": "name",
@@ -29,6 +29,7 @@
         },
         "writer": {
           "parameter": {
+            "print": true,
             "column": [
               {
                 "name": "cf:name",
@@ -57,7 +58,7 @@
               "hbase.zookeeper.quorum": "172.16.8.193:2181"
             }
           },
-          "name": "hbasewriter"
+          "name": "streamwriter"
         }
       }
     ],
