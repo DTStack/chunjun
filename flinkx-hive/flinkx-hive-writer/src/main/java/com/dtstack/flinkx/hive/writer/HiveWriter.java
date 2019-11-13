@@ -102,8 +102,8 @@ public class HiveWriter extends DataWriter {
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, EWriteModeType.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
-        password = writerConfig.getParameter().getStringVal(KEY_USERNAME);
-        username = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
+        username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
+        password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
 
         String distributeTable = writerConfig.getParameter().getStringVal(KEY_DISTRIBUTE_TABLE);
         formatHiveDistributeInfo(distributeTable);
