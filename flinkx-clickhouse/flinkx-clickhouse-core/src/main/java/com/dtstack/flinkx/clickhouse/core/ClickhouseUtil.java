@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.clickhouse.core;
 
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -64,52 +62,5 @@ public class ClickhouseUtil {
         }
 
         return conn;
-    }
-
-    public static Object getValue(ResultSet rs, Integer idx, String type) throws SQLException {
-        switch (type.toLowerCase()) {
-            case "String":
-            case "FixedString":
-            case "Nested":
-            case "Tuple":
-            case "AggregateFunction":
-            case "Unknown":
-                return rs.getString(idx);
-            case "UInt32":
-            case "Int64":
-                return rs.getLong(idx);
-            case "IntervalYear":
-            case "IntervalQuarter":
-            case "IntervalMonth":
-            case "IntervalWeek":
-            case "IntervalDay":
-            case "IntervalHour":
-            case "IntervalMinute":
-            case "IntervalSecond":
-            case "UInt8":
-            case "Int32":
-            case "UInt16":
-            case "Int16":
-            case "Int8":
-                return rs.getInt(idx);
-            case "Date":
-                return DateUtil.dateToString(rs.getDate(idx));
-            case "DateTime":
-                return DateUtil.dateToString(rs.getTimestamp(idx));
-            case "Float32":
-                return rs.getFloat(idx);
-            case "Float64":
-                return rs.getDouble(idx);
-            case "Decimal32":
-            case "Decimal64":
-            case "Decimal128":
-            case "Decimal":
-            case "UInt64":
-                return rs.getBigDecimal(idx);
-            case "Array":
-                return rs.getArray(idx);
-            default:
-                return rs.getObject(idx);
-        }
     }
 }

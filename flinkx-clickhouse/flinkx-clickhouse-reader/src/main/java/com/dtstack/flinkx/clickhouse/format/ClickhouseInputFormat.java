@@ -22,14 +22,11 @@ import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import ru.yandex.clickhouse.domain.ClickHouseDataType;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
@@ -82,24 +79,6 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             return null;
         }
         row = new Row(columnCount);
-        try {
-            for (int pos = 0; pos < row.getArity(); pos++) {
-                Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
-                        if(StringUtils.isBlank(columnType)){
-                            columnType = ClickHouseDataType.Unknown.name();
-                        }
-                        row.setField(pos, ClickhouseUtil.getValue(resultSet, pos+1, columnType));
-                    }
-                }
-            }
-            return super.nextRecordInternal(row);
-        } catch (SQLException se) {
-            throw new IOException("Couldn't read data - " + se.getMessage(), se);
-        } catch (Exception npe) {
-            throw new IOException("Couldn't access resultSet", npe);
-        }
+        return super.nextRecordInternal(row);
     }
 }
