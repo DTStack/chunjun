@@ -276,7 +276,11 @@ public class JdbcOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
 
                 LOG.info("getFormatState:Start commit connection");
-                preparedStatement.executeBatch();
+                if(rows != null && rows.size() > 0){
+                    super.writeRecordInternal();
+                }else{
+                    preparedStatement.executeBatch();
+                }
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
