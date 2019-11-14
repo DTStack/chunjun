@@ -15,31 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.polardb.format;
 
-package com.dtstack.flinkx.enums;
+import com.dtstack.flinkx.mysql.format.MysqlInputFormat;
 
 /**
- * Database type
- *
+ * Date: 2019/11/13
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author tudou
  */
-public enum EDatabaseType {
-
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB
+public class PolardbInputFormat extends MysqlInputFormat {
 }
