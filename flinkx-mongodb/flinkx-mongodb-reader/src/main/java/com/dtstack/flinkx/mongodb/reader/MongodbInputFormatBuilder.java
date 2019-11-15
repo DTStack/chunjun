@@ -76,14 +76,6 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if(format.hostPorts == null){
-            throw new IllegalArgumentException("No host supplied");
-        }
-
-        if(format.database == null){
-            throw new IllegalArgumentException("No database supplied");
-        }
-
         if(format.collectionName == null){
             throw new IllegalArgumentException("No collection supplied");
         }
