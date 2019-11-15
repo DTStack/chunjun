@@ -182,6 +182,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             byte[] bytes = line.getBytes(this.charsetName);
             this.os.write(bytes);
             this.os.write(NEWLINE);
+            this.os.flush();
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
@@ -268,7 +269,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void moveTemporaryDataFileToDirectory(){
         try{
-            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if (fileName.endsWith(FILE_SUFFIX) && fileName.startsWith(String.valueOf(taskNumber))){
@@ -285,7 +286,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
         try{
-            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
