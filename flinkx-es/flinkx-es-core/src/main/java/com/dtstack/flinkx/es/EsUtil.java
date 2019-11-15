@@ -130,7 +130,7 @@ public class EsUtil {
             if(current.containsKey(fieldParts[i])) {
                 current = (Map<String, Object>) current.get(fieldParts[i]);
             } else {
-                throw new RuntimeException("can't from key[" + fieldParts[i]);
+                return null;
             }
         }
         return  current.get(fieldParts[i]);
