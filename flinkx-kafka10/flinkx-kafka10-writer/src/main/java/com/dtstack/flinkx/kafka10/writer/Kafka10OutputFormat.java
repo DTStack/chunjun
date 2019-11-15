@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,7 +21,6 @@ package com.dtstack.flinkx.kafka10.writer;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka10.Formatter;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
@@ -89,7 +88,7 @@ public class Kafka10OutputFormat extends RichOutputFormat {
         try {
             Map<String, Object> map;
             int arity = row.getArity();
-            if(tableFields != null && tableFields.size() == arity){
+            if(tableFields != null && tableFields.size() >= arity){
                 map = new LinkedHashMap<>((arity<<2)/3);
                 for (int i = 0; i < arity; i++) {
                     map.put(tableFields.get(i), StringUtils.arrayAwareToString(row.getField(i)));
@@ -100,6 +99,7 @@ public class Kafka10OutputFormat extends RichOutputFormat {
             emit(map);
         } catch (Throwable e) {
             LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
+            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 

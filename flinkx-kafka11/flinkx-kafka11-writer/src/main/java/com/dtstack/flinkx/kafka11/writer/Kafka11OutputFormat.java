@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,7 +21,6 @@ package com.dtstack.flinkx.kafka11.writer;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka11.Formatter;
-import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
@@ -35,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * company: www.dtstack.com
@@ -53,11 +51,11 @@ public class Kafka11OutputFormat extends RichOutputFormat {
 
     private String topic;
 
+    private List<String> tableFields;
+
     private Map<String, String> producerSettings;
 
     private transient KafkaProducer<String, String> producer;
-
-    private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -88,14 +86,17 @@ public class Kafka11OutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
-            if (row.getArity() == 1) {
-                Object obj = row.getField(0);
-                if (obj instanceof Map) {
-                    emit((Map<String, Object>) obj);
-                } else if (obj instanceof String) {
-                    emit(jsonDecoder.decode(obj.toString()));
+            Map<String, Object> map;
+            int arity = row.getArity();
+            if(tableFields != null && tableFields.size() >= arity){
+                map = new LinkedHashMap<>((arity<<2)/3);
+                for (int i = 0; i < arity; i++) {
+                    map.put(tableFields.get(i), org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
                 }
+            }else{
+                map = Collections.singletonMap("message", row.toString());
             }
+            emit(map);
         } catch (Throwable e) {
             LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(e.getMessage(), e);
@@ -133,5 +134,9 @@ public class Kafka11OutputFormat extends RichOutputFormat {
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public void setTableFields(List<String> tableFields) {
+        this.tableFields = tableFields;
     }
 }
