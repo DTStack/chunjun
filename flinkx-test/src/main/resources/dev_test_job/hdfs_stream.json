@@ -1,0 +1,79 @@
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 1
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0
+      }
+    },
+    "content": [
+      {
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "col1",
+                "type": "int"
+              },
+              {
+                "name": "col2",
+                "type": "STRING"
+              },
+              {
+                "name": "col3",
+                "type": "int"
+              },
+              {
+                "name": "col4",
+                "type": "STRING"
+              }
+            ],
+            "print": true,
+            "sliceRecordCount": ["1000"]
+          },
+          "name": "streamwriter"
+        },
+        "reader": {
+          "name": "hdfsreader",
+          "parameter": {
+            "hadoopConfig": {
+              "dfs.nameservices":"ns1",
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn1": "cdh-impala1:9000",
+              "dfs.namenode.rpc-address.ns1.nn2": "cdh-impala2:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "hadoop.user.name": "jiangbo"
+            },
+            "defaultFS": "hdfs://ns1",
+            "fileType": "text",
+            "fileName": "",
+            "column": [
+              {
+                "name": "col1",
+                "type": "int"
+              },
+              {
+                "name": "col2",
+                "type": "STRING"
+              },
+              {
+                "name": "col3",
+                "type": "int"
+              },
+              {
+                "name": "col4",
+                "type": "STRING"
+              }
+            ],
+            "path": "/user/hive/warehouse/jiangbo.db/tb1",
+            "writeMode": "append",
+            "fieldDelimiter": "\u0001"
+          }
+        }
+      }
+    ]
+  }
+}
