@@ -31,4 +31,9 @@ public class PolardbDatabaseMeta extends MySqlDatabaseMeta {
     public EDatabaseType getDatabaseType() {
         return EDatabaseType.polarDB;
     }
+
+    @Override
+    public String getDriverClass() {
+        return "com.mysql.cj.jdbc.Driver";
+    }
 }
