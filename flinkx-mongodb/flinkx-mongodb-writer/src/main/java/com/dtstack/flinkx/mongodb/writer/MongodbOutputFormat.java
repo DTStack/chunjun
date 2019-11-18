@@ -19,11 +19,13 @@
 package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.mongodb.MongodbConfigKeys;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
@@ -74,6 +76,10 @@ public class MongodbOutputFormat extends RichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         client = MongodbUtil.getMongoClient(mongodbConfig);
+        if(StringUtils.isBlank(database)){
+            String url = (String) mongodbConfig.get(MongodbConfigKeys.KEY_URL);
+            database = new MongoClientURI(url).getDatabase();
+        }
         MongoDatabase db = client.getDatabase(database);
         collection = db.getCollection(collectionName);
     }
