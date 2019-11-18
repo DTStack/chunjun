@@ -128,6 +128,10 @@ public class FileSystemUtil {
         fillConfig(confMap, defaultFs);
 
         Configuration conf = new Configuration();
+        if(confMap == null){
+            return conf;
+        }
+
         confMap.forEach((key, val) -> {
             if(val != null){
                 conf.set(key, val.toString());
@@ -141,6 +145,10 @@ public class FileSystemUtil {
         fillConfig(confMap, defaultFs);
 
         JobConf jobConf = new JobConf();
+        if (confMap == null) {
+            return jobConf;
+        }
+
         confMap.forEach((key, val) -> {
             if(val != null){
                 jobConf.set(key, val.toString());
