@@ -1,4 +1,4 @@
-# MySQL binlog读取插件（*reader）
+# MySQL binlog读取插件（*reader） hrx
 
 ## 1.首先给莫个用户赋权，有读binglog的权限
 
