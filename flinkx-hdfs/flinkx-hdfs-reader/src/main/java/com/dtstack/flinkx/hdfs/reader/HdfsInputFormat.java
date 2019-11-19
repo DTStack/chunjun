@@ -20,6 +20,8 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
@@ -67,23 +69,35 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     @Override
     public void configure(Configuration parameters) {
-        conf = new JobConf();
+        // do nothing
+    }
 
-        if(hadoopConfig != null) {
-            for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
-            }
-        }
-        conf.set("fs.default.name", defaultFS);
-        conf.set("fs.hdfs.impl.disable.cache", "true");
+    @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
 
+        conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
         configureAnythingElse();
     }
 
+    protected void checkIfCreateSplitFailed(InputSplit inputSplit){
+        if (inputSplit instanceof HdfsInputSplit.ErrorInputSplit) {
+            throw new RuntimeException(((HdfsInputSplit.ErrorInputSplit) inputSplit).getErrorMessage());
+        }
+    }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         return new InputSplit[0];
+    }
+
+    protected HdfsInputSplit.ErrorInputSplit[] createErrorInputSplit(Exception e){
+        HdfsInputSplit.ErrorInputSplit[] inputSplits = new HdfsInputSplit.ErrorInputSplit[1];
+
+        HdfsInputSplit.ErrorInputSplit errorInputSplit = new HdfsInputSplit.ErrorInputSplit(ExceptionUtil.getErrorMessage(e));
+        inputSplits[0] = errorInputSplit;
+
+        return inputSplits;
     }
 
     @Override

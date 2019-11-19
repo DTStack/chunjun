@@ -20,24 +20,15 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import jodd.util.StringUtil;
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.FileSplit;
-
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.Map;
 
 /**
  * The subclass of HdfsInputFormat which handles text files
@@ -54,26 +45,36 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
-        TextInputFormat inputFormat = new TextInputFormat();
-        conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
-        inputFormat.configure(conf);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+        try {
+            JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
 
-        if(splits != null) {
-            HdfsTextInputSplit[] hdfsTextInputSplits = new HdfsTextInputSplit[splits.length];
-            for (int i = 0; i < splits.length; ++i) {
-                hdfsTextInputSplits[i] = new HdfsTextInputSplit(splits[i], i);
+            org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
+            TextInputFormat inputFormat = new TextInputFormat();
+            jobConf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
+            inputFormat.configure(jobConf);
+            org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(jobConf, minNumSplits);
+
+            if(splits != null) {
+                HdfsInputSplit.TextInputSplit[] hdfsTextInputSplits = new HdfsInputSplit.TextInputSplit[splits.length];
+                for (int i = 0; i < splits.length; ++i) {
+                    hdfsTextInputSplits[i] = new HdfsInputSplit.TextInputSplit(splits[i], i);
+                }
+                return hdfsTextInputSplits;
             }
-            return hdfsTextInputSplits;
-        }
 
-        return null;
+            return new InputSplit[0];
+        } catch (Exception e) {
+            LOG.error("Create input split error:", e);
+
+            return createErrorInputSplit(e);
+        }
     }
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
+        checkIfCreateSplitFailed(inputSplit);
+
+        HdfsInputSplit.TextInputSplit hdfsTextInputSplit = (HdfsInputSplit.TextInputSplit) inputSplit;
         org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
         recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
         key = new LongWritable();
@@ -122,97 +123,4 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         value = new Text();
         return isFileEmpty || !recordReader.next(key, value);
     }
-
-
-    public static class HdfsTextInputFormatBuilder {
-
-        private HdfsTextInputFormat format;
-
-        private HdfsTextInputFormatBuilder() {
-            format = new HdfsTextInputFormat();
-        }
-
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
-            format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
-            format.inputPath = inputPaths;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
-            if(delimiter == null) {
-                delimiter = "\\001";
-            }
-            format.delimiter = delimiter;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFS = defaultFs;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
-            if(StringUtil.isNotEmpty(charsetName)) {
-                if(!Charset.isSupported(charsetName)) {
-                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-                }
-                this.format.charsetName = charsetName;
-            }
-
-            return this;
-        }
-
-        public HdfsTextInputFormat finish() {
-            return format;
-        }
-    }
-
-    public static HdfsTextInputFormatBuilder buildHdfsTextInputFormat() {
-        return new HdfsTextInputFormatBuilder();
-    }
-
-    static class HdfsTextInputSplit implements InputSplit {
-        int splitNumber;
-        byte[] textSplitData;
-
-        public HdfsTextInputSplit(org.apache.hadoop.mapred.InputSplit split, int splitNumber) throws IOException {
-            this.splitNumber = splitNumber;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataOutputStream dos = new DataOutputStream(baos);
-            split.write(dos);
-            textSplitData = baos.toByteArray();
-            baos.close();
-            dos.close();
-        }
-
-        public org.apache.hadoop.mapred.InputSplit getTextSplit() throws IOException {
-            ByteArrayInputStream bais = new ByteArrayInputStream(textSplitData);
-            DataInputStream dis = new DataInputStream(bais);
-            org.apache.hadoop.mapred.InputSplit split = new FileSplit((Path)null, 0L, 0L, (String[])null);
-            split.readFields(dis);
-            bais.close();
-            dis.close();
-            return split;
-        }
-
-        @Override
-        public int getSplitNumber() {
-            return splitNumber;
-        }
-    }
-
 }
