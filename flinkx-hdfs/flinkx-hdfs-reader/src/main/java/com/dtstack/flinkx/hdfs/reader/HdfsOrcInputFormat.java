@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -119,11 +119,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 fullColTypes[i] = temp[1];
             }
 
-            for(int j = 0; j < metaColumns.size(); ++j) {
-                MetaColumn metaColumn = metaColumns.get(j);
-                metaColumn.setIndex(name2index(metaColumn.getName()));
-            }
-
             Properties p = new Properties();
             p.setProperty("columns", StringUtils.join(fullColNames, ","));
             p.setProperty("columns.types", StringUtils.join(fullColTypes, ":"));
@@ -186,16 +181,6 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         key = recordReader.createKey();
         value = recordReader.createValue();
         fields = inspector.getAllStructFieldRefs();
-    }
-
-    private int name2index(String columnName) {
-        int i = 0;
-        for(; i < fullColNames.length; ++i) {
-            if (fullColNames[i].equalsIgnoreCase(columnName)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
 
