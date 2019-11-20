@@ -27,8 +27,11 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
 
 /**
  * Date: 2019/11/05
@@ -79,6 +82,19 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             return null;
         }
         row = new Row(columnCount);
-        return super.nextRecordInternal(row);
+        try {
+            for (int pos = 0; pos < row.getArity(); pos++) {
+                Object obj = resultSet.getObject(pos + 1);
+                if(obj != null) {
+                    obj = clobToString(obj);
+                }
+                row.setField(pos, obj);
+            }
+            return super.nextRecordInternal(row);
+        } catch (SQLException se) {
+            throw new IOException("Couldn't read data - " + se.getMessage(), se);
+        } catch (Exception npe) {
+            throw new IOException("Couldn't access resultSet", npe);
+        }
     }
 }
