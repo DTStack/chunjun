@@ -18,8 +18,6 @@
 package com.dtstack.flinkx.clickhouse.core;
 
 import com.dtstack.flinkx.util.SysUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
@@ -34,8 +32,6 @@ import java.util.Properties;
  * @author tudou
  */
 public class ClickhouseUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(ClickhouseUtil.class);
-
     private static final int MAX_RETRY_TIMES = 3;
 
     public static Connection getConnection(String url, String username, String password) throws SQLException {
