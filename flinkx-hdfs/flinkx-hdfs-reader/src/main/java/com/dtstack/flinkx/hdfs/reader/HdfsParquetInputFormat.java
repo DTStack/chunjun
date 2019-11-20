@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -29,6 +30,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
@@ -58,8 +60,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private transient ParquetReader<Group> currentFileReader;
 
-    private transient List<String> allFilePaths;
-
     private transient List<String> fullColNames;
 
     private transient List<String> fullColTypes;
@@ -78,26 +78,14 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     @Override
     protected void configureAnythingElse() {
-        FileSystem fs = null;
-        try {
-            fs = FileSystem.get(conf);
-            allFilePaths = getAllPartitionPath(inputPath, fs);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        } finally {
-            if(fs != null){
-                try {
-                    fs.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Close FileSystem error after get all files", e);
-                }
-            }
-        }
+        // do nothing
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        currentSplitFilePaths = ((HdfsParquetSplit)inputSplit).getPaths();
+        checkIfCreateSplitFailed(inputSplit);
+
+        currentSplitFilePaths = ((HdfsInputSplit.ParquetInputSplit)inputSplit).getPaths();
     }
 
     private boolean nextLine() throws IOException{
@@ -243,26 +231,38 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsParquetSplit[] createInputSplits(int minNumSplits) throws IOException {
-        if(allFilePaths != null && allFilePaths.size() > 0){
-            HdfsParquetSplit[] splits = new HdfsParquetSplit[minNumSplits];
-            for (int i = 0; i < minNumSplits; i++) {
-                splits[i] = new HdfsParquetSplit(i, new ArrayList<>());
+    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+        try {
+            List<String> allFilePaths;
+            JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+            try (FileSystem fs = FileSystem.get(jobConf)) {
+                allFilePaths = getAllPartitionPath(inputPath, fs);
             }
 
-            Iterator<String> it = allFilePaths.iterator();
-            while (it.hasNext()) {
-                for (HdfsParquetSplit split : splits) {
-                    if (it.hasNext()){
-                        split.getPaths().add(it.next());
+            if(allFilePaths != null && allFilePaths.size() > 0){
+                HdfsInputSplit.ParquetInputSplit[] splits = new HdfsInputSplit.ParquetInputSplit[minNumSplits];
+                for (int i = 0; i < minNumSplits; i++) {
+                    splits[i] = new HdfsInputSplit.ParquetInputSplit(i, new ArrayList<>());
+                }
+
+                Iterator<String> it = allFilePaths.iterator();
+                while (it.hasNext()) {
+                    for (HdfsInputSplit.ParquetInputSplit split : splits) {
+                        if (it.hasNext()){
+                            split.getPaths().add(it.next());
+                        }
                     }
                 }
+
+                return splits;
             }
 
-            return splits;
-        }
+            return new InputSplit[0];
+        } catch (Exception e) {
+            LOG.error("Create input split error:", e);
 
-        return new HdfsParquetSplit[0];
+            return createErrorInputSplit(e);
+        }
     }
 
     @Override
@@ -294,7 +294,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
-        if(fs.isFile(inputPath) && !inputPath.getName().equals(EXCLUDE_FILE)){
+        if(fs.exists(inputPath) && fs.isFile(inputPath) && !inputPath.getName().equals(EXCLUDE_FILE)){
             pathList.add(tableLocation);
             return pathList;
         } else {
@@ -347,26 +347,5 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private long julianDayToMillis(int julianDay)
     {
         return (julianDay - JULIAN_EPOCH_OFFSET_DAYS) * MILLIS_IN_DAY;
-    }
-
-    static class HdfsParquetSplit implements InputSplit{
-
-        private int splitNumber;
-
-        private List<String> paths;
-
-        public HdfsParquetSplit(int splitNumber, List<String> paths) {
-            this.splitNumber = splitNumber;
-            this.paths = paths;
-        }
-
-        @Override
-        public int getSplitNumber() {
-            return splitNumber;
-        }
-
-        public List<String> getPaths() {
-            return paths;
-        }
     }
 }

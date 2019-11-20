@@ -20,7 +20,7 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -28,11 +28,8 @@ import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hive.ql.io.orc.*;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -156,31 +153,41 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+        try {
+            JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+            org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
 
-        if(splits != null) {
-            HdfsOrcInputSplit[] hdfsOrcInputSplits = new HdfsOrcInputSplit[splits.length];
-            for (int i = 0; i < splits.length; ++i) {
-                hdfsOrcInputSplits[i] = new HdfsOrcInputSplit((OrcSplit) splits[i], i);
+            OrcInputFormat orcInputFormat = new OrcInputFormat();
+            org.apache.hadoop.mapred.InputSplit[] splits = orcInputFormat.getSplits(jobConf, minNumSplits);
+
+            if(splits != null) {
+                HdfsInputSplit.OrcInputSplit[] hdfsOrcInputSplits = new HdfsInputSplit.OrcInputSplit[splits.length];
+                for (int i = 0; i < splits.length; ++i) {
+                    hdfsOrcInputSplits[i] = new HdfsInputSplit.OrcInputSplit((OrcSplit) splits[i], i);
+                }
+                return hdfsOrcInputSplits;
             }
-            return hdfsOrcInputSplits;
-        }
 
-        return null;
+            return new InputSplit[0];
+        } catch (Exception e) {
+            LOG.error("Create input split error:", e);
+
+            return createErrorInputSplit(e);
+        }
     }
 
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
+        checkIfCreateSplitFailed(inputSplit);
 
         if(isFileEmpty){
             return;
         }
 
         numReadCounter = getRuntimeContext().getLongCounter("numRead");
-        HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
+        HdfsInputSplit.OrcInputSplit hdfsOrcInputSplit = (HdfsInputSplit.OrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
         recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
         key = recordReader.createKey();
@@ -237,36 +244,4 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
         return row;
     }
-
-    static class HdfsOrcInputSplit implements InputSplit {
-        int splitNumber;
-        byte[] orcSplitData;
-
-        public HdfsOrcInputSplit(OrcSplit orcSplit, int splitNumber) throws IOException {
-            this.splitNumber = splitNumber;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataOutputStream dos = new DataOutputStream(baos);
-            orcSplit.write(dos);
-            orcSplitData = baos.toByteArray();
-            baos.close();
-            dos.close();
-        }
-
-        public OrcSplit getOrcSplit() throws IOException {
-            ByteArrayInputStream bais = new ByteArrayInputStream(orcSplitData);
-            DataInputStream dis = new DataInputStream(bais);
-            OrcSplit orcSplit = new OrcSplit(null, 0, 0, null, null
-                    , false, false,new ArrayList());
-            orcSplit.readFields(dis);
-            bais.close();
-            dis.close();
-            return orcSplit;
-        }
-
-        @Override
-        public int getSplitNumber() {
-            return splitNumber;
-        }
-    }
-
 }

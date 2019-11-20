@@ -22,6 +22,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -153,7 +154,7 @@ public abstract class HdfsOutputFormat extends RichOutputFormat {
 
         initColIndices();
 
-        conf = HdfsUtil.getHadoopConfig(hadoopConfig, defaultFS);
+        conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
         fs = FileSystem.get(conf);
         Path dir = new Path(outputFilePath);
         // dir不能是文件
