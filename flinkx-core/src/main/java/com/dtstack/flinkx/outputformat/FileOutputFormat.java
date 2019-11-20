@@ -127,7 +127,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         try{
             // 覆盖模式并且不是从检查点恢复时先删除数据目录
-            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && formatState != null && formatState.getState() == null){
+            if(!APPEND_MODE.equalsIgnoreCase(writeMode) && (formatState == null || formatState.getState() == null)){
                 coverageData();
             }
 
