@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.kafka11;
+package com.dtstack.flinkx.kafka;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * Date: 2019/11/21
+ * Company: www.dtstack.com
+ *
+ * @author tudou
  */
 public class KafkaConfigKeys {
 
@@ -38,5 +39,8 @@ public class KafkaConfigKeys {
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
 
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
+
+    public static final String KEY_TABLEFIELDS = "tableFields";
+
 
 }

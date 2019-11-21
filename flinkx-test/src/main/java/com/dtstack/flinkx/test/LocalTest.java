@@ -40,6 +40,8 @@ import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.kafka.reader.KafkaReader;
+import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
 import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
 import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
@@ -71,7 +73,6 @@ import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
@@ -196,6 +197,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
             case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
             case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
+            case PluginNameConstrant.KAFKA_READER : reader = new KafkaReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -225,6 +227,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
             case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
             case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
+            case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
