@@ -302,6 +302,18 @@
             <artifactId>flinkx-kudu-writer</artifactId>
             <version>1.6</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-clickhouse-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-clickhouse-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 
