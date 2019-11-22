@@ -50,8 +50,6 @@ public class OdpsInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
-    protected String sessionId;
-
     protected String partition;
 
     protected String projectName;
@@ -64,8 +62,6 @@ public class OdpsInputFormat extends RichInputFormat {
 
     protected String tunnelServer;
 
-    protected boolean isPartitioned = false;
-
     protected long startIndex;
 
     protected long stepCount;
@@ -74,39 +70,25 @@ public class OdpsInputFormat extends RichInputFormat {
 
     private transient TableTunnel.DownloadSession downloadSession;
 
-    private transient TableTunnel tunnel;
-
     private transient RecordReader recordReader;
 
     private transient Record record;
 
-    private transient Table table;
-
-
     @Override
-    public void configure(Configuration configuration) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         odps = OdpsUtil.initOdps(odpsConfig);
-        table = OdpsUtil.getTable(odps, projectName, tableName);
-        //isPartitioned = OdpsUtil.isPartitionedTable(table);
-        isPartitioned = StringUtils.isNotBlank(partition) ? true : false;
     }
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
-        return null;
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int adviceNum) throws IOException {
-        TableTunnel.DownloadSession session = null;
-        if(isPartitioned) {
+    public InputSplit[] createInputSplitsInternal(int adviceNum) throws IOException {
+        Odps odps = OdpsUtil.initOdps(odpsConfig);
+        TableTunnel.DownloadSession session;
+        if(StringUtils.isNotBlank(partition)) {
             session = OdpsUtil.createMasterSessionForPartitionedTable(odps, tunnelServer, projectName, tableName, partition);
         } else {
             session = OdpsUtil.createMasterSessionForNonPartitionedTable(odps, tunnelServer, projectName, tableName);
-        }
-
-        if(session != null) {
-            sessionId = session.getId();
         }
 
         return split(session, adviceNum);
@@ -120,8 +102,8 @@ public class OdpsInputFormat extends RichInputFormat {
         List<Pair<Long, Long>> splitResult = OdpsUtil.splitRecordCount(count, adviceNum);
 
         for (Pair<Long, Long> pair : splitResult) {
-            long startIndex = pair.getLeft().longValue();
-            long stepCount = pair.getRight().longValue();
+            long startIndex = pair.getLeft();
+            long stepCount = pair.getRight();
             OdpsInputSplit split = new OdpsInputSplit(session.getId(), startIndex, stepCount);
             if(startIndex < stepCount) {
                 splits.add(split);
@@ -132,18 +114,13 @@ public class OdpsInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
-    }
-
-    @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         OdpsInputSplit split = (OdpsInputSplit) inputSplit;
-        sessionId = split.getSessionId();
+        String sessionId = split.getSessionId();
         startIndex = split.getStartIndex();
         stepCount = split.getStepCount();
 
-        if(isPartitioned) {
+        if(StringUtils.isNotBlank(partition)) {
             downloadSession = OdpsUtil.getSlaveSessionForPartitionedTable(odps, sessionId, tunnelServer, projectName, tableName, partition);
         } else {
             downloadSession = OdpsUtil.getSlaveSessionForNonPartitionedTable(odps, sessionId, tunnelServer, projectName, tableName);

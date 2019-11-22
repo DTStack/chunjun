@@ -23,11 +23,8 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +66,17 @@ public class Kafka09InputFormat extends RichInputFormat {
     private transient ConsumerConnector consumerConnector;
 
     @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        Properties props = geneConsumerProp();
+        consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
+
+        executor = Executors.newFixedThreadPool(1);
+        queue = new SynchronousQueue<Row>(false);
+    }
+
+    @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
         topicCountMap.put(topic, 1);
@@ -102,15 +110,6 @@ public class Kafka09InputFormat extends RichInputFormat {
         }
     }
 
-    @Override
-    public void configure(Configuration parameters) {
-        Properties props = geneConsumerProp();
-        consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
-
-        executor = Executors.newFixedThreadPool(1);
-        queue = new SynchronousQueue<Row>(false);
-    }
-
     private Properties geneConsumerProp() {
         Properties props = new Properties();
         Iterator<Map.Entry<String, String>> consumerSetting = consumerSettings.entrySet().iterator();
@@ -124,17 +123,12 @@ public class Kafka09InputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
         }
         return splits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override

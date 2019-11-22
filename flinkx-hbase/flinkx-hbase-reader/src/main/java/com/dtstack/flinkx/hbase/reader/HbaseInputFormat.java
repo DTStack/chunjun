@@ -25,11 +25,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
@@ -74,23 +70,22 @@ public class HbaseInputFormat extends RichInputFormat {
     private boolean openKerberos = false;
 
     @Override
-    public void configure(Configuration configuration) {
-        LOG.info("HbaseOutputFormat configure start");
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        LOG.info("HbaseOutputFormat openInputFormat start");
         nameMaps = Maps.newConcurrentMap();
 
         connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
 
-        LOG.info("HbaseOutputFormat configure end");
+        LOG.info("HbaseOutputFormat openInputFormat end");
     }
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
-        return null;
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader")) {
+            return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+        }
     }
 
     public HbaseInputSplit[] split(Connection hConn, String tableName, String startKey, String endKey, boolean isBinaryRowkey) {
@@ -200,11 +195,6 @@ public class HbaseInputFormat extends RichInputFormat {
             tempStartRowkeyByte = startRowkeyByte;
         }
         return Bytes.toStringBinary(tempStartRowkeyByte);
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override

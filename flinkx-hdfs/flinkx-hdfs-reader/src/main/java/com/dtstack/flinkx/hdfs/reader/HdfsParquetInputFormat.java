@@ -30,6 +30,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
@@ -59,8 +60,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private transient ParquetReader<Group> currentFileReader;
 
-    private transient List<String> allFilePaths;
-
     private transient List<String> fullColNames;
 
     private transient List<String> fullColTypes;
@@ -76,25 +75,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
     private static final String EXCLUDE_FILE = "_SUCCESS";
-
-    @Override
-    protected void configureAnythingElse() {
-        FileSystem fs = null;
-        try {
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
-            allFilePaths = getAllPartitionPath(inputPath, fs);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        } finally {
-            if(fs != null){
-                try {
-                    fs.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Close FileSystem error after get all files", e);
-                }
-            }
-        }
-    }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -244,7 +224,13 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsParquetSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public HdfsParquetSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        List<String> allFilePaths;
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        try (FileSystem fs = FileSystem.get(jobConf)) {
+            allFilePaths = getAllPartitionPath(inputPath, fs);
+        }
+
         if(allFilePaths != null && allFilePaths.size() > 0){
             HdfsParquetSplit[] splits = new HdfsParquetSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {

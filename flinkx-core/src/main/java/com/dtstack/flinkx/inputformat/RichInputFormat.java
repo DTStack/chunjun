@@ -24,10 +24,11 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
-import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
@@ -74,13 +75,42 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
+    public final void configure(Configuration parameters) {
+        // do nothing
+    }
+
+    @Override
     public void openInputFormat() throws IOException {
         initJobInfo();
         startTime = System.currentTimeMillis();
     }
 
     @Override
+    public final InputSplit[] createInputSplits(int i) throws IOException {
+        try {
+            return createInputSplitsInternal(i);
+        } catch (Exception e){
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+
+            return createErrorInputSplit(e);
+        }
+    }
+
+    private ErrorInputSplit[] createErrorInputSplit(Exception e){
+        ErrorInputSplit[] inputSplits = new ErrorInputSplit[1];
+
+        ErrorInputSplit errorInputSplit = new ErrorInputSplit(ExceptionUtil.getErrorMessage(e));
+        inputSplits[0] = errorInputSplit;
+
+        return inputSplits;
+    }
+
+    protected abstract InputSplit[] createInputSplitsInternal(int i) throws Exception;
+
+    @Override
     public void open(InputSplit inputSplit) throws IOException {
+        checkIfCreateSplitFailed(inputSplit);
+
         if(!inited){
             initAccumulatorCollector();
             initStatisticsAccumulator();
@@ -95,6 +125,12 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         openInternal(inputSplit);
+    }
+
+    private void checkIfCreateSplitFailed(InputSplit inputSplit){
+        if (inputSplit instanceof ErrorInputSplit) {
+            throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
+        }
     }
 
     private void initAccumulatorCollector(){
@@ -244,12 +280,12 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract  void closeInternal() throws IOException;
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
+    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
         return null;
     }
 
     @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+    public final InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
         return new DefaultInputSplitAssigner(inputSplits);
     }
 

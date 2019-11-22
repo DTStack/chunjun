@@ -82,6 +82,13 @@ public class EsInputFormat extends RichInputFormat {
     private String scrollId;
 
     @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+
+    }
+
+    @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
 
@@ -106,7 +113,7 @@ public class EsInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int splitNum) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int splitNum) throws IOException {
         InputSplit[] splits = new InputSplit[splitNum];
         for (int i = 0; i < splitNum; i++) {
             splits[i] = new GenericInputSplit(i,splitNum);
@@ -173,20 +180,5 @@ public class EsInputFormat extends RichInputFormat {
         ClearScrollResponse clearScrollResponse = client.clearScroll(clearScrollRequest);
         boolean succeeded = clearScrollResponse.isSucceeded();
         LOG.info("Clear scroll response:{}", succeeded);
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
-    }
-
-    @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
-        return null;
-    }
-
-    @Override
-    public void configure(Configuration configuration) {
-
     }
 }

@@ -35,11 +35,7 @@ import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
@@ -134,7 +130,9 @@ public class JdbcInputFormat extends RichInputFormat {
     }
 
     @Override
-    public void configure(Configuration configuration) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         if (restoreConfig == null || !restoreConfig.isRestore()){
             return;
         }
@@ -199,25 +197,14 @@ public class JdbcInputFormat extends RichInputFormat {
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
-
     @Override
-    public BaseStatistics getStatistics(BaseStatistics cachedStatistics) throws IOException {
-        return cachedStatistics;
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         JdbcInputSplit[] splits = new JdbcInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new JdbcInputSplit(i, numPartitions, i, incrementConfig.getStartLocation(), null);
         }
 
         return splits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override

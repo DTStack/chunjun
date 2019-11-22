@@ -21,8 +21,6 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import java.io.IOException;
@@ -61,21 +59,11 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected boolean isFileEmpty = false;
 
-    /**
-     * configure anything else
-     */
-    protected abstract void configureAnythingElse();
-
     @Override
-    public void configure(Configuration parameters) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
-
-        configureAnythingElse();
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        return new InputSplit[0];
     }
 
     @Override
