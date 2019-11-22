@@ -42,6 +42,8 @@ import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.kafka.reader.KafkaReader;
+import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
 import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
 import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
@@ -202,6 +204,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
             case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
             case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
+            case PluginNameConstrant.KAFKA_READER : reader = new KafkaReader(config, env); break;
             case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
@@ -237,6 +240,7 @@ public class LocalTest {
             case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
+            case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

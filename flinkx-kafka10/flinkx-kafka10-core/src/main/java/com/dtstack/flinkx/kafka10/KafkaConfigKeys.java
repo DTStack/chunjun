@@ -37,8 +37,6 @@ public class KafkaConfigKeys {
 
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
 
-    public static final String KEY_BOOTSTRAP_SERVERS = "bootstrapServers";
-
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
 
 }

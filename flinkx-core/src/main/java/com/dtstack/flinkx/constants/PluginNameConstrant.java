@@ -43,6 +43,7 @@ public class PluginNameConstrant {
     public static final String KAFKA09_READER = "kafka09reader";
     public static final String KAFKA10_READER = "kafka10reader";
     public static final String KAFKA11_READER = "kafka11reader";
+    public static final String KAFKA_READER = "kafkareader";
     public static final String CLICKHOUSE_READER = "clickhousereader";
     public static final String POLARDB_READER = "polardbreader";
 
@@ -67,6 +68,7 @@ public class PluginNameConstrant {
     public static final String KAFKA09_WRITER = "kafka09writer";
     public static final String KAFKA10_WRITER = "kafka10writer";
     public static final String KAFKA11_WRITER = "kafka11writer";
+    public static final String KAFKA_WRITER = "kafkawriter";
     public static final String CLICKHOUSE_WRITER = "clickhousewriter";
     public static final String POLARDB_WRITER = "polardbwriter";
 }
