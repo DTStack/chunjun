@@ -285,6 +285,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
                 LOG.info("getFormatState:Commit connection success");
 
                 snapshotWriteCounter.add(rowsOfCurrentTransaction);
+                numWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
@@ -360,6 +361,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         readyCheckpoint = false;
         boolean commit = true;
         try{
+            numWriteCounter.add(rowsOfCurrentTransaction);
             String state = getTaskState();
             // Do not commit a transaction when the task is canceled or failed
             if(!RUNNING_STATE.equals(state) && restoreConfig.isRestore()){

@@ -232,11 +232,11 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             }
 
             snapshotWriteCounter.add(sumRowsOfBlock);
+            numWriteCounter.add(sumRowsOfBlock);
             formatState.setNumberWrite(numWriteCounter.getLocalValue());
             if (!restoreConfig.isStream()){
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
             }
-
             sumRowsOfBlock = 0;
             formatState.setJobId(jobId);
             formatState.setFileIndex(blockIndex-1);
@@ -252,7 +252,6 @@ public abstract class FileOutputFormat extends RichOutputFormat {
     @Override
     public void closeInternal() throws IOException {
         readyCheckpoint = false;
-
         //最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
         if(isTaskEndsNormally()){
             flushData();
@@ -261,6 +260,7 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                 moveTemporaryDataBlockFileToDirectory();
             }
         }
+        numWriteCounter.add(sumRowsOfBlock);
     }
 
     @Override
