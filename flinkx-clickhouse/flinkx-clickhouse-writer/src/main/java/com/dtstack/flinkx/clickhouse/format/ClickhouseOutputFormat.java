@@ -20,6 +20,7 @@ package com.dtstack.flinkx.clickhouse.format;
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
+            ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = ClickhouseUtil.getConnection(dbURL, username, password);
 
             if (restoreConfig.isRestore()) {

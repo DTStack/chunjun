@@ -1,0 +1,91 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [{
+              "jdbcUrl": [
+                "jdbc:clickhouse://ip:8123/test"
+              ],
+              "table": [
+                "test1"
+              ]
+            }],
+            "column":[{
+              "name": "id",
+              "type": "INT",
+              "key": "id"
+            },
+              {
+                "name": "user_id",
+                "type": "INT",
+                "key": "user_id"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR",
+                "key": "name"
+              }],
+            "splitPk": "id",
+            "where": " id > 121 "
+          },
+          "name": "clickhousereader"
+        },
+        "writer": {
+          "name": "clickhousewriter",
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl" : "jdbc:clickhouse://ip:8123/test",
+                "table": [
+                  "test2"
+                ]
+              }
+            ],
+            "session": [],
+            "preSql": [],
+            "postSql": [],
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "INT",
+                "key": "id"
+              },
+              {
+                "name": "user_id",
+                "type": "INT",
+                "key": "user_id"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR",
+                "key": "name"
+              }
+            ],
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+    }
+  }
+}
