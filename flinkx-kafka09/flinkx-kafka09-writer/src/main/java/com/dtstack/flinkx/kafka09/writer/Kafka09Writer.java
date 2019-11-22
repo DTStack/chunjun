@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;
@@ -41,10 +42,13 @@ public class Kafka09Writer extends DataWriter {
 
     private String topic;
 
+    private List<String> tableFields;
+
     private String brokerList;
 
     private Map<String, String> producerSettings;
 
+    @SuppressWarnings("unchecked")
     public Kafka09Writer(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -52,6 +56,7 @@ public class Kafka09Writer extends DataWriter {
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING, "utf-8");
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         brokerList = writerConfig.getParameter().getStringVal(KEY_BROKER_LIST);
+        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLEFIELDS);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
     }
 
@@ -61,6 +66,7 @@ public class Kafka09Writer extends DataWriter {
         format.setTimezone(timezone);
         format.setEncoding(encoding);
         format.setTopic(topic);
+        format.setTableFields(tableFields);
         format.setBrokerList(brokerList);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
