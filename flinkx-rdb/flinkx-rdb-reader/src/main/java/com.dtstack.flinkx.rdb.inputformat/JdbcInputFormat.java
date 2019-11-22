@@ -455,17 +455,19 @@ public class JdbcInputFormat extends RichInputFormat {
                     querySql = buildIncrementSql(jdbcInputSplit, querySql);
                 }
             } else {
+                boolean useMaxFunc = incrementConfig.isUseMaxFunc();
                 String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
                 if(StringUtils.isNotBlank(startLocation)){
                     LOG.info("update startLocation, before = {}, after = {}", jdbcInputSplit.getStartLocation(), startLocation);
                     jdbcInputSplit.setStartLocation(startLocation);
+                    useMaxFunc = false;
                 }
                 String restoreFilter = buildIncrementFilter(restoreColumn.getType(),
                                                             restoreColumn.getName(),
                                                             jdbcInputSplit.getStartLocation(),
                                                             jdbcInputSplit.getEndLocation(),
                                                             customSql,
-                                                            incrementConfig.isUseMaxFunc());
+                                                            useMaxFunc);
 
                 if(StringUtils.isNotEmpty(restoreFilter)){
                     restoreFilter = " and " + restoreFilter;
