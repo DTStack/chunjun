@@ -59,6 +59,8 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.polardb.reader.PolardbReader;
+import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.DataReader;
@@ -202,6 +204,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
             case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
+            case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -233,6 +236,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
             case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
+            case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

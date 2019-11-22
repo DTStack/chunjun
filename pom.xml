@@ -37,6 +37,7 @@
         <module>flinkx-kudu</module>
         <module>flinkx-launcher</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-polardb</module>
     </modules>
 
     <properties>
