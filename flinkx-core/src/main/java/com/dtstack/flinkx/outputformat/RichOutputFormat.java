@@ -324,7 +324,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-            numWriteCounter.add(1);
+            if(!restoreConfig.isRestore()){
+                numWriteCounter.add(1);
+            }
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);
