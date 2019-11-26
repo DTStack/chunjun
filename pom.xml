@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.8.1</flink.version>
-        <hadoop.version>2.7.3.2.6.4.91-3</hadoop.version>
+        <hadoop.version>2.7.3</hadoop.version>
         <dev.path>${basedir}/dev</dev.path>
     </properties>
 
