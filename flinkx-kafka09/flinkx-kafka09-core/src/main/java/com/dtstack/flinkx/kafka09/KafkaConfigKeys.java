@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -39,5 +39,7 @@ public class KafkaConfigKeys {
     public static final String KEY_BROKER_LIST = "brokerList";
 
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
+
+    public static final String KEY_TABLEFIELDS = "tableFields";
 
 }

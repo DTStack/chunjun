@@ -1,0 +1,36 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "groupId" : "default",
+          "topic" : "tudou",
+          "consumerSettings" : {
+            "zookeeper.connect" : "ip:2181/kafka100",
+            "bootstrap.servers" : "ip:9092",
+            "auto.commit.interval.ms" : "1000",
+            "auto.offset.reset" : "latest"
+          }
+        },
+        "name" : "kafkareader"
+      },
+      "writer" : {
+        "parameter" : {
+          "print" : true
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

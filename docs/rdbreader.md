@@ -57,7 +57,7 @@
 
 * **name**
   
-  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader，gbasereader, clickhousereader。    
+  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader，gbasereader, clickhousereader, polardbreader。    
     * 必选：是 
     
     * 默认值：无 
@@ -81,6 +81,8 @@
     - [Gbase官方文档](http://www.gbase.cn/download.html)
     
     - [ClickHouse官方文档](https://clickhouse.yandex/docs/zh/)
+    
+    - [polarDB官方文档](https://help.aliyun.com/product/58609.html)
   
   * 必选：是
   

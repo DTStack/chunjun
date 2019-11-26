@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.kafka11.KafkaConfigKeys.*;
@@ -42,12 +43,16 @@ public class Kafka11Writer extends DataWriter {
 
     private Map<String, String> producerSettings;
 
+    private List<String> tableFields;
+
+    @SuppressWarnings("unchecked")
     public Kafka11Writer(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
+        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLEFIELDS);
 
         if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
@@ -61,6 +66,7 @@ public class Kafka11Writer extends DataWriter {
         format.setTopic(topic);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
+        format.setTableFields(tableFields);
 
         return createOutput(dataSet, format, "kafka11writer");
     }

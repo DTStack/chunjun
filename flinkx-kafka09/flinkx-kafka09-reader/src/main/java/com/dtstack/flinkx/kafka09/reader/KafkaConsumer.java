@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,6 +21,7 @@ package com.dtstack.flinkx.kafka09.reader;
 import com.dtstack.flinkx.kafka09.decoder.IDecode;
 import com.dtstack.flinkx.kafka09.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafka09.decoder.PlainDecoder;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class KafkaConsumer implements Runnable {
                 }
             }
         } catch (Exception t) {
-            LOG.error("kakfa Consumer fetch is error:{}", t.getCause());
+            LOG.error("kakfa Consumer fetch is error:{}", ExceptionUtil.getErrorMessage(t));
         }
     }
 

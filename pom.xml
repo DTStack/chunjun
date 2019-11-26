@@ -34,9 +34,11 @@
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
+        <module>flinkx-kafka</module>
         <module>flinkx-kudu</module>
         <module>flinkx-launcher</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-polardb</module>
     </modules>
 
     <properties>

@@ -1,0 +1,77 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "customSql" : "",
+          "startLocation" : "",
+          "increColumn" : "",
+          "column" : [ {
+            "name" : "id",
+            "type" : "BIGINT",
+            "key" : "id"
+          }, {
+            "name" : "user_id",
+            "type" : "BIGINT",
+            "key" : "user_id"
+          }, {
+            "name" : "name",
+            "type" : "VARCHAR",
+            "key" : "name"
+          } ],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:mysql://aaaa:3306/bbbb" ],
+            "table" : [ "kudu_data" ]
+          } ],
+          "splitPk" : "id"
+        },
+        "name" : "polardbreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "postSql" : [ ],
+          "username" : "username",
+          "password" : "password",
+          "session" : [ ],
+          "column" : [ {
+            "name" : "id",
+            "type" : "BIGINT",
+            "key" : "id"
+          }, {
+            "name" : "user_id",
+            "type" : "BIGINT",
+            "key" : "user_id"
+          }, {
+            "name" : "name",
+            "type" : "VARCHAR",
+            "key" : "name"
+          } ],
+          "connection" : [ {
+            "jdbcUrl" : "jdbc:mysql://aaaa:3306/bbbb",
+            "table" : [ "kudu" ]
+          } ],
+          "writeMode" : "insert",
+          "preSql" : [ ]
+        },
+        "name" : "polardbwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : true,
+        "restoreColumnName" : "id",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 100
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}
