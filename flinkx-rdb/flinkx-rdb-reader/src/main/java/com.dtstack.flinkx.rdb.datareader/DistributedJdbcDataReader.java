@@ -44,6 +44,8 @@ import java.util.List;
  */
 public class DistributedJdbcDataReader extends DataReader {
 
+    protected DistributedJdbcInputFormatBuilder builder;
+
     protected DatabaseInterface databaseInterface;
 
     protected TypeConverterInterface typeConverter;
@@ -85,7 +87,6 @@ public class DistributedJdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        DistributedJdbcInputFormatBuilder builder = new DistributedJdbcInputFormatBuilder(databaseInterface.getDatabaseType().name());
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setUsername(username);
         builder.setPassword(password);

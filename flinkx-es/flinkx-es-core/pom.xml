@@ -24,6 +24,11 @@
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
             <version>6.1.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.8.10</version>
+        </dependency>
     </dependencies>
 
 

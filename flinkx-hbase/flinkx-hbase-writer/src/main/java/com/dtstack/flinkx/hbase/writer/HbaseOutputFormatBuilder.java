@@ -21,7 +21,7 @@ package com.dtstack.flinkx.hbase.writer;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Map;
 
