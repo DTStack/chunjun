@@ -36,7 +36,6 @@ import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
