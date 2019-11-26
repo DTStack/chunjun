@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-binlog-core</artifactId>
+    <properties>
+        <canal.version>1.1.4</canal.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -21,19 +24,19 @@
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.parse</artifactId>
-            <version>1.1.0</version>
+            <version>${canal.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.common</artifactId>
-            <version>1.1.0</version>
+            <version>${canal.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.otter</groupId>
             <artifactId>canal.filter</artifactId>
-            <version>1.1.0</version>
+            <version>${canal.version}</version>
         </dependency>
     </dependencies>
 

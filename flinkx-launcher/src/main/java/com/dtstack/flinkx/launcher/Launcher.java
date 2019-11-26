@@ -25,9 +25,6 @@ import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
@@ -45,7 +42,9 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * FlinkX commandline Launcher
@@ -98,7 +97,7 @@ public class Launcher {
             String coreJarName = getCoreJarFileName(pluginRoot);
             File jarFile = new File(pluginRoot + File.separator + coreJarName);
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
-            if(mode.equals(ClusterMode.yarn.name())){
+            if(!ClusterMode.yarnPer.name().equals(mode)){
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
                 String monitor = clusterClient.getWebInterfaceURL();
                 argList.add("-monitor");
@@ -115,7 +114,7 @@ public class Launcher {
                 clusterClient.shutdown();
                 clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
                 clusterClient.shutdown();
-            }else if(mode.equals(ClusterMode.yarnPer.name())){
+            }else{
                 String confProp = launcherOptions.getConfProp();
                 if (StringUtils.isBlank(confProp)){
                     throw new IllegalArgumentException("per-job mode must have confProp!");
@@ -184,7 +183,7 @@ public class Launcher {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             in.close();
-            return new String(fileContent, "UTF-8");
+            return new String(fileContent, StandardCharsets.UTF_8);
         } catch (Exception e){
             throw new RuntimeException(e);
         }
