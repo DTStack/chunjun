@@ -20,7 +20,9 @@ package com.dtstack.flinkx.sqlserver.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.sqlserver.SqlServerDatabaseMeta;
+import com.dtstack.flinkx.sqlserver.format.SqlserverOutputFormat;
 
 /**
  * SQLServer writer plugin
@@ -33,6 +35,8 @@ public class SqlserverWriter extends JdbcDataWriter {
     public SqlserverWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new SqlServerDatabaseMeta());
+        super.builder = new JdbcOutputFormatBuilder(new SqlserverOutputFormat());
+
     }
 
 }
