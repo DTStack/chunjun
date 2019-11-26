@@ -100,7 +100,7 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
             return "MERGE INTO " + quoteTable(table) + " T1 USING "
                     + "(" + makeValues(column) + ") T2 ON ("
                     + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                    + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                    + getSqlServerUpdateSql(updateColumns, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
                     + "INSERT (" + quoteColumns(column) + ") VALUES ("
                     + quoteColumns(column, "T2") + ");";
         }
