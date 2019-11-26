@@ -19,11 +19,13 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.mongodb.MongodbConfigKeys;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -81,6 +83,10 @@ public class MongodbInputFormat extends RichInputFormat {
         FindIterable<Document> findIterable;
 
         client = MongodbUtil.getMongoClient(mongodbConfig);
+        if(StringUtils.isBlank(database)){
+            String url = (String) mongodbConfig.get(MongodbConfigKeys.KEY_URL);
+            database = new MongoClientURI(url).getDatabase();
+        }
         MongoDatabase db = client.getDatabase(database);
         MongoCollection<Document> collection = db.getCollection(collectionName);
 
@@ -143,6 +149,10 @@ public class MongodbInputFormat extends RichInputFormat {
         MongoClient client = null;
         try {
             client = MongodbUtil.getMongoClient(mongodbConfig);
+            if(StringUtils.isBlank(database)){
+                String url = (String) mongodbConfig.get(MongodbConfigKeys.KEY_URL);
+                database = new MongoClientURI(url).getDatabase();
+            }
             MongoDatabase db = client.getDatabase(database);
             MongoCollection<Document> collection = db.getCollection(collectionName);
 

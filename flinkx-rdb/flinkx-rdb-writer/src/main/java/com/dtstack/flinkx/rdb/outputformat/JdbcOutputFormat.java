@@ -88,9 +88,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    private Row lastRow = null;
+    protected Row lastRow = null;
 
-    private boolean readyCheckpoint;
+    protected boolean readyCheckpoint;
 
     protected long rowsOfCurrentTransaction;
 
@@ -170,7 +170,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
     }
 
-    private List<String> analyzeTable() {
+    protected List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
         Statement stmt = null;
         ResultSet rs = null;
@@ -276,11 +276,16 @@ public class JdbcOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
 
                 LOG.info("getFormatState:Start commit connection");
-                preparedStatement.executeBatch();
+                if(rows != null && rows.size() > 0){
+                    super.writeRecordInternal();
+                }else{
+                    preparedStatement.executeBatch();
+                }
                 dbConn.commit();
                 LOG.info("getFormatState:Commit connection success");
 
                 snapshotWriteCounter.add(rowsOfCurrentTransaction);
+                numWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
@@ -356,6 +361,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         readyCheckpoint = false;
         boolean commit = true;
         try{
+            numWriteCounter.add(rowsOfCurrentTransaction);
             String state = getTaskState();
             // Do not commit a transaction when the task is canceled or failed
             if(!RUNNING_STATE.equals(state) && restoreConfig.isRestore()){

@@ -24,6 +24,8 @@ import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
+import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
+import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.constants.PluginNameConstrant;
@@ -40,12 +42,16 @@ import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.kafka.reader.KafkaReader;
+import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
 import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
 import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
 import com.dtstack.flinkx.kafka10.writer.Kafka10Writer;
 import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
+import com.dtstack.flinkx.kudu.reader.KuduReader;
+import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -55,6 +61,8 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.polardb.reader.PolardbReader;
+import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.DataReader;
@@ -71,7 +79,6 @@ import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
@@ -84,6 +91,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -167,7 +175,7 @@ public class LocalTest {
             FileInputStream in = new FileInputStream(file);
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
-            return new String(fileContent, "UTF-8");
+            return new String(fileContent, StandardCharsets.UTF_8);
         } catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -196,6 +204,10 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
             case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
             case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
+            case PluginNameConstrant.KAFKA_READER : reader = new KafkaReader(config, env); break;
+            case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
+            case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
+            case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -225,6 +237,10 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
             case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
             case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
+            case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
+            case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
+            case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
+            case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
@@ -239,7 +255,7 @@ public class LocalTest {
         if(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
             return;
         }else{
-            long interval = Long.valueOf(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
+            long interval = Long.parseLong(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
 
             //start checkpoint every ${interval}
             env.enableCheckpointing(interval);
@@ -249,7 +265,7 @@ public class LocalTest {
 
         String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
         if(checkpointTimeoutStr != null){
-            long checkpointTimeout = Long.valueOf(checkpointTimeoutStr);
+            long checkpointTimeout = Long.parseLong(checkpointTimeoutStr);
             //checkpoints have to complete within one min,or are discard
             env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
 

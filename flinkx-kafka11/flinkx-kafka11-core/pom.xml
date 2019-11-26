@@ -38,7 +38,5 @@
             <version>${joda-time-version}</version>
         </dependency>
 
-
-
     </dependencies>
 </project>

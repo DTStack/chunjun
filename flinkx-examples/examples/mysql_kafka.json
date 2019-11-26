@@ -1,0 +1,77 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "mysqlreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "BIGINT",
+              "key": "id"
+            },
+            {
+              "name": "user_id",
+              "type": "bigint",
+              "key": "user_id"
+            },
+            {
+              "name": "name",
+              "type": "varchar",
+              "key": "name"
+            },
+            {
+              "name": "content",
+              "type": "varchar",
+              "key": "name"
+            }
+          ],
+          "increColumn": "",
+          "startLocation": "",
+          "password": "password",
+          "username": "username",
+          "connection": [
+            {
+              "jdbcUrl": [
+                "jdbc:mysql://ip:3306/tudou"
+              ],
+              "table": [
+                "binlog"
+              ]
+            }
+          ],
+          "splitKey":"id",
+          "customSql": ""
+        }
+      },
+      "writer" : {
+        "parameter" : {
+          "tableFields" : [
+            "id",
+            "user_id",
+            "name",
+            "content"
+          ],
+          "producerSettings" : {
+            "zookeeper.connect" : "ip:2181/kafka100",
+            "bootstrap.servers" : "ip:9092"
+          },
+          "topic" : "tudou"
+        },
+        "name" : "kafkawriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : false
+      },
+      "errorLimit" : {
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}
