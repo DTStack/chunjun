@@ -47,7 +47,7 @@
 
 * **name**
   
-  * 描述：插件名，目前支持版本09、10、11，名称分别为 kafka09writer、kafka10writer、kafka11writer。
+  * 描述：插件名，目前支持版本0.9、0.10、0.11、1.0，名称分别为 kafka09writer、kafka10writer、kafka11writer、kafkawriter。
   
   * 必选：是 
   

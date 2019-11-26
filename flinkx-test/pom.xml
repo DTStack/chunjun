@@ -305,6 +305,18 @@
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kafka-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kafka-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-clickhouse-reader</artifactId>
             <version>1.6</version>
         </dependency>
@@ -312,6 +324,18 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-clickhouse-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-polardb-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-polardb-writer</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

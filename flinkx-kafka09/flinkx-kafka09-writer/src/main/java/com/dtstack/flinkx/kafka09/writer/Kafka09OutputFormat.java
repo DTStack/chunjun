@@ -1,10 +1,28 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka09.Formatter;
-import com.dtstack.flinkx.kafka09.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -16,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * company: www.dtstack.com
@@ -36,13 +53,13 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     private String topic;
 
+    private List<String> tableFields;
+
     private String brokerList;
 
     private Map<String, String> producerSettings;
 
     private transient Producer<String, byte[]> producer;
-
-    private transient JsonDecoder jsonDecoder = new JsonDecoder();
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,16 +98,19 @@ public class Kafka09OutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
-            if (row.getArity() == 1) {
-                Object obj = row.getField(0);
-                if (obj != null && obj instanceof Map) {
-                    emit((Map<String, Object>) obj);
-                } else if (obj instanceof String) {
-                    emit(jsonDecoder.decode(obj.toString()));
+            Map<String, Object> map;
+            int arity = row.getArity();
+            if(tableFields != null && tableFields.size() >= arity){
+                map = new LinkedHashMap<>((arity<<2)/3);
+                for (int i = 0; i < arity; i++) {
+                    map.put(tableFields.get(i), org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
                 }
+            }else{
+                map = Collections.singletonMap("message", row.toString());
             }
+            emit(map);
         } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", e);
+            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(e.getMessage(), e);
         }
     }
@@ -134,5 +154,9 @@ public class Kafka09OutputFormat extends RichOutputFormat {
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public void setTableFields(List<String> tableFields) {
+        this.tableFields = tableFields;
     }
 }
