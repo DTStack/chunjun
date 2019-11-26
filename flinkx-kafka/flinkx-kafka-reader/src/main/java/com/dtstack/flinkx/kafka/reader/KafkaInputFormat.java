@@ -22,11 +22,8 @@ package com.dtstack.flinkx.kafka.reader;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +61,16 @@ public class KafkaInputFormat extends RichInputFormat {
     private transient KafkaConsumer consumer;
 
     @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        Properties props = geneConsumerProp();
+
+        consumer = new KafkaConsumer(props);
+        queue = new SynchronousQueue<>(false);
+    }
+
+    @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         consumer.createClient(topic, groupId, this).execute();
         running = true;
@@ -96,14 +103,6 @@ public class KafkaInputFormat extends RichInputFormat {
         }
     }
 
-    @Override
-    public void configure(Configuration parameters) {
-        Properties props = geneConsumerProp();
-
-        consumer = new KafkaConsumer(props);
-        queue = new SynchronousQueue<>(false);
-    }
-
     private Properties geneConsumerProp() {
         Properties props = new Properties();
 
@@ -117,17 +116,12 @@ public class KafkaInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
         }
         return splits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
