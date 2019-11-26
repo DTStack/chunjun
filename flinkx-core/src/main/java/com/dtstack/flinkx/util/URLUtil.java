@@ -18,12 +18,12 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.hadoop.shaded.org.apache.http.HttpEntity;
-import org.apache.flink.hadoop.shaded.org.apache.http.HttpStatus;
-import org.apache.flink.hadoop.shaded.org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.flink.hadoop.shaded.org.apache.http.client.methods.HttpGet;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.util.EntityUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import java.io.InputStream;
 import java.net.URL;

@@ -205,7 +205,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if (controller != null) {
+        if (controller != null && controller.isStart()) {
             controller.stop();
             controller = null;
             LOG.info("binlog closeInternal..., entryPosition:{}", formatState != null ? formatState.getState() : null);

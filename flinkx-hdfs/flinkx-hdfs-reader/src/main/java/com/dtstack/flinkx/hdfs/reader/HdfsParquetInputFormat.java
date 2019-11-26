@@ -101,8 +101,9 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
             }
 
             for (MetaColumn metaColumn : metaColumns) {
-                if(fullColNames.contains(metaColumn.getName().toUpperCase())){
-                    metaColumn.setIndex(fullColNames.indexOf(metaColumn.getName().toUpperCase()));
+                String name = metaColumn.getName().toUpperCase();
+                if(fullColNames.contains(name)){
+                    metaColumn.setIndex(fullColNames.indexOf(name));
                 } else {
                     metaColumn.setIndex(-1);
                 }
@@ -140,7 +141,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 Object val = null;
 
                 if(metaColumn.getIndex() != -1){
-                    if(currentLine.getFieldRepetitionCount(metaColumn.getName()) > 0){
+                    if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
                         val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
                     }
 

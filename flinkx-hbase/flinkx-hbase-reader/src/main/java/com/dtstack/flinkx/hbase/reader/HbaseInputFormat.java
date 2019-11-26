@@ -37,7 +37,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 
 
 /**

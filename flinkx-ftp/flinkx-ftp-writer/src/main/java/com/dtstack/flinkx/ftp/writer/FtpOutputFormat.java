@@ -20,15 +20,16 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
+import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
-import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -182,6 +183,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             byte[] bytes = line.getBytes(this.charsetName);
             this.os.write(bytes);
             this.os.write(NEWLINE);
+            this.os.flush();
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
@@ -268,7 +270,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void moveTemporaryDataFileToDirectory(){
         try{
-            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if (fileName.endsWith(FILE_SUFFIX) && fileName.startsWith(String.valueOf(taskNumber))){
@@ -285,7 +287,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
         try{
-            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
                 if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
@@ -331,5 +333,4 @@ public class FtpOutputFormat extends FileOutputFormat {
     protected String getExtension() {
         return ".csv";
     }
-
 }

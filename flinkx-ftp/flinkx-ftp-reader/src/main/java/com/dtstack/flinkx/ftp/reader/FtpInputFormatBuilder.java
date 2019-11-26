@@ -3,7 +3,7 @@ package com.dtstack.flinkx.ftp.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import java.util.List;
 
 

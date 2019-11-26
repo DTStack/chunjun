@@ -43,7 +43,7 @@ public class ClassLoaderManager {
         return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
     }
 
-    private static ClassLoader retrieveClassLoad(List<URL> jarUrls) {
+    private static URLClassLoader retrieveClassLoad(List<URL> jarUrls) {
         jarUrls.sort(Comparator.comparing(URL::toString));
         String jarUrlkey = StringUtils.join(jarUrls, "_");
         return pluginClassLoader.computeIfAbsent(jarUrlkey, k -> {
