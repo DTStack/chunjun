@@ -40,5 +40,6 @@ public enum EDatabaseType {
     STREAM,
     Carbondata,
     GBase,
-    clickhouse
+    clickhouse,
+    polarDB
 }

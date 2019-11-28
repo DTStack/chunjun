@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,8 +37,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -324,7 +324,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-            numWriteCounter.add(1);
+            if(!restoreConfig.isRestore() || restoreConfig.isStream()){
+                numWriteCounter.add(1);
+                snapshotWriteCounter.add(1);
+            }
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
             updateStatisticsOfDirtyData(row, e);

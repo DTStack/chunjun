@@ -18,20 +18,20 @@
 
 package com.dtstack.flinkx.options;
 
-import avro.shaded.com.google.common.collect.Lists;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.dtstack.flinkx.util.MapUtil;
 
 /**
  * The Parser of Launcher commandline options
@@ -92,7 +92,7 @@ public class OptionParser {
 
     public List<String> getProgramExeArgList() throws Exception {
         Map<String,Object> mapConf = MapUtil.ObjectToMap(properties);
-        List<String> args = Lists.newArrayList();
+        List<String> args = new ArrayList<>();
         for(Map.Entry<String, Object> one : mapConf.entrySet()){
             String key = one.getKey();
             Object value = one.getValue();

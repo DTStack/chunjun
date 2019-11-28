@@ -35,6 +35,7 @@ public class JsonDecoder implements IDecode {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> decode(final String message) {
         Map<String, Object> event = null;
         try {

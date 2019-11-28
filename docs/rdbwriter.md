@@ -38,7 +38,7 @@
 
 * **name**
   
-  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter
+  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter，clickhousewriter, polardbwriter。
   
   * 必选：是
     

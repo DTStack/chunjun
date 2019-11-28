@@ -22,6 +22,8 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.datareader.DistributedJdbcDataReader;
+import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -34,6 +36,7 @@ public class MysqldReader extends DistributedJdbcDataReader {
     public MysqldReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new MySqlDatabaseMeta());
+        super.builder = new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
     }
 
     @Override

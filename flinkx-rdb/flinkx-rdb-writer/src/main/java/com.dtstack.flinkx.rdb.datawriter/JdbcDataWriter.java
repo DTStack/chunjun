@@ -36,12 +36,14 @@ import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
 
 /**
  * The Writer plugin for any database that can be connected via JDBC.
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JdbcDataWriter extends DataWriter {
 
+    protected JdbcOutputFormatBuilder builder;
     protected DatabaseInterface databaseInterface;
     protected String dbUrl;
     protected String username;
@@ -51,11 +53,13 @@ public class JdbcDataWriter extends DataWriter {
     protected List<String> preSql;
     protected List<String> postSql;
     protected int batchSize;
-    protected Map<String,List<String>> updateKey;
+    protected Map<String, List<String>> updateKey;
     protected List<String> fullColumn;
     protected TypeConverterInterface typeConverter;
 
-    /**just for postgresql,use copy replace insert*/
+    /**
+     * just for postgresql,use copy replace insert
+     */
     protected String insertSqlMode;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
@@ -93,7 +97,6 @@ public class JdbcDataWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(databaseInterface.getDatabaseType().name());
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);

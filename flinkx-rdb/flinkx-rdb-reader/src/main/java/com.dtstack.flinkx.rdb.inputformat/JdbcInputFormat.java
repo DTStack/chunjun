@@ -40,8 +40,8 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -455,17 +455,19 @@ public class JdbcInputFormat extends RichInputFormat {
                     querySql = buildIncrementSql(jdbcInputSplit, querySql);
                 }
             } else {
+                boolean useMaxFunc = incrementConfig.isUseMaxFunc();
                 String startLocation = getLocation(restoreColumn.getType(), formatState.getState());
                 if(StringUtils.isNotBlank(startLocation)){
                     LOG.info("update startLocation, before = {}, after = {}", jdbcInputSplit.getStartLocation(), startLocation);
                     jdbcInputSplit.setStartLocation(startLocation);
+                    useMaxFunc = false;
                 }
                 String restoreFilter = buildIncrementFilter(restoreColumn.getType(),
                                                             restoreColumn.getName(),
                                                             jdbcInputSplit.getStartLocation(),
                                                             jdbcInputSplit.getEndLocation(),
                                                             customSql,
-                                                            incrementConfig.isUseMaxFunc());
+                                                            useMaxFunc);
 
                 if(StringUtils.isNotEmpty(restoreFilter)){
                     restoreFilter = " and " + restoreFilter;

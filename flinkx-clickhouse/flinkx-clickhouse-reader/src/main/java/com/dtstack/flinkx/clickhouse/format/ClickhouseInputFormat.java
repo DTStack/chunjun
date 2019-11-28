@@ -21,6 +21,7 @@ import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -45,6 +46,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
+            ClassUtil.forName(drivername, getClass().getClassLoader());
             dbConn = ClickhouseUtil.getConnection(dbURL, username, password);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
