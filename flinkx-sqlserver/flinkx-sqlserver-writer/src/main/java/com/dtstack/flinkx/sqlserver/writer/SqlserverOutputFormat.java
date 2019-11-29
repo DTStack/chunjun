@@ -19,10 +19,10 @@ package com.dtstack.flinkx.sqlserver.writer;
 
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -36,18 +36,24 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(SqlserverOutputFormat.class);
     @Override
     protected void beforeWriteRecords()  {
-        super.beforeWriteRecords();
+        if(CollectionUtils.isNotEmpty(preSql)){
+            super.beforeWriteRecords();
+        }
         Statement stmt = null;
-        ResultSet rs = null;
         String sql = String.format("IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT \"%s\" ON  END", table, table);
         try {
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(sql);
+            stmt.execute(sql);
         } catch (SQLException e) {
             LOG.error("error to execute {}", sql);
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(rs, stmt,null, false);
+            DBUtil.closeDBResources(null, stmt,null, false);
         }
+    }
+
+    @Override
+    protected boolean needWaitBeforeWriteRecords() {
+        return true;
     }
 }
