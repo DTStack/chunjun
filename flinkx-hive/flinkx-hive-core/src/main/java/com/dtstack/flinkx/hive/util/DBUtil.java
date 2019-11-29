@@ -415,5 +415,18 @@ public final class DBUtil {
         public void setHiveConf(Map<String, Object> hiveConf) {
             this.hiveConf = hiveConf;
         }
+
+        @Override
+        public String toString() {
+            return "ConnectionInfo{" +
+                    "jdbcUrl='" + jdbcUrl + '\'' +
+                    ", username='" + username + '\'' +
+                    ", password='" + password + '\'' +
+                    ", socketTimeout='" + socketTimeout + '\'' +
+                    ", jobId='" + jobId + '\'' +
+                    ", plugin='" + plugin + '\'' +
+                    ", hiveConf=" + hiveConf +
+                    '}';
+        }
     }
 }
