@@ -48,7 +48,39 @@
 5. 紧接着任务提交到JobManager中执行，在构建ExecutionGraph时，两个Operator算子最后就会生成2个ExecutionJobVertex，再根据Operator的 parallelism 生成对应数量的 ExecutionVertex，一个ExecutionVertex对应一个最终执行的Task任务
 6. 最差的情况，因为Operator无法被chain的原因，同一个job的两个Task任务有可能在不同节点的TaskExecutor的Slot上执行，此时数据传输的效率最低。
 
-##### 结论：Main函数因为历史原因加入了 Partition，之前有一些累加器的数值采集的是两个vertx之间的数据，如果只有一个vertx的情况下，累加器的数值为空。  根据自测结果，目前 Flinkx 中移除 Partition 并不影响 Accumulator 的统计数值。如果没有其他依赖项，就可以移除 PartitionTransformation。
+##### 结论：Main函数因为历史原因加入了 Partition，之前有一些累加器的数值采集的是两个vertx之间的数据，如果只有一个vertx的情况下，累加器的数值为空。  <br/>目前 Flinkx 经过几番迭代后，根据自测结果，程序移除 Partition 并不影响 Accumulator 的统计数值。<br/>如果程序没有其他对 Partition 的依赖项，就可以移除 PartitionTransformation 让算子chain。
 
+
+```java
+
+//测试代码
+@Test
+public void testFlinkxTransformationn() throws Exception {
+
+    Set<Long> set = new HashSet<>(1);
+    set.add(1L);
+
+    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    CollectionInputFormat<Long> inputFormat = new CollectionInputFormat<Long>(set, LongSerializer.INSTANCE);
+    TypeInformation typeInfo = TypeInformation.of(Long.class);
+    InputFormatSourceFunction<Long> inputFormatSourceFunction = new InputFormatSourceFunction<Long>(inputFormat, typeInfo);
+    DataStream<Long> sourceStream = env.addSource(inputFormatSourceFunction, "source", typeInfo);
+
+    
+    //      sourceStream = new DataStream<>(sourceStream.getExecutionEnvironment(),
+    //          new PartitionTransformation<>(sourceStream.getTransformation(),
+    //              new RebalancePartitioner<>()));
+
+
+    PrintingOutputFormat printingOutputFormat = new PrintingOutputFormat();
+    OutputFormatSinkFunction<Long> outputFormatSinkFunction = new OutputFormatSinkFunction<Long>(printingOutputFormat);
+
+    sourceStream.addSink(outputFormatSinkFunction);
+    
+    
+    //        assertEquals(2, env.getStreamGraph().getJobGraph().getNumberOfVertices());
+    assertEquals(1, env.getStreamGraph().getJobGraph().getNumberOfVertices());
+}
+```
 
 Ps：SlotSharingGroup 与 CoLocationGroup 属性可优化算子子任务的分配方式
