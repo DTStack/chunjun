@@ -46,6 +46,6 @@ public class StreamWriter extends DataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setMonitorUrls(monitorUrls);
 
-        return createOutput(dataSet, builder.finish(), "streamwriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

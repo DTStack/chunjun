@@ -69,6 +69,6 @@ public class KafkaWriter extends DataWriter {
         format.setRestoreConfig(restoreConfig);
         format.setTableFields(tableFields);
 
-        return createOutput(dataSet, format, "kafkawriter");
+        return createOutput(dataSet, format);
     }
 }

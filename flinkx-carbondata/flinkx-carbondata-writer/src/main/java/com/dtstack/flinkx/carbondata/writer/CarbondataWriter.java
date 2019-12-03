@@ -88,7 +88,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchSize(batchSize);
 
-        return createOutput(dataSet, builder.finish(), "carbonwriter");
+        return createOutput(dataSet, builder.finish());
     }
 
 }

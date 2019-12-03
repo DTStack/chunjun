@@ -81,10 +81,6 @@ public class KuduWriter extends DataWriter {
         builder.setBatchInterval(batchInterval);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
-
-        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
-        dataStreamSink.name("kuduwriter");
-        return dataStreamSink;
+        return createOutput(dataSet,builder.finish());
     }
 }

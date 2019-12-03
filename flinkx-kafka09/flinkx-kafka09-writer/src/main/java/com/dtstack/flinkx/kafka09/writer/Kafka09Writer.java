@@ -71,6 +71,6 @@ public class Kafka09Writer extends DataWriter {
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, format, "kafka09writer");
+        return createOutput(dataSet, format);
     }
 }

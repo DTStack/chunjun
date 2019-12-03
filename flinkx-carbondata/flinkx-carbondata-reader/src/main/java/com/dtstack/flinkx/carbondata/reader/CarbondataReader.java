@@ -100,7 +100,7 @@ public class CarbondataReader extends DataReader {
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
-        return createInput(builder.finish(), "carbonreader");
+        return createInput(builder.finish());
     }
 
 }

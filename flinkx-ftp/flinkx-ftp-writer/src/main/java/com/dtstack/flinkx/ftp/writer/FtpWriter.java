@@ -119,6 +119,6 @@ public class FtpWriter extends DataWriter{
         builder.setTimeout(timeout);
         builder.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, builder.finish(), "ftpwriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

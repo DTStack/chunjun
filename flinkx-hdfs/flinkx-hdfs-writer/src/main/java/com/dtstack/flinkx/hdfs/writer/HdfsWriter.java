@@ -137,6 +137,6 @@ public class HdfsWriter extends DataWriter {
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(flushInterval);
 
-        return createOutput(dataSet, builder.finish(), "hdfswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

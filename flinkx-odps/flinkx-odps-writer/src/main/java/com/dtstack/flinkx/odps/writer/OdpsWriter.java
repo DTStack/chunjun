@@ -96,6 +96,6 @@ public class OdpsWriter extends DataWriter {
         builder.setBufferSize(bufferSize);
         builder.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, builder.finish(), "odpswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

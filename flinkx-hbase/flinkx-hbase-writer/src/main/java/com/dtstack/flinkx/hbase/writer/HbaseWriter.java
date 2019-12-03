@@ -142,6 +142,6 @@ public class HbaseWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        return createOutput(dataSet, builder.finish(), "hbasewriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

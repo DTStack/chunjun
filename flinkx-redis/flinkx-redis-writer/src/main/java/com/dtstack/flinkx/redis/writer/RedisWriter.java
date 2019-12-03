@@ -117,6 +117,6 @@ public class RedisWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchInterval(batchSize);
 
-        return createOutput(dataSet, builder.finish(), "rediswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

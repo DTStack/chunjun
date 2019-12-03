@@ -129,6 +129,6 @@ public class EsWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        return createOutput(dataSet, builder.finish(), "eswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

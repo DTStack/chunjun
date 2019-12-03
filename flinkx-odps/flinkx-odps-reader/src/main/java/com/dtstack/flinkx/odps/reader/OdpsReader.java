@@ -63,6 +63,6 @@ public class OdpsReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
 
-        return createInput(builder.finish(), "odpsreader");
+        return createInput(builder.finish());
     }
 }

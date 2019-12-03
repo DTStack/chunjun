@@ -118,4 +118,8 @@ public abstract class DataReader {
         return env.addSource(function, sourceName, typeInfo);
     }
 
+    protected DataStream<Row> createInput(InputFormat inputFormat) {
+        return createInput(inputFormat,this.getClass().getSimpleName().toLowerCase());
+    }
+
 }

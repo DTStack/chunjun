@@ -120,7 +120,7 @@ public class JdbcDataWriter extends DataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
 
-        String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
-        return createOutput(dataSet, builder.finish(), sinkName);
+//        String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
+        return createOutput(dataSet, builder.finish());
     }
 }

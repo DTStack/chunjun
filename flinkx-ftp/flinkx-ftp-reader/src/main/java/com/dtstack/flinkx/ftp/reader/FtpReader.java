@@ -98,6 +98,6 @@ public class FtpReader extends DataReader {
         builder.setIsFirstLineHeader(isFirstLineHeader);
         builder.setTimeout(timeout);
 
-        return createInput(builder.finish(), "ftpreader");
+        return createInput(builder.finish());
     }
 }
