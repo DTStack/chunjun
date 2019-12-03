@@ -136,14 +136,27 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         List<String> splits = Arrays.asList(typeStruct.split(","));
         Iterator<String> it = splits.iterator();
         while (it.hasNext()){
-            String current = it.next();
-            if(current.contains("(")){
-                if(current.contains("(")){
+            StringBuilder current = new StringBuilder(it.next());
+            if (!current.toString().contains("(") && !current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && !current.toString().contains(")")) {
+                while (it.hasNext()) {
                     String next = it.next();
-                    cols.add(current + "," + next);
+                    current.append(",").append(next);
+                    if (next.contains(")")) {
+                        break;
+                    }
                 }
-            } else {
-                cols.add(current);
+
+                cols.add(current.toString());
             }
         }
 

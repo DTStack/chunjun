@@ -112,7 +112,7 @@ public class MetaColumn implements Serializable {
                             mc.setIndex(doubleColIndex.intValue());
                         }
                     } else {
-                        mc.setIndex(i);
+                        mc.setIndex(-1);
                     }
 
                     mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
