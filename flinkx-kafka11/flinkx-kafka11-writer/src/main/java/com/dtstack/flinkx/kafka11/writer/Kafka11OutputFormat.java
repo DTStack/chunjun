@@ -21,7 +21,6 @@ package com.dtstack.flinkx.kafka11.writer;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafka11.Formatter;
-import com.dtstack.flinkx.kafka11.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
@@ -58,8 +57,6 @@ public class Kafka11OutputFormat extends RichOutputFormat {
 
     private transient KafkaProducer<String, String> producer;
 
-    private transient JsonDecoder jsonDecoder = new JsonDecoder();
-
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -87,7 +84,11 @@ public class Kafka11OutputFormat extends RichOutputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    protected boolean isStreamButNoWriteCheckpoint(){
+        return true;
+    }
+
+    @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
             Map<String, Object> map;
@@ -98,14 +99,7 @@ public class Kafka11OutputFormat extends RichOutputFormat {
                     map.put(tableFields.get(i), org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
                 }
             }else{
-                Object obj = row.getField(0);
-                if (obj instanceof Map) {
-                    map = (Map<String, Object>)obj;
-                } else if (obj instanceof String) {
-                    map = jsonDecoder.decode(obj.toString());
-                }else{
-                    map = Collections.singletonMap("message", row.toString());
-                }
+                map = Collections.singletonMap("message", row.toString());
             }
             emit(map);
         } catch (Throwable e) {
