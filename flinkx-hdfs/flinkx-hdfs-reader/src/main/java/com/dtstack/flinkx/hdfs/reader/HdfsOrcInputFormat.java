@@ -169,11 +169,16 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
 
         if(splits != null) {
-            HdfsOrcInputSplit[] hdfsOrcInputSplits = new HdfsOrcInputSplit[splits.length];
-            for (int i = 0; i < splits.length; ++i) {
-                hdfsOrcInputSplits[i] = new HdfsOrcInputSplit((OrcSplit) splits[i], i);
+            List<HdfsOrcInputSplit> list = new ArrayList<>(splits.length);
+            int i = 0;
+            for (org.apache.hadoop.mapred.InputSplit split : splits) {
+                OrcSplit orcSplit = (OrcSplit) split;
+                if(orcSplit.getLength() > 49){
+                    list.add(new HdfsOrcInputSplit(orcSplit, i));
+                    i++;
+                }
             }
-            return hdfsOrcInputSplits;
+            return list.toArray(new HdfsOrcInputSplit[i]);
         }
 
         return null;
