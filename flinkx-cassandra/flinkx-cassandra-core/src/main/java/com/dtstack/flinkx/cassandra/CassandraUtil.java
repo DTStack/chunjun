@@ -1,0 +1,171 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.cassandra;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.google.common.base.Preconditions;;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+
+import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
+
+/**
+ *
+ * @Company: www.dtstack.com
+ * @author wuhui
+ */
+public class CassandraUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraUtil.class);
+
+    private static final Integer DEFAULT_PORT = 9042;
+
+    /**
+     * 获取cassandraSession
+     * @param cassandraConfig cassandra配置
+     * @param clusterName 集群名称，可以空字符串，用于重新连接使用
+     * @return cassandraSession
+     */
+    public static Session getSession(Map<String,Object> cassandraConfig, String clusterName) {
+        Session cassandraSession;
+        try {
+            String keySpace = MapUtils.getString(cassandraConfig, KEY_KEY_SPACE);
+
+            Preconditions.checkNotNull(keySpace, "keySpace must not null");
+
+            // 获取集群
+            Cluster cluster = getCluster(cassandraConfig, clusterName);
+
+            // 创建session
+            cassandraSession = cluster.connect(keySpace);
+            Log.info("Get cassandra session successful");
+            return cassandraSession;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 获取Cluster
+     * @param cassandraConfig cassandra配置
+     * @param clusterName 集群名称
+     * @return 返回Cluster实例
+     */
+    private static Cluster getCluster(Map<String,Object> cassandraConfig, String clusterName) {
+        Cluster cassandraCluster;
+        try {
+            String username = MapUtils.getString(cassandraConfig, KEY_USERNAME);
+            String password = MapUtils.getString(cassandraConfig, KEY_PASSWORD);
+            Integer port = MapUtils.getInteger(cassandraConfig, KEY_HOST_PORTS);
+            String url = MapUtils.getString(cassandraConfig, KEY_URL);
+
+            Preconditions.checkNotNull(url, "url must not null");
+
+            // 创建集群
+            Cluster.Builder builder = Cluster.builder().addContactPoint(url);
+            builder = port == null ? builder.withPort(DEFAULT_PORT) : builder.withPort(port);
+            builder = StringUtils.isNotEmpty(clusterName) ? builder.withClusterName(clusterName) : builder;
+            if ((StringUtils.isNotEmpty(username)) && (StringUtils.isNotEmpty(password))) {
+                builder = builder.withCredentials(username, password);
+            }
+            cassandraCluster = builder.build();
+
+            Log.info("Get cassandra cluster successful");
+            return cassandraCluster;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     *  关闭集群与会话
+     * @param session 会话实例
+     */
+    public static void close(Session session){
+        Cluster cluster = null;
+        if (session != null){
+            LOG.info("Start close cassandra session");
+            cluster = session.getCluster();
+            session.close();
+            LOG.info("Close cassandra session successfully");
+        }
+
+        if (cluster != null){
+            LOG.info("Start close cassandra cluster");
+            cluster.close();
+            LOG.info("Close cassandra cluster successfully");
+        }
+    }
+
+    /**
+     * 从cassandra中获取数据
+     * @param row 一行数据
+     * @param type 字段类型
+     * @param columnName 字段名
+     * @return 返回该字段对应的值
+     */
+    public static Object getData(Row row, DataType type, String columnName) {
+        Object value = null;
+
+        try {
+            if (type == DataType.bigint()) {
+                value = row.getLong(columnName);
+            } else if (type == DataType.cboolean()) {
+                value = row.getBool(columnName);
+            } else if (type == DataType.blob()) {
+                value = row.getBytes(columnName);
+            } else if (type == DataType.timestamp()) {
+                value = row.getDate(columnName);
+            } else if (type == DataType.decimal()) {
+                value = row.getDecimal(columnName);
+            } else if (type == DataType.cfloat()) {
+                value = row.getFloat(columnName);
+            } else if (type == DataType.inet()) {
+                value = row.getInet(columnName);
+            } else if (type == DataType.cint()) {
+                value = row.getInt(columnName);
+            } else if (type == DataType.varchar()) {
+                value = row.getString(columnName);
+            } else if (type == DataType.uuid() || type == DataType.timeuuid()) {
+                value = row.getUUID(columnName);
+            } else if (type == DataType.varint()) {
+                value = row.getVarint(columnName);
+            } else if (type == DataType.cdouble()) {
+                value = row.getDouble(columnName);
+            } else if (type == DataType.text()) {
+                value = row.getString(columnName);
+            }
+
+        } catch (Exception e) {
+            Log.info("获取'{}'值发生异常：{}", columnName, e);
+        }
+
+        if (value == null) {
+            Log.info("Column '{}' Type({}) get cassandra data is NULL.", columnName, type);
+        }
+        return value;
+    }
+}
