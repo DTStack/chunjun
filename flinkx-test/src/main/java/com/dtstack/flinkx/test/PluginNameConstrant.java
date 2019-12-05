@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.constants;
+package com.dtstack.flinkx.test;
 
 /**
  * @author jiangbo
