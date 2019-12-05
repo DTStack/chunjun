@@ -25,11 +25,18 @@ import com.datastax.driver.core.Session;
 import com.google.common.base.Preconditions;;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.core.io.InputSplit;
 import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
 
@@ -40,8 +47,6 @@ import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
  */
 public class CassandraUtil {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraUtil.class);
-
-    private static final Integer DEFAULT_PORT = 9042;
 
     /**
      * 获取cassandraSession
@@ -79,16 +84,17 @@ public class CassandraUtil {
         try {
             String username = MapUtils.getString(cassandraConfig, KEY_USERNAME);
             String password = MapUtils.getString(cassandraConfig, KEY_PASSWORD);
-            Integer port = MapUtils.getInteger(cassandraConfig, KEY_HOST_PORTS);
-            String url = MapUtils.getString(cassandraConfig, KEY_URL);
+            Integer port = MapUtils.getInteger(cassandraConfig, KEY_PORT);
+            String hosts = MapUtils.getString(cassandraConfig, KEY_HOST);
+            boolean useSSL = MapUtils.getBooleanValue(cassandraConfig, KEY_USE_SSL);
 
-            Preconditions.checkNotNull(url, "url must not null");
+            Preconditions.checkNotNull(hosts, "url must not null");
 
             // 创建集群
-            Cluster.Builder builder = Cluster.builder().addContactPoint(url);
-            builder = port == null ? builder.withPort(DEFAULT_PORT) : builder.withPort(port);
+            Cluster.Builder builder = Cluster.builder().addContactPoints(hosts.split(",")).withPort(port);
             builder = StringUtils.isNotEmpty(clusterName) ? builder.withClusterName(clusterName) : builder;
-            if ((StringUtils.isNotEmpty(username)) && (StringUtils.isNotEmpty(password))) {
+            builder = useSSL ? builder.withSSL() : builder;
+            if ((username != null) && !username.isEmpty()) {
                 builder = builder.withCredentials(username, password);
             }
             cassandraCluster = builder.build();
@@ -167,5 +173,53 @@ public class CassandraUtil {
             Log.info("Column '{}' Type({}) get cassandra data is NULL.", columnName, type);
         }
         return value;
+    }
+
+    /**
+     * javaClass转cql类型
+     * @param clazz javaClass
+     * @return cql类型
+     */
+    private static DataType valueOf(Class<?> clazz) {
+
+        if (clazz == null) {
+            return DataType.custom("NULL");
+        }
+        if (clazz == long.class || clazz == Long.class) {
+            return DataType.bigint();
+        }
+        if (clazz == boolean.class || clazz == Boolean.class) {
+            return DataType.cboolean();
+        }
+        if (clazz == Byte.class || clazz == byte.class) {
+            return DataType.blob();
+        }
+        if (clazz == Date.class || clazz == Timestamp.class) {
+            return DataType.timestamp();
+        }
+        if (clazz == BigDecimal.class) {
+            return DataType.decimal();
+        }
+        if (clazz == float.class || clazz == Float.class) {
+            return DataType.cfloat();
+        }
+        if (clazz == InetAddress.class) {
+            return DataType.inet();
+        }
+        if (clazz == int.class || clazz == Integer.class) {
+            return DataType.cint();
+        }
+        if (clazz == String.class) {
+            return DataType.varchar();
+        }
+        if (clazz == UUID.class) {
+            return DataType.uuid();
+        }
+        if (clazz == BigInteger.class) {
+            return DataType.varint();
+        }
+        LOG.info("Class '{}' unknow DataType in cassandra.", clazz);
+
+        return DataType.custom("unknow");
     }
 }

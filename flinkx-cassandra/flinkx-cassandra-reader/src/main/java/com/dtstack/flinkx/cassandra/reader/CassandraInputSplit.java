@@ -28,29 +28,31 @@ import org.apache.flink.core.io.InputSplit;
  */
 public class CassandraInputSplit implements InputSplit {
 
-    private int skip;
+    private String minToken;
 
-    private int limit;
+    private String maxToken;
 
-    public CassandraInputSplit(int skip, int limit) {
-        this.skip = skip;
-        this.limit = limit;
+    public CassandraInputSplit(){}
+
+    public CassandraInputSplit(String minToken, String maxToken) {
+        this.minToken = minToken;
+        this.maxToken = maxToken;
     }
 
-    public int getSkip() {
-        return skip;
+    public String getMinToken() {
+        return minToken;
     }
 
-    public void setSkip(int skip) {
-        this.skip = skip;
+    public void setMinToken(String minToken) {
+        this.minToken = minToken;
     }
 
-    public int getLimit() {
-        return limit;
+    public String getMaxToken() {
+        return maxToken;
     }
 
-    public void setLimit(int limit) {
-        this.limit = limit;
+    public void setMaxToken(String maxToken) {
+        this.maxToken = maxToken;
     }
 
     @Override

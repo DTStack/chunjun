@@ -21,6 +21,7 @@ package com.dtstack.flinkx.cassandra.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.google.common.base.Preconditions;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,21 +38,19 @@ public class CassandraInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format = new CassandraInputFormat();
     }
 
-    public void setHostPorts(String hostPorts){
-        format.hostPorts = hostPorts;
-    }
-
-    public void setUsername(String username){
-        format.username = username;
-    }
-
-    public void setPassword(String password){
-        format.password = password;
-    }
-
     public void setTable(String table){
         format.table = table;
     }
+
+    public void setWhere(String where) {format.whereString = where;}
+
+    public void setConsistancyLevel(String consistancyLevel) {format.consistancyLevel = consistancyLevel;}
+
+    public void setAllowFiltering(boolean allowFiltering) {format.allowFiltering = allowFiltering;}
+
+    public void setKeySpace(String keySpace) {format.keySpace = keySpace;}
+
+    public void setColumn(List<String> column) {format.columnMeta = column;}
 
     public void setCassandraConfig(Map<String,Object> cassandraConfig){
         format.cassandraConfig = cassandraConfig;

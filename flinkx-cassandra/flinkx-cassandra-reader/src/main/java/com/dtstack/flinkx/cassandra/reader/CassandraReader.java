@@ -26,6 +26,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
@@ -38,17 +39,27 @@ import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
  */
 public class CassandraReader extends DataReader {
 
-    protected String hostPorts;
+    protected String host;
+
+    protected Integer port;
 
     protected String username;
 
     protected String password;
 
-    protected String url;
+    protected boolean useSSL;
 
     protected String keySpace;
 
     protected String table;
+
+    protected List<String> column;
+
+    protected String where;
+
+    protected boolean allowFiltering;
+
+    protected String consistancyLevel;
 
     protected Map<String,Object> cassandraConfig;
 
@@ -57,29 +68,41 @@ public class CassandraReader extends DataReader {
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        hostPorts = readerConfig.getParameter().getStringVal(KEY_HOST_PORTS);
+        host = readerConfig.getParameter().getStringVal(KEY_HOST);
+        port = readerConfig.getParameter().getIntVal(KEY_PORT, 9042);
         username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        url = readerConfig.getParameter().getStringVal(KEY_URL);
+        useSSL = readerConfig.getParameter().getBooleanVal(KEY_USE_SSL, false);
+        column = (List<String>)readerConfig.getParameter().getVal(KEY_COLUMN);
+        where = readerConfig.getParameter().getStringVal(KEY_WHERE);
         keySpace = readerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = readerConfig.getParameter().getStringVal(KEY_TABLE);
+        allowFiltering = readerConfig.getParameter().getBooleanVal(KEY_ALLOW_FILTERING, false);
+        consistancyLevel = readerConfig.getParameter().getStringVal(KEY_CONSITANCY_LEVEL);
 
         cassandraConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
-        cassandraConfig.put(KEY_HOST_PORTS, hostPorts);
+        cassandraConfig.put(KEY_HOST, host);
+        cassandraConfig.put(KEY_PORT, port);
         cassandraConfig.put(KEY_USERNAME, username);
         cassandraConfig.put(KEY_PASSWORD, password);
-        cassandraConfig.put(KEY_URL, url);
+        cassandraConfig.put(KEY_USE_SSL, useSSL);
+        cassandraConfig.put(KEY_COLUMN, column);
+        cassandraConfig.put(KEY_WHERE, where);
         cassandraConfig.put(KEY_KEY_SPACE, keySpace);
         cassandraConfig.put(KEY_TABLE, table);
+        cassandraConfig.put(KEY_ALLOW_FILTERING, allowFiltering);
+        cassandraConfig.put(KEY_CONSITANCY_LEVEL, consistancyLevel);
     }
 
     @Override
     public DataStream<Row> readData() {
         CassandraInputFormatBuilder builder = new CassandraInputFormatBuilder();
-        builder.setHostPorts(hostPorts);
-        builder.setUsername(username);
-        builder.setPassword(password);
         builder.setTable(table);
+        builder.setWhere(where);
+        builder.setConsistancyLevel(consistancyLevel);
+        builder.setAllowFiltering(allowFiltering);
+        builder.setKeySpace(keySpace);
+        builder.setColumn(column);
         builder.setCassandraConfig(cassandraConfig);
 
         builder.setMonitorUrls(monitorUrls);

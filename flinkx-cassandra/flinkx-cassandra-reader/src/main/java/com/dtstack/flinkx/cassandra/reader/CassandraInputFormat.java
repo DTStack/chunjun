@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.cassandra.reader;
 
-import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.esotericsoftware.minlog.Log;
@@ -29,6 +27,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,14 +41,17 @@ import java.util.Map;
  * @author wuhui
  */
 public class CassandraInputFormat extends RichInputFormat {
-
-    protected String hostPorts;
-
-    protected String username;
-
-    protected String password;
-
     protected String table;
+
+    protected String whereString;
+
+    protected String consistancyLevel;
+
+    protected boolean allowFiltering;
+
+    protected String keySpace;
+
+    protected List<String> columnMeta;
 
     protected Map<String,Object> cassandraConfig;
 
@@ -56,9 +59,7 @@ public class CassandraInputFormat extends RichInputFormat {
     protected transient Iterator<com.datastax.driver.core.Row> cursor;
 
     @Override
-    public void configure(Configuration parameters) {
-
-    }
+    public void configure(Configuration parameters) {}
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
@@ -67,13 +68,18 @@ public class CassandraInputFormat extends RichInputFormat {
         Preconditions.checkNotNull(table, "table must not null");
         session = CassandraUtil.getSession(cassandraConfig, "");
 
-        String query = "SELECT * FROM " + table;
+        ConsistencyLevel cl;
+        if (consistancyLevel != null && !consistancyLevel.isEmpty()) {
+            cl = ConsistencyLevel.valueOf(consistancyLevel);
+        } else {
+            cl = ConsistencyLevel.LOCAL_QUORUM;
+        }
 
-        ResultSet resultSet = session.execute(query);
-        List<com.datastax.driver.core.Row> rowList =  resultSet.all();
-        int start = split.getSkip();
-        int end = split.getLimit();
-        cursor = rowList.subList(start, end).listIterator();
+        String queryString = getQueryString(split);
+
+        ResultSet resultSet = session.execute(new SimpleStatement(queryString)
+                .setConsistencyLevel(cl));
+        cursor = resultSet.all().iterator();
     }
 
     @Override
@@ -101,35 +107,129 @@ public class CassandraInputFormat extends RichInputFormat {
     public InputSplit[] createInputSplits(int minNumSplits) {
         ArrayList<CassandraInputSplit> splits = new ArrayList<>();
 
-        Session session = null;
         try {
             Preconditions.checkNotNull(table, "table must not null");
-            session = CassandraUtil.getSession(cassandraConfig, "");
-
-            String query = "SELECT * FROM " + table;
-            ResultSet resultSet = session.execute(query);
-
-            long docNum = resultSet.all().size();
-            if(docNum <= minNumSplits){
-                splits.add(new CassandraInputSplit(0,(int)docNum));
-                return splits.toArray(new CassandraInputSplit[splits.size()]);
-            }
-
-            long size = Math.floorDiv(docNum,(long)minNumSplits);
-            for (int i = 0; i < minNumSplits; i++) {
-                splits.add(new CassandraInputSplit((int)(i * size), (int)size));
-            }
-
-            if(size * minNumSplits < docNum){
-                splits.add(new CassandraInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
-            }
+            return splitJob(minNumSplits, splits);
         } catch (Exception e){
-            LOG.error("{}", e);
+            throw new RuntimeException(e);
         } finally {
             CassandraUtil.close(session);
         }
+    }
 
+    /**
+     * 分割任务
+     * @param minNumSplits 分片数
+     * @param splits 分片列表
+     * @return 返回InputSplit[]
+     */
+    private InputSplit[] splitJob(int minNumSplits, ArrayList<CassandraInputSplit> splits) {
+        if(minNumSplits <= 1) {
+            splits.add(new CassandraInputSplit());
+            return splits.toArray(new CassandraInputSplit[splits.size()]);
+        }
+
+        if(whereString != null && whereString.toLowerCase().contains(CassandraConstants.TOKEN)) {
+            splits.add(new CassandraInputSplit());
+            return splits.toArray(new CassandraInputSplit[splits.size()]);
+        }
+        Session session = CassandraUtil.getSession(cassandraConfig, "");
+        String partitioner = session.getCluster().getMetadata().getPartitioner();
+        if( partitioner.endsWith(CassandraConstants.RANDOM_PARTITIONER)) {
+            BigDecimal minToken = BigDecimal.valueOf(-1);
+            BigDecimal maxToken = new BigDecimal(new BigInteger("2").pow(127));
+            BigDecimal step = maxToken.subtract(minToken)
+                    .divide(BigDecimal.valueOf(minNumSplits),2, BigDecimal.ROUND_HALF_EVEN);
+            for ( int i = 0; i < minNumSplits; i++ ) {
+                BigInteger l = minToken.add(step.multiply(BigDecimal.valueOf(i))).toBigInteger();
+                BigInteger r = minToken.add(step.multiply(BigDecimal.valueOf(i+1))).toBigInteger();
+                if( i == minNumSplits - 1 ) {
+                    r = maxToken.toBigInteger();
+                }
+                splits.add(new CassandraInputSplit(l.toString(), r.toString()));
+            }
+        }
+        else if(partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
+            BigDecimal minToken = BigDecimal.valueOf(Long.MIN_VALUE);
+            BigDecimal maxToken = BigDecimal.valueOf(Long.MAX_VALUE);
+            BigDecimal step = maxToken.subtract(minToken)
+                    .divide(BigDecimal.valueOf(minNumSplits),2, BigDecimal.ROUND_HALF_EVEN);
+            for ( int i = 0; i < minNumSplits; i++ ) {
+                long l = minToken.add(step.multiply(BigDecimal.valueOf(i))).longValue();
+                long r = minToken.add(step.multiply(BigDecimal.valueOf(i+1))).longValue();
+                if( i == minNumSplits - 1 ) {
+                    r = maxToken.longValue();
+                }
+                splits.add(new CassandraInputSplit(String.valueOf(l), String.valueOf(r)));
+            }
+        }
+        else {
+            splits.add(new CassandraInputSplit());
+        }
         return splits.toArray(new CassandraInputSplit[splits.size()]);
+    }
+
+    /**
+     * 拼接查询语句
+     * @param inputSplit 分片
+     * @return 返回查询语句
+     */
+    private String getQueryString(CassandraInputSplit inputSplit) {
+        StringBuilder columns = new StringBuilder();
+        if (columnMeta == null) {
+            columns.append("*");
+        } else {
+            for(String column : columnMeta) {
+                if(columns.length() > 0 ) {
+                    columns.append(",");
+                }
+                columns.append(column);
+            }
+        }
+
+        StringBuilder where = new StringBuilder();
+
+        if( whereString != null && !whereString.isEmpty() ) {
+            where.append(whereString);
+        }
+        String minToken = inputSplit.getMinToken();
+        String maxToken = inputSplit.getMaxToken();
+        if(minToken !=null || maxToken !=null) {
+            LOG.info("range:" + minToken + "~" + maxToken);
+            List<ColumnMetadata> pks = session.getCluster().getMetadata().getKeyspace(keySpace).getTable(table)
+                    .getPartitionKey();
+            StringBuilder sb = new StringBuilder();
+            for(ColumnMetadata pk : pks) {
+                if( sb.length() > 0 ) {
+                    sb.append(",");
+                }
+                sb.append(pk.getName());
+            }
+            String s = sb.toString();
+            if (minToken != null && !minToken.isEmpty()) {
+                if( where.length() > 0 ){
+                    where.append(" AND ");
+                }
+                where.append("token(").append(s).append(")").append(" > ").append(minToken);
+            }
+            if (maxToken != null && !maxToken.isEmpty()) {
+                if( where.length() > 0 ){
+                    where.append(" AND ");
+                }
+                where.append("token(").append(s).append(")").append(" <= ").append(maxToken);
+            }
+        }
+
+        StringBuilder select = new StringBuilder();
+        select.append("SELECT ").append(columns.toString()).append(" FROM ").append(table);
+        if( where.length() > 0 ){
+            select.append(" where ").append(where.toString());
+        }
+        if(allowFiltering) {
+            select.append(" ALLOW FILTERING");
+        }
+        select.append(";");
+        return select.toString();
     }
 
     @Override
