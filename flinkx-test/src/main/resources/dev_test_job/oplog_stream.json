@@ -1,0 +1,40 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "mongodboplogreader",
+          "parameter": {
+            "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
+            "username": "root",
+            "password": "123456x",
+            "database": "admin",
+            "clusterMode": "REPLICA_SET",
+            "authenticationMechanism": "SCRAM-SHA-256",
+            "monitorDatabases": ["jiangbo"],
+            "excludeDocId": false
+          }
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 1048576
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      }
+    }
+  }
+}

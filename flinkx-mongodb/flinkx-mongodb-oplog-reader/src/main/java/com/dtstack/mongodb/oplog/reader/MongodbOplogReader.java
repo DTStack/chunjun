@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,37 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.mongodb.reader;
+
+package com.dtstack.mongodb.oplog.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.DataReader;
-import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.List;
-
 /**
- * The Reader plugin for mongodb database
- *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @date 2019/12/5
  */
-public class MongodbReader extends DataReader {
-
-    private List<MetaColumn> metaColumns;
+public class MongodbOplogReader extends DataReader {
 
     private MongodbConfig mongodbConfig;
 
-    public MongodbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public MongodbOplogReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-
         try {
             mongodbConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), MongodbConfig.class);
         } catch (Exception e) {
@@ -56,12 +48,12 @@ public class MongodbReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        MongodbInputFormatBuilder builder = new MongodbInputFormatBuilder();
-        builder.setMetaColumns(metaColumns);
-        builder.setMongodbConfig(mongodbConfig);
-
+        MongodbOplogInputFormatBuilder builder = new MongodbOplogInputFormatBuilder();
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
+        builder.setRestoreConfig(restoreConfig);
+
+        builder.setMongodbConfig(mongodbConfig);
 
         return createInput(builder.finish());
     }

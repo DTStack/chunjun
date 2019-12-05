@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.mongodb.reader;
+
+package com.dtstack.mongodb.oplog.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
-import com.dtstack.flinkx.reader.MetaColumn;
-
-import java.util.List;
 
 /**
- * The builder for mongodb reader plugin
- *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @date 2019/12/5
  */
-public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
+public class MongodbOplogInputFormatBuilder extends RichInputFormatBuilder {
 
-    private MongodbInputFormat format;
+    private MongodbOplogInputFormat format;
 
-    public MongodbInputFormatBuilder() {
-        super.format = format = new MongodbInputFormat();
-    }
-
-    public void setMetaColumns(List<MetaColumn> metaColumns){
-        format.metaColumns = metaColumns;
+    public MongodbOplogInputFormatBuilder() {
+        super.format = this.format = new MongodbOplogInputFormat();
     }
 
     public void setMongodbConfig(MongodbConfig mongodbConfig){
@@ -48,12 +40,6 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if(format.mongodbConfig.getCollectionName() == null){
-            throw new IllegalArgumentException("No collection supplied");
-        }
 
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
-        }
     }
 }

@@ -31,6 +31,7 @@ public class PluginNameConstrant {
     public static final String HBASE_READER = "hbasereader";
     public static final String HDFS_READER = "hdfsreader";
     public static final String MONGODB_READER = "mongodbreader";
+    public static final String MONGODB_OPLOG_READER = "mongodboplogreader";
     public static final String MYSQLD_READER = "mysqldreader";
     public static final String MYSQL_READER = "mysqlreader";
     public static final String ODPS_READER = "odpsreader";
