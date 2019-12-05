@@ -18,24 +18,25 @@
 
 package com.dtstack.flinkx.cassandra;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.google.common.base.Preconditions;;
+import com.datastax.driver.core.*;
+import com.google.common.base.Preconditions;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.sql.Timestamp;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
@@ -87,6 +88,8 @@ public class CassandraUtil {
             Integer port = MapUtils.getInteger(cassandraConfig, KEY_PORT);
             String hosts = MapUtils.getString(cassandraConfig, KEY_HOST);
             boolean useSSL = MapUtils.getBooleanValue(cassandraConfig, KEY_USE_SSL);
+            int connectionsPerHost = MapUtils.getIntValue(cassandraConfig, KEY_CONNECTION_PER_HOST, 8);
+            int maxPendingPerConnection = MapUtils.getIntValue(cassandraConfig, KEY_MAX_PENDING_CONNECTION, 128);
 
             Preconditions.checkNotNull(hosts, "url must not null");
 
@@ -97,7 +100,13 @@ public class CassandraUtil {
             if ((username != null) && !username.isEmpty()) {
                 builder = builder.withCredentials(username, password);
             }
-            cassandraCluster = builder.build();
+
+            PoolingOptions poolingOptions = new PoolingOptions()
+                    .setConnectionsPerHost(HostDistance.LOCAL, connectionsPerHost, connectionsPerHost)
+                    .setMaxRequestsPerConnection(HostDistance.LOCAL, maxPendingPerConnection)
+                    .setNewConnectionThreshold(HostDistance.LOCAL, 100);
+
+            cassandraCluster = builder.withPoolingOptions(poolingOptions).build();
 
             Log.info("Get cassandra cluster successful");
             return cassandraCluster;
@@ -176,50 +185,114 @@ public class CassandraUtil {
     }
 
     /**
-     * javaClass转cql类型
-     * @param clazz javaClass
-     * @return cql类型
+     * 对象转byte[]
+     * @param obj 对象实例
+     * @param <T> 对象类型
+     * @return Optional<byte[]>
      */
-    private static DataType valueOf(Class<?> clazz) {
+    private static<T> Optional<byte[]> objectToBytes(T obj){
+        byte[] bytes = null;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream sOut;
+        try {
+            sOut = new ObjectOutputStream(out);
+            sOut.writeObject(obj);
+            sOut.flush();
+            bytes= out.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Optional.ofNullable(bytes);
+    }
 
-        if (clazz == null) {
-            return DataType.custom("NULL");
-        }
-        if (clazz == long.class || clazz == Long.class) {
-            return DataType.bigint();
-        }
-        if (clazz == boolean.class || clazz == Boolean.class) {
-            return DataType.cboolean();
-        }
-        if (clazz == Byte.class || clazz == byte.class) {
-            return DataType.blob();
-        }
-        if (clazz == Date.class || clazz == Timestamp.class) {
-            return DataType.timestamp();
-        }
-        if (clazz == BigDecimal.class) {
-            return DataType.decimal();
-        }
-        if (clazz == float.class || clazz == Float.class) {
-            return DataType.cfloat();
-        }
-        if (clazz == InetAddress.class) {
-            return DataType.inet();
-        }
-        if (clazz == int.class || clazz == Integer.class) {
-            return DataType.cint();
-        }
-        if (clazz == String.class) {
-            return DataType.varchar();
-        }
-        if (clazz == UUID.class) {
-            return DataType.uuid();
-        }
-        if (clazz == BigInteger.class) {
-            return DataType.varint();
-        }
-        LOG.info("Class '{}' unknow DataType in cassandra.", clazz);
+    /**
+     * 设置值到对应的pos上
+     * @param ps preStatement
+     * @param pos 位置
+     * @param sqlType cql类型
+     * @param value 值
+     * @throws RuntimeException 对于不支持的数据类型，抛出异常
+     */
+    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value) throws RuntimeException {
+        if (value != null) {
+            switch (sqlType.getName()) {
+                case ASCII:
+                case TEXT:
+                case VARCHAR:
+                    ps.setString(pos, (String) value);
+                    break;
 
-        return DataType.custom("unknow");
+                case BLOB:
+                    ps.setBytes(pos, ByteBuffer.wrap(objectToBytes(value).orElseGet(() -> new byte[8])));
+                    break;
+
+                case BOOLEAN:
+                    ps.setBool(pos, (Boolean) value);
+                    break;
+
+                case TINYINT:
+                    ps.setByte(pos, ((Integer)value).byteValue());
+                    break;
+
+                case SMALLINT:
+                    ps.setShort(pos, ((Integer)value).shortValue());
+                    break;
+
+                case INT:
+                    ps.setInt(pos, (Integer)value);
+                    break;
+
+                case BIGINT:
+                    ps.setLong(pos, (Long)value);
+                    break;
+
+                case VARINT:
+                    ps.setVarint(pos, BigInteger.valueOf((Long) value));
+                    break;
+
+                case FLOAT:
+                    ps.setFloat(pos, ((Double)value).floatValue());
+                    break;
+
+                case DOUBLE:
+                    ps.setDouble(pos, (Double) value);
+                    break;
+
+                case DECIMAL:
+                    ps.setDecimal(pos, (BigDecimal) value);
+                    break;
+
+                case DATE:
+                    ps.setDate(pos, LocalDate.fromMillisSinceEpoch(((Date)value).getTime()));
+                    break;
+
+                case TIME:
+                    ps.setTime(pos, (Long) value);
+                    break;
+
+                case TIMESTAMP:
+                    ps.setTimestamp(pos, (Date) value);
+                    break;
+
+                case UUID:
+                case TIMEUUID:
+                    ps.setUUID(pos, UUID.fromString((String) value));
+                    break;
+
+                case INET:
+                    try {
+                        ps.setInet(pos, InetAddress.getByName((String) value));
+                    } catch (UnknownHostException e) {
+                        throw new RuntimeException("IP地址转换失败: " + value);
+                    }
+                    break;
+
+                default:
+                    throw new RuntimeException("暂不支持该数据类型: " + sqlType);
+
+            }
+        } else {
+            ps.setToNull(pos);
+        }
     }
 }

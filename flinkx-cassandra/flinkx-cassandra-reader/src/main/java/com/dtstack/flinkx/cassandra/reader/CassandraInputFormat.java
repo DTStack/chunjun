@@ -56,6 +56,7 @@ public class CassandraInputFormat extends RichInputFormat {
     protected Map<String,Object> cassandraConfig;
 
     protected transient Session session;
+
     protected transient Iterator<com.datastax.driver.core.Row> cursor;
 
     @Override

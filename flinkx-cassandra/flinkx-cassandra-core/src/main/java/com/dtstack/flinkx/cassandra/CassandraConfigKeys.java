@@ -31,5 +31,16 @@ public class CassandraConfigKeys {
 
     public final static String KEY_CONSITANCY_LEVEL = "consistancyLevel";
 
+    public final static String KEY_ASYNC_WRITE = "asyncWrite";
+
+    public final static String KEY_CONNECTION_PER_HOST = "connectionsPerHost";
+
+    public final static String KEY_MAX_PENDING_CONNECTION = "maxPendingPerConnection";
+
+    /**
+     * 异步写入的批次大小，默认1（不异步写入）
+     */
+    public final static String KEY_BATCH_SIZE = "batchSize";
+
     public final static String KEY_CASSANDRA_CONFIG = "cassandraConfig";
 }

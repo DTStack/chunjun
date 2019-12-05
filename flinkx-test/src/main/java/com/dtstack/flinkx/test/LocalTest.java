@@ -25,6 +25,7 @@ import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
 import com.dtstack.flinkx.cassandra.reader.CassandraReader;
+import com.dtstack.flinkx.cassandra.writer.CassandraWriter;
 import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
 import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
@@ -243,6 +244,7 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
+            case PluginNameConstrant.CASSANDRA_WRITER : writer = new CassandraWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

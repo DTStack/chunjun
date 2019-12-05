@@ -72,4 +72,5 @@ public class PluginNameConstrant {
     public static final String KAFKA_WRITER = "kafkawriter";
     public static final String CLICKHOUSE_WRITER = "clickhousewriter";
     public static final String POLARDB_WRITER = "polardbwriter";
+    public static final String CASSANDRA_WRITER = "cassandrawriter";
 }

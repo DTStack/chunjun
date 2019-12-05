@@ -21,6 +21,7 @@ package com.dtstack.flinkx.cassandra.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
+import org.apache.commons.collections.MapUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -61,6 +62,10 @@ public class CassandraReader extends DataReader {
 
     protected String consistancyLevel;
 
+    protected int connectionsPerHost;
+
+    protected int maxPendingPerConnection;
+
     protected Map<String,Object> cassandraConfig;
 
 
@@ -78,6 +83,8 @@ public class CassandraReader extends DataReader {
         keySpace = readerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = readerConfig.getParameter().getStringVal(KEY_TABLE);
         allowFiltering = readerConfig.getParameter().getBooleanVal(KEY_ALLOW_FILTERING, false);
+        connectionsPerHost = readerConfig.getParameter().getIntVal(KEY_CONNECTION_PER_HOST, 8);
+        maxPendingPerConnection = readerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
         consistancyLevel = readerConfig.getParameter().getStringVal(KEY_CONSITANCY_LEVEL);
 
         cassandraConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_CASSANDRA_CONFIG, new HashMap<>());
@@ -91,6 +98,8 @@ public class CassandraReader extends DataReader {
         cassandraConfig.put(KEY_KEY_SPACE, keySpace);
         cassandraConfig.put(KEY_TABLE, table);
         cassandraConfig.put(KEY_ALLOW_FILTERING, allowFiltering);
+        cassandraConfig.put(KEY_CONNECTION_PER_HOST, connectionsPerHost);
+        cassandraConfig.put(KEY_MAX_PENDING_CONNECTION, maxPendingPerConnection);
         cassandraConfig.put(KEY_CONSITANCY_LEVEL, consistancyLevel);
     }
 
