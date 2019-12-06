@@ -96,6 +96,11 @@ public class Kafka09OutputFormat extends RichOutputFormat {
     }
 
     @Override
+    protected boolean isStreamButNoWriteCheckpoint(){
+        return true;
+    }
+
+    @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
             Map<String, Object> map;

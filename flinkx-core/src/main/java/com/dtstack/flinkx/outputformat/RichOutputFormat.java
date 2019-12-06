@@ -324,8 +324,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-            if(!restoreConfig.isRestore()){
+            if(!restoreConfig.isRestore() || isStreamButNoWriteCheckpoint()){
                 numWriteCounter.add(1);
+                snapshotWriteCounter.add(1);
             }
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
@@ -338,6 +339,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                 LOG.error(e.getMessage());
             }
         }
+    }
+
+    protected boolean isStreamButNoWriteCheckpoint(){
+        return false;
     }
 
     private void saveErrorData(Row row, WriteRecordException e){

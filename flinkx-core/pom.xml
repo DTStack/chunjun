@@ -157,6 +157,13 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.2.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>1.1.1</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -190,8 +197,10 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.google.guava:*</include>
+                                    <include>com.google.code.gson:*</include>
                                     <include>ch.qos.logback:*</include>
                                     <include>org.slf4j:*</include>
+                                    <include>org.apache.httpcomponents:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>

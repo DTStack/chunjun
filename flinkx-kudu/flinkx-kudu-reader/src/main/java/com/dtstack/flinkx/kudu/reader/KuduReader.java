@@ -76,6 +76,6 @@ public class KuduReader extends DataReader {
         builder.setBytes(bytes);
         builder.setKuduConfig(kuduConfig);
 
-        return createInput(builder.finish(), "kudureader");
+        return createInput(builder.finish());
     }
 }

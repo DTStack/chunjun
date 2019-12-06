@@ -74,6 +74,6 @@ public class Kafka11Reader extends DataReader {
         format.setConsumerSettings(consumerSettings);
         format.setRestoreConfig(restoreConfig);
 
-        return createInput(format, "kafka11reader");
+        return createInput(format);
     }
 }

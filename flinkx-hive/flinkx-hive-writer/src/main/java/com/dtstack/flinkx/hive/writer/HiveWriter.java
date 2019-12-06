@@ -196,6 +196,6 @@ public class HiveWriter extends DataWriter {
 
         builder.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, builder.finish(), "hivewriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

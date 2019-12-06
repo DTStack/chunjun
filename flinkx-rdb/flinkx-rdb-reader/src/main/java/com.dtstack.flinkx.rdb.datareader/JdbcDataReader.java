@@ -124,7 +124,8 @@ public class JdbcDataReader extends DataReader {
         builder.setQuery(sqlBuilder.buildSql());
 
         RichInputFormat format =  builder.finish();
-        return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
+//        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
+        return createInput(format);
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){

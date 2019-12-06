@@ -64,6 +64,9 @@ public abstract class HdfsInputFormat extends RichInputFormat {
         super.openInputFormat();
 
         conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        FileSystemUtil.setHadoopUserName(conf);
+
+        configureAnythingElse();
     }
 
     @Override

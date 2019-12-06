@@ -76,6 +76,6 @@ public class KafkaReader extends DataReader {
         format.setConsumerSettings(consumerSettings);
         format.setRestoreConfig(restoreConfig);
 
-        return createInput(format, "kafkareader");
+        return createInput(format);
     }
 }

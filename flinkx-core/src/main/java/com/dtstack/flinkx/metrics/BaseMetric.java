@@ -108,7 +108,7 @@ public class BaseMetric {
             LOG.info("InputMetric.scheduledFutureTask.schedulePeriodMill:{} ...", schedulePeriodMill);
 
             if (schedulePeriodMill > DEFAULT_PERIOD_MILLISECONDS) {
-                this.delayPeriodMill = (long) (schedulePeriodMill * 1.2);
+                this.delayPeriodMill = (long) (schedulePeriodMill * 2);
             }
         } catch (Exception e) {
             LOG.error("", e);

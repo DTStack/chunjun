@@ -139,14 +139,27 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         List<String> splits = Arrays.asList(typeStruct.split(","));
         Iterator<String> it = splits.iterator();
         while (it.hasNext()){
-            String current = it.next();
-            if(current.contains("(")){
-                if(current.contains("(")){
+            StringBuilder current = new StringBuilder(it.next());
+            if (!current.toString().contains("(") && !current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && !current.toString().contains(")")) {
+                while (it.hasNext()) {
                     String next = it.next();
-                    cols.add(current + "," + next);
+                    current.append(",").append(next);
+                    if (next.contains(")")) {
+                        break;
+                    }
                 }
-            } else {
-                cols.add(current);
+
+                cols.add(current.toString());
             }
         }
 
@@ -162,11 +175,16 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         org.apache.hadoop.mapred.InputSplit[] splits = orcInputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
-            HdfsOrcInputSplit[] hdfsOrcInputSplits = new HdfsOrcInputSplit[splits.length];
-            for (int i = 0; i < splits.length; ++i) {
-                hdfsOrcInputSplits[i] = new HdfsOrcInputSplit((OrcSplit) splits[i], i);
+            List<HdfsOrcInputSplit> list = new ArrayList<>(splits.length);
+            int i = 0;
+            for (org.apache.hadoop.mapred.InputSplit split : splits) {
+                OrcSplit orcSplit = (OrcSplit) split;
+                if(orcSplit.getLength() > 49){
+                    list.add(new HdfsOrcInputSplit(orcSplit, i));
+                    i++;
+                }
             }
-            return hdfsOrcInputSplits;
+            return list.toArray(new HdfsOrcInputSplit[i]);
         }
 
         return null;

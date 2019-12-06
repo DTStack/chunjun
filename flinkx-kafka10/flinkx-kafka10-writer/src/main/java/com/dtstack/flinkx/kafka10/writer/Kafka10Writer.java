@@ -68,6 +68,6 @@ public class Kafka10Writer extends DataWriter {
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, format, "kafka10writer");
+        return createOutput(dataSet, format);
     }
 }
