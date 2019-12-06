@@ -7,7 +7,7 @@
           "parameter": {
             "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
             "username": "root",
-            "password": "123456x",
+            "password": "123456",
             "database": "admin",
             "clusterMode": "REPLICA_SET",
             "authenticationMechanism": "SCRAM-SHA-256",

@@ -62,6 +62,8 @@ public class MongodbOplogInputFormat extends RichInputFormat {
 
     private AtomicLong offset = new AtomicLong();
 
+    private InputSplit inputSplit;
+
     @Override
     public void configure(Configuration parameters) {
         // do nothing
@@ -69,11 +71,10 @@ public class MongodbOplogInputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
+        this.inputSplit = inputSplit;
         initOffset();
 
         client = MongodbClientUtil.getClient(mongodbConfig);
-
-
         MongoCollection<Document> oplog = getOplogCollection();
         FindIterable<Document> results = oplog.find(buildFilter())
                 .sort(new Document("$natural", 1))
@@ -93,7 +94,7 @@ public class MongodbOplogInputFormat extends RichInputFormat {
         } else if("MASTER_SLAVE".equalsIgnoreCase(mongodbConfig.getClusterMode())){
             return client.getDatabase(OPLOG_DB).getCollection(MASTER_SLAVE_COLLECTION);
         } else {
-            throw new RuntimeException("");
+            throw new RuntimeException("集群模式不支持:" + mongodbConfig.getClusterMode());
         }
     }
 
@@ -195,6 +196,16 @@ public class MongodbOplogInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return !cursor.hasNext();
+        try {
+            return !cursor.hasNext();
+        } catch (Exception e) {
+            // 这里出现异常可能是因为集群里某个节点挂了，所以不退出程序，调用openInternal方法重新连接，并从offset处开始同步数据，
+            // 如果集群有问题，在openInternal方法里结束进程
+            LOG.warn("获取数据异常,可能是某个节点出问题了，程序将自动重新选择节点连接", e);
+            closeInternal();
+            openInternal(inputSplit);
+
+            return false;
+        }
     }
 }

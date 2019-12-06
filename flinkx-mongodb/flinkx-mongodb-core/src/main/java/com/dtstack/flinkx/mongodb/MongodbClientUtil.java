@@ -121,8 +121,6 @@ public class MongodbClientUtil {
                 String portStr = matcher.group("port");
                 int port = portStr == null ? DEFAULT_PORT : Integer.parseInt(portStr);
 
-                TelnetUtil.telnet(host,port);
-
                 ServerAddress serverAddress = new ServerAddress(host,port);
                 addresses.add(serverAddress);
             }
