@@ -102,7 +102,6 @@ public class CassandraOutputFormat extends RichOutputFormat {
                 throw new WriteRecordException("类型转换失败", e.getCause(), i, row);
             }
         }
-        LOG.info("insertSql: {}" + boundStatement);
         session.execute(boundStatement);
     }
 
@@ -110,12 +109,14 @@ public class CassandraOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (batchSize > 1) {
             BoundStatement boundStatement = pstmt.bind();
-            for (Row row : rows) {
-                for (int i = 0; i < columnMeta.size(); i++) {
-                    Object value = row.getField(i);
-                    CassandraUtil.bindColumn(boundStatement, i, columnTypes.get(i), value);
+            for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+                for (int columnIndex = 0; columnIndex < columnMeta.size(); columnIndex++) {
+                    Object value = rows.get(rowIndex).getField(columnIndex);
+                    CassandraUtil.bindColumn(boundStatement, columnIndex, columnTypes.get(columnIndex), value);
                 }
-                LOG.info("insertSql: {}" + boundStatement);
+                if ((rowIndex % 1000) == 0) {
+                    LOG.info("insertSql: {}" + boundStatement);
+                }
                 if(asyncWrite) {
                     unConfirmedWrite.add(session.executeAsync(boundStatement));
                     if (unConfirmedWrite.size() >= batchSize) {
@@ -152,7 +153,7 @@ public class CassandraOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    public void closeInternal() {
         CassandraUtil.close(session);
     }
 }

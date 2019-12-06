@@ -100,7 +100,6 @@ public class CassandraInputFormat extends RichInputFormat {
             Object value = CassandraUtil.getData(cqlRow, definitions.get(i).getType(), definitions.get(i).getName());
             row.setField(i, value);
         }
-        LOG.info(row.toString());
 
         return row;
     }
