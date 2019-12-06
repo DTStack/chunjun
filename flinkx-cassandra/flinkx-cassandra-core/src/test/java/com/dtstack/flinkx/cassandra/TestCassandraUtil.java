@@ -12,7 +12,7 @@ import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.*;
 public class TestCassandraUtil {
     public static void main(String[] args) {
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put(KEY_URL, "101.37.175.174");
+        configMap.put(KEY_HOST, "101.37.175.174");
         configMap.put(KEY_KEY_SPACE, "tp");
 
         Session session = CassandraUtil.getSession(configMap, "");

@@ -38,10 +38,6 @@ public class CassandraWriter extends DataWriter {
 
     protected List<String> column;
 
-    protected String where;
-
-    protected boolean allowFiltering;
-
     protected String consistancyLevel;
 
     protected int connectionsPerHost;
@@ -64,10 +60,8 @@ public class CassandraWriter extends DataWriter {
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
         useSSL = writerConfig.getParameter().getBooleanVal(KEY_USE_SSL, false);
         column = (List<String>)writerConfig.getParameter().getVal(KEY_COLUMN);
-        where = writerConfig.getParameter().getStringVal(KEY_WHERE);
         keySpace = writerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = writerConfig.getParameter().getStringVal(KEY_TABLE);
-        allowFiltering = writerConfig.getParameter().getBooleanVal(KEY_ALLOW_FILTERING, false);
         connectionsPerHost = writerConfig.getParameter().getIntVal(KEY_CONNECTION_PER_HOST, 8);
         maxPendingPerConnection = writerConfig.getParameter().getIntVal(KEY_MAX_PENDING_CONNECTION, 128);
         asyncWrite = writerConfig.getParameter().getBooleanVal(KEY_ASYNC_WRITE, false);
@@ -81,10 +75,8 @@ public class CassandraWriter extends DataWriter {
         cassandraConfig.put(KEY_PASSWORD, password);
         cassandraConfig.put(KEY_USE_SSL, useSSL);
         cassandraConfig.put(KEY_COLUMN, column);
-        cassandraConfig.put(KEY_WHERE, where);
         cassandraConfig.put(KEY_KEY_SPACE, keySpace);
         cassandraConfig.put(KEY_TABLE, table);
-        cassandraConfig.put(KEY_ALLOW_FILTERING, allowFiltering);
         cassandraConfig.put(KEY_CONNECTION_PER_HOST, connectionsPerHost);
         cassandraConfig.put(KEY_MAX_PENDING_CONNECTION, maxPendingPerConnection);
         cassandraConfig.put(KEY_ASYNC_WRITE, asyncWrite);

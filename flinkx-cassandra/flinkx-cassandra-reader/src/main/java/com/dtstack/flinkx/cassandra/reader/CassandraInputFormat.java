@@ -92,7 +92,7 @@ public class CassandraInputFormat extends RichInputFormat {
 
         for (int i = 0; i < definitions.size(); i++) {
             Object value = CassandraUtil.getData(cqlRow, definitions.get(i).getType(), definitions.get(i).getName());
-            Log.error(value + " ");
+            Log.info(i + " " + value + " ");
             row.setField(i, value);
         }
 

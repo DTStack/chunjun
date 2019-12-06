@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.cassandra;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.LocalDate;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +35,8 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.sql.Time;
+import java.time.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -151,29 +154,38 @@ public class CassandraUtil {
             } else if (type == DataType.cboolean()) {
                 value = row.getBool(columnName);
             } else if (type == DataType.blob()) {
-                value = row.getBytes(columnName);
+                value = row.getBytes(columnName).array();
             } else if (type == DataType.timestamp()) {
-                value = row.getDate(columnName);
+                value = row.getTimestamp(columnName);
             } else if (type == DataType.decimal()) {
                 value = row.getDecimal(columnName);
             } else if (type == DataType.cfloat()) {
                 value = row.getFloat(columnName);
             } else if (type == DataType.inet()) {
-                value = row.getInet(columnName);
+                value = row.getInet(columnName).getHostAddress();
             } else if (type == DataType.cint()) {
                 value = row.getInt(columnName);
             } else if (type == DataType.varchar()) {
                 value = row.getString(columnName);
             } else if (type == DataType.uuid() || type == DataType.timeuuid()) {
-                value = row.getUUID(columnName);
+                value = row.getUUID(columnName).toString();
             } else if (type == DataType.varint()) {
                 value = row.getVarint(columnName);
             } else if (type == DataType.cdouble()) {
                 value = row.getDouble(columnName);
             } else if (type == DataType.text()) {
                 value = row.getString(columnName);
+            } else if (type == DataType.ascii()) {
+                value = row.getString(columnName);
+            } else if (type == DataType.smallint()) {
+                value = row.getShort(columnName);
+            } else if (type == DataType.tinyint()) {
+                value = row.getByte(columnName);
+            } else if (type == DataType.date()) {
+                value = row.getDate(columnName).getMillisSinceEpoch();
+            } else if (type == DataType.time()) {
+                value = row.getTime(columnName);
             }
-
         } catch (Exception e) {
             Log.info("获取'{}'值发生异常：{}", columnName, e);
         }
@@ -183,6 +195,7 @@ public class CassandraUtil {
         }
         return value;
     }
+
 
     /**
      * 对象转byte[]
@@ -251,7 +264,7 @@ public class CassandraUtil {
                     break;
 
                 case FLOAT:
-                    ps.setFloat(pos, ((Double)value).floatValue());
+                    ps.setFloat(pos, (Float)value);
                     break;
 
                 case DOUBLE:
@@ -267,7 +280,7 @@ public class CassandraUtil {
                     break;
 
                 case TIME:
-                    ps.setTime(pos, (Long) value);
+                    ps.setTime(pos, ((Time) value).getTime());
                     break;
 
                 case TIMESTAMP:
