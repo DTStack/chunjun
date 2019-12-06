@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.cassandra.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class CassandraOutputFormatBuilder extends RichOutputFormatBuilder {
         format.batchSize = batchSize;
     }
 
-    public void setColumn(List<String> column) {
+    public void setColumn(List<MetaColumn> column) {
         format.columnMeta = column;
     }
 

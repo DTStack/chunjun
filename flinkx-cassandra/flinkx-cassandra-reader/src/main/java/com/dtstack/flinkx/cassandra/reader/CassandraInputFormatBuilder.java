@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.cassandra.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public class CassandraInputFormatBuilder extends RichInputFormatBuilder {
 
     public void setKeySpace(String keySpace) {format.keySpace = keySpace;}
 
-    public void setColumn(List<String> column) {format.columnMeta = column;}
+    public void setColumn(List<MetaColumn> column) {format.columnMeta = column;}
 
     public void setCassandraConfig(Map<String,Object> cassandraConfig){
         format.cassandraConfig = cassandraConfig;

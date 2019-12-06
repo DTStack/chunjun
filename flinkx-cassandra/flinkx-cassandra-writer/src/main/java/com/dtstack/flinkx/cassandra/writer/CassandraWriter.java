@@ -2,6 +2,7 @@ package com.dtstack.flinkx.cassandra.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -36,7 +37,7 @@ public class CassandraWriter extends DataWriter {
 
     protected String table;
 
-    protected List<String> column;
+    protected List<MetaColumn> column;
 
     protected String consistancyLevel;
 
@@ -59,7 +60,7 @@ public class CassandraWriter extends DataWriter {
         username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
         useSSL = writerConfig.getParameter().getBooleanVal(KEY_USE_SSL, false);
-        column = (List<String>)writerConfig.getParameter().getVal(KEY_COLUMN);
+        column = MetaColumn.getMetaColumns(writerConfig.getParameter().getColumn());
         keySpace = writerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = writerConfig.getParameter().getStringVal(KEY_TABLE);
         connectionsPerHost = writerConfig.getParameter().getIntVal(KEY_CONNECTION_PER_HOST, 8);

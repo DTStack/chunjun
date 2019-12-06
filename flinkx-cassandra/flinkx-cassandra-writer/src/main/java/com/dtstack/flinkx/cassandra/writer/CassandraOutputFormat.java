@@ -6,8 +6,11 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,9 +25,11 @@ import java.util.concurrent.TimeUnit;
  * @author wuhui
  */
 public class CassandraOutputFormat extends RichOutputFormat {
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraOutputFormat.class);
+
     protected Long batchSize;
 
-    protected List<String> columnMeta;
+    protected List<MetaColumn> columnMeta;
 
     protected boolean asyncWrite;
 
@@ -51,17 +56,18 @@ public class CassandraOutputFormat extends RichOutputFormat {
         Preconditions.checkNotNull(keySpace, "keySpace must not null!");
         Preconditions.checkNotNull(table, "table must not null");
 
+        LOG.info("taskNumber: {}, numTasks: {}", taskNumber, numTasks);
         session = CassandraUtil.getSession(cassandraConfig, "");
         TableMetadata metadata = session.getCluster().getMetadata().getKeyspace(keySpace).getTable(table);
 
         columnTypes = new ArrayList<>(columnMeta.size());
         Insert insertStmt = QueryBuilder.insertInto(table);
 
-        for (String columnName : columnMeta) {
-            insertStmt.value(columnName, QueryBuilder.bindMarker());
-            ColumnMetadata col = metadata.getColumn(columnName);
+        for (MetaColumn column : columnMeta) {
+            insertStmt.value(column.getName(), QueryBuilder.bindMarker());
+            ColumnMetadata col = metadata.getColumn(column.getName());
             if (col == null) {
-                throw new RuntimeException("未找到列名" + columnName);
+                throw new RuntimeException("未找到列名" + column.getName());
             }
             columnTypes.add(col.getType());
         }
@@ -86,15 +92,17 @@ public class CassandraOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         // cassandra支持对重复主键的值覆盖，无需判断writeMode
-        if (row.getArity() != columnMeta.size()) {
-            throw new RuntimeException("列字段数目不匹配，写入失败!");
-        }
-
         BoundStatement boundStatement = pstmt.bind();
         for (int i = 0; i < columnMeta.size(); i++) {
             Object value = row.getField(i);
-            CassandraUtil.bindColumn(boundStatement, i, columnTypes.get(i), value);
+            try {
+                CassandraUtil.bindColumn(boundStatement, i, columnTypes.get(i), value);
+            } catch (Exception e) {
+                // 包装异常
+                throw new WriteRecordException("类型转换失败", e.getCause(), i, row);
+            }
         }
+        LOG.info("insertSql: {}" + boundStatement);
         session.execute(boundStatement);
     }
 
@@ -107,7 +115,7 @@ public class CassandraOutputFormat extends RichOutputFormat {
                     Object value = row.getField(i);
                     CassandraUtil.bindColumn(boundStatement, i, columnTypes.get(i), value);
                 }
-
+                LOG.info("insertSql: {}" + boundStatement);
                 if(asyncWrite) {
                     unConfirmedWrite.add(session.executeAsync(boundStatement));
                     if (unConfirmedWrite.size() >= batchSize) {

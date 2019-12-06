@@ -21,11 +21,13 @@ package com.dtstack.flinkx.cassandra.reader;
 import com.datastax.driver.core.*;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.esotericsoftware.minlog.Log;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,6 +43,9 @@ import java.util.Map;
  * @author wuhui
  */
 public class CassandraInputFormat extends RichInputFormat {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraInputFormat.class);
+
     protected String table;
 
     protected String whereString;
@@ -51,7 +56,7 @@ public class CassandraInputFormat extends RichInputFormat {
 
     protected String keySpace;
 
-    protected List<String> columnMeta;
+    protected List<MetaColumn> columnMeta;
 
     protected Map<String,Object> cassandraConfig;
 
@@ -77,7 +82,8 @@ public class CassandraInputFormat extends RichInputFormat {
         }
 
         String queryString = getQueryString(split);
-
+        LOG.info("查询SQL: {}", queryString);
+        LOG.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
         ResultSet resultSet = session.execute(new SimpleStatement(queryString)
                 .setConsistencyLevel(cl));
         cursor = resultSet.all().iterator();
@@ -92,9 +98,9 @@ public class CassandraInputFormat extends RichInputFormat {
 
         for (int i = 0; i < definitions.size(); i++) {
             Object value = CassandraUtil.getData(cqlRow, definitions.get(i).getType(), definitions.get(i).getName());
-            Log.info(i + " " + value + " ");
             row.setField(i, value);
         }
+        LOG.info(row.toString());
 
         return row;
     }
@@ -180,11 +186,11 @@ public class CassandraInputFormat extends RichInputFormat {
         if (columnMeta == null) {
             columns.append("*");
         } else {
-            for(String column : columnMeta) {
+            for(MetaColumn column : columnMeta) {
                 if(columns.length() > 0 ) {
                     columns.append(",");
                 }
-                columns.append(column);
+                columns.append(column.getName());
             }
         }
 

@@ -23,7 +23,6 @@ import com.datastax.driver.core.LocalDate;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.sql.Time;
-import java.time.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -70,7 +68,7 @@ public class CassandraUtil {
 
             // 创建session
             cassandraSession = cluster.connect(keySpace);
-            Log.info("Get cassandra session successful");
+            LOG.info("Get cassandra session successful");
             return cassandraSession;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -111,7 +109,7 @@ public class CassandraUtil {
 
             cassandraCluster = builder.withPoolingOptions(poolingOptions).build();
 
-            Log.info("Get cassandra cluster successful");
+            LOG.info("Get cassandra cluster successful");
             return cassandraCluster;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -187,11 +185,11 @@ public class CassandraUtil {
                 value = row.getTime(columnName);
             }
         } catch (Exception e) {
-            Log.info("获取'{}'值发生异常：{}", columnName, e);
+            LOG.info("获取'{}'值发生异常：{}", columnName, e);
         }
 
         if (value == null) {
-            Log.info("Column '{}' Type({}) get cassandra data is NULL.", columnName, type);
+            LOG.info("Column '{}' Type({}) get cassandra data is NULL.", columnName, type);
         }
         return value;
     }
@@ -226,7 +224,7 @@ public class CassandraUtil {
      * @param value 值
      * @throws RuntimeException 对于不支持的数据类型，抛出异常
      */
-    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value) throws RuntimeException {
+    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value) throws Exception {
         if (value != null) {
             switch (sqlType.getName()) {
                 case ASCII:
@@ -293,11 +291,7 @@ public class CassandraUtil {
                     break;
 
                 case INET:
-                    try {
-                        ps.setInet(pos, InetAddress.getByName((String) value));
-                    } catch (UnknownHostException e) {
-                        throw new RuntimeException("IP地址转换失败: " + value);
-                    }
+                    ps.setInet(pos, InetAddress.getByName((String) value));
                     break;
 
                 default:

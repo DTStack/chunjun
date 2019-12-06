@@ -21,7 +21,7 @@ package com.dtstack.flinkx.cassandra.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
-import org.apache.commons.collections.MapUtils;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -54,7 +54,7 @@ public class CassandraReader extends DataReader {
 
     protected String table;
 
-    protected List<String> column;
+    protected List<MetaColumn> column;
 
     protected String where;
 
@@ -78,7 +78,7 @@ public class CassandraReader extends DataReader {
         username = readerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
         useSSL = readerConfig.getParameter().getBooleanVal(KEY_USE_SSL, false);
-        column = (List<String>)readerConfig.getParameter().getVal(KEY_COLUMN);
+        column = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         where = readerConfig.getParameter().getStringVal(KEY_WHERE);
         keySpace = readerConfig.getParameter().getStringVal(KEY_KEY_SPACE);
         table = readerConfig.getParameter().getStringVal(KEY_TABLE);
