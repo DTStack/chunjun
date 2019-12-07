@@ -20,6 +20,7 @@ package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -86,7 +87,7 @@ public class Kafka09InputFormat extends RichInputFormat {
         try {
             row = queue.take();
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", e);
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return row;
     }

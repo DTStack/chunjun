@@ -60,6 +60,7 @@ public class BinlogReader extends DataReader {
 
     private List<String> table;
 
+    @SuppressWarnings("unchecked")
     public BinlogReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();

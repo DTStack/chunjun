@@ -164,10 +164,10 @@
              "table":"tb1",
              "ts":1231232,
              "ingestion":123213,
-             "before_id":{
+             "before":{
                  "id":1
              },
-             "after_id":{
+             "after":{
                  "id":2
              }
         }
