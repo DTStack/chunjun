@@ -27,7 +27,6 @@
         <module>flinkx-db2</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
-        <module>flinkx-kudu</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -36,6 +35,7 @@
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
         <module>flinkx-carbondata</module>
+        <module>flinkx-kudu</module>
 
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
