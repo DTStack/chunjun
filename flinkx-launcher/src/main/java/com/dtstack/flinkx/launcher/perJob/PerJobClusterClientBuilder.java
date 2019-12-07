@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,12 @@
 package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.launcher.YarnConfLoader;
+import com.dtstack.flinkx.options.Options;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.hadoop.fs.Path;
@@ -32,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Date: 2019/09/11
@@ -49,7 +52,7 @@ public class PerJobClusterClientBuilder {
      * init yarnClient
      * @param yarnConfDir the path of yarnconf
      */
-    public void init(String yarnConfDir){
+    public void init(String yarnConfDir) {
         if (Strings.isNullOrEmpty(yarnConfDir)) {
             throw new RuntimeException("param:[yarnconf] is required !");
         }
@@ -62,38 +65,49 @@ public class PerJobClusterClientBuilder {
 
     /**
      * create a yarn cluster descriptor which is used to start the application master
-     * @param confProp  taskParams
-     * @param flinkJarPath the path of flink jar lib
-     * @param queue queue name
+     * @param confProp taskParams
+     * @param options LauncherOptions
+     * @param jobGraph JobGraph
      * @return
      * @throws MalformedURLException
      */
-    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, String flinkJarPath, String queue) throws MalformedURLException {
-        if(StringUtils.isNotBlank(flinkJarPath)){
-            if(!new File(flinkJarPath).exists()){
+    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options, JobGraph jobGraph) throws MalformedURLException {
+        String flinkJarPath = options.getFlinkLibJar();
+        if (StringUtils.isNotBlank(flinkJarPath)) {
+            if (!new File(flinkJarPath).exists()) {
                 throw new IllegalArgumentException("The Flink jar path is not exist");
             }
-        }else{
+        } else {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
 
         Configuration conf = new Configuration();
         confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
 
-        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, ".", yarnClient, false);
+        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, options.getFlinkconf(), yarnClient, false);
+        List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
-        if(jars != null){
+        if (jars != null) {
             for (File jar : jars) {
-                URL url = jar.toURI().toURL();
-                if(url.toString().contains("flink-dist")){
-                    descriptor.setLocalJarPath(new Path(url.toString()));
-                    break;
+                if (jar.toURI().toURL().toString().contains("flink-dist")) {
+                    descriptor.setLocalJarPath(new Path(jar.toURI().toURL().toString()));
+                } else {
+                    shipFiles.add(jar);
                 }
             }
         }
-        if(StringUtils.isNotBlank(queue)){
-            descriptor.setQueue(queue);
+        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
+            Map<String, DistributedCache.DistributedCacheEntry> jobCacheFileConfig = jobGraph.getUserArtifacts();
+            for(Map.Entry<String,  DistributedCache.DistributedCacheEntry> tmp : jobCacheFileConfig.entrySet()){
+                if(tmp.getKey().startsWith("class_path")){
+                    shipFiles.add(new File(tmp.getValue().filePath));
+                }
+            }
         }
+        if (StringUtils.isNotBlank(options.getQueue())) {
+            descriptor.setQueue(options.getQueue());
+        }
+        descriptor.addShipFiles(shipFiles);
         return descriptor;
     }
 }
