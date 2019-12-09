@@ -164,9 +164,13 @@ public class FileSystemUtil {
         }
 
         if (isHaMode(confMap)) {
-            confMap.put(KEY_HA_DEFAULT_FS, defaultFs);
+            if(defaultFs != null){
+                confMap.put(KEY_HA_DEFAULT_FS, defaultFs);
+            }
         } else {
-            confMap.put(KEY_DEFAULT_FS, defaultFs);
+            if(defaultFs != null){
+                confMap.put(KEY_DEFAULT_FS, defaultFs);
+            }
         }
 
         confMap.put(KEY_FS_HDFS_IMPL_DISABLE_CACHE, "true");
