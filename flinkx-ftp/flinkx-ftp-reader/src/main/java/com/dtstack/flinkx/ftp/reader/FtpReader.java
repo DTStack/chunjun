@@ -61,7 +61,7 @@ public class FtpReader extends DataReader {
         }
 
         List columns = readerConfig.getParameter().getColumn();
-        metaColumns = MetaColumn.getMetaColumns(columns);
+        metaColumns = MetaColumn.getMetaColumns(columns, false);
     }
 
     @Override

@@ -62,7 +62,7 @@ public class HdfsReader extends DataReader {
             fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
     }
 
     @Override

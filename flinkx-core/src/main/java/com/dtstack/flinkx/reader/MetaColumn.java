@@ -95,7 +95,7 @@ public class MetaColumn implements Serializable {
         this.timeFormat = timeFormat;
     }
 
-    public static List<MetaColumn> getMetaColumns(List columns){
+    public static List<MetaColumn> getMetaColumns(List columns, boolean generateIndex){
         List<MetaColumn> metaColumns = new ArrayList<>();
         if(columns != null && columns.size() > 0) {
             if (columns.get(0) instanceof Map) {
@@ -112,7 +112,11 @@ public class MetaColumn implements Serializable {
                             mc.setIndex(doubleColIndex.intValue());
                         }
                     } else {
-                        mc.setIndex(-1);
+                        if (generateIndex) {
+                            mc.setIndex(i);
+                        } else {
+                            mc.setIndex(-1);
+                        }
                     }
 
                     mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
@@ -144,6 +148,10 @@ public class MetaColumn implements Serializable {
         }
 
         return metaColumns;
+    }
+
+    public static List<MetaColumn> getMetaColumns(List columns){
+        return getMetaColumns(columns, true);
     }
 
     public static List<String> getColumnNames(List columns){
