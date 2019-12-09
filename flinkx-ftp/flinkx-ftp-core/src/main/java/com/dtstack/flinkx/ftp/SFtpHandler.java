@@ -61,19 +61,30 @@ public class SFtpHandler implements IFtpHandler {
     private static String PATH_NOT_EXIST_ERR = "no such file";
 
     @Override
-    public void loginFtpServer(String host, String username, String password, int port, int timeout, String connectMode) {
-        JSch jsch = new JSch();
+    public void loginFtpServer(FtpConfig ftpConfig) {
         try {
-            session = jsch.getSession(username, host, port);
+            JSch jsch = new JSch();
+
+            if (StringUtils.isNotEmpty(ftpConfig.getPrivateKeyPath())) {
+                // 添加私钥路径
+                jsch.addIdentity(ftpConfig.getPrivateKeyPath());
+            }
+
+            session = jsch.getSession(ftpConfig.getUsername(), ftpConfig.getHost(), ftpConfig.getPort());
             if (session == null) {
                 throw new RuntimeException("login failed. Please check if username and password are correct");
             }
 
-            session.setPassword(password);
+            if(StringUtils.isEmpty(ftpConfig.getPrivateKeyPath())){
+                session.setPassword(ftpConfig.getPassword());
+            }
+
             Properties config = new Properties();
+
+            // SSH 公钥检查机制 no、ask、yes
             config.put("StrictHostKeyChecking", "no");
             session.setConfig(config);
-            session.setTimeout(timeout);
+            session.setTimeout(ftpConfig.getTimeout());
             session.connect();
 
             channelSftp = (ChannelSftp) session.openChannel("sftp");
@@ -81,27 +92,27 @@ public class SFtpHandler implements IFtpHandler {
         } catch (JSchException e) {
             if(null != e.getCause()){
                 String cause = e.getCause().toString();
-                String unknownHostException = "java.net.UnknownHostException: " + host;
-                String illegalArgumentException = "java.lang.IllegalArgumentException: port out of range:" + port;
+                String unknownHostException = "java.net.UnknownHostException: " + ftpConfig.getHost();
+                String illegalArgumentException = "java.lang.IllegalArgumentException: port out of range:" + ftpConfig.getPort();
                 String wrongPort = "java.net.ConnectException: Connection refused";
                 if (unknownHostException.equals(cause)) {
-                    String message = String.format("请确认ftp服务器地址是否正确，无法连接到地址为: [%s] 的ftp服务器", host);
+                    String message = String.format("请确认ftp服务器地址是否正确，无法连接到地址为: [%s] 的ftp服务器", ftpConfig.getHost());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 } else if (illegalArgumentException.equals(cause) || wrongPort.equals(cause) ) {
-                    String message = String.format("请确认连接ftp服务器端口是否正确，错误的端口: [%s] ", port);
+                    String message = String.format("请确认连接ftp服务器端口是否正确，错误的端口: [%s] ", ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 }
             }else {
                 if("Auth fail".equals(e.getMessage())){
                     String message = String.format("与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
-                            "message:host =" + host + ",username = " + username + ",port =" + port);
+                            "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 }else{
                     String message = String.format("与ftp服务器建立连接失败 : [%s]",
-                            "message:host =" + host + ",username = " + username + ",port =" + port);
+                            "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 }
