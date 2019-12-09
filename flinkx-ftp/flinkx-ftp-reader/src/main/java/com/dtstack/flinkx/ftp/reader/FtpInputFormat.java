@@ -18,10 +18,7 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
-import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.IFtpHandler;
-import com.dtstack.flinkx.ftp.SFtpHandler;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.*;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
@@ -43,29 +40,11 @@ import java.util.List;
  */
 public class FtpInputFormat extends RichInputFormat {
 
-    protected String path;
-
-    protected String host;
-
-    protected Integer port;
-
-    protected String username;
-
-    protected String password;
-
-    protected String delimiter = ",";
-
-    protected String protocol;
-
-    protected Integer timeout;
-
-    protected String connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
+    protected FtpConfig ftpConfig;
 
     protected String charsetName = "utf-8";
 
     protected List<MetaColumn> metaColumns;
-
-    protected boolean isFirstLineHeader;
 
     private transient FtpSeqBufferedReader br;
 
@@ -75,12 +54,12 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public void configure(Configuration parameters) {
-        if("sftp".equalsIgnoreCase(protocol)) {
+        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
             ftpHandler = new SFtpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }
-        ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
+        ftpHandler.loginFtpServer(ftpConfig);
     }
 
     @Override
@@ -92,6 +71,7 @@ public class FtpInputFormat extends RichInputFormat {
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         List<String> files = new ArrayList<>();
 
+        String path = ftpConfig.getPath();
         if(path != null && path.length() > 0){
             path = path.replace("\n","").replace("\r","");
             String[] pathArray = path.split(",");
@@ -122,7 +102,7 @@ public class FtpInputFormat extends RichInputFormat {
         FtpInputSplit inputSplit = (FtpInputSplit)split;
         List<String> paths = inputSplit.getPaths();
 
-        if (isFirstLineHeader){
+        if (ftpConfig.getIsFirstLineHeader()){
             br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
             br.setFromLine(1);
         } else {
@@ -140,7 +120,7 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        String[] fields = line.split(delimiter);
+        String[] fields = line.split(ftpConfig.getFieldDelimiter());
         if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
