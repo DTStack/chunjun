@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -65,6 +66,8 @@ public class MongodbInputFormat extends RichInputFormat {
     protected int fetchSize;
 
     private Bson filter;
+
+    private Gson gson = new Gson();
 
     private transient MongoCursor<Document> cursor;
 
@@ -122,6 +125,8 @@ public class MongodbInputFormat extends RichInputFormat {
 
                 if(value instanceof String){
                     value = StringUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                }else if(value instanceof List){
+                    value = gson.toJson(value);
                 }
 
                 row.setField(i,value);
