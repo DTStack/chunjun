@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -103,6 +104,9 @@ public class SFtpHandler implements IFtpHandler {
                     String message = String.format("请确认连接ftp服务器端口是否正确，错误的端口: [%s] ", ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
+                }else {
+                    LOG.error(ExceptionUtil.getErrorMessage(e));
+                    throw new RuntimeException(e);
                 }
             }else {
                 if("Auth fail".equals(e.getMessage())){
