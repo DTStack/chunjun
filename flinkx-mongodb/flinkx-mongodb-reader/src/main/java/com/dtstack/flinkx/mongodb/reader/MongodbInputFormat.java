@@ -67,7 +67,7 @@ public class MongodbInputFormat extends RichInputFormat {
 
     private Bson filter;
 
-    private Gson gson = new Gson();
+    private static final Gson gson = new Gson();
 
     private transient MongoCursor<Document> cursor;
 
