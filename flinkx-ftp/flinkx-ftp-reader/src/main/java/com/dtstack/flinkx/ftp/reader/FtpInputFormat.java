@@ -62,8 +62,8 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(protocol);
-        ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
+        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
+        ftpHandler.loginFtpServer(ftpConfig);
 
         List<String> files = new ArrayList<>();
 
