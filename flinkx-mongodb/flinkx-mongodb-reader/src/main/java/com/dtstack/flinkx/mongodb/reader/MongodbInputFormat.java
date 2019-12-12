@@ -62,6 +62,10 @@ public class MongodbInputFormat extends RichInputFormat {
 
     protected String filterJson;
 
+    protected Bson projection;
+
+    protected String projectionJson;
+
     protected Map<String,Object> mongodbConfig;
 
     protected int fetchSize;
@@ -93,7 +97,7 @@ public class MongodbInputFormat extends RichInputFormat {
         if(filter == null){
             findIterable = collection.find();
         } else {
-            findIterable = collection.find(filter);
+            findIterable = projection == null ? collection.find(filter) : collection.find(filter).projection(projection);
         }
 
         findIterable = findIterable.skip(split.getSkip())
@@ -187,6 +191,9 @@ public class MongodbInputFormat extends RichInputFormat {
     private void buildFilter(){
         if(StringUtils.isNotEmpty(filterJson)){
             filter = BasicDBObject.parse(filterJson);
+        }
+        if (StringUtils.isNotEmpty(projectionJson)){
+            projection = BasicDBObject.parse(projectionJson);
         }
     }
 }

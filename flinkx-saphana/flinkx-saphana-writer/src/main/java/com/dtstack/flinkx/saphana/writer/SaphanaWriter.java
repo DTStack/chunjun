@@ -16,32 +16,30 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.saphana.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.saphana.SaphanaDatabaseMeta;
+import com.dtstack.flinkx.saphana.format.SaphanaOutputFormat;
+
+import java.util.Collections;
 
 /**
- * Database type
+ * SpaHana writer plugin
  *
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author wuhui
  */
-public enum EDatabaseType {
+public class SaphanaWriter extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Cassandra,
-    SapHana
+    public SaphanaWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new SaphanaDatabaseMeta());
+        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        super.builder = new JdbcOutputFormatBuilder(new SaphanaOutputFormat());
+    }
+
 }

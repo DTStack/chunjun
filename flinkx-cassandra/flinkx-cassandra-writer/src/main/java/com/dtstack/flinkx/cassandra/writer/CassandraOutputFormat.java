@@ -115,7 +115,7 @@ public class CassandraOutputFormat extends RichOutputFormat {
                     CassandraUtil.bindColumn(boundStatement, columnIndex, columnTypes.get(columnIndex), value);
                 }
                 if ((rowIndex % 1000) == 0) {
-                    LOG.info("insertSql: {}" + boundStatement);
+                    LOG.info("insertSql: {}", boundStatement);
                 }
                 if(asyncWrite) {
                     unConfirmedWrite.add(session.executeAsync(boundStatement));
