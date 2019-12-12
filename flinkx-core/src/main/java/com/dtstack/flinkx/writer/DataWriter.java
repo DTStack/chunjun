@@ -29,6 +29,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,8 @@ public abstract class DataWriter {
     protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
+
+    protected static ObjectMapper objectMapper = new ObjectMapper();
 
     public List<String> getSrcCols() {
         return srcCols;
