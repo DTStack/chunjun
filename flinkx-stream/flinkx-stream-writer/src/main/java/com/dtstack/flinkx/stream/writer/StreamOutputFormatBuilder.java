@@ -38,6 +38,10 @@ public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
         format.print = print;
     }
 
+    public void setWriteDelimiter(String writeDelimiter) {
+        format.writeDelimiter = writeDelimiter;
+    }
+
     @Override
     protected void checkFormat() {
 

@@ -33,10 +33,16 @@ import org.apache.flink.types.Row;
 public class StreamWriter extends DataWriter {
 
     protected boolean print;
+    protected String writeDelimiter;
+    protected int batchInterval;
+
 
     public StreamWriter(DataTransferConfig config) {
         super(config);
         print = config.getJob().getContent().get(0).getWriter().getParameter().getBooleanVal("print",false);
+        writeDelimiter = config.getJob().getContent().get(0).getWriter().getParameter().getStringVal("writeDelimiter", "|");
+        batchInterval = config.getJob().getContent().get(0).getWriter().getParameter().getIntVal("batchInterval", 20);
+
     }
 
     @Override
@@ -44,7 +50,9 @@ public class StreamWriter extends DataWriter {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setPrint(print);
         builder.setRestoreConfig(restoreConfig);
+        builder.setWriteDelimiter(writeDelimiter);
         builder.setMonitorUrls(monitorUrls);
+        builder.setBatchInterval(batchInterval);
 
         return createOutput(dataSet, builder.finish(), "streamwriter");
     }
