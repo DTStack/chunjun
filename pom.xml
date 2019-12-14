@@ -39,6 +39,7 @@
         <module>flinkx-launcher</module>
         <module>flinkx-clickhouse</module>
         <module>flinkx-polardb</module>
+        <module>flinkx-oraclelogminer</module>
     </modules>
 
     <properties>
