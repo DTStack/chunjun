@@ -41,7 +41,7 @@ public class OracleLogminerInputFormat extends RichInputFormat {
 
     private CallableStatement logMinerStartStmt;
 
-    private PreparedStatement logminerSelectStmt;
+    private PreparedStatement logMinerSelectStmt;
 
     private ResultSet logMinerData;
 
@@ -84,22 +84,24 @@ public class OracleLogminerInputFormat extends RichInputFormat {
             logMinerStartStmt.setLong(1, offsetSCN);
             logMinerStartStmt.execute();
 
-            LOG.info("启动Logminer成功,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
+            LOG.info("启动Log miner成功,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
         } catch (SQLException e){
-            LOG.error("启动Logminer失败,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
+            LOG.error("启动Log miner失败,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
             throw new RuntimeException(e);
         }
     }
 
     private void startSelectData() {
-        String logMinerSelectSql = LogminerUtil.buildSelectSql("", logminerConfig.getListenerTables());
+        String logMinerSelectSql = LogminerUtil.buildSelectSql(logminerConfig.getListenerOperations(), logminerConfig.getListenerTables());
         try {
-            logminerSelectStmt = connection.prepareStatement(logMinerSelectSql);
-            logminerSelectStmt.setFetchSize(logminerConfig.getFetchSize());
-            logminerSelectStmt.setLong(1, 1L);
-            logMinerData = logminerSelectStmt.executeQuery();
+            logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
+            logMinerSelectStmt.setFetchSize(logminerConfig.getFetchSize());
+            logMinerSelectStmt.setLong(1, 1L);
+            logMinerData = logMinerSelectStmt.executeQuery();
+
+            LOG.info("查询Log miner数据,sql:{}", logMinerSelectSql);
         } catch (SQLException e) {
-            LOG.error("查询logminer数据出错,sql:{}", "");
+            LOG.error("查询Log miner数据出错,sql:{}", "");
             throw new RuntimeException(e);
         }
     }
@@ -122,12 +124,37 @@ public class OracleLogminerInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if (logMinerStartStmt != null) {
-            logMinerStartStmt.close();
+        try {
+            if(logMinerData != null){
+                logMinerData.close();
+            }
+        } catch (SQLException e) {
+            LOG.warn("关闭资源logMinerData出错:", e);
         }
 
-        if (connection != null) {
-            connection.close();
+        try {
+            if(logMinerSelectStmt != null){
+                logMinerSelectStmt.cancel();
+                logMinerSelectStmt.close();
+            }
+        } catch (SQLException e) {
+            LOG.warn("关闭资源logMinerSelectStmt出错:", e);
+        }
+
+        try {
+            if (logMinerStartStmt != null) {
+                logMinerStartStmt.close();
+            }
+        } catch (SQLException e) {
+            LOG.warn("关闭资源logMinerStartStmt出错:", e);
+        }
+
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            LOG.warn("关闭资源connection出错:", e);
         }
     }
 }

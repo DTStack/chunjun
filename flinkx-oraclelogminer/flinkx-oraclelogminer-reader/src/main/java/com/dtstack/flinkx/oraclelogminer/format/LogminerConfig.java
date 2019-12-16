@@ -39,6 +39,16 @@ public class LogminerConfig implements Serializable {
 
     private String listenerTables;
 
+    private String listenerOperations = "UPDATE,INSERT,DELETE";
+
+    public String getListenerOperations() {
+        return listenerOperations;
+    }
+
+    public void setListenerOperations(String listenerOperations) {
+        this.listenerOperations = listenerOperations;
+    }
+
     public String getListenerTables() {
         return listenerTables;
     }
