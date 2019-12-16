@@ -65,7 +65,7 @@ public class LogminerUtil {
                 throw new RuntimeException("不支持的操作类型:" + operation);
             }
 
-            standardOperations.add(operation.toUpperCase());
+            standardOperations.add(String.format("'%s'", operation.toUpperCase()));
         }
 
         return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ","));

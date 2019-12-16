@@ -25,7 +25,7 @@ import java.io.Serializable;
  * @author jiangbo
  * @date 2019/12/14
  */
-public class LogminerConfig implements Serializable {
+public class LogMinerConfig implements Serializable {
 
     private String driverName = "oracle.jdbc.driver.OracleDriver";
 

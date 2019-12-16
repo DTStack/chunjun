@@ -21,8 +21,10 @@ package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.oraclelogminer.util.LogminerUtil;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -33,17 +35,17 @@ import java.sql.*;
  * @author jiangbo
  * @date 2019/12/14
  */
-public class OracleLogminerInputFormat extends RichInputFormat {
+public class OracleLogMinerInputFormat extends RichInputFormat {
 
-    protected LogminerConfig logminerConfig;
+    public LogMinerConfig logMinerConfig;
 
-    private Connection connection;
+    private transient Connection connection;
 
-    private CallableStatement logMinerStartStmt;
+    private transient CallableStatement logMinerStartStmt;
 
-    private PreparedStatement logMinerSelectStmt;
+    private transient PreparedStatement logMinerSelectStmt;
 
-    private ResultSet logMinerData;
+    private transient ResultSet logMinerData;
 
     private long offsetSCN;
 
@@ -57,12 +59,12 @@ public class OracleLogminerInputFormat extends RichInputFormat {
         super.openInputFormat();
 
         try {
-            ClassUtil.forName(logminerConfig.getDriverName(), getClass().getClassLoader());
-            connection = DriverManager.getConnection(logminerConfig.getJdbcUrl(), logminerConfig.getUsername(), logminerConfig.getPassword());
+            ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
+            connection = DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword());
 
-            LOG.info("获取连接成功,url:{}, username:{}", logminerConfig.getJdbcUrl(), logminerConfig.getUsername());
+            LOG.info("获取连接成功,url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
         } catch (SQLException e){
-            LOG.error("获取连接失败，url:{}, username:{}", logminerConfig.getJdbcUrl(), logminerConfig.getUsername());
+            LOG.error("获取连接失败，url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
             throw new RuntimeException(e);
         }
     }
@@ -70,15 +72,31 @@ public class OracleLogminerInputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         initOffsetSCN();
-        startLogminer();
+        startLogMiner();
         startSelectData();
     }
 
     private void initOffsetSCN(){
         // TODO
+        getLastScn();
     }
 
-    private void startLogminer(){
+    private void getLastScn(){
+        try {
+            CallableStatement currentSCNStmt = connection.prepareCall("select min(current_scn) CURRENT_SCN from gv$database");
+            ResultSet currentScnResultSet = currentSCNStmt.executeQuery();
+            while(currentScnResultSet.next()){
+                offsetSCN = currentScnResultSet.getLong("CURRENT_SCN");
+            }
+
+            currentScnResultSet.close();
+            currentSCNStmt.close();
+        } catch (Exception e) {
+            LOG.warn("", e);
+        }
+    }
+
+    private void startLogMiner(){
         try {
             logMinerStartStmt = connection.prepareCall(LogminerUtil.SQL_START_LOGMINER);
             logMinerStartStmt.setLong(1, offsetSCN);
@@ -92,34 +110,63 @@ public class OracleLogminerInputFormat extends RichInputFormat {
     }
 
     private void startSelectData() {
-        String logMinerSelectSql = LogminerUtil.buildSelectSql(logminerConfig.getListenerOperations(), logminerConfig.getListenerTables());
+        String logMinerSelectSql = LogminerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
-            logMinerSelectStmt.setFetchSize(logminerConfig.getFetchSize());
+            logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setLong(1, 1L);
             logMinerData = logMinerSelectStmt.executeQuery();
 
             LOG.info("查询Log miner数据,sql:{}", logMinerSelectSql);
         } catch (SQLException e) {
-            LOG.error("查询Log miner数据出错,sql:{}", "");
+            LOG.error("查询Log miner数据出错,sql:{}", logMinerSelectSql);
             throw new RuntimeException(e);
         }
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return null;
+        String sqlRedo = "";
+        try {
+            sqlRedo = logMinerData.getString("SQL_REDO");
+            if (sqlRedo.contains("temporary tables")){
+                return null;
+            }
+
+            boolean contSF = logMinerData.getBoolean("CSF");
+            while(contSF){
+                logMinerData.next();
+                sqlRedo += logMinerData.getString("SQL_REDO");
+                contSF = logMinerData.getBoolean("CSF");
+            }
+
+            LOG.info("redo sql:[{}]", sqlRedo);
+        } catch (Exception e) {
+            LOG.error("", e);
+        }
+
+        return Row.of(sqlRedo);
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        return super.getFormatState();
+
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return false;
+        try {
+            return !logMinerData.next();
+        } catch (SQLException e) {
+            LOG.error("获取下一条数据出错:", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-
-        return new InputSplit[0];
+        return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
     @Override

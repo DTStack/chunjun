@@ -20,6 +20,8 @@
 package com.dtstack.flinkx.oraclelogminer.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -31,12 +33,28 @@ import org.apache.flink.types.Row;
  */
 public class OraclelogminerReader extends DataReader {
 
-    protected OraclelogminerReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    private LogMinerConfig logMinerConfig;
+
+    public OraclelogminerReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
+
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+
+        try {
+            logMinerConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), LogMinerConfig.class);
+        } catch (Exception e) {
+            throw new RuntimeException("解析mongodb配置出错:", e);
+        }
     }
 
     @Override
     public DataStream<Row> readData() {
-        return null;
+        OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
+        builder.setLogMinerConfig(logMinerConfig);
+
+        builder.setMonitorUrls(monitorUrls);
+        builder.setBytes(bytes);
+
+        return createInput(builder.finish());
     }
 }
