@@ -60,7 +60,7 @@ public class PgwalReader extends DataReader {
         cat = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_CATALOG);
         pavingData = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_PAVING_DATA, false);
         tableList = (List<String>) readerConfig.getParameter().getVal(PgWalConfigKeys.KEY_TABLE_LIST);
-        statusInterval = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_STATUS_INTERVAL, 10000);
+        statusInterval = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_STATUS_INTERVAL, 20000);
         lsn = readerConfig.getParameter().getLongVal(PgWalConfigKeys.KEY_LSN, 0);
         slotName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_SLOT_NAME);
         allowCreateSlot = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_ALLOW_CREATE_SLOT, true);
