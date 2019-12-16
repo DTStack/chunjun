@@ -1,0 +1,104 @@
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "username": "testuser",
+                        "password": "testpassword",
+                        "connection": [
+                            {
+                                "jdbcUrl": [
+                                    "jdbc:teradata://192.168.242.133/testbase"
+                                ],
+                                "table": [
+                                    "Employee"
+                                ]
+                            }
+                        ],
+                        "column": [
+                            {
+                                "name": "EmployeeNo",
+                                "type": "INTEGER"
+                            },
+                            {
+                                "name": "FirstName",
+                                "type": "VARCHAR"
+                            },
+                            {
+                                "name": "LastName",
+                                "type": "VARCHAR"
+                            },
+                            {
+                                "name": "DOB",
+                                "type": "DATE"
+                            },
+                            {
+                                "name": "JoinedDate",
+                                "type": "DATE"
+                            },
+                            {
+                                "name": "DepartmentNo",
+                                "type": "BYTEINT"
+                            }
+                        ]
+                    },
+                    "name": "teradatareader"
+                },
+                "writer": {
+                    "name": "mysqlwriter",
+                    "parameter": {
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/cake?useCursorFetch=true",
+                                "table": [
+                                    "Employee"
+                                ]
+                            }
+                        ],
+                        "username": "root",
+                        "password": "745631289",
+                        "column": [
+                            {
+                                "name": "EmployeeNo",
+                                "type": "int"
+                            },
+                            {
+                                "name": "FirstName",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "LastName",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "DOB",
+                                "type": "date"
+                            },
+                            {
+                                "name": "JoinedDate",
+                                "type": "date"
+                            },
+                            {
+                                "name": "DepartmentNo",
+                                "type": "tinyint"
+                            }
+                        ],
+                        "writeMode": "insert",
+                        "batchSize": 1024
+                    }
+                }
+            }
+        ],
+        "setting": {
+            "speed": {
+                "channel": 1,
+                "bytes": 0
+            },
+            "errorLimit": {
+                "record": 10000,
+                "percentage": 100
+            }
+        }
+    }
+}
