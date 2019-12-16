@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.pgwal;
 
-import akka.stream.impl.FlowNames;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
@@ -47,12 +46,16 @@ public class PgWalUtil {
 
     public static final String DRIVER = "org.postgresql.Driver";
     public static final String SLOT_PRE = "flinkx_";
+    public static final String PUBLICATION_NAME = "dtstack_flinkx";
 
-    public static final String QUERY_LEVEL = "show wal_level;";
-    public static final String QUERY_MAX_SLOT = "show max_replication_slots;";
+    public static final String QUERY_LEVEL = "SHOW wal_level;";
+    public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
     public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots;";
     public static final String QUERY_TABLE_REPLICA_IDENTITY = "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
     public static final String UPDATE_REPLICA_IDENTITY = "ALTER TABLE %s REPLICA IDENTITY FULL;";
+    public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
+    public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
+    public static final String QUERY_TYPES = "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
 
     public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList) throws Exception{
         ResultSet resultSet;
@@ -83,20 +86,21 @@ public class PgWalUtil {
         resultSet = conn.execSQLQuery(QUERY_SLOT);
         while(resultSet.next()){
             PgRelicationSlot slot = new PgRelicationSlot();
-            String name = resultSet.getString(1);
+            String name = resultSet.getString("slot_name");
             slot.setSlotName(name);
-            slot.setPlugin(resultSet.getString(2));
-            slot.setSlotType(resultSet.getString(3));
-            slot.setDatoid(resultSet.getInt(4));
-            slot.setDatabase(resultSet.getString(5));
-            slot.setTemporary(resultSet.getString(6));
-            slot.setActive(resultSet.getString(7));
-            slot.setActivePid(resultSet.getInt(8));
-            slot.setXmin(resultSet.getString(9));
-            slot.setRestartLsn(resultSet.getString(10));
-            slot.setConfirmedFlushLsn(resultSet.getString(11));
+            slot.setActive(resultSet.getString("active"));
 
             if(name.equalsIgnoreCase(slotName) && slot.isNotActive()){
+                slot.setPlugin(resultSet.getString("plugin"));
+                slot.setSlotType(resultSet.getString("slot_type"));
+                slot.setDatoid(resultSet.getInt("datoid"));
+                slot.setDatabase(resultSet.getString("database"));
+                slot.setTemporary(resultSet.getString("temporary"));
+                slot.setActivePid(resultSet.getInt("active_pid"));
+                slot.setXmin(resultSet.getString("xmin"));
+                slot.setCatalogXmin(resultSet.getString("catalog_xmin"));
+                slot.setRestartLsn(resultSet.getString("restart_lsn"));
+                slot.setConfirmedFlushLsn(resultSet.getString("confirmed_flush_lsn"));
                 availableSlot = slot;
                 break;
             }
@@ -117,7 +121,7 @@ public class PgWalUtil {
         //4.check table replica identity
         for (String table : tableList) {
             //schema.tableName
-            String[] tables = table.split(".");
+            String[] tables = table.split("\\.");
             resultSet = conn.execSQLQuery(String.format(QUERY_TABLE_REPLICA_IDENTITY, tables[0], tables[1]));
             resultSet.next();
             String identity = parseReplicaIdentity(resultSet.getString(1));
@@ -127,11 +131,20 @@ public class PgWalUtil {
             }
         }
 
+        //5.check publication
+        resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, PUBLICATION_NAME));
+        resultSet.next();
+        long count = resultSet.getLong(1);
+        if(count == 0L){
+            LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
+            conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
+        }
+
+        closeDBResources(resultSet, null, null, false);
         return availableSlot;
     }
 
     public static PgRelicationSlot createSlot(PgConnection conn, String slotName, boolean temporary) throws SQLException{
-        PgRelicationSlot slot = new PgRelicationSlot();
         ChainedLogicalCreateSlotBuilder builder = conn.getReplicationAPI()
                                                         .createReplicationSlot()
                                                         .logical()
@@ -141,7 +154,23 @@ public class PgWalUtil {
             builder.withTemporaryOption();
         }
         ReplicationSlotInfo replicationSlotInfo = builder.make();
+        PgRelicationSlot slot = new PgRelicationSlot();
+        slot.setSlotName(slotName);
+        slot.setConfirmedFlushLsn(replicationSlotInfo.getConsistentPoint().asString());
+        slot.setPlugin(replicationSlotInfo.getOutputPlugin());
         return slot;
+    }
+
+    public static Map<Integer, String> queryTypes(PgConnection conn) throws SQLException{
+        Map<Integer, String> map = new HashMap<>(512);
+        ResultSet resultSet = conn.execSQLQuery(QUERY_TYPES);
+        while (resultSet.next()){
+            int oid = (int) resultSet.getLong("oid");
+            String typeName = resultSet.getString("name");
+            map.put(oid, typeName);
+        }
+        closeDBResources(resultSet, null, null, false);
+        return map;
     }
 
     public static String parseReplicaIdentity(String s) {
@@ -179,7 +208,6 @@ public class PgWalUtil {
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "10");
         synchronized (ClassUtil.lock_str) {
             DriverManager.setLoginTimeout(10);
-
             // telnet
             TelnetUtil.telnet(url);
             dbConn = DriverManager.getConnection(url, props);
@@ -218,7 +246,6 @@ public class PgWalUtil {
                 if (commit && !conn.isClosed()) {
                     conn.commit();
                 }
-
                 conn.close();
             } catch (SQLException e) {
                 LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));

@@ -70,7 +70,7 @@ public class PgWalInputFormatBuilder extends RichInputFormatBuilder {
         format.statusInterval = statusInterval;
     }
 
-    public void setLsn(String lsn) {
+    public void setLsn(Long lsn) {
         format.lsn = lsn;
     }
 
