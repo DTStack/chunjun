@@ -46,6 +46,9 @@ public class LogMinerConfig implements Serializable {
      */
     private String readPosition = "current";
 
+    /**
+     * 毫秒级时间戳
+     */
     private long startTime = 0;
 
     private String startSCN = "";

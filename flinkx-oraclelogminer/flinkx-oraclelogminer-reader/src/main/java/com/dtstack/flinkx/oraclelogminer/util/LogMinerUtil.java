@@ -81,40 +81,17 @@ public class LogMinerUtil {
             ");" +
             "END;";
 
-    public final static String SQL_SELECT_DATA = "SELECT " +
-            "THREAD#," +
-            "SCN," +
-            "START_SCN," +
-            "COMMIT_SCN," +
-            "TIMESTAMP," +
-            "OPERATION," +
-            "STATUS," +
-            "SEG_TYPE_NAME ," +
-            "INFO," +
-            "SEG_OWNER," +
-            "TABLE_NAME," +
-            "USERNAME," +
-            "SQL_REDO ," +
-            "ROW_ID," +
-            "CSF," +
-            "TABLE_SPACE," +
-            "SESSION_INFO," +
-            "RS_ID," +
-            "RBASQN," +
-            "RBABLK," +
-            "SEQUENCE#," +
-            "TX_NAME," +
-            "SEG_NAME" +
+    public final static String SQL_SELECT_DATA = "SELECT SCN, COMMIT_SCN, TIMESTAMP, OPERATION, SEG_OWNER, TABLE_NAME, SQL_REDO, ROW_ID, CSF " +
             " FROM v$logmnr_contents " +
-            " WHERE COMMIT_SCN >=?";
+            " WHERE SCN >=?";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO'";
+    public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO')";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO'";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_TIME and NEXT_TIME union select FIRST_CHANGE# from v$archived_log where ? between FIRST_TIME and NEXT_TIME and standby_dest='NO'";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 

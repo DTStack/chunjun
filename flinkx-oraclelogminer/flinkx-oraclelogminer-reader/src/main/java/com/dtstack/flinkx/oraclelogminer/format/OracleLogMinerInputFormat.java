@@ -24,6 +24,7 @@ import com.dtstack.flinkx.oraclelogminer.util.LogMinerUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -32,6 +33,7 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 
 /**
  * @author jiangbo
@@ -52,13 +54,9 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     private transient ResultSet logMinerData;
 
-    private SCNOffset offset;
+    private Long offsetScn;
 
-    private Long lastScn;
-
-    private Long lastCommitScn;
-
-    private String lastRowId;
+    private Long scnCopy;
 
     private boolean skipRecord = true;
 
@@ -85,25 +83,25 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         initOffset();
+
+        System.out.println("offset:" + offsetScn);
+        System.out.println("scnCopy:" + scnCopy);
+
         startLogMiner();
         startSelectData();
     }
 
     private void initOffset(){
         if(formatState != null && formatState.getState() != null){
-            offset = (SCNOffset) formatState.getState();
+            offsetScn = Long.parseLong(formatState.getState().toString());
         } else {
-            offset = new SCNOffset(0L, 0L, "");
+            offsetScn = 0L;
         }
 
         // 恢复位置不为0，则获取上一次读取的日志文件的起始位置开始读取
-        if(offset.getScn() != 0L){
-            lastScn = offset.getScn();
-            lastCommitScn = offset.getCommitScn();
-            lastRowId = offset.getRowId();
-
-            Long logFileFirstChange = getLogFileStartPositionByScn(lastScn);
-            offset.setScn(logFileFirstChange);
+        if(offsetScn != 0L){
+            scnCopy = offsetScn;
+            offsetScn = getLogFileStartPositionByScn(scnCopy);
             return;
         }
 
@@ -111,28 +109,31 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         if(ReadPosition.ALL.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             skipRecord = false;
             // 获取最开始的scn
-            Long minScn = getMinScn();
-            offset.setScn(minScn);
+            offsetScn = getMinScn();
         } else if(ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
-            skipRecord = false;
-            Long currentScn = getCurrentScn();
-            offset.setScn(currentScn);
+            // FIXME 获取到的 scn 比实际的值要大
+            scnCopy = getCurrentScn();
+            offsetScn = getLogFileStartPositionByScn(scnCopy);
         } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+            skipRecord = false;
+
             // 根据指定的时间获取对应时间段的日志文件的起始位置
             if (logMinerConfig.getStartTime() == 0) {
                 throw new RuntimeException("读取模式为[time]时必须指定[startTime]");
             }
 
-            Long logFileFirstChange = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
-            offset.setScn(logFileFirstChange);
-        } else {
+            offsetScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
+        } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+            scnCopy = Long.parseLong(logMinerConfig.getStartSCN());
+
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartSCN())){
                 throw new RuntimeException("读取模式为[scn]时必须指定[startSCN]");
             }
 
-            Long logFileFirstChange = getLogFileStartPositionByScn(Long.parseLong(logMinerConfig.getStartSCN()));
-            offset.setScn(logFileFirstChange);
+            offsetScn = getLogFileStartPositionByScn(Long.parseLong(logMinerConfig.getStartSCN()));
+        } else {
+            throw new RuntimeException("不支持的读取模式:" + logMinerConfig.getReadPosition());
         }
     }
 
@@ -209,10 +210,12 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         Long logFileFirstChange = null;
 
         try {
-            Timestamp timestamp = new Timestamp(time);
+            String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
+
             PreparedStatement lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
-            lastLogFileStmt.setTimestamp(1, timestamp);
-            lastLogFileStmt.setTimestamp(2, timestamp);
+            lastLogFileStmt.setString(1, timeStr);
+            lastLogFileStmt.setString(2, timeStr);
+            lastLogFileStmt.setString(3, timeStr);
             ResultSet lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while(lastLogFileResultSet.next()){
                 logFileFirstChange = lastLogFileResultSet.getLong(LogMinerUtil.KEY_FIRST_CHANGE);
@@ -231,12 +234,12 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     private void startLogMiner(){
         try {
             logMinerStartStmt = connection.prepareCall(LogMinerUtil.SQL_START_LOGMINER);
-            logMinerStartStmt.setLong(1, offset.getScn());
+            logMinerStartStmt.setLong(1, offsetScn);
             logMinerStartStmt.execute();
 
-            LOG.info("启动Log miner成功,offset:{}， sql:{}", offset.getScn(), LogMinerUtil.SQL_START_LOGMINER);
+            LOG.info("启动Log miner成功,offset:{}， sql:{}", offsetScn, LogMinerUtil.SQL_START_LOGMINER);
         } catch (SQLException e){
-            LOG.error("启动Log miner失败,offset:{}， sql:{}", offset.getScn(), LogMinerUtil.SQL_START_LOGMINER);
+            LOG.error("启动Log miner失败,offset:{}， sql:{}", offsetScn, LogMinerUtil.SQL_START_LOGMINER);
             throw new RuntimeException(e);
         }
     }
@@ -246,10 +249,10 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
-            logMinerSelectStmt.setLong(1, offset.getCommitScn());
+            logMinerSelectStmt.setLong(1, offsetScn);
             logMinerData = logMinerSelectStmt.executeQuery();
 
-            LOG.info("查询Log miner数据,sql:{}", logMinerSelectSql);
+            LOG.info("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, offsetScn);
         } catch (SQLException e) {
             LOG.error("查询Log miner数据出错,sql:{}", logMinerSelectSql);
             throw new RuntimeException(e);
@@ -261,18 +264,17 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         try {
             while (logMinerData.next()) {
                 Long scn = logMinerData.getLong(LogMinerUtil.KEY_SCN);
-                Long commitScn = logMinerData.getLong(LogMinerUtil.KEY_COMMIT_SCN);
-                String rowId = logMinerData.getString(LogMinerUtil.KEY_ROW_ID);
 
                 // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
                 boolean isSqlNotEnd = logMinerData.getBoolean(LogMinerUtil.KEY_CSF);
 
                 if (skipRecord){
-                    if ((scn.equals(lastScn)) && commitScn.equals(lastCommitScn) && rowId.equals(lastRowId) && !isSqlNotEnd){
-                        skipRecord=false;
+                    if (scn > scnCopy && !isSqlNotEnd){
+                        skipRecord = false;
+                        continue;
                     }
 
-                    LOG.info("Skipping data with scn :{} Commit Scn :{} RowId :{}",scn, commitScn, rowId);
+                    LOG.debug("Skipping data with scn :{}", scn);
                     continue;
                 }
 
@@ -289,10 +291,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
                 row = LogMinerUtil.parseSql(logMinerData, sqlRedo.toString(), logMinerConfig.getPavingData());
 
-                offset.setScn(scn);
-                offset.setCommitScn(commitScn);
-                offset.setRowId(rowId);
-
+                offsetScn = scn;
                 return row;
             }
         } catch (Exception e) {
@@ -307,7 +306,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     public FormatState getFormatState() {
         super.getFormatState();
 
-        formatState.setState(offset);
+        formatState.setState(offsetScn.toString());
         return formatState;
     }
 
@@ -359,50 +358,5 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     enum ReadPosition{
         ALL, CURRENT, TIME, SCN
-    }
-
-    public static class SCNOffset implements Serializable {
-        private Long scn;
-        private Long commitScn;
-        private String rowId;
-
-        public SCNOffset(Long scn, Long commitScn, String rowId) {
-            this.scn = scn;
-            this.commitScn = commitScn;
-            this.rowId = rowId;
-        }
-
-        public Long getScn() {
-            return scn;
-        }
-
-        public void setScn(Long scn) {
-            this.scn = scn;
-        }
-
-        public Long getCommitScn() {
-            return commitScn;
-        }
-
-        public void setCommitScn(Long commitScn) {
-            this.commitScn = commitScn;
-        }
-
-        public String getRowId() {
-            return rowId;
-        }
-
-        public void setRowId(String rowId) {
-            this.rowId = rowId;
-        }
-
-        @Override
-        public String toString() {
-            return "SCNOffset{" +
-                    "scn=" + scn +
-                    ", commitScn=" + commitScn +
-                    ", rowId='" + rowId + '\'' +
-                    '}';
-        }
     }
 }
