@@ -20,7 +20,7 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.oraclelogminer.util.LogminerUtil;
+import com.dtstack.flinkx.oraclelogminer.util.LogMinerUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.flink.configuration.Configuration;
@@ -30,6 +30,8 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -98,19 +100,19 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     private void startLogMiner(){
         try {
-            logMinerStartStmt = connection.prepareCall(LogminerUtil.SQL_START_LOGMINER);
+            logMinerStartStmt = connection.prepareCall(LogMinerUtil.SQL_START_LOGMINER);
             logMinerStartStmt.setLong(1, offsetSCN);
             logMinerStartStmt.execute();
 
-            LOG.info("启动Log miner成功,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
+            LOG.info("启动Log miner成功,offset:{}， sql:{}", offsetSCN, LogMinerUtil.SQL_START_LOGMINER);
         } catch (SQLException e){
-            LOG.error("启动Log miner失败,offset:{}， sql:{}", offsetSCN, LogminerUtil.SQL_START_LOGMINER);
+            LOG.error("启动Log miner失败,offset:{}， sql:{}", offsetSCN, LogMinerUtil.SQL_START_LOGMINER);
             throw new RuntimeException(e);
         }
     }
 
     private void startSelectData() {
-        String logMinerSelectSql = LogminerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
+        String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
@@ -128,6 +130,9 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         String sqlRedo = "";
         try {
+            String schema = logMinerData.getString("SEG_OWNER");
+            String tableName = logMinerData.getString("TABLE_NAME");
+            String operation = logMinerData.getString("OPERATION");
             sqlRedo = logMinerData.getString("SQL_REDO");
             if (sqlRedo.contains("temporary tables")){
                 return null;
@@ -140,7 +145,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
                 contSF = logMinerData.getBoolean("CSF");
             }
 
-            LOG.info("redo sql:[{}]", sqlRedo);
+            return LogMinerUtil.parseSql(schema, tableName, sqlRedo);
         } catch (Exception e) {
             LOG.error("", e);
         }

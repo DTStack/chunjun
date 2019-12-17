@@ -113,7 +113,7 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        setLogLevel(Level.INFO.toString());
+//        setLogLevel(Level.INFO.toString());
 
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
