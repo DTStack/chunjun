@@ -30,8 +30,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * @author jiangbo
@@ -128,45 +126,41 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        String sqlRedo = "";
         try {
-            String schema = logMinerData.getString("SEG_OWNER");
-            String tableName = logMinerData.getString("TABLE_NAME");
-            String operation = logMinerData.getString("OPERATION");
-            sqlRedo = logMinerData.getString("SQL_REDO");
-            if (sqlRedo.contains("temporary tables")){
-                return null;
-            }
+            while (logMinerData.next()) {
+                StringBuilder sqlRedo = new StringBuilder(logMinerData.getString(LogMinerUtil.KEY_SQL_REDO));
+                if(LogMinerUtil.isCreateTemporaryTableSql(sqlRedo.toString())){
+                    continue;
+                }
 
-            boolean contSF = logMinerData.getBoolean("CSF");
-            while(contSF){
-                logMinerData.next();
-                sqlRedo += logMinerData.getString("SQL_REDO");
-                contSF = logMinerData.getBoolean("CSF");
-            }
+                boolean contSF = logMinerData.getBoolean(LogMinerUtil.KEY_CSF);
+                while(contSF){
+                    logMinerData.next();
+                    sqlRedo.append(logMinerData.getString(LogMinerUtil.KEY_SQL_REDO));
+                    contSF = logMinerData.getBoolean(LogMinerUtil.KEY_CSF);
+                }
 
-            return LogMinerUtil.parseSql(schema, tableName, sqlRedo);
+                offsetSCN = logMinerData.getLong(LogMinerUtil.KEY_SCN);
+                return LogMinerUtil.parseSql(logMinerData, sqlRedo.toString(), logMinerConfig.getPavingData());
+            }
         } catch (Exception e) {
-            LOG.error("", e);
+            LOG.error("解析数据出错:", e);
+            throw new RuntimeException(e);
         }
 
-        return Row.of(sqlRedo);
+        throw new RuntimeException("获取不到下一条数据，程序自动失败");
     }
 
     @Override
     public FormatState getFormatState() {
         return super.getFormatState();
 
+        // TODO
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        try {
-            return !logMinerData.next();
-        } catch (SQLException e) {
-            LOG.error("获取下一条数据出错:", e);
-            throw new RuntimeException(e);
-        }
+        return false;
     }
 
     @Override

@@ -33,7 +33,9 @@ import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -42,14 +44,44 @@ import java.util.*;
  */
 public class LogMinerUtil {
 
+    public final static String KEY_SEG_OWNER = "SEG_OWNER";
+    public final static String KEY_TABLE_NAME = "TABLE_NAME";
+    public final static String KEY_OPERATION = "OPERATION";
+    public final static String KEY_TIMESTAMP = "TIMESTAMP";
+    public final static String KEY_SQL_REDO = "SQL_REDO";
+    public final static String KEY_CSF = "CSF";
+    public final static String KEY_SCN = "SCN";
+
     public final static String SQL_START_LOGMINER = "begin \n" +
             "DBMS_LOGMNR.START_LOGMNR(STARTSCN => ?,OPTIONS =>  DBMS_LOGMNR.SKIP_CORRUPTION+DBMS_LOGMNR.NO_SQL_DELIMITER+DBMS_LOGMNR.NO_ROWID_IN_STMT+DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG + DBMS_LOGMNR.CONTINUOUS_MINE+DBMS_LOGMNR.COMMITTED_DATA_ONLY+dbms_logmnr.STRING_LITERALS_IN_STMT) \n" +
             "; end;";
 
-    public final static String SQL_SELECT_DATA = "SELECT thread#, scn, start_scn, commit_scn,timestamp, OPERATION, operation,status, " +
-            "SEG_TYPE_NAME ,info,seg_owner, table_name, username, sql_redo ,row_id, csf, TABLE_SPACE, SESSION_INFO, " +
-            "RS_ID, RBASQN, RBABLK, SEQUENCE#, TX_NAME, SEG_NAME, SEG_TYPE_NAME " +
-            "FROM  v$logmnr_contents WHERE commit_scn>=?";
+    public final static String SQL_SELECT_DATA = "SELECT " +
+            "THREAD#," +
+            "SCN," +
+            "START_SCN," +
+            "COMMIT_SCN," +
+            "TIMESTAMP," +
+            "OPERATION," +
+            "STATUS," +
+            "SEG_TYPE_NAME ," +
+            "INFO," +
+            "SEG_OWNER," +
+            "TABLE_NAME," +
+            "USERNAME," +
+            "SQL_REDO ," +
+            "ROW_ID," +
+            "CSF," +
+            "TABLE_SPACE," +
+            "SESSION_INFO," +
+            "RS_ID," +
+            "RBASQN," +
+            "RBABLK," +
+            "SEQUENCE#," +
+            "TX_NAME," +
+            "SEG_NAME" +
+            " FROM v$logmnr_contents " +
+            " WHERE COMMIT_SCN >=?";
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
@@ -102,99 +134,53 @@ public class LogMinerUtil {
         return String.format("(%s)", StringUtils.join(filters, " or "));
     }
 
-    /**
-     * {
-     *     "type":"UPDATE",
-     *     "schema":""，
-     *     "table":""，
-     *     "ts":""，
-     *     "ingestion":""，
-     *     "after_id":"1"，
-     *     "after_name":"jjj",
-     *     "before_id":"2",
-     *     "before_name":"xxx",
-     * }
-     *
-     * {
-     *     "type":"UPDATE",
-     *     "schema":""，
-     *     "table":""，
-     *     "ts":""，
-     *     "ingestion":""，
-     *     "after_id":"1"，
-     *     "after_name":"jjj",
-     *     "before":{
-     *         "id":"1",
-     *         "name":"xxx"
-     *     },
-     *     "before_name":{
-     *         "id":"2",
-     *         "name":"sssss"
-     *     }
-     * }
-     */
-    public static Row parseSql(String schema, String tableName, String sqlRedo) throws JSQLParserException, SQLException {
+    public static Row parseSql(ResultSet logMinerData, String sqlRedo, boolean pavingData) throws JSQLParserException, SQLException {
+        String schema = logMinerData.getString(KEY_SEG_OWNER);
+        String tableName = logMinerData.getString(KEY_TABLE_NAME);
+        String operation = logMinerData.getString(KEY_OPERATION);
+        Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
 
-        Map<String,Object> message = new LinkedHashMap<>();
-        message.put("type", "");
+        final Map<String,Object> message = new LinkedHashMap<>();
+        message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);
-        message.put("ts", "");
+        message.put("ts", timestamp.getTime());
         message.put("ingestion", System.nanoTime());
 
         String sqlRedo2=sqlRedo.replace("IS NULL", "= NULL");
         Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
-        final LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
-        final LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
-        final Map<String,LinkedHashMap<String,String>> allDataMap = new HashMap<>();
+        LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
+        LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
 
         if (stmt instanceof Insert){
-            Insert insert = (Insert) stmt;
-
+            parseInsertStmt((Insert) stmt, beforeDataMap, afterDataMap);
         }else if (stmt instanceof Update){
-            Update update = (Update) stmt;
-            for (Column c : update.getColumns()){
-                afterDataMap.put(cleanString(c.getColumnName()), null);
-            }
-
-            Iterator<Expression> iterator = update.getExpressions().iterator();
-
-            for (String key : afterDataMap.keySet()){
-                Object o = iterator.next();
-                String value =   cleanString(o.toString());
-                afterDataMap.put(key, value);
-            }
-
-            update.getWhere().accept(new ExpressionVisitorAdapter() {
-                @Override
-                public void visit(final EqualsTo expr){
-                    String col = cleanString(expr.getLeftExpression().toString());
-                    String value = cleanString(expr.getRightExpression().toString());
-                    beforeDataMap.put(col, value);
-
-                }
-            });
-
+            parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap);
         }else if (stmt instanceof Delete){
-            Delete delete = (Delete) stmt;
-            delete.getWhere().accept(new ExpressionVisitorAdapter(){
-                @Override
-                public void visit(final EqualsTo expr){
-                    String col = cleanString(expr.getLeftExpression().toString());
-                    String value = cleanString(expr.getRightExpression().toString());
-                    beforeDataMap.put(col, value);
-
-                }
-            });
+            parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
         }
 
-        allDataMap.put("after", afterDataMap);
-        allDataMap.put("before", beforeDataMap);
+        if (pavingData) {
+            afterDataMap.forEach((key, val) -> {
+                message.put("after_" + key, val);
+            });
 
-        return Row.of(message);
+            beforeDataMap.forEach((key, val) -> {
+                message.put("before_" + key, val);
+            });
+
+            return Row.of(message);
+        } else {
+            message.put("before", beforeDataMap);
+            message.put("after", afterDataMap);
+            Map<String,Object> event = new HashMap<>(1);
+            event.put("message", message);
+
+            return Row.of(event);
+        }
     }
 
-    private static void parseInsertStmt(Insert insert, Map<String, Object> afterDataMap){
+    private static void parseInsertStmt(Insert insert, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
         for (Column column : insert.getColumns()){
             afterDataMap.put(cleanString(column.getColumnName()), null);
         }
@@ -205,8 +191,46 @@ public class LogMinerUtil {
         for (String key : afterDataMap.keySet()){
             String value = cleanString(valueList.get(i).toString());
             afterDataMap.put(key, value);
+            beforeDataMap.put(key, null);
             i++;
         }
+    }
+
+    private static void parseUpdateStmt(Update update, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
+        for (Column c : update.getColumns()){
+            afterDataMap.put(cleanString(c.getColumnName()), null);
+        }
+
+        Iterator<Expression> iterator = update.getExpressions().iterator();
+
+        for (String key : afterDataMap.keySet()){
+            Object o = iterator.next();
+            String value = cleanString(o.toString());
+            afterDataMap.put(key, value);
+        }
+
+        update.getWhere().accept(new ExpressionVisitorAdapter() {
+            @Override
+            public void visit(final EqualsTo expr){
+                String col = cleanString(expr.getLeftExpression().toString());
+                if(afterDataMap.containsKey(col)){
+                    String value = cleanString(expr.getRightExpression().toString());
+                    beforeDataMap.put(col, value);
+                }
+            }
+        });
+    }
+
+    private static void parseDeleteStmt(Delete delete, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
+        delete.getWhere().accept(new ExpressionVisitorAdapter(){
+            @Override
+            public void visit(final EqualsTo expr){
+                String col = cleanString(expr.getLeftExpression().toString());
+                String value = cleanString(expr.getRightExpression().toString());
+                beforeDataMap.put(col, value);
+                afterDataMap.put(col, null);
+            }
+        });
     }
 
     private static String cleanString(String str) {
@@ -223,5 +247,9 @@ public class LogMinerUtil {
         }
 
         return str.replace("IS NULL","= NULL").trim();
+    }
+
+    public static boolean isCreateTemporaryTableSql(String sql) {
+        return sql.contains("temporary tables");
     }
 }

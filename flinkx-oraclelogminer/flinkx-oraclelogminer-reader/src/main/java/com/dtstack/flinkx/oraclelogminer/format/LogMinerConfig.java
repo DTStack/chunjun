@@ -41,6 +41,16 @@ public class LogMinerConfig implements Serializable {
 
     private String listenerOperations = "UPDATE,INSERT,DELETE";
 
+    private boolean pavingData = false;
+
+    public boolean getPavingData() {
+        return pavingData;
+    }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
+    }
+
     public String getListenerOperations() {
         return listenerOperations;
     }
