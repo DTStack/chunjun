@@ -9,7 +9,7 @@
             "password": "kminerpass",
             "listenerTables": "JIANGBO.*",
             "startSCN": "482165",
-            "readPosition": "time",
+            "readPosition": "current",
             "startTime": 1576540477000
           },
           "name": "oraclelogminerreader"

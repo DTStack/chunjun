@@ -111,9 +111,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
             // 获取最开始的scn
             offsetScn = getMinScn();
         } else if(ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
-            // FIXME 获取到的 scn 比实际的值要大
-            scnCopy = getCurrentScn();
-            offsetScn = getLogFileStartPositionByScn(scnCopy);
+            skipRecord = false;
+            offsetScn = getCurrentScn();
         } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             skipRecord = false;
 

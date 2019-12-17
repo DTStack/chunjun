@@ -51,8 +51,6 @@ public class LogMinerUtil {
     public final static String KEY_SQL_REDO = "SQL_REDO";
     public final static String KEY_CSF = "CSF";
     public final static String KEY_SCN = "SCN";
-    public final static String KEY_COMMIT_SCN = "COMMIT_SCN";
-    public final static String KEY_ROW_ID = "ROW_ID";
     public final static String KEY_CURRENT_SCN = "CURRENT_SCN";
     public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
 
