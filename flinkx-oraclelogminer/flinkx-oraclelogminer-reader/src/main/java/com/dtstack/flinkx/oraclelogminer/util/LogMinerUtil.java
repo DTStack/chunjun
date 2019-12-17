@@ -51,10 +51,35 @@ public class LogMinerUtil {
     public final static String KEY_SQL_REDO = "SQL_REDO";
     public final static String KEY_CSF = "CSF";
     public final static String KEY_SCN = "SCN";
+    public final static String KEY_COMMIT_SCN = "COMMIT_SCN";
+    public final static String KEY_ROW_ID = "ROW_ID";
+    public final static String KEY_CURRENT_SCN = "CURRENT_SCN";
+    public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
 
-    public final static String SQL_START_LOGMINER = "begin \n" +
-            "DBMS_LOGMNR.START_LOGMNR(STARTSCN => ?,OPTIONS =>  DBMS_LOGMNR.SKIP_CORRUPTION+DBMS_LOGMNR.NO_SQL_DELIMITER+DBMS_LOGMNR.NO_ROWID_IN_STMT+DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG + DBMS_LOGMNR.CONTINUOUS_MINE+DBMS_LOGMNR.COMMITTED_DATA_ONLY+dbms_logmnr.STRING_LITERALS_IN_STMT) \n" +
-            "; end;";
+    /**
+     * OPTIONS参数说明:
+     * DBMS_LOGMNR.SKIP_CORRUPTION - 跳过出错的redlog
+     * DBMS_LOGMNR.NO_SQL_DELIMITER - 不使用 ';'分割redo sql
+     * DBMS_LOGMNR.NO_ROWID_IN_STMT - 默认情况下，用于UPDATE和DELETE操作的SQL_REDO和SQL_UNDO语句在where子句中包含“ ROWID =”。
+     *                                但是，这对于想要重新执行SQL语句的应用程序是不方便的。设置此选项后，“ ROWID”不会放置在重构语句的末尾
+     * DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG - 使用在线字典
+     * DBMS_LOGMNR.CONTINUOUS_MINE - 需要在生成重做日志的同一实例中使用日志
+     * DBMS_LOGMNR.COMMITTED_DATA_ONLY - 指定此选项时，LogMiner将属于同一事务的所有DML操作分组在一起。事务按提交顺序返回。
+     * DBMS_LOGMNR.STRING_LITERALS_IN_STMT - 默认情况下，格式化格式化的SQL语句时，SQL_REDO和SQL_UNDO语句会使用数据库会话的NLS设置
+     *                                       例如NLS_DATE_FORMAT，NLS_NUMERIC_CHARACTERS等）。使用此选项，将使用ANSI / ISO字符串文字格式对重构的SQL语句进行格式化。
+     */
+    public final static String SQL_START_LOGMINER = "" +
+            "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
+            "STARTSCN => ?," +
+            "OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "+ DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "+ DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "+ DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "+ DBMS_LOGMNR.CONTINUOUS_MINE " +
+            "+ DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
+            "+ DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
+            ");" +
+            "END;";
 
     public final static String SQL_SELECT_DATA = "SELECT " +
             "THREAD#," +
@@ -82,6 +107,14 @@ public class LogMinerUtil {
             "SEG_NAME" +
             " FROM v$logmnr_contents " +
             " WHERE COMMIT_SCN >=?";
+
+    public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
+
+    public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO'";
+
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO'";
+
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_TIME and NEXT_TIME union select FIRST_CHANGE# from v$archived_log where ? between FIRST_TIME and NEXT_TIME and standby_dest='NO'";
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 

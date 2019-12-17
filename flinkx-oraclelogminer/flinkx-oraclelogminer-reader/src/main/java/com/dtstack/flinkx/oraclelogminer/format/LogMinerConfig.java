@@ -41,7 +41,40 @@ public class LogMinerConfig implements Serializable {
 
     private String listenerOperations = "UPDATE,INSERT,DELETE";
 
+    /**
+     * 读取位置: all, current, time, scn
+     */
+    private String readPosition = "current";
+
+    private long startTime = 0;
+
+    private String startSCN = "";
+
     private boolean pavingData = false;
+
+    public String getReadPosition() {
+        return readPosition;
+    }
+
+    public void setReadPosition(String readPosition) {
+        this.readPosition = readPosition;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getStartSCN() {
+        return startSCN;
+    }
+
+    public void setStartSCN(String startSCN) {
+        this.startSCN = startSCN;
+    }
 
     public boolean getPavingData() {
         return pavingData;
