@@ -16,34 +16,30 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.phoenix.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.phoenix.PhoenixMeta;
+import com.dtstack.flinkx.phoenix.format.PhoenixOutputFormat;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DBUtil;
+
+import java.util.Collections;
 
 /**
- * Database type
+ * phoenix writer plugin
  *
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author wuhui
  */
-public enum EDatabaseType {
+public class PhoenixWriter extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Cassandra,
-    SapHana,
-    TeraData,
-    Phoenix
+    public PhoenixWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new PhoenixMeta());
+        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        super.builder = new JdbcOutputFormatBuilder(new PhoenixOutputFormat());
+    }
+
 }

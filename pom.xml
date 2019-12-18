@@ -37,6 +37,7 @@
         <module>flinkx-kafka</module>
         <module>flinkx-kudu</module>
         <module>flinkx-launcher</module>
+        <module>flinkx-phoenix</module>
         <module>flinkx-clickhouse</module>
         <module>flinkx-polardb</module>
         <module>flinkx-cassandra</module>
