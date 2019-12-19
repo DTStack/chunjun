@@ -263,4 +263,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
     }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
+    }
 }

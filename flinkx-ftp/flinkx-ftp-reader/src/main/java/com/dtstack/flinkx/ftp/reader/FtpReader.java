@@ -69,6 +69,7 @@ public class FtpReader extends DataReader {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
         builder.setMetaColumn(metaColumns);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

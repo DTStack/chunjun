@@ -97,6 +97,7 @@ public class MongodbReader extends DataReader {
 
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

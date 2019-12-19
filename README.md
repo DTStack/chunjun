@@ -222,6 +222,25 @@ setting包括speed、errorLimit和dirty三部分，分别描述限速、错误�
 
 restore配置请参考[断点续传](docs/restore.md)
 
+#### 4.1.5  log
+
+```
+"log" : {
+        "isLogger": true,
+        "level" : "warn",
+        "path" : "/opt/log/",
+        "pattern":""
+      }
+```
+* isLogger: 日志是否保存到磁盘, `true`: 是; `false`(默认): 否;
+* level: 日志输出级别, `trace`, `debug`, `info`(默认), `warn`, `error`;
+* path: 日志保存路径, 默认为`/tmp/dtstack/flinkx/`, 日志名称为当前flink任务的jobID，如: `97501729f8c44c260d889d099968cc74.log`
+* pattern: 日志输出格式
+    * log4j默认格式为: `%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n`; 
+    * logback默认格式为: `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n`
+
+注意：该日志记录功能只会记录`com.dtstack`包下的输出日志, 如需变更，可修改类参数`DtLogger.LOGGER_NAME`。
+
 ### 4.2 content
 
 ```

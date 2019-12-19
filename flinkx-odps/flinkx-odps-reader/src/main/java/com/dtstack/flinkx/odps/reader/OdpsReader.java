@@ -62,6 +62,7 @@ public class OdpsReader extends DataReader {
         builder.setPartition(partition);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }
