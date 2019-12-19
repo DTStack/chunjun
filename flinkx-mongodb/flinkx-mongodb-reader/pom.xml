@@ -11,6 +11,25 @@
 
     <artifactId>flinkx-mongodb-reader</artifactId>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <package.name>${package.name}</package.name>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <properties>
+                <package.name>release</package.name>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <artifactId>flinkx-mongodb-core</artifactId>
@@ -84,7 +103,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/mongodbreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mongodbreader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/mongodbreader/${project.name}-${project.version}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

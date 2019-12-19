@@ -11,6 +11,25 @@
 
     <artifactId>flinkx-mysql-dreader</artifactId>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <package.name>${package.name}</package.name>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <properties>
+                <package.name>release</package.name>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -90,7 +109,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/mysqldreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mysqldreader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/mysqldreader/${project.name}-${project.version}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -29,6 +29,25 @@ under the License.
 
     <artifactId>flinkx-ftp-reader</artifactId>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <package.name>${package.name}</package.name>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <properties>
+                <package.name>release</package.name>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -95,7 +114,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/ftpreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/ftpreader/${project.name}-${git.branch}.jar"/>
+                                      tofile="${basedir}/../../plugins/ftpreader/${project.name}-${project.version}-${package.name}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
