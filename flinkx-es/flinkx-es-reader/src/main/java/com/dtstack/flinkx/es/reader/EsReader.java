@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
