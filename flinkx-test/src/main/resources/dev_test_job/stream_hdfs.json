@@ -2,34 +2,25 @@
   "job": {
     "content": [
       {
-        "reader": {
-          "name": "streamreader",
+        "writer": {
+          "name": "streamwriter",
           "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "INT"
-              },
-              {
-                "name": "name",
-                "index": 1,
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount": ["100"]
+            "print": true
           }
         },
-        "writer": {
-          "name": "hdfswriter",
+        "reader": {
+          "name": "hdfsreader",
           "parameter": {
-            "path": "hdfs://ns1/user/hive/warehouse/impala_test.db/impala_tb2",
+            "path": "hdfs://ns1/user/hive/warehouse/parquet_tb",
             "defaultFS": "hdfs://ns1",
             "hadoopConfig": {
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
               "dfs.ha.namenodes.ns1":"nn1,nn2",
-              "dfs.namenode.rpc-address.ns1.nn2":"impala2:9000",
+              "dfs.namenode.rpc-address.ns1.nn2":"cdh-impala2:9000",
               "dfs.client.failover.proxy.provider.ns1":"org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-              "dfs.namenode.rpc-address.ns1.nn1":"impala1:9000",
-              "dfs.nameservices":"ns1"
+              "dfs.namenode.rpc-address.ns1.nn1":"cdh-impala1:9000",
+              "dfs.nameservices":"ns1",
+              "hadoop.user.name": "root"
             },
             "column": [
               {
@@ -43,10 +34,7 @@
             ],
             "fileType": "parquet",
             "fieldDelimiter": "\u0001",
-            "encoding": "utf-8",
-            "fileName": "pt=1",
-            "writeMode": "append",
-            "partition": "pt=1"
+            "encoding": "utf-8"
           }
         }
       }

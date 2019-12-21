@@ -30,6 +30,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
@@ -75,14 +76,14 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
-    private static final String EXCLUDE_FILE = "_SUCCESS";
-
     @Override
     protected void configureAnythingElse() {
         FileSystem fs = null;
         try {
+            HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
+
             fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
-            allFilePaths = getAllPartitionPath(inputPath, fs);
+            allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
         } catch (Exception e){
             throw new RuntimeException(e);
         } finally {
@@ -292,22 +293,18 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return bg.toString();
     }
 
-    private static List<String> getAllPartitionPath(String tableLocation, FileSystem fs) throws IOException {
+    private static List<String> getAllPartitionPath(String tableLocation, FileSystem fs, PathFilter pathFilter) throws IOException {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
-        if(fs.isFile(inputPath) && !inputPath.getName().equals(EXCLUDE_FILE)){
+        if(fs.isFile(inputPath)){
             pathList.add(tableLocation);
             return pathList;
-        } else {
-            FileStatus[] fsStatus = fs.listStatus(inputPath, path -> !path.getName().startsWith("."));
-            for (FileStatus status : fsStatus) {
-                if(status.isDirectory()){
-                    pathList.addAll(getAllPartitionPath(status.getPath().toString(), fs));
-                } else if(!status.getPath().getName().equals(EXCLUDE_FILE)){
-                    pathList.add(status.getPath().toString());
-                }
-            }
+        }
+
+        FileStatus[] fsStatus = fs.listStatus(inputPath, pathFilter);
+        for (FileStatus status : fsStatus) {
+            pathList.addAll(getAllPartitionPath(status.getPath().toString(), fs, pathFilter));
         }
 
         return pathList;
