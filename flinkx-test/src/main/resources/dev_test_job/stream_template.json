@@ -4,7 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "sliceRecordCount": ["1000"],
+            "sliceRecordCount": [1000,100],
             "column": [
               {
                 "name": "name",
@@ -29,34 +29,7 @@
         },
         "writer": {
           "parameter": {
-            "print": true,
-            "column": [
-              {
-                "name": "cf:name",
-                "type": "string"
-              },
-              {
-                "name": "cf:age",
-                "type": "int"
-              },
-              {
-                "name": "cf:father",
-                "type": "string"
-              },
-              {
-                "name": "cf:adress",
-                "type": "string"
-              }
-            ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
-            "sourceIds": [
-              371
-            ],
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
-            }
+            "print": true
           },
           "name": "streamwriter"
         }
@@ -68,7 +41,10 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 2,
+        "rebalance": false,
+        "readerChannel": 1,
+        "writerChannel": 1
       }
     }
   }

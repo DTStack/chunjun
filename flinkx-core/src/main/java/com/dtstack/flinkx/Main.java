@@ -21,6 +21,7 @@ package com.dtstack.flinkx;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.DataReader;
@@ -37,6 +38,7 @@ import org.apache.flink.client.program.ContextEnvironment;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -90,17 +92,20 @@ public class Main {
 
         env = openCheckpointConf(env, confProperties);
 
-        env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
+        SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
+
+        env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
         DataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
+        dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
 
-        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
-                new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+        if (speedConfig.isRebalance()) {
+            dataStream = dataStream.rebalance();
+        }
 
         DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
-        dataWriter.writeData(dataStream);
+        dataWriter.writeData(dataStream).setParallelism(speedConfig.getWriterChannel());
 
         if(env instanceof MyLocalStreamEnvironment) {
             if(StringUtils.isNotEmpty(savepointPath)){

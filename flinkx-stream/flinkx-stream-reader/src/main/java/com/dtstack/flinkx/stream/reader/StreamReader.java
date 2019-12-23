@@ -51,7 +51,7 @@ public class StreamReader extends DataReader {
         List list = (List)readerConfig.getParameter().getVal("sliceRecordCount");
         if(CollectionUtils.isNotEmpty(list)){
             for (Object item : list) {
-                sliceRecordCount.add(Long.valueOf(item.toString()));
+                sliceRecordCount.add(Double.valueOf(item.toString()).longValue());
             }
         }
 
