@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.hive.EStoreType.*;
-import static com.dtstack.flinkx.hive.EWriteModeType.OVERWRITE;
 
 /**
  * @author toutian
@@ -110,15 +109,11 @@ public class HiveUtil {
      * @param tableInfo
      */
     private void createTable(Connection connection, TableInfo tableInfo) {
-        boolean overwrite = OVERWRITE.name().equalsIgnoreCase(writeMode);
-        if (overwrite) {
-            DBUtil.executeSqlWithoutResultSet(connection, String.format("DROP TABLE IF EXISTS %s", tableInfo.getTablePath()));
-        }
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
             DBUtil.executeSqlWithoutResultSet(connection, sql);
         } catch (Exception e) {
-            if (overwrite || !isTableExistsException(e.getMessage())) {
+            if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);
                 throw new RuntimeException("create table happens error", e);
             } else {
