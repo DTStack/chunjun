@@ -48,6 +48,8 @@ public class DtLogger {
 
     public static final String APPEND_NAME = "flinkx";
     public static final String LOGGER_NAME = "com.dtstack";
+    public static final String LOGGER_NAME_1 = "org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction";
+    public static final String LOGGER_NAME_2 = "org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction";
     public static final String LOG4J = "org.slf4j.impl.Log4jLoggerFactory";
     public static final String LOGBACK = "ch.qos.logback.classic.util.ContextSelectorStaticBinder";
 
@@ -79,14 +81,25 @@ public class DtLogger {
 
     private static void configLog4j(LogConfig logConfig, String jobId){
         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(LOGGER_NAME);
+        org.apache.log4j.Logger logger_1 = org.apache.log4j.Logger.getLogger(LOGGER_NAME_1);
+        org.apache.log4j.Logger logger_2 = org.apache.log4j.Logger.getLogger(LOGGER_NAME_2);
 
         org.apache.log4j.Level  level = org.apache.log4j.Level .toLevel(logConfig.getLevel());
         String pattern = logConfig.getPattern();
         String path = logConfig.getPath();
 
         logger.removeAllAppenders();
-        logger.setLevel(level);
         logger.setAdditivity(true);
+        logger.setLevel(level);
+
+        logger_1.setLevel(level);
+        logger_1.removeAllAppenders();
+        logger_1.setAdditivity(true);
+
+        logger_2.setLevel(level);
+        logger_2.removeAllAppenders();
+        logger_2.setAdditivity(true);
+
         org.apache.log4j.RollingFileAppender appender = new org.apache.log4j.RollingFileAppender();
         PatternLayout layout = new PatternLayout();
         if(StringUtils.isNotBlank(pattern)){
@@ -109,6 +122,13 @@ public class DtLogger {
 
         logger.removeAllAppenders();
         logger.addAppender(appender);
+
+        logger_1.removeAllAppenders();
+        logger_1.addAppender(appender);
+
+        logger_2.removeAllAppenders();
+        logger_2.addAppender(appender);
+
         logger.info("DtLogger config successfully....");
     }
 
@@ -116,6 +136,8 @@ public class DtLogger {
     private static void configLogback(LogConfig logConfig, String jobId){
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger logger = context.getLogger(LOGGER_NAME);
+        ch.qos.logback.classic.Logger logger_1 = context.getLogger(LOGGER_NAME_1);
+        ch.qos.logback.classic.Logger logger_2 = context.getLogger(LOGGER_NAME_2);
 
         Level level = Level.toLevel(logConfig.getLevel());
         String pattern = logConfig.getPattern();
@@ -161,6 +183,14 @@ public class DtLogger {
         logger.setLevel(level);
         logger.setAdditive(true);
         logger.addAppender(appender);
+
+        logger_1.setLevel(level);
+        logger_1.setAdditive(true);
+        logger_1.addAppender(appender);
+
+        logger_2.setLevel(level);
+        logger_2.setAdditive(true);
+        logger_2.addAppender(appender);
         logger.info("DtLogger config successfully....");
     }
 }
