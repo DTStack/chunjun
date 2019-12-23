@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -33,6 +34,7 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
@@ -58,6 +60,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected ByteRateLimiter byteRateLimiter;
 
     protected RestoreConfig restoreConfig;
+    protected LogConfig logConfig;
 
     protected FormatState formatState;
 
@@ -77,6 +80,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void openInputFormat() throws IOException {
         initJobInfo();
         startTime = System.currentTimeMillis();
+        DtLogger.config(logConfig, jobId);
     }
 
     @Override
@@ -86,7 +90,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             initStatisticsAccumulator();
             openByteRateLimiter();
             initRestoreInfo();
-
             if(restoreConfig.isRestore()){
                 formatState.setNumOfSubTask(indexOfSubtask);
             }
@@ -259,5 +262,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
     }
 }

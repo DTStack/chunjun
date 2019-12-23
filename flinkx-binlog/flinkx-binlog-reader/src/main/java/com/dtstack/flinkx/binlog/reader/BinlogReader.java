@@ -93,6 +93,7 @@ public class BinlogReader extends DataReader {
         format.setPavingData(pavingData);
         format.setTable(table);
         format.setRestoreConfig(restoreConfig);
+        format.setLogConfig(logConfig);
         return createInput(format);
     }
 
