@@ -125,7 +125,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_hdfs.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.2/scratches/json/polling/mysql.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

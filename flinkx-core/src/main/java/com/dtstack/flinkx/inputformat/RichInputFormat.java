@@ -168,30 +168,28 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
         Row internalRow = nextRecordInternal(row);
-        internalRow = setChannelInformation(internalRow);
+        if(internalRow != null){
+            internalRow = setChannelInformation(internalRow);
 
-        updateDuration();
-        if(numReadCounter !=null ){
-            numReadCounter.add(1);
-        }
-        if(bytesReadCounter!=null){
-            bytesReadCounter.add(internalRow.toString().length());
+            updateDuration();
+            if(numReadCounter !=null ){
+                numReadCounter.add(1);
+            }
+            if(bytesReadCounter!=null){
+                bytesReadCounter.add(internalRow.toString().length());
+            }
         }
         return internalRow;
     }
 
     private Row setChannelInformation(Row internalRow){
-        if (internalRow != null){
-            Row rowWithChannel = new Row(internalRow.getArity() + 1);
-            for (int i = 0; i < internalRow.getArity(); i++) {
-                rowWithChannel.setField(i, internalRow.getField(i));
-            }
-
-            rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
-            return rowWithChannel;
+        Row rowWithChannel = new Row(internalRow.getArity() + 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            rowWithChannel.setField(i, internalRow.getField(i));
         }
 
-        return null;
+        rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
+        return rowWithChannel;
     }
 
     /**

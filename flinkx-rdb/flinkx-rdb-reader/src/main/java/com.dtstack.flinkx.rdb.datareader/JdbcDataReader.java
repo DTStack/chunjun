@@ -130,10 +130,12 @@ public class JdbcDataReader extends DataReader {
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){
+        boolean polling = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
         Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
+        long pollingInterval = readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
 
         incrementConfig = new IncrementConfig();
         if (incrementColumn != null && StringUtils.isNotEmpty(incrementColumn.toString())){
@@ -159,12 +161,14 @@ public class JdbcDataReader extends DataReader {
             }
 
             incrementConfig.setIncrement(true);
+            incrementConfig.setPolling(polling);
             incrementConfig.setColumnName(name);
             incrementConfig.setColumnType(type);
             incrementConfig.setStartLocation(startLocation);
             incrementConfig.setUseMaxFunc(useMaxFunc);
             incrementConfig.setColumnIndex(index);
             incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
+            incrementConfig.setPollingInterval(pollingInterval);
 
             if (type == null || name == null){
                 throw new IllegalArgumentException("There is no " + incrementColStr +" field in the columns");
