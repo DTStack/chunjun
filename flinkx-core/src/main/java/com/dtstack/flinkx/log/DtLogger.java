@@ -49,7 +49,7 @@ public class DtLogger {
     public static final String APPEND_NAME = "flinkx";
     public static final String LOGGER_NAME = "com.dtstack";
     public static final String LOGGER_NAME_1 = "org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction";
-    public static final String LOGGER_NAME_2 = "org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction";
+    public static final String LOGGER_NAME_2 = "DtOutputFormatSinkFunction";
     public static final String LOG4J = "org.slf4j.impl.Log4jLoggerFactory";
     public static final String LOGBACK = "ch.qos.logback.classic.util.ContextSelectorStaticBinder";
 

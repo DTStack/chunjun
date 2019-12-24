@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.codehaus.jackson.map.ObjectMapper;
