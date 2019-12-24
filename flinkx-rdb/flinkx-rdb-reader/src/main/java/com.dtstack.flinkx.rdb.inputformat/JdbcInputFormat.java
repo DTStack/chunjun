@@ -233,6 +233,9 @@ public class JdbcInputFormat extends RichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
+                    if(!dbConn.getAutoCommit()){
+                        dbConn.setAutoCommit(true);
+                    }
                     DBUtil.closeDBResources(resultSet, null, null, false);
                     queryForPolling(endLocationAccumulator.getLocalValue());
                     return false;

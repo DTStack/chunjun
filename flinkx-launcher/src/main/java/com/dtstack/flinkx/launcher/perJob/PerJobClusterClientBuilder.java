@@ -24,6 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.security.SecurityConfiguration;
+import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.flink.yarn.cli.FlinkYarnSessionCli;
@@ -48,22 +50,33 @@ import java.util.Properties;
 public class PerJobClusterClientBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
 
+    private static final String DEFAULT_CONF_DIR = "./";
+
     private YarnClient yarnClient;
+
     private YarnConfiguration yarnConf;
+
+    private Configuration flinkConfig;
 
     /**
      * init yarnClient
      * @param yarnConfDir the path of yarnconf
      */
-    public void init(String yarnConfDir) {
-        if (Strings.isNullOrEmpty(yarnConfDir)) {
-            throw new RuntimeException("param:[yarnconf] is required !");
+    public void init(String yarnConfDir, Configuration flinkConfig, Properties userConf) throws Exception {
+
+        if(Strings.isNullOrEmpty(yarnConfDir)) {
+            throw new RuntimeException("parameters of yarn is required");
         }
+        userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+        this.flinkConfig = flinkConfig;
+        SecurityUtils.install(new SecurityConfiguration(flinkConfig));
+
         yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
-        LOG.info("----init yarn success ----");
+
+        System.out.println("----init yarn success ----");
     }
 
     /**
