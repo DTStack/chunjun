@@ -70,9 +70,26 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
     }
 
     @Override
+    protected void openInternal(int taskNumber, int numTasks){
+        super.openInternal(taskNumber, numTasks);
+        try {
+            if (batchInterval > 1) {
+                dbConn.setAutoCommit(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if(!checkIsCopyMode(insertSqlMode)){
-            super.writeSingleRecordInternal(row);
+            if (batchInterval == 1) {
+                super.writeSingleRecordInternal(row);
+            } else {
+                writeSingleRecordCommit(row);
+            }
+
             return;
         }
 
@@ -94,10 +111,31 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
     }
 
+    private void writeSingleRecordCommit(Row row) throws WriteRecordException {
+        try {
+            super.writeSingleRecordInternal(row);
+            try {
+                dbConn.commit();
+            } catch (Exception e) {
+                // 提交失败直接结束任务
+                throw new RuntimeException(e);
+            }
+        } catch (WriteRecordException e) {
+            try {
+                dbConn.rollback();
+            } catch (Exception e1) {
+                // 回滚失败直接结束任务
+                throw new RuntimeException(e);
+            }
+
+            throw e;
+        }
+    }
+
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         if(!checkIsCopyMode(insertSqlMode)){
-            super.writeMultipleRecordsInternal();
+            writeMultipleRecordsCommit();
             return;
         }
 
@@ -121,6 +159,16 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
         if(restoreConfig.isRestore()){
             rowsOfCurrentTransaction += rows.size();
+        }
+    }
+
+    private void writeMultipleRecordsCommit() throws Exception {
+        try {
+            super.writeMultipleRecordsInternal();
+            dbConn.commit();
+        } catch (Exception e){
+            dbConn.rollback();
+            throw e;
         }
     }
 

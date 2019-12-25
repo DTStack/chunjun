@@ -103,6 +103,6 @@ public class MongodbWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        return createOutput(dataSet, builder.finish(), "mongodbwriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

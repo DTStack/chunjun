@@ -190,8 +190,10 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.google.guava:*</include>
+                                    <include>com.google.code.gson:*</include>
                                     <include>ch.qos.logback:*</include>
                                     <include>org.slf4j:*</include>
+                                    <include>org.apache.httpcomponents:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>

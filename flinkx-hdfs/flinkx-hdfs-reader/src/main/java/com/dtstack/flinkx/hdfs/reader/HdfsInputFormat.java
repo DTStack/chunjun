@@ -25,6 +25,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,8 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected boolean isFileEmpty = false;
 
+    protected String filterRegex;
+
     /**
      * configure anything else
      */
@@ -69,6 +72,9 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     @Override
     public void configure(Configuration parameters) {
         conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        conf.set(HdfsPathFilter.KEY_REGEX, filterRegex);
+
+        FileSystemUtil.setHadoopUserName(conf);
 
         configureAnythingElse();
     }

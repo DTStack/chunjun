@@ -29,6 +29,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,8 @@ public abstract class DataReader {
      * reuse hadoopConfig for metric
      */
     protected Map<String, Object> hadoopConfig;
+
+    protected static ObjectMapper objectMapper = new ObjectMapper();
 
     public int getNumPartitions() {
         return numPartitions;
@@ -116,6 +119,10 @@ public abstract class DataReader {
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
         DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
         return env.addSource(function, sourceName, typeInfo);
+    }
+
+    protected DataStream<Row> createInput(InputFormat inputFormat) {
+        return createInput(inputFormat,this.getClass().getSimpleName().toLowerCase());
     }
 
 }

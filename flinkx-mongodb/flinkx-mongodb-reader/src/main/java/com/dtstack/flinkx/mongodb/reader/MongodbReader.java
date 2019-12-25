@@ -98,6 +98,6 @@ public class MongodbReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
 
-        return createInput(builder.finish(),"mongodbreader");
+        return createInput(builder.finish());
     }
 }

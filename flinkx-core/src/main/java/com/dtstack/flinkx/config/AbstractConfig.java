@@ -44,6 +44,10 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
+    public Map<String,Object> getAll(){
+        return internalMap;
+    }
+
     public void setVal(String key, Object value) {
         internalMap.put(key, value);
     }

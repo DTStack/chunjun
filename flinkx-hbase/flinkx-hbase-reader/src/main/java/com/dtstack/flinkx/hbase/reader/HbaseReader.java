@@ -107,7 +107,7 @@ public class HbaseReader extends DataReader {
         builder.setScanBatchSize(scanBatchSize);
         builder.setMonitorUrls(monitorUrls);
 
-        return createInput(builder.finish(), "hbasereader");
+        return createInput(builder.finish());
     }
 
 }

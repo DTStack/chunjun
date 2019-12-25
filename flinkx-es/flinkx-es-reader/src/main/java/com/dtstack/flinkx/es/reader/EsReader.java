@@ -105,7 +105,7 @@ public class EsReader extends DataReader {
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
 
-        return createInput(builder.finish(), "esreader");
+        return createInput(builder.finish());
     }
 
 }

@@ -243,7 +243,7 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             if(incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc()){
-                Object incrementVal = resultSet.getObject(incrementConfig.getColumnIndex() + 1);
+                Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
                 endLocationAccumulator.add(getLocation(incrementConfig.getColumnType(), incrementVal));
             }
 

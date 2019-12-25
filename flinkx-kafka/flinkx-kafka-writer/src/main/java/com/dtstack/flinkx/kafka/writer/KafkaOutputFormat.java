@@ -59,6 +59,8 @@ public class KafkaOutputFormat extends RichOutputFormat {
 
     private transient KafkaProducer<String, String> producer;
 
+    private transient JsonDecoder jsonDecoder = new JsonDecoder();
+
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -86,6 +88,12 @@ public class KafkaOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    protected boolean isStreamButNoWriteCheckpoint(){
+        return true;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
             Map<String, Object> map;
@@ -96,7 +104,14 @@ public class KafkaOutputFormat extends RichOutputFormat {
                     map.put(tableFields.get(i), org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
                 }
             }else{
-                map = Collections.singletonMap("message", row.toString());
+                Object obj = row.getField(0);
+                if (obj instanceof Map) {
+                    map = (Map<String, Object>)obj;
+                } else if (obj instanceof String) {
+                    map = jsonDecoder.decode(obj.toString());
+                }else{
+                    map = Collections.singletonMap("message", row.toString());
+                }
             }
             emit(map);
 

@@ -54,27 +54,27 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void loginFtpServer(String host, String username, String password, int port, int timeout, String connectMode) {
+    public void loginFtpServer(FtpConfig ftpConfig) {
         ftpClient = new FTPClient();
         try {
             // 连接
-            ftpClient.connect(host, port);
+            ftpClient.connect(ftpConfig.getHost(), ftpConfig.getPort());
             // 登录
-            ftpClient.login(username, password);
+            ftpClient.login(ftpConfig.getUsername(), ftpConfig.getPassword());
             // 不需要写死ftp server的OS TYPE,FTPClient getSystemType()方法会自动识别
-            ftpClient.setConnectTimeout(timeout);
-            ftpClient.setDataTimeout(timeout);
-            if ("PASV".equals(connectMode)) {
+            ftpClient.setConnectTimeout(ftpConfig.getTimeout());
+            ftpClient.setDataTimeout(ftpConfig.getTimeout());
+            if ("PASV".equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterRemotePassiveMode();
                 ftpClient.enterLocalPassiveMode();
-            } else if ("PORT".equals(connectMode)) {
+            } else if ("PORT".equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterLocalActiveMode();
             }
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
                 ftpClient.disconnect();
                 String message = String.format("与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
-                        "message:host =" + host + ",username = " + username + ",port =" + port);
+                        "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
                 LOG.error(message);
                 throw new RuntimeException(message);
             }

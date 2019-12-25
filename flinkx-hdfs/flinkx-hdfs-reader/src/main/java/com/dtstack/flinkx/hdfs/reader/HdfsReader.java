@@ -45,6 +45,7 @@ public class HdfsReader extends DataReader {
     protected String fieldDelimiter;
     private List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
+    private String filterRegex;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -53,6 +54,7 @@ public class HdfsReader extends DataReader {
         path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
+        filterRegex = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILTER, "");
 
         fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
 
@@ -62,7 +64,7 @@ public class HdfsReader extends DataReader {
             fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
     }
 
     @Override
@@ -71,13 +73,14 @@ public class HdfsReader extends DataReader {
         builder.setInputPaths(path);
         builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setFilterRegex(filterRegex);
         builder.setDefaultFs(defaultFS);
         builder.setDelimiter(fieldDelimiter);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);
 
-        return createInput(builder.finish(), "hdfsreader");
+        return createInput(builder.finish());
     }
 
 }
