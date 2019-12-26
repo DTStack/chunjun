@@ -35,6 +35,7 @@
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
+        <module>flinkx-kb</module>
         <module>flinkx-kudu</module>
         <module>flinkx-launcher</module>
         <module>flinkx-clickhouse</module>
