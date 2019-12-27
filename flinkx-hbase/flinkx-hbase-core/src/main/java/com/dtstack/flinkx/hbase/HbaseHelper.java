@@ -137,12 +137,16 @@ public class HbaseHelper {
     }
 
     private static String getKeytab(Map<String,Object> hbaseConfigMap){
-        String keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        String keytab = MapUtils.getString(hbaseConfigMap, KerberosUtil.KEY_PRINCIPAL_FILE);
+        if(StringUtils.isEmpty(keytab)){
+            keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        }
+
         if(StringUtils.isNotEmpty(keytab)){
             return keytab;
         }
 
-        throw new IllegalArgumentException("");
+        throw new IllegalArgumentException("Can not find keytab file from hbaseConfig");
     }
 
     private static String getPrincipal(Map<String,Object> hbaseConfigMap){

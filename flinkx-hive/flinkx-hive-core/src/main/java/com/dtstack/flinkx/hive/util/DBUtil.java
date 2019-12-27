@@ -164,7 +164,11 @@ public final class DBUtil {
     }
 
     private static String getKeytab(Map<String, Object> hiveConf){
-        String keytab = MapUtils.getString(hiveConf, HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY);
+        String keytab = MapUtils.getString(hiveConf, KerberosUtil.KEY_PRINCIPAL_FILE);
+        if(StringUtils.isEmpty(keytab)){
+            keytab = MapUtils.getString(hiveConf, HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY);
+        }
+
         if(StringUtils.isNotEmpty(keytab)){
             return keytab;
         }

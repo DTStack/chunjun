@@ -49,6 +49,7 @@ public class KerberosUtil {
     private static final String KEY_SFTP_CONF = "sftpConf";
     private static final String KEY_REMOTE_DIR = "remoteDir";
     private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
+    public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
     private static String LOCAL_DIR;

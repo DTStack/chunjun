@@ -116,7 +116,11 @@ public class FileSystemUtil {
     }
 
     private static String getKeytab(Map<String, Object> hadoopConfig){
-        String keytab = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KEYTAB_FILE);
+        String keytab = MapUtils.getString(hadoopConfig, KerberosUtil.KEY_PRINCIPAL_FILE);
+        if(StringUtils.isEmpty(keytab)){
+            keytab = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KEYTAB_FILE);
+        }
+
         if(StringUtils.isNotEmpty(keytab)){
             return keytab;
         }
