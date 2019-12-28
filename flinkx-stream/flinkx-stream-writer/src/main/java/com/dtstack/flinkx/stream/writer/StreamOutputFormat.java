@@ -20,9 +20,12 @@ package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * OutputFormat for stream writer
@@ -34,6 +37,8 @@ public class StreamOutputFormat extends RichOutputFormat {
 
     protected boolean print;
 
+    protected List<MetaColumn> metaColumns;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         // do nothing
@@ -43,6 +48,20 @@ public class StreamOutputFormat extends RichOutputFormat {
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
             LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
+        }
+
+        // 模拟脏数据的产生
+        int n = 0;
+        try {
+            for (int i = 0; i < row.getArity(); i++) {
+                n = i;
+                Object val = row.getField(i);
+                if (val != null) {
+                    StringUtil.string2col(val.toString(), metaColumns.get(i).getType(), null);
+                }
+            }
+        } catch (Exception e) {
+            throw new WriteRecordException(recordConvertDetailErrorMessage(n, row), e, n, row);
         }
 
         if (restoreConfig.isRestore()) {

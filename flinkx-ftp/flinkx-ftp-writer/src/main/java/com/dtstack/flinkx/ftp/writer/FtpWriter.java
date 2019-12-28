@@ -66,13 +66,13 @@ public class FtpWriter extends DataWriter{
         }
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null || columns.size() != 0) {
+        if(columns != null && columns.size() != 0) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
             for(int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
-                columnName.add((String) sm.get("name"));
-                columnType.add((String) sm.get("type"));
+                columnName.add(String.valueOf(sm.get("name")));
+                columnType.add(String.valueOf(sm.get("type")));
             }
         }
     }

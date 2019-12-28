@@ -33,10 +33,12 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.client.program.ContextEnvironment;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
 import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
@@ -44,11 +46,10 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The main class entry
@@ -107,8 +108,7 @@ public class Main {
             }
         }
 
-        Set<URL> classPathSet = ClassLoaderManager.getClassPath();
-        addEnvClassPath(env, classPathSet);
+        addEnvClassPath(env, ClassLoaderManager.getClassPath());
 
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
@@ -117,14 +117,29 @@ public class Main {
     }
 
     private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{
+        int i = 0;
+        for(URL url : classPathSet){
+            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+            env.registerCachedFile(url.getPath(),  classFileName, true);
+            i++;
+        }
+
         if(env instanceof MyLocalStreamEnvironment){
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(classPathSet));
-        } else {
-            int i = 0;
-            for(URL url : classPathSet){
-                String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
-                env.registerCachedFile(url.getPath(),  classFileName, true);
-                i++;
+        } else if(env instanceof StreamContextEnvironment){
+            Field field = env.getClass().getDeclaredField("ctx");
+            field.setAccessible(true);
+            ContextEnvironment contextEnvironment= (ContextEnvironment) field.get(env);
+
+            List<String> originUrlList = new ArrayList<>();
+            for (URL url : contextEnvironment.getClasspaths()) {
+                originUrlList.add(url.toString());
+            }
+
+            for (URL url : classPathSet) {
+                if (!originUrlList.contains(url.toString())){
+                    contextEnvironment.getClasspaths().add(url);
+                }
             }
         }
     }

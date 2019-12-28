@@ -166,6 +166,8 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     @Override
     public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(conf, HdfsPathFilter.class);
+
         org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
 
         if(splits != null) {
