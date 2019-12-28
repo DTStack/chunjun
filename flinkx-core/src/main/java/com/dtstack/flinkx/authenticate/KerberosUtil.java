@@ -171,19 +171,16 @@ public class KerberosUtil {
         }
     }
 
-    public static String findPrincipalFromKeytab(String principal, String keytabFile) {
-        String serverName = principal.split(PRINCIPAL_SPLIT_REGEX)[0];
-
+    public static String findPrincipalFromKeytab(String keytabFile) {
         KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
-            String princ = entry.getService().getName();
-            if(princ.startsWith(serverName)){
-                LOG.info("parse principal:{} from keytab:{}", princ, keytabFile);
-                return princ;
-            }
+            String principal = entry.getService().getName();
+
+            LOG.info("parse principal:{} from keytab:{}", principal, keytabFile);
+            return principal;
         }
 
-        return principal;
+        return null;
     }
 
     public static void clear(String jobId){

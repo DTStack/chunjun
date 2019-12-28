@@ -87,10 +87,9 @@ public class FileSystemUtil {
 
     private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String jobId, String plugin, String defaultFs) throws Exception{
         String keytab = getKeytab(hadoopConfig);
-        String principal = getPrincipal(hadoopConfig);
 
         keytab = KerberosUtil.loadFile(hadoopConfig, keytab, jobId, plugin);
-        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+        String principal = KerberosUtil.findPrincipalFromKeytab(keytab);
         KerberosUtil.loadKrb5Conf(hadoopConfig, jobId, plugin);
 
         UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytab);
@@ -104,15 +103,6 @@ public class FileSystemUtil {
                 }
             }
         });
-    }
-
-    private static String getPrincipal(Map<String, Object> hadoopConfig){
-        String principal = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KERBEROS_RINCIPAL);
-        if(StringUtils.isNotEmpty(principal)){
-            return principal;
-        }
-
-        throw new IllegalArgumentException("Can not find principal from hadoopConfig");
     }
 
     private static String getKeytab(Map<String, Object> hadoopConfig){

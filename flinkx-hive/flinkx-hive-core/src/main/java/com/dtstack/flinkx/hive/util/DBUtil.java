@@ -107,10 +107,9 @@ public final class DBUtil {
         }
 
         String keytab = getKeytab(connectionInfo.getHiveConf());
-        String principal = getPrincipal(connectionInfo.getJdbcUrl());
 
         keytab = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytab, connectionInfo.getJobId(), connectionInfo.getPlugin());
-        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+        String principal = KerberosUtil.findPrincipalFromKeytab(keytab);
         KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), connectionInfo.getJobId(), connectionInfo.getPlugin());
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
@@ -145,22 +144,6 @@ public final class DBUtil {
         }
 
         return false;
-    }
-
-    private static String getPrincipal(String jdbcUrl){
-        String[] splits = jdbcUrl.split(JDBC_REGEX);
-        if (splits.length == 2) {
-            String paramsStr = splits[1];
-            String[] paramArray = paramsStr.split(PARAM_DELIM);
-            for (String param : paramArray) {
-                String[] keyVal = param.split(KEY_VAL_DELIM);
-                if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
-                    return keyVal[1];
-                }
-            }
-        }
-
-        throw new IllegalArgumentException("Can not find principal from jdbcUrl");
     }
 
     private static String getKeytab(Map<String, Object> hiveConf){
