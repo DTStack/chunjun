@@ -167,8 +167,9 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
                         if (val instanceof String){
                             val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
-                            currentRecord.setField(i,val);
                         }
+
+                        currentRecord.setField(i,val);
                     }
                 }
             } else {
