@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.metrics;
 
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -118,6 +119,9 @@ public class AccumulatorCollector {
                 monitorUrls.add(url);
             }
         }
+        if(DtLogger.isEnableDebug()){
+            LOG.debug("monitorUrls = {}", gson.toJson(monitorUrls));
+        }
     }
 
     private void checkMonitorUrlIsValid(){
@@ -198,6 +202,7 @@ public class AccumulatorCollector {
         return valueAccumulator.getLocal().getLocalValue();
     }
 
+    @SuppressWarnings("unchecked")
     private void collectAccumulatorWithApi(){
         for (String monitorUrl : monitorUrls) {
             try {
@@ -213,6 +218,9 @@ public class AccumulatorCollector {
                             valueAccumulator.setGlobal(value);
                         }
                     }
+                }
+                if(DtLogger.isEnableTrace()){
+                    LOG.trace("monitorUrl = {}, response = {}", monitorUrl, response);
                 }
             } catch (Exception e){
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);

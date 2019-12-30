@@ -48,29 +48,28 @@ public class DtLogger {
 
     public static final String APPEND_NAME = "flinkx";
     public static final String LOGGER_NAME = "com.dtstack";
-    public static final String LOGGER_NAME_1 = "org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction";
-    public static final String LOGGER_NAME_2 = "DtOutputFormatSinkFunction";
     public static final String LOG4J = "org.slf4j.impl.Log4jLoggerFactory";
     public static final String LOGBACK = "ch.qos.logback.classic.util.ContextSelectorStaticBinder";
+    public static int LEVEL_INT = Integer.MAX_VALUE;
 
 
-    public static void config(LogConfig logConfig, String jobId){
-        if(!logConfig.isLogger() || init){
+    public static void config(LogConfig logConfig, String jobId) {
+        if (!logConfig.isLogger() || init) {
             return;
         }
-        synchronized (DtLogger.class){
-            if(!init){
+        synchronized (DtLogger.class) {
+            if (!init) {
                 String path = logConfig.getPath();
                 File file = new File(path);
-                if(!file.exists() && !file.mkdirs()){
+                if (!file.exists() && !file.mkdirs()) {
                     LOG.warn("cannot create directory [{}]", path);
                     return;
                 }
 
                 String type = StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr();
-                if(LOG4J.equalsIgnoreCase(type)){
+                if (LOG4J.equalsIgnoreCase(type)) {
                     configLog4j(logConfig, jobId);
-                }else if(LOGBACK.equalsIgnoreCase(type)){
+                } else if (LOGBACK.equalsIgnoreCase(type)) {
                     configLogback(logConfig, jobId);
                 }
 
@@ -79,12 +78,10 @@ public class DtLogger {
         }
     }
 
-    private static void configLog4j(LogConfig logConfig, String jobId){
+    private static void configLog4j(LogConfig logConfig, String jobId) {
         org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(LOGGER_NAME);
-        org.apache.log4j.Logger logger_1 = org.apache.log4j.Logger.getLogger(LOGGER_NAME_1);
-        org.apache.log4j.Logger logger_2 = org.apache.log4j.Logger.getLogger(LOGGER_NAME_2);
-
-        org.apache.log4j.Level  level = org.apache.log4j.Level .toLevel(logConfig.getLevel());
+        org.apache.log4j.Level level = org.apache.log4j.Level.toLevel(logConfig.getLevel());
+        LEVEL_INT = level.toInt();
         String pattern = logConfig.getPattern();
         String path = logConfig.getPath();
 
@@ -92,19 +89,11 @@ public class DtLogger {
         logger.setAdditivity(true);
         logger.setLevel(level);
 
-        logger_1.setLevel(level);
-        logger_1.removeAllAppenders();
-        logger_1.setAdditivity(true);
-
-        logger_2.setLevel(level);
-        logger_2.removeAllAppenders();
-        logger_2.setAdditivity(true);
-
         org.apache.log4j.RollingFileAppender appender = new org.apache.log4j.RollingFileAppender();
         PatternLayout layout = new PatternLayout();
-        if(StringUtils.isNotBlank(pattern)){
+        if (StringUtils.isNotBlank(pattern)) {
             layout.setConversionPattern(pattern);
-        }else{
+        } else {
             layout.setConversionPattern(LogConfig.DEFAULT_LOG4J_PATTERN);
         }
 
@@ -112,7 +101,7 @@ public class DtLogger {
         filter.setLevelMin(level);
         appender.addFilter(filter);
         appender.setLayout(layout);
-        appender.setFile(path+ jobId + ".log");
+        appender.setFile(path + jobId + ".log");
         appender.setEncoding(StandardCharsets.UTF_8.name());
         appender.setMaxFileSize("1GB");
         appender.setMaxBackupIndex(1);
@@ -123,23 +112,16 @@ public class DtLogger {
         logger.removeAllAppenders();
         logger.addAppender(appender);
 
-        logger_1.removeAllAppenders();
-        logger_1.addAppender(appender);
-
-        logger_2.removeAllAppenders();
-        logger_2.addAppender(appender);
-
         logger.info("DtLogger config successfully....");
     }
 
     @SuppressWarnings("unchecked")
-    private static void configLogback(LogConfig logConfig, String jobId){
+    private static void configLogback(LogConfig logConfig, String jobId) {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger logger = context.getLogger(LOGGER_NAME);
-        ch.qos.logback.classic.Logger logger_1 = context.getLogger(LOGGER_NAME_1);
-        ch.qos.logback.classic.Logger logger_2 = context.getLogger(LOGGER_NAME_2);
 
         Level level = Level.toLevel(logConfig.getLevel());
+        LEVEL_INT = level.toInt();
         String pattern = logConfig.getPattern();
         String path = logConfig.getPath();
         RollingFileAppender appender = new RollingFileAppender();
@@ -151,7 +133,7 @@ public class DtLogger {
         appender.setContext(context);
         appender.setName(APPEND_NAME);
 
-        appender.setFile(OptionHelper.substVars(path+ jobId + ".log",context));
+        appender.setFile(OptionHelper.substVars(path + jobId + ".log", context));
         appender.setAppend(true);
         appender.setPrudent(false);
         SizeAndTimeBasedRollingPolicy policy = new SizeAndTimeBasedRollingPolicy();
@@ -166,9 +148,9 @@ public class DtLogger {
 
         PatternLayoutEncoder encoder = new PatternLayoutEncoder();
         encoder.setContext(context);
-        if(StringUtils.isNotBlank(pattern)){
+        if (StringUtils.isNotBlank(pattern)) {
             encoder.setPattern(pattern);
-        }else{
+        } else {
             encoder.setPattern(LogConfig.DEFAULT_LOGBACK_PATTERN);
         }
         encoder.start();
@@ -184,13 +166,14 @@ public class DtLogger {
         logger.setAdditive(true);
         logger.addAppender(appender);
 
-        logger_1.setLevel(level);
-        logger_1.setAdditive(true);
-        logger_1.addAppender(appender);
-
-        logger_2.setLevel(level);
-        logger_2.setAdditive(true);
-        logger_2.addAppender(appender);
         logger.info("DtLogger config successfully....");
+    }
+
+    public static boolean isEnableTrace(){
+        return Level.TRACE_INT >= LEVEL_INT;
+    }
+
+    public static boolean isEnableDebug(){
+        return Level.DEBUG_INT >= LEVEL_INT;
     }
 }

@@ -41,6 +41,7 @@ public class MetricReporterHandler {
     /**
      * 在任务结束的时候或者需要的时候可以调用这个方法把metrics输出，比如把metrics输出到pushgateway
      */
+    @SuppressWarnings("unchecked")
     public static void reportMetrics(RuntimeContext runtimeContext) {
         try {
             MetricGroup mgObj = runtimeContext.getMetricGroup();

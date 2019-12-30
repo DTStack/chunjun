@@ -117,6 +117,7 @@ public abstract class DataReader {
 
     public abstract DataStream<Row> readData();
 
+    @SuppressWarnings("unchecked")
     protected DataStream<Row> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);

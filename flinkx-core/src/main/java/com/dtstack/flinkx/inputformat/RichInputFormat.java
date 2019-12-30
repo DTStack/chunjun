@@ -127,7 +127,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
-            indexOfSubtask = Integer.valueOf(vars.get(Metrics.SUBTASK_INDEX));
+            indexOfSubtask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 

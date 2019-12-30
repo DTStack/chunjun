@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
@@ -157,12 +156,12 @@ public class Main {
         if(properties!=null){
             String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
             if(StringUtils.isNotBlank(interval)){
-                env.enableCheckpointing(Long.valueOf(interval.trim()));
+                env.enableCheckpointing(Long.parseLong(interval.trim()));
                 LOG.info("Open checkpoint with interval:" + interval);
             }
             String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
             if(checkpointTimeoutStr != null){
-                long checkpointTimeout = Long.valueOf(checkpointTimeoutStr.trim());
+                long checkpointTimeout = Long.parseLong(checkpointTimeoutStr.trim());
                 //checkpoints have to complete within one min,or are discard
                 env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
 
