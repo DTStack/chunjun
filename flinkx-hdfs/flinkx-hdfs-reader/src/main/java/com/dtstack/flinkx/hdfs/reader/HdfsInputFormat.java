@@ -23,6 +23,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -59,11 +60,20 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected boolean isFileEmpty = false;
 
+    protected String filterRegex;
+
+    /**
+     * configure anything else
+     */
+    protected abstract void configureAnythingElse();
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
         conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        conf.set(HdfsPathFilter.KEY_REGEX, filterRegex);
+
         FileSystemUtil.setHadoopUserName(conf);
     }
 

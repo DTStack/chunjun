@@ -17,12 +17,12 @@
  */
 package org.apache.hadoop.hive.shims;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 import org.apache.hadoop.util.VersionInfo;
 import org.apache.log4j.AppenderSkeleton;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ShimLoader.

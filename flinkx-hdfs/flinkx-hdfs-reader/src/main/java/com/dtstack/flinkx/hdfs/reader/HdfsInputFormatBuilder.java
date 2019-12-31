@@ -52,6 +52,10 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
         format.hadoopConfig = hadoopConfig;
     }
 
+    public void setFilterRegex(String filterRegex){
+        format.filterRegex = filterRegex;
+    }
+
     public void setMetaColumn(List<MetaColumn> metaColumn) {
         format.metaColumns = metaColumn;
     }

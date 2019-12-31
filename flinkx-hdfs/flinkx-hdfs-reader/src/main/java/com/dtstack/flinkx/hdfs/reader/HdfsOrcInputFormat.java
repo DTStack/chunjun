@@ -170,6 +170,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(conf, HdfsPathFilter.class);
 
         OrcInputFormat orcInputFormat = new OrcInputFormat();
         org.apache.hadoop.mapred.InputSplit[] splits = orcInputFormat.getSplits(jobConf, minNumSplits);

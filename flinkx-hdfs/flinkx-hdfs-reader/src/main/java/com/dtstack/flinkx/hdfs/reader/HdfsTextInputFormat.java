@@ -59,6 +59,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(conf, HdfsPathFilter.class);
 
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
