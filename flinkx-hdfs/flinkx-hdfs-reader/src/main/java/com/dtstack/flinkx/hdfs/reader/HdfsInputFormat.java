@@ -62,11 +62,6 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected String filterRegex;
 
-    /**
-     * configure anything else
-     */
-    protected abstract void configureAnythingElse();
-
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();

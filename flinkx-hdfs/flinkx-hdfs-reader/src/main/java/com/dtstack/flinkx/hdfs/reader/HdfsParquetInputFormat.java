@@ -227,8 +227,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     public HdfsParquetSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         List<String> allFilePaths;
         JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
+
         try (FileSystem fs = FileSystem.get(jobConf)) {
-            allFilePaths = getAllPartitionPath(inputPath, fs);
+            allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
         }
 
         if(allFilePaths != null && allFilePaths.size() > 0){
