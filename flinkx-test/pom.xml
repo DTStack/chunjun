@@ -43,6 +43,12 @@
         </dependency>
 
         <dependency>
+            <artifactId>hadoop-hdfs</artifactId>
+            <groupId>org.apache.hadoop</groupId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-metrics-core</artifactId>
             <version>1.8.1</version>
