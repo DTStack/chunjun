@@ -31,9 +31,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 
 /**
  * @author jiangbo
@@ -83,9 +81,6 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         initOffset();
-
-        System.out.println("offset:" + offsetScn);
-        System.out.println("scnCopy:" + scnCopy);
 
         startLogMiner();
         startSelectData();
