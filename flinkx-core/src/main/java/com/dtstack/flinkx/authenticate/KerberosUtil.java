@@ -49,6 +49,7 @@ public class KerberosUtil {
     private static final String KEY_SFTP_CONF = "sftpConf";
     private static final String KEY_REMOTE_DIR = "remoteDir";
     private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
+    public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
     private static String LOCAL_DIR;
@@ -170,19 +171,16 @@ public class KerberosUtil {
         }
     }
 
-    public static String findPrincipalFromKeytab(String principal, String keytabFile) {
-        String serverName = principal.split(PRINCIPAL_SPLIT_REGEX)[0];
-
+    public static String findPrincipalFromKeytab(String keytabFile) {
         KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
-            String princ = entry.getService().getName();
-            if(princ.startsWith(serverName)){
-                LOG.info("parse principal:{} from keytab:{}", princ, keytabFile);
-                return princ;
-            }
+            String principal = entry.getService().getName();
+
+            LOG.info("parse principal:{} from keytab:{}", principal, keytabFile);
+            return principal;
         }
 
-        return principal;
+        return null;
     }
 
     public static void clear(String jobId){
