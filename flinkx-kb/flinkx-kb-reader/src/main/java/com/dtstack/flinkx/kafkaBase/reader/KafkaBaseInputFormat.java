@@ -23,11 +23,8 @@ import com.dtstack.flinkx.kafkaBase.decoder.IDecode;
 import com.dtstack.flinkx.kafkaBase.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafkaBase.decoder.PlainDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +56,10 @@ public class KafkaBaseInputFormat extends RichInputFormat {
     protected transient KafkaBaseConsumer consumer;
     protected transient IDecode decode;
 
-
     @Override
-    public void configure(Configuration parameters) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         queue = new SynchronousQueue<>(false);
         if ("json".equals(codec)) {
             decode = new JsonDecoder();
@@ -114,17 +112,12 @@ public class KafkaBaseInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
         }
         return splits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override

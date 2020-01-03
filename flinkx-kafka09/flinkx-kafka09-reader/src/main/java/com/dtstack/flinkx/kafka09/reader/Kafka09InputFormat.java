@@ -21,7 +21,6 @@ import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 
 import java.io.IOException;
@@ -40,8 +39,8 @@ public class Kafka09InputFormat extends KafkaBaseInputFormat {
     private transient ConsumerConnector consumerConnector;
 
     @Override
-    public void configure(Configuration parameters) {
-        super.configure(parameters);
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
         Properties props = geneConsumerProp();
         consumerConnector = kafka.consumer.Consumer.createJavaConsumerConnector(new ConsumerConfig(props));
     }

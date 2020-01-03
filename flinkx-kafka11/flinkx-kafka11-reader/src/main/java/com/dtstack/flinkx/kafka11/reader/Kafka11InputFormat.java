@@ -20,6 +20,7 @@ package com.dtstack.flinkx.kafka11.reader;
 import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
 import org.apache.flink.configuration.Configuration;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -30,8 +31,8 @@ import java.util.Properties;
 public class Kafka11InputFormat extends KafkaBaseInputFormat {
 
     @Override
-    public void configure(Configuration parameters) {
-        super.configure(parameters);
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
         Properties props = geneConsumerProp();
         consumer = new Kafka11Consumer(props);
     }
