@@ -15,24 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.dtstack.flinkx.kafka.reader;
 
-import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.types.Row;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import org.apache.flink.configuration.Configuration;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  * Date: 2019/11/21
@@ -40,126 +28,12 @@ import java.util.concurrent.SynchronousQueue;
  *
  * @author tudou
  */
-public class KafkaInputFormat extends RichInputFormat {
-
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaInputFormat.class);
-
-    private String topic;
-
-    private String groupId;
-
-    private String codec;
-
-    private boolean blankIgnore;
-
-    private Map<String, String> consumerSettings;
-
-    private volatile boolean running = false;
-
-    private transient BlockingQueue<Row> queue;
-
-    private transient KafkaConsumer consumer;
+public class KafkaInputFormat extends KafkaBaseInputFormat {
 
     @Override
-    public void openInputFormat() throws IOException {
-        super.openInputFormat();
-
+    public void configure(Configuration parameters) {
+        super.configure(parameters);
         Properties props = geneConsumerProp();
-
         consumer = new KafkaConsumer(props);
-        queue = new SynchronousQueue<>(false);
-    }
-
-    @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        consumer.createClient(topic, groupId, this).execute();
-        running = true;
-    }
-
-    public void processEvent(Map<String, Object> event) {
-        try {
-            queue.put(Row.of(event));
-        } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", event, e);
-        }
-    }
-
-    @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        try {
-            row = queue.take();
-        } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
-        }
-        return row;
-    }
-
-    @Override
-    protected void closeInternal() throws IOException {
-        if (running) {
-            consumer.close();
-            running = false;
-            LOG.warn("input kafka release.");
-        }
-    }
-
-    private Properties geneConsumerProp() {
-        Properties props = new Properties();
-
-        for (Map.Entry<String, String> entry : consumerSettings.entrySet()) {
-            String k = entry.getKey();
-            String v = entry.getValue();
-            props.put(k, v);
-        }
-
-        return props;
-    }
-
-    @Override
-    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        InputSplit[] splits = new InputSplit[minNumSplits];
-        for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new GenericInputSplit(i, minNumSplits);
-        }
-        return splits;
-    }
-
-    @Override
-    public boolean reachedEnd() throws IOException {
-        return false;
-    }
-
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-    public String getCodec() {
-        return codec;
-    }
-
-
-    public void setBlankIgnore(boolean blankIgnore) {
-        this.blankIgnore = blankIgnore;
-    }
-
-    public boolean getBlankIgnore() {
-        return blankIgnore;
-    }
-
-    public void setConsumerSettings(Map<String, String> consumerSettings) {
-        this.consumerSettings = consumerSettings;
-    }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
     }
 }
