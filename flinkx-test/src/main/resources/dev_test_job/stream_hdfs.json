@@ -2,50 +2,65 @@
   "job": {
     "content": [
       {
-        "writer": {
-          "name": "streamwriter",
-          "parameter": {
-            "print": true
-          }
-        },
         "reader": {
-          "name": "hdfsreader",
           "parameter": {
-            "path": "hdfs://ns1/user/hive/warehouse/parquet_tb",
-            "defaultFS": "hdfs://ns1",
-            "hadoopConfig": {
-              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
-              "dfs.ha.namenodes.ns1":"nn1,nn2",
-              "dfs.namenode.rpc-address.ns1.nn2":"cdh-impala2:9000",
-              "dfs.client.failover.proxy.provider.ns1":"org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-              "dfs.namenode.rpc-address.ns1.nn1":"cdh-impala1:9000",
-              "dfs.nameservices":"ns1",
-              "hadoop.user.name": "root"
-            },
+            "customSql": "",
+            "startLocation": "",
+            "increColumn": "",
             "column": [
               {
-                "name": "id",
-                "type": "INT"
+                "name": "col1",
+                "type": "string",
+                "key": "col2"
               },
               {
-                "name": "name",
-                "type": "string"
+                "name": "col2",
+                "type": "string",
+                "key": "col2"
               }
             ],
-            "fileType": "parquet",
-            "fieldDelimiter": "\u0001",
-            "encoding": "utf-8"
-          }
+            "connection": [
+              {
+                "sourceId": 39,
+                "password": "root",
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3306/jiangbo"
+                ],
+                "type": 1,
+                "table": [
+                  "tb1",
+                  "tb2"
+                ],
+                "username": "root"
+              }
+            ],
+            "sourceIds": [
+              39
+            ]
+          },
+          "name": "mysqldreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
         }
       }
     ],
     "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 1048576
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
       },
       "errorLimit": {
-        "record": 100
+        "record": 0
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1
       }
     }
   }
