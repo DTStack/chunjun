@@ -165,7 +165,7 @@ public class JdbcInputFormat extends RichInputFormat {
                     startLocation = getLocation(incrementConfig.getColumnType(), incrementConfig.getStartLocation());
                 } else {
                     getMaxValue(inputSplit);
-                    startLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
+                    startLocation = ((JdbcInputSplit) inputSplit).getStartLocation();
                 }
                 endLocationAccumulator.add(startLocation);
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
