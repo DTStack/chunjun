@@ -159,15 +159,17 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
                 currentRecord = new Row(columnCount);
                 if(!"*".equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
-                        Object val = currentRecord.getField(i);
-                        if(val == null && metaColumns.get(i).getValue() != null){
-                            val = metaColumns.get(i).getValue();
+                        MetaColumn metaColumn = metaColumns.get(i);
+                        Object val = currentResultSet.getObject(metaColumn.getName());
+                        if(val == null && metaColumn.getValue() != null){
+                            val = metaColumn.getValue();
                         }
 
                         if (val instanceof String){
-                            val = StringUtil.string2col(String.valueOf(val),metaColumns.get(i).getType(),metaColumns.get(i).getTimeFormat());
-                            currentRecord.setField(i,val);
+                            val = StringUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
                         }
+
+                        currentRecord.setField(i,val);
                     }
                 }
             } else {
