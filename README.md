@@ -61,9 +61,9 @@ mvn clean package -Dmaven.test.skip
   * 必选：是
   * 默认值：无
 
-* **plugin**
+* **pluginRoot**
   
-  * 描述：插件根目录地址，也就是打包后产生的plugins目录。
+  * 描述：插件根目录地址，也就是打包后产生的pluginRoot目录。
   * 必选：是
   * 默认值：无
 
@@ -221,7 +221,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ### 5.1 读取插件
 
-* [关系数据库读取插件](docs/rdbreader.md)
+* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbreader.md)
 * [分库分表读取插件](docs/rdbdreader.md)
 * [HDFS读取插件](docs/hdfsreader.md)
 * [HBase读取插件](docs/hbasereader.md)
@@ -238,7 +238,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ### 5.2 写入插件
 
-* [关系数据库写入插件](docs/rdbwriter.md)
+* [关系数据库写入插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbwriter.md)
 * [HDFS写入插件](docs/hdfswriter.md)
 * [HBase写入插件](docs/hbasewriter.md)
 * [Elasticsearch写入插件](docs/eswriter.md)
