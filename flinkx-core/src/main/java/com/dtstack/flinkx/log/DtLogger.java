@@ -54,7 +54,7 @@ public class DtLogger {
 
 
     public static void config(LogConfig logConfig, String jobId) {
-        if (!logConfig.isLogger() || init) {
+        if (logConfig == null || !logConfig.isLogger() || init) {
             return;
         }
         synchronized (DtLogger.class) {
