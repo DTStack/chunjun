@@ -211,7 +211,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 }
                 case "date" : {
                     String val = currentLine.getValueToString(index,0);
-                    data = new Timestamp(Integer.parseInt(val) * 60 * 60 * 24 * 1000L).toString().substring(0,10);
+                    data = new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY).toString().substring(0,10);
                     break;
                 }
                 default: data = currentLine.getValueToString(index,0);break;

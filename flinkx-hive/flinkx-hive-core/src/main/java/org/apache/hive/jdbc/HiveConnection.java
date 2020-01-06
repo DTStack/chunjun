@@ -1035,7 +1035,7 @@ public class HiveConnection implements Connection {
         }
         boolean rc = false;
         try {
-            String productName = new HiveDatabaseMetaData(this, client, sessHandle)
+            new HiveDatabaseMetaData(this, client, sessHandle)
                     .getDatabaseProductName();
             rc = true;
         } catch (SQLException e) {

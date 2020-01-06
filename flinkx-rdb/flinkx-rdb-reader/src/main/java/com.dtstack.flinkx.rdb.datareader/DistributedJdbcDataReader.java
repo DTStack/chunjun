@@ -44,11 +44,7 @@ import java.util.List;
  */
 public class DistributedJdbcDataReader extends DataReader {
 
-    protected DistributedJdbcInputFormatBuilder builder;
-
     protected DatabaseInterface databaseInterface;
-
-    protected TypeConverterInterface typeConverter;
 
     protected String username;
 
@@ -87,13 +83,13 @@ public class DistributedJdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
+        DistributedJdbcInputFormatBuilder builder = getBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setDatabaseInterface(databaseInterface);
-        builder.setTypeConverter(typeConverter);
         builder.setMetaColumn(metaColumns);
         builder.setSourceList(buildConnections());
         builder.setNumPartitions(numPartitions);
@@ -104,6 +100,10 @@ public class DistributedJdbcDataReader extends DataReader {
 
         RichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());
+    }
+
+    protected DistributedJdbcInputFormatBuilder getBuilder(){
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 
     protected List<DataSource> buildConnections(){

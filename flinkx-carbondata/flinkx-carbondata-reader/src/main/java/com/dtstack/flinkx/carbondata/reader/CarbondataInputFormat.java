@@ -71,8 +71,6 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     protected List<String> columnName;
 
-    protected List<String> columnFormat;
-
     protected String filter;
 
     private List<Integer> columnIndex;

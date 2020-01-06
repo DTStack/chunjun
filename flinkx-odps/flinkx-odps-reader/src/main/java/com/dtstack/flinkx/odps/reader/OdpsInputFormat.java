@@ -36,6 +36,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +158,7 @@ public class OdpsInputFormat extends RichInputFormat {
                     }
 
                     if(val instanceof byte[]) {
-                        val = new String((byte[]) val);
+                        val = new String((byte[]) val, StandardCharsets.UTF_8);
                     }
                 } else if(metaColumn.getValue() != null){
                     val = metaColumn.getValue();

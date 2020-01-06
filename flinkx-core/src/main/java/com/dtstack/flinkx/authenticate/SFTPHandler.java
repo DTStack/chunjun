@@ -22,6 +22,8 @@ package com.dtstack.flinkx.authenticate;
 import com.jcraft.jsch.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Map;
@@ -32,6 +34,8 @@ import java.util.Properties;
  * @date 2019/8/21
  */
 public class SFTPHandler {
+
+    protected static final Logger LOG = LoggerFactory.getLogger(SFTPHandler.class);
 
     private static final String KEY_USERNAME = "username";
     private static final String KEY_PASSWORD = "password";
@@ -110,7 +114,7 @@ public class SFTPHandler {
                     os.flush();
                     os.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOG.warn("", e);
                 }
             }
         }

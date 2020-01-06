@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -73,7 +74,7 @@ public class EsWriter extends DataWriter {
         clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, writerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null || columns.size() != 0) {
+        if(CollectionUtils.isNotEmpty(columns)) {
             columnTypes = new ArrayList<>();
             columnNames = new ArrayList<>();
             for(int i = 0; i < columns.size(); ++i) {

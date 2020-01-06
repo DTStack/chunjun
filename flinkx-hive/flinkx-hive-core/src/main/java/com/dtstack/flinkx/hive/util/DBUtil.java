@@ -334,7 +334,7 @@ public final class DBUtil {
                 conn.close();
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+            LOG.warn("", t);
         }
     }
 

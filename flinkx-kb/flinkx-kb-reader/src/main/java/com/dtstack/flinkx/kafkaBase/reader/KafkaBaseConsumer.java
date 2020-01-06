@@ -55,7 +55,9 @@ public class KafkaBaseConsumer {
     }
 
     public void close() {
-        client.close();
+        if (client != null) {
+            client.close();
+        }
     }
 
 }

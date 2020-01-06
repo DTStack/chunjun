@@ -87,8 +87,6 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
-    protected TypeConverterInterface typeConverter;
-
     protected int fetchSize;
 
     protected int queryTimeOut;

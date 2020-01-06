@@ -36,6 +36,10 @@ public class Db2Reader extends JdbcDataReader {
     public Db2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new Db2DatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new Db2InputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new Db2InputFormat());
     }
 }

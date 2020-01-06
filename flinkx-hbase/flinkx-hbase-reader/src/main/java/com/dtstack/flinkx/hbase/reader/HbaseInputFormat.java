@@ -34,6 +34,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -248,8 +249,8 @@ public class HbaseInputFormat extends RichInputFormat {
                         if(arr == null){
                             arr = new byte[2][];
                             String[] arr1 = columnName.split(":");
-                            arr[0] = arr1[0].trim().getBytes();
-                            arr[1] = arr1[1].trim().getBytes();
+                            arr[0] = arr1[0].trim().getBytes(StandardCharsets.UTF_8);
+                            arr[1] = arr1[1].trim().getBytes(StandardCharsets.UTF_8);
                             nameMaps.put(columnName,arr);
                         }
                         bytes = next.getValue(arr[0], arr[1]);

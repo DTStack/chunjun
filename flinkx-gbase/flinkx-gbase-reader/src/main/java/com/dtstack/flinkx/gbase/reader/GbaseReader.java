@@ -35,6 +35,10 @@ public class GbaseReader extends JdbcDataReader {
     public GbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new GbaseDatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new GbaseInputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new GbaseInputFormat());
     }
 }

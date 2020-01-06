@@ -36,7 +36,11 @@ public class MysqldReader extends DistributedJdbcDataReader {
     public MysqldReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new MySqlDatabaseMeta());
-        super.builder = new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
+    }
+
+    @Override
+    protected DistributedJdbcInputFormatBuilder getBuilder(){
+        return new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
     }
 
     @Override
