@@ -36,12 +36,17 @@ import java.util.List;
 public class StreamWriter extends DataWriter {
 
     protected boolean print;
+    protected String writeDelimiter;
+    protected int batchInterval;
+
 
     private List<MetaColumn> metaColumns;
 
     public StreamWriter(DataTransferConfig config) {
         super(config);
         print = config.getJob().getContent().get(0).getWriter().getParameter().getBooleanVal("print",false);
+        writeDelimiter = config.getJob().getContent().get(0).getWriter().getParameter().getStringVal("writeDelimiter", "|");
+        batchInterval = config.getJob().getContent().get(0).getWriter().getParameter().getIntVal("batchInterval", 20);
 
         List column = config.getJob().getContent().get(0).getWriter().getParameter().getColumn();
         metaColumns = MetaColumn.getMetaColumns(column);
@@ -52,11 +57,13 @@ public class StreamWriter extends DataWriter {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setPrint(print);
         builder.setRestoreConfig(restoreConfig);
+        builder.setWriteDelimiter(writeDelimiter);
         builder.setMonitorUrls(monitorUrls);
         builder.setMetaColumn(metaColumns);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setBatchInterval(batchInterval);
 
         return createOutput(dataSet, builder.finish());
     }
