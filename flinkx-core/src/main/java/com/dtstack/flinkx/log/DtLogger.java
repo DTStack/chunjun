@@ -112,7 +112,7 @@ public class DtLogger {
         logger.removeAllAppenders();
         logger.addAppender(appender);
 
-        logger.info("DtLogger config successfully....");
+        logger.info("DtLogger config successfully, current log is [log4j]");
     }
 
     @SuppressWarnings("unchecked")
@@ -166,7 +166,7 @@ public class DtLogger {
         logger.setAdditive(true);
         logger.addAppender(appender);
 
-        logger.info("DtLogger config successfully....");
+        logger.info("DtLogger config successfully, current log is [logback]");
     }
 
     public static boolean isEnableTrace(){
