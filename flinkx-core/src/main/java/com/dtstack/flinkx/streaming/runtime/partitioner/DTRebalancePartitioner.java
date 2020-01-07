@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.flink.streaming.runtime.partitioner;
+package com.dtstack.flinkx.streaming.runtime.partitioner;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.runtime.plugable.SerializationDelegate;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.types.Row;
+import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
 
 /**
  * Rewrite the [DTRebalancePartitioner] to distribute data based on the channel specified in the data

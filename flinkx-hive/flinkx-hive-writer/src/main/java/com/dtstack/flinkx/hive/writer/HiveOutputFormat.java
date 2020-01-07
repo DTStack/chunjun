@@ -37,10 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author toutian
@@ -224,46 +221,52 @@ public class HiveOutputFormat extends RichOutputFormat {
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
-            HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
-            hdfsOutputFormatBuilder.setPath(path);
-            hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
-            hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
-
-            outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
-            outputFormat.setDirtyDataManager(dirtyDataManager);
-            outputFormat.setErrorLimiter(errorLimiter);
-            outputFormat.setRuntimeContext(getRuntimeContext());
-            outputFormat.configure(parameters);
-            outputFormat.open(taskNumber, numTasks);
+            outputFormat = createHdfsOutputFormat(tableInfo, path);
             outputFormats.put(hiveTablePath, outputFormat);
         }
         return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private TableInfo checkCreateTable(String tablePath, Map event) throws Exception {
+    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
         try {
-            TableInfo tableInfo = tableCache.get(tablePath);
-            if (tableInfo == null) {
-                logger.info("tablePath:{} even:{}", tablePath, event);
+            HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
+            hdfsOutputFormatBuilder.setPath(path);
+            hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
+            hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-                String tableName = tablePath;
-                if (autoCreateTable && event != null) {
-                    tableName = MapUtils.getString(event, "table");
-                    tableName = distributeTableMapping.getOrDefault(tableName, tableName);
-                }
-                tableInfo = tableInfos.get(tableName);
-                if (tableInfo == null) {
-                    throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
-                }
-                tableInfo.setTablePath(tablePath);
-                hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                tableCache.put(tablePath, tableInfo);
-            }
-            return tableInfo;
-        } catch (Throwable e) {
-            throw new Exception(e);
+            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setDirtyDataManager(dirtyDataManager);
+            outputFormat.setErrorLimiter(errorLimiter);
+            outputFormat.setRuntimeContext(getRuntimeContext());
+            outputFormat.configure(parameters);
+            outputFormat.open(taskNumber, numTasks);
+
+            return outputFormat;
+        } catch (Exception e) {
+            LOG.error("构建[HdfsOutputFormat]出错:", e);
+            throw new RuntimeException(e);
         }
+    }
 
+    private TableInfo checkCreateTable(String tablePath, Map event) {
+        TableInfo tableInfo = tableCache.get(tablePath);
+        if (tableInfo == null) {
+            logger.info("tablePath:{} even:{}", tablePath, event);
+
+            String tableName = tablePath;
+            if (autoCreateTable && event != null) {
+                tableName = MapUtils.getString(event, "table");
+                tableName = distributeTableMapping.getOrDefault(tableName, tableName);
+            }
+            tableInfo = tableInfos.get(tableName);
+            if (tableInfo == null) {
+                throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
+            }
+            tableInfo.setTablePath(tablePath);
+            hiveUtil.createHiveTableWithTableInfo(tableInfo);
+            tableCache.put(tablePath, tableInfo);
+        }
+        return tableInfo;
     }
 
     private void closeOutputFormats() {

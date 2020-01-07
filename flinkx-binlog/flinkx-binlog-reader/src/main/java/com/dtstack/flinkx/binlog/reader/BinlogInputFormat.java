@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -116,7 +116,7 @@ public class BinlogInputFormat extends RichInputFormat {
         LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
 
         controller = new MysqlEventParser();
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
+        controller.setConnectionCharset(StandardCharsets.UTF_8);
         controller.setSlaveId(3344L);
         controller.setDetectingEnable(false);
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));

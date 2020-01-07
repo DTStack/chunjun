@@ -24,8 +24,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.MetricReporterHandler;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.URLUtil;
@@ -191,7 +193,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
      */
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        LOG.info("subtask[" + taskNumber +  " open start");
+        LOG.info("subtask[" + taskNumber +  "] open start");
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
@@ -338,6 +340,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
                 LOG.error(e.getMessage());
             }
+            if(DtLogger.isEnableTrace()){
+                LOG.trace("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
+            }
         }
     }
 
@@ -456,9 +461,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     waitWhile("#4");
                 }
 
-                if(outputMetric != null){
-                    outputMetric.waitForReportMetrics();
-                }
+                MetricReporterHandler.reportMetrics(getRuntimeContext());
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();

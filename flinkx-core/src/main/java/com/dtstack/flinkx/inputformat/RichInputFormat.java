@@ -24,6 +24,7 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.MetricReporterHandler;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -126,7 +127,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
-            indexOfSubtask = Integer.valueOf(vars.get(Metrics.SUBTASK_INDEX));
+            indexOfSubtask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 
@@ -220,9 +221,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             updateDuration();
         }
 
-        if(inputMetric != null){
-            inputMetric.waitForReportMetrics();
-        }
+        MetricReporterHandler.reportMetrics(getRuntimeContext());
 
         if(byteRateLimiter != null){
             byteRateLimiter.stop();
