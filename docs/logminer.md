@@ -79,7 +79,7 @@
 
 * **listenerTables**
   
-  - 描述： 要监听的schema和table，使用正则进行过。
+  - 描述： 要监听的schema和table，使用正则进行过滤。
   
   - 必选：否
   

@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author jiangbo
@@ -54,6 +55,16 @@ public class LogMinerConfig implements Serializable {
     private String startSCN = "";
 
     private boolean pavingData = false;
+
+    private List<String> table;
+
+    public List<String> getTable() {
+        return table;
+    }
+
+    public void setTable(List<String> table) {
+        this.table = table;
+    }
 
     public String getReadPosition() {
         return readPosition;
