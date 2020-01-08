@@ -18,7 +18,8 @@
             "startSCN": "482165",
             "readPosition": "current",
             "startTime": 1576540477000,
-            "pavingData": true
+            "pavingData": true,
+            "queryTimeout": 20000
           },
           "name": "oraclelogminerreader"
         },
@@ -85,6 +86,14 @@
   
   - 默认值：无
 
+* **queryTimeout**
+  
+  - 描述： 查询超时时间
+  
+  - 必选：否
+  
+  - 默认值：无
+  
 * **listenerOperations**
   
   - 描述： 要监听的事件，可多选：UPDATE、INSERT、DELETE

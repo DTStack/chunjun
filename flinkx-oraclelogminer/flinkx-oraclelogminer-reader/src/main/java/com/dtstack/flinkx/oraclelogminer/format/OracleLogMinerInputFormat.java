@@ -135,6 +135,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         Long minScn = null;
         try {
             PreparedStatement minScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION);
+            LogMinerUtil.configStatement(minScnStmt, logMinerConfig);
+
             ResultSet minScnResultSet = minScnStmt.executeQuery();
             while(minScnResultSet.next()){
                 minScn = minScnResultSet.getLong(LogMinerUtil.KEY_FIRST_CHANGE);
@@ -154,6 +156,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         Long currentScn = null;
         try {
             CallableStatement currentScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_CURRENT_SCN);
+            LogMinerUtil.configStatement(currentScnStmt, logMinerConfig);
+
             ResultSet currentScnResultSet = currentScnStmt.executeQuery();
             while(currentScnResultSet.next()){
                 currentScn = currentScnResultSet.getLong(LogMinerUtil.KEY_CURRENT_SCN);
@@ -183,6 +187,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
         try {
             PreparedStatement lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
+            LogMinerUtil.configStatement(lastLogFileStmt, logMinerConfig);
+
             lastLogFileStmt.setLong(1, scn);
             lastLogFileStmt.setLong(2, scn);
             ResultSet lastLogFileResultSet = lastLogFileStmt.executeQuery();
@@ -207,6 +213,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
             String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
 
             PreparedStatement lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
+            LogMinerUtil.configStatement(lastLogFileStmt, logMinerConfig);
+
             lastLogFileStmt.setString(1, timeStr);
             lastLogFileStmt.setString(2, timeStr);
             lastLogFileStmt.setString(3, timeStr);
@@ -228,6 +236,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     private void startLogMiner(){
         try {
             logMinerStartStmt = connection.prepareCall(LogMinerUtil.SQL_START_LOGMINER);
+            LogMinerUtil.configStatement(logMinerStartStmt, logMinerConfig);
+
             logMinerStartStmt.setLong(1, offsetScn);
             logMinerStartStmt.execute();
 
@@ -242,6 +252,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
         String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
+            LogMinerUtil.configStatement(logMinerSelectStmt, logMinerConfig);
+
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setLong(1, offsetScn);
             logMinerData = logMinerSelectStmt.executeQuery();

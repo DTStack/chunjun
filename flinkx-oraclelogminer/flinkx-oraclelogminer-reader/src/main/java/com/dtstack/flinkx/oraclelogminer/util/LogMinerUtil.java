@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.oraclelogminer.util;
 
+import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -259,5 +260,11 @@ public class LogMinerUtil {
 
     public static boolean isCreateTemporaryTableSql(String sql) {
         return sql.contains("temporary tables");
+    }
+
+    public static void configStatement(java.sql.Statement statement, LogMinerConfig config) throws SQLException{
+        if (config.getQueryTimeout() != null) {
+            statement.setQueryTimeout(config.getQueryTimeout().intValue());
+        }
     }
 }

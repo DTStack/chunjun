@@ -58,6 +58,16 @@ public class LogMinerConfig implements Serializable {
 
     private List<String> table;
 
+    private Long queryTimeout;
+
+    public Long getQueryTimeout() {
+        return queryTimeout;
+    }
+
+    public void setQueryTimeout(Long queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+
     public List<String> getTable() {
         return table;
     }
