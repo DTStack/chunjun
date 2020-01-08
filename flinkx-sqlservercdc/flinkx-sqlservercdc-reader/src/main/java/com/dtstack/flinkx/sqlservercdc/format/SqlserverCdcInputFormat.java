@@ -93,7 +93,7 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
             }
 
             Set<String> unEnabledCDCTables = SqlServerCdcUtil.checkUnEnabledCDCTables(conn, tableList);
-            if(CollectionUtils.isEmpty(unEnabledCDCTables)){
+            if(CollectionUtils.isNotEmpty(unEnabledCDCTables)){
                 String tables = unEnabledCDCTables.toString();
                 LOG.error("{} is not enable sqlServer CDC", tables);
                 throw new UnsupportedOperationException(tables + " is not enable sqlServer CDC ");
