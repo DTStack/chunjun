@@ -118,7 +118,8 @@ public class BinlogInputFormat extends RichInputFormat {
         controller = new MysqlEventParser();
         controller.setConnectionCharset(Charset.forName("UTF-8"));
         controller.setSlaveId(3344L);
-        controller.setDetectingEnable(false);
+        controller.setDetectingEnable(true);
+        controller.setDetectingSQL("select CURRENT_DATE");
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
         controller.setEnableTsdb(true);
         controller.setDestination("example");
