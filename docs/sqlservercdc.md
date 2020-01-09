@@ -35,7 +35,45 @@
 ```
 ## 2. 使用说明
 
-使用该插件前，需要对数据库及表启用SqlServerCDC功能。具体启用过程请参照SqlServer[官方文档](https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/enable-and-disable-change-data-capture-sql-server?view=sql-server-ver15)
+使用该插件前，需要对数据库及表启用SqlServerCDC功能。
+
+   * 1、查询SqlServer数据库版本
+        * SqlServer自2008版本开始支持CDC(变更数据捕获)功能，但若想使用SqlServer CDC实时采集插件需SqlServer版本为2017及以上
+```sql
+    SELECT @@VERSION
+```
+   * 2、查询当前用户权限，必须为 sysadmin 固定服务器角色的成员才允许对数据库启用CDC(变更数据捕获)功能
+```sql
+    exec sp_helpsrvrolemember 'sysadmin'
+```   
+   * 3、查询数据库是否已经启用CDC(变更数据捕获)功能
+        * 0：未启用；1：启用
+```sql
+    select is_cdc_enabled, name from  sys.databases where name = 'name'
+```   
+   * 4、对数据库数据库启用CDC(变更数据捕获)功能
+```sql
+    EXEC sys.sp_cdc_enable_db  
+```   
+   * 5、对表启用CDC(变更数据捕获)功能
+        * source_schema：表所在的schema名称
+        * source_name：表名
+        * role_name：访问控制角色名称，此处为null不设置访问控制
+        * supports_net_changes：是否为捕获实例生成一个净更改函数，0：否；1：是
+```sql
+    EXEC sys.sp_cdc_enable_table 
+    @source_schema = 'dbo', 
+    @source_name = 'test', 
+    @role_name = NULL, 
+    @supports_net_changes = 0;
+```   
+   * 6、查询表是否已经启用CDC(变更数据捕获)功能
+       * 0：未启用；1：启用
+```sql
+    select name,is_tracked_by_cdc from sys.tables where name = 'test';
+```   
+
+具体启用过程请参照SqlServer[官方文档](https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/enable-and-disable-change-data-capture-sql-server?view=sql-server-ver15)
 
 ## 3. 参数说明
 
@@ -73,7 +111,7 @@
 
 * **tableList**
   
-  * 描述：需要解析的数据表，格式为schema.table
+  * 描述：需要解析的数据表，表必须已启用CDC，格式为schema.table
   
   * 必选：否
   
