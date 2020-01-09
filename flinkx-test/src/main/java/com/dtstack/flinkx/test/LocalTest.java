@@ -112,7 +112,7 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-//        setLogLevel(Level.INFO.toString());
+        setLogLevel(Level.INFO.toString());
 
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
@@ -125,7 +125,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.2/scratches/json/polling/mysql.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.2/scratches/json/polling/oracle.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

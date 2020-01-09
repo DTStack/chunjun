@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -50,16 +49,10 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
             ClassUtil.forName(drivername, getClass().getClassLoader());
             initMetric(inputSplit);
 
-            String startLocation = null;
+            String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                if (StringUtils.isNotBlank(incrementConfig.getStartLocation())) {
-                    startLocation = incrementConfig.getStartLocation();
-                    ((JdbcInputSplit) inputSplit).setStartLocation(startLocation);
-                } else {
-                    getMaxValue(inputSplit);
-                    startLocation = ((JdbcInputSplit) inputSplit).getStartLocation();
-                }
                 endLocationAccumulator.add(startLocation);
+                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
             }

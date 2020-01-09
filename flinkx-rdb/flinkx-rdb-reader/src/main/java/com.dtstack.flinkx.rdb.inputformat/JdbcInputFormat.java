@@ -129,6 +129,9 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected String querySql;
 
+    //轮询增量标识字段类型，目前只有timestamp类型和数值类型
+    protected boolean isTimestamp = false;
+
     /**
      * The hadoop config for metric
      */
@@ -159,15 +162,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
             initMetric(inputSplit);
-            String startLocation = null;
+            String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                if (StringUtils.isNotBlank(incrementConfig.getStartLocation())) {
-                    startLocation = getLocation(incrementConfig.getColumnType(), incrementConfig.getStartLocation());
-                } else {
-                    getMaxValue(inputSplit);
-                    startLocation = ((JdbcInputSplit) inputSplit).getStartLocation();
-                }
                 endLocationAccumulator.add(startLocation);
+                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
             }
@@ -270,7 +268,12 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if (incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc())) {
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
-                String location = getLocation(incrementConfig.getColumnType(), incrementVal);
+                String location;
+                if(incrementConfig.isPolling()){
+                    location = String.valueOf(incrementVal);
+                }else{
+                    location = getLocation(incrementConfig.getColumnType(), incrementVal);
+                }
                 endLocationAccumulator.add(location);
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
             }
@@ -397,12 +400,7 @@ public class JdbcInputFormat extends RichInputFormat {
             }
         }
 
-        if(incrementConfig.isPolling()){
-            ((JdbcInputSplit) inputSplit).setStartLocation(maxValue);
-        }else{
-            ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
-        }
-        LOG.trace("maxValue = {}", maxValue);
+        ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
     /**
@@ -802,10 +800,14 @@ public class JdbcInputFormat extends RichInputFormat {
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
-        ps.setString(1, startLocation);
+        LOG.trace("polling startLocation = {}", startLocation);
+        if(isTimestamp){
+            ps.setTimestamp(1, Timestamp.valueOf(startLocation));
+        }else{
+            ps.setInt(1, Integer.parseInt(startLocation));
+        }
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
-        LOG.trace("polling startLocation = {}", startLocation);
     }
 
     /**
@@ -818,10 +820,24 @@ public class JdbcInputFormat extends RichInputFormat {
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
-            ps = dbConn.prepareStatement(querySql);
-            ps.setFetchSize(fetchSize);
-            ps.setQueryTimeout(queryTimeOut);
-            queryForPolling(startLocation);
+            if(StringUtils.isBlank(startLocation)){
+                LOG.info("startLocation = null, execute sql = {}", querySql);
+                Statement st = dbConn.createStatement();
+                st.setFetchSize(fetchSize);
+                st.setQueryTimeout(queryTimeOut);
+                resultSet = st.executeQuery(querySql);
+                hasNext = resultSet.next();
+                querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
+                ps = dbConn.prepareStatement(querySql);
+                ps.setFetchSize(fetchSize);
+                ps.setQueryTimeout(queryTimeOut);
+                LOG.info("update querySql, sql = {}", querySql);
+            }else{
+                ps = dbConn.prepareStatement(querySql);
+                ps.setFetchSize(fetchSize);
+                ps.setQueryTimeout(queryTimeOut);
+                queryForPolling(startLocation);
+            }
         } else {
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
