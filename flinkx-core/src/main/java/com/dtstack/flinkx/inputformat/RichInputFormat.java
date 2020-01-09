@@ -22,10 +22,8 @@ import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.MetricReporterHandler;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -37,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
@@ -71,6 +70,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected AccumulatorCollector accumulatorCollector;
 
     private boolean inited = false;
+
+    private AtomicBoolean isClosed = new AtomicBoolean(false);
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
@@ -216,11 +217,15 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void closeInputFormat() throws IOException {
+        if (isClosed.get()) {
+            return;
+        }
+
         if(durationCounter != null){
             updateDuration();
         }
 
-        MetricReporterHandler.reportMetrics(getRuntimeContext());
+        inputMetric.waitForMetricReport();
 
         if(byteRateLimiter != null){
             byteRateLimiter.stop();
@@ -230,6 +235,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             accumulatorCollector.close();
         }
 
+        isClosed.set(true);
         LOG.info("subtask input close finished");
     }
 
