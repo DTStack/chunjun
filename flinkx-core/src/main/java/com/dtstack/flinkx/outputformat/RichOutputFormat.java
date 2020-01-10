@@ -26,7 +26,6 @@ import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.MetricReporterHandler;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.URLUtil;
@@ -457,7 +456,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     waitWhile("#4");
                 }
 
-                MetricReporterHandler.reportMetrics(getRuntimeContext());
+                outputMetric.waitForMetricReport();
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();

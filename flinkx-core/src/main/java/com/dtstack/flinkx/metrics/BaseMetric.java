@@ -59,4 +59,12 @@ public class BaseMetric {
     public Map<String, LongCounter> getMetricCounters() {
         return metricCounters;
     }
+
+    public void waitForMetricReport(){
+        try {
+            Thread.sleep(12000);
+        } catch (InterruptedException e) {
+            LOG.warn("", e);
+        }
+    }
 }
