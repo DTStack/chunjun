@@ -76,7 +76,7 @@ public class ByteRateLimiter {
         long thisRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_READS);
         long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
 
-        double thisWriteRatio = (totalRecords == 0 ? 0 : thisRecords / totalRecords);
+        double thisWriteRatio = (totalRecords == 0 ? 0 : thisRecords / (double)totalRecords);
 
         if (totalRecords > 1000 && totalBytes != 0 && thisWriteRatio != 0) {
             double bpr = totalBytes / totalRecords;

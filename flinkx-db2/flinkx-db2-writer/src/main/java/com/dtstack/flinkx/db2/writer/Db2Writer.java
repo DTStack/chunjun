@@ -35,6 +35,10 @@ public class Db2Writer extends JdbcDataWriter {
     public Db2Writer(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new Db2DatabaseMeta());
-        super.builder = new JdbcOutputFormatBuilder(new Db2OutputFormat());
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new Db2OutputFormat());
     }
 }

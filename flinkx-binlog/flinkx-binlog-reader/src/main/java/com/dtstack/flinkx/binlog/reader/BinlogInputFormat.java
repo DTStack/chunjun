@@ -27,7 +27,6 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -86,6 +85,50 @@ public class BinlogInputFormat extends RichInputFormat {
 
     public void updateLastPos(EntryPosition entryPosition) {
         this.entryPosition = entryPosition;
+    }
+
+    @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        LOG.info("binlog configure...");
+
+        if (!StringUtils.isBlank(cat)) {
+            LOG.info("{}", categories);
+            categories = Arrays.asList(cat.toUpperCase().split(","));
+        }
+        /**
+         * mysql 数据解析关注的表，Perl正则表达式.
+
+         多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
+
+
+         常见例子：
+
+         1.  所有表：.*   or  .*\\..*
+         2.  canal schema下所有表： canal\\..*
+         3.  canal下的以canal打头的表：canal\\.canal.*
+         4.  canal schema下的一张表：canal\\.test1
+
+         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
+         */
+        if (table != null && table.size() != 0 && jdbcUrl != null) {
+            int idx = jdbcUrl.lastIndexOf('?');
+            String database = null;
+            if (idx != -1) {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
+            } else {
+                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < table.size(); i++) {
+                sb.append(database).append(".").append(table.get(i));
+                if (i != table.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            filter = sb.toString();
+        }
     }
 
     @Override
@@ -170,49 +213,6 @@ public class BinlogInputFormat extends RichInputFormat {
 
     }
 
-    @Override
-    public void configure(Configuration parameters) {
-        LOG.info("binlog configure...");
-
-        if (!StringUtils.isBlank(cat)) {
-            LOG.info("{}", categories);
-            categories = Arrays.asList(cat.toUpperCase().split(","));
-        }
-        /**
-         * mysql 数据解析关注的表，Perl正则表达式.
-
-         多个正则之间以逗号(,)分隔，转义符需要双斜杠(\\)
-
-
-         常见例子：
-
-         1.  所有表：.*   or  .*\\..*
-         2.  canal schema下所有表： canal\\..*
-         3.  canal下的以canal打头的表：canal\\.canal.*
-         4.  canal schema下的一张表：canal\\.test1
-
-         5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
-         */
-        if (table != null && table.size() != 0 && jdbcUrl != null) {
-            int idx = jdbcUrl.lastIndexOf('?');
-            String database = null;
-            if (idx != -1) {
-                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
-            } else {
-                database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
-            }
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < table.size(); i++) {
-                sb.append(database).append(".").append(table.get(i));
-                if (i != table.size() - 1) {
-                    sb.append(",");
-                }
-            }
-            filter = sb.toString();
-        }
-
-    }
-
     private EntryPosition findStartPosition() {
         EntryPosition startPosition = null;
         if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
@@ -236,7 +236,7 @@ public class BinlogInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);

@@ -44,6 +44,8 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
             case "PARQUET":
                 format = new HdfsParquetInputFormat();
                 break;
+            default:
+                format = new HdfsTextInputFormat();
         }
         super.format = format;
     }

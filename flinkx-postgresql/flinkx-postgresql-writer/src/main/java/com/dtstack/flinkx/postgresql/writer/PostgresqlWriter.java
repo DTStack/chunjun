@@ -41,7 +41,6 @@ public class PostgresqlWriter extends JdbcDataWriter {
         super(config);
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
-        super.builder = new JdbcOutputFormatBuilder(new PostgresqlOutputFormat());
     }
 
     @Override

@@ -117,7 +117,7 @@ public class KuduInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
         List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString());
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
@@ -164,10 +164,5 @@ public class KuduInputFormat extends RichInputFormat {
             client.close();
             client = null;
         }
-    }
-
-    @Override
-    public void configure(Configuration parameters) {
-
     }
 }

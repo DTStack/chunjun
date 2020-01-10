@@ -23,6 +23,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -67,7 +68,7 @@ public class HbaseWriter extends DataWriter {
         writeBufferSize = writerConfig.getParameter().getLongVal(KEY_WRITE_BUFFER_SIZE, DEFAULT_WRITE_BUFFER_SIZE);
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null || columns.size() != 0) {
+        if(CollectionUtils.isNotEmpty(columns)) {
             columnTypes = new ArrayList<>();
             columnNames = new ArrayList<>();
             for(int i = 0; i < columns.size(); ++i) {

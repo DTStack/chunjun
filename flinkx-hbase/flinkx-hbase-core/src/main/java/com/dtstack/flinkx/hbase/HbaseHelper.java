@@ -87,11 +87,10 @@ public class HbaseHelper {
             }
         }
 
-        String principal = getPrincipal(hbaseConfigMap);
         String keytab = getKeytab(hbaseConfigMap);
 
         keytab = KerberosUtil.loadFile(hbaseConfigMap, keytab, jobId, plugin);
-        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
+        String principal = KerberosUtil.findPrincipalFromKeytab(keytab);
         KerberosUtil.loadKrb5Conf(hbaseConfigMap, jobId, plugin);
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
@@ -137,21 +136,16 @@ public class HbaseHelper {
     }
 
     private static String getKeytab(Map<String,Object> hbaseConfigMap){
-        String keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        String keytab = MapUtils.getString(hbaseConfigMap, KerberosUtil.KEY_PRINCIPAL_FILE);
+        if(StringUtils.isEmpty(keytab)){
+            keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
+        }
+
         if(StringUtils.isNotEmpty(keytab)){
             return keytab;
         }
 
-        throw new IllegalArgumentException("");
-    }
-
-    private static String getPrincipal(Map<String,Object> hbaseConfigMap){
-        String principal = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KERBEROS_PRINCIPAL);
-        if(StringUtils.isNotEmpty(principal)){
-            return principal;
-        }
-
-        throw new IllegalArgumentException("");
+        throw new IllegalArgumentException("Can not find keytab file from hbaseConfig");
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable){
