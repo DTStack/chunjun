@@ -456,7 +456,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     waitWhile("#4");
                 }
 
-                outputMetric.waitForMetricReport();
+                if (outputMetric != null) {
+                    outputMetric.waitForMetricReport();
+                }
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
