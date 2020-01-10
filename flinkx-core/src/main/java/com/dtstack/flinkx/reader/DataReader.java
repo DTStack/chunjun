@@ -21,6 +21,7 @@ package com.dtstack.flinkx.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
@@ -29,7 +30,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +63,7 @@ public abstract class DataReader {
      */
     protected Map<String, Object> hadoopConfig;
 
-    protected static ObjectMapper objectMapper = new ObjectMapper();
+    protected static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public int getNumPartitions() {
         return numPartitions;

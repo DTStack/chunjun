@@ -167,8 +167,4 @@ public class Kafka11InputFormat extends RichInputFormat {
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
     }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
-    }
 }
