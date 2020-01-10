@@ -69,9 +69,9 @@ public class BinlogInputFormat extends RichInputFormat {
 
         LOG.info("binlog configure...");
 
-        if (!StringUtils.isBlank(cat)) {
+        if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
             LOG.info("{}", categories);
-            categories = Arrays.asList(cat.toUpperCase().split(","));
+            categories = Arrays.asList(binlogConfig.getCat().toUpperCase().split(","));
         }
         /**
          * mysql 数据解析关注的表，Perl正则表达式.
@@ -88,6 +88,8 @@ public class BinlogInputFormat extends RichInputFormat {
 
          5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
          */
+        List<String> table = binlogConfig.getTable();
+        String jdbcUrl = binlogConfig.getJdbcUrl();
         if (table != null && table.size() != 0 && jdbcUrl != null) {
             int idx = jdbcUrl.lastIndexOf('?');
             String database = null;
@@ -103,7 +105,7 @@ public class BinlogInputFormat extends RichInputFormat {
                     sb.append(",");
                 }
             }
-            filter = sb.toString();
+            binlogConfig.setFilter(sb.toString());
         }
     }
 
