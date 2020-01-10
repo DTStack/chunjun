@@ -262,7 +262,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             updateDuration();
         }
 
-        inputMetric.waitForMetricReport();
+        if (inputMetric != null) {
+            inputMetric.waitForMetricReport();
+        }
 
         if(byteRateLimiter != null){
             byteRateLimiter.stop();
