@@ -212,10 +212,13 @@ public class AccumulatorCollector {
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
                     if(name != null && !"tableCol".equalsIgnoreCase(name)) {
-                        long value = Double.valueOf((String) accumulator.get(KEY_VALUE)).longValue();
-                        ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-                        if(valueAccumulator != null){
-                            valueAccumulator.setGlobal(value);
+                        String accValue = (String) accumulator.get(KEY_VALUE);
+                        if(!"null".equals(accValue)){
+                            long value = Double.valueOf(accValue).longValue();
+                            ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
+                            if(valueAccumulator != null){
+                                valueAccumulator.setGlobal(value);
+                            }
                         }
                     }
                 }
