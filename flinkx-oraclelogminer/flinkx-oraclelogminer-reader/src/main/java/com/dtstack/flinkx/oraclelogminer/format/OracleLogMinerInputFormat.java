@@ -312,7 +312,9 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     public FormatState getFormatState() {
         super.getFormatState();
 
-        formatState.setState(offsetScn.toString());
+        if (formatState != null && offsetScn != null) {
+            formatState.setState(offsetScn.toString());
+        }
         return formatState;
     }
 
