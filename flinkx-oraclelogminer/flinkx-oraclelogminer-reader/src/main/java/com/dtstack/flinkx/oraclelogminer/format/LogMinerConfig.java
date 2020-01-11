@@ -40,7 +40,7 @@ public class LogMinerConfig implements Serializable {
 
     private String listenerTables;
 
-    private String listenerOperations = "UPDATE,INSERT,DELETE";
+    private String cat = "UPDATE,INSERT,DELETE";
 
     /**
      * 读取位置: all, current, time, scn
@@ -108,12 +108,12 @@ public class LogMinerConfig implements Serializable {
         this.pavingData = pavingData;
     }
 
-    public String getListenerOperations() {
-        return listenerOperations;
+    public String getCat() {
+        return cat;
     }
 
-    public void setListenerOperations(String listenerOperations) {
-        this.listenerOperations = listenerOperations;
+    public void setCat(String cat) {
+        this.cat = cat;
     }
 
     public String getListenerTables() {

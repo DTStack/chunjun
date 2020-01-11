@@ -243,7 +243,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     }
 
     private void startSelectData() {
-        String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
+        String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
             LogMinerUtil.configStatement(logMinerSelectStmt, logMinerConfig);
@@ -306,7 +306,9 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     public FormatState getFormatState() {
         super.getFormatState();
 
-        formatState.setState(offsetScn.toString());
+        if (formatState != null && offsetScn != null) {
+            formatState.setState(offsetScn.toString());
+        }
         return formatState;
     }
 
