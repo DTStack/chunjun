@@ -64,6 +64,7 @@ public class OraclelogminerReader extends DataReader {
     public DataStream<Row> readData() {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConfig);
+        builder.setRestoreConfig(restoreConfig);
 
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);

@@ -249,7 +249,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     }
 
     private void startSelectData() {
-        String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getListenerOperations(), logMinerConfig.getListenerTables());
+        String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
             LogMinerUtil.configStatement(logMinerSelectStmt, logMinerConfig);
