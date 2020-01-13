@@ -41,6 +41,16 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
+    public EsInputFormatBuilder setUsername(String username) {
+        format.username = username;
+        return this;
+    }
+
+    public EsInputFormatBuilder setPassword(String password) {
+        format.password = password;
+        return this;
+    }
+
     public EsInputFormatBuilder setQuery(String query) {
         format.query = query;
         return this;
