@@ -59,7 +59,8 @@ public class TelnetUtil {
         }
 
         if (host == null || port == 0){
-            throw new IllegalArgumentException("The url format is incorrect");
+            //oracle高可用jdbc url此处获取不到IP端口，直接return。
+            return;
         }
 
         System.out.println("host:" + host);
