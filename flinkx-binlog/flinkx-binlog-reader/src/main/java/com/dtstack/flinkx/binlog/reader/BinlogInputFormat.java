@@ -22,7 +22,6 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.MapUtils;
@@ -39,7 +38,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.LockSupport;
 
 
@@ -47,29 +45,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
 
-    private String host;
-
-    private int port;
-
-    private String username;
-
-    private String password;
-
-    private String jdbcUrl;
-
-    private boolean pavingData = false;
-
-    private Map<String, Object> start;
-
-    private List<String> table;
-
-    private String filter;
-
-    private String cat;
-
-    private long period;
-
-    private int bufferSize;
+    private BinlogConfig binlogConfig;
 
     private volatile EntryPosition entryPosition;
 
@@ -93,9 +69,9 @@ public class BinlogInputFormat extends RichInputFormat {
 
         LOG.info("binlog configure...");
 
-        if (!StringUtils.isBlank(cat)) {
+        if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
             LOG.info("{}", categories);
-            categories = Arrays.asList(cat.toUpperCase().split(","));
+            categories = Arrays.asList(binlogConfig.getCat().toUpperCase().split(","));
         }
         /**
          * mysql 数据解析关注的表，Perl正则表达式.
@@ -112,6 +88,8 @@ public class BinlogInputFormat extends RichInputFormat {
 
          5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
          */
+        List<String> table = binlogConfig.getTable();
+        String jdbcUrl = binlogConfig.getJdbcUrl();
         if (table != null && table.size() != 0 && jdbcUrl != null) {
             int idx = jdbcUrl.lastIndexOf('?');
             String database = null;
@@ -127,7 +105,7 @@ public class BinlogInputFormat extends RichInputFormat {
                     sb.append(",");
                 }
             }
-            filter = sb.toString();
+            binlogConfig.setFilter(sb.toString());
         }
     }
 
@@ -157,24 +135,25 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
+        LOG.info("binlog config:{}", binlogConfig.toString());
 
         controller = new MysqlEventParser();
-        controller.setConnectionCharset(Charset.forName("UTF-8"));
-        controller.setSlaveId(new Object().hashCode());
-        controller.setDetectingEnable(true);
-        controller.setDetectingSQL("select CURRENT_DATE");
-        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(host, port), username, password));
-        controller.setEnableTsdb(true);
+        controller.setConnectionCharset(Charset.forName(binlogConfig.getConnectionCharset()));
+        controller.setSlaveId(binlogConfig.getSlaveId());
+        controller.setDetectingEnable(binlogConfig.getDetectingEnable());
+        controller.setDetectingSQL(binlogConfig.getDetectingSQL());
+        controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(binlogConfig.getHost(), binlogConfig.getPort()), binlogConfig.getUsername(), binlogConfig.getPassword()));
+        controller.setEnableTsdb(binlogConfig.getEnableTsdb());
         controller.setDestination("example");
-        controller.setParallel(true);
-        controller.setParallelBufferSize(bufferSize);
-        controller.setParallelThreadSize(2);
-        controller.setIsGTIDMode(false);
+        controller.setParallel(binlogConfig.getParallel());
+        controller.setParallelBufferSize(binlogConfig.getBufferSize());
+        controller.setParallelThreadSize(binlogConfig.getParallelThreadSize());
+        controller.setIsGTIDMode(binlogConfig.getGTIDMode());
 
         controller.setAlarmHandler(new BinlogAlarmHandler(this));
 
         BinlogEventSink sink = new BinlogEventSink(this);
-        sink.setPavingData(pavingData);
+        sink.setPavingData(binlogConfig.getPavingData());
         binlogEventSink = sink;
 
         controller.setEventSink(sink);
@@ -186,8 +165,8 @@ public class BinlogInputFormat extends RichInputFormat {
             controller.setMasterPosition(startPosition);
         }
 
-        if (filter != null) {
-            controller.setEventFilter(new AviaterRegexFilter(filter));
+        if (StringUtils.isNotEmpty(binlogConfig.getFilter())) {
+            controller.setEventFilter(new AviaterRegexFilter(binlogConfig.getFilter()));
         }
 
         controller.start();
@@ -218,19 +197,19 @@ public class BinlogInputFormat extends RichInputFormat {
         EntryPosition startPosition = null;
         if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
             startPosition = (EntryPosition) formatState.getState();
-        } else if (start != null && start.size() != 0) {
+        } else if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
             startPosition = new EntryPosition();
-            String journalName = (String) start.get("journalName");
+            String journalName = (String) binlogConfig.getStart().get("journalName");
             if (StringUtils.isNotEmpty(journalName)) {
-                if (new BinlogJournalValidator(host, port, username, password).check(journalName)) {
+                if (new BinlogJournalValidator(binlogConfig.getHost(), binlogConfig.getPort(), binlogConfig.getUsername(), binlogConfig.getPassword()).check(journalName)) {
                     startPosition.setJournalName(journalName);
                 } else {
                     throw new IllegalArgumentException("Can't find journalName: " + journalName);
                 }
             }
 
-            startPosition.setTimestamp(MapUtils.getLong(start, "timestamp"));
-            startPosition.setPosition(MapUtils.getLong(start, "position"));
+            startPosition.setTimestamp(MapUtils.getLong(binlogConfig.getStart(), "timestamp"));
+            startPosition.setPosition(MapUtils.getLong(binlogConfig.getStart(), "position"));
         }
 
         return startPosition;
@@ -250,57 +229,11 @@ public class BinlogInputFormat extends RichInputFormat {
         return false;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public BinlogConfig getBinlogConfig() {
+        return binlogConfig;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setBinlogConfig(BinlogConfig binlogConfig) {
+        this.binlogConfig = binlogConfig;
     }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setStart(Map<String, Object> start) {
-        this.start = start;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-    public void setCat(String cat) {
-        this.cat = cat;
-    }
-
-    public void setPeriod(long period) {
-        this.period = period;
-    }
-
-    public void setBufferSize(int bufferSize) {
-        this.bufferSize = bufferSize;
-    }
-
-    public void setPavingData(boolean pavingData) {
-        this.pavingData = pavingData;
-    }
-
-    public void setTable(List<String> table) {
-        this.table = table;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
-    }
-
-
 }
