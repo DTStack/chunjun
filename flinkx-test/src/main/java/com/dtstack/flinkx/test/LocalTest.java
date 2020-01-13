@@ -116,8 +116,8 @@ public class LocalTest {
 //        setLogLevel(Level.INFO.toString());
 
         Properties confProperties = new Properties();
-//        confProperties.put("flink.checkpoint.interval", "10000");
-//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+        confProperties.put("flink.checkpoint.interval", "60000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");

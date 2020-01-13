@@ -78,11 +78,6 @@ public class StreamOutputFormat extends RichOutputFormat {
                 LOG.info(String.valueOf(row));
             }
         }
-
-        if (restoreConfig.isRestore()) {
-            Row row = rows.get(rows.size() - 1);
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-        }
     }
 
     public String rowToStringWithDelimiter(Row row, String writeDelimiter) {

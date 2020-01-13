@@ -261,6 +261,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
+        String sqlLog = null;
         try {
             while (logMinerData.next()) {
                 Long scn = logMinerData.getLong(LogMinerUtil.KEY_SCN);
@@ -289,13 +290,14 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
                     isSqlNotEnd = logMinerData.getBoolean(LogMinerUtil.KEY_CSF);
                 }
 
+                sqlLog = sqlRedo.toString();
                 row = LogMinerUtil.parseSql(logMinerData, sqlRedo.toString(), logMinerConfig.getPavingData());
 
                 offsetScn = scn;
                 return row;
             }
         } catch (Exception e) {
-            LOG.error("解析数据出错:", e);
+            LOG.error("解析数据出错,sql:{}, error:{}", sqlLog, e);
             throw new RuntimeException(e);
         }
 
