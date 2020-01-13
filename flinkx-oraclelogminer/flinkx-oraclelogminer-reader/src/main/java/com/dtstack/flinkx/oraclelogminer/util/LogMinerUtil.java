@@ -94,6 +94,8 @@ public class LogMinerUtil {
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
+    public static List<String> EXCLUDE_SCHEMAS = Arrays.asList("SYS");
+
     public static String buildSelectSql(String listenerOptions, String listenerTables){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
 
@@ -103,6 +105,8 @@ public class LogMinerUtil {
 
         if (StringUtils.isNotEmpty(listenerTables)) {
             sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+        } else {
+            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
         }
 
         return sqlBuilder.toString();
@@ -123,12 +127,24 @@ public class LogMinerUtil {
         return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ","));
     }
 
+    private static String buildExcludeSchemaFilter(){
+        List<String> filters = new ArrayList<>();
+        for (String excludeSchema : EXCLUDE_SCHEMAS) {
+            filters.add(String.format("SEG_OWNER != '%s'", excludeSchema));
+        }
+
+        return String.format("(%s)", StringUtils.join(filters, " and "));
+    }
+
     private static String buildSchemaTableFilter(String listenerTables){
         List<String> filters = new ArrayList<>();
 
         String[] tableWithSchemas = listenerTables.split(",");
         for (String tableWithSchema : tableWithSchemas){
             List<String> tables = Arrays.asList(tableWithSchema.split("\\."));
+            if ("*".equals(tables.get(0))) {
+                throw new IllegalArgumentException("必须指定要采集的schema:" + tableWithSchema);
+            }
 
             StringBuilder tableFilterBuilder = new StringBuilder();
             tableFilterBuilder.append(String.format("SEG_OWNER='%s'", tables.get(0)));

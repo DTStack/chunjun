@@ -79,11 +79,6 @@ public class StreamOutputFormat extends RichOutputFormat {
             }
             System.out.println("batch size: " + rows.size());
         }
-
-        if (restoreConfig.isRestore()) {
-            Row row = rows.get(rows.size() - 1);
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-        }
     }
 
     public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
