@@ -36,14 +36,19 @@ public class SettingConfig extends AbstractConfig {
 
     public static final String KEY_RESTORE = "restore";
 
+    public static final String KEY_LOG = "log";
+
     private SpeedConfig speed = SpeedConfig.defaultConfig();
 
     private ErrorLimitConfig errorLimit = ErrorLimitConfig.defaultConfig();
 
     private RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
 
+    private LogConfig logConfig = LogConfig.defaultConfig();
+
     private DirtyConfig dirty;
 
+    @SuppressWarnings("unchecked")
     public SettingConfig(Map<String, Object> map) {
         super(map);
         if(map.containsKey(KEY_SPEED_CONFIG)) {
@@ -55,9 +60,11 @@ public class SettingConfig extends AbstractConfig {
         if(map.containsKey(KEY_DIRTY_CONFIG)) {
             dirty = new DirtyConfig((Map<String, Object>) map.get(KEY_DIRTY_CONFIG));
         }
-
         if (map.containsKey(KEY_RESTORE)){
             restoreConfig = new RestoreConfig((Map<String, Object>) map.get(KEY_RESTORE));
+        }
+        if (map.containsKey(KEY_LOG)){
+            logConfig = new LogConfig((Map<String, Object>) map.get(KEY_LOG));
         }
     }
 
@@ -77,20 +84,28 @@ public class SettingConfig extends AbstractConfig {
         this.errorLimit = errorLimit;
     }
 
-    public DirtyConfig getDirty() {
-        return dirty;
-    }
-
-    public void setDirty(DirtyConfig dirty) {
-        this.dirty = dirty;
-    }
-
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
     }
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public LogConfig getLogConfig() {
+        return logConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
+    }
+
+    public DirtyConfig getDirty() {
+        return dirty;
+    }
+
+    public void setDirty(DirtyConfig dirty) {
+        this.dirty = dirty;
     }
 }
 

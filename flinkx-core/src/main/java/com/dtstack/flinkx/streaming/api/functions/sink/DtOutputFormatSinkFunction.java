@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.streaming.api.functions.sink;
+package com.dtstack.flinkx.streaming.api.functions.sink;
 
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.PublicEvolving;
@@ -32,7 +32,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.InputTypeConfigurable;
 import org.apache.flink.configuration.Configuration;
 
-import org.apache.flink.runtime.state.CheckpointListener;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -42,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 /**
  * Simple implementation of the SinkFunction writing tuples in the specified
  * OutputFormat format.

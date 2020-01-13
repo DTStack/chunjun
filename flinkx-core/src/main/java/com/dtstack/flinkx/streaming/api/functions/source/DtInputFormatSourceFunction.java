@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.streaming.api.functions.source;
+package com.dtstack.flinkx.streaming.api.functions.source;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.restore.FormatState;
@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 
 /**
  * A {@link SourceFunction} that reads data using an {@link InputFormat}.
@@ -125,16 +126,12 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
                         nextElement = format.nextRecord(nextElement);
                         if (nextElement != null) {
                             ctx.collect(nextElement);
-                        } else {
-                            break;
                         }
                     } else {
                         synchronized (ctx.getCheckpointLock()){
                             nextElement = format.nextRecord(nextElement);
                             if (nextElement != null) {
                                 ctx.collect(nextElement);
-                            } else {
-                                break;
                             }
                         }
                     }

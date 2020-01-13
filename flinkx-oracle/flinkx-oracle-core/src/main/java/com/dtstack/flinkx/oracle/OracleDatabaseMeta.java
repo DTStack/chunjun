@@ -37,7 +37,7 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
         table = table.replace("\"","");
         String[] part = table.split("\\.");
         if(part.length == 2) {
-            table = part[0] + "." + getStartQuote() + part[1] + getEndQuote();
+            table = getStartQuote() + part[0] + getEndQuote() + "." + getStartQuote() + part[1] + getEndQuote();
         } else {
             table = getStartQuote() + table + getEndQuote();
         }

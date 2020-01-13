@@ -84,7 +84,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
+import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,8 +116,8 @@ public class LocalTest {
 //        setLogLevel(Level.INFO.toString());
 
         Properties confProperties = new Properties();
-        confProperties.put("flink.checkpoint.interval", "60000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+//        confProperties.put("flink.checkpoint.interval", "10000");
+//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
@@ -126,7 +126,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\logminer_stream.json";
+        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_hdfs.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

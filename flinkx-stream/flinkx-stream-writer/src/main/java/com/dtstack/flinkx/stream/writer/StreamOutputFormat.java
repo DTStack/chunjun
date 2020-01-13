@@ -21,7 +21,6 @@ package com.dtstack.flinkx.stream.writer;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
 
@@ -49,21 +48,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, rowToStringWithDelimiter(row, writeDelimiter)));
-        }
-
-        // 模拟脏数据的产生
-        int n = 0;
-        try {
-            for (int i = 0; i < row.getArity(); i++) {
-                n = i;
-                Object val = row.getField(i);
-                if (val != null) {
-                    StringUtil.string2col(val.toString(), metaColumns.get(i).getType(), null);
-                }
-            }
-        } catch (Exception e) {
-            throw new WriteRecordException(recordConvertDetailErrorMessage(n, row), e, n, row);
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
         }
 
         if (restoreConfig.isRestore()) {
@@ -75,9 +60,8 @@ public class StreamOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-                System.out.println("printInfo: " + rowToStringWithDelimiter(row, writeDelimiter));
+                LOG.info(String.valueOf(row));
             }
-            System.out.println("batch size: " + rows.size());
         }
     }
 

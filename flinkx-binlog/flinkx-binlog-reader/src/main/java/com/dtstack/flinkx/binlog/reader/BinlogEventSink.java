@@ -21,11 +21,15 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import com.dtstack.flinkx.log.DtLogger;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.gson.Gson;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,15 +117,17 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             } else {
                 message.put("before", processColumnList(rowData.getBeforeColumnsList()));
                 message.put("after", processColumnList(rowData.getAfterColumnsList()));
-                Map<String,Object> event = new HashMap<>(1);
-                event.put("message", message);
-                message = event;
+                message = Collections.singletonMap("message", message);
             }
 
             try {
                 queue.put(Row.of(message));
             } catch (InterruptedException e) {
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
+            }
+            if(DtLogger.isEnableTrace()){
+                //log level is trace, so don't care the performance，just new it.
+                LOG.trace("message = {}", new Gson().toJson(message));
             }
         }
 
@@ -144,7 +150,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             row = queue.take();
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", e);
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return row;
     }
