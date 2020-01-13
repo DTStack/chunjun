@@ -38,7 +38,6 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class HdfsReader extends DataReader {
-    protected String type;
     protected String defaultFS;
     protected String fileType;
     protected String path;

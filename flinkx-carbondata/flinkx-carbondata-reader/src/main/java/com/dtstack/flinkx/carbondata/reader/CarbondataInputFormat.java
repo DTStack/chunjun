@@ -29,7 +29,6 @@ import org.apache.carbondata.hadoop.CarbonInputSplit;
 import org.apache.carbondata.hadoop.CarbonProjection;
 import org.apache.carbondata.hadoop.api.CarbonTableInputFormat;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.mapreduce.Job;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 /**
@@ -73,8 +71,6 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     protected List<String> columnName;
 
-    protected List<String> columnFormat;
-
     protected String filter;
 
     private List<Integer> columnIndex;
@@ -97,6 +93,43 @@ public class CarbondataInputFormat extends RichInputFormat{
 
     private transient CarbonProjection  projection;
 
+    @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        org.apache.hadoop.conf.Configuration conf = initConfig();
+
+        try {
+            inferFullColumnInfo();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            job = Job.getInstance(conf);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        format = new CarbonTableInputFormat();
+    }
+
+    private org.apache.hadoop.conf.Configuration initConfig(){
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
+        initColumnIndices();
+        org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
+        CarbonTableInputFormat.setDatabaseName(conf, database);
+        CarbonTableInputFormat.setTableName(conf, table);
+        CarbonTableInputFormat.setColumnProjection(conf, projection);
+
+        conf.set("mapreduce.input.fileinputformat.inputdir", path);
+
+        if(StringUtils.isNotBlank(filter)) {
+            CarbonTableInputFormat.setFilterPredicates(conf, CarbonExpressUtil.eval(filter, fullColumnNames, fullColumnTypes));
+        }
+
+        return conf;
+    }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -152,39 +185,11 @@ public class CarbondataInputFormat extends RichInputFormat{
     }
 
     @Override
-    public void configure(Configuration configuration) {
-        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
-        initColumnIndices();
-        org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
-        CarbonTableInputFormat.setDatabaseName(conf, database);
-        CarbonTableInputFormat.setTableName(conf, table);
-        CarbonTableInputFormat.setColumnProjection(conf, projection);
+    public InputSplit[] createInputSplitsInternal(int num) throws IOException {
+        org.apache.hadoop.conf.Configuration conf = initConfig();
+        Job job = Job.getInstance(conf);
+        CarbonTableInputFormat format = new CarbonTableInputFormat();
 
-        conf.set("mapreduce.input.fileinputformat.inputdir", path);
-
-        try {
-            inferFullColumnInfo();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        if(StringUtils.isNotBlank(filter)) {
-            CarbonTableInputFormat.setFilterPredicates(conf, CarbonExpressUtil.eval(filter, fullColumnNames, fullColumnTypes));
-        }
-
-        try {
-            job = Job.getInstance(conf);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-
-        format = new CarbonTableInputFormat();
-
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int num) throws IOException {
         List<org.apache.hadoop.mapreduce.InputSplit> splitList = format.getSplits(job);
         int splitNum = (splitList.size() < num ? splitList.size() : num);
         int groupSize = (int)Math.ceil(splitList.size() / (double)splitNum);

@@ -18,16 +18,10 @@
 package com.dtstack.flinkx.kafka.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
-
-import java.util.Map;
-
-import static com.dtstack.flinkx.kafka.KafkaConfigKeys.*;
 
 /**
  * Date: 2019/11/21
@@ -35,47 +29,17 @@ import static com.dtstack.flinkx.kafka.KafkaConfigKeys.*;
  *
  * @author tudou
  */
-public class KafkaReader extends DataReader {
+public class KafkaReader extends KafkaBaseReader {
 
-
-    private String topic;
-
-    private String groupId;
-
-    private String codec;
-
-    /**
-     * true: allow blank
-     */
-    private boolean blankIgnore;
-
-    private Map<String, String> consumerSettings;
-
-    @SuppressWarnings("unchecked")
     public KafkaReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
-        groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
-        codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
-        blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
-        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
-
-        if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
+        if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
         }
     }
 
     @Override
-    public DataStream<Row> readData() {
-        KafkaInputFormat format = new KafkaInputFormat();
-        format.setTopic(topic);
-        format.setGroupId(groupId);
-        format.setCodec(codec);
-        format.setBlankIgnore(blankIgnore);
-        format.setConsumerSettings(consumerSettings);
-        format.setRestoreConfig(restoreConfig);
-
-        return createInput(format);
+    public KafkaBaseInputFormat getFormat(){
+        return new KafkaInputFormat();
     }
 }

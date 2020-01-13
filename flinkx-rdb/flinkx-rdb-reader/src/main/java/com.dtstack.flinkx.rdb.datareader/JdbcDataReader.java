@@ -42,8 +42,6 @@ import java.util.List;
  */
 public class JdbcDataReader extends DataReader {
 
-    protected JdbcInputFormatBuilder builder;
-
     protected DatabaseInterface databaseInterface;
 
     protected TypeConverterInterface typeConverter;
@@ -101,6 +99,7 @@ public class JdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
+        JdbcInputFormatBuilder builder = getBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
@@ -126,6 +125,10 @@ public class JdbcDataReader extends DataReader {
         RichInputFormat format =  builder.finish();
 //        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
         return createInput(format);
+    }
+
+    protected JdbcInputFormatBuilder getBuilder() {
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){

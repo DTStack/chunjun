@@ -23,6 +23,7 @@ import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,12 +31,13 @@ import java.util.List;
 /**
  * OutputFormat for stream writer
  *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
 public class StreamOutputFormat extends RichOutputFormat {
 
     protected boolean print;
+    protected String writeDelimiter;
 
     protected List<MetaColumn> metaColumns;
 
@@ -47,7 +49,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, row));
+            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, rowToStringWithDelimiter(row, writeDelimiter)));
         }
 
         // 模拟脏数据的产生
@@ -73,13 +75,25 @@ public class StreamOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-                System.out.println(row);
+                System.out.println("printInfo: " + rowToStringWithDelimiter(row, writeDelimiter));
             }
+            System.out.println("batch size: " + rows.size());
         }
 
         if (restoreConfig.isRestore()) {
             Row row = rows.get(rows.size() - 1);
             formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
+    }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.getArity(); i++) {
+            if (i > 0) {
+                sb.append(writeDelimiter);
+            }
+            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+        }
+        return sb.toString();
     }
 }

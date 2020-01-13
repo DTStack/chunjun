@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.hbase.writer.function;
 
+import com.dtstack.flinkx.exception.WriteRecordException;
+
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 /**
@@ -29,7 +32,7 @@ public class MD5Function implements IFunction {
 
 
     @Override
-    public String evaluate(Object str) {
+    public String evaluate(Object str) throws Exception{
         return getMD5String(str.toString());
     }
 
@@ -39,16 +42,10 @@ public class MD5Function implements IFunction {
      * @param str 待加密的字符串
      * @return md5加密后的字符串
      */
-    private static String getMD5String(String str) {
-        byte[] bytes = null;
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            bytes = md5.digest(str.getBytes("UTF-8"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private static String getMD5String(String str) throws Exception{
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        byte[] bytes = md5.digest(str.getBytes(StandardCharsets.UTF_8));
         return bytes2Hex(bytes, DIGITS_LOWER);
-
     }
 
     private static final char[] DIGITS_LOWER = {'0', '1', '2', '3', '4', '5',
