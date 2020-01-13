@@ -31,8 +31,8 @@ import java.util.List;
 /**
  * OutputFormat for stream writer
  *
- * @author jiangbo
  * @Company: www.dtstack.com
+ * @author jiangbo
  */
 public class StreamOutputFormat extends RichOutputFormat {
 
@@ -49,7 +49,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, rowToStringWithDelimiter(row, writeDelimiter)));
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
         }
 
         // 模拟脏数据的产生
@@ -75,9 +75,8 @@ public class StreamOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-                System.out.println("printInfo: " + rowToStringWithDelimiter(row, writeDelimiter));
+                LOG.info(String.valueOf(row));
             }
-            System.out.println("batch size: " + rows.size());
         }
 
         if (restoreConfig.isRestore()) {
