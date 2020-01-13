@@ -46,6 +46,7 @@ public class PluginNameConstrant {
     public static final String KAFKA_READER = "kafkareader";
     public static final String CLICKHOUSE_READER = "clickhousereader";
     public static final String POLARDB_READER = "polardbreader";
+    public static final String ORACLE_LOG_MINER_READER = "oraclelogminerreader";
 
 
     public static final String STREAM_WRITER = "streamwriter";

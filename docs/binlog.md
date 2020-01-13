@@ -14,7 +14,7 @@
             "reader": {
                 "parameter": {
                     "jdbcUrl" : "jdbc:mysql://127.0.0.1:3306/test?charset=utf8",
-                    "username" : "username"，
+                    "username" : "username",
                     "password" : "password",
                     "host" : "127.0.0.1",
                     "port": 3306,

@@ -1,0 +1,44 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "schema" : "JIANGBO",
+          "startSCN" : "474783",
+          "password" : "oracle",
+          "cat" : "insert,update,delete",
+          "jdbcUrl" : "jdbc:oracle:thin:@//172.16.8.178:1522/xe",
+          "readPosition" : "scn",
+          "pavingData" : true,
+          "table" : [ ],
+          "username" : "system"
+        },
+        "name" : "oraclelogminerreader",
+        "type" : 2
+      },
+      "writer" : {
+        "parameter" : {
+          "producerSettings" : {
+            "zookeeper.connect" : "172.16.8.107:2181/kafka"
+          },
+          "topic" : "jiangbo",
+          "brokerList" : "172.16.8.107:9092"
+        },
+        "name" : "kafka09writer",
+        "type" : 18
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : {
+      },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
+      }
+    }
+  }
+}
