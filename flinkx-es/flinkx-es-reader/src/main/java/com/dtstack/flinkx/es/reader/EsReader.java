@@ -42,6 +42,8 @@ import java.util.Map;
 public class EsReader extends DataReader {
 
     private String address;
+    private String username;
+    private String password;
     private String query;
 
     private String[] index;
@@ -57,6 +59,8 @@ public class EsReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
+        username = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_USERNAME);
+        password = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_PASSWORD);
         index = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_INDEX));
         type = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_TYPE));
         batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 10);
@@ -98,6 +102,8 @@ public class EsReader extends DataReader {
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);
         builder.setAddress(address);
+        builder.setUsername(username);
+        builder.setPassword(password);
         builder.setIndex(index);
         builder.setType(type);
         builder.setBatchSize(batchSize);

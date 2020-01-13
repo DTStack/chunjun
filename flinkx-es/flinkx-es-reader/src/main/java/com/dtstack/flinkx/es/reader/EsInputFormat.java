@@ -53,6 +53,10 @@ public class EsInputFormat extends RichInputFormat {
 
     protected String address;
 
+    protected String username;
+
+    protected String password;
+
     protected String[] index;
 
     protected String[] type;
@@ -92,7 +96,7 @@ public class EsInputFormat extends RichInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
 
-        client = EsUtil.getClient(address, clientConfig);
+        client = EsUtil.getClient(address, username, password, clientConfig);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

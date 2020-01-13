@@ -28,6 +28,10 @@ public class EsConfigKeys {
 
     public static final String KEY_ADDRESS = "address";
 
+    public static final String KEY_USERNAME = "username";
+
+    public static final String KEY_PASSWORD = "password";
+
     public static final String KEY_QUERY = "query";
 
     public static final String KEY_INDEX = "index";
