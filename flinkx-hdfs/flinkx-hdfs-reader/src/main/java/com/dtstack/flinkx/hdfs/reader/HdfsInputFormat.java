@@ -65,11 +65,14 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
+        conf = buildConfig();
+    }
 
-        conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+    protected JobConf buildConfig() {
+        JobConf conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
         conf.set(HdfsPathFilter.KEY_REGEX, filterRegex);
-
         FileSystemUtil.setHadoopUserName(conf);
+        return conf;
     }
 
     @Override
