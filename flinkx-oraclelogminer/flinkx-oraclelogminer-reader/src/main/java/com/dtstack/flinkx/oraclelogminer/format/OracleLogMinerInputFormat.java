@@ -25,6 +25,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -58,7 +59,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[0];
+        return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
     @Override
