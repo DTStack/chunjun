@@ -90,7 +90,7 @@ public class HiveUtil {
         try {
             connection = DBUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
@@ -108,7 +108,7 @@ public class HiveUtil {
     private void createTable(Connection connection, TableInfo tableInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);

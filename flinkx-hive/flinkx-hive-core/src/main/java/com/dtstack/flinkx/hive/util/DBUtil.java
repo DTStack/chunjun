@@ -199,26 +199,25 @@ public final class DBUtil {
             prop.put("password", connectionInfo.getPassword());
         }
 
-        return connect(connectionInfo.getJdbcUrl(), prop);
+        return connect(connectionInfo, prop);
     }
 
-    private static Connection connect(String url, Properties prop) {
+    private static Connection connect(ConnectionInfo connectionInfo, Properties prop) {
         try {
             lock.lock();
             Class.forName("org.apache.hive.jdbc.HiveDriver");
-            DriverManager.setLoginTimeout(5);
-
-            return getHiveConnection(url, prop);
+            DriverManager.setLoginTimeout(connectionInfo.getTimeout());
+            return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
                 throw new RuntimeException("用户名或密码错误.");
             } else if (SQLSTATE_CANNOT_ACQUIRE_CONNECT.equals(e.getSQLState())) {
                 throw new RuntimeException("应用程序服务器拒绝建立连接.");
             } else {
-                throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e));
+                throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 错误信息：" + ExceptionUtil.getErrorMessage(e));
             }
         } catch (Exception e1) {
-            throw new RuntimeException("连接信息：" + url + " 错误信息：" + ExceptionUtil.getErrorMessage(e1));
+            throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 错误信息：" + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
         }
@@ -311,17 +310,18 @@ public final class DBUtil {
         return result;
     }
 
-    public static boolean executeSqlWithoutResultSet(Connection connection, String sql) {
+    public static boolean executeSqlWithoutResultSet(ConnectionInfo connectionInfo, Connection connection, String sql) {
         boolean flag = true;
-        Statement deleteStmt = null;
+        Statement statement = null;
         try {
-            deleteStmt = connection.createStatement();
-            executeSqlWithoutResultSet(deleteStmt, sql);
+            statement = connection.createStatement();
+            statement.setQueryTimeout(connectionInfo.getTimeout());
+            executeSqlWithoutResultSet(statement, sql);
         } catch (Exception e) {
             flag = false;
             throw new RuntimeException(String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
         } finally {
-            DBUtil.closeDBResources(null, deleteStmt, null);
+            DBUtil.closeDBResources(null, statement, null);
         }
 
         return flag;
@@ -355,7 +355,7 @@ public final class DBUtil {
         private String jdbcUrl;
         private String username;
         private String password;
-        private String socketTimeout;
+        private int timeout = 30000;
         private String jobId;
         private String plugin;
         private Map<String, Object> hiveConf;
@@ -400,14 +400,6 @@ public final class DBUtil {
             this.password = password;
         }
 
-        public String getSocketTimeout() {
-            return socketTimeout;
-        }
-
-        public void setSocketTimeout(String socketTimeout) {
-            this.socketTimeout = socketTimeout;
-        }
-
         public Map<String, Object> getHiveConf() {
             return hiveConf;
         }
@@ -416,13 +408,21 @@ public final class DBUtil {
             this.hiveConf = hiveConf;
         }
 
+        public int getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(int timeout) {
+            this.timeout = timeout;
+        }
+
         @Override
         public String toString() {
             return "ConnectionInfo{" +
                     "jdbcUrl='" + jdbcUrl + '\'' +
                     ", username='" + username + '\'' +
                     ", password='" + password + '\'' +
-                    ", socketTimeout='" + socketTimeout + '\'' +
+                    ", timeout='" + timeout + '\'' +
                     ", jobId='" + jobId + '\'' +
                     ", plugin='" + plugin + '\'' +
                     ", hiveConf=" + hiveConf +

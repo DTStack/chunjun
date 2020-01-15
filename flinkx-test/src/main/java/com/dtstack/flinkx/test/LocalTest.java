@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -113,11 +111,9 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-//        setLogLevel(Level.INFO.toString());
-
         Properties confProperties = new Properties();
-        confProperties.put("flink.checkpoint.interval", "60000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+//        confProperties.put("flink.checkpoint.interval", "60000");
+//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
@@ -129,13 +125,6 @@ public class LocalTest {
         String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\logminer_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
-    }
-
-    private static void setLogLevel(String level){
-        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
-        //设置全局日志级别
-        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
