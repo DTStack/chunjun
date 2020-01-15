@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.PrivilegedAction;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -122,10 +123,6 @@ public class FileSystemUtil {
         fillConfig(confMap, defaultFs);
 
         Configuration conf = new Configuration();
-        if(confMap == null){
-            return conf;
-        }
-
         confMap.forEach((key, val) -> {
             if(val != null){
                 conf.set(key, val.toString());
@@ -139,10 +136,6 @@ public class FileSystemUtil {
         fillConfig(confMap, defaultFs);
 
         JobConf jobConf = new JobConf();
-        if (confMap == null) {
-            return jobConf;
-        }
-
         confMap.forEach((key, val) -> {
             if(val != null){
                 jobConf.set(key, val.toString());
@@ -154,7 +147,7 @@ public class FileSystemUtil {
 
     private static void fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
-            return;
+            confMap = new HashMap<>();
         }
 
         if (isHaMode(confMap)) {

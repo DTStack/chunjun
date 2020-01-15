@@ -292,6 +292,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-serde</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kafka11-reader</artifactId>
             <version>1.6</version>

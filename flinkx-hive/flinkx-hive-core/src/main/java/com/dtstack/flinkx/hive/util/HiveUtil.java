@@ -19,10 +19,6 @@
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
-import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.io.BytesWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +37,7 @@ public class HiveUtil {
 
     private static Logger logger = LoggerFactory.getLogger(HiveUtil.class);
 
+    public static final String LEFT_BRACKETS = "(";
 
     private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
     private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
@@ -93,7 +90,7 @@ public class HiveUtil {
         try {
             connection = DBUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
@@ -111,7 +108,7 @@ public class HiveUtil {
     private void createTable(Connection connection, TableInfo tableInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);
@@ -215,7 +212,19 @@ public class HiveUtil {
         return fieldsb.toString();
     }
 
-    public static String convertType(String type) {
+    public static String getHiveColumnType(String originType) {
+        originType = originType.trim();
+        int indexOfBrackets = originType.indexOf(LEFT_BRACKETS);
+        if (indexOfBrackets > -1) {
+            String type = originType.substring(0, indexOfBrackets);
+            String params = originType.substring(indexOfBrackets);
+            return convertType(type) + params;
+        } else {
+            return convertType(originType);
+        }
+    }
+
+    private static String convertType(String type) {
         switch (type.toUpperCase()) {
             case "BIT":
             case "TINYINT":
@@ -284,52 +293,5 @@ public class HiveUtil {
                 type = "STRING";
         }
         return type;
-    }
-
-    public static ObjectInspector columnTypeToObjectInspetor(String columnType) {
-        ObjectInspector objectInspector;
-        switch (columnType.toUpperCase()) {
-            case "TINYINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "SMALLINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "INT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BIGINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "FLOAT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DOUBLE":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DECIMAL":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(HiveDecimalWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "TIMESTAMP":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Timestamp.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DATE":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Date.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "STRING":
-            case "VARCHAR":
-            case "CHAR":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BOOLEAN":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BINARY":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(BytesWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            default:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-        }
-        return objectInspector;
     }
 }
