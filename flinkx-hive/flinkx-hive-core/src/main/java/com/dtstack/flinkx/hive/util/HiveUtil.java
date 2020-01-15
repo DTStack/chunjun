@@ -213,6 +213,7 @@ public class HiveUtil {
     }
 
     public static String getHiveColumnType(String originType) {
+        originType = originType.trim();
         int indexOfBrackets = originType.indexOf(LEFT_BRACKETS);
         if (indexOfBrackets > -1) {
             String type = originType.substring(0, indexOfBrackets);
