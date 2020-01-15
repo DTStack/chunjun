@@ -199,7 +199,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % 1000 == 0) {
-                LOG.warn("写入hdfs", e);
+                LOG.warn("写入hdfs异常:", e);
             }
         }
     }
