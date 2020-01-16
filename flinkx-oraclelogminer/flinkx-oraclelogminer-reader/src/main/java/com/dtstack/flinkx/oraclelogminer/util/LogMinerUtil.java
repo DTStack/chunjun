@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.oraclelogminer.util;
 
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -96,6 +97,8 @@ public class LogMinerUtil {
 
     public static List<String> EXCLUDE_SCHEMAS = Arrays.asList("SYS");
 
+    public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
+
     public static String buildSelectSql(String listenerOptions, String listenerTables){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
 
@@ -169,8 +172,7 @@ public class LogMinerUtil {
         message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);
-        message.put("ts", timestamp.getTime());
-        message.put("ingestion", System.nanoTime());
+        message.put("ts", idWorker.nextId());
 
         String sqlRedo2=sqlRedo.replace("IS NULL", "= NULL");
         Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
