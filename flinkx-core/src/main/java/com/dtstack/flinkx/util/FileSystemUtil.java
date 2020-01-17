@@ -126,7 +126,7 @@ public class FileSystemUtil {
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
-        fillConfig(confMap, defaultFs);
+        confMap = fillConfig(confMap, defaultFs);
 
         Configuration conf = new Configuration();
         confMap.forEach((key, val) -> {
@@ -139,7 +139,7 @@ public class FileSystemUtil {
     }
 
     public static JobConf getJobConf(Map<String, Object> confMap, String defaultFs){
-        fillConfig(confMap, defaultFs);
+        confMap = fillConfig(confMap, defaultFs);
 
         JobConf jobConf = new JobConf();
         confMap.forEach((key, val) -> {
@@ -151,7 +151,7 @@ public class FileSystemUtil {
         return jobConf;
     }
 
-    private static void fillConfig(Map<String, Object> confMap, String defaultFs) {
+    private static Map<String, Object> fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
             confMap = new HashMap<>();
         }
@@ -167,6 +167,7 @@ public class FileSystemUtil {
         }
 
         confMap.put(KEY_FS_HDFS_IMPL_DISABLE_CACHE, "true");
+        return confMap;
     }
 
     private static boolean isHaMode(Map<String, Object> confMap){
