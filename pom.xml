@@ -52,6 +52,7 @@
         <hadoop.version>2.7.3</hadoop.version>
         <dev.path>${basedir}/dev</dev.path>
         <projectVersion>1.8.4_rc0</projectVersion>
+        <scriptType>sh</scriptType>
     </properties>
 
     <dependencies>

@@ -11,5 +11,7 @@
 
     <artifactId>flinkx-teradata-core</artifactId>
 
+    <dependencies>
 
+    </dependencies>
 </project>
