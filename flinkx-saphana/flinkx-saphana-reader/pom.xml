@@ -11,25 +11,6 @@
 
     <artifactId>flinkx-saphana-reader</artifactId>
 
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <package.name>${package.name}</package.name>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-
-        <profile>
-            <id>release</id>
-            <properties>
-                <package.name>release</package.name>
-            </properties>
-        </profile>
-    </profiles>
-
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
