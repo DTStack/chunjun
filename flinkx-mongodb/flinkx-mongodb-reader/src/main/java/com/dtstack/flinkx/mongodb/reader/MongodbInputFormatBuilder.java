@@ -74,6 +74,10 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         format.filterJson = filter;
     }
 
+    public void setProjection(String projection) {
+        format.projectionJson = projection;
+    }
+
     @Override
     protected void checkFormat() {
         if(format.collectionName == null){

@@ -40,6 +40,8 @@ public class MongodbConfigKeys {
 
     public final static String KEY_FILTER = "filter";
 
+    public final static String KEY_PROJECTION = "projection";
+
     public final static String KEY_FETCH_SIZE = "fetchSize";
 
     public final static String KEY_MODE = "writeMode";

@@ -60,6 +60,8 @@ public class MongodbReader extends DataReader {
 
     protected int fetchSize;
 
+    protected String projection;
+
     public MongodbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
@@ -73,6 +75,7 @@ public class MongodbReader extends DataReader {
         filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
         fetchSize = readerConfig.getParameter().getIntVal(KEY_FETCH_SIZE, 100);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+        projection = readerConfig.getParameter().getStringVal(KEY_PROJECTION);
 
         mongodbConfig = (Map<String,Object>)readerConfig.getParameter().getVal(KEY_MONGODB_CONFIG, new HashMap<>());
         mongodbConfig.put(KEY_HOST_PORTS, hostPorts);
@@ -91,6 +94,7 @@ public class MongodbReader extends DataReader {
         builder.setDatabase(database);
         builder.setCollection(collection);
         builder.setFilter(filter);
+        builder.setProjection(projection);
         builder.setMetaColumns(metaColumns);
         builder.setMongodbConfig(mongodbConfig);
         builder.setFetchSize(fetchSize);

@@ -1,0 +1,128 @@
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "username": "SYSTEM",
+                        "password": "Alz745631289",
+                        "connection": [
+                            {
+                                "jdbcUrl": [
+                                    "jdbc:sap://172.16.8.197:39017"
+                                ],
+                                "table": [
+                                    "SYS.P_DPAPI_KEY_"
+                                ]
+                            }
+                        ],
+                        "column": [
+                            {
+                                "name": "OID",
+                                "type": "BIGINT"
+                            },
+                            {
+                                "name": "CALLER",
+                                "type": "NVARCHAR"
+                            },
+                            {
+                                "name": "RECORD_ID",
+                                "type": "NVARCHAR"
+                            },
+                            {
+                                "name": "KEY_ID",
+                                "type": "INTEGER"
+                            },
+                            {
+                                "name": "KEY",
+                                "type": "VARBINARY"
+                            },
+                            {
+                                "name": "CREATE_USER",
+                                "type": "NVARCHAR"
+                            },
+                            {
+                                "name": "CREATE_TIME",
+                                "type": "BIGINT"
+                            },
+                            {
+                                "name": "DATA_ENCRYPTION_ALGORITHM",
+                                "type": "TINYINT"
+                            },
+                            {
+                                "name": "IS_CURRENT_KEY",
+                                "type": "TINYINT"
+                            }
+                        ]
+                    },
+                    "name": "saphanareader"
+                },
+                "writer": {
+                    "name": "mysqlwriter",
+                    "parameter": {
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/cake?useCursorFetch=true",
+                                "table": [
+                                    "P_DPAPI_KEY_"
+                                ]
+                            }
+                        ],
+                        "username": "root",
+                        "password": "745631289",
+                        "column": [
+                            {
+                                "name": "OID",
+                                "type": "bigint"
+                            },
+                            {
+                                "name": "CALLER",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "RECORD_ID",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "KEY_ID",
+                                "type": "int"
+                            },
+                            {
+                                "name": "KEY",
+                                "type": "varbinary"
+                            },
+                            {
+                                "name": "CREATE_USER",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "CREATE_TIME",
+                                "type": "bigint"
+                            },
+                            {
+                                "name": "DATA_ENCRYPTION_ALGORITHM",
+                                "type": "tinyint"
+                            },
+                            {
+                                "name": "IS_CURRENT_KEY",
+                                "type": "tinyint"
+                            }
+                        ],
+                        "writeMode": "insert",
+                        "batchSize": 1024
+                    }
+                }
+            }
+        ],
+        "setting": {
+            "speed": {
+                "channel": 1,
+                "bytes": 0
+            },
+            "errorLimit": {
+                "record": 10000,
+                "percentage": 100
+            }
+        }
+    }
+}
