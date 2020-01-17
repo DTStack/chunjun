@@ -16,33 +16,26 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.teradata.writer;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.teradata.TeradataDatabaseMeta;
+import com.dtstack.flinkx.teradata.format.TeradataOutputFormat;
 
 /**
- * Database type
+ * Teradata writer plugin
  *
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author wuhui
  */
-public enum EDatabaseType {
+public class TeradataWriter extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Cassandra,
-    SapHana,
-    TeraData
+    public TeradataWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new TeradataDatabaseMeta());
+        super.builder = new JdbcOutputFormatBuilder(new TeradataOutputFormat());
+    }
+
 }

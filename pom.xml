@@ -41,6 +41,7 @@
         <module>flinkx-polardb</module>
         <module>flinkx-cassandra</module>
         <module>flinkx-saphana</module>
+        <module>flinkx-teradata</module>
     </modules>
 
     <properties>
