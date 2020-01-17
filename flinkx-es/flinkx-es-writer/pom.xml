@@ -78,7 +78,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/eswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/eswriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/eswriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

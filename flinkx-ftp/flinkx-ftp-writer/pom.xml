@@ -96,7 +96,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/ftpwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/ftpwriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/ftpwriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

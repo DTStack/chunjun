@@ -84,7 +84,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/cassandrareader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/cassandrareader/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/cassandrareader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

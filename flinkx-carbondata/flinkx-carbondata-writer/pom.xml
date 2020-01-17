@@ -92,7 +92,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/carbondatawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/carbondatawriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/carbondatawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -51,6 +51,7 @@
         <flink.version>1.8.1</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
         <dev.path>${basedir}/dev</dev.path>
+        <projectVersion>1.8.4_rc0</projectVersion>
     </properties>
 
     <dependencies>
@@ -128,7 +129,7 @@
         <profile>
             <id>release</id>
             <properties>
-                <package.name>release</package.name>
+                <package.name>${projectVersion}</package.name>
             </properties>
         </profile>
     </profiles>

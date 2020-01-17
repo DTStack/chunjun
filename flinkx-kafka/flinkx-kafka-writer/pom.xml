@@ -57,7 +57,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/kafkawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafkawriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/kafkawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

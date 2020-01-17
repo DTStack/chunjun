@@ -123,7 +123,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

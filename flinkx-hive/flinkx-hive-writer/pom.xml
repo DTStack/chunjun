@@ -117,7 +117,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hivewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hivewriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/hivewriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

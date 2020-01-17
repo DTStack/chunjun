@@ -90,7 +90,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/gbasewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/gbasewriter/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/gbasewriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -96,7 +96,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/teradatareader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/teradatareader/${project.name}-${project.version}-${package.name}.jar" />
+                                      tofile="${basedir}/../../plugins/teradatareader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
