@@ -1,0 +1,64 @@
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "username": "root",
+                        "password": "745631289",
+                        "connection": [
+                            {
+                                "jdbcUrl": [
+                                    "jdbc:mysql://127.0.0.1:3306/cake?useUnicode=true&characterEncoding=utf8"
+                                ],
+                                "table": [
+                                    "emp"
+                                ]
+                            }
+                        ],
+                        "column": [{
+                                "name": "emp_id",
+                                "type": "int"
+                            },
+                            {
+                                "name": "emp_name",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "emp_city",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "emp_phone",
+                                "type": "int"
+                            },
+                            {
+                                "name": "emp_sal",
+                                "type": "int"
+                            }]
+                    },
+                    "name": "mysqlreader"
+                },
+                "writer": {
+                    "name": "cassandrawriter",
+                    "parameter": {
+                        "host": "101.37.175.174",
+                        "keyspace": "tp",
+                        "table": "emp",
+						"column": ["emp_id", "emp_name", "emp_city", "emp_phone", "emp_sal"]
+                    }
+                }
+            }
+        ],
+    "setting": {
+		"speed": {
+			     "channel": 1,
+                 "bytes": 0
+		},
+        "errorLimit": {
+				"record": 10000,
+                "percentage": 100
+		}
+	}
+    }
+}

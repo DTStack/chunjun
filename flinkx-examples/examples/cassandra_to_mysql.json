@@ -1,0 +1,72 @@
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "host": "101.37.175.174",
+                        "keyspace": "tp",
+                        "table": "emp",
+                        "column": [
+                            "emp_id",
+                            "emp_city",
+                            "emp_name",
+                            "emp_phone",
+                            "emp_sal"
+                        ]
+                    },
+                    "name": "cassandrareader"
+                },
+                "writer": {
+                    "name": "mysqlwriter",
+                    "parameter": {
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/cake?useCursorFetch=true",
+                                "table": [
+                                    "emp"
+                                ]
+                            }
+                        ],
+                        "username": "root",
+                        "password": "745631289",
+                        "column": [
+                            {
+                                "name": "emp_id",
+                                "type": "int"
+                            },
+                            {
+                                "name": "emp_name",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "emp_city",
+                                "type": "varchar"
+                            },
+                            {
+                                "name": "emp_phone",
+                                "type": "int"
+                            },
+                            {
+                                "name": "emp_sal",
+                                "type": "int"
+                            }
+                        ],
+                        "writeMode": "insert",
+                        "batchSize": 1024
+                    }
+                }
+            }
+        ],
+        "setting": {
+            "speed": {
+                "channel": 1,
+                "bytes": 0
+            },
+            "errorLimit": {
+                "record": 10000,
+                "percentage": 100
+            }
+        }
+    }
+}
