@@ -132,14 +132,20 @@ setting包括speed、errorLimit和dirty三部分，分别描述限速、错误�
 #### 4.1.1 speed
 
 ```
-            "speed": {
-                 "channel": 3,
-                 "bytes": 0
-            }
+"speed": {
+    "bytes": 1048576,
+    "channel": 2,
+    "rebalance": false,
+    "readerChannel": 1,
+    "writerChannel": 1
+}
 ```
 
-* channel: 任务并发数
-* bytes: 每秒字节数，默认为 Long.MAX_VALUE
+* channel：任务并发数
+* readerChannel：reader的并发数，配置此参数时会覆盖channel配置的并发数，不配置或配置为-1时将使用channel配置的并发数作为reader的并发数。
+* writerChannel：writer的并发数，配置此参数时会覆盖channel配置的并发数，不配置或配置为-1时将使用channel配置的并发数作为writer的并发数。
+* rebalance：此参数配置为true时将强制对reader的数据做Rebalance，不配置此参数或者配置为false时，程序会根据reader和writer的通道数选择是否Rebalance，reader和writer的通道数一致时不使用Reblance，通道数不一致时使用Reblance。
+* bytes:：每秒字节数，默认为 Long.MAX_VALUE
 
 #### 4.1.2 errorLimit
 
@@ -234,7 +240,6 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MySQL binlog读取插件](docs/binlog.md)
 * [KafKa读取插件](docs/kafkareader.md)
 * [Kudu读取插件](docs/kudureader.md)
-
 
 ### 5.2 写入插件
 

@@ -29,6 +29,7 @@ import com.dtstack.flinkx.cassandra.writer.CassandraWriter;
 import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
 import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
@@ -82,6 +83,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
@@ -126,8 +128,9 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.jobName","108job");
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+        conf.setString("rest.bind-port", "8888");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_hdfs.json";
+        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -146,23 +149,25 @@ public class LocalTest {
 
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
+        SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 
         openCheckpointConf(env, confProperties);
 
-        env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
+        env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
 
         DataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
+        dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
 
-        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
-                new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+        if (speedConfig.isRebalance()) {
+            dataStream = dataStream.rebalance();
+        }
 
         DataWriter writer = buildDataWriter(config);
-        writer.writeData(dataStream);
+        writer.writeData(dataStream).setParallelism(speedConfig.getWriterChannel());
 
         if(StringUtils.isNotEmpty(savepointPath)){
             env.setSettings(SavepointRestoreSettings.forPath(savepointPath));

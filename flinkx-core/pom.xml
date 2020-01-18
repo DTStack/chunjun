@@ -49,6 +49,12 @@
             <version>${flink.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_2.11</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+
         <!--Use this dependency if you are using the DataStream API-->
         <dependency>
             <groupId>org.apache.flink</groupId>
