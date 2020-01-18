@@ -227,7 +227,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ### 5.1 读取插件
 
-* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbreader.md)
+* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase,SAP Hana,Teradata,Phoenix)](docs/rdbreader.md)
 * [分库分表读取插件](docs/rdbdreader.md)
 * [HDFS读取插件](docs/hdfsreader.md)
 * [HBase读取插件](docs/hbasereader.md)
@@ -240,10 +240,11 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MySQL binlog读取插件](docs/binlog.md)
 * [KafKa读取插件](docs/kafkareader.md)
 * [Kudu读取插件](docs/kudureader.md)
+* [Cassandra读取插件](docs/cassandrareader.md)
 
 ### 5.2 写入插件
 
-* [关系数据库写入插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbwriter.md)
+* [关系数据库写入插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase,SAP Hana,Teradata,Phoenix)](docs/rdbwriter.md)
 * [HDFS写入插件](docs/hdfswriter.md)
 * [HBase写入插件](docs/hbasewriter.md)
 * [Elasticsearch写入插件](docs/eswriter.md)
@@ -256,6 +257,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Kafka写入插件](docs/kafkawriter.md)
 * [Hive写入插件](docs/hivewriter.md)
 * [Kudu写入插件](docs/kuduwriter.md)
+* [Cassandra写入插件](docs/cassandrawriter.md)
 
 [断点续传和实时采集功能介绍](docs/restore.md)
 
