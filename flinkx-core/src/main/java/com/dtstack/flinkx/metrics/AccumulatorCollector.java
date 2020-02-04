@@ -32,6 +32,7 @@ import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -122,8 +123,7 @@ public class AccumulatorCollector {
 
     private void checkMonitorUrlIsValid(){
         for (String monitorUrl : monitorUrls) {
-            try {
-                URLUtil.open(monitorUrl);
+            try(InputStream ignored = URLUtil.open(monitorUrl)) {
                 return;
             } catch (Exception e) {
                 LOG.warn("Connect error with monitor url:{}", monitorUrl);
