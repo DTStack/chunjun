@@ -20,7 +20,9 @@ package com.dtstack.flinkx.oracle.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.oracle.OracleDatabaseMeta;
+import com.dtstack.flinkx.oracle.format.OracleOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
 /**
  * Oracle writer plugin
@@ -35,4 +37,8 @@ public class OracleWriter extends JdbcDataWriter {
         setDatabaseInterface(new OracleDatabaseMeta());
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new OracleOutputFormat());
+    }
 }

@@ -18,20 +18,11 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
-import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.FtpHandler;
-import com.dtstack.flinkx.ftp.SFtpHandler;
-import com.dtstack.flinkx.ftp.StandardFtpHandler;
+import com.dtstack.flinkx.ftp.*;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,55 +36,38 @@ import java.util.List;
  */
 public class FtpInputFormat extends RichInputFormat {
 
-    protected String path;
-
-    protected String host;
-
-    protected Integer port;
-
-    protected String username;
-
-    protected String password;
-
-    protected String delimiter = ",";
-
-    protected String protocol;
-
-    protected Integer timeout = 60000;
-
-    protected String connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
+    protected FtpConfig ftpConfig;
 
     protected String charsetName = "utf-8";
 
     protected List<MetaColumn> metaColumns;
 
-    protected boolean isFirstLineHeader;
-
     private transient FtpSeqBufferedReader br;
 
-    private transient FtpHandler ftpHandler;
+    private transient IFtpHandler ftpHandler;
 
     private transient String line;
 
     @Override
-    public void configure(Configuration parameters) {
-        if("sftp".equalsIgnoreCase(protocol)) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
             ftpHandler = new SFtpHandler();
         } else {
-            ftpHandler = new StandardFtpHandler();
+            ftpHandler = new FtpHandler();
         }
-        ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
+        ftpHandler.loginFtpServer(ftpConfig);
     }
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics cachedStatistics) throws IOException {
-        return null;
-    }
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
+        ftpHandler.loginFtpServer(ftpConfig);
 
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         List<String> files = new ArrayList<>();
 
+        String path = ftpConfig.getPath();
         if(path != null && path.length() > 0){
             path = path.replace("\n","").replace("\r","");
             String[] pathArray = path.split(",");
@@ -110,13 +84,9 @@ public class FtpInputFormat extends RichInputFormat {
         for(int i = 0; i < files.size(); ++i) {
             ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
         }
+
         ftpHandler.logoutFtpServer();
         return ftpInputSplits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
@@ -124,7 +94,7 @@ public class FtpInputFormat extends RichInputFormat {
         FtpInputSplit inputSplit = (FtpInputSplit)split;
         List<String> paths = inputSplit.getPaths();
 
-        if (isFirstLineHeader){
+        if (ftpConfig.getIsFirstLineHeader()){
             br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
             br.setFromLine(1);
         } else {
@@ -132,11 +102,6 @@ public class FtpInputFormat extends RichInputFormat {
             br.setFromLine(0);
         }
         br.setCharsetName(charsetName);
-
-        if(StringUtils.isNotBlank(monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), monitorUrls, bytes, 1);
-            this.byteRateLimiter.start();
-        }
     }
 
     @Override
@@ -147,7 +112,7 @@ public class FtpInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        String[] fields = line.split(delimiter);
+        String[] fields = line.split(ftpConfig.getFieldDelimiter());
         if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {

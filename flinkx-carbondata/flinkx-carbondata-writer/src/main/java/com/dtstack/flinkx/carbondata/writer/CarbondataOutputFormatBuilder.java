@@ -85,5 +85,8 @@ public class CarbondataOutputFormatBuilder extends RichOutputFormatBuilder {
         Preconditions.checkNotNull(format.database);
         Preconditions.checkNotNull(format.column);
 
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

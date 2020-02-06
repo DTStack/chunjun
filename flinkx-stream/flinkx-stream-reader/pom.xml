@@ -33,6 +33,11 @@
                         </goals>
                         <configuration>
                             <artifactSet>
+                                <excludes>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>log4j:log4j</exclude>
+                                    <exclude>ch.qos.logback:*</exclude>
+                                </excludes>
                             </artifactSet>
                             <filters>
                                 <filter>
@@ -68,7 +73,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/streamreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/streamreader/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/streamreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

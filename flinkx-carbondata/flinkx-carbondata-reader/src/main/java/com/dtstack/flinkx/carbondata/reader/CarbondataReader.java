@@ -24,6 +24,7 @@ import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,8 @@ public class CarbondataReader extends DataReader {
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
-        return createInput(builder.finish(), "carbonreader");
+        builder.setLogConfig(logConfig);
+        return createInput(builder.finish());
     }
 
 }

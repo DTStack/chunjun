@@ -20,17 +20,17 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
 import static com.dtstack.flinkx.ftp.FtpConfigKeys.*;
 
@@ -42,52 +42,37 @@ import static com.dtstack.flinkx.ftp.FtpConfigKeys.*;
  */
 public class FtpWriter extends DataWriter{
 
-    private String protocol;
-    private String host;
-    private int port;
-    private String username;
-    private String password;
-    private String writeMode;
-    private String encoding;
-    private String connectPattern;
-    private String path;
-    private String fieldDelimiter;
-
     private List<String> columnName;
     private List<String> columnType;
+    private FtpConfig ftpConfig;
 
     public FtpWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        host = writerConfig.getParameter().getStringVal(KEY_HOST);
-        protocol = writerConfig.getParameter().getStringVal(KEY_PROTOCOL, DEFAULT_FTP_PROTOCOL);
 
-        if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
-            port = writerConfig.getParameter().getIntVal(KEY_PORT, DEFAULT_SFTP_PORT);
-        } else {
-            port = writerConfig.getParameter().getIntVal(KEY_PORT, DEFAULT_FTP_PORT);
+        try {
+            ftpConfig = objectMapper.readValue(objectMapper.writeValueAsString(writerConfig.getParameter().getAll()), FtpConfig.class);
+        } catch (Exception e) {
+            throw new RuntimeException("解析ftpConfig配置出错:", e);
         }
 
-        username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
-        password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        writeMode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE);
-        encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
-        connectPattern = writerConfig.getParameter().getStringVal(KEY_CONNECT_PATTERN, DEFAULT_FTP_CONNECT_PATTERN);
-        path = writerConfig.getParameter().getStringVal(KEY_PATH);
+        if (ftpConfig.getPort() == null) {
+            ftpConfig.setDefaultPort();
+        }
 
-        fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, DEFAULT_FIELD_DELIMITER);
-        if(!fieldDelimiter.equals(DEFAULT_FIELD_DELIMITER)) {
-            fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
+        if(!DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
+            String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
+            ftpConfig.setFieldDelimiter(fieldDelimiter);
         }
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null || columns.size() != 0) {
+        if(columns != null && columns.size() != 0) {
             columnName = new ArrayList<>();
             columnType = new ArrayList<>();
             for(int i = 0; i < columns.size(); ++i) {
                 Map sm = (Map) columns.get(i);
-                columnName.add((String) sm.get("name"));
-                columnType.add((String) sm.get("type"));
+                columnName.add(String.valueOf(sm.get("name")));
+                columnType.add(String.valueOf(sm.get("type")));
             }
         }
     }
@@ -95,29 +80,18 @@ public class FtpWriter extends DataWriter{
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
-        builder.setProtocol(protocol);
+        builder.setFtpConfig(ftpConfig);
+        builder.setPath(ftpConfig.getPath());
+        builder.setMaxFileSize(ftpConfig.getMaxFileSize());
         builder.setMonitorUrls(monitorUrls);
-        builder.setPort(port);
-        builder.setPath(path);
-        builder.setUsername(username);
-        builder.setPassword(password);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
-        builder.setDelimiter(fieldDelimiter);
-        builder.setEncoding(encoding);
         builder.setErrors(errors);
-        builder.setHost(host);
-        builder.setConnectPattern(connectPattern);
-        builder.setWriteMode(writeMode);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
+        builder.setRestoreConfig(restoreConfig);
 
-        OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("ftpwriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish());
     }
 }

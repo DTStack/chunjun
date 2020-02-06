@@ -18,8 +18,17 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 /**
@@ -32,6 +41,8 @@ public class URLUtil {
 
     private static int SLEEP_TIME_MILLI_SECOND = 2000;
 
+    private static Charset charset = Charset.forName("UTF-8");
+
     public static InputStream open(String url) throws Exception{
         return RetryUtil.executeWithRetry(new Callable<InputStream>() {
             @Override
@@ -39,5 +50,50 @@ public class URLUtil {
                 return new URL(url).openStream();
             }
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+    }
+
+    public static void get(String url, long sleepTime, int retryTimes, Callback callback){
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            int num = 0;
+            while (true) {
+                String response = URLUtil.get(httpClient, url);
+                callback.call(response);
+                if (callback.isReturn() || num > retryTimes) {
+                    return ;
+                }
+
+                num++;
+                Thread.sleep(sleepTime);
+            }
+        } catch (Exception e) {
+            callback.processError(e);
+        }
+    }
+
+    public static String get(CloseableHttpClient httpClient, String url) throws Exception{
+        return RetryUtil.executeWithRetry(new Callable<String>() {
+            @Override
+            public String call() throws Exception{
+                String respBody = null;
+                HttpGet httpGet = new HttpGet(url);
+                CloseableHttpResponse response = httpClient.execute(httpGet);
+
+                if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+                    HttpEntity entity = response.getEntity();
+                    respBody = EntityUtils.toString(entity,charset);
+                }
+
+                response.close();
+                return respBody;
+            }
+        },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+    }
+
+    public static interface Callback{
+        void call(String response);
+
+        boolean isReturn();
+
+        void processError(Exception e);
     }
 }

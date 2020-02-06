@@ -80,8 +80,6 @@ public abstract class AbstractRecordWriter {
 
     protected List<String[]> data = new ArrayList<>();
 
-    protected boolean dictionaryCreated = false;
-
     public AbstractRecordWriter(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }

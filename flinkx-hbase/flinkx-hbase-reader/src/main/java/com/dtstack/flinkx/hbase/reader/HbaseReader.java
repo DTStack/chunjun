@@ -26,6 +26,7 @@ import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class HbaseReader extends DataReader {
     protected List<String> columnValue;
     protected List<String> columnFormat;
     protected String encoding;
-    protected Map<String,String> hbaseConfig;
+    protected Map<String,Object> hbaseConfig;
     protected String startRowkey;
     protected String endRowkey;
     protected boolean isBinaryRowkey;
@@ -55,7 +56,7 @@ public class HbaseReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         tableName = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_TABLE);
-        hbaseConfig = (Map<String, String>) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
+        hbaseConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_HBASE_CONFIG);
 
         Map range = (Map) readerConfig.getParameter().getVal(HbaseConfigKeys.KEY_RANGE);
         if(range != null) {
@@ -106,8 +107,9 @@ public class HbaseReader extends DataReader {
         builder.setScanCacheSize(scanCacheSize);
         builder.setScanBatchSize(scanBatchSize);
         builder.setMonitorUrls(monitorUrls);
+        builder.setLogConfig(logConfig);
 
-        return createInput(builder.finish(), "hbasereader");
+        return createInput(builder.finish());
     }
 
 }

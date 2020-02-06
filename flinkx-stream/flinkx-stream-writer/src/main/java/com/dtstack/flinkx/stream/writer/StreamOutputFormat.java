@@ -20,19 +20,25 @@ package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.StringUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * OutputFormat for stream writer
  *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
 public class StreamOutputFormat extends RichOutputFormat {
 
     protected boolean print;
+    protected String writeDelimiter;
+
+    protected List<MetaColumn> metaColumns;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -41,17 +47,32 @@ public class StreamOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (print){
-            System.out.println(row);
+        if (print) {
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
+        }
+
+        if (restoreConfig.isRestore()) {
+            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if (print){
+        if (print) {
             for (Row row : rows) {
-                System.out.println(row);
+                LOG.info(String.valueOf(row));
             }
         }
+    }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.getArity(); i++) {
+            if (i > 0) {
+                sb.append(writeDelimiter);
+            }
+            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+        }
+        return sb.toString();
     }
 }

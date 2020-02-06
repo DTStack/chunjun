@@ -44,12 +44,18 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
             case "PARQUET":
                 format = new HdfsParquetInputFormat();
                 break;
+            default:
+                format = new HdfsTextInputFormat();
         }
         super.format = format;
     }
 
-    public void setHadoopConfig(Map<String,String> hadoopConfig) {
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
+    }
+
+    public void setFilterRegex(String filterRegex){
+        format.filterRegex = filterRegex;
     }
 
     public void setMetaColumn(List<MetaColumn> metaColumn) {
@@ -73,6 +79,8 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -93,7 +95,7 @@ public class MetaColumn implements Serializable {
         this.timeFormat = timeFormat;
     }
 
-    public static List<MetaColumn> getMetaColumns(List columns){
+    public static List<MetaColumn> getMetaColumns(List columns, boolean generateIndex){
         List<MetaColumn> metaColumns = new ArrayList<>();
         if(columns != null && columns.size() > 0) {
             if (columns.get(0) instanceof Map) {
@@ -108,6 +110,12 @@ public class MetaColumn implements Serializable {
                         } else if(colIndex instanceof Double) {
                             Double doubleColIndex = (Double) colIndex;
                             mc.setIndex(doubleColIndex.intValue());
+                        }
+                    } else {
+                        if (generateIndex) {
+                            mc.setIndex(i);
+                        } else {
+                            mc.setIndex(-1);
                         }
                     }
 
@@ -142,6 +150,10 @@ public class MetaColumn implements Serializable {
         return metaColumns;
     }
 
+    public static List<MetaColumn> getMetaColumns(List columns){
+        return getMetaColumns(columns, true);
+    }
+
     public static List<String> getColumnNames(List columns){
         List<String> columnNames = new ArrayList<>();
 
@@ -151,5 +163,16 @@ public class MetaColumn implements Serializable {
         }
 
         return columnNames;
+    }
+
+    public static MetaColumn getMetaColumn(List columns, String name){
+        List<MetaColumn> metaColumns = getMetaColumns(columns);
+        for (MetaColumn metaColumn : metaColumns) {
+            if(StringUtils.isNotEmpty(metaColumn.getName()) && metaColumn.getName().equals(name)){
+                return metaColumn;
+            }
+        }
+
+        return null;
     }
 }

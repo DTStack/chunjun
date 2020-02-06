@@ -20,8 +20,11 @@ package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.writer.WriteMode;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -70,18 +73,37 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
         format.replaceKey = replaceKey;
     }
 
+
+    public void setMongodbConfig(Map<String,Object> mongodbConfig){
+        format.mongodbConfig = mongodbConfig;
+    }
+
     @Override
     protected void checkFormat() {
-        if(format.hostPorts == null){
-            throw new IllegalArgumentException("No host supplied");
-        }
-
-        if(format.database == null){
-            throw new IllegalArgumentException("No database supplied");
-        }
-
         if(format.collectionName == null){
             throw new IllegalArgumentException("No collection supplied");
+        }
+
+        if(WriteMode.REPLACE.getMode().equals(format.mode) || WriteMode.UPDATE.getMode().equals(format.mode)){
+            if(StringUtils.isEmpty(format.replaceKey)){
+                throw new IllegalArgumentException("ReplaceKey cannot be empty when the write mode is replace");
+            }
+
+            boolean columnContainsReplaceKey = false;
+            for (MetaColumn column : format.columns) {
+                if (column.getName().equalsIgnoreCase(format.replaceKey)) {
+                    columnContainsReplaceKey = true;
+                    break;
+                }
+            }
+
+            if(!columnContainsReplaceKey){
+                throw new IllegalArgumentException("Cannot find replaceKey in the input fields");
+            }
+        }
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
     }
 }

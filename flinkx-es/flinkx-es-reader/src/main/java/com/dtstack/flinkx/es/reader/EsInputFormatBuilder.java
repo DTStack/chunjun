@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder class of EsInputFormat
@@ -37,6 +38,16 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
 
     public EsInputFormatBuilder setAddress(String address) {
         format.address = address;
+        return this;
+    }
+
+    public EsInputFormatBuilder setUsername(String username) {
+        format.username = username;
+        return this;
+    }
+
+    public EsInputFormatBuilder setPassword(String password) {
+        format.password = password;
         return this;
     }
 
@@ -65,9 +76,32 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
         return this;
     }
 
+    public EsInputFormatBuilder setIndex(String[] index){
+        format.index = index;
+        return this;
+    }
+
+    public EsInputFormatBuilder setType(String[] type){
+        format.type = type;
+        return this;
+    }
+
+    public EsInputFormatBuilder setBatchSize(Integer batchSize){
+        if(batchSize != null && batchSize > 0){
+            format.batchSize = batchSize;
+        }
+        return this;
+    }
+
+    public EsInputFormatBuilder setClientConfig(Map<String, Object> clientConfig){
+        format.clientConfig = clientConfig;
+        return this;
+    }
 
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

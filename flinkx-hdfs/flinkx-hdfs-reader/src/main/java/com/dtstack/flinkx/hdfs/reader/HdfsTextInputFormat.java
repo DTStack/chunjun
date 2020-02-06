@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import jodd.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
@@ -27,16 +28,17 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,17 +50,23 @@ import java.util.Map;
 public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
-    protected void configureAnythingElse() {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         this.inputFormat = new TextInputFormat();
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
-        conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
-        inputFormat.configure(conf);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+
+        jobConf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
+        inputFormat.configure(jobConf);
+        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
             HdfsTextInputSplit[] hdfsTextInputSplits = new HdfsTextInputSplit[splits.length];
@@ -71,7 +79,6 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         return null;
     }
 
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
@@ -81,12 +88,9 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         value = new Text();
     }
 
-
-
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        byte[] data = ((Text)value).getBytes();
-        String line = new String(data, charsetName);
+        String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
         String[] fields = line.split(delimiter);
 
         if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
@@ -100,13 +104,13 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
 
                 Object value = null;
-                if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
-                    value = fields[metaColumn.getIndex()];
-                    if(value == null && metaColumn.getValue() != null){
-                        value = metaColumn.getValue();
-                    }
-                } else if(metaColumn.getValue() != null){
+                if(metaColumn.getValue() != null){
                     value = metaColumn.getValue();
+                } else if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
+                    String strVal = fields[metaColumn.getIndex()];
+                    if (!HdfsUtil.NULL_VALUE.equals(strVal)){
+                        value = strVal;
+                    }
                 }
 
                 if(value != null){
@@ -136,7 +140,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             format = new HdfsTextInputFormat();
         }
 
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
+        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
             format.hadoopConfig = hadoopConfig;
             return this;
         }

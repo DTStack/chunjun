@@ -1,0 +1,67 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "customSql": "",
+            "startLocation": "",
+            "increColumn": "",
+            "column": [
+              {
+                "name": "col1",
+                "type": "string",
+                "key": "col2"
+              },
+              {
+                "name": "col2",
+                "type": "string",
+                "key": "col2"
+              }
+            ],
+            "connection": [
+              {
+                "sourceId": 39,
+                "password": "root",
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3306/jiangbo"
+                ],
+                "type": 1,
+                "table": [
+                  "tb1",
+                  "tb2"
+                ],
+                "username": "root"
+              }
+            ],
+            "sourceIds": [
+              39
+            ]
+          },
+          "name": "mysqldreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "errorLimit": {
+        "record": 0
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      }
+    }
+  }
+}

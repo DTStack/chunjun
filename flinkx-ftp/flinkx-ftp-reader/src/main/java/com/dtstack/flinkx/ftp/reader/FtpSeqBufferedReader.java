@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
 
 import java.io.*;
@@ -31,7 +32,7 @@ import java.util.Iterator;
  */
 public class FtpSeqBufferedReader {
 
-    private FtpHandler ftpHandler;
+    private IFtpHandler ftpHandler;
 
     private Iterator<String> iter;
 
@@ -41,7 +42,7 @@ public class FtpSeqBufferedReader {
 
     private String charsetName = "utf-8";
 
-    public FtpSeqBufferedReader(FtpHandler ftpHandler, Iterator<String> iter) {
+    public FtpSeqBufferedReader(IFtpHandler ftpHandler, Iterator<String> iter) {
         this.ftpHandler = ftpHandler;
         this.iter = iter;
     }
@@ -54,7 +55,7 @@ public class FtpSeqBufferedReader {
         if(br != null){
             String line = br.readLine();
             if (line == null){
-                br = null;
+                close();
                 return readLine();
             }
 
@@ -65,8 +66,6 @@ public class FtpSeqBufferedReader {
     }
 
     private void nextStream() throws IOException{
-        close();
-
         if(iter.hasNext()){
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
@@ -88,6 +87,10 @@ public class FtpSeqBufferedReader {
         if (br != null){
             br.close();
             br = null;
+
+            if (ftpHandler instanceof FtpHandler){
+                ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
+            }
         }
     }
 

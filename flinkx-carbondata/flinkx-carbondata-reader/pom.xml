@@ -24,7 +24,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -32,20 +32,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
-                                    <!--from com.dtstack.flinkx:core-->
-                                    <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <exclude>com.dtstack.flinkx:flinkx-rdb</exclude>
-                                    <!--reader do not exclude gson-->
-                                    <!--from org.apache.flink:*-->
-                                    <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>xerces:xercesImpl</exclude>
+                                    <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j12</exclude>
+                                    <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -58,6 +55,16 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>shade.carbondatareader.io.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>shade.carbondatareader.com.google</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

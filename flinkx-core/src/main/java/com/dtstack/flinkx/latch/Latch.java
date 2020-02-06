@@ -28,13 +28,13 @@ import com.dtstack.flinkx.util.SysUtil;
  */
 public abstract class Latch {
 
-    protected int max_retry_times = 1000;
+    protected int MAX_RETRY_TIMES = 100;
 
     public abstract int getVal();
 
     public void waitUntil(int val) {
         int i = 0;
-        for(; i < max_retry_times; ++i) {
+        for(; i < MAX_RETRY_TIMES; ++i) {
             if(getVal() == val) {
                 clear();
                 break;
@@ -42,7 +42,7 @@ public abstract class Latch {
             sleep();
         }
 
-        if(i == max_retry_times) {
+        if(i == MAX_RETRY_TIMES) {
             throw new RuntimeException("Can't wait any longer because max retry times exceeded.");
         }
     }

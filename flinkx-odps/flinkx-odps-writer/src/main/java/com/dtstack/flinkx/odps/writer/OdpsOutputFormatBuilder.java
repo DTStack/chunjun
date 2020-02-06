@@ -67,8 +67,14 @@ public class OdpsOutputFormatBuilder extends RichOutputFormatBuilder {
         this.format.writeMode = StringUtils.isBlank(writeMode) ? "APPEND" : writeMode.toUpperCase();
     }
 
+    public void setBufferSize(long bufferSize){
+        format.bufferSize = bufferSize;
+    }
+
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The builder for mongodb reader plugin
@@ -61,22 +62,26 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         format.metaColumns = metaColumns;
     }
 
+    public void setMongodbConfig(Map<String,Object> mongodbConfig){
+        format.mongodbConfig = mongodbConfig;
+    }
+
+    public void setFetchSize(int fetchSize){
+        format.fetchSize = fetchSize;
+    }
+
     public void setFilter(String filter){
         format.filterJson = filter;
     }
 
     @Override
     protected void checkFormat() {
-        if(format.hostPorts == null){
-            throw new IllegalArgumentException("No host supplied");
-        }
-
-        if(format.database == null){
-            throw new IllegalArgumentException("No database supplied");
-        }
-
         if(format.collectionName == null){
             throw new IllegalArgumentException("No collection supplied");
+        }
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
     }
 }

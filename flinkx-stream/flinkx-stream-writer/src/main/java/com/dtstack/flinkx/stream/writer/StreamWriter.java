@@ -19,11 +19,13 @@
 package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+
+import java.util.List;
 
 /**
  * This write plugin is used to test the performance of the read plugin, and the plugin directly discards the read data.
@@ -34,21 +36,35 @@ import org.apache.flink.types.Row;
 public class StreamWriter extends DataWriter {
 
     protected boolean print;
+    protected String writeDelimiter;
+    protected int batchInterval;
+
+
+    private List<MetaColumn> metaColumns;
 
     public StreamWriter(DataTransferConfig config) {
         super(config);
         print = config.getJob().getContent().get(0).getWriter().getParameter().getBooleanVal("print",false);
+        writeDelimiter = config.getJob().getContent().get(0).getWriter().getParameter().getStringVal("writeDelimiter", "|");
+        batchInterval = config.getJob().getContent().get(0).getWriter().getParameter().getIntVal("batchInterval", 20);
+
+        List column = config.getJob().getContent().get(0).getWriter().getParameter().getColumn();
+        metaColumns = MetaColumn.getMetaColumns(column);
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setPrint(print);
+        builder.setRestoreConfig(restoreConfig);
+        builder.setWriteDelimiter(writeDelimiter);
+        builder.setMonitorUrls(monitorUrls);
+        builder.setMetaColumn(metaColumns);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
+        builder.setBatchInterval(batchInterval);
 
-        OutputFormatSinkFunction formatSinkFunction = new OutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
-        dataStreamSink.name("streamwriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish());
     }
 }

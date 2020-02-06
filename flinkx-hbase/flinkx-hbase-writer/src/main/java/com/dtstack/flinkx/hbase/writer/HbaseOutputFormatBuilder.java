@@ -21,7 +21,7 @@ package com.dtstack.flinkx.hbase.writer;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         format.tableName = tableName;
     }
 
-    public void setHbaseConfig(Map<String,String> hbaseConfig) {
+    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 
@@ -55,16 +55,8 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         format.columnNames = columnNames;
     }
 
-    public void setRowkeyColumnIndices(List<Integer> rowkeyColumnIndices) {
-        format.rowkeyColumnIndices = rowkeyColumnIndices;
-    }
-
-    public void setRowkeyColumnTypes(List<String> rowkeyColumnTypes) {
-        format.rowkeyColumnTypes = rowkeyColumnTypes;
-    }
-
-    public void setRowkeyColumnValues(List<String> rowkeyColumnValues) {
-        format.rowkeyColumnValues = rowkeyColumnValues;
+    public void setRowkeyExpress(String rowkeyExpress) {
+        format.rowkeyExpress = rowkeyExpress;
     }
 
     public void setVersionColumnIndex(Integer versionColumnIndex) {
@@ -113,8 +105,10 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         Preconditions.checkNotNull(format.hbaseConfig);
         Preconditions.checkNotNull(format.columnNames);
         Preconditions.checkNotNull(format.columnTypes);
-        Preconditions.checkNotNull(format.rowkeyColumnIndices);
-        Preconditions.checkNotNull(format.rowkeyColumnTypes);
-        Preconditions.checkNotNull(format.rowkeyColumnValues);
+        Preconditions.checkNotNull(format.rowkeyExpress);
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,11 +20,18 @@ package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
+import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,17 +48,19 @@ public abstract class DataWriter {
 
     protected String monitorUrls;
 
-    protected PluginLoader pluginLoader;
-
     protected Integer errors;
 
     protected Double errorRatio;
 
     protected String dirtyPath;
 
-    protected Map<String,String> dirtyHadoopConfig;
+    protected Map<String, Object> dirtyHadoopConfig;
+
+    protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
+
+    protected static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -61,57 +70,70 @@ public abstract class DataWriter {
         this.srcCols = srcCols;
     }
 
-    public PluginLoader getPluginLoader() {
-        return pluginLoader;
-    }
-
-    public void setPluginLoader(PluginLoader pluginLoader) {
-        this.pluginLoader = pluginLoader;
-    }
-
     public DataWriter(DataTransferConfig config) {
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
         this.errors = config.getJob().getSetting().getErrorLimit().getRecord();
         Double percentage = config.getJob().getSetting().getErrorLimit().getPercentage();
-        if(percentage != null){
+        if (percentage != null) {
             this.errorRatio = percentage / 100.0;
         }
 
-        DirtyConfig dirtyConfig =  config.getJob().getSetting().getDirty();
-        if(dirtyConfig != null) {
+        DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
+        if (dirtyConfig != null) {
             String dirtyPath = dirtyConfig.getPath();
-            Map<String,String> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
-            if(dirtyPath != null) {
+            Map<String, Object> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
+            if (dirtyPath != null) {
                 this.dirtyPath = dirtyPath;
             }
-            if(dirtyHadoopConfig != null) {
+            if (dirtyHadoopConfig != null) {
                 this.dirtyHadoopConfig = dirtyHadoopConfig;
             }
         }
 
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+        parseSrcColumnNames(columns);
 
-        if(columns == null || columns.size() == 0) {
+        if (restoreConfig.isStream()) {
+            return;
+        }
+
+        if (restoreConfig.isRestore()) {
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if (metaColumn == null) {
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+            }
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
+        }
+    }
+
+    private void parseSrcColumnNames(List columns) {
+        if (columns == null) {
+            return;
+        }
+
+        if (columns.isEmpty()) {
             throw new RuntimeException("source columns can't be null or empty");
         }
 
-        System.out.println("src class: " + columns.get(0).getClass());
-
-        if(columns.get(0) instanceof String) {
-            for(Object column : columns) {
-                srcCols.add((String)column);
+        if (columns.get(0) instanceof String) {
+            for (Object column : columns) {
+                srcCols.add((String) column);
             }
-        } else if(columns.get(0) instanceof Map) {
-            this.srcCols = new ArrayList<>();
-            for(Object column : columns) {
-                Map<String,Object> colMap = (Map<String,Object>) column;
+            return;
+        }
+
+        if (columns.get(0) instanceof Map) {
+            for (Object column : columns) {
+                Map<String, Object> colMap = (Map<String, Object>) column;
                 String colName = (String) colMap.get("name");
-                if(StringUtils.isBlank(colName)) {
+                if (StringUtils.isBlank(colName)) {
                     Object colIndex = colMap.get("index");
-                    if(colIndex != null) {
-                        if(colIndex instanceof Integer) {
+                    if (colIndex != null) {
+                        if (colIndex instanceof Integer) {
                             colName = String.valueOf(colIndex);
-                        } else if(colIndex instanceof Double) {
+                        } else if (colIndex instanceof Double) {
                             Double doubleColIndex = (Double) colIndex;
                             colName = String.valueOf(doubleColIndex.intValue());
                         } else {
@@ -119,8 +141,8 @@ public abstract class DataWriter {
                         }
                     } else {
                         String colValue = (String) colMap.get("value");
-                        if(StringUtils.isNotBlank(colValue)) {
-                            colName = "val_" +colValue;
+                        if (StringUtils.isNotBlank(colValue)) {
+                            colName = "val_" + colValue;
                         } else {
                             throw new RuntimeException("can't determine source column name");
                         }
@@ -129,9 +151,25 @@ public abstract class DataWriter {
                 srcCols.add(colName);
             }
         }
-
     }
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
+
+    @SuppressWarnings("unchecked")
+    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
+        Preconditions.checkNotNull(dataSet);
+        Preconditions.checkNotNull(sinkName);
+        Preconditions.checkNotNull(outputFormat);
+
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        dataStreamSink.name(sinkName);
+
+        return dataStreamSink;
+    }
+
+    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat) {
+        return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
+    }
 
 }

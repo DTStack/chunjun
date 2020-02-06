@@ -91,5 +91,9 @@ public class RedisOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.keyIndexes == null || format.keyIndexes.size() == 0){
             throw new IllegalArgumentException("Field keyIndexes cannot be empty");
         }
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

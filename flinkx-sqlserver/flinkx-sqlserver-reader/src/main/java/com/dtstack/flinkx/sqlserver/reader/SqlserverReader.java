@@ -20,7 +20,9 @@ package com.dtstack.flinkx.sqlserver.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.sqlserver.SqlServerDatabaseMeta;
+import com.dtstack.flinkx.sqlserver.format.SqlserverInputFormat;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 
@@ -37,4 +39,8 @@ public class SqlserverReader extends JdbcDataReader {
         setDatabaseInterface(new SqlServerDatabaseMeta());
     }
 
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new SqlserverInputFormat());
+    }
 }

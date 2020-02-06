@@ -34,13 +34,11 @@ public class HdfsConfigKeys {
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
+    public static final String KEY_FILTER = "filterRegex";
+
     public static final String KEY_FILE_TYPE = "fileType";
 
     public static final String KEY_WRITE_MODE = "writeMode";
-
-    public static final String KEY_USERNAME = "username";
-
-    public static final String KEY_PASSWORD = "password";
 
     public static final String KEY_FULL_COLUMN_NAME_LIST = "fullColumnName";
 
@@ -52,12 +50,14 @@ public class HdfsConfigKeys {
 
     public static final String KEY_COMPRESS = "compress";
 
-    public static final String KEY_PARTITION = "partition";
-
     public static final String KEY_FILE_NAME = "fileName";
 
     public static final String KEY_ENCODING = "encoding";
 
     public static final String KEY_ROW_GROUP_SIZE = "rowGroupSize";
+
+    public static final String KEY_MAX_FILE_SIZE = "maxFileSize";
+
+    public static final String KEY_FLUSH_INTERVAL = "flushInterval";
 
 }
