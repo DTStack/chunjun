@@ -173,6 +173,10 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
 
             columnCount = resultSet.getMetaData().getColumnCount();
