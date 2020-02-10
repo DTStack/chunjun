@@ -51,6 +51,8 @@ public class AccumulatorCollector {
     private static final String KEY_NAME = "name";
     private static final String KEY_VALUE = "value";
 
+    private static final int MAX_COLLECT_ERROR_TIMES = 100;
+
     private Gson gson = new Gson();
 
     private RuntimeContext context;
@@ -70,6 +72,8 @@ public class AccumulatorCollector {
     private Map<String, ValueAccumulator> valueAccumulatorMap;
 
     private List<String> metricNames;
+
+    private long collectErrorTimes = 0;
 
     public AccumulatorCollector(String jobId, String monitorUrlStr, RuntimeContext runtimeContext, int period, List<String> metricNames){
         Preconditions.checkArgument(jobId != null && jobId.length() > 0);
@@ -215,9 +219,22 @@ public class AccumulatorCollector {
                     }
                 }
             } catch (Exception e){
+                checkErrorTimes();
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);
             }
             break;
+        }
+    }
+
+    /**
+     * 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能
+     */
+    private void checkErrorTimes() {
+        collectErrorTimes++;
+        if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES){
+            // 主动关闭线程和资源，防止异常情况下没有关闭
+            close();
+            throw new RuntimeException("更新统计数据出错次数超过最大限制100次，为了确保数据正确性，任务自动失败");
         }
     }
 
