@@ -92,6 +92,8 @@ public class FileSystemUtil {
         KerberosUtil.loadKrb5Conf(hadoopConfig);
 
         UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation.setLoginUser(ugi);
+
         return ugi.doAs(new PrivilegedAction<FileSystem>() {
             @Override
             public FileSystem run(){
