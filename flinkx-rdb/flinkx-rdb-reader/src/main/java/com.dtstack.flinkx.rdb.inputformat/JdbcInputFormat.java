@@ -36,8 +36,6 @@ import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -348,67 +346,37 @@ public class JdbcInputFormat extends RichInputFormat {
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
-            if (StringUtils.isEmpty(monitorUrls)) {
-                return;
-            }
+            maxValue = getMaxValueFromApi();
+        }
 
-            try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-
-                Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-                String jobId = vars.get("<job_id>");
-
-                String[] monitors;
-                if (monitorUrls.startsWith("http")) {
-                    monitors = new String[]{String.format("%s/jobs/%s/accumulators", monitorUrls, jobId)};
-                } else {
-                    monitors = monitorUrls.split(",");
-                    for (int i = 0; i < monitors.length; i++) {
-                        monitors[i] = String.format("http://%s/jobs/%s/accumulators", monitors[i], jobId);
-                    }
-                }
-
-                /**
-                 * The extra 10 times is to ensure that accumulator is updated
-                 */
-                int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
-
-                int acquireTimes = 0;
-                while (StringUtils.isEmpty(maxValue) && acquireTimes < maxAcquireTimes) {
-                    try {
-                        Thread.sleep(incrementConfig.getRequestAccumulatorInterval() * 1000);
-                    } catch (InterruptedException ignore) {
-                    }
-
-                    maxValue = getMaxvalueFromAccumulator(httpClient, monitors);
-                    acquireTimes++;
-                }
-
-                if (StringUtils.isEmpty(maxValue)) {
-                    throw new RuntimeException("Can't get the max value from accumulator");
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Can't get the max value from accumulator:" + e);
-            }
+        if (StringUtils.isEmpty(maxValue)) {
+            throw new RuntimeException("Can't get the max value from accumulator");
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
-    /**
-     * 从historyServer中获取增量最大值
-     *
-     * @param httpClient httpClient
-     * @param monitors   请求的URL数组
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    private String getMaxvalueFromAccumulator(CloseableHttpClient httpClient, String[] monitors) {
-        String maxValue = null;
+    public String getMaxValueFromApi(){
+        if(StringUtils.isEmpty(monitorUrls)){
+            return null;
+        }
+
+        String url = monitorUrls;
+        if (monitorUrls.startsWith("http")) {
+            url = String.format("%s/jobs/%s/accumulators", monitorUrls, jobId);
+        }
+
+        /**
+         * The extra 10 times is to ensure that accumulator is updated
+         */
+        int maxAcquireTimes = (queryTimeOut / incrementConfig.getRequestAccumulatorInterval()) + 10;
+
+        final String[] maxValue = new String[1];
         Gson gson = new Gson();
-        for (String monitor : monitors) {
-            LOG.info("Request url:" + monitor);
-            try {
-                String response = URLUtil.get(httpClient, monitor);
+        URLUtil.get(url, incrementConfig.getRequestAccumulatorInterval() * 1000, maxAcquireTimes, new URLUtil.Callback() {
+
+            @Override
+            public void call(String response) {
                 Map map = gson.fromJson(response, Map.class);
 
                 LOG.info("Accumulator data:" + gson.toJson(map));
@@ -416,20 +384,24 @@ public class JdbcInputFormat extends RichInputFormat {
                 List<Map> userTaskAccumulators = (List<Map>) map.get("user-task-accumulators");
                 for (Map accumulator : userTaskAccumulators) {
                     if (Metrics.MAX_VALUE.equals(accumulator.get("name"))) {
-                        maxValue = (String) accumulator.get("value");
+                        maxValue[0] = (String) accumulator.get("value");
                         break;
                     }
                 }
-
-                if (StringUtils.isNotEmpty(maxValue)) {
-                    break;
-                }
-            } catch (Exception e) {
-                LOG.error("Get max value from accumulator error:", e);
             }
-        }
 
-        return maxValue;
+            @Override
+            public boolean isReturn() {
+                return StringUtils.isNotEmpty(maxValue[0]);
+            }
+
+            @Override
+            public void processError(Exception e) {
+                LOG.warn("", e);
+            }
+        });
+
+        return maxValue[0];
     }
 
     /**

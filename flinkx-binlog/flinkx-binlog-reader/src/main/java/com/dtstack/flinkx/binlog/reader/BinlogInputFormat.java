@@ -136,7 +136,6 @@ public class BinlogInputFormat extends RichInputFormat {
 
         LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
         LOG.info("binlog config:{}", binlogConfig.toString());
-        System.out.println(binlogConfig);
 
         controller = new MysqlEventParser();
         controller.setConnectionCharset(Charset.forName(binlogConfig.getConnectionCharset()));

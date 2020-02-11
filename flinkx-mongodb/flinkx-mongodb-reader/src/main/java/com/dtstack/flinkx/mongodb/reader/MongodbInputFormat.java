@@ -19,13 +19,12 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.mongodb.MongodbConfigKeys;
-import com.dtstack.flinkx.mongodb.MongodbUtil;
+import com.dtstack.flinkx.mongodb.MongodbClientUtil;
+import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -47,25 +46,11 @@ import java.util.*;
  */
 public class MongodbInputFormat extends RichInputFormat {
 
-    protected String hostPorts;
-
-    protected String username;
-
-    protected String password;
-
-    protected String database;
-
-    protected String collectionName;
-
     protected List<MetaColumn> metaColumns;
 
-    protected String filterJson;
-
-    protected Map<String,Object> mongodbConfig;
-
-    protected int fetchSize;
-
     private Bson filter;
+
+    protected MongodbConfig mongodbConfig;
 
     private transient MongoCursor<Document> cursor;
 
@@ -83,13 +68,9 @@ public class MongodbInputFormat extends RichInputFormat {
         MongodbInputSplit split = (MongodbInputSplit) inputSplit;
         FindIterable<Document> findIterable;
 
-        client = MongodbUtil.getMongoClient(mongodbConfig);
-        if(StringUtils.isBlank(database)){
-            String url = (String) mongodbConfig.get(MongodbConfigKeys.KEY_URL);
-            database = new MongoClientURI(url).getDatabase();
-        }
-        MongoDatabase db = client.getDatabase(database);
-        MongoCollection<Document> collection = db.getCollection(collectionName);
+        client = MongodbClientUtil.getClient(mongodbConfig);
+        MongoDatabase db = client.getDatabase(mongodbConfig.getDatabase());
+        MongoCollection<Document> collection = db.getCollection(mongodbConfig.getCollectionName());
 
         if(filter == null){
             findIterable = collection.find();
@@ -99,7 +80,7 @@ public class MongodbInputFormat extends RichInputFormat {
 
         findIterable = findIterable.skip(split.getSkip())
                 .limit(split.getLimit())
-                .batchSize(fetchSize);
+                .batchSize(mongodbConfig.getFetchSize());
         cursor = findIterable.iterator();
     }
 
@@ -140,7 +121,7 @@ public class MongodbInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        MongodbUtil.close(client, cursor);
+        MongodbClientUtil.close(client, cursor);
     }
 
     @Override
@@ -149,13 +130,9 @@ public class MongodbInputFormat extends RichInputFormat {
 
         MongoClient client = null;
         try {
-            client = MongodbUtil.getMongoClient(mongodbConfig);
-            if(StringUtils.isBlank(database)){
-                String url = (String) mongodbConfig.get(MongodbConfigKeys.KEY_URL);
-                database = new MongoClientURI(url).getDatabase();
-            }
-            MongoDatabase db = client.getDatabase(database);
-            MongoCollection<Document> collection = db.getCollection(collectionName);
+            client = MongodbClientUtil.getClient(mongodbConfig);
+            MongoDatabase db = client.getDatabase(mongodbConfig.getDatabase());
+            MongoCollection<Document> collection = db.getCollection(mongodbConfig.getCollectionName());
 
             long docNum = filter == null ? collection.count() : collection.count(filter);
             if(docNum <= minNumSplits){
@@ -172,7 +149,7 @@ public class MongodbInputFormat extends RichInputFormat {
                 splits.add(new MongodbInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
             }
         } finally {
-            MongodbUtil.close(client, null);
+            MongodbClientUtil.close(client, null);
         }
 
         return splits.toArray(new MongodbInputSplit[splits.size()]);
@@ -184,8 +161,8 @@ public class MongodbInputFormat extends RichInputFormat {
     }
 
     private void buildFilter(){
-        if(StringUtils.isNotEmpty(filterJson)){
-            filter = BasicDBObject.parse(filterJson);
+        if(StringUtils.isNotEmpty(mongodbConfig.getFilter())){
+            filter = BasicDBObject.parse(mongodbConfig.getFilter());
         }
     }
 }

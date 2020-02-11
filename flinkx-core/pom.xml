@@ -139,7 +139,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
+            <version>${http.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -194,6 +194,10 @@
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
