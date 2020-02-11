@@ -43,7 +43,7 @@ public class KerberosUtil {
 
     public static Logger LOG = LoggerFactory.getLogger(KerberosUtil.class);
 
-    private static final String SP = File.separator;
+    private static final String SP = "/";
 
     private static final String KEY_SFTP_CONF = "sftpConf";
     private static final String KEY_REMOTE_DIR = "remoteDir";

@@ -61,11 +61,17 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     public void openInputFormat() throws IOException{
         super.openInputFormat();
 
+        FileSystem fs;
+        try {
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         orcSerde = new OrcSerde();
         inputFormat = new OrcInputFormat();
         org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
             OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
             readerOptions.filesystem(fs);
 
@@ -168,6 +174,12 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     @Override
     public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        try {
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
         JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
