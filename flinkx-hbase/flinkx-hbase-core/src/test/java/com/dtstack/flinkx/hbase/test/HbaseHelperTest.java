@@ -59,7 +59,7 @@ public class HbaseHelperTest {
         hbaseConfig.put("hbase.client.pause", "100");
         hbaseConfig.put("zookeeper.recovery.retry", "3");
 
-        Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig, "", "");
+        Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig);
         Table table = connection.getTable(TableName.valueOf("tb1"));
 
         ResultScanner rs = table.getScanner(new Scan());

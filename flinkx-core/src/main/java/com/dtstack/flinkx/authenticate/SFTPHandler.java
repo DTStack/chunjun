@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.authenticate;
 
+import com.dtstack.flinkx.util.RetryUtil;
 import com.jcraft.jsch.*;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 /**
  * @author jiangbo
@@ -55,7 +57,20 @@ public class SFTPHandler {
         this.channelSftp = channelSftp;
     }
 
-    public static SFTPHandler getInstance(Map<String, String> sftpConfig){
+    public static SFTPHandler getInstanceWithRetry(Map<String, String> sftpConfig){
+        try {
+            return RetryUtil.executeWithRetry(new Callable<SFTPHandler>() {
+                @Override
+                public SFTPHandler call() throws Exception {
+                    return getInstance(sftpConfig);
+                }
+            }, 3, 1000, false);
+        } catch (Exception e) {
+            throw new RuntimeException("获取SFTPHandler出错", e);
+        }
+    }
+
+    private static SFTPHandler getInstance(Map<String, String> sftpConfig){
         checkConfig(sftpConfig);
 
         String host = MapUtils.getString(sftpConfig, KEY_HOST);
@@ -97,7 +112,21 @@ public class SFTPHandler {
         }
     }
 
-    public void downloadFile(String ftpPath, String localPath){
+    public void downloadFileWithRetry(String ftpPath, String localPath) {
+        try {
+            RetryUtil.executeWithRetry(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    downloadFile(ftpPath, localPath);
+                    return null;
+                }
+            }, 3, 1000, false);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("下载文件失败", e);
+        }
+    }
+
+    private void downloadFile(String ftpPath, String localPath){
         if(!isFileExist(ftpPath)){
             throw new RuntimeException("File not exist on sftp:" + ftpPath);
         }
