@@ -77,14 +77,14 @@ public class HbaseInputFormat extends RichInputFormat {
         LOG.info("HbaseOutputFormat openInputFormat start");
         nameMaps = Maps.newConcurrentMap();
 
-        connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
+        connection = HbaseHelper.getHbaseConnection(hbaseConfig);
 
         LOG.info("HbaseOutputFormat openInputFormat end");
     }
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader")) {
+        try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig)) {
             return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
         }
     }
@@ -205,7 +205,7 @@ public class HbaseInputFormat extends RichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if(null == connection || connection.isClosed()){
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
         }
 
         openKerberos = HbaseHelper.openKerberos(hbaseConfig);
@@ -268,10 +268,6 @@ public class HbaseInputFormat extends RichInputFormat {
     @Override
     public void closeInternal() throws IOException {
         HbaseHelper.closeConnection(connection);
-
-        if(openKerberos){
-            KerberosUtil.clear(jobId);
-        }
     }
 
     public Object convertValueToAssignType(String columnType, String constantValue,String dateformat) throws Exception {

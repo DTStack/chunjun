@@ -65,7 +65,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         inputFormat = new OrcInputFormat();
         org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
+            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
             OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
             readerOptions.filesystem(fs);
 
