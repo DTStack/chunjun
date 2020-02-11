@@ -119,8 +119,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         connectionInfo.setUsername(username);
         connectionInfo.setPassword(password);
         connectionInfo.setHiveConf(hadoopConfig);
-        connectionInfo.setJobId(jobId);
-        connectionInfo.setPlugin("writer");
 
         hiveUtil = new HiveUtil(connectionInfo, writeMode);
     }
