@@ -148,9 +148,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             parsePartition();
         }
 
-//        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
-//        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
-
         recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
 
     }

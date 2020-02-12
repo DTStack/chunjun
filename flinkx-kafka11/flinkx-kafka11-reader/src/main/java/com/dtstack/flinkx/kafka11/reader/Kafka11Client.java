@@ -46,9 +46,11 @@ public class Kafka11Client implements IClient {
             while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                 for (ConsumerRecord<String, String> r : records) {
-                    if (r.value() == null || blankIgnore && StringUtils.isBlank(r.value())) {
+                    boolean isIgnoreCurrent = r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
+                    if (isIgnoreCurrent) {
                         continue;
                     }
+
                     try {
                         processMessage(r.value());
                     } catch (Throwable e) {

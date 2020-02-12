@@ -134,7 +134,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     }
 
     private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
             map.put(column.getName(), column.getValue());
         }

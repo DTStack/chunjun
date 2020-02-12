@@ -126,7 +126,7 @@ public class HiveWriter extends DataWriter {
          * distributeTableMapping 的数据结构为<tableName,groupName>
          * tableInfos的数据结构为<groupName,TableInfo>
          */
-        distributeTableMapping = new HashMap<String, String>();
+        distributeTableMapping = new HashMap<>();
         if (StringUtils.isNotBlank(distributeTable)) {
             Map<String, Object> distributeTableMap = gson.fromJson(distributeTable, Map.class);
             for (Map.Entry<String, Object> entry : distributeTableMap.entrySet()) {
@@ -140,7 +140,7 @@ public class HiveWriter extends DataWriter {
     }
 
     private void formatHiveTableInfo(String tablesColumn) {
-        tableInfos = new HashMap<String, TableInfo>();
+        tableInfos = new HashMap<>();
         if (StringUtils.isNotEmpty(tablesColumn)) {
             Map<String, Object> tableColumnMap = gson.fromJson(tablesColumn, Map.class);
             for (Map.Entry<String, Object> entry : tableColumnMap.entrySet()) {

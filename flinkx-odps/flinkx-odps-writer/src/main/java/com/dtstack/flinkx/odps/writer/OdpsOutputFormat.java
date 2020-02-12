@@ -30,6 +30,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
@@ -85,7 +86,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         if(taskNumber == 0) {
             Table table = OdpsUtil.getTable(odps, projectName, tableName);
             boolean truncate = false;
-            if(writeMode != null && writeMode.equalsIgnoreCase("overwrite")) {
+            if(WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
                 truncate = true;
             }
             OdpsUtil.checkTable(odps, table, partition, truncate);

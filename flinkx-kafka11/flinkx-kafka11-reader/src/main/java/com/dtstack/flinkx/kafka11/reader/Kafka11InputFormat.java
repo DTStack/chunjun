@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.kafka11.reader;
 
 import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
-import org.apache.flink.configuration.Configuration;
 
 import java.io.IOException;
 import java.util.Properties;

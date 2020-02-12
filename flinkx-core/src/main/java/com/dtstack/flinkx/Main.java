@@ -20,7 +20,7 @@ package com.dtstack.flinkx;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
@@ -154,12 +154,12 @@ public class Main {
 
     private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
         if(properties!=null){
-            String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
+            String interval = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY);
             if(StringUtils.isNotBlank(interval)){
                 env.enableCheckpointing(Long.parseLong(interval.trim()));
                 LOG.info("Open checkpoint with interval:" + interval);
             }
-            String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+            String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
             if(checkpointTimeoutStr != null){
                 long checkpointTimeout = Long.parseLong(checkpointTimeoutStr.trim());
                 //checkpoints have to complete within one min,or are discard

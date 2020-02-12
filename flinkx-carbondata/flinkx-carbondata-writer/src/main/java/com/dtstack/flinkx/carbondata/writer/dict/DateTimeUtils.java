@@ -24,11 +24,8 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 import java.util.TimeZone;
 
 
@@ -47,59 +44,40 @@ public class DateTimeUtils {
     /** see http://stackoverflow.com/questions/466321/convert-unix-timestamp-to-julian
      *it's 2440587.5, rounding up to compatible with Hive
      */
-    public static final int JULIAN_DAY_OF_EPOCH = 2440588;
-
     public static final long SECONDS_PER_DAY = 60 * 60 * 24L;
 
     public static final long MICROS_PER_SECOND = 1000L * 1000L;
 
-    public static final long NANOS_PER_SECOND = MICROS_PER_SECOND * 1000L;
-
-    public static final long MICROS_PER_DAY = MICROS_PER_SECOND * SECONDS_PER_DAY;
-
     public static final long MILLIS_PER_DAY = SECONDS_PER_DAY * 1000L;
 
     /** number of days in 400 years */
-    public static final int daysIn400Years = 146097;
+    public static final int DAYS_IN_400_YEARS = 146097;
 
     /** number of days between 1.1.1970 and 1.1.2001 */
-    public static final int to2001 = -11323;
+    public static final int TO_2001 = -11323;
 
-    /** this is year -17999, calculation: 50 * daysIn400Year */
-    public static final int YearZero = -17999;
+    public static final int TO_YEAR_ZERO = TO_2001 + 7304850;
 
-    public static final int toYearZero = to2001 + 7304850;
-
-    public static final TimeZone TimeZoneGMT = TimeZone.getTimeZone("GMT");
-
-    public static final Set MonthOf31Days = new HashSet();
-
-    public static final TimeZone defaultTimeZone = TimeZone.getDefault();
-
-    public static final ThreadLocal<TimeZone> threadLocalLocalTimeZone = new ThreadLocal<TimeZone>() {
+    public static final ThreadLocal<TimeZone> THREAD_LOCAL_LOCAL_TIMEZONE = new ThreadLocal<TimeZone>() {
         @Override
         public TimeZone initialValue() {
             return Calendar.getInstance().getTimeZone();
         }
     };
 
-    public static final ThreadLocal<DateFormat> threadLocalTimestampFormat = new ThreadLocal<DateFormat>() {
+    public static final ThreadLocal<DateFormat> THREAD_LOCAL_TIMESTAMP_FORMAT = new ThreadLocal<DateFormat>() {
         @Override
         public SimpleDateFormat initialValue() {
             return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         }
     };
 
-    public static final ThreadLocal<DateFormat> threadLocalDateFormat = new ThreadLocal<DateFormat>() {
+    public static final ThreadLocal<DateFormat> THREAD_LOCAL_DATE_FORMAT = new ThreadLocal<DateFormat>() {
         @Override
         public SimpleDateFormat initialValue() {
             return new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         }
     };
-
-    static {
-        MonthOf31Days.addAll(Arrays.asList(1, 3, 5, 7, 8, 10, 12));
-    }
 
     private DateTimeUtils() {
         // hehe
@@ -111,9 +89,9 @@ public class DateTimeUtils {
     public static String timestampToString(long us) {
         Timestamp ts = toJavaTimeStamp(us);
         String timestampString = ts.toString();
-        String formatted = threadLocalTimestampFormat.get().format(ts);
+        String formatted = THREAD_LOCAL_TIMESTAMP_FORMAT.get().format(ts);
 
-        if(timestampString.length() > 19 && !timestampString.substring(19).equals(".0")) {
+        if(timestampString.length() > 19 && !".0".equals(timestampString.substring(19))) {
             formatted += timestampString.substring(19);
         }
         return formatted;
@@ -139,7 +117,7 @@ public class DateTimeUtils {
 
 
     public static String dateToString(int days) {
-        return threadLocalDateFormat.get().format(toJavaDate(days));
+        return THREAD_LOCAL_DATE_FORMAT.get().format(toJavaDate(days));
     }
 
 
@@ -155,7 +133,7 @@ public class DateTimeUtils {
      */
     public static long daysToMillis(int days) {
         long millisLocal = (long)days * MILLIS_PER_DAY;
-        return millisLocal - getOffsetFromLocalMillis(millisLocal, threadLocalLocalTimeZone.get());
+        return millisLocal - getOffsetFromLocalMillis(millisLocal, THREAD_LOCAL_LOCAL_TIMEZONE.get());
     }
 
     /**
@@ -192,7 +170,6 @@ public class DateTimeUtils {
         return guess;
     }
 
-
     /**
      * Returns the year value for the given date. The date is expressed in days
      * since 1.1.1970.
@@ -200,16 +177,6 @@ public class DateTimeUtils {
     public static int getYear(int date) {
         return getYearAndDayInYear(date).getField(0);
     }
-
-
-    /**
-     * Returns the 'day in year' value for the given date. The date is expressed in days
-     * since 1.1.1970.
-     */
-    public static int getDayInYear(int date) {
-        return getYearAndDayInYear(date).getField(1);
-    }
-
 
     /**
      * Calculates the year and and the number of the day in the year for the given
@@ -219,9 +186,9 @@ public class DateTimeUtils {
      * equals to the period 1.1.1601 until 31.12.2000.
      */
     public static Tuple2<Integer,Integer> getYearAndDayInYear(int daysSince1970) {
-        int daysNormalized = daysSince1970 + toYearZero;
-        int numOfQuarterCenturies = daysNormalized / daysIn400Years;
-        int daysInThis400 = daysNormalized % daysIn400Years + 1;
+        int daysNormalized = daysSince1970 + TO_YEAR_ZERO;
+        int numOfQuarterCenturies = daysNormalized / DAYS_IN_400_YEARS;
+        int daysInThis400 = daysNormalized % DAYS_IN_400_YEARS + 1;
         Tuple2<Integer,Integer> tuple2 = numYears(daysInThis400);
         int years = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
@@ -351,7 +318,7 @@ public class DateTimeUtils {
     public static int millisToDays(long millisUtc) {
         // SPARK-6785: use Math.floor so negative number of days (dates before 1970)
         // will correctly work as input for function toJavaDate(Int)
-        long millisLocal = millisUtc + threadLocalLocalTimeZone.get().getOffset(millisUtc);
+        long millisLocal = millisUtc + THREAD_LOCAL_LOCAL_TIMEZONE.get().getOffset(millisUtc);
         return (int) Math.floor((double)millisLocal / MILLIS_PER_DAY);
     }
 

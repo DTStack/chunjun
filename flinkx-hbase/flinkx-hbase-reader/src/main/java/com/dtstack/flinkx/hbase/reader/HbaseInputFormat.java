@@ -49,6 +49,8 @@ import com.google.common.collect.Maps;
  */
 public class HbaseInputFormat extends RichInputFormat {
 
+    public static final String KEY_ROW_KEY = "rowkey";
+
     protected Map<String,Object> hbaseConfig;
     protected String tableName;
     protected String startRowkey;
@@ -242,7 +244,7 @@ public class HbaseInputFormat extends RichInputFormat {
                     // 常量
                     col = convertValueToAssignType(columnType, columnValue, columnFormat);
                 } else {
-                    if (columnName.equals("rowkey")) {
+                    if (KEY_ROW_KEY.equals(columnName)) {
                         bytes = next.getRow();
                     } else {
                         byte [][] arr = nameMaps.get(columnName);

@@ -24,6 +24,7 @@ package com.dtstack.flinkx.kafkaBase.reader;
  */
 public interface IClient extends Runnable {
 
+    @Override
     void run();
 
     void processMessage(String message);

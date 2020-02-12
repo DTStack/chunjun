@@ -30,7 +30,7 @@ public class MapUtil {
             if(tmp.getValue().getClass().equals(LinkedTreeMap.class) ||
                     tmp.getValue().getClass().equals(LinkedHashTreeMap.class)){
                 Map<String, Object> convert = convertToHashMap((Map)tmp.getValue());
-                HashMap<String, Object> hashMap = new HashMap<>();
+                HashMap<String, Object> hashMap = new HashMap<>(convert.size());
                 hashMap.putAll(convert);
                 tmp.setValue(hashMap);
             }

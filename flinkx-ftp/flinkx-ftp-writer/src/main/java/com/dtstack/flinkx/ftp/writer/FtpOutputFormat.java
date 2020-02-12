@@ -65,7 +65,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void openSource() throws IOException {
         if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
+            ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }

@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.metrics;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.collect.Lists;
@@ -107,7 +108,7 @@ public class AccumulatorCollector {
     private void formatMonitorUrl(String monitorUrlStr){
         if(monitorUrlStr.startsWith("http")){
             String url;
-            if(monitorUrlStr.endsWith("/")){
+            if(monitorUrlStr.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)){
                 url = monitorUrlStr + "jobs/" + jobId + "/accumulators";
             } else {
                 url = monitorUrlStr + "/jobs/" + jobId + "/accumulators";

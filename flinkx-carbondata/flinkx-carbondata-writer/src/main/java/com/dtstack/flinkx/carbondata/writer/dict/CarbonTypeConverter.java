@@ -185,7 +185,7 @@ public class CarbonTypeConverter {
                 map.put(col, value);
             }
         }
-        Map<String,String> ret = new HashMap<>();
+        Map<String,String> ret = new HashMap<>(map.size());
         for(Map.Entry<String,String> entry : map.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();

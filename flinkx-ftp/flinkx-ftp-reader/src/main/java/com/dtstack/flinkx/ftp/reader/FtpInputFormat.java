@@ -53,7 +53,7 @@ public class FtpInputFormat extends RichInputFormat {
         super.openInputFormat();
 
         if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
+            ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }

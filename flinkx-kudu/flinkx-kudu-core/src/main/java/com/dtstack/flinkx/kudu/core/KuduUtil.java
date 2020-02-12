@@ -110,7 +110,7 @@ public class KuduUtil {
             return;
         }
 
-        Map<String, Type> nameTypeMap = new HashMap<>();
+        Map<String, Type> nameTypeMap = new HashMap<>(columns.size());
         for (MetaColumn column : columns) {
             nameTypeMap.put(column.getName(), getType(column.getType()));
         }

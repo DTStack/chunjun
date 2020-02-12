@@ -20,7 +20,7 @@ package com.dtstack.flinkx.launcher;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
+import com.dtstack.flinkx.launcher.perjob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;

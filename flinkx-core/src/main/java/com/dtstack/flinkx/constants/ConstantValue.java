@@ -17,28 +17,22 @@
  */
 
 
-package com.dtstack.flinkx.ftp;
+package com.dtstack.flinkx.constants;
 
 /**
  * @author jiangbo
- * @date 2019/11/21
+ * @date 2020/2/12
  */
-public class FtpHandlerFactory {
+public class ConstantValue {
 
-    public static IFtpHandler createFtpHandler(String protocolStr){
-        IFtpHandler ftpHandler;
+    public static final String STAR_SYMBOL = "*";
 
-        Protocol protocol = Protocol.valueOf(protocolStr);
-        if(Protocol.SFTP.equals(protocol)) {
-            ftpHandler = new SftpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+    public static final String SINGLE_SLASH_SYMBOL = "/";
+    public static final String DOUBLE_SLASH_SYMBOL = "/";
 
-        return ftpHandler;
-    }
+    public static final String LEFT_PARENTHESIS = "(";
+    public static final String RIGHT_PARENTHESIS = "(";
 
-    enum Protocol{
-        FTP, SFTP
-    }
+
+
 }

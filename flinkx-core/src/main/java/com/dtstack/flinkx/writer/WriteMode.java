@@ -27,7 +27,9 @@ public enum WriteMode {
 
     UPDATE("update"),
 
-    REPLACE("replace");
+    REPLACE("replace"),
+
+    OVERWRITE("overwrite");
 
     private String mode;
 

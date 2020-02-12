@@ -42,7 +42,7 @@ public class HiveUtil {
     private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
     private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
 
-    private static final String NoSuchTableException = "NoSuchTableException";
+    private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
 
     private final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
 
@@ -144,7 +144,7 @@ public class HiveUtil {
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             logger.error("{}", e);
-            if (e.getMessage().contains(NoSuchTableException)) {
+            if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
                 throw new RuntimeException(String.format("表%s不存在", tableInfo.getTablePath()));
             } else {
                 throw e;

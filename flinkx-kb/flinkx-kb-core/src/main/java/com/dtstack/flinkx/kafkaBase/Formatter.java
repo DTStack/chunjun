@@ -48,7 +48,7 @@ public class Formatter {
         while (m.find()) {
             String match = m.group();
             String key = (String) match.subSequence(2, match.length() - 1);
-            if (key.equalsIgnoreCase("+s")) {
+            if ("+s".equalsIgnoreCase(key)) {
                 Object o = event.get("@timestamp");
                 if (o.getClass() == Long.class) {
                     m.appendReplacement(sb, o.toString());

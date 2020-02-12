@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.enums;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,16 +51,16 @@ public enum ColumnType {
             throw new RuntimeException("null ColumnType!");
         }
 
-        if(type.contains("(")){
-            type = type.substring(0, type.indexOf("("));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS));
         }
 
         return valueOf(type.toUpperCase());
     }
 
     public static ColumnType getType(String type){
-        if(type.contains("(")){
-            type = type.substring(0, type.indexOf("("));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS));
         }
 
         if(type.toLowerCase().contains("timestamp")){

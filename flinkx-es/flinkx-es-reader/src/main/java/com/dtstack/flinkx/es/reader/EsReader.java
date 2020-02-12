@@ -20,6 +20,7 @@ package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.es.EsUtil;
 import com.dtstack.flinkx.reader.DataReader;
@@ -87,7 +88,7 @@ public class EsReader extends DataReader {
                     columnName.add((String) sm.get("name"));
                 }
                 System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
+            } else if (!ConstantValue.STAR_SYMBOL.equals(columns.get(0)) || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }
         } else{

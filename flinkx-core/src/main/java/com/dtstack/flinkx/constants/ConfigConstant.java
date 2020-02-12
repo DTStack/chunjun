@@ -26,15 +26,9 @@ package com.dtstack.flinkx.constants;
  * @author sishu.yss
  *
  */
-public class ConfigConstrant {
+public class ConfigConstant {
 
     public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
 
     public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
-
-    public static final String FLINK_MAXCONCURRENTCHECKPOINTS_KEY = "flink.max.concurrent.checkpoints";
-
-    public static final String FLINK_CHECKPOINT_CLEANUPMODE_KEY = "flink.checkpoint.cleanup.mode";
-
-    public static final String FLINK_CHECKPOINT_DATAURI_KEY = "flink.checkpoint.stateBackend";
 }

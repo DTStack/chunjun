@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher.perJob;
+package com.dtstack.flinkx.launcher.perjob;
 
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonUtils;

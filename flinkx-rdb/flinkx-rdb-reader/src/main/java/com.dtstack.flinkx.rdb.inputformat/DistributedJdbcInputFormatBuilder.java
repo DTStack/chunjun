@@ -105,7 +105,8 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         String jdbcPrefix = null;
 
         for (DataSource dataSource : format.sourceList) {
-            if(!hasGlobalCountInfo && (dataSource.getUserName() == null || dataSource.getPassword() == null)){
+            boolean notSpecifyGlobalCountInfo = !hasGlobalCountInfo && (dataSource.getUserName() == null || dataSource.getPassword() == null);
+            if(notSpecifyGlobalCountInfo){
                 throw new IllegalArgumentException("Must specify a global account or specify an account for each data source");
             }
 

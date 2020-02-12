@@ -617,10 +617,7 @@ public class HiveConnection implements Connection {
 
     private boolean isHttpTransportMode() {
         String transportMode = sessConfMap.get(JdbcConnectionParams.TRANSPORT_MODE);
-        if(transportMode != null && (transportMode.equalsIgnoreCase("http"))) {
-            return true;
-        }
-        return false;
+        return "http".equalsIgnoreCase(transportMode);
     }
 
     private boolean isZkDynamicDiscoveryMode() {
@@ -660,6 +657,7 @@ public class HiveConnection implements Connection {
         }
     }
 
+    @Override
     public void abort(Executor executor) throws SQLException {
         // JDK 1.7
         throw new SQLException("Method not supported");
@@ -948,11 +946,13 @@ public class HiveConnection implements Connection {
         return new HiveDatabaseMetaData(this, client, sessHandle);
     }
 
+    @Override
     public int getNetworkTimeout() throws SQLException {
         // JDK 1.7
         throw new SQLException("Method not supported");
     }
 
+    @Override
     public String getSchema() throws SQLException {
         if (isClosed) {
             throw new SQLException("Connection is closed");
@@ -1222,8 +1222,11 @@ public class HiveConnection implements Connection {
         if (!autoCommit) {
             LOG.warn("Request to set autoCommit to false; Hive does not support autoCommit=false.");
             SQLWarning warning = new SQLWarning("Hive does not support autoCommit=false");
-            if (warningChain == null) warningChain = warning;
-            else warningChain.setNextWarning(warning);
+            if (warningChain == null){
+                warningChain = warning;
+            } else{
+                warningChain.setNextWarning(warning);
+            }
         }
     }
 
@@ -1281,6 +1284,7 @@ public class HiveConnection implements Connection {
         throw new SQLException("Method not supported");
     }
 
+    @Override
     public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
         // JDK 1.7
         throw new SQLException("Method not supported");
@@ -1330,6 +1334,7 @@ public class HiveConnection implements Connection {
         throw new SQLException("Method not supported");
     }
 
+    @Override
     public void setSchema(String schema) throws SQLException {
         // JDK 1.7
         if (isClosed) {

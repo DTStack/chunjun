@@ -150,6 +150,7 @@ public class KafkaBaseInputFormat extends RichInputFormat {
         this.consumerSettings = consumerSettings;
     }
 
+    @Override
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
     }

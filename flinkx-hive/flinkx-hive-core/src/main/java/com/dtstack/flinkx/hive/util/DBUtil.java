@@ -190,8 +190,8 @@ public final class DBUtil {
     }
 
     private static Connection connect(ConnectionInfo connectionInfo, Properties prop) {
+        lock.lock();
         try {
-            lock.lock();
             Class.forName("org.apache.hive.jdbc.HiveDriver");
             DriverManager.setLoginTimeout(connectionInfo.getTimeout());
             return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
