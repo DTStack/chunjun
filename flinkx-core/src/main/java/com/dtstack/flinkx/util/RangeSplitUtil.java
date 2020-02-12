@@ -175,7 +175,7 @@ public final class RangeSplitUtil {
             list.add(0, bigInteger.remainder(radixBigInteger).intValue());
         }
 
-        Map<Integer, Character> map = new HashMap<Integer, Character>();
+        Map<Integer, Character> map = new HashMap<>(radix);
         for (int i = 0; i < radix; i++) {
             map.put(i, (char) (i));
         }

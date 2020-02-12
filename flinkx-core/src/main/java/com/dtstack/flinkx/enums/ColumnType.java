@@ -51,19 +51,19 @@ public enum ColumnType {
             throw new RuntimeException("null ColumnType!");
         }
 
-        if(type.contains(ConstantValue.LEFT_PARENTHESIS)){
-            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
         return valueOf(type.toUpperCase());
     }
 
     public static ColumnType getType(String type){
-        if(type.contains(ConstantValue.LEFT_PARENTHESIS)){
-            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
-        if(type.toLowerCase().contains("timestamp")){
+        if(type.toLowerCase().contains(ColumnType.TIMESTAMP.name().toLowerCase())){
             return TIMESTAMP;
         }
 

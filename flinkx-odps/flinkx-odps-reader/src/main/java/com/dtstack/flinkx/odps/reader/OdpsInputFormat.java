@@ -23,6 +23,7 @@ import com.aliyun.odps.Table;
 import com.aliyun.odps.data.Record;
 import com.aliyun.odps.data.RecordReader;
 import com.aliyun.odps.tunnel.TableTunnel;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -139,7 +140,7 @@ public class OdpsInputFormat extends RichInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(record.getColumnCount());
             for (int i = 0; i < record.getColumnCount(); i++) {
                 row.setField(i,record.get(i));

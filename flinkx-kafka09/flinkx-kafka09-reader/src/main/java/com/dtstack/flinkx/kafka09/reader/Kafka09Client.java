@@ -16,9 +16,9 @@
  */
 package com.dtstack.flinkx.kafka09.reader;
 
-import com.dtstack.flinkx.kafkaBase.decoder.IDecode;
-import com.dtstack.flinkx.kafkaBase.reader.IClient;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.decoder.IDecode;
+import com.dtstack.flinkx.kafkabase.reader.IClient;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;

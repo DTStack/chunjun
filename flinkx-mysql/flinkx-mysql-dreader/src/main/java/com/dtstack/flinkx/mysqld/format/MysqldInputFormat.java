@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.mysqld.format;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
@@ -104,7 +105,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
                     currentRecord.setField(pos, obj);
                 }
 
-                if(!"*".equals(metaColumns.get(0).getName())){
+                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         Object val = currentRecord.getField(i);
                         if(val == null && metaColumns.get(i).getValue() != null){

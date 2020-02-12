@@ -15,7 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.decoder;
+package com.dtstack.flinkx.kafkabase.decoder;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
@@ -26,11 +30,23 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class PlainDecoder implements IDecode {
+public class JsonDecoder implements IDecode {
+    private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> decode(final String message) {
-        return Collections.singletonMap("message", message);
+        try {
+            Map<String, Object> event = objectMapper.readValue(message, Map.class);
+            if (!event.containsKey("message")) {
+                event.put("message", message);
+            }
+            return event;
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+            return Collections.singletonMap("message", message);
+        }
     }
-
 }

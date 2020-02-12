@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.writer;
+package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
@@ -27,7 +27,7 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.kafkaBase.KafkaConfigKeys.*;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
 
 /**
  * Date: 2019/11/21
@@ -48,7 +48,7 @@ public class KafkaBaseWriter extends DataWriter {
         timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
-        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLEFIELDS);
+        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLE_FIELDS);
     }
 
     @Override

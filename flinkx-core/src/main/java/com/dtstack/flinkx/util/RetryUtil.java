@@ -22,9 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities for handling operations that needs retrying several times
@@ -129,45 +126,4 @@ public final class RetryUtil {
             return callable.call();
         }
     }
-
-    private static class AsyncRetry extends Retry {
-
-        private long timeoutMs;
-        private ThreadPoolExecutor executor;
-
-        public AsyncRetry(long timeoutMs, ThreadPoolExecutor executor) {
-            this.timeoutMs = timeoutMs;
-            this.executor = executor;
-        }
-
-        /**
-         * 使用传入的线程池异步执行任务，并且等待。
-         * <p/>
-         * future.get()方法，等待指定的毫秒数。如果任务在超时时间内结束，则正常返回。
-         * 如果抛异常（可能是执行超时、执行异常、被其他线程cancel或interrupt），都记录日志并且网上抛异常。
-         * 正常和非正常的情况都会判断任务是否结束，如果没有结束，则cancel任务。cancel参数为true，表示即使
-         * 任务正在执行，也会interrupt线程。
-         *
-         * @param callable
-         * @param <T>
-         * @return
-         * @throws Exception
-         */
-        @Override
-        protected <T> T call(Callable<T> callable) throws Exception {
-            Future<T> future = executor.submit(callable);
-            try {
-                return future.get(timeoutMs, TimeUnit.MILLISECONDS);
-            } catch (Exception e) {
-                LOG.warn("Try once failed", e);
-                throw e;
-            } finally {
-                if (!future.isDone()) {
-                    future.cancel(true);
-                    LOG.warn("Try once task not done, cancel it, active count: " + executor.getActiveCount());
-                }
-            }
-        }
-    }
-
 }

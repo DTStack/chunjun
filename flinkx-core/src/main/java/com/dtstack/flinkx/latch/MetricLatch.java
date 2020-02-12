@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.latch;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -96,7 +97,7 @@ public class MetricLatch extends Latch {
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         jobId = vars.get("<job_id>");
 
-        if(monitors.startsWith("http")) {
+        if(monitors.startsWith(ConstantValue.KEY_HTTP)) {
             monitorRoots = monitors.split(",");
         } else {
             String[] monitor = monitors.split(",");

@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.reader;
+package com.dtstack.flinkx.kafkabase.reader;
+
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * Date: 2019/12/25
@@ -31,7 +33,11 @@ public class KafkaBaseConsumer {
 
     protected IClient client;
 
-    protected ExecutorService executor = Executors.newSingleThreadExecutor();
+    protected ExecutorService executor = new ScheduledThreadPoolExecutor(1, new BasicThreadFactory
+            .Builder()
+            .namingPattern("KafkaConsumerThread-%d")
+            .daemon(true)
+            .build());
 
     public KafkaBaseConsumer(Properties properties) {
         Properties props = new Properties();

@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.writer;
+package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.kafkaBase.decoder.JsonDecoder;
+import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;

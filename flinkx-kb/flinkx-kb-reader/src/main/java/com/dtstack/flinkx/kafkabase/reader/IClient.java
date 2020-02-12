@@ -1,5 +1,4 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -15,18 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.decoder;
-
-import java.util.Map;
+package com.dtstack.flinkx.kafkabase.reader;
 
 /**
- * Date: 2019/11/21
+ * Date: 2019/12/25
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public interface IDecode {
+public interface IClient extends Runnable {
 
-    Map<String, Object> decode(String message);
+    @Override
+    void run();
 
+    void processMessage(String message);
+
+    void close();
 }

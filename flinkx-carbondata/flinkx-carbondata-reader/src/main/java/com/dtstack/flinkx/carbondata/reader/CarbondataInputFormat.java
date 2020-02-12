@@ -228,9 +228,8 @@ public class CarbondataInputFormat extends RichInputFormat{
         Random random = new Random();
         JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
         TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
-        TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(job.getConfiguration(), attemptID);
-        return context;
+        TaskAttemptID attemptId = new TaskAttemptID(task, random.nextInt());
+        return new TaskAttemptContextImpl(job.getConfiguration(), attemptId);
     }
 
     private RecordReader createRecordReader(int pos) throws IOException, InterruptedException {

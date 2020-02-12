@@ -17,8 +17,8 @@
  */
 package com.dtstack.flinkx.kafka09.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseConsumer;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import kafka.consumer.KafkaStream;
 
 import java.util.Properties;

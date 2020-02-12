@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.kafka10.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 
 import java.io.IOException;
 import java.util.Properties;

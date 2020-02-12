@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
@@ -201,7 +202,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void moveTemporaryDataBlockFileToDirectory(){
         try {
-            if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
+            if (currentBlockFileName != null && currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)){
                 Path src = new Path(tmpPath + SP + currentBlockFileName);
                 if (!fs.exists(src)) {
                     LOG.warn("block file {} not exists", currentBlockFileName);

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.ftp.*;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -52,10 +53,12 @@ public class FtpInputFormat extends RichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
+        if(EProtocol.SFTP.name().equalsIgnoreCase(ftpConfig.getProtocol())) {
             ftpHandler = new SftpHandler();
-        } else {
+        } else if(EProtocol.FTP.name().equalsIgnoreCase(ftpConfig.getProtocol())){
             ftpHandler = new FtpHandler();
+        } else {
+            throw new RuntimeException("协议名称错误:" + ftpConfig.getProtocol());
         }
         ftpHandler.loginFtpServer(ftpConfig);
     }
@@ -76,7 +79,7 @@ public class FtpInputFormat extends RichInputFormat {
             }
         }
 
-        int numSplits = (files.size() < minNumSplits ?  files.size() : minNumSplits);
+        int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
         for(int index = 0; index < numSplits; ++index) {
             ftpInputSplits[index] = new FtpInputSplit();
@@ -113,7 +116,7 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String[] fields = line.split(ftpConfig.getFieldDelimiter());
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);

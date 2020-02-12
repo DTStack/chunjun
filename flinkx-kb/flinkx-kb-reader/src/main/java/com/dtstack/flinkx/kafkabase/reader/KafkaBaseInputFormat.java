@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.reader;
+package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.kafkaBase.decoder.IDecode;
-import com.dtstack.flinkx.kafkaBase.decoder.JsonDecoder;
-import com.dtstack.flinkx.kafkaBase.decoder.PlainDecoder;
+import com.dtstack.flinkx.kafkabase.decoder.IDecode;
+import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
+import com.dtstack.flinkx.kafkabase.decoder.PlainDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;

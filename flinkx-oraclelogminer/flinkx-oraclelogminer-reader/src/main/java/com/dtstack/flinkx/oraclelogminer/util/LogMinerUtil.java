@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.oraclelogminer.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import net.sf.jsqlparser.JSQLParserException;
@@ -261,15 +263,15 @@ public class LogMinerUtil {
     }
 
     private static String cleanString(String str) {
-        if (str.startsWith("TIMESTAMP")) {
+        if (str.startsWith(ColumnType.TIMESTAMP.name().toUpperCase())) {
             str = str.replace("TIMESTAMP ", "");
         }
 
-        if (str.startsWith("'") && str.endsWith("'")) {
+        if (str.startsWith(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL) && str.endsWith(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL)) {
             str = str.substring(1, str.length() - 1);
         }
 
-        if (str.startsWith("\"") && str.endsWith("\"")) {
+        if (str.startsWith(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL) && str.endsWith(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)) {
             str = str.substring(1, str.length() - 1);
         }
 

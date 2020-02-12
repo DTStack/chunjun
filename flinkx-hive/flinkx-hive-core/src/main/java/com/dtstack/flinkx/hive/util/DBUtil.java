@@ -59,8 +59,8 @@ public final class DBUtil {
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
 
     public static final String JDBC_REGEX = "[\\?|;|#]";
-    public static final String KEY_VAL_DELIM = "=";
-    public static final String PARAM_DELIM = "&";
+    public static final String KEY_VAL_DELIMITER = "=";
+    public static final String PARAM_DELIMITER = "&";
     public static final String KEY_PRINCIPAL = "principal";
 
     public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[0-9a-zA-Z\\.]+):(?<port>\\d+)/(?<db>[0-9a-z_%]+)(?<param>[\\?;#].*)*");
@@ -71,11 +71,6 @@ public final class DBUtil {
     public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY = "hive.server2.authentication.kerberos.keytab";
 
     private static ReentrantLock lock = new ReentrantLock();
-
-    private static final Set<Integer> NUMERICAL_SQL_TYPES = Sets.newHashSet(
-            Types.BIT, Types.TINYINT, Types.SMALLINT, Types.INTEGER, Types.BIGINT, Types.FLOAT,
-            Types.REAL, Types.DOUBLE, Types.NUMERIC, Types.DECIMAL
-    );
 
     private DBUtil() {
     }
@@ -132,14 +127,16 @@ public final class DBUtil {
 
     private static boolean openKerberos(final String jdbcUrl){
         String[] splits = jdbcUrl.split(JDBC_REGEX);
-        if (splits.length == 2) {
-            String paramsStr = splits[1];
-            String[] paramArray = paramsStr.split(PARAM_DELIM);
-            for (String param : paramArray) {
-                String[] keyVal = param.split(KEY_VAL_DELIM);
-                if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
-                    return true;
-                }
+        if (splits.length != 2) {
+            return false;
+        }
+
+        String paramsStr = splits[1];
+        String[] paramArray = paramsStr.split(PARAM_DELIMITER);
+        for (String param : paramArray) {
+            String[] keyVal = param.split(KEY_VAL_DELIMITER);
+            if(KEY_PRINCIPAL.equalsIgnoreCase(keyVal[0])){
+                return true;
             }
         }
 

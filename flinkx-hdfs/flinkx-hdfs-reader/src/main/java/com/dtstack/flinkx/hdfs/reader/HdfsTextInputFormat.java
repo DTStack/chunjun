@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
@@ -99,7 +100,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
         String[] fields = line.split(delimiter);
 
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);

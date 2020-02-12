@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
@@ -149,7 +150,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             hasNext = currentResultSet.next();
             if (hasNext){
                 currentRecord = new Row(columnCount);
-                if(!"*".equals(metaColumns.get(0).getName())){
+                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         MetaColumn metaColumn = metaColumns.get(i);
                         Object val = currentResultSet.getObject(metaColumn.getName());

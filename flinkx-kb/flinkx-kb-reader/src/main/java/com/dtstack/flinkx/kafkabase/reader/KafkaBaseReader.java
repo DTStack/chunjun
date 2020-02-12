@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkaBase.reader;
+package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
@@ -26,7 +26,7 @@ import org.apache.flink.types.Row;
 
 import java.util.Map;
 
-import static com.dtstack.flinkx.kafkaBase.KafkaConfigKeys.*;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
 
 /**
  * Date: 2019/11/21
@@ -47,7 +47,7 @@ public class KafkaBaseReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
-        groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
+        groupId = readerConfig.getParameter().getStringVal(KEY_GROUP_ID);
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
         blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);

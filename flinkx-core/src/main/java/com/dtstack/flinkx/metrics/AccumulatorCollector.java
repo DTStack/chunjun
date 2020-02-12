@@ -106,7 +106,7 @@ public class AccumulatorCollector {
     }
 
     private void formatMonitorUrl(String monitorUrlStr){
-        if(monitorUrlStr.startsWith("http")){
+        if(monitorUrlStr.startsWith(ConstantValue.KEY_HTTP)){
             String url;
             if(monitorUrlStr.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)){
                 url = monitorUrlStr + "jobs/" + jobId + "/accumulators";

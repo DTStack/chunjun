@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,12 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.kafkabase.decoder;
 
-package com.dtstack.flinkx.hive;
+import java.util.Collections;
+import java.util.Map;
 
 /**
- * @author toutian
+ * Date: 2019/11/21
+ * Company: www.dtstack.com
+ *
+ * @author tudou
  */
-public enum EWriteModeType {
-    APPEND, OVERWRITE
+public class PlainDecoder implements IDecode {
+
+    @Override
+    public Map<String, Object> decode(final String message) {
+        return Collections.singletonMap("message", message);
+    }
+
 }

@@ -23,6 +23,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 import com.dtstack.flinkx.carbondata.writer.TaskNumberGenerator;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.dict.ExternalCatalogUtils;
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
@@ -106,22 +107,22 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
     private List<String> generatePartitionList() {
         partition = partition.trim();
-        if(partition.startsWith("/")) {
+        if(partition.startsWith(ConstantValue.SINGLE_SLASH_SYMBOL)) {
             partition = partition.substring(1);
         }
-        if(partition.endsWith("/")) {
+        if(partition.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)) {
             partition = partition.substring(0, partition.length() - 1);
         }
-        String[] splits = partition.split("/");
+        String[] splits = partition.split(ConstantValue.SINGLE_SLASH_SYMBOL);
         return Arrays.asList(splits);
     }
 
     private String trimPartition(String partition) {
         partition = partition.trim();
-        if(partition.startsWith("/")) {
+        if(partition.startsWith(ConstantValue.SINGLE_SLASH_SYMBOL)) {
             partition = partition.substring(1);
         }
-        if(partition.endsWith("/")) {
+        if(partition.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)) {
             partition = partition.substring(0, partition.length() - 1);
         }
         return partition;
@@ -130,9 +131,9 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
     private Map<String,String> generatePartitionSpec(String partition) {
         Map<String,String> map = new HashMap<>();
-        String[] groups = partition.split("/");
+        String[] groups = partition.split(ConstantValue.SINGLE_SLASH_SYMBOL);
         for(String group : groups) {
-            String[] pair = group.split("=");
+            String[] pair = group.split(ConstantValue.EQUAL_SYMBOL);
             map.put(pair[0], pair[1]);
         }
         return map;
@@ -183,29 +184,25 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
     @Override
     protected void createRecordWriterList() {
-        RecordWriter recordWriter = null;
         try {
-            recordWriter = createRecordWriter(carbonLoadModel, context);
+            RecordWriter recordWriter = createRecordWriter(carbonLoadModel, context);
             recordWriterList.add(recordWriter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-
     @Override
     protected TaskAttemptContext createTaskContext() {
         Random random = new Random();
         JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
         TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
-        TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
+        TaskAttemptID attemptId = new TaskAttemptID(task, random.nextInt());
         Configuration conf = new Configuration(FileFactory.getConfiguration());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptID);
+        TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptId);
         taskNumber = generateTaskNumber(context, carbonLoadModel.getSegmentId());
         context.getConfiguration().set("carbon.outputformat.taskno", taskNumber);
         context.getConfiguration().set("carbon.outputformat.writepath", writePath + "/" + carbonLoadModel.getSegmentId() + "_" + carbonLoadModel.getFactTimeStamp() + ".tmp");
         return context;
     }
-
-
 }

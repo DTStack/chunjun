@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.kafkaBase;
+package com.dtstack.flinkx.kafkabase;
 
 /**
  * Date: 2019/11/21
@@ -27,15 +27,17 @@ package com.dtstack.flinkx.kafkaBase;
 public class KafkaConfigKeys {
 
     public static final String KEY_TOPIC = "topic";
-    public static final String KEY_GROUPID = "groupId";
+    public static final String KEY_GROUP_ID = "groupId";
     public static final String KEY_TIMEZONE = "timezone";
     public static final String KEY_CODEC = "codec";
     public static final String KEY_BLANK_IGNORE = "blankIgnore";
     public static final String KEY_CONSUMER_SETTINGS = "consumerSettings";
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
-    public static final String KEY_TABLEFIELDS = "tableFields";
+    public static final String KEY_TABLE_FIELDS = "tableFields";
 
-    //09
+    /**
+     * kafka 09
+     */
     public static final String KEY_ENCODING = "encoding";
     public static final String KEY_BROKER_LIST = "brokerList";
 }

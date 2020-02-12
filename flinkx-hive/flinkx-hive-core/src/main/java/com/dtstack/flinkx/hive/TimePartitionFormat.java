@@ -75,7 +75,21 @@ public class TimePartitionFormat {
     }
 
     public enum PartitionEnum {
-        DAY, HOUR, MINUTE
+
+        /**
+         * 天分区
+         */
+        DAY,
+
+        /**
+         * 小时分区
+         */
+        HOUR,
+
+        /**
+         * 分钟分区
+         */
+        MINUTE
     }
 
     public boolean isTimeout(long lastWriteTime) {

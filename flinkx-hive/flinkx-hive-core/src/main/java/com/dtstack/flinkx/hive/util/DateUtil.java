@@ -154,21 +154,21 @@ public class DateUtil {
     }
 
     public static long getMillSecond(String data){
-        long time  = Long.valueOf(data);
+        long longVal = Long.parseLong(data);
+        long time = longVal;
         if(data.length() == 10){
-            time = Long.valueOf(data) * 1000;
+            time = longVal * 1000;
         } else if(data.length() == 13){
-            time = Long.valueOf(data);
+            time = longVal;
         } else if(data.length() == 16){
-            time = Long.valueOf(data) / 1000;
+            time = longVal / 1000;
         } else if(data.length() == 19){
-            time = Long.valueOf(data) / 1000000 ;
+            time = longVal / 1000000 ;
         } else if(data.length() < 10){
             try {
-                long day = Long.valueOf(data);
                 Date date = datetimeFormatter.get().get(DATE_FORMAT).parse(START_TIME);
                 Calendar cal = Calendar.getInstance();
-                long addMill = date.getTime() + day * 24 * 3600 * 1000;
+                long addMill = date.getTime() + longVal * 24 * 3600 * 1000;
                 cal.setTimeInMillis(addMill);
                 time = cal.getTimeInMillis();
             } catch (Exception ignore){

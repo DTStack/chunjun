@@ -361,6 +361,25 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     }
 
     enum ReadPosition{
-        ALL, CURRENT, TIME, SCN
+
+        /**
+         * 全量读取
+         */
+        ALL,
+
+        /**
+         * 从任务运行时读取
+         */
+        CURRENT,
+
+        /**
+         * 从给定的时间读取
+         */
+        TIME,
+
+        /**
+         * 从指定的SCN开始读取
+         */
+        SCN
     }
 }

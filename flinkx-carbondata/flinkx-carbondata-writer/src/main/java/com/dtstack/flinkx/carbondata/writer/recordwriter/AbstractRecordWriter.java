@@ -90,10 +90,9 @@ public abstract class AbstractRecordWriter {
         Random random = new Random();
         JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
         TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
-        TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
+        TaskAttemptID attemptId = new TaskAttemptID(task, random.nextInt());
         Configuration conf = new Configuration(FileFactory.getConfiguration());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptID);
-        return context;
+        return new TaskAttemptContextImpl(conf, attemptId);
     }
 
     public void write(String[] record) throws IOException, InterruptedException {

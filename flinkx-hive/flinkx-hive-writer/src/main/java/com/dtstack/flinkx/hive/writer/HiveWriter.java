@@ -19,11 +19,11 @@ package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.hive.EWriteModeType;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.WriteMode;
 import com.google.gson.Gson;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,7 +100,7 @@ public class HiveWriter extends DataWriter {
         bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
-        mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, EWriteModeType.APPEND.name());
+        mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, WriteMode.APPEND.name());
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
         username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);

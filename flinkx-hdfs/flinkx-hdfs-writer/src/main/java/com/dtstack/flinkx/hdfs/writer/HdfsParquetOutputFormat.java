@@ -263,7 +263,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         int precToBytes = ParquetHiveSerDe.PRECISION_TO_BYTE_COUNT[prec - 1];
         if (precToBytes == decimalBytes.length) {
             // No padding needed.
-            return Binary.fromByteArray(decimalBytes);
+            return Binary.fromReusedByteArray(decimalBytes);
         }
 
         byte[] tgt = new byte[precToBytes];
@@ -276,7 +276,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
         // Padding leading zeroes/ones.
         System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
-        return Binary.fromByteArray(tgt);
+        return Binary.fromReusedByteArray(tgt);
     }
 
     @Override

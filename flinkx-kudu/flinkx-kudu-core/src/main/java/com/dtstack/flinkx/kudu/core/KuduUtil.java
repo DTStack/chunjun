@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.kudu.core;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -183,7 +184,7 @@ public class KuduUtil {
             return null;
         }
 
-        if(value.startsWith("\"") || value.endsWith("'")){
+        if(value.startsWith(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL) || value.endsWith(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL)){
             value = value.substring(1, value.length() - 1);
         }
 

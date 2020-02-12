@@ -17,8 +17,8 @@
  */
 package com.dtstack.flinkx.kafka10.writer;
 
-import com.dtstack.flinkx.kafkaBase.Formatter;
-import com.dtstack.flinkx.kafkaBase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

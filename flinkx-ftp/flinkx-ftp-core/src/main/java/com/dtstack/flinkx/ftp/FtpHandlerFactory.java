@@ -28,17 +28,13 @@ public class FtpHandlerFactory {
     public static IFtpHandler createFtpHandler(String protocolStr){
         IFtpHandler ftpHandler;
 
-        Protocol protocol = Protocol.valueOf(protocolStr);
-        if(Protocol.SFTP.equals(protocol)) {
+        EProtocol protocol = EProtocol.valueOf(protocolStr);
+        if(EProtocol.SFTP.equals(protocol)) {
             ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }
 
         return ftpHandler;
-    }
-
-    enum Protocol{
-        FTP, SFTP
     }
 }
