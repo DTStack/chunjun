@@ -103,7 +103,7 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(config, null, jobId, "dirty");
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null);
             Path path = new Path(location);
             stream = fs.create(path, true);
         } catch (Exception e) {

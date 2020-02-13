@@ -173,6 +173,10 @@ public class JdbcInputFormat extends RichInputFormat {
             }
 
             querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
 
             columnCount = resultSet.getMetaData().getColumnCount();
@@ -732,7 +736,7 @@ public class JdbcInputFormat extends RichInputFormat {
             LOG.info("jobId:{} taskId:{} subtaskIndex:{}", jobId, taskId, subtaskIndex);
 
             Path remotePath = new Path(conf.get("fs.defaultFS"), "/tmp/logs/admin/logs/" + jobId + "/" + taskId + "_" + subtaskIndex);
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, null, jobId, "metric");
+            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, null);
             out = FileSystem.create(fs, remotePath, new FsPermission(FsPermission.createImmutable((short) 0777)));
 
             Map<String, Object> metrics = new HashMap<>(3);

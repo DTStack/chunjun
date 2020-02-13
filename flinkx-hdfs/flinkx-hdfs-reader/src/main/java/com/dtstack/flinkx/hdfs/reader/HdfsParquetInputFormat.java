@@ -31,7 +31,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
@@ -226,14 +225,15 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     @Override
     public HdfsParquetSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         List<String> allFilePaths;
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
         HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
 
-        try (FileSystem fs = FileSystem.get(jobConf)) {
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS)) {
             allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
+        } catch (Exception e) {
+            throw new IOException(e);
         }
 
-        if(allFilePaths != null && allFilePaths.size() > 0){
+        if(allFilePaths.size() > 0){
             HdfsParquetSplit[] splits = new HdfsParquetSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
                 splits[i] = new HdfsParquetSplit(i, new ArrayList<>());
