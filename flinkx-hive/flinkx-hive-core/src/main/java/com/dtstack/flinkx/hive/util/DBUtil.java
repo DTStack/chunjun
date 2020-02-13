@@ -23,7 +23,6 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -37,11 +36,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
@@ -111,7 +108,7 @@ public final class DBUtil {
 
         UserGroupInformation ugi;
         try {
-            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytabFileName);
+            ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
         } catch (Exception e){
             throw new RuntimeException("Login kerberos error:", e);
         }

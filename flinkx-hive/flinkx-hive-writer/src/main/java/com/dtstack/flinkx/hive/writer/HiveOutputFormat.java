@@ -120,7 +120,7 @@ public class HiveOutputFormat extends RichOutputFormat {
         connectionInfo.setPassword(password);
         connectionInfo.setHiveConf(hadoopConfig);
 
-        hiveUtil = new HiveUtil(connectionInfo, writeMode);
+        hiveUtil = new HiveUtil(connectionInfo);
     }
 
     @Override

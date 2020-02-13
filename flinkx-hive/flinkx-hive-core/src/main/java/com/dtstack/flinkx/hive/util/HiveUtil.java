@@ -50,7 +50,6 @@ public class HiveUtil {
     public final static String TABLE_COLUMN_TYPE = "type";
     public final static String PARTITION_TEMPLATE = "%s=%s";
 
-    private String writeMode;
     private DBUtil.ConnectionInfo connectionInfo;
 
     enum HiveReleaseVersion{
@@ -63,9 +62,8 @@ public class HiveUtil {
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(DBUtil.ConnectionInfo connectionInfo, String writeMode) {
+    public HiveUtil(DBUtil.ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
-        this.writeMode = writeMode;
     }
 
     public void createHiveTableWithTableInfo(TableInfo tableInfo) {

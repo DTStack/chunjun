@@ -26,10 +26,14 @@ import com.dtstack.flinkx.util.SysUtil;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class Latch {
+public abstract class BaseLatch {
 
-    protected int MAX_RETRY_TIMES = 100;
+    protected static int MAX_RETRY_TIMES = 100;
 
+    /**
+     * 从Flink REST API获取累加器里的值
+     * @return 累加器里的值
+     */
     public abstract int getVal();
 
     public void waitUntil(int val) {
@@ -51,6 +55,9 @@ public abstract class Latch {
         SysUtil.sleep(300);
     }
 
+    /**
+     * 更新累加器里的值
+     */
     public abstract void addOne();
 
     protected void clear() {

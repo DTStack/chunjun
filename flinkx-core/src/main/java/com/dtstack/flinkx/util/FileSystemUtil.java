@@ -91,7 +91,7 @@ public class FileSystemUtil {
         String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
         KerberosUtil.loadKrb5Conf(hadoopConfig);
 
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
         UserGroupInformation.setLoginUser(ugi);
 
         return ugi.doAs(new PrivilegedAction<FileSystem>() {

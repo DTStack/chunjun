@@ -141,14 +141,14 @@ public class BinlogInputFormat extends RichInputFormat {
         controller.setConnectionCharset(Charset.forName(binlogConfig.getConnectionCharset()));
         controller.setSlaveId(binlogConfig.getSlaveId());
         controller.setDetectingEnable(binlogConfig.getDetectingEnable());
-        controller.setDetectingSQL(binlogConfig.getDetectingSQL());
+        controller.setDetectingSQL(binlogConfig.getDetectingSql());
         controller.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(binlogConfig.getHost(), binlogConfig.getPort()), binlogConfig.getUsername(), binlogConfig.getPassword()));
         controller.setEnableTsdb(binlogConfig.getEnableTsdb());
         controller.setDestination("example");
         controller.setParallel(binlogConfig.getParallel());
         controller.setParallelBufferSize(binlogConfig.getBufferSize());
         controller.setParallelThreadSize(binlogConfig.getParallelThreadSize());
-        controller.setIsGTIDMode(binlogConfig.getGTIDMode());
+        controller.setIsGTIDMode(binlogConfig.getGtidMode());
 
         controller.setAlarmHandler(new BinlogAlarmHandler(this));
 

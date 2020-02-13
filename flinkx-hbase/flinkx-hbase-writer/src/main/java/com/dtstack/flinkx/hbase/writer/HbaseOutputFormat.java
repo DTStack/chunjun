@@ -94,8 +94,6 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal;
 
-    private boolean openKerberos = false;
-
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
@@ -134,7 +132,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
-        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
+
     }
 
     @Override
@@ -479,6 +477,14 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
+        if (null != timesssFormatThreadLocal) {
+            timesssFormatThreadLocal.remove();
+        }
+
+        if (null != timeSSSFormatThreadLocal) {
+            timeSSSFormatThreadLocal.remove();
+        }
+
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
     }

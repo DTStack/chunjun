@@ -21,7 +21,7 @@ package com.dtstack.flinkx.outputformat;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.latch.Latch;
+import com.dtstack.flinkx.latch.BaseLatch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.log.DtLogger;
@@ -583,12 +583,12 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     }
 
     protected void waitWhile(String latchName){
-        Latch latch = newLatch(latchName);
+        BaseLatch latch = newLatch(latchName);
         latch.addOne();
         latch.waitUntil(numTasks);
     }
 
-    protected Latch newLatch(String latchName) {
+    protected BaseLatch newLatch(String latchName) {
         if(StringUtils.isNotBlank(monitorUrl)) {
             return new MetricLatch(getRuntimeContext(), monitorUrl, latchName);
         } else {

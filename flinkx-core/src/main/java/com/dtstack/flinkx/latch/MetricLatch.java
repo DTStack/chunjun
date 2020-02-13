@@ -39,7 +39,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class MetricLatch extends Latch {
+public class MetricLatch extends BaseLatch {
 
     public static Logger LOG = LoggerFactory.getLogger(MetricLatch.class);
 
