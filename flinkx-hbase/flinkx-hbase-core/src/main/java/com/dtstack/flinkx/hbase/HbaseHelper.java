@@ -64,11 +64,11 @@ public class HbaseHelper {
             KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL
     );
 
-    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap, String jobId, String plugin) {
+    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
         Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
-            return getConnectionWithKerberos(hbaseConfigMap, jobId, plugin);
+            return getConnectionWithKerberos(hbaseConfigMap);
         }
 
         try {
@@ -80,24 +80,24 @@ public class HbaseHelper {
         }
     }
 
-    private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String,Object> hbaseConfigMap, String jobId, String plugin){
+    private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String,Object> hbaseConfigMap){
         for (String key : KEYS_KERBEROS_REQUIRED) {
             if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
                 throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
             }
         }
 
-        String keytab = getKeytab(hbaseConfigMap);
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
-        keytab = KerberosUtil.loadFile(hbaseConfigMap, keytab, jobId, plugin);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytab);
-        KerberosUtil.loadKrb5Conf(hbaseConfigMap, jobId, plugin);
+        keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
+        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        KerberosUtil.loadKrb5Conf(hbaseConfigMap);
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
 
         UserGroupInformation ugi;
         try {
-            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytab);
+            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytabFileName);
         } catch (Exception e){
             throw new RuntimeException("Login kerberos error", e);
         }
@@ -133,19 +133,6 @@ public class HbaseHelper {
         }
 
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
-    }
-
-    private static String getKeytab(Map<String,Object> hbaseConfigMap){
-        String keytab = MapUtils.getString(hbaseConfigMap, KerberosUtil.KEY_PRINCIPAL_FILE);
-        if(StringUtils.isEmpty(keytab)){
-            keytab = MapUtils.getString(hbaseConfigMap, KEY_HBASE_MASTER_KEYTAB_FILE);
-        }
-
-        if(StringUtils.isNotEmpty(keytab)){
-            return keytab;
-        }
-
-        throw new IllegalArgumentException("Can not find keytab file from hbaseConfig");
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable){

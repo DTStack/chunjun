@@ -106,7 +106,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "writer");
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
 
             org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
             bufferedMutator = connection.getBufferedMutator(
@@ -481,10 +481,6 @@ public class HbaseOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
-
-        if(openKerberos){
-            KerberosUtil.clear(jobId);
-        }
     }
 
 }
