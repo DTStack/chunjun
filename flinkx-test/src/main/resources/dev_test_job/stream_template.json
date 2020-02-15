@@ -4,33 +4,167 @@
       {
         "writer": {
           "parameter": {
-            "print": true
+            "batchInterval": 200001
           },
           "name": "streamwriter"
         },
         "reader":{
           "parameter":{
-            "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
-            "username": "root",
-            "password": "123456",
-            "database": "admin",
-            "collectionName": "test",
-            "writeMode": "insert",
-            "authenticationMechanism": "SCRAM-SHA-256",
-            "batchSize":1,
             "column": [
               {
                 "name":"id",
-                "type":"int"
-              },
-              {
-                "name":"date_col",
-                "type":"date"
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
               }
-            ],
-            "replaceKey":"id"
+            ]
           },
-          "name":"mongodbreader"
+          "name":"streamreader"
         }
       }
     ],

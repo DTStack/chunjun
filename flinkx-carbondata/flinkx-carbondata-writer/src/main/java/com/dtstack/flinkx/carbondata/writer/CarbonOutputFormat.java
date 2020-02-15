@@ -223,8 +223,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
-        throw new IllegalArgumentException("It can not happen.");
+        notSupportBatchWrite("CarbondataWriter");
     }
 
     @Override

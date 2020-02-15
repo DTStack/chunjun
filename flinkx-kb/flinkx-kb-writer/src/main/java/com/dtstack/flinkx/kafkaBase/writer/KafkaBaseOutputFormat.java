@@ -96,7 +96,7 @@ public class KafkaBaseOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        throw new UnsupportedOperationException();
+        notSupportBatchWrite("KafkaWriter");
     }
 
     @Override
