@@ -52,8 +52,8 @@ public class EmqxOutputFormat extends RichOutputFormat {
     public int qos;
 
     private transient MqttClient client;
-    protected transient JsonDecoder jsonDecoder = new JsonDecoder();
-    protected transient static ObjectMapper objectMapper = new ObjectMapper();
+    protected static JsonDecoder jsonDecoder = new JsonDecoder();
+    protected static ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Override
@@ -94,7 +94,7 @@ public class EmqxOutputFormat extends RichOutputFormat {
             message.setQos(qos);
             client.publish(topic, message);
         } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
+            LOG.error("emqx writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(e.getMessage(), e);
         }
     }

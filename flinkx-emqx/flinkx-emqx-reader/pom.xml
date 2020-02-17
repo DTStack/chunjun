@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-emqx-writer</artifactId>
+    <artifactId>flinkx-emqx-reader</artifactId>
 
     <dependencies>
         <dependency>
@@ -71,13 +71,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/emqxwriterr">
+                                <copy todir="${basedir}/../../plugins/emqxreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/emqxwriterr/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/emqxwriterr/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../plugins/emqxreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/emqxreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
