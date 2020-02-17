@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 
@@ -48,7 +49,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected transient RecordReader recordReader;
 
-    protected String charsetName = "UTF-8"; // 目前只支持UTF-8
+    protected String charsetName = "UTF-8";
 
     protected transient JobConf conf;
 
@@ -58,14 +59,20 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected Object value;
 
-    protected boolean isFileEmpty = false;
-
     protected String filterRegex;
+
+    protected transient FileSystem fs;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         conf = buildConfig();
+
+        try {
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
     protected JobConf buildConfig() {
@@ -77,7 +84,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return isFileEmpty || !recordReader.next(key, value);
+        return !recordReader.next(key, value);
     }
 
     @Override
