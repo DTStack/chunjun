@@ -21,7 +21,7 @@ package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.log.DtLogger;
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.util.UrlUtil;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -128,7 +128,7 @@ public class AccumulatorCollector {
 
     private void checkMonitorUrlIsValid(){
         for (String monitorUrl : monitorUrls) {
-            try(InputStream ignored = URLUtil.open(monitorUrl)) {
+            try(InputStream ignored = UrlUtil.open(monitorUrl)) {
                 return;
             } catch (Exception e) {
                 LOG.warn("Connect error with monitor url:{}", monitorUrl);
@@ -207,7 +207,7 @@ public class AccumulatorCollector {
     private void collectAccumulatorWithApi(){
         for (String monitorUrl : monitorUrls) {
             try {
-                String response = URLUtil.get(httpClient, monitorUrl);
+                String response = UrlUtil.get(httpClient, monitorUrl);
                 Map<String,Object> map = gson.fromJson(response, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get(KEY_ACCUMULATORS);
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {

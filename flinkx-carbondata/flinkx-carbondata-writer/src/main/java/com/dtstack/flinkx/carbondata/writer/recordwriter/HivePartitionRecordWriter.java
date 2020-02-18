@@ -88,11 +88,11 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
 
     private String generateTaskNumber(TaskAttemptContext context, String segmentId) {
-        int taskID = context.getTaskAttemptID().getTaskID().getId();
-        if(taskID < 0) {
-            taskID = -taskID;
+        int taskId = context.getTaskAttemptID().getTaskID().getId();
+        if(taskId < 0) {
+            taskId = -taskId;
         }
-        return TaskNumberGenerator.generateUniqueNumber(taskID, segmentId, 6);
+        return TaskNumberGenerator.generateUniqueNumber(taskId, segmentId, 6);
     }
 
 

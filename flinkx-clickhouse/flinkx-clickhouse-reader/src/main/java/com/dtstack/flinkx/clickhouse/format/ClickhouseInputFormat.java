@@ -46,8 +46,8 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
-            ClassUtil.forName(drivername, getClass().getClassLoader());
-            dbConn = ClickhouseUtil.getConnection(dbURL, username, password);
+            ClassUtil.forName(driverName, getClass().getClassLoader());
+            dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
             Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
@@ -63,7 +63,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password, databaseInterface, table, metaColumns);
+                descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

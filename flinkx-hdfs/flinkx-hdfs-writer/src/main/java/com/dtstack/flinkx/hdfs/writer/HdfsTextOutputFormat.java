@@ -42,7 +42,7 @@ import java.util.Date;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsTextOutputFormat extends HdfsOutputFormat {
+public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;

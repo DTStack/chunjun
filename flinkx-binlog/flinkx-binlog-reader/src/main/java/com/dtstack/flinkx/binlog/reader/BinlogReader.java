@@ -19,7 +19,7 @@ package com.dtstack.flinkx.binlog.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -29,7 +29,7 @@ import org.apache.flink.types.Row;
  * author: toutian
  * create: 2019/7/4
  */
-public class BinlogReader extends DataReader {
+public class BinlogReader extends BaseDataReader {
 
     private BinlogConfig binlogConfig;
 

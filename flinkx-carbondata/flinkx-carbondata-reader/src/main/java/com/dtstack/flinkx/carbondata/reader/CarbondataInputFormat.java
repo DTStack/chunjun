@@ -19,7 +19,7 @@ package com.dtstack.flinkx.carbondata.reader;
 
 
 import com.dtstack.flinkx.carbondata.CarbondataUtil;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.datatype.DataType;
@@ -53,11 +53,11 @@ import java.util.UUID;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbondataInputFormat extends RichInputFormat{
+public class CarbondataInputFormat extends BaseRichInputFormat {
 
     protected Map<String,String> hadoopConfig;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String table;
 
@@ -115,7 +115,7 @@ public class CarbondataInputFormat extends RichInputFormat{
     }
 
     private org.apache.hadoop.conf.Configuration initConfig(){
-        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFs);
         initColumnIndices();
         org.apache.hadoop.conf.Configuration conf = FileFactory.getConfiguration();
         CarbonTableInputFormat.setDatabaseName(conf, database);

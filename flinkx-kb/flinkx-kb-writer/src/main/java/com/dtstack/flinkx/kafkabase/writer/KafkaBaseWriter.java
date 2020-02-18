@@ -19,7 +19,7 @@ package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -35,7 +35,7 @@ import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
  *
  * @author tudou
  */
-public class KafkaBaseWriter extends DataWriter {
+public class KafkaBaseWriter extends BaseDataWriter {
     protected String timezone;
     protected String topic;
     protected Map<String, String> producerSettings;

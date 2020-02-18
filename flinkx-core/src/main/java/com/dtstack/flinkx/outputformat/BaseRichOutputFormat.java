@@ -29,7 +29,7 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.util.UrlUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import com.google.gson.JsonObject;
@@ -59,7 +59,7 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
+public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -520,7 +520,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         JsonParser parser = new JsonParser();
         for (int i = 0; i < 5; i++) {
             try{
-                String response = URLUtil.get(httpClient, monitors);
+                String response = UrlUtil.get(httpClient, monitors);
                 LOG.info("response:{}", response);
 
                 JsonObject obj = parser.parse(response).getAsJsonObject();

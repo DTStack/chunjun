@@ -20,7 +20,7 @@ package com.dtstack.flinkx.rdb.outputformat;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
@@ -45,7 +45,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcOutputFormat extends RichOutputFormat {
+public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
@@ -57,7 +57,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected String driverName;
 
-    protected String dbURL;
+    protected String dbUrl;
 
     protected Connection dbConn;
 
@@ -132,7 +132,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn = DBUtil.getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
@@ -176,7 +176,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -190,7 +190,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(rs, stmt,null, false);
+            DBUtil.closeDbResources(rs, stmt,null, false);
         }
 
         return ret;
@@ -371,7 +371,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
+        DBUtil.closeDbResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
     }
 

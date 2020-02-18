@@ -16,64 +16,45 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.outputformat;
+package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.Map;
 
 /**
- * The builder of RichOutputFormat
+ * Abstract specification for all the InputFormatBuilder implementation
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichOutputFormatBuilder {
+public abstract class BaseRichInputFormatBuilder {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
-    protected RichOutputFormat  format;
 
-    public void setDirtyPath(String dirtyPath) {
-        format.setDirtyPath(dirtyPath);
+    protected BaseRichInputFormat format;
+
+    public void setMonitorUrls(String monitorUrls) {
+        format.monitorUrls = monitorUrls;
     }
 
-    public void setDirtyHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
-        format.setDirtyHadoopConfig(dirtyHadoopConfig);
-    }
-
-    public void setSrcCols(List<String> srcCols) {
-        format.setSrcFieldNames(srcCols);
-    }
-
-    public void setErrors(Integer errors) {
-        format.errors = errors;
-    }
-
-    public void setErrorRatio(Double errorRatio) {
-        format.errorRatio = errorRatio;
-    }
-
-    public void setMonitorUrls(String monitorUrl) {
-        format.monitorUrl = monitorUrl;
-    }
-
-    public void setBatchInterval(int batchInterval) {
-        format.batchInterval = batchInterval;
+    public void setBytes(long bytes) {
+        format.bytes = bytes;
     }
 
     public void setRestoreConfig(RestoreConfig restoreConfig){
         format.restoreConfig = restoreConfig;
     }
-
-    public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {
-        this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
+    public void setLogConfig(LogConfig logConfig){
+        format.logConfig = logConfig;
     }
 
     protected abstract void checkFormat();
 
-    public RichOutputFormat finish() {
+    public BaseRichInputFormat finish() {
+        Preconditions.checkNotNull(format);
         checkFormat();
         return format;
     }

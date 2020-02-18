@@ -20,7 +20,7 @@ package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.core.io.InputSplit;
@@ -35,7 +35,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpInputFormat extends RichInputFormat {
+public class FtpInputFormat extends BaseRichInputFormat {
 
     protected FtpConfig ftpConfig;
 

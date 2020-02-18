@@ -19,7 +19,7 @@
 
 package com.dtstack.flinkx.oraclelogminer.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import com.dtstack.flinkx.oraclelogminer.format.OracleLogMinerInputFormat;
 
@@ -27,7 +27,7 @@ import com.dtstack.flinkx.oraclelogminer.format.OracleLogMinerInputFormat;
  * @author jiangbo
  * @date 2019/12/16
  */
-public class OracleLogMinerInputFormatBuilder extends RichInputFormatBuilder {
+public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private OracleLogMinerInputFormat format;
 

@@ -26,6 +26,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.dtstack.flinkx.util.DateUtil;
 import org.apache.carbondata.core.cache.Cache;
 import org.apache.carbondata.core.cache.CacheProvider;
 import org.apache.carbondata.core.cache.CacheType;
@@ -54,8 +56,8 @@ public class CarbonTypeConverter {
 
     private static final String HIVE_DEFAULT_PARTITION = "__HIVE_DEFAULT_PARTITION__";
 
-    public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat) {
-        return objectToString(value, serializationNullFormat, timeStampFormat, dateFormat, false);
+    public static String objectToString(Object value, String serializationNullFormat) {
+        return objectToString(value, serializationNullFormat, false);
     }
 
 
@@ -63,11 +65,9 @@ public class CarbonTypeConverter {
      * Return a String representation of the input value
      * @param value input value
      * @param serializationNullFormat string for null value
-     * @param timeStampFormat timestamp format
-     * @param dateFormat date format
      * @param isVarcharType whether it is varchar type. A varchar type has no string length limit
      */
-    public static String objectToString(Object value, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat, boolean isVarcharType) {
+    public static String objectToString(Object value, String serializationNullFormat, boolean isVarcharType) {
         if(value == null) {
             return serializationNullFormat;
         } else {
@@ -96,11 +96,11 @@ public class CarbonTypeConverter {
             }
             if(value instanceof Timestamp) {
                 Timestamp t = (Timestamp) value;
-                return timeStampFormat.format(t);
+                return  DateUtil.getDateTimeFormatter().format(t);
             }
             if(value instanceof java.sql.Date) {
                 java.sql.Date d = (java.sql.Date) value;
-                return dateFormat.format(d);
+                return DateUtil.getDateFormatter().format(d);
             }
             if(value instanceof Boolean) {
                 Boolean b = (Boolean) value;
@@ -121,7 +121,7 @@ public class CarbonTypeConverter {
     }
 
 
-    public static void checkStringType(String s, String serializationNullFormat, SimpleDateFormat timeStampFormat, SimpleDateFormat dateFormat, DataType dataType) throws ParseException {
+    public static void checkStringType(String s, String serializationNullFormat, DataType dataType) throws ParseException {
         if (s == null || s.length() == 0 || s.equalsIgnoreCase(serializationNullFormat)) {
             return;
         }
@@ -130,9 +130,9 @@ public class CarbonTypeConverter {
         } else if (dataType == DataTypes.LONG) {
             Long.parseLong(s);
         } else if (dataType == DataTypes.DATE) {
-            dateFormat.parse(s);
+            DateUtil.getDateFormatter().parse(s);
         } else if (dataType == DataTypes.TIMESTAMP) {
-            timeStampFormat.parse(s);
+            DateUtil.getDateTimeFormatter().parse(s);
         } else if (dataType == DataTypes.SHORT || dataType == DataTypes.SHORT_INT) {
             Short.parseShort(s);
         } else if (dataType == DataTypes.BOOLEAN) {

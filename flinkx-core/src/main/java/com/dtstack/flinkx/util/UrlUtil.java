@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
  * @author jiangbo
  * @date 2018/7/10 14:08
  */
-public class URLUtil {
+public class UrlUtil {
 
     private static int MAX_RETRY_TIMES = 3;
 
@@ -56,7 +56,7 @@ public class URLUtil {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             int num = 0;
             while (true) {
-                String response = URLUtil.get(httpClient, url);
+                String response = UrlUtil.get(httpClient, url);
                 callback.call(response);
                 if (callback.isReturn() || num > retryTimes) {
                     return ;
@@ -90,10 +90,21 @@ public class URLUtil {
     }
 
     public static interface Callback{
+
+        /**
+         * 请求结果处理函数
+         * @param response 请求响应结果
+         */
         void call(String response);
 
+        /**
+         * 是否结束
+         */
         boolean isReturn();
 
+        /**
+         * 错误处理函数
+         */
         void processError(Exception e);
     }
 }

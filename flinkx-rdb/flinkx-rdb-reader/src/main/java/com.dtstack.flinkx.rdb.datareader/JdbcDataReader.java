@@ -20,11 +20,11 @@ package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -40,7 +40,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcDataReader extends DataReader {
+public class JdbcDataReader extends BaseDataReader {
 
     protected DatabaseInterface databaseInterface;
 
@@ -100,8 +100,8 @@ public class JdbcDataReader extends DataReader {
     @Override
     public DataStream<Row> readData() {
         JdbcInputFormatBuilder builder = getBuilder();
-        builder.setDrivername(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        builder.setDriverName(databaseInterface.getDriverClass());
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
@@ -123,7 +123,7 @@ public class JdbcDataReader extends DataReader {
         QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        RichInputFormat format =  builder.finish();
+        BaseRichInputFormat format =  builder.finish();
 //        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
         return createInput(format);
     }

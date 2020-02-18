@@ -43,7 +43,7 @@ import java.util.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsOrcInputFormat extends HdfsInputFormat {
+public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     private transient OrcSerde orcSerde;
 
@@ -63,7 +63,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
         FileSystem fs;
         try {
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -175,12 +175,12 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     @Override
     public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
         } catch (Exception e) {
             throw new IOException(e);
         }
 
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
 

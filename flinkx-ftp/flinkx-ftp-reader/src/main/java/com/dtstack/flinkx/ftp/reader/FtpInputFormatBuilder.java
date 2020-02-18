@@ -1,14 +1,13 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.apache.commons.lang.StringUtils;
-import com.google.common.base.Preconditions;
+
 import java.util.List;
 
 
-public class FtpInputFormatBuilder extends RichInputFormatBuilder {
+public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private FtpInputFormat format;
 

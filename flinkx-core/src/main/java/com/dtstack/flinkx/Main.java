@@ -22,10 +22,10 @@ import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
@@ -91,14 +91,14 @@ public class Main {
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
-        DataReader dataReader = DataReaderFactory.getDataReader(config, env);
+        BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
 
         dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
                 new PartitionTransformation<>(dataStream.getTransformation(),
                         new DTRebalancePartitioner<>()));
 
-        DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
+        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         dataWriter.writeData(dataStream);
 
         if(env instanceof MyLocalStreamEnvironment) {

@@ -19,15 +19,11 @@
 package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.es.EsUtil;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -49,7 +45,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsInputFormat extends RichInputFormat {
+public class EsInputFormat extends BaseRichInputFormat {
 
     protected String address;
 

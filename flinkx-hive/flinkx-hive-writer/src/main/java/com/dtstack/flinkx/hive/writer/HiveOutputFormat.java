@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
+import com.dtstack.flinkx.hdfs.writer.BaseHdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.DBUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.MapUtils;
@@ -42,7 +42,7 @@ import java.util.*;
 /**
  * @author toutian
  */
-public class HiveOutputFormat extends RichOutputFormat {
+public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
@@ -65,7 +65,7 @@ public class HiveOutputFormat extends RichOutputFormat {
      */
     protected String compress;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String delimiter;
 
@@ -98,7 +98,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int numTasks;
 
     private Map<String, TableInfo> tableCache;
-    private Map<String, HdfsOutputFormat> outputFormats;
+    private Map<String, BaseHdfsOutputFormat> outputFormats;
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
@@ -106,7 +106,7 @@ public class HiveOutputFormat extends RichOutputFormat {
 
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         tableCache = new HashMap<String, TableInfo>();
-        outputFormats = new HashMap<String, HdfsOutputFormat>();
+        outputFormats = new HashMap<String, BaseHdfsOutputFormat>();
     }
 
     @Override
@@ -142,9 +142,9 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private void flushOutputFormat() {
-        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
-            Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+            Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
             entry.getValue().getFormatState();
             if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                 try {
@@ -175,7 +175,7 @@ public class HiveOutputFormat extends RichOutputFormat {
             tablePath = tableBasePath;
         }
 
-        Pair<HdfsOutputFormat, TableInfo> formatPair;
+        Pair<BaseHdfsOutputFormat, TableInfo> formatPair;
         try {
             formatPair = getHdfsOutputFormat(tablePath, event);
         } catch (Exception e) {
@@ -216,12 +216,12 @@ public class HiveOutputFormat extends RichOutputFormat {
         return rowData;
     }
 
-    private Pair<HdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
+    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
         String partitionValue = partitionFormat.currentTime();
         String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionValue);
         String hiveTablePath = tablePath + SP + partitionPath;
 
-        HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
+        BaseHdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
             hiveUtil.createPartition(tableInfo, partitionPath);
@@ -230,17 +230,17 @@ public class HiveOutputFormat extends RichOutputFormat {
             outputFormat = createHdfsOutputFormat(tableInfo, path);
             outputFormats.put(hiveTablePath, outputFormat);
         }
-        return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
+        return new Pair<BaseHdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
+    private BaseHdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
         try {
             HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
             hdfsOutputFormatBuilder.setPath(path);
             hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
@@ -276,10 +276,10 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private void closeOutputFormats() {
-        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             try {
-                Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+                Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
                 logger.error("", e);
@@ -290,7 +290,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     private HdfsOutputFormatBuilder getHdfsOutputFormatBuilder() {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setWriteMode(writeMode);
         builder.setCompress(compress);
         builder.setCharSetName(charsetName);

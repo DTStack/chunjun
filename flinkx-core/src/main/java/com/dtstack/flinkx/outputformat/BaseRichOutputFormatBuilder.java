@@ -16,45 +16,64 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.inputformat;
+package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Abstract specification for all the InputFormatBuilder implementation
+ * The builder of RichOutputFormat
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichInputFormatBuilder {
+public abstract class BaseRichOutputFormatBuilder {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+    protected BaseRichOutputFormat format;
 
-    protected RichInputFormat format;
-
-    public void setMonitorUrls(String monitorUrls) {
-        format.monitorUrls = monitorUrls;
+    public void setDirtyPath(String dirtyPath) {
+        format.setDirtyPath(dirtyPath);
     }
 
-    public void setBytes(long bytes) {
-        format.bytes = bytes;
+    public void setDirtyHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
+        format.setDirtyHadoopConfig(dirtyHadoopConfig);
+    }
+
+    public void setSrcCols(List<String> srcCols) {
+        format.setSrcFieldNames(srcCols);
+    }
+
+    public void setErrors(Integer errors) {
+        format.errors = errors;
+    }
+
+    public void setErrorRatio(Double errorRatio) {
+        format.errorRatio = errorRatio;
+    }
+
+    public void setMonitorUrls(String monitorUrl) {
+        format.monitorUrl = monitorUrl;
+    }
+
+    public void setBatchInterval(int batchInterval) {
+        format.batchInterval = batchInterval;
     }
 
     public void setRestoreConfig(RestoreConfig restoreConfig){
         format.restoreConfig = restoreConfig;
     }
-    public void setLogConfig(LogConfig logConfig){
-        format.logConfig = logConfig;
+
+    public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {
+        this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
     protected abstract void checkFormat();
 
-    public RichInputFormat finish() {
-        Preconditions.checkNotNull(format);
+    public BaseRichOutputFormat finish() {
         checkFormat();
         return format;
     }

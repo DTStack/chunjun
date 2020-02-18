@@ -21,7 +21,7 @@ import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -36,7 +36,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbondataReader extends DataReader {
+public class CarbondataReader extends BaseDataReader {
 
     protected String table;
 
@@ -46,7 +46,7 @@ public class CarbondataReader extends DataReader {
 
     protected Map<String,String> hadoopConfig;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected List<String> columnName;
 
@@ -65,7 +65,7 @@ public class CarbondataReader extends DataReader {
         database = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         filter = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_FILTER);
-        defaultFS = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
+        defaultFs = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         List columns = readerConfig.getParameter().getColumn();
 
         if (columns != null && columns.size() > 0) {
@@ -97,7 +97,7 @@ public class CarbondataReader extends DataReader {
         builder.setDatabase(database);
         builder.setTable(table);
         builder.setPath(path);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setFilter(filter);
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);

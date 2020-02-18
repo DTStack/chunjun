@@ -31,10 +31,26 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public enum ColumnType {
+
+    /**
+     * string type
+     */
     STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY,
+
+    /**
+     * number type
+     */
     INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,INTEGER,
+
+    /**
+     * double type
+     */
     DOUBLE, FLOAT,
     BOOLEAN,
+
+    /**
+     * date type
+     */
     DATE, TIMESTAMP,TIME,
     DECIMAL,YEAR,BIT;
 

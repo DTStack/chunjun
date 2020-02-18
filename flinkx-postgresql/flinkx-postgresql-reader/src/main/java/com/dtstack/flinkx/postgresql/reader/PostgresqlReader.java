@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.postgresql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
@@ -54,8 +54,8 @@ public class PostgresqlReader extends JdbcDataReader {
     @Override
     public DataStream<Row> readData() {
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new PostgresqlInputFormat());
-        builder.setDrivername(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        builder.setDriverName(databaseInterface.getDriverClass());
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
@@ -76,7 +76,7 @@ public class PostgresqlReader extends JdbcDataReader {
         QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        RichInputFormat format =  builder.finish();
+        BaseRichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 }

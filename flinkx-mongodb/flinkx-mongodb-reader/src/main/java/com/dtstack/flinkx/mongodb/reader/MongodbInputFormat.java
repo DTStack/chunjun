@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -45,7 +45,7 @@ import java.util.*;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbInputFormat extends RichInputFormat {
+public class MongodbInputFormat extends BaseRichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 

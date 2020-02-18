@@ -17,6 +17,7 @@
 
 package com.dtstack.flinkx.streaming.api.functions.sink;
 
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -77,8 +78,8 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         RuntimeContext context = getRuntimeContext();
         format.configure(parameters);
 
-        if (format instanceof com.dtstack.flinkx.outputformat.RichOutputFormat && formatStateMap != null){
-            ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+        if (format instanceof BaseRichOutputFormat && formatStateMap != null){
+            ((BaseRichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
         }
 
         int indexInSubtaskGroup = context.getIndexOfThisSubtask();
@@ -135,7 +136,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
+        FormatState formatState = ((BaseRichOutputFormat) format).getFormatState();
         if (formatState != null){
             LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();

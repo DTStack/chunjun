@@ -42,7 +42,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class DataWriter {
+public abstract class BaseDataWriter {
 
     protected String mode;
 
@@ -70,7 +70,7 @@ public abstract class DataWriter {
         this.srcCols = srcCols;
     }
 
-    public DataWriter(DataTransferConfig config) {
+    public BaseDataWriter(DataTransferConfig config) {
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
         this.errors = config.getJob().getSetting().getErrorLimit().getRecord();

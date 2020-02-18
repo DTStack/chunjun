@@ -18,9 +18,8 @@
 
 package com.dtstack.flinkx.hbase.reader;
 
-import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.hbase.HbaseHelper;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -47,7 +46,7 @@ import com.google.common.collect.Maps;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseInputFormat extends RichInputFormat {
+public class HbaseInputFormat extends BaseRichInputFormat {
 
     public static final String KEY_ROW_KEY = "rowkey";
 

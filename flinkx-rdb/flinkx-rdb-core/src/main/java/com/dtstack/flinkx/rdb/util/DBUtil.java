@@ -158,7 +158,7 @@ public class DBUtil {
      * @param conn      Connection
      * @param commit
      */
-    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+    public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 rs.close();
@@ -268,7 +268,7 @@ public class DBUtil {
 
     /**
      * 获取表列名类型列表
-     * @param dbURL             jdbc url
+     * @param dbUrl             jdbc url
      * @param username          数据库账号
      * @param password          数据库密码
      * @param databaseInterface DatabaseInterface
@@ -276,16 +276,16 @@ public class DBUtil {
      * @param metaColumns       MetaColumn列表
      * @return
      */
-    public static List<String> analyzeTable(String dbURL, String username, String password, DatabaseInterface databaseInterface,
+    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
                                             String table, List<MetaColumn> metaColumns) {
         List<String> ret = new ArrayList<>(metaColumns.size());
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            dbConn = getConnection(dbURL, username, password);
+            dbConn = getConnection(dbUrl, username, password);
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
             Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
@@ -303,7 +303,7 @@ public class DBUtil {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            closeDBResources(rs, stmt, dbConn, false);
+            closeDbResources(rs, stmt, dbConn, false);
         }
 
         return ret;

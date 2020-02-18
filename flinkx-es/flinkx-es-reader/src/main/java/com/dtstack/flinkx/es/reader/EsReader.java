@@ -23,7 +23,7 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.es.EsUtil;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -40,7 +40,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsReader extends DataReader {
+public class EsReader extends BaseDataReader {
 
     private String address;
     private String username;

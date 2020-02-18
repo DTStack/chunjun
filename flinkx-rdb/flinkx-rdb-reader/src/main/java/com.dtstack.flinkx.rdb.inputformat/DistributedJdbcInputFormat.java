@@ -19,11 +19,10 @@
 package com.dtstack.flinkx.rdb.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
-import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -46,7 +45,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class DistributedJdbcInputFormat extends RichInputFormat {
+public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
@@ -188,7 +187,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected void closeCurrentSource(){
         try {
-            DBUtil.closeDBResources(currentResultSet,currentStatement,currentConn, true);
+            DBUtil.closeDbResources(currentResultSet,currentStatement,currentConn, true);
             currentConn = null;
             currentStatement = null;
             currentResultSet = null;

@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.kafkabase.decoder.IDecode;
 import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafkabase.decoder.PlainDecoder;
@@ -41,7 +41,7 @@ import java.util.concurrent.SynchronousQueue;
  *
  * @author tudou
  */
-public class KafkaBaseInputFormat extends RichInputFormat {
+public class KafkaBaseInputFormat extends BaseRichInputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(KafkaBaseInputFormat.class);
 

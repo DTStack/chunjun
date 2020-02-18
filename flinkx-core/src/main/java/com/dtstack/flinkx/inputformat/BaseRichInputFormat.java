@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
  */
-public abstract class RichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
+public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -69,7 +69,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected transient BaseMetric inputMetric;
 
-    protected int indexOfSubtask;
+    protected int indexOfSubTask;
 
     private long startTime;
 
@@ -126,7 +126,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             initRestoreInfo();
 
             if(restoreConfig.isRestore()){
-                formatState.setNumOfSubTask(indexOfSubtask);
+                formatState.setNumOfSubTask(indexOfSubTask);
             }
 
             inited = true;
@@ -142,8 +142,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     }
 
     private void initAccumulatorCollector(){
-        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubtask);
-        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubtask);
+        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
+        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
         accumulatorCollector = new AccumulatorCollector(jobId, monitorUrls, getRuntimeContext(), 2,
                 Arrays.asList(Metrics.NUM_READS,
@@ -167,7 +167,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
-            indexOfSubtask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
+            indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 
@@ -194,7 +194,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             restoreConfig = RestoreConfig.defaultConfig();
         } else if(restoreConfig.isRestore()){
             if(formatState == null){
-                formatState = new FormatState(indexOfSubtask, null);
+                formatState = new FormatState(indexOfSubTask, null);
             } else {
                 numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
                 bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
@@ -229,7 +229,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             rowWithChannel.setField(i, internalRow.getField(i));
         }
 
-        rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
+        rowWithChannel.setField(internalRow.getArity(), indexOfSubTask);
         return rowWithChannel;
     }
 

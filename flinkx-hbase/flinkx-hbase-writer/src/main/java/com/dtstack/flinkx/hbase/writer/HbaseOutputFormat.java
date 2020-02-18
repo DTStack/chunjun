@@ -18,12 +18,12 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
-import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
 import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.Validate;
@@ -51,9 +51,7 @@ import com.google.common.collect.Maps;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseOutputFormat extends RichOutputFormat {
-
-    private String jobName = "defaultJobName";
+public class HbaseOutputFormat extends BaseRichOutputFormat {
 
     protected Map<String,Object> hbaseConfig;
 
@@ -90,17 +88,17 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient Map<String, byte[][]> nameByteMaps ;
 
-    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal;
+    private transient ThreadLocal<SimpleDateFormat> timeSecondFormatThreadLocal;
 
-    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal;
+    private transient ThreadLocal<SimpleDateFormat> timeMillisecondFormatThreadLocal;
 
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
         nameByteMaps = Maps.newConcurrentMap();
-        timesssFormatThreadLocal = new ThreadLocal();
-        timeSSSFormatThreadLocal = new ThreadLocal();
+        timeSecondFormatThreadLocal = new ThreadLocal();
+        timeMillisecondFormatThreadLocal = new ThreadLocal();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
@@ -157,8 +155,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
                 }
 
                 String type = columnTypes.get(i);
-                ColumnType columnType = ColumnType.getByTypeName(type);
-                String name =columnNames.get(i);
+                String name = columnNames.get(i);
                 String[] cfAndQualifier = nameMaps.get(name);
                 byte[][] cfAndQualifierBytes = nameByteMaps.get(name);
                 if(cfAndQualifier == null || cfAndQualifierBytes==null){
@@ -173,7 +170,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
                     cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
                     nameByteMaps.put(name,cfAndQualifierBytes);
                 }
-                byte[] columnBytes = getColumnByte(columnType,record.getField(i));
+
+                ColumnType columnType = ColumnType.getType(type);
+                byte[] columnBytes = getColumnByte(columnType, record.getField(i));
                 //columnBytes 为null忽略这列
                 if(null != columnBytes){
                     put.addColumn(
@@ -197,16 +196,16 @@ public class HbaseOutputFormat extends RichOutputFormat {
     private SimpleDateFormat getSimpleDateFormat(String sign){
         SimpleDateFormat format = null;
         if("sss".equalsIgnoreCase(sign)){
-            format = timesssFormatThreadLocal.get();
+            format = timeSecondFormatThreadLocal.get();
             if(format == null){
                 format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                timesssFormatThreadLocal.set(format);
+                timeSecondFormatThreadLocal.set(format);
             }
         }else if("SSS".equalsIgnoreCase(sign)){
-            format = timeSSSFormatThreadLocal.get();
+            format = timeMillisecondFormatThreadLocal.get();
             if(format == null){
                 format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
-                timeSSSFormatThreadLocal.set(format);
+                timeMillisecondFormatThreadLocal.set(format);
             }
         }
         return format;
@@ -249,8 +248,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
             if(record.getField(index)  == null){
                 throw new IllegalArgumentException("null verison column!");
             }
-            SimpleDateFormat df_senconds = getSimpleDateFormat("sss");
-            SimpleDateFormat df_ms = getSimpleDateFormat("SSS");
+            SimpleDateFormat dfSeconds = getSimpleDateFormat("sss");
+            SimpleDateFormat dfMs = getSimpleDateFormat("SSS");
             Object column = record.getField(index);
             if(column instanceof Long){
                 Long longValue = (Long) column;
@@ -262,10 +261,10 @@ public class HbaseOutputFormat extends RichOutputFormat {
                 Date date;
                 try{
 
-                    date = df_ms.parse((String) column);
+                    date = dfMs.parse((String) column);
                 }catch (ParseException e){
                     try {
-                        date = df_senconds.parse((String) column);
+                        date = dfSeconds.parse((String) column);
                     } catch (ParseException e1) {
                         LOG.info(String.format("您指定第[%s]列作为hbase写入版本,但在尝试用yyyy-MM-dd HH:mm:ss 和 yyyy-MM-dd HH:mm:ss SSS 去解析为Date时均出错,请检查并修改",index));
                         throw new RuntimeException(e1);
@@ -320,132 +319,22 @@ public class HbaseOutputFormat extends RichOutputFormat {
         if(column != null){
             switch (columnType) {
                 case INT:
-                    Integer intValue = null;
-                    if(column instanceof Integer) {
-                        intValue = (Integer) column;
-                    } else if(column instanceof Long) {
-                        intValue = Integer.valueOf(((Long)column).intValue());
-                    } else if(column instanceof Double) {
-                        intValue = ((Double) column).intValue();
-                    } else if(column instanceof Float) {
-                        intValue = ((Float) column).intValue();
-                    } else if(column instanceof  Short) {
-                        intValue = ((Short) column).intValue();
-                    } else if(column instanceof  Boolean) {
-                        intValue = ((Boolean) column).booleanValue() ? 1 : 0;
-                    } else if(column instanceof String) {
-                        intValue = Integer.valueOf((String) column);
-                    } else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to INT");
-                    }
-                    bytes = Bytes.toBytes(intValue);
+                    bytes = intToBytes(column);
                     break;
                 case LONG:
-                    Long longValue = null;
-                    if(column instanceof Integer) {
-                        longValue = ((Integer)column).longValue();
-                    } else if(column instanceof Long) {
-                        longValue = (Long) column;
-                    } else if(column instanceof Double) {
-                        longValue = ((Double) column).longValue();
-                    } else if(column instanceof Float) {
-                        longValue = ((Float) column).longValue();
-                    } else if(column instanceof  Short) {
-                        longValue = ((Short) column).longValue();
-                    } else if(column instanceof  Boolean) {
-                        longValue = ((Boolean) column).booleanValue() ? 1L : 0L;
-                    } else if(column instanceof String) {
-                        longValue = Long.valueOf((String) column);
-                    }else if (column instanceof Timestamp){
-                        longValue = ((Timestamp) column).getTime();
-                    }else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to LONG");
-                    }
-                    bytes = Bytes.toBytes(longValue);
+                    bytes = longToBytes(column);
                     break;
                 case DOUBLE:
-                    Double doubleValue = null;
-                    if(column instanceof Integer) {
-                        doubleValue = ((Integer)column).doubleValue();
-                    } else if(column instanceof Long) {
-                        doubleValue = ((Long) column).doubleValue();
-                    } else if(column instanceof Double) {
-                        doubleValue = (Double) column;
-                    } else if(column instanceof Float) {
-                        doubleValue = ((Float) column).doubleValue();
-                    } else if(column instanceof  Short) {
-                        doubleValue = ((Short) column).doubleValue();
-                    } else if(column instanceof  Boolean) {
-                        doubleValue = ((Boolean) column).booleanValue() ? 1.0 : 0.0;
-                    } else if(column instanceof String) {
-                        doubleValue = Double.valueOf((String) column);
-                    } else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
-                    }
-                    bytes = Bytes.toBytes(doubleValue);
+                    bytes = doubleToBytes(column);
                     break;
                 case FLOAT:
-                    Float floatValue = null;
-                    if(column instanceof Integer) {
-                        floatValue = ((Integer)column).floatValue();
-                    } else if(column instanceof Long) {
-                        floatValue = ((Long) column).floatValue();
-                    } else if(column instanceof Double) {
-                        floatValue = ((Double) column).floatValue();
-                    } else if(column instanceof Float) {
-                        floatValue = (Float) column;
-                    } else if(column instanceof  Short) {
-                        floatValue = ((Short) column).floatValue();
-                    } else if(column instanceof  Boolean) {
-                        floatValue = ((Boolean) column).booleanValue() ? 1.0f : 0.0f;
-                    } else if(column instanceof String) {
-                        floatValue = Float.valueOf((String) column);
-                    } else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
-                    }
-                    bytes = Bytes.toBytes(floatValue);
+                    bytes = floatToBytes(column);
                     break;
                 case SHORT:
-                    Short shortValue = null;
-                    if(column instanceof Integer) {
-                        shortValue = ((Integer)column).shortValue();
-                    } else if(column instanceof Long) {
-                        shortValue = ((Long) column).shortValue();
-                    } else if(column instanceof Double) {
-                        shortValue = ((Double) column).shortValue();
-                    } else if(column instanceof Float) {
-                        shortValue = ((Float) column).shortValue();
-                    } else if(column instanceof  Short) {
-                        shortValue = (Short) column;
-                    } else if(column instanceof  Boolean) {
-                        shortValue = ((Boolean) column).booleanValue() ? (short) 1 : (short) 0 ;
-                    } else if(column instanceof String) {
-                        shortValue = Short.valueOf((String) column);
-                    } else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
-                    }
-                    bytes = Bytes.toBytes(shortValue);
+                    bytes = shortToBytes(column);
                     break;
                 case BOOLEAN:
-                    Boolean booleanValue = null;
-                    if(column instanceof Integer) {
-                        booleanValue = (Integer)column == 0 ? false : true;
-                    } else if(column instanceof Long) {
-                        booleanValue = (Long) column == 0L ? false : true;
-                    } else if(column instanceof Double) {
-                        booleanValue = (Double) column == 0.0 ? false : true;
-                    } else if(column instanceof Float) {
-                        booleanValue = (Float) column == 0.0f ? false : true;
-                    } else if(column instanceof  Short) {
-                        booleanValue =  (Short) column == 0 ? false : true;
-                    } else if(column instanceof  Boolean) {
-                        booleanValue = (Boolean) column;
-                    } else if(column instanceof String) {
-                        booleanValue = Boolean.valueOf((String)column);
-                    } else {
-                        throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
-                    }
-                    bytes = Bytes.toBytes(booleanValue);
+                    bytes = boolToBytes(column);
                     break;
                 case STRING:
                     String stringValue;
@@ -460,7 +349,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
                 default:
                     throw new IllegalArgumentException("Unsupported column type: " + columnType);
             }
-        }else{
+        } else {
             switch (nullMode.toUpperCase()){
                 case "SKIP":
                     bytes =  null;
@@ -475,14 +364,153 @@ public class HbaseOutputFormat extends RichOutputFormat {
         return  bytes;
     }
 
-    @Override
-    public void closeInternal() throws IOException {
-        if (null != timesssFormatThreadLocal) {
-            timesssFormatThreadLocal.remove();
+    private byte[] intToBytes(Object column) {
+        Integer intValue = null;
+        if(column instanceof Integer) {
+            intValue = (Integer) column;
+        } else if(column instanceof Long) {
+            intValue = Integer.valueOf(((Long)column).intValue());
+        } else if(column instanceof Double) {
+            intValue = ((Double) column).intValue();
+        } else if(column instanceof Float) {
+            intValue = ((Float) column).intValue();
+        } else if(column instanceof  Short) {
+            intValue = ((Short) column).intValue();
+        } else if(column instanceof  Boolean) {
+            intValue = ((Boolean) column).booleanValue() ? 1 : 0;
+        } else if(column instanceof String) {
+            intValue = Integer.valueOf((String) column);
+        } else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to INT");
         }
 
-        if (null != timeSSSFormatThreadLocal) {
-            timeSSSFormatThreadLocal.remove();
+        return Bytes.toBytes(intValue);
+    }
+
+    private byte[] longToBytes(Object column) {
+        Long longValue = null;
+        if(column instanceof Integer) {
+            longValue = ((Integer)column).longValue();
+        } else if(column instanceof Long) {
+            longValue = (Long) column;
+        } else if(column instanceof Double) {
+            longValue = ((Double) column).longValue();
+        } else if(column instanceof Float) {
+            longValue = ((Float) column).longValue();
+        } else if(column instanceof  Short) {
+            longValue = ((Short) column).longValue();
+        } else if(column instanceof  Boolean) {
+            longValue = ((Boolean) column).booleanValue() ? 1L : 0L;
+        } else if(column instanceof String) {
+            longValue = Long.valueOf((String) column);
+        }else if (column instanceof Timestamp){
+            longValue = ((Timestamp) column).getTime();
+        }else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to LONG");
+        }
+
+        return Bytes.toBytes(longValue);
+    }
+
+    private byte[] doubleToBytes(Object column) {
+        Double doubleValue = null;
+        if(column instanceof Integer) {
+            doubleValue = ((Integer)column).doubleValue();
+        } else if(column instanceof Long) {
+            doubleValue = ((Long) column).doubleValue();
+        } else if(column instanceof Double) {
+            doubleValue = (Double) column;
+        } else if(column instanceof Float) {
+            doubleValue = ((Float) column).doubleValue();
+        } else if(column instanceof  Short) {
+            doubleValue = ((Short) column).doubleValue();
+        } else if(column instanceof  Boolean) {
+            doubleValue = ((Boolean) column).booleanValue() ? 1.0 : 0.0;
+        } else if(column instanceof String) {
+            doubleValue = Double.valueOf((String) column);
+        } else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
+        }
+
+        return Bytes.toBytes(doubleValue);
+    }
+
+    private byte[] floatToBytes(Object column) {
+        Float floatValue = null;
+        if(column instanceof Integer) {
+            floatValue = ((Integer)column).floatValue();
+        } else if(column instanceof Long) {
+            floatValue = ((Long) column).floatValue();
+        } else if(column instanceof Double) {
+            floatValue = ((Double) column).floatValue();
+        } else if(column instanceof Float) {
+            floatValue = (Float) column;
+        } else if(column instanceof  Short) {
+            floatValue = ((Short) column).floatValue();
+        } else if(column instanceof  Boolean) {
+            floatValue = ((Boolean) column).booleanValue() ? 1.0f : 0.0f;
+        } else if(column instanceof String) {
+            floatValue = Float.valueOf((String) column);
+        } else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to DOUBLE");
+        }
+
+        return Bytes.toBytes(floatValue);
+    }
+
+    private byte[] shortToBytes(Object column) {
+        Short shortValue = null;
+        if(column instanceof Integer) {
+            shortValue = ((Integer)column).shortValue();
+        } else if(column instanceof Long) {
+            shortValue = ((Long) column).shortValue();
+        } else if(column instanceof Double) {
+            shortValue = ((Double) column).shortValue();
+        } else if(column instanceof Float) {
+            shortValue = ((Float) column).shortValue();
+        } else if(column instanceof  Short) {
+            shortValue = (Short) column;
+        } else if(column instanceof  Boolean) {
+            shortValue = ((Boolean) column).booleanValue() ? (short) 1 : (short) 0 ;
+        } else if(column instanceof String) {
+            shortValue = Short.valueOf((String) column);
+        } else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
+        }
+        return Bytes.toBytes(shortValue);
+    }
+
+    private byte[] boolToBytes(Object column) {
+        Boolean booleanValue = null;
+        if(column instanceof Integer) {
+            booleanValue = (Integer)column == 0 ? false : true;
+        } else if(column instanceof Long) {
+            booleanValue = (Long) column == 0L ? false : true;
+        } else if(column instanceof Double) {
+            booleanValue = (Double) column == 0.0 ? false : true;
+        } else if(column instanceof Float) {
+            booleanValue = (Float) column == 0.0f ? false : true;
+        } else if(column instanceof  Short) {
+            booleanValue =  (Short) column == 0 ? false : true;
+        } else if(column instanceof  Boolean) {
+            booleanValue = (Boolean) column;
+        } else if(column instanceof String) {
+            booleanValue = Boolean.valueOf((String)column);
+        } else {
+            throw new RuntimeException("Can't convert from " + column.getClass() +  " to SHORT");
+        }
+
+        return Bytes.toBytes(booleanValue);
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        if (null != timeSecondFormatThreadLocal) {
+            timeSecondFormatThreadLocal.remove();
+        }
+
+        if (null != timeMillisecondFormatThreadLocal) {
+            timeMillisecondFormatThreadLocal.remove();
         }
 
         HbaseHelper.closeBufferedMutator(bufferedMutator);

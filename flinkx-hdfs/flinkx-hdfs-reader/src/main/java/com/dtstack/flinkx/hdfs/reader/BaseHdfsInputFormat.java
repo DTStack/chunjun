@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.hadoop.mapred.JobConf;
@@ -34,7 +34,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsInputFormat extends RichInputFormat {
+public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected Map<String,Object> hadoopConfig;
 
@@ -42,7 +42,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected String inputPath;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String delimiter;
 
@@ -69,7 +69,7 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     }
 
     protected JobConf buildConfig() {
-        JobConf conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        JobConf conf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
         conf.set(HdfsPathFilter.KEY_REGEX, filterRegex);
         FileSystemUtil.setHadoopUserName(conf);
         return conf;

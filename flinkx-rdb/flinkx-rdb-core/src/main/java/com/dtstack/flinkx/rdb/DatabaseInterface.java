@@ -35,9 +35,9 @@ public interface DatabaseInterface {
 
     String getDriverClass();
 
-    String getSQLQueryFields(String tableName);
+    String getSqlQueryFields(String tableName);
 
-    String getSQLQueryColumnFields(List<String> column, String table);
+    String getSqlQueryColumnFields(List<String> column, String table);
 
     String getStartQuote();
 

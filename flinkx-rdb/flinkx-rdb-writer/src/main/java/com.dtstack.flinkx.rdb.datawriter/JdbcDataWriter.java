@@ -24,7 +24,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -41,7 +41,7 @@ import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
  *
  * @author huyifan.zju@163.com
  */
-public class JdbcDataWriter extends DataWriter {
+public class JdbcDataWriter extends BaseDataWriter {
 
     protected DatabaseInterface databaseInterface;
     protected String dbUrl;
@@ -98,7 +98,7 @@ public class JdbcDataWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         JdbcOutputFormatBuilder builder = getBuilder();
         builder.setDriverName(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBatchInterval(batchSize);

@@ -19,8 +19,7 @@
 package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.hdfs.HdfsUtil;
-import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
@@ -42,7 +41,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsOutputFormat extends FileOutputFormat {
+public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     protected int rowGroupSize;
 
@@ -51,7 +50,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     /** hdfs高可用配置 */
     protected Map<String,Object> hadoopConfig;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected List<String> columnTypes;
 
@@ -168,8 +167,8 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     @Override
     protected void openSource() throws IOException{
         try{
-            conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+            conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFs);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
         } catch (Exception e){
             throw new RuntimeException("Get FileSystem error", e);
         }

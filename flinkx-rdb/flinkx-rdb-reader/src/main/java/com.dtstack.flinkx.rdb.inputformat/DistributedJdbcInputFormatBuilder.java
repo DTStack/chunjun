@@ -18,10 +18,9 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
-import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 
@@ -33,7 +32,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
+public class DistributedJdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private static String DISTRIBUTED_TAG = "d";
     private DistributedJdbcInputFormat format;

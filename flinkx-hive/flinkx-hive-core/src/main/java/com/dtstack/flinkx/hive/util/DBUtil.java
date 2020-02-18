@@ -286,7 +286,7 @@ public final class DBUtil {
         } catch (Exception e) {
             throw new RuntimeException("SQL 执行异常");
         } finally {
-            DBUtil.closeDBResources(res, statement, null);
+            DBUtil.closeDbResources(res, statement, null);
         }
         return result;
     }
@@ -302,7 +302,7 @@ public final class DBUtil {
             flag = false;
             throw new RuntimeException(String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
         } finally {
-            DBUtil.closeDBResources(null, statement, null);
+            DBUtil.closeDbResources(null, statement, null);
         }
 
         return flag;
@@ -313,7 +313,7 @@ public final class DBUtil {
         stmt.execute(sql);
     }
 
-    public static void closeDBResources(ResultSet rs, Statement stmt,
+    public static void closeDbResources(ResultSet rs, Statement stmt,
                                         Connection conn) {
         try {
             if (null != rs) {

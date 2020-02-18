@@ -40,7 +40,7 @@ public class MapUtil {
     }
 
 
-    public static Map<String,Object> ObjectToMap(Object obj) throws Exception{
+    public static Map<String,Object> objectToMap(Object obj) throws Exception{
         return objectMapper.readValue(objectMapper.writeValueAsBytes(obj), Map.class);
     }
 

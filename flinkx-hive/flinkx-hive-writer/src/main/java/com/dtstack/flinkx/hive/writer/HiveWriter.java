@@ -22,7 +22,7 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.google.gson.Gson;
 import org.apache.commons.collections.MapUtils;
@@ -42,9 +42,9 @@ import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
 /**
  * @author toutian
  */
-public class HiveWriter extends DataWriter {
+public class HiveWriter extends BaseDataWriter {
 
-    private String defaultFS;
+    private String defaultFs;
 
     private String fileType;
 
@@ -86,9 +86,9 @@ public class HiveWriter extends DataWriter {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
-        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
-        if (StringUtils.isBlank(defaultFS) && hadoopConfig.containsKey(KEY_FS_DEFAULT_FS)){
-            defaultFS = MapUtils.getString(hadoopConfig, KEY_FS_DEFAULT_FS);
+        defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
+        if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(KEY_FS_DEFAULT_FS)){
+            defaultFs = MapUtils.getString(hadoopConfig, KEY_FS_DEFAULT_FS);
         }
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
         partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
@@ -166,7 +166,7 @@ public class HiveWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setWriteMode(mode);
         builder.setCompress(compress);
         builder.setCharSetName(charSet);

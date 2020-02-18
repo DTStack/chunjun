@@ -48,7 +48,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsTextInputFormat extends HdfsInputFormat {
+public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public void openInputFormat() throws IOException {
@@ -60,12 +60,12 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
         } catch (Exception e) {
             throw new IOException(e);
         }
 
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
 
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
@@ -176,7 +176,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         }
 
         public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFS = defaultFs;
+            format.defaultFs = defaultFs;
             return this;
         }
 

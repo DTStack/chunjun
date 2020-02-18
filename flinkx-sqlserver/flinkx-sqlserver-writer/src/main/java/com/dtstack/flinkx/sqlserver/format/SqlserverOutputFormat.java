@@ -23,7 +23,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -49,7 +48,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
             LOG.error("error to execute {}", sql);
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(null, stmt,null, false);
+            DBUtil.closeDbResources(null, stmt,null, false);
         }
     }
 

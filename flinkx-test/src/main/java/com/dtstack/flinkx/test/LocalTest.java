@@ -63,14 +63,14 @@ import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -142,14 +142,14 @@ public class LocalTest {
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
 
-        DataReader reader = buildDataReader(config, env);
+        BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
 
         dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
                 new PartitionTransformation<>(dataStream.getTransformation(),
                         new DTRebalancePartitioner<>()));
 
-        DataWriter writer = buildDataWriter(config);
+        BaseDataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream);
 
         if(StringUtils.isNotEmpty(savepointPath)){
@@ -170,9 +170,9 @@ public class LocalTest {
         }
     }
 
-    private static DataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
+    private static BaseDataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
         String readerName = config.getJob().getContent().get(0).getReader().getName();
-        DataReader reader ;
+        BaseDataReader reader ;
         switch (readerName){
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
@@ -204,9 +204,9 @@ public class LocalTest {
         return reader;
     }
 
-    private static DataWriter buildDataWriter(DataTransferConfig config){
+    private static BaseDataWriter buildDataWriter(DataTransferConfig config){
         String writerName = config.getJob().getContent().get(0).getWriter().getName();
-        DataWriter writer;
+        BaseDataWriter writer;
         switch (writerName){
             case PluginNameConstrant.STREAM_WRITER : writer = new StreamWriter(config); break;
             case PluginNameConstrant.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;

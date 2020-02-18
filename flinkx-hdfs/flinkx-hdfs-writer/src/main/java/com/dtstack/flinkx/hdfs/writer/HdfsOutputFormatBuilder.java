@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
 
-    private HdfsOutputFormat format;
+    private BaseHdfsOutputFormat format;
 
     public HdfsOutputFormatBuilder(String type) {
         switch(type.toUpperCase()) {
@@ -78,19 +78,19 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.fullColumnTypes = fullColumnTypes;
     }
 
-    public void setDefaultFS(String defaultFS) {
-        format.defaultFS = defaultFS;
+    public void setDefaultFs(String defaultFs) {
+        format.defaultFs = defaultFs;
     }
 
     @Override
     protected void checkFormat() {
         super.checkFormat();
 
-        if (format.defaultFS == null || format.defaultFS.length() == 0) {
+        if (format.defaultFs == null || format.defaultFs.length() == 0) {
             throw new IllegalArgumentException("No defaultFS supplied.");
         }
 
-        if (!format.defaultFS.startsWith("hdfs://")) {
+        if (!format.defaultFs.startsWith("hdfs://")) {
             throw new IllegalArgumentException("defaultFS should start with hdfs://");
         }
     }

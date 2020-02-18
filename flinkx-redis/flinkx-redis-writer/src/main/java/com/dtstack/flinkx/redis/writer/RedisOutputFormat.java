@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.redis.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
@@ -29,7 +29,6 @@ import org.apache.flink.types.Row;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -41,7 +40,7 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class RedisOutputFormat extends RichOutputFormat {
+public class RedisOutputFormat extends BaseRichOutputFormat {
 
     protected String hostPort;
 

@@ -32,7 +32,7 @@ import java.io.IOException;
  * @author jiangbo
  * @date 2019/8/28
  */
-public abstract class FileOutputFormat extends RichOutputFormat {
+public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected Row lastRow;
 

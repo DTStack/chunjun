@@ -53,7 +53,25 @@ public class HiveUtil {
     private DBUtil.ConnectionInfo connectionInfo;
 
     enum HiveReleaseVersion{
-        APACHE_1, APACHE_2, CDH_1, CDH_2
+        /**
+         * apache hive 1.x
+         */
+        APACHE_1,
+
+        /**
+         * apache hive 2.x
+         */
+        APACHE_2,
+
+        /**
+         * cdh hive 1.x
+         */
+        CDH_1,
+
+        /**
+         * cdh hive 2.x
+         */
+        CDH_2
     }
 
     public HiveUtil() {
@@ -76,7 +94,7 @@ public class HiveUtil {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            DBUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -93,7 +111,7 @@ public class HiveUtil {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            DBUtil.closeDbResources(null, null, connection);
         }
     }
 

@@ -28,7 +28,7 @@ import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.odps.OdpsUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.configuration.Configuration;
@@ -44,7 +44,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsOutputFormat extends RichOutputFormat {
+public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     protected String[] columnTypes;
 

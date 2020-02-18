@@ -55,7 +55,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsOrcOutputFormat extends HdfsOutputFormat {
+public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private RecordWriter recordWriter;
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;

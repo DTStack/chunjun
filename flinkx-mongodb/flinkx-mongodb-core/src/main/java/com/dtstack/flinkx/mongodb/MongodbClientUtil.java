@@ -87,9 +87,9 @@ public class MongodbClientUtil {
     }
 
     private static MongoClient getClientWithUrl(MongodbConfig config){
-        MongoClientURI clientURI = new MongoClientURI(config.getUrl());
-        config.setDatabase(clientURI.getDatabase());
-        return new MongoClient(clientURI);
+        MongoClientURI clientUri = new MongoClientURI(config.getUrl());
+        config.setDatabase(clientUri.getDatabase());
+        return new MongoClient(clientUri);
     }
 
     private static MongoClientOptions getOption(MongodbConfig.ConnectionConfig connectionConfig){

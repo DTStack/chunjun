@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  * Company: www.dtstack.com
  * @author jiangbo
  */
-public class HdfsParquetInputFormat extends HdfsInputFormat {
+public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private transient Group currentLine;
 
@@ -228,7 +228,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         List<String> allFilePaths;
         HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
 
-        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS)) {
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs)) {
             allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
         } catch (Exception e) {
             throw new IOException(e);

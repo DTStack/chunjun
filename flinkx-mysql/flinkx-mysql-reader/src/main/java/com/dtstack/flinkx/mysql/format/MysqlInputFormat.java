@@ -46,7 +46,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
         try {
             LOG.info("inputSplit = {}", inputSplit);
 
-            ClassUtil.forName(drivername, getClass().getClassLoader());
+            ClassUtil.forName(driverName, getClass().getClassLoader());
             initMetric(inputSplit);
 
             String startLocation = incrementConfig.getStartLocation();
@@ -74,7 +74,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+                descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

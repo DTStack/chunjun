@@ -51,7 +51,7 @@ import java.util.*;
  * Company: www.dtstack.com
  * @author jiangbo
  */
-public class HdfsParquetOutputFormat extends HdfsOutputFormat {
+public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     private SimpleGroupFactory groupFactory;
 

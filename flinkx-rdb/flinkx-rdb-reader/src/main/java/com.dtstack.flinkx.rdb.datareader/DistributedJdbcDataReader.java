@@ -20,13 +20,12 @@ package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -42,7 +41,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class DistributedJdbcDataReader extends DataReader {
+public class DistributedJdbcDataReader extends BaseDataReader {
 
     protected DatabaseInterface databaseInterface;
 
@@ -99,7 +98,7 @@ public class DistributedJdbcDataReader extends DataReader {
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setLogConfig(logConfig);
 
-        RichInputFormat format =  builder.finish();
+        BaseRichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + DISTRIBUTED_TAG + "reader").toLowerCase());
     }
 

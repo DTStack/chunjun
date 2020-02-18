@@ -20,7 +20,7 @@ package com.dtstack.flinkx.kafkabase.writer;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -37,7 +37,7 @@ import java.util.*;
  *
  * @author tudou
  */
-public class KafkaBaseOutputFormat extends RichOutputFormat {
+public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(KafkaBaseOutputFormat.class);
 

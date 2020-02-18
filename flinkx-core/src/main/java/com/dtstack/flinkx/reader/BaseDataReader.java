@@ -43,7 +43,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class DataReader {
+public abstract class BaseDataReader {
 
     protected StreamExecutionEnvironment env;
 
@@ -84,7 +84,7 @@ public abstract class DataReader {
         this.srcCols = srcCols;
     }
 
-    protected DataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    protected BaseDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
         this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();

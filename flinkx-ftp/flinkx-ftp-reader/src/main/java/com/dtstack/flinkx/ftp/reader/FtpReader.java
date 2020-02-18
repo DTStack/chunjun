@@ -21,7 +21,7 @@ package com.dtstack.flinkx.ftp.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -38,7 +38,7 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpReader extends DataReader {
+public class FtpReader extends BaseDataReader {
 
     private List<MetaColumn> metaColumns;
     private FtpConfig ftpConfig;

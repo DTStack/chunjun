@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.es.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +28,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsInputFormatBuilder extends RichInputFormatBuilder {
+public class EsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private EsInputFormat format;
 

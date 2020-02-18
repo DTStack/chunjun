@@ -22,7 +22,7 @@ package com.dtstack.flinkx.hbase.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.util.ValueUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -40,7 +40,7 @@ import static com.dtstack.flinkx.hbase.HbaseConfigKeys.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseWriter extends DataWriter {
+public class HbaseWriter extends BaseDataWriter {
 
     private String tableName;
     private Map<String,Object> hbaseConfig;

@@ -19,22 +19,17 @@
 package com.dtstack.flinkx.odps.reader;
 
 import com.aliyun.odps.Odps;
-import com.aliyun.odps.Table;
 import com.aliyun.odps.data.Record;
 import com.aliyun.odps.data.RecordReader;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +43,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsInputFormat extends RichInputFormat {
+public class OdpsInputFormat extends BaseRichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 

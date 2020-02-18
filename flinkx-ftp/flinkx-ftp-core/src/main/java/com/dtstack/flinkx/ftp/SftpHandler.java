@@ -137,8 +137,8 @@ public class SftpHandler implements IFtpHandler {
     @Override
     public boolean isDirExist(String directoryPath) {
         try {
-            SftpATTRS sftpATTRS = channelSftp.lstat(directoryPath);
-            return sftpATTRS.isDir();
+            SftpATTRS sftpAttrs = channelSftp.lstat(directoryPath);
+            return sftpAttrs.isDir();
         } catch (SftpException e) {
             if (e.getMessage().toLowerCase().equals(PATH_NOT_EXIST_ERR)) {
                 LOG.warn("{}", e.getMessage());
@@ -154,8 +154,8 @@ public class SftpHandler implements IFtpHandler {
     public boolean isFileExist(String filePath) {
         boolean isExitFlag = false;
         try {
-            SftpATTRS sftpATTRS = channelSftp.lstat(filePath);
-            if(sftpATTRS.getSize() >= 0){
+            SftpATTRS sftpAttrs = channelSftp.lstat(filePath);
+            if(sftpAttrs.getSize() >= 0){
                 isExitFlag = true;
             }
         } catch (SftpException e) {
@@ -257,8 +257,8 @@ public class SftpHandler implements IFtpHandler {
         boolean isDirExist = false;
         try {
             this.printWorkingDirectory();
-            SftpATTRS sftpATTRS = this.channelSftp.lstat(directoryPath);
-            isDirExist = sftpATTRS.isDir();
+            SftpATTRS sftpAttrs = this.channelSftp.lstat(directoryPath);
+            isDirExist = sftpAttrs.isDir();
         } catch (SftpException e) {
             if (e.getMessage().toLowerCase().equals(PATH_NOT_EXIST_ERR)) {
                 LOG.warn("{}", e.getMessage());
@@ -357,8 +357,8 @@ public class SftpHandler implements IFtpHandler {
     public boolean mkDirSingleHierarchy(String directoryPath) throws SftpException {
         boolean isDirExist = false;
         try {
-            SftpATTRS sftpATTRS = this.channelSftp.lstat(directoryPath);
-            isDirExist = sftpATTRS.isDir();
+            SftpATTRS sftpAttrs = this.channelSftp.lstat(directoryPath);
+            isDirExist = sftpAttrs.isDir();
         } catch (SftpException e) {
             if(!isDirExist){
                 LOG.info("Creating a directory step by step [{}]", directoryPath);

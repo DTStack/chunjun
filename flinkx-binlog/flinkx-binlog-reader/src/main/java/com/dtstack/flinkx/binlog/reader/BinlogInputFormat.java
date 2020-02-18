@@ -22,7 +22,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
 
-public class BinlogInputFormat extends RichInputFormat {
+public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
 

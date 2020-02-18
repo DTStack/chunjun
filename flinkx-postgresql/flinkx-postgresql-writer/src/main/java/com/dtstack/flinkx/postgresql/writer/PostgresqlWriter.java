@@ -48,7 +48,7 @@ public class PostgresqlWriter extends JdbcDataWriter {
         PostgresqlOutputFormat postgresqlOutputFormat = new PostgresqlOutputFormat();
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(postgresqlOutputFormat);
         builder.setDriverName(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBatchInterval(batchSize);

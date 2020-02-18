@@ -46,7 +46,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = ClickhouseUtil.getConnection(dbURL, username, password);
+            dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()) {
                 dbConn.setAutoCommit(false);
@@ -91,7 +91,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
             LOG.error("error to get {} schema, e = {}", table, ExceptionUtil.getErrorMessage(e));
             throw e;
         }finally {
-            DBUtil.closeDBResources(rs, stmt,null, false);
+            DBUtil.closeDbResources(rs, stmt,null, false);
         }
 
         if(CollectionUtils.isEmpty(fullColumn)) {

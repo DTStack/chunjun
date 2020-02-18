@@ -19,7 +19,7 @@ package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -34,7 +34,7 @@ import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
  *
  * @author tudou
  */
-public class KafkaBaseReader extends DataReader {
+public class KafkaBaseReader extends BaseDataReader {
 
     protected String topic;
     protected String groupId;
