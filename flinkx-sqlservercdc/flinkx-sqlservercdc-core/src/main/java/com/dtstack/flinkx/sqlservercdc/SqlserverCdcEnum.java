@@ -29,10 +29,25 @@ import java.util.Set;
  * @author tudou
  */
 public enum  SqlserverCdcEnum {
+    /**
+     * 操作未知
+     */
     UNKNOWN(-1, "unknown"),
+    /**
+     * 删除操作
+     */
     DELETE(1, "delete"),
+    /**
+     * 插入操作
+     */
     INSERT(2, "insert"),
+    /**
+     * 更新前操作
+     */
     UPDATE_BEFORE(3, "update_before"),
+    /**
+     * 更新后操作
+     */
     UPDATE_AFTER(4, "update_after");
 
     public int code;

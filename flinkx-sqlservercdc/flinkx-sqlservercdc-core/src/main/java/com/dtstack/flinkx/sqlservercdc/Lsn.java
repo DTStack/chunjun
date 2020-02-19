@@ -53,6 +53,7 @@ public class Lsn implements Comparable<Lsn> {
         return unsignedBinary;
     }
 
+    @Override
     public String toString() {
         if (string != null) {
             return string;

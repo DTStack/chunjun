@@ -17,12 +17,13 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
+import avro.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sqlservercdc.Lsn;
-import com.dtstack.flinkx.sqlservercdc.listener.SqlServerCdcListener;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
 import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
+import com.dtstack.flinkx.sqlservercdc.listener.SqlServerCdcListener;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -37,10 +38,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.*;
 
 import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
 
@@ -70,7 +68,10 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
 
     @Override
     public void configure(Configuration parameters) {
-        executor = Executors.newFixedThreadPool(1);
+        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("cdcListener-pool-%d").build();
+        executor = new ThreadPoolExecutor(1, 1,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
         queue = new SynchronousQueue<>(false);
     }
 
@@ -87,14 +88,14 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
             conn = SqlServerCdcUtil.getConnection(url, username, password);
             conn.setAutoCommit(false);
             SqlServerCdcUtil.changeDatabase(conn, databaseName);
-            if(!SqlServerCdcUtil.checkEnabledCDCDatabase(conn, databaseName)){
+            if(!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, databaseName)){
                 LOG.error("{} is not enable sqlServer CDC", databaseName);
                 throw new UnsupportedOperationException(databaseName + " is not enable sqlServer CDC ");
             }
 
-            Set<String> unEnabledCDCTables = SqlServerCdcUtil.checkUnEnabledCDCTables(conn, tableList);
-            if(CollectionUtils.isNotEmpty(unEnabledCDCTables)){
-                String tables = unEnabledCDCTables.toString();
+            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, tableList);
+            if(CollectionUtils.isNotEmpty(unEnabledCdcTables)){
+                String tables = unEnabledCdcTables.toString();
                 LOG.error("{} is not enable sqlServer CDC", tables);
                 throw new UnsupportedOperationException(tables + " is not enable sqlServer CDC ");
             }

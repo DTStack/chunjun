@@ -31,15 +31,19 @@ public class TableId implements Comparable<TableId> {
             return null;
         }
         if (numParts == 1) {
-            return new TableId(null, null, parts[0]); // table only
+            // table only
+            return new TableId(null, null, parts[0]);
         }
         if (numParts == 2) {
             if (useCatalogBeforeSchema) {
-                return new TableId(parts[0], null, parts[1]); // catalog & table only
+                // catalog & table only
+                return new TableId(parts[0], null, parts[1]);
             }
-            return new TableId(null, parts[0], parts[1]); // schema & table only
+            // schema & table only
+            return new TableId(null, parts[0], parts[1]);
         }
-        return new TableId(parts[0], parts[1], parts[2]); // catalog, schema & table
+        // catalog, schema & table
+        return new TableId(parts[0], parts[1], parts[2]);
     }
 
     private final String catalogName;

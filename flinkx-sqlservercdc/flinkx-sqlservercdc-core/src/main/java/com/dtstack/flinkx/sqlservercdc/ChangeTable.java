@@ -6,6 +6,7 @@
 package com.dtstack.flinkx.sqlservercdc;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Date: 2019/12/03
@@ -89,5 +90,28 @@ public class ChangeTable {
                 ", columnList=" + columnList +
                 ", changeTableObjectId=" + changeTableObjectId +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChangeTable that = (ChangeTable) o;
+        return changeTableObjectId == that.changeTableObjectId &&
+                Objects.equals(captureInstance, that.captureInstance) &&
+                Objects.equals(sourceTableId, that.sourceTableId) &&
+                Objects.equals(changeTableId, that.changeTableId) &&
+                Objects.equals(startLsn, that.startLsn) &&
+                Objects.equals(stopLsn, that.stopLsn) &&
+                Objects.equals(columnList, that.columnList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(captureInstance, sourceTableId, changeTableId, startLsn, stopLsn, columnList, changeTableObjectId);
     }
 }

@@ -23,7 +23,6 @@ import com.dtstack.flinkx.util.TelnetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.RowSet;
 import java.io.BufferedReader;
 import java.sql.*;
 import java.util.*;
@@ -56,7 +55,7 @@ public class SqlServerCdcUtil {
         conn.createStatement().execute(" use " + databaseName);
     }
 
-    public static boolean checkEnabledCDCDatabase(Connection conn, String databaseName) throws SQLException {
+    public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName) throws SQLException {
         Statement statement = null;
         ResultSet rs = null;
         boolean ret;
@@ -68,29 +67,29 @@ public class SqlServerCdcUtil {
             LOG.error("error to query {} Enabled CDC or not, sql = {}, e = {}", databaseName, String.format(CHECK_CDC_DATABASE, databaseName), ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
-            closeDBResources(rs, statement, null, false);
+            closeDbResources(rs, statement, null, false);
         }
         return ret;
     }
 
-    public static Set<String> checkUnEnabledCDCTables(Connection conn, Collection<String> tableSet) throws SQLException {
+    public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet) throws SQLException {
         Statement statement = null;
         ResultSet rs = null;
-        CopyOnWriteArraySet<String> unEnabledCDCTables = new CopyOnWriteArraySet<>(tableSet);
+        CopyOnWriteArraySet<String> unEnabledCdcTables = new CopyOnWriteArraySet<>(tableSet);
         try {
             statement = conn.createStatement();
             rs = statement.executeQuery(CHECK_CDC_TABLE);
             while (rs.next()) {
                 String tableName = rs.getString(1);
-                unEnabledCDCTables.remove(tableName);
+                unEnabledCdcTables.remove(tableName);
             }
         } catch (SQLException e) {
             LOG.error("error to query UnEnabled CDC Tables, sql = {}, e = {}", CHECK_CDC_TABLE, ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
-            closeDBResources(rs, statement, null, false);
+            closeDbResources(rs, statement, null, false);
         }
-        return unEnabledCDCTables;
+        return unEnabledCdcTables;
     }
 
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName) throws SQLException {
@@ -122,7 +121,7 @@ public class SqlServerCdcUtil {
             LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
-            closeDBResources(rs, statement, null, false);
+            closeDbResources(rs, statement, null, false);
         }
         return changeTableSet;
     }
@@ -140,7 +139,7 @@ public class SqlServerCdcUtil {
             LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
-            closeDBResources(rs, statement, null, false);
+            closeDbResources(rs, statement, null, false);
         }
         return lsn;
     }
@@ -194,7 +193,7 @@ public class SqlServerCdcUtil {
             LOG.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
-            closeDBResources(rs, ps, null, false);
+            closeDbResources(rs, ps, null, false);
         }
         return ret;
     }
@@ -279,7 +278,7 @@ public class SqlServerCdcUtil {
      * @param conn      Connection
      * @param commit
      */
-    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+    public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 rs.close();
