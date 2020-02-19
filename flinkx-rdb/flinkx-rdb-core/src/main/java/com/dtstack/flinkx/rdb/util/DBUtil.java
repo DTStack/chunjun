@@ -233,7 +233,7 @@ public class DBUtil {
      * @throws SQLException
      */
     public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
-        Map<String,List<String>> keyMap = new HashMap<>();
+        Map<String,List<String>> keyMap = new HashMap<>(16);
         DatabaseMetaData meta = dbConn.getMetaData();
         ResultSet rs = meta.getIndexInfo(null,null,table,true,false);
         while(rs.next()) {
@@ -440,7 +440,7 @@ public class DBUtil {
     public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
         String[] splits = DB_PATTERN.split(dbUrl);
 
-        Map<String,String> paramMap = new HashMap<String,String>();
+        Map<String,String> paramMap = new HashMap<>(16);
         if(splits.length > 1) {
             String[] pairs = splits[1].split("&");
             for(String pair : pairs) {

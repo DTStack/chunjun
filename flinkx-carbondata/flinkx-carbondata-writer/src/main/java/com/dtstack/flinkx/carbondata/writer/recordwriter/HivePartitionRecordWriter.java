@@ -22,7 +22,6 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 import com.dtstack.flinkx.carbondata.writer.TaskNumberGenerator;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
-import com.dtstack.flinkx.carbondata.writer.dict.ExternalCatalogUtils;
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
@@ -35,20 +34,11 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TaskType;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -130,8 +120,8 @@ public class HivePartitionRecordWriter extends AbstractRecordWriter {
 
 
     private Map<String,String> generatePartitionSpec(String partition) {
-        Map<String,String> map = new HashMap<>();
         String[] groups = partition.split(ConstantValue.SINGLE_SLASH_SYMBOL);
+        Map<String,String> map = new HashMap<>((groups.length<<2)/3);
         for(String group : groups) {
             String[] pair = group.split(ConstantValue.EQUAL_SYMBOL);
             map.put(pair[0], pair[1]);

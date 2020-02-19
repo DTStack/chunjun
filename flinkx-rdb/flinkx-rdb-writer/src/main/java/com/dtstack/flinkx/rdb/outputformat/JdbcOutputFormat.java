@@ -336,7 +336,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
-        Map<String, List<String>> map = new HashMap<>();
+        Map<String, List<String>> map = new HashMap<>(16);
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
@@ -345,7 +345,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             map.get(indexName).add(rs.getString("COLUMN_NAME"));
         }
-        Map<String,List<String>> retMap = new HashMap<>();
+        Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
         for(Map.Entry<String,List<String>> entry: map.entrySet()) {
             String k = entry.getKey();
             List<String> v = entry.getValue();

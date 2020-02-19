@@ -292,7 +292,6 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     }
 
     private MessageType buildSchema(){
-        decimalColInfo = new HashMap<>();
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNames.size(); i++) {
             String name = fullColumnNames.get(i);
@@ -321,7 +320,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                                 .length(computeMinBytesForPrecision(decimalInfo.getPrecision()))
                                 .named(name);
 
-                        decimalColInfo.put(name, decimalInfo);
+                        decimalColInfo = Collections.singletonMap(name, decimalInfo);
                     } else {
                         typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
                     }

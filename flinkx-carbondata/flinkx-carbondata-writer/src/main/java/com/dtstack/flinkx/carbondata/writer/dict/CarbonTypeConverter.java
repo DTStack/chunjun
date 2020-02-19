@@ -19,14 +19,6 @@
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.carbondata.core.cache.Cache;
 import org.apache.carbondata.core.cache.CacheProvider;
@@ -35,13 +27,21 @@ import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.keygenerator.directdictionary.DirectDictionaryKeyGeneratorFactory;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.datatype.DataType;
+import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -158,7 +158,7 @@ public class CarbonTypeConverter {
     public static Map<String,String> updatePartitions(Map<String,String> partitionSpec, CarbonTable table) {
         CacheProvider cacheProvider = CacheProvider.getInstance();
         Cache<DictionaryColumnUniqueIdentifier, Dictionary> forwardDictionaryCache = cacheProvider.createCache(CacheType.FORWARD_DICTIONARY);
-        Map<String,String> map = new HashMap<>();
+        Map<String,String> map = new HashMap<>((partitionSpec.size()<<2)/3);
         for (Map.Entry<String,String> entry : partitionSpec.entrySet()) {
             String col = entry.getKey();
             String pvalue = entry.getValue();
@@ -185,7 +185,7 @@ public class CarbonTypeConverter {
                 map.put(col, value);
             }
         }
-        Map<String,String> ret = new HashMap<>(map.size());
+        Map<String,String> ret = new HashMap<>((map.size()<<2)/3);
         for(Map.Entry<String,String> entry : map.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();

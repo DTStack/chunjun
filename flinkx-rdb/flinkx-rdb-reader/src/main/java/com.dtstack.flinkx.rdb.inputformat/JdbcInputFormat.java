@@ -123,7 +123,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected String querySql;
 
-    //轮询增量标识字段类型，目前只有timestamp类型和数值类型
+    /**
+     * 轮询增量标识字段类型，目前只有timestamp类型和数值类型
+     */
     protected boolean isTimestamp = false;
 
     /**

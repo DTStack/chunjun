@@ -104,9 +104,9 @@ public class SnowflakeIdWorker {
         lastTimestamp = timestamp;
 
         //移位并通过或运算拼到一起组成64位的ID
-        return (timestamp << timestampLeftShift) //
-                | (dataCenterId << dataCenterIdShift) //
-                | (workerId << workerIdShift) //
+        return (timestamp << timestampLeftShift)
+                | (dataCenterId << dataCenterIdShift)
+                | (workerId << workerIdShift)
                 | sequence;
     }
 

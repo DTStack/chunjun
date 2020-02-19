@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hbase.reader;
 
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -31,13 +32,13 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Maps;
 
 
 /**
@@ -161,7 +162,8 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     }
 
     private String getEndKey(byte[] endRowkeyByte, byte[] regionEndKey) {
-        if (endRowkeyByte == null) {// 由于之前处理过，所以传入的userStartKey不可能为null
+        // 由于之前处理过，所以传入的userStartKey不可能为null
+        if (endRowkeyByte == null) {
             throw new IllegalArgumentException("userEndKey should not be null!");
         }
 
@@ -184,7 +186,8 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     }
 
     private String getStartKey(byte[] startRowkeyByte, byte[] regionStarKey) {
-        if (startRowkeyByte == null) {// 由于之前处理过，所以传入的userStartKey不可能为null
+        // 由于之前处理过，所以传入的userStartKey不可能为null
+        if (startRowkeyByte == null) {
             throw new IllegalArgumentException(
                     "userStartKey should not be null!");
         }

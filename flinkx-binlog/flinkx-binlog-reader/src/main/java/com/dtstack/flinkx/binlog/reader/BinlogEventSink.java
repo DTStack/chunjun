@@ -101,7 +101,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         }
 
         for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            Map<String,Object> message = new HashMap<>();
+            Map<String,Object> message = new HashMap<>(8);
             message.put("type", eventType.toString());
             message.put("schema", schema);
             message.put("table", table);

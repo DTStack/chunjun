@@ -48,7 +48,10 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected transient RecordReader recordReader;
 
-    protected String charsetName = "UTF-8"; // 目前只支持UTF-8
+    /**
+     * 目前只支持UTF-8
+     */
+    protected String charsetName = "UTF-8";
 
     protected transient JobConf conf;
 

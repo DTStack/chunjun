@@ -76,7 +76,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
-        decimalColInfo = new HashMap<>();
+        decimalColInfo = new HashMap<>((fullColumnTypes.size()<<2)/3);
         for (int i = 0; i < fullColumnTypes.size(); i++) {
             String columnType = fullColumnTypes.get(i);
 

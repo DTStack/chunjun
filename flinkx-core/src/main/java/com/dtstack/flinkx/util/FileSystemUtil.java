@@ -134,7 +134,7 @@ public class FileSystemUtil {
 
     private static Map<String, Object> fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
-            confMap = new HashMap<>();
+            confMap = new HashMap<>(8);
         }
 
         if (isHaMode(confMap)) {

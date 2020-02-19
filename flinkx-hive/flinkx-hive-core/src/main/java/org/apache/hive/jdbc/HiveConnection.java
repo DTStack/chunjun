@@ -104,7 +104,9 @@ public class HiveConnection implements Connection {
     private final boolean isEmbeddedMode;
     private TTransport transport;
     private boolean assumeSubject;
-    // TODO should be replaced by CliServiceClient
+    /**
+     * TODO should be replaced by CliServiceClient
+     */
     private TCLIService.Iface client;
     private boolean isClosed = true;
     private SQLWarning warningChain = null;
@@ -270,7 +272,7 @@ public class HiveConnection implements Connection {
         HttpClientBuilder httpClientBuilder;
         // Request interceptor for any request pre-processing logic
         HttpRequestInterceptor requestInterceptor;
-        Map<String, String> additionalHttpHeaders = new HashMap<String, String>();
+        Map<String, String> additionalHttpHeaders = new HashMap<>((sessConfMap.size()<<2)/3);
 
         // Retrieve the additional HttpHeaders
         for (Entry<String, String> entry : sessConfMap.entrySet()) {
@@ -441,7 +443,7 @@ public class HiveConnection implements Connection {
             // handle secure connection if specified
             if (!JdbcConnectionParams.AUTH_SIMPLE.equals(sessConfMap.get(JdbcConnectionParams.AUTH_TYPE))) {
                 // If Kerberos
-                Map<String, String> saslProps = new HashMap<String, String>();
+                Map<String, String> saslProps = new HashMap<>(4);
                 SaslQOP saslQOP = SaslQOP.AUTH;
                 if (sessConfMap.containsKey(JdbcConnectionParams.AUTH_QOP)) {
                     try {
@@ -530,9 +532,13 @@ public class HiveConnection implements Connection {
         return socketFactory;
     }
 
-    // Lookup the delegation token. First in the connection URL, then Configuration
-    private String getClientDelegationToken(Map<String, String> jdbcConnConf)
-            throws SQLException {
+    /**
+     * Lookup the delegation token. First in the connection URL, then Configuration
+     * @param jdbcConnConf jdbc配置参数map
+     * @return  token
+     * @throws SQLException
+     */
+    private String getClientDelegationToken(Map<String, String> jdbcConnConf) throws SQLException {
         String tokenStr = null;
         if (JdbcConnectionParams.AUTH_TOKEN.equalsIgnoreCase(jdbcConnConf.get(JdbcConnectionParams.AUTH_TYPE))) {
             // check delegation token in job conf if any
@@ -548,7 +554,7 @@ public class HiveConnection implements Connection {
     private void openSession() throws SQLException {
         TOpenSessionReq openReq = new TOpenSessionReq();
 
-        Map<String, String> openConf = new HashMap<String, String>();
+        Map<String, String> openConf = new HashMap<>(64);
         // for remote JDBC client, try to set the conf var using 'set foo=bar'
         for (Entry<String, String> hiveConf : connParams.getHiveConfs().entrySet()) {
             openConf.put("set:hiveconf:" + hiveConf.getKey(), hiveConf.getValue());
@@ -647,7 +653,9 @@ public class HiveConnection implements Connection {
         return varValue;
     }
 
-    // copy loginTimeout from driver manager. Thrift timeout needs to be in millis
+    /**
+     * copy loginTimeout from driver manager. Thrift timeout needs to be in millis
+     */
     private void setupLoginTimeout() {
         long timeOut = TimeUnit.SECONDS.toMillis(DriverManager.getLoginTimeout());
         if (timeOut > Integer.MAX_VALUE) {
@@ -834,12 +842,14 @@ public class HiveConnection implements Connection {
     public Statement createStatement(int resultSetType, int resultSetConcurrency)
             throws SQLException {
         if (resultSetConcurrency != ResultSet.CONCUR_READ_ONLY) {
+            // Optional feature not implemented
             throw new SQLException("Statement with resultset concurrency " +
-                    resultSetConcurrency + " is not supported", "HYC00"); // Optional feature not implemented
+                    resultSetConcurrency + " is not supported", "HYC00");
         }
         if (resultSetType == ResultSet.TYPE_SCROLL_SENSITIVE) {
+            // Optional feature not implemented
             throw new SQLException("Statement with resultset type " + resultSetType +
-                    " is not supported", "HYC00"); // Optional feature not implemented
+                    " is not supported", "HYC00");
         }
         return new HiveStatement(this, client, sessHandle,
                 resultSetType == ResultSet.TYPE_SCROLL_INSENSITIVE, fetchSize);

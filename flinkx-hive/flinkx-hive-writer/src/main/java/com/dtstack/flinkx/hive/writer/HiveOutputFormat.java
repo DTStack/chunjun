@@ -105,8 +105,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         this.parameters = parameters;
 
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
-        tableCache = new HashMap<String, TableInfo>();
-        outputFormats = new HashMap<String, BaseHdfsOutputFormat>();
+        tableCache = new HashMap<>(16);
+        outputFormats = new HashMap<>(16);
     }
 
     @Override

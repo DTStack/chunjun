@@ -32,17 +32,16 @@ import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.InputTypeConfigurable;
 import org.apache.flink.configuration.Configuration;
-
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 /**
  * Simple implementation of the SinkFunction writing tuples in the specified
  * OutputFormat format.
@@ -155,7 +154,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
         LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()){
-            formatStateMap = new HashMap<>();
+            formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
                 LOG.info("Output format state into:{}" ,formatState.toString());

@@ -26,6 +26,7 @@ import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.Validate;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -33,6 +34,7 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +45,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Maps;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -222,7 +223,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
     }
 
     private byte[] getRowkey(Row record) throws Exception{
-        Map<String, Object> nameValueMap = new HashMap<>();
+        Map<String, Object> nameValueMap = new HashMap<>((rowKeyColumnIndex.size()<<2)/3);
         for (Integer keyColumnIndex : rowKeyColumnIndex) {
             nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
         }

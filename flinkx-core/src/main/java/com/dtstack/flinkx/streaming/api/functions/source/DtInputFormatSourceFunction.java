@@ -37,6 +37,7 @@ import org.apache.flink.runtime.jobgraph.tasks.InputSplitProviderException;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 
 /**
  * A {@link SourceFunction} that reads data using an {@link InputFormat}.
@@ -248,7 +248,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
         LOG.info("Is restored:{}", context.isRestored());
 		if (context.isRestored()){
-			formatStateMap = new HashMap<>();
+			formatStateMap = new HashMap<>(16);
 			for (FormatState formatState : unionOffsetStates.get()) {
 				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
 				LOG.info("Input format state into:{}", formatState.toString());
