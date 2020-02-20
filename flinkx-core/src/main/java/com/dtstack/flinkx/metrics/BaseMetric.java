@@ -38,7 +38,7 @@ public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private Long delayPeriodMill = 15000L;
+    private Long delayPeriodMill = 20000L;
 
     private MetricGroup flinkxOutput;
 

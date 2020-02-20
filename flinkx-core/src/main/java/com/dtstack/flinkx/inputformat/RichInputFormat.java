@@ -208,10 +208,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void close() throws IOException {
         try{
             closeInternal();
-
-            if(inputMetric != null){
-                inputMetric.waitForReportMetrics();
-            }
         }catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -229,6 +225,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         if(accumulatorCollector != null){
             accumulatorCollector.close();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForReportMetrics();
         }
 
         LOG.info("subtask input close finished");
