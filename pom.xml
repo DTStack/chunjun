@@ -12,9 +12,9 @@
     <modules>
         <module>flinkx-core</module>
 
+        <module>flinkx-launcher</module>
         <module>flinkx-test</module>
         <module>flinkx-examples</module>
-        <module>flinkx-launcher</module>
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -27,6 +27,7 @@
         <module>flinkx-db2</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-oraclelogminer</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -42,6 +43,7 @@
 
         <!--******实时******-->
         <module>flinkx-binlog</module>
+        <module>flinkx-kb</module>
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
@@ -56,6 +58,7 @@
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.8.1</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
+        <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
     </properties>
 
@@ -71,6 +74,13 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>

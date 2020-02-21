@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
@@ -109,8 +108,6 @@ public class Launcher {
                     program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
                 }
 
-                clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
-                clusterClient.shutdown();
                 clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
                 clusterClient.shutdown();
             }else{

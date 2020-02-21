@@ -28,6 +28,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,13 +39,13 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class HdfsReader extends DataReader {
-    protected String type;
     protected String defaultFS;
     protected String fileType;
     protected String path;
     protected String fieldDelimiter;
     private List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
+    private String filterRegex;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -53,6 +54,7 @@ public class HdfsReader extends DataReader {
         path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
+        filterRegex = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILTER, "");
 
         fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
 
@@ -62,7 +64,7 @@ public class HdfsReader extends DataReader {
             fieldDelimiter = StringUtil.convertRegularExpr(fieldDelimiter);
         }
 
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn(), false);
     }
 
     @Override
@@ -71,13 +73,15 @@ public class HdfsReader extends DataReader {
         builder.setInputPaths(path);
         builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setFilterRegex(filterRegex);
         builder.setDefaultFs(defaultFS);
         builder.setDelimiter(fieldDelimiter);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);
+        builder.setLogConfig(logConfig);
 
-        return createInput(builder.finish(), "hdfsreader");
+        return createInput(builder.finish());
     }
 
 }

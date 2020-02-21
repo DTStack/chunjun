@@ -23,6 +23,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.InputStream;
@@ -51,6 +52,24 @@ public class URLUtil {
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
     }
 
+    public static void get(String url, long sleepTime, int retryTimes, Callback callback){
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            int num = 0;
+            while (true) {
+                String response = URLUtil.get(httpClient, url);
+                callback.call(response);
+                if (callback.isReturn() || num > retryTimes) {
+                    return ;
+                }
+
+                num++;
+                Thread.sleep(sleepTime);
+            }
+        } catch (Exception e) {
+            callback.processError(e);
+        }
+    }
+
     public static String get(CloseableHttpClient httpClient, String url) throws Exception{
         return RetryUtil.executeWithRetry(new Callable<String>() {
             @Override
@@ -68,5 +87,13 @@ public class URLUtil {
                 return respBody;
             }
         },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+    }
+
+    public static interface Callback{
+        void call(String response);
+
+        boolean isReturn();
+
+        void processError(Exception e);
     }
 }

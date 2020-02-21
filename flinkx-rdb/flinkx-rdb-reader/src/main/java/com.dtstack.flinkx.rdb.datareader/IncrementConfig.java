@@ -33,6 +33,11 @@ public class IncrementConfig implements Serializable {
     private boolean increment;
 
     /**
+     * 是否为增量轮询
+     */
+    private boolean polling;
+
+    /**
      * 用于标记是否保存endLocation位置的一条或多条数据
      *  true：不保存
      *  false(默认)：保存
@@ -49,6 +54,11 @@ public class IncrementConfig implements Serializable {
     private String startLocation;
 
     /**
+     * 轮询时间间隔
+     */
+    private long pollingInterval;
+
+    /**
      * 发送查询累加器请求的间隔时间
      */
     private int requestAccumulatorInterval;
@@ -61,12 +71,20 @@ public class IncrementConfig implements Serializable {
         this.requestAccumulatorInterval = requestAccumulatorInterval;
     }
 
-    public int getColumnIndex() {
-        return columnIndex;
+    public boolean isIncrement() {
+        return increment;
     }
 
-    public void setColumnIndex(int columnIndex) {
-        this.columnIndex = columnIndex;
+    public void setIncrement(boolean increment) {
+        this.increment = increment;
+    }
+
+    public boolean isPolling() {
+        return polling;
+    }
+
+    public void setPolling(boolean polling) {
+        this.polling = polling;
     }
 
     public boolean isUseMaxFunc() {
@@ -77,12 +95,12 @@ public class IncrementConfig implements Serializable {
         this.useMaxFunc = useMaxFunc;
     }
 
-    public boolean isIncrement() {
-        return increment;
+    public int getColumnIndex() {
+        return columnIndex;
     }
 
-    public void setIncrement(boolean increment) {
-        this.increment = increment;
+    public void setColumnIndex(int columnIndex) {
+        this.columnIndex = columnIndex;
     }
 
     public String getColumnName() {
@@ -107,5 +125,13 @@ public class IncrementConfig implements Serializable {
 
     public void setStartLocation(String startLocation) {
         this.startLocation = startLocation;
+    }
+
+    public long getPollingInterval() {
+        return pollingInterval;
+    }
+
+    public void setPollingInterval(long pollingInterval) {
+        this.pollingInterval = pollingInterval;
     }
 }

@@ -43,7 +43,7 @@ public interface IFtpHandler {
      * @return void
      * @throws
      */
-    void loginFtpServer(String host, String username, String password, int port, int timeout,String connectMode) ;
+    void loginFtpServer(FtpConfig ftpConfig) ;
     /**
      *
      * @Title: LogoutFtpServer

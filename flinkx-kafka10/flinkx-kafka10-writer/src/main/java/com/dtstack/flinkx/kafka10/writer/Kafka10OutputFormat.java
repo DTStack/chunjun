@@ -15,106 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.kafka10.writer;
 
-import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.kafka10.Formatter;
-import com.dtstack.flinkx.kafka10.decoder.JsonDecoder;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.kafkaBase.Formatter;
+import com.dtstack.flinkx.kafkaBase.writer.KafkaBaseOutputFormat;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.types.Row;
-import org.apache.flink.util.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 
 /**
  * company: www.dtstack.com
  * author: toutian
  * create: 2019/7/5
  */
-public class Kafka10OutputFormat extends RichOutputFormat {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Kafka10OutputFormat.class);
-
-    private Properties props;
-
-    private String timezone;
-
-    private String topic;
-
-    private List<String> tableFields;
-
-    private Map<String, String> producerSettings;
+public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
 
     private transient KafkaProducer<String, String> producer;
 
-    private transient JsonDecoder jsonDecoder = new JsonDecoder();
-
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
     public void configure(Configuration parameters) {
-        props = new Properties();
-        addDefaultKafkaSetting();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
+        props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
+        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
         producer = new KafkaProducer<>(props);
     }
 
-    private void addDefaultKafkaSetting() {
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
-        props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
-        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
-    }
-
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        try {
-            Map<String, Object> map;
-            int arity = row.getArity();
-            if(tableFields != null && tableFields.size() >= arity){
-                map = new LinkedHashMap<>((arity<<2)/3);
-                for (int i = 0; i < arity; i++) {
-                    map.put(tableFields.get(i), StringUtils.arrayAwareToString(row.getField(i)));
-                }
-            }else{
-                Object obj = row.getField(0);
-                if (obj instanceof Map) {
-                    map = (Map<String, Object>)obj;
-                } else if (obj instanceof String) {
-                    map = jsonDecoder.decode(obj.toString());
-                }else{
-                    map = Collections.singletonMap("message", row.toString());
-                }
-            }
-            emit(map);
-        } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
-            throw new WriteRecordException(e.getMessage(), e);
-        }
-    }
-
-    private void emit(Map event) throws IOException {
+    protected void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)));
     }
@@ -123,31 +60,5 @@ public class Kafka10OutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         LOG.warn("kafka output closeInternal.");
         producer.close();
-    }
-
-    @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        throw new UnsupportedOperationException();
-    }
-
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public void setTableFields(List<String> tableFields) {
-        this.tableFields = tableFields;
-    }
-
-    public void setProducerSettings(Map<String, String> producerSettings) {
-        this.producerSettings = producerSettings;
-    }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
     }
 }

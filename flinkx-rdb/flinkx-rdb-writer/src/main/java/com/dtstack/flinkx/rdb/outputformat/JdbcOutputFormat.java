@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public class JdbcOutputFormat extends RichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
     protected static final long serialVersionUID = 1L;
 
@@ -401,4 +401,3 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
 }
-

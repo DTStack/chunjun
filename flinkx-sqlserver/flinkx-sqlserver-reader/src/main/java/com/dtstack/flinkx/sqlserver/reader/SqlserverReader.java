@@ -37,7 +37,10 @@ public class SqlserverReader extends JdbcDataReader {
     public SqlserverReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new SqlServerDatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new SqlserverInputFormat());
     }
 
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new SqlserverInputFormat());
+    }
 }

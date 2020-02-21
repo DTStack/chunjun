@@ -37,10 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author toutian
@@ -122,8 +119,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         connectionInfo.setUsername(username);
         connectionInfo.setPassword(password);
         connectionInfo.setHiveConf(hadoopConfig);
-        connectionInfo.setJobId(jobId);
-        connectionInfo.setPlugin("writer");
 
         hiveUtil = new HiveUtil(connectionInfo, writeMode);
     }
@@ -169,34 +164,47 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        boolean fromLogData = false;
+        String tablePath;
+        Map event = null;
+        if (row.getField(0) instanceof Map) {
+            event = (Map) row.getField(0);
+            tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            fromLogData = true;
+        } else {
+            tablePath = tableBasePath;
+        }
+
+        Pair<HdfsOutputFormat, TableInfo> formatPair;
         try {
-            if (row.getArity() == 2) {
-                Object obj = row.getField(0);
-                if (obj != null && obj instanceof Map) {
-                    emitWithMap((Map<String, Object>) obj, row);
-                }
-            } else {
-                emitWithRow(row);
+            formatPair = getHdfsOutputFormat(tablePath, event);
+        } catch (Exception e) {
+            throw new RuntimeException("获取HDFSOutputFormat失败", e);
+        }
+
+        Row rowData = row;
+        if (fromLogData) {
+            rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
+        }
+
+        try {
+            formatPair.getFirst().writeRecord(rowData);
+
+            //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
+            if (fromLogData && bytesWriteCounter != null) {
+                bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
             }
-        } catch (Throwable e) {
-            logger.error("{}", e);
+        } catch (Exception e) {
+            // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
+            if (numWriteCounter.getLocalValue() % 1000 == 0) {
+                LOG.warn("写入hdfs异常:", e);
+            }
         }
     }
 
     @Override
     public void closeInternal() throws IOException {
         closeOutputFormats();
-    }
-
-    private void emitWithMap(Map<String, Object> event, Row row) throws Exception {
-        String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
-        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tablePath, event);
-        Row rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
-        formatPair.getFirst().writeRecord(rowData);
-        //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
-        if(bytesWriteCounter != null){
-            bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
-        }
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
@@ -206,11 +214,6 @@ public class HiveOutputFormat extends RichOutputFormat {
         }
         rowData.setField(rowData.getArity() - 1, channel);
         return rowData;
-    }
-
-    private void emitWithRow(Row rowData) throws Exception {
-        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tableBasePath, null);
-        formatPair.getFirst().writeRecord(rowData);
     }
 
     private Pair<HdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
@@ -224,46 +227,52 @@ public class HiveOutputFormat extends RichOutputFormat {
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
-            HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
-            hdfsOutputFormatBuilder.setPath(path);
-            hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
-            hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
-
-            outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
-            outputFormat.setDirtyDataManager(dirtyDataManager);
-            outputFormat.setErrorLimiter(errorLimiter);
-            outputFormat.setRuntimeContext(getRuntimeContext());
-            outputFormat.configure(parameters);
-            outputFormat.open(taskNumber, numTasks);
+            outputFormat = createHdfsOutputFormat(tableInfo, path);
             outputFormats.put(hiveTablePath, outputFormat);
         }
         return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private TableInfo checkCreateTable(String tablePath, Map event) throws Exception {
+    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
         try {
-            TableInfo tableInfo = tableCache.get(tablePath);
-            if (tableInfo == null) {
-                logger.info("tablePath:{} even:{}", tablePath, event);
+            HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
+            hdfsOutputFormatBuilder.setPath(path);
+            hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
+            hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-                String tableName = tablePath;
-                if (autoCreateTable && event != null) {
-                    tableName = MapUtils.getString(event, "table");
-                    tableName = distributeTableMapping.getOrDefault(tableName, tableName);
-                }
-                tableInfo = tableInfos.get(tableName);
-                if (tableInfo == null) {
-                    throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
-                }
-                tableInfo.setTablePath(tablePath);
-                hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                tableCache.put(tablePath, tableInfo);
-            }
-            return tableInfo;
-        } catch (Throwable e) {
-            throw new Exception(e);
+            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setDirtyDataManager(dirtyDataManager);
+            outputFormat.setErrorLimiter(errorLimiter);
+            outputFormat.setRuntimeContext(getRuntimeContext());
+            outputFormat.configure(parameters);
+            outputFormat.open(taskNumber, numTasks);
+
+            return outputFormat;
+        } catch (Exception e) {
+            LOG.error("构建[HdfsOutputFormat]出错:", e);
+            throw new RuntimeException(e);
         }
+    }
 
+    private TableInfo checkCreateTable(String tablePath, Map event) {
+        TableInfo tableInfo = tableCache.get(tablePath);
+        if (tableInfo == null) {
+            logger.info("tablePath:{} even:{}", tablePath, event);
+
+            String tableName = tablePath;
+            if (autoCreateTable && event != null) {
+                tableName = MapUtils.getString(event, "table");
+                tableName = distributeTableMapping.getOrDefault(tableName, tableName);
+            }
+            tableInfo = tableInfos.get(tableName);
+            if (tableInfo == null) {
+                throw new RuntimeException("tableName:" + tableName + " of the tableInfo is null");
+            }
+            tableInfo.setTablePath(tablePath);
+            hiveUtil.createHiveTableWithTableInfo(tableInfo);
+            tableCache.put(tablePath, tableInfo);
+        }
+        return tableInfo;
     }
 
     private void closeOutputFormats() {

@@ -35,8 +35,10 @@ public class SqlserverWriter extends JdbcDataWriter {
     public SqlserverWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new SqlServerDatabaseMeta());
-        super.builder = new JdbcOutputFormatBuilder(new SqlserverOutputFormat());
-
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new SqlserverOutputFormat());
+    }
 }

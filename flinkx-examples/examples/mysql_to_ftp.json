@@ -13,40 +13,31 @@
             {
               "reader": {
                 "parameter": {
-                  "password": "abc123",
-                  "columnTypes": [
-                    "java.lang.String",
-                    "java.lang.String"
-                  ],
                   "column": [
-                    "col1",
-                    "col2"
-                  ],
-                  "connection": [
                     {
-                      "jdbcUrl": [
-                        "jdbc:mysql://172.16.8.104:3306/test?charset=utf8"
-                      ],
-                      "table": [
-                        "tb1"
-                      ]
+                      "name": "col1",
+                      "type": "string"
+                    },
+                    {
+                      "name": "col2",
+                      "type": "string"
                     }
                   ],
-                  "splitPk": "col1",
-                  "username": "dtstack"
+                  "scliceRecordCount": ["1000"]
                 },
-                "name": "mysqlreader"
+                "name": "streamreader"
               },
                "writer": {
                     "name": "ftpwriter",
                     "parameter": {
-                    	"protocol": "ftp",
-                      	"host": "node01",
-                      	"port": 21,
-                      	"username": "test1",
-                      	"password": "oh1986mygod",
-                      	"writeMode": "overwrite",
-                      	"path": "/uuu",
+                    	"protocol": "sftp",
+                      	"host": "cdh_impala2",
+                      	"port": 22,
+                        "privateKeyPath": "/root/.ssh/id_rsa",
+                      	"username": "root",
+                      	"password": "abc123",
+                      	"writeMode": "append",
+                      	"path": "/root/sftp",
                         "fieldDelimiter": ",",
                         "column": [
                             {

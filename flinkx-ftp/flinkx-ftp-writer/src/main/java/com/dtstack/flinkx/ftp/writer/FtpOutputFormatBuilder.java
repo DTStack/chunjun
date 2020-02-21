@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp.writer;
 
+import com.dtstack.flinkx.ftp.FtpConfig;
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
@@ -38,26 +39,6 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
         super.setFormat(format);
     }
 
-    public void setProtocol(String protocol) {
-        format.protocol = protocol;
-    }
-
-    public void setHost(String host) {
-        format.host = host;
-    }
-
-    public void setUsername(String username) {
-        format.username = username;
-    }
-
-    public void setPassword(String password) {
-        format.password = password;
-    }
-
-    public void setPort(Integer port) {
-        format.port = port;
-    }
-
     public void setColumnNames(List<String> columnNames) {
         format.columnNames = columnNames;
     }
@@ -66,20 +47,8 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
         format.columnTypes = columnTypes;
     }
 
-    public void setDelimiter(String delimiter) {
-        format.delimiter = delimiter;
-    }
-
-    public void setConnectPattern(String connectPattern) {
-        if(StringUtils.isEmpty(connectPattern)) {
-            format.connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
-        } else {
-            format.connectMode = connectPattern;
-        }
-    }
-
-    public void setTimeout(Integer timeout){
-        format.timeout = timeout;
+    public void setFtpConfig(FtpConfig ftpConfig){
+        format.ftpConfig = ftpConfig;
     }
 
     @Override

@@ -24,6 +24,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
@@ -324,7 +325,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-            if(!restoreConfig.isRestore() || restoreConfig.isStream()){
+            if(!restoreConfig.isRestore() || isStreamButNoWriteCheckpoint()){
                 numWriteCounter.add(1);
                 snapshotWriteCounter.add(1);
             }
@@ -338,7 +339,14 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
                 LOG.error(e.getMessage());
             }
+            if(DtLogger.isEnableTrace()){
+                LOG.trace("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
+            }
         }
+    }
+
+    protected boolean isStreamButNoWriteCheckpoint(){
+        return false;
     }
 
     private void saveErrorData(Row row, WriteRecordException e){
@@ -452,8 +460,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     waitWhile("#4");
                 }
 
-                if(outputMetric != null){
-                    outputMetric.waitForReportMetrics();
+                if (outputMetric != null) {
+                    outputMetric.waitForMetricReport();
                 }
             }finally {
                 if(dirtyDataManager != null) {
