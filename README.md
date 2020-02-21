@@ -289,6 +289,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [KafKa读取插件](docs/kafkareader.md)
 * [Kudu读取插件](docs/kudureader.md)
 * [Oracle实时采集插件](docs/logminer.md)
+* [SqlServerCdc实时采集插件](docs/sqlservercdc.md)
 
 
 ### 5.2 写入插件
