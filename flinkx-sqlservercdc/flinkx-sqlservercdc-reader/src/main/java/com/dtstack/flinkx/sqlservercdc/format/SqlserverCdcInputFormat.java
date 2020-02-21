@@ -28,7 +28,6 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -67,16 +66,13 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
     private volatile boolean running = false;
 
     @Override
-    public void configure(Configuration parameters) {
+    protected void openInternal(InputSplit inputSplit) {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("cdcListener-pool-%d").build();
         executor = new ThreadPoolExecutor(1, 1,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
         queue = new SynchronousQueue<>(false);
-    }
 
-    @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
         if (inputSplit.getSplitNumber() != 0) {
             LOG.info("sqlServer cdc openInternal split number:{} abort...", inputSplit.getSplitNumber());
             return;
@@ -133,7 +129,7 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal(){
         if (running) {
             executor.shutdownNow();
             running = false;
@@ -143,7 +139,7 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
 
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
@@ -152,7 +148,7 @@ public class SqlserverCdcInputFormat extends RichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return false;
     }
 
