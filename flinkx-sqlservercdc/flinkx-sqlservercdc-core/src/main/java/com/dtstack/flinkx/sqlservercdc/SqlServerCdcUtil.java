@@ -45,7 +45,7 @@ public class SqlServerCdcUtil {
 
     private static final String STATEMENTS_PLACEHOLDER = "#";
     private static final String CHECK_CDC_DATABASE = "select 1 from sys.databases where name='%s' AND is_cdc_enabled=1";
-    private static final String CHECK_CDC_TABLE = "select name from sys.tables where is_tracked_by_cdc = 1;";
+    private static final String CHECK_CDC_TABLE = "select sys.schemas.name+'.'+sys.tables.name from sys.tables, sys.schemas where sys.tables.is_tracked_by_cdc = 1 and sys.tables.schema_id = sys.schemas.schema_id;";
     private static final String GET_LIST_OF_CDC_ENABLED_TABLES = "EXEC sys.sp_cdc_help_change_data_capture";
     private static final String GET_MAX_LSN = "SELECT sys.fn_cdc_get_max_lsn()";
     private static final String INCREMENT_LSN = "SELECT sys.fn_cdc_increment_lsn(?)";
