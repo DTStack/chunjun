@@ -764,6 +764,9 @@ public class JdbcInputFormat extends RichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
+        if(StringUtils.isBlank(startLocation)){
+            return;
+        }
         if(isTimestamp){
             ps.setTimestamp(1, Timestamp.valueOf(startLocation));
         }else{
