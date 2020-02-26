@@ -250,10 +250,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     public void close() throws IOException {
         try{
             closeInternal();
-
-            if(inputMetric != null){
-                inputMetric.waitForMetricReport();
-            }
         }catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -275,6 +271,10 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
         if(accumulatorCollector != null){
             accumulatorCollector.close();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForReportMetrics();
         }
 
         isClosed.set(true);
