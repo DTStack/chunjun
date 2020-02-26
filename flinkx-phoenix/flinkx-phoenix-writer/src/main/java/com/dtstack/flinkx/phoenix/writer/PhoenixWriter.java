@@ -39,7 +39,10 @@ public class PhoenixWriter extends JdbcDataWriter {
         super(config);
         setDatabaseInterface(new PhoenixMeta());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
-        super.builder = new JdbcOutputFormatBuilder(new PhoenixOutputFormat());
+    }
+
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new PhoenixOutputFormat());
     }
 
 }

@@ -40,6 +40,10 @@ public class PhoenixReader extends JdbcDataReader {
         super(config, env);
         setDatabaseInterface(new PhoenixMeta());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
-        super.builder = new JdbcInputFormatBuilder(new PhoenixInputFormat());
     }
+
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new PhoenixInputFormat());
+    }
+
 }

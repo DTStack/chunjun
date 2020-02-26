@@ -57,6 +57,7 @@
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.8.1</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
+        <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
     </properties>
 
