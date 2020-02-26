@@ -27,7 +27,6 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.kudu.client.AsyncKuduClient;
 
@@ -81,10 +80,6 @@ public class KuduWriter extends DataWriter {
         builder.setBatchInterval(batchInterval);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
-
-        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
-        dataStreamSink.name("kuduwriter");
-        return dataStreamSink;
+        return createOutput(dataSet,builder.finish());
     }
 }

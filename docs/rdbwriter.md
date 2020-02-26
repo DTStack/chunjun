@@ -28,9 +28,9 @@
                     "updateKey": ""
                 }
             }
-        }]
-    },
-    "setting": {}
+        }],
+        "setting": {}
+    }
 }
 ```
 

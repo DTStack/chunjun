@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.classloader;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,13 +49,13 @@ public class ClassLoaderManager {
         String jarUrlkey = StringUtils.join(jarUrls, "_");
         return pluginClassLoader.computeIfAbsent(jarUrlkey, k -> {
             try {
-                URL[] urls = jarUrls.toArray(new URL[jarUrls.size()]);
+                URL[] urls = jarUrls.toArray(new URL[0]);
                 ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
                 URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
                 LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
                 return classLoader;
             } catch (Throwable e) {
-                LOG.error("retrieve ClassLoad happens error:{}", e);
+                LOG.error("retrieve ClassLoad happens error:{}", ExceptionUtil.getErrorMessage(e));
                 throw new RuntimeException("retrieve ClassLoad happens error");
             }
         });

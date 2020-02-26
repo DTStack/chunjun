@@ -38,17 +38,19 @@
                     "increColumn": "id",
                     "startLocation": null,
                     "useMaxFunc": true,
-                    "orderByColumn": "id"
+                    "orderByColumn": "id",
+                    "polling": true,
+                    "pollingInterval": 3000
                 },
                 "name": "mysqlreader"
             },
             "writer": {
 
             }
-        }]
-    },
-    "setting": {
-
+        }],
+        "setting": {
+        
+        }
     }
 }
 ```
@@ -166,7 +168,7 @@
 
 * **increColumn**
   
-  * 描述：当需要增量同步时指定此参数，任务运行过程中会把此字段的值存储到flink的Accumulator里，如果配置了指标，名称为：endLocation，类型为string，日期类型会转为时间戳，精度最多到纳秒，数值类型的为字段的值，程序结束时由外部应用获取。
+  * 描述：当需要增量同步或间隔轮询时指定此参数，任务运行过程中会把此字段的值存储到flink的Accumulator里，如果配置了指标，名称为：endLocation，类型为string，日期类型会转为时间戳，精度最多到纳秒，数值类型的为字段的值，程序结束时由外部应用获取。
   
   * 注意：
     
@@ -254,3 +256,19 @@
   * 必选：否
   
   * 默认值：无
+  
+* **polling**
+  
+  * 描述：是否开启间隔轮询，开启后会根据`pollingInterval`轮询间隔时间周期性的从数据库拉取数据。开启间隔轮询还需配置参数`pollingInterval`，`increColumn`，可以选择配置参数`startLocation`。若不配置参数`startLocation`，任务启动时将会从数据库中查询增量字段最大值作为轮询的开始位置。
+  
+  * 必选：否
+  
+  * 默认值：false
+  
+* **pollingInterval**
+  
+  * 描述：轮询间隔时间，从数据库中拉取数据的间隔时间，默认为5000毫秒。
+  
+  * 必选：否
+  
+  * 默认值：5000

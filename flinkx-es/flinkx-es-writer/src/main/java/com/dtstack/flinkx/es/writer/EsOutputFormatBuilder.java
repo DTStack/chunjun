@@ -40,6 +40,15 @@ public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
         format.address = address;
     }
 
+
+    public void setUsername(String username) {
+        format.username = username;
+    }
+
+    public void setPassword(String password) {
+        format.password = password;
+    }
+
     public void setIdColumnIndices(List<Integer> idColumnIndices) {
         format.idColumnIndices = idColumnIndices;
     }

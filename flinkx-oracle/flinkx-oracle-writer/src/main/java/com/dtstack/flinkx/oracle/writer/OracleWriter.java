@@ -35,7 +35,10 @@ public class OracleWriter extends JdbcDataWriter {
     public OracleWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new OracleDatabaseMeta());
-        super.builder = new JdbcOutputFormatBuilder(new OracleOutputFormat());
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new OracleOutputFormat());
+    }
 }

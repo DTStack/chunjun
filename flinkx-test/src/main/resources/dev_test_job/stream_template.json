@@ -2,63 +2,35 @@
   "job": {
     "content": [
       {
-        "reader": {
-          "parameter": {
-            "sliceRecordCount": ["1000"],
-            "column": [
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "age",
-                "type": "int",
-                "value": "26"
-              },
-              {
-                "name": "father",
-                "type": "string"
-              },
-              {
-                "name": "adress",
-                "type": "string"
-              }
-            ]
-          },
-          "name": "streamreader"
-        },
         "writer": {
           "parameter": {
-            "print": true,
-            "column": [
-              {
-                "name": "cf:name",
-                "type": "string"
-              },
-              {
-                "name": "cf:age",
-                "type": "int"
-              },
-              {
-                "name": "cf:father",
-                "type": "string"
-              },
-              {
-                "name": "cf:adress",
-                "type": "string"
-              }
-            ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
-            "sourceIds": [
-              371
-            ],
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
-            }
+            "print": true
           },
           "name": "streamwriter"
+        },
+        "reader":{
+          "parameter":{
+            "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
+            "username": "root",
+            "password": "123456",
+            "database": "admin",
+            "collectionName": "test",
+            "writeMode": "insert",
+            "authenticationMechanism": "SCRAM-SHA-256",
+            "batchSize":1,
+            "column": [
+              {
+                "name":"id",
+                "type":"int"
+              },
+              {
+                "name":"date_col",
+                "type":"date"
+              }
+            ],
+            "replaceKey":"id"
+          },
+          "name":"mongodbreader"
         }
       }
     ],

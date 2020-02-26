@@ -53,7 +53,7 @@ public class FileSystemUtilTest {
         hadoopConf.put("sftpConf", sftpConf);
         hadoopConf.put("remoteDir", "/home/sftp/keytab/jiangbo");
 
-        FileSystem fs = FileSystemUtil.getFileSystem(hadoopConf, "hdfs://cdh01:9000", "sdddddddd","test");
+        FileSystem fs = FileSystemUtil.getFileSystem(hadoopConf, "hdfs://cdh01:9000");
 
         FileStatus[] statuses = fs.listStatus(new Path("/"));
         for (FileStatus status : statuses) {

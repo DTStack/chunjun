@@ -19,16 +19,19 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,8 @@ public abstract class DataReader {
 
     protected RestoreConfig restoreConfig;
 
+    protected LogConfig logConfig;
+
     protected List<String> srcCols = new ArrayList<>();
 
     protected long exceptionIndex;
@@ -60,6 +65,8 @@ public abstract class DataReader {
      * reuse hadoopConfig for metric
      */
     protected Map<String, Object> hadoopConfig;
+
+    protected static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public int getNumPartitions() {
         return numPartitions;
@@ -83,6 +90,7 @@ public abstract class DataReader {
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
+        this.logConfig = config.getJob().getSetting().getLogConfig();
         this.exceptionIndex = config.getJob().getContent().get(0).getReader().getParameter().getLongVal("exceptionIndex",0);
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
@@ -110,12 +118,17 @@ public abstract class DataReader {
 
     public abstract DataStream<Row> readData();
 
+    @SuppressWarnings("unchecked")
     protected DataStream<Row> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
         DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
         return env.addSource(function, sourceName, typeInfo);
+    }
+
+    protected DataStream<Row> createInput(InputFormat inputFormat) {
+        return createInput(inputFormat,this.getClass().getSimpleName().toLowerCase());
     }
 
 }

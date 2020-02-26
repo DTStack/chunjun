@@ -1,6 +1,11 @@
 # MySQL binlog读取插件（*reader）
 
-## 1. 配置样例
+## 1.首先给莫个用户赋权，有读binglog的权限
+
+     GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT
+     ON *.* TO 'xxx'@'%' IDENTIFIED BY 'xxx';
+
+## 2. 配置样例
 
 ```json
 {
@@ -9,7 +14,7 @@
             "reader": {
                 "parameter": {
                     "jdbcUrl" : "jdbc:mysql://127.0.0.1:3306/test?charset=utf8",
-                    "username" : "username"，
+                    "username" : "username",
                     "password" : "password",
                     "host" : "127.0.0.1",
                     "port": 3306,
@@ -28,10 +33,10 @@
             "writer": {
 
             }
-        }]
-    },
-    "setting": {
-
+        }],
+        "setting": {
+        
+        }
     }
 }
 ```

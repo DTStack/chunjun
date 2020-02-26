@@ -42,8 +42,6 @@ import java.util.List;
  */
 public class JdbcDataReader extends DataReader {
 
-    protected JdbcInputFormatBuilder builder;
-
     protected DatabaseInterface databaseInterface;
 
     protected TypeConverterInterface typeConverter;
@@ -101,6 +99,7 @@ public class JdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
+        JdbcInputFormatBuilder builder = getBuilder();
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
@@ -119,19 +118,27 @@ public class JdbcDataReader extends DataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setLogConfig(logConfig);
 
         QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
         RichInputFormat format =  builder.finish();
-        return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
+//        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
+        return createInput(format);
+    }
+
+    protected JdbcInputFormatBuilder getBuilder() {
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){
+        boolean polling = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
         Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
+        long pollingInterval = readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
 
         incrementConfig = new IncrementConfig();
         if (incrementColumn != null && StringUtils.isNotEmpty(incrementColumn.toString())){
@@ -157,12 +164,14 @@ public class JdbcDataReader extends DataReader {
             }
 
             incrementConfig.setIncrement(true);
+            incrementConfig.setPolling(polling);
             incrementConfig.setColumnName(name);
             incrementConfig.setColumnType(type);
             incrementConfig.setStartLocation(startLocation);
             incrementConfig.setUseMaxFunc(useMaxFunc);
             incrementConfig.setColumnIndex(index);
             incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
+            incrementConfig.setPollingInterval(pollingInterval);
 
             if (type == null || name == null){
                 throw new IllegalArgumentException("There is no " + incrementColStr +" field in the columns");

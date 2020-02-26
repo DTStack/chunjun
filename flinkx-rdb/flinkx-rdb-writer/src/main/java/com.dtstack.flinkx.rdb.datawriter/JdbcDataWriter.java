@@ -43,7 +43,6 @@ import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
  */
 public class JdbcDataWriter extends DataWriter {
 
-    protected JdbcOutputFormatBuilder builder;
     protected DatabaseInterface databaseInterface;
     protected String dbUrl;
     protected String username;
@@ -97,6 +96,7 @@ public class JdbcDataWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
+        JdbcOutputFormatBuilder builder = getBuilder();
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
@@ -120,7 +120,10 @@ public class JdbcDataWriter extends DataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
 
-        String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
-        return createOutput(dataSet, builder.finish(), sinkName);
+        return createOutput(dataSet, builder.finish());
+    }
+
+    protected JdbcOutputFormatBuilder getBuilder() {
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 }

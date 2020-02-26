@@ -34,6 +34,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
+    public static final String KEY_FILTER = "filterRegex";
+
     public static final String KEY_FILE_TYPE = "fileType";
 
     public static final String KEY_WRITE_MODE = "writeMode";
