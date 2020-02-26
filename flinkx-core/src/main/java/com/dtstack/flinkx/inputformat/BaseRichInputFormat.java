@@ -26,6 +26,7 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
+import org.apache.commons.lang.StringUtils;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -274,7 +275,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
 
         if(inputMetric != null){
-            inputMetric.waitForReportMetrics();
+            inputMetric.waitForMetricReport();
         }
 
         isClosed.set(true);
