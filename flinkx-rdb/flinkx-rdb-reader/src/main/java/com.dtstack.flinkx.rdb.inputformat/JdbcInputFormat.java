@@ -34,7 +34,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -109,13 +109,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected IncrementConfig incrementConfig;
 
-    protected StringAccumulator tableColAccumulator;
-
     protected StringAccumulator maxValueAccumulator;
 
-    protected MaximumAccumulator endLocationAccumulator;
+    protected LongMaximum endLocationAccumulator;
 
-    protected StringAccumulator startLocationAccumulator;
+    protected LongMaximum startLocationAccumulator;
 
     protected MetaColumn restoreColumn;
 
@@ -242,7 +240,10 @@ public class JdbcInputFormat extends RichInputFormat {
 
             if(incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc()){
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
-                endLocationAccumulator.add(getLocation(incrementConfig.getColumnType(), incrementVal));
+                String location = getLocation(incrementConfig.getColumnType(), incrementVal);
+                if (StringUtils.isNotEmpty(location)) {
+                    endLocationAccumulator.add(Long.parseLong(location));
+                }
             }
 
             //update hasNext after we've read the record
@@ -287,27 +288,36 @@ public class JdbcInputFormat extends RichInputFormat {
             return;
         }
 
-        Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
-        if(!accumulatorMap.containsKey(Metrics.TABLE_COL)){
-            tableColAccumulator = new StringAccumulator();
-            tableColAccumulator.add(table + "-" + incrementConfig.getColumnName());
-            getRuntimeContext().addAccumulator(Metrics.TABLE_COL,tableColAccumulator);
+        startLocationAccumulator = new LongMaximum();
+        if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())){
+            startLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
+        customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
 
-        startLocationAccumulator = new StringAccumulator();
-        if (incrementConfig.getStartLocation() != null){
-            startLocationAccumulator.add(incrementConfig.getStartLocation());
-        }
-        getRuntimeContext().addAccumulator(Metrics.START_LOCATION,startLocationAccumulator);
-
-        endLocationAccumulator = new MaximumAccumulator();
+        endLocationAccumulator = new LongMaximum();
         String endLocation = ((JdbcInputSplit)split).getEndLocation();
         if(endLocation != null && incrementConfig.isUseMaxFunc()){
-            endLocationAccumulator.add(endLocation);
-        } else {
-            endLocationAccumulator.add(incrementConfig.getStartLocation());
+            endLocationAccumulator.add(Long.parseLong(endLocation));
+        } else if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
+            endLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
-        getRuntimeContext().addAccumulator(Metrics.END_LOCATION,endLocationAccumulator);
+        customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+    }
+
+    /**
+     * 使用自定义的指标输出器把增量指标打到普罗米修斯
+     */
+    @Override
+    protected boolean useCustomPrometheusReporter() {
+        return incrementConfig.isIncrement();
+    }
+
+    /**
+     * 为了保证增量数据的准确性，指标输出失败时使任务失败
+     */
+    @Override
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return true;
     }
 
     /**
