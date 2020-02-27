@@ -15,7 +15,7 @@
             }
           ],
           "increColumn": "id",
-          "startLocation": "",
+          "startLocation": "3",
           "password": "abc123",
           "username": "dtstack",
           "connection": [

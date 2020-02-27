@@ -153,8 +153,6 @@ public class CustomPrometheusReporter {
     }
 
     public void close(){
-        removeAllMetric();
-
         if (deleteOnShutdown && pushGateway != null) {
             try {
                 pushGateway.delete(jobName);
@@ -197,56 +195,6 @@ public class CustomPrometheusReporter {
             }
             addMetric(metric, dimensionValues, collector);
             collectorsWithCountByMetricName.put(scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
-        }
-    }
-
-    private void removeMetric(Metric metric, List<String> dimensionValues, Collector collector) {
-        if (metric instanceof Gauge) {
-            ((io.prometheus.client.Gauge) collector).remove(toArray(dimensionValues));
-        } else if (metric instanceof Counter) {
-            ((io.prometheus.client.Gauge) collector).remove(toArray(dimensionValues));
-        } else if (metric instanceof Meter) {
-            ((io.prometheus.client.Gauge) collector).remove(toArray(dimensionValues));
-        } else if (metric instanceof Histogram) {
-            ((HistogramSummaryProxy) collector).remove(dimensionValues);
-        } else {
-            LOG.warn("Cannot remove unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
-                    metric.getClass().getName());
-        }
-    }
-
-    private void removeAllMetric() {
-        FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(0, (AbstractMetricGroup)context.getMetricGroup());
-        metricHashMap.forEach((name, metric) -> {
-            notifyOfRemovedMetric(metric, name, front);
-        });
-        metricHashMap.clear();
-    }
-
-    private void notifyOfRemovedMetric(final Metric metric, final String metricName, final MetricGroup group) {
-        List<String> dimensionValues = new LinkedList<>();
-        for (final Map.Entry<String, String> dimension : group.getAllVariables().entrySet()) {
-            dimensionValues.add(labelValueCharactersFilter.filterCharacters(dimension.getValue()));
-        }
-
-        final String scopedMetricName = getScopedName(metricName, group);
-        synchronized (this) {
-            final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName.get(scopedMetricName);
-            final Integer count = collectorWithCount.getValue();
-            final Collector collector = collectorWithCount.getKey();
-
-            removeMetric(metric, dimensionValues, collector);
-
-            if (count == 1) {
-                try {
-                    defaultRegistry.unregister(collector);
-                } catch (Exception e) {
-                    LOG.warn("There was a problem unregistering metric {}.", scopedMetricName, e);
-                }
-                collectorsWithCountByMetricName.remove(scopedMetricName);
-            } else {
-                collectorsWithCountByMetricName.put(scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count - 1));
-            }
         }
     }
 

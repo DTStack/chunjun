@@ -119,7 +119,7 @@ public class LocalTest {
         conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
         conf.setString("metrics.reporter.promgateway.host","172.16.8.178");
         conf.setString("metrics.reporter.promgateway.port","9091");
-        conf.setString("metrics.reporter.promgateway.jobName","jiangbojob");
+        conf.setString("metrics.reporter.promgateway.jobName","jiangboJob");
         conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
         conf.setString("metrics.reporter.promgateway.deleteOnShutdown","false");
 
