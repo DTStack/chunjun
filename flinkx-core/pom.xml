@@ -204,6 +204,7 @@
                                     <include>ch.qos.logback:*</include>
                                     <include>org.slf4j:*</include>
                                     <include>org.apache.httpcomponents:*</include>
+                                    <include>io.prometheus:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -214,6 +215,10 @@
                                 <relocation>
                                     <pattern>org.apache.http</pattern>
                                     <shadedPattern>shade.core.org.apache.http</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.prometheus.client</pattern>
+                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

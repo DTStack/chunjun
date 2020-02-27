@@ -249,11 +249,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
             customPrometheusReporter.report();
-            customPrometheusReporter.close();
         }
 
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
+        }
+
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.close();
         }
 
         LOG.info("subtask input close finished");
