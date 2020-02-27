@@ -80,7 +80,6 @@ public class OracleInputFormat extends JdbcInputFormat {
             timeStr = timeStr.substring(0, 19);
             timeStr = String.format("TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')", timeStr);
         }
-        timeStr = String.format("'%s'",timeStr);
 
         return timeStr;
     }
