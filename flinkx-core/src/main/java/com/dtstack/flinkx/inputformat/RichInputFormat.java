@@ -247,7 +247,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             accumulatorCollector.close();
         }
 
-        if (useCustomPrometheusReporter()) {
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
             customPrometheusReporter.report();
             customPrometheusReporter.close();
         }
