@@ -26,6 +26,7 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
+import org.apache.commons.lang.StringUtils;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -250,10 +251,6 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void close() throws IOException {
         try{
             closeInternal();
-
-            if(inputMetric != null){
-                inputMetric.waitForMetricReport();
-            }
         }catch (Exception e){
             throw new RuntimeException(e);
         }
@@ -275,6 +272,10 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
         if(accumulatorCollector != null){
             accumulatorCollector.close();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForMetricReport();
         }
 
         isClosed.set(true);
