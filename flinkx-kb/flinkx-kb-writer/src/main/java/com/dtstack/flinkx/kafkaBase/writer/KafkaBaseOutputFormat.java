@@ -46,8 +46,8 @@ public class KafkaBaseOutputFormat extends RichOutputFormat {
     protected String topic;
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
-    protected transient JsonDecoder jsonDecoder = new JsonDecoder();
-    protected transient static ObjectMapper objectMapper = new ObjectMapper();
+    protected static JsonDecoder jsonDecoder = new JsonDecoder();
+    protected static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Configuration parameters) {
@@ -69,12 +69,16 @@ public class KafkaBaseOutputFormat extends RichOutputFormat {
                     map.put(tableFields.get(i), org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
                 }
             } else {
-                Object obj = row.getField(0);
-                if (obj instanceof Map) {
-                    map = (Map<String, Object>) obj;
-                } else if (obj instanceof String) {
-                    map = jsonDecoder.decode(obj.toString());
-                } else {
+                if(arity == 1){
+                    Object obj = row.getField(0);
+                    if (obj instanceof Map) {
+                        map = (Map<String, Object>) obj;
+                    } else if (obj instanceof String) {
+                        map = jsonDecoder.decode(obj.toString());
+                    } else {
+                        map = Collections.singletonMap("message", row.toString());
+                    }
+                }else{
                     map = Collections.singletonMap("message", row.toString());
                 }
             }
