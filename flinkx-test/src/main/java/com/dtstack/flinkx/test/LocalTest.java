@@ -59,6 +59,8 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
+import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
@@ -198,6 +200,8 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
             case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
+            case PluginNameConstrant.CASSANDRA_READER : reader = new CassandraReader(config, env); break;
+            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -231,6 +235,8 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
+            case PluginNameConstrant.CASSANDRA_WRITER : writer = new CassandraWriter(config); break;
+            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

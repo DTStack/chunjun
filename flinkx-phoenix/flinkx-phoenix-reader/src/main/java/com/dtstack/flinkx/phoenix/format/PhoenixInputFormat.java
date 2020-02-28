@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.phoenix.format;
 
+import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -61,7 +62,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
                 return;
             }
 
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn = PhoenixUtil.getConnectionInternal(dbURL, username, password);
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
