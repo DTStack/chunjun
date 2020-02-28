@@ -15,32 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.phoenix.util;
 
-package com.dtstack.flinkx.enums;
+import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
- * Database type
- *
+ * Date: 2020/02/28
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author tudou
  */
-public enum EDatabaseType {
+public class PhoenixUtil {
+    public static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
+        Connection dbConn;
+        synchronized (ClassUtil.lock_str){
+            DriverManager.setLoginTimeout(10);
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix
+            // telnet
+            TelnetUtil.telnet(url);
+
+            if (username == null) {
+                dbConn = DriverManager.getConnection(url);
+            } else {
+                dbConn = DriverManager.getConnection(url, username, password);
+            }
+        }
+
+        return dbConn;
+    }
 }
