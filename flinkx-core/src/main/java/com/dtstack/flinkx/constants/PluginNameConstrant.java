@@ -47,6 +47,7 @@ public class PluginNameConstrant {
     public static final String CLICKHOUSE_READER = "clickhousereader";
     public static final String POLARDB_READER = "polardbreader";
     public static final String CASSANDRA_READER = "cassandrareader";
+    public static final String PHOENIX_READER = "phoenixreader";
 
 
     public static final String STREAM_WRITER = "streamwriter";
@@ -73,4 +74,5 @@ public class PluginNameConstrant {
     public static final String CLICKHOUSE_WRITER = "clickhousewriter";
     public static final String POLARDB_WRITER = "polardbwriter";
     public static final String CASSANDRA_WRITER = "cassandrawriter";
+    public static final String PHOENIX_WRITER = "phoenixwriter";
 }

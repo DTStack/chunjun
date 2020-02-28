@@ -56,12 +56,12 @@ public class PhoenixMeta extends BaseDatabaseMeta {
     @Override
     public String getStartQuote() {
         // 对于字段名和表名的quote得用双引号，对于字段值为字符串的得用单引号表示常量
-        return "\"";
+        return "";
     }
 
     @Override
     public String getEndQuote() {
-        return "\"";
+        return "";
     }
 
     @Override
