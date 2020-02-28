@@ -49,6 +49,8 @@
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
+        <module>flinkx-sqlservercdc</module>
+
 
     </modules>
 
