@@ -1,74 +1,54 @@
 {
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "parameter": {
-            "sliceRecordCount": ["1000"],
-            "column": [
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "age",
-                "type": "int",
-                "value": "26"
-              },
-              {
-                "name": "father",
-                "type": "string"
-              },
-              {
-                "name": "adress",
-                "type": "string"
-              }
-            ]
-          },
-          "name": "streamreader"
-        },
-        "writer": {
-          "parameter": {
-            "print": true,
-            "column": [
-              {
-                "name": "cf:name",
-                "type": "string"
-              },
-              {
-                "name": "cf:age",
-                "type": "int"
-              },
-              {
-                "name": "cf:father",
-                "type": "string"
-              },
-              {
-                "name": "cf:adress",
-                "type": "string"
-              }
-            ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
-            "sourceIds": [
-              371
-            ],
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "mysqlreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            },
+            {
+              "name": "name",
+              "type": "string"
             }
-          },
-          "name": "streamwriter"
+          ],
+          "increColumn": "id",
+          "startLocation": "3",
+          "password": "abc123",
+          "username": "dtstack",
+          "connection": [
+            {
+              "jdbcUrl": [
+                "jdbc:mysql://172.16.8.109:3306/ide_jiangbo"
+              ],
+              "table": [
+                "increment_test"
+              ]
+            }
+          ],
+          "splitKey":"id",
+          "customSql": ""
         }
-      }
-    ],
-    "setting": {
-      "errorLimit": {
-        "record": 100
       },
-      "speed": {
-        "bytes": 1048576,
-        "channel": 1
+      "writer" : {
+        "parameter" : {
+          "print": true
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : false
+      },
+      "errorLimit" : {
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
       }
     }
   }

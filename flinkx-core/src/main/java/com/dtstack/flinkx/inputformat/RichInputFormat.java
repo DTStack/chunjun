@@ -22,6 +22,7 @@ import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang.StringUtils;
@@ -71,11 +72,15 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private boolean inited = false;
 
+    protected transient CustomPrometheusReporter customPrometheusReporter;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
     public void openInputFormat() throws IOException {
         initJobInfo();
+        initPrometheusReporter();
+
         startTime = System.currentTimeMillis();
     }
 
@@ -95,6 +100,21 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         openInternal(inputSplit);
+    }
+
+    private void initPrometheusReporter() {
+        if (useCustomPrometheusReporter()) {
+            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
+            customPrometheusReporter.open();
+        }
+    }
+
+    protected boolean useCustomPrometheusReporter() {
+        return false;
+    }
+
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return false;
     }
 
     private void initAccumulatorCollector(){
@@ -227,8 +247,16 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             accumulatorCollector.close();
         }
 
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.report();
+        }
+
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
+        }
+
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.close();
         }
 
         LOG.info("subtask input close finished");

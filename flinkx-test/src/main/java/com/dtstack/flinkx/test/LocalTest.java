@@ -112,29 +112,20 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-//        setLogLevel(Level.INFO.toString());
-
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
-//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-//        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
-//        conf.setString("metrics.reporter.promgateway.port","9091");
-//        conf.setString("metrics.reporter.promgateway.jobName","108job");
-//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+        conf.setString("metrics.reporter.promgateway.host","172.16.8.178");
+        conf.setString("metrics.reporter.promgateway.port","9091");
+        conf.setString("metrics.reporter.promgateway.jobName","jiangboJob");
+        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","false");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_hdfs.json";
+        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
-    }
-
-    private static void setLogLevel(String level){
-        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
-        //设置全局日志级别
-        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
