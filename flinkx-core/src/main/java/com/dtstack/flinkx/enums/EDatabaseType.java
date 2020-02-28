@@ -42,8 +42,5 @@ public enum EDatabaseType {
     GBase,
     clickhouse,
     polarDB,
-    Cassandra,
-    SapHana,
-    TeraData,
     Phoenix
 }
