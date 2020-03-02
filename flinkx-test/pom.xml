@@ -266,7 +266,7 @@
             <artifactId>flinkx-rdb-writer</artifactId>
             <version>1.6</version>
         </dependency>
-             
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-gbase-reader</artifactId>
@@ -384,6 +384,22 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-oraclelogminer-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-sqlservercdc-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix-writer</artifactId>
             <version>1.6</version>
         </dependency>
 

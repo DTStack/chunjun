@@ -106,17 +106,17 @@ public final class DBUtil {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
 
-        String keytab = getKeytab(connectionInfo.getHiveConf());
+        String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConf());
 
-        keytab = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytab, connectionInfo.getJobId(), connectionInfo.getPlugin());
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytab);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), connectionInfo.getJobId(), connectionInfo.getPlugin());
+        keytabFileName = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytabFileName);
+        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf());
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
 
         UserGroupInformation ugi;
         try {
-            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytab);
+            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytabFileName);
         } catch (Exception e){
             throw new RuntimeException("Login kerberos error:", e);
         }
@@ -343,25 +343,7 @@ public final class DBUtil {
         private String username;
         private String password;
         private int timeout = 30000;
-        private String jobId;
-        private String plugin;
         private Map<String, Object> hiveConf;
-
-        public String getJobId() {
-            return jobId;
-        }
-
-        public void setJobId(String jobId) {
-            this.jobId = jobId;
-        }
-
-        public String getPlugin() {
-            return plugin;
-        }
-
-        public void setPlugin(String plugin) {
-            this.plugin = plugin;
-        }
 
         public String getJdbcUrl() {
             return jdbcUrl;
@@ -410,8 +392,6 @@ public final class DBUtil {
                     ", username='" + username + '\'' +
                     ", password='" + password + '\'' +
                     ", timeout='" + timeout + '\'' +
-                    ", jobId='" + jobId + '\'' +
-                    ", plugin='" + plugin + '\'' +
                     ", hiveConf=" + hiveConf +
                     '}';
         }

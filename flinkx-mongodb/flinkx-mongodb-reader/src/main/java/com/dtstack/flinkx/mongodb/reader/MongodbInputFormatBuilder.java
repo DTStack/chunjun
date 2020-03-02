@@ -19,10 +19,10 @@
 package com.dtstack.flinkx.mongodb.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * The builder for mongodb reader plugin
@@ -38,45 +38,17 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format = new MongodbInputFormat();
     }
 
-    public void setHostPorts(String hostPorts){
-        format.hostPorts = hostPorts;
-    }
-
-    public void setUsername(String username){
-        format.username = username;
-    }
-
-    public void setPassword(String password){
-        format.password = password;
-    }
-
-    public void setDatabase(String database){
-        format.database = database;
-    }
-
-    public void setCollection(String collection){
-        format.collectionName = collection;
-    }
-
     public void setMetaColumns(List<MetaColumn> metaColumns){
         format.metaColumns = metaColumns;
     }
 
-    public void setMongodbConfig(Map<String,Object> mongodbConfig){
+    public void setMongodbConfig(MongodbConfig mongodbConfig){
         format.mongodbConfig = mongodbConfig;
-    }
-
-    public void setFetchSize(int fetchSize){
-        format.fetchSize = fetchSize;
-    }
-
-    public void setFilter(String filter){
-        format.filterJson = filter;
     }
 
     @Override
     protected void checkFormat() {
-        if(format.collectionName == null){
+        if(format.mongodbConfig.getCollectionName() == null){
             throw new IllegalArgumentException("No collection supplied");
         }
 

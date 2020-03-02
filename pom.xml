@@ -35,6 +35,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
+        <module>flinkx-phoenix</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
 
@@ -48,6 +49,8 @@
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
+        <module>flinkx-sqlservercdc</module>
+
         <module>flinkx-emqx</module>
 
     </modules>
