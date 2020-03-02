@@ -23,7 +23,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -132,7 +132,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DBUtil.getConnection(dbUrl, username, password);
+            dbConn = DbUtil.getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
@@ -190,7 +190,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDbResources(rs, stmt,null, false);
+            DbUtil.closeDbResources(rs, stmt,null, false);
         }
 
         return ret;
@@ -371,7 +371,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        DBUtil.closeDbResources(null, preparedStatement, dbConn, commit);
+        DbUtil.closeDbResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
     }
 
@@ -383,7 +383,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void beforeWriteRecords()  {
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, preSql);
+            DbUtil.executeBatch(dbConn, preSql);
         }
     }
 
@@ -396,7 +396,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void beforeCloseInternal() {
         // 执行postsql
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, postSql);
+            DbUtil.executeBatch(dbConn, postSql);
         }
     }
 

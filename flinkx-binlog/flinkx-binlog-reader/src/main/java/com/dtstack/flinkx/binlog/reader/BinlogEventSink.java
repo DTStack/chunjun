@@ -36,7 +36,9 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-
+/**
+ * @author toutian
+ */
 public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);

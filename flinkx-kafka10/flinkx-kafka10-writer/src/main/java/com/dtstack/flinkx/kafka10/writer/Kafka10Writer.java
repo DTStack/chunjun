@@ -25,9 +25,9 @@ import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka10Writer extends KafkaBaseWriter {
 

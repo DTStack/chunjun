@@ -51,7 +51,7 @@ public class PerJobSubmitter {
     public static String submit(Options options, JobGraph jobGraph) throws Exception{
         LOG.info("start to submit per-job task, LauncherOptions = {}", options.toString());
         Properties conProp = JsonUtils.jsonStrToObject(options.getConfProp(), Properties.class);
-        ClusterSpecification clusterSpecification = FLinkPerJobResourceUtil.createClusterSpecification(conProp);
+        ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         perJobClusterClientBuilder.init(options.getYarnconf(), config, conProp);

@@ -40,7 +40,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
-
+/**
+ * @author toutian
+ */
 public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);

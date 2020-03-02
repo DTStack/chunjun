@@ -29,9 +29,9 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka11OutputFormat extends KafkaBaseOutputFormat {
 

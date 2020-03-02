@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka09InputFormat extends KafkaBaseInputFormat {
 

@@ -31,6 +31,7 @@ package com.dtstack.flinkx.classloader;
  * @param <T> the type of results supplied by this supplier
  *
  * @since 1.8
+ * @author toutian
  */
 @FunctionalInterface
 public interface ClassLoaderSupplier<T> {

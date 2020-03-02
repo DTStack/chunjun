@@ -24,6 +24,9 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author toutian
+ */
 public class BinlogPositionManager extends AbstractLogPositionManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogPositionManager.class);

@@ -44,9 +44,9 @@ import java.util.regex.Pattern;
  * company: www.dtstack.com
  * @author huyifan_zju@
  */
-public class DBUtil {
+public class DbUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DBUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DbUtil.class);
 
     /**
      * 数据库连接的最大重试次数

@@ -23,7 +23,7 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.StringUtil;
@@ -110,7 +110,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     protected void openNextSource() throws SQLException{
         DataSource currentSource = sourceList.get(sourceIndex);
-        currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn = DbUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
         String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
                 where, currentSource.isSplitByKey(), false, false).buildSql();
@@ -133,7 +133,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
         if(descColumnTypeList == null) {
-            descColumnTypeList = DBUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
+            descColumnTypeList = DbUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
                     currentSource.getPassword(),databaseInterface, currentSource.getTable(),metaColumns);
         }
 
@@ -187,7 +187,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     protected void closeCurrentSource(){
         try {
-            DBUtil.closeDbResources(currentResultSet,currentStatement,currentConn, true);
+            DbUtil.closeDbResources(currentResultSet,currentStatement,currentConn, true);
             currentConn = null;
             currentStatement = null;
             currentResultSet = null;
@@ -206,7 +206,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[numPartitions];
 
         if(splitKey != null && splitKey.length()> 0){
-            Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
+            Object[][] parmeter = DbUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
                 DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
                 List<DataSource> sourceCopy = deepCopyList(sourceList);

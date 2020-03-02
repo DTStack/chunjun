@@ -24,7 +24,7 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.*;
 import com.dtstack.flinkx.restore.FormatState;
@@ -189,7 +189,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
 
             if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
@@ -225,14 +225,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     if(!dbConn.getAutoCommit()){
                         dbConn.setAutoCommit(true);
                     }
-                    DBUtil.closeDbResources(resultSet, null, null, false);
+                    DbUtil.closeDbResources(resultSet, null, null, false);
                     queryForPolling(endLocationAccumulator.getLocalValue());
                     return false;
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
                 } catch (SQLException e) {
                     LOG.error("error to execute sql = {}, startLocation = {}, e = {}", querySql, endLocationAccumulator.getLocalValue(), ExceptionUtil.getErrorMessage(e));
-                    DBUtil.closeDbResources(resultSet, ps, null, false);
+                    DbUtil.closeDbResources(resultSet, ps, null, false);
                     throw new RuntimeException(e);
                 }
             }
@@ -299,7 +299,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (incrementConfig.isIncrement() && hadoopConfig != null) {
             uploadMetricData();
         }
-        DBUtil.closeDbResources(resultSet, statement, dbConn, true);
+        DbUtil.closeDbResources(resultSet, statement, dbConn, true);
     }
 
     /**
@@ -451,7 +451,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         //是否开启断点续传
         if (restoreConfig.isRestore()) {
             if (formatState == null) {
-                querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
+                querySql = querySql.replace(DbUtil.RESTORE_FILTER_PLACEHOLDER, StringUtils.EMPTY);
 
                 if (incrementConfig.isIncrement()) {
                     querySql = buildIncrementSql(jdbcInputSplit, querySql);
@@ -475,10 +475,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     restoreFilter = " and " + restoreFilter;
                 }
 
-                querySql = querySql.replace(DBUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
+                querySql = querySql.replace(DbUtil.RESTORE_FILTER_PLACEHOLDER, restoreFilter);
             }
 
-            querySql = querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
+            querySql = querySql.replace(DbUtil.INCREMENT_FILTER_PLACEHOLDER, StringUtils.EMPTY);
         } else if (incrementConfig.isIncrement()) {
             querySql = buildIncrementSql(jdbcInputSplit, querySql);
         }
@@ -506,7 +506,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             incrementFilter = " and " + incrementFilter;
         }
 
-        return querySql.replace(DBUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
+        return querySql.replace(DbUtil.INCREMENT_FILTER_PLACEHOLDER, incrementFilter);
     }
 
     /**
@@ -525,7 +525,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         StringBuilder filter = new StringBuilder(128);
 
         if (org.apache.commons.lang.StringUtils.isNotEmpty(customSql)) {
-            incrementCol = String.format("%s.%s", DBUtil.TEMPORARY_TABLE_NAME, databaseInterface.quoteColumn(incrementCol));
+            incrementCol = String.format("%s.%s", DbUtil.TEMPORARY_TABLE_NAME, databaseInterface.quoteColumn(incrementCol));
         } else {
             incrementCol = databaseInterface.quoteColumn(incrementCol);
         }
@@ -557,7 +557,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return
      */
     protected String buildStartLocationSql(String incrementColType, String incrementCol, String startLocation, boolean useMaxFunc) {
-        if (org.apache.commons.lang.StringUtils.isEmpty(startLocation) || DBUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
+        if (org.apache.commons.lang.StringUtils.isEmpty(startLocation) || DbUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
             return null;
         }
 
@@ -580,7 +580,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return
      */
     public String buildEndLocationSql(String incrementColType, String incrementCol, String endLocation) {
-        if (org.apache.commons.lang.StringUtils.isEmpty(endLocation) || DBUtil.NULL_STRING.equalsIgnoreCase(endLocation)) {
+        if (org.apache.commons.lang.StringUtils.isEmpty(endLocation) || DbUtil.NULL_STRING.equalsIgnoreCase(endLocation)) {
             return null;
         }
 
@@ -622,9 +622,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected String getTimeStr(Long location, String incrementColType) {
         String timeStr;
-        Timestamp ts = new Timestamp(DBUtil.getMillis(location));
-        ts.setNanos(DBUtil.getNanos(location));
-        timeStr = DBUtil.getNanosTimeStr(ts.toString());
+        Timestamp ts = new Timestamp(DbUtil.getMillis(location));
+        ts.setNanos(DbUtil.getNanos(location));
+        timeStr = DbUtil.getNanosTimeStr(ts.toString());
         timeStr = timeStr.substring(0, 26);
         timeStr = String.format("'%s'", timeStr);
 
@@ -646,8 +646,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             String queryMaxValueSql;
             if (StringUtils.isNotEmpty(customSql)) {
-                queryMaxValueSql = String.format("select max(%s.%s) as max_value from ( %s ) %s", DBUtil.TEMPORARY_TABLE_NAME,
-                        databaseInterface.quoteColumn(incrementConfig.getColumnName()), customSql, DBUtil.TEMPORARY_TABLE_NAME);
+                queryMaxValueSql = String.format("select max(%s.%s) as max_value from ( %s ) %s", DbUtil.TEMPORARY_TABLE_NAME,
+                        databaseInterface.quoteColumn(incrementConfig.getColumnName()), customSql, DbUtil.TEMPORARY_TABLE_NAME);
             } else {
                 queryMaxValueSql = String.format("select max(%s) as max_value from %s",
                         databaseInterface.quoteColumn(incrementConfig.getColumnName()), databaseInterface.quoteTable(table));
@@ -663,7 +663,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
 
-            conn = DBUtil.getConnection(dbUrl, username, password);
+            conn = DbUtil.getConnection(dbUrl, username, password);
             st = conn.createStatement();
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
@@ -676,7 +676,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } catch (Throwable e) {
             throw new RuntimeException("Get max value from " + table + " error", e);
         } finally {
-            DBUtil.closeDbResources(rs, st, conn, false);
+            DbUtil.closeDbResources(rs, st, conn, false);
         }
     }
 
@@ -781,7 +781,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {
-        dbConn = DBUtil.getConnection(dbUrl, username, password);
+        dbConn = DbUtil.getConnection(dbUrl, username, password);
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {

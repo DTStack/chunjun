@@ -27,7 +27,7 @@ import java.util.Properties;
  * Company: www.dtstack.com
  * @author tudou
  */
-public class FLinkPerJobResourceUtil {
+public class FlinkPerJobResourceUtil {
     /**
      * Minimum memory requirements, checked by the Client.
      * the minimum memory should be higher than the min heap cutoff

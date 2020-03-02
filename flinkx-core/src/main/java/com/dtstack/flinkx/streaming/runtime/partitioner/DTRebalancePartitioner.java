@@ -26,6 +26,7 @@ import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
  * Rewrite the [DTRebalancePartitioner] to distribute data based on the channel specified in the data
  *
  * @param <T> Type of the elements in the Stream being rebalanced
+ * @author jiangbo
  */
 @Internal
 public class DTRebalancePartitioner<T> extends StreamPartitioner<T> {

@@ -49,6 +49,8 @@ import java.util.NoSuchElementException;
 
 /**
  * A {@link SourceFunction} that reads data using an {@link InputFormat}.
+ *
+ * @author jiangbo
  */
 @Internal
 public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT> implements CheckpointedFunction {

@@ -29,9 +29,9 @@ import org.apache.flink.types.Row;
 import java.nio.charset.StandardCharsets;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka09Writer extends KafkaBaseWriter {
 

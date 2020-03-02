@@ -461,7 +461,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
                 }
 
                 if (outputMetric != null) {
-                    outputMetric.waitForMetricReport();
+                    outputMetric.waitForReportMetrics();
                 }
             }finally {
                 if(dirtyDataManager != null) {

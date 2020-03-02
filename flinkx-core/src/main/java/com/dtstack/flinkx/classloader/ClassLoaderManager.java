@@ -29,9 +29,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/10/14
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/10/14
  */
 public class ClassLoaderManager {
 

@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.sqlserver.format;
 
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
             LOG.error("error to execute {}", sql);
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDbResources(null, stmt,null, false);
+            DbUtil.closeDbResources(null, stmt,null, false);
         }
     }
 

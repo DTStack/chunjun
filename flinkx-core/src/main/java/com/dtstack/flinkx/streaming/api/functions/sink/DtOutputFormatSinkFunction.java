@@ -49,6 +49,8 @@ import java.util.Map;
  * @param <IN> Input type
  *
  * @deprecated Please use the {@code BucketingSink} for writing to files from a streaming program.
+ *
+ * @author jiangbo
  */
 @PublicEvolving
 @Deprecated

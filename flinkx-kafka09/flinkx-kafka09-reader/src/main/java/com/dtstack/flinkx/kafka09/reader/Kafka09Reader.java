@@ -27,9 +27,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.nio.charset.StandardCharsets;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka09Reader extends KafkaBaseReader {
     private String encoding;

@@ -92,6 +92,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * HiveConnection.
  *
+ * @author jiangbo
  */
 public class HiveConnection implements Connection {
     public static final Logger LOG = LoggerFactory.getLogger(HiveConnection.class.getName());

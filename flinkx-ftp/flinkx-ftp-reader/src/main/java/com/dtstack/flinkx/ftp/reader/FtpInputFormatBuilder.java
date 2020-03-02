@@ -6,7 +6,9 @@ import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
 
-
+/**
+ * @author jiangbo
+ */
 public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private FtpInputFormat format;

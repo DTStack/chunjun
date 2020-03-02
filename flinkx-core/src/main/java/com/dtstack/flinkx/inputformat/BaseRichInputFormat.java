@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 自动完成
  * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
+ * @author jiangbo
  */
 public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
 
@@ -275,7 +276,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
 
         if(inputMetric != null){
-            inputMetric.waitForMetricReport();
+            inputMetric.waitForReportMetrics();
         }
 
         isClosed.set(true);

@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 
 /**
- * Created by sishu.yss on 2018/3/1.
+ * @author jiangbo
+ * @date 2020/3/2
  */
 public class AddressUtil {
 

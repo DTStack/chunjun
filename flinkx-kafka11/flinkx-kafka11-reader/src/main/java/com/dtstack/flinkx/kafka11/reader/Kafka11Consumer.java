@@ -23,9 +23,9 @@ import java.util.Arrays;
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka11Consumer extends KafkaBaseConsumer {
 

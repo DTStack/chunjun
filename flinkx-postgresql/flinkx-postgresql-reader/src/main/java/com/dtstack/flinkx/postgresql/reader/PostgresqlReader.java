@@ -26,7 +26,7 @@ import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -43,7 +43,7 @@ public class PostgresqlReader extends JdbcDataReader {
         super(config, env);
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, null);
     }
 
     @Override

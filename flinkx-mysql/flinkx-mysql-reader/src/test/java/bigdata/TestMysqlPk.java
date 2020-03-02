@@ -1,7 +1,7 @@
 package bigdata;
 
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,7 +16,7 @@ public class TestMysqlPk {
         Connection conn = DriverManager.getConnection("jdbc:mysql://172.16.8.104:3306/test?useCursorFetch=true", "dtstack", "abc123");
         //List<String> list = databaseMeta.listUniqueKeys("sb250", conn);
         //System.out.println(list);
-        Map map = DBUtil.getPrimaryOrUniqueKeys("sb252", conn);
+        Map map = DbUtil.getPrimaryOrUniqueKeys("sb252", conn);
         System.out.println(map);
     }
 }

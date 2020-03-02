@@ -19,6 +19,9 @@ package com.dtstack.flinkx.rdb;
 
 import java.io.Serializable;
 
+/**
+ * @author jiangbo
+ */
 public interface ParameterValuesProvider  {
     Serializable[][] getParameterValues();
 }
