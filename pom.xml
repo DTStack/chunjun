@@ -51,6 +51,7 @@
         <module>flinkx-kafka</module>
         <module>flinkx-sqlservercdc</module>
 
+        <module>flinkx-emqx</module>
 
     </modules>
 

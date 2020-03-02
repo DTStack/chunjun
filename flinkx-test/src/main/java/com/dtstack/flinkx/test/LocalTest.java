@@ -28,6 +28,8 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
+import com.dtstack.flinkx.emqx.reader.EmqxReader;
+import com.dtstack.flinkx.emqx.writer.EmqxWriter;
 import com.dtstack.flinkx.es.reader.EsReader;
 import com.dtstack.flinkx.es.writer.EsWriter;
 import com.dtstack.flinkx.ftp.reader.FtpReader;
@@ -72,6 +74,7 @@ import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
+import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.commons.lang.StringUtils;
@@ -85,7 +88,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,6 +205,7 @@ public class LocalTest {
             case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
+            case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -237,6 +240,7 @@ public class LocalTest {
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
+            case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
