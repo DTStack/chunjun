@@ -109,13 +109,11 @@ public class JdbcInputFormat extends RichInputFormat {
 
     protected IncrementConfig incrementConfig;
 
-    protected StringAccumulator tableColAccumulator;
-
     protected StringAccumulator maxValueAccumulator;
 
-    protected MaximumAccumulator endLocationAccumulator;
+    protected LongMaximum endLocationAccumulator;
 
-    protected StringAccumulator startLocationAccumulator;
+    protected LongMaximum startLocationAccumulator;
 
     protected MetaColumn restoreColumn;
 
@@ -263,7 +261,11 @@ public class JdbcInputFormat extends RichInputFormat {
                 }else{
                     location = getLocation(incrementConfig.getColumnType(), incrementVal);
                 }
-                endLocationAccumulator.add(location);
+
+                if(StringUtils.isNotEmpty(location)) {
+                    endLocationAccumulator.add(Long.parseLong(location));
+                }
+
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
             }
 
@@ -317,20 +319,36 @@ public class JdbcInputFormat extends RichInputFormat {
             getRuntimeContext().addAccumulator(Metrics.TABLE_COL, tableColAccumulator);
         }
 
-        startLocationAccumulator = new StringAccumulator();
-        if (incrementConfig.getStartLocation() != null) {
-            startLocationAccumulator.add(incrementConfig.getStartLocation());
+        startLocationAccumulator = new LongMaximum();
+        if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
+            startLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
-        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
 
-        endLocationAccumulator = new MaximumAccumulator();
+        endLocationAccumulator = new LongMaximum();
         String endLocation = ((JdbcInputSplit) split).getEndLocation();
         if (endLocation != null && incrementConfig.isUseMaxFunc()) {
-            endLocationAccumulator.add(endLocation);
-        } else {
-            endLocationAccumulator.add(incrementConfig.getStartLocation());
+            endLocationAccumulator.add(Long.parseLong(endLocation));
+        } else if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
+            endLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
-        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
+        customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+    }
+
+    /**
+     * 使用自定义的指标输出器把增量指标打到普罗米修斯
+     */
+    @Override
+    protected boolean useCustomPrometheusReporter() {
+        return incrementConfig.isIncrement();
+    }
+
+    /**
+     * 为了保证增量数据的准确性，指标输出失败时使任务失败
+     */
+    @Override
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return true;
     }
 
     /**
