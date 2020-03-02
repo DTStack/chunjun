@@ -79,15 +79,20 @@ public class EmqxOutputFormat extends RichOutputFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         try {
             Map<String, Object> map;
-            Object obj = row.getField(0);
-            if (obj instanceof Map) {
-                map = (Map<String, Object>) obj;
-            } else if (obj instanceof String) {
-                map = jsonDecoder.decode(obj.toString());
-            } else {
+            if(row.getArity() == 1){
+                Object obj = row.getField(0);
+                if (obj instanceof Map) {
+                    map = (Map<String, Object>) obj;
+                } else if (obj instanceof String) {
+                    map = jsonDecoder.decode(obj.toString());
+                } else {
+                    map = Collections.singletonMap("message", row.toString());
+                }
+            }else{
                 map = Collections.singletonMap("message", row.toString());
             }
             MqttMessage message = new MqttMessage(objectMapper.writeValueAsString(map).getBytes());
