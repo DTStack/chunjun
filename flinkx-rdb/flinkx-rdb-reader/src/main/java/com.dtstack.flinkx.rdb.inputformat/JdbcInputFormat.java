@@ -35,6 +35,7 @@ import com.dtstack.flinkx.util.URLUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -158,7 +159,7 @@ public class JdbcInputFormat extends RichInputFormat {
             initMetric(inputSplit);
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(startLocation);
+                endLocationAccumulator.add(Long.parseLong(startLocation));
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -222,7 +223,7 @@ public class JdbcInputFormat extends RichInputFormat {
                         dbConn.setAutoCommit(true);
                     }
                     DBUtil.closeDBResources(resultSet, null, null, false);
-                    queryForPolling(endLocationAccumulator.getLocalValue());
+                    queryForPolling(endLocationAccumulator.getLocalValue().toString());
                     return false;
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
@@ -310,13 +311,6 @@ public class JdbcInputFormat extends RichInputFormat {
     protected void initMetric(InputSplit split) {
         if (!incrementConfig.isIncrement()) {
             return;
-        }
-
-        Map<String, Accumulator<?, ?>> accumulatorMap = getRuntimeContext().getAllAccumulators();
-        if (!accumulatorMap.containsKey(Metrics.TABLE_COL)) {
-            tableColAccumulator = new StringAccumulator();
-            tableColAccumulator.add(table + "-" + incrementConfig.getColumnName());
-            getRuntimeContext().addAccumulator(Metrics.TABLE_COL, tableColAccumulator);
         }
 
         startLocationAccumulator = new LongMaximum();
