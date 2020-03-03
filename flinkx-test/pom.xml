@@ -402,6 +402,18 @@
             <artifactId>flinkx-phoenix-writer</artifactId>
             <version>1.6</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-emqx-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-emqx-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 

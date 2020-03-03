@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
-import avro.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sqlservercdc.Lsn;
@@ -26,6 +25,7 @@ import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.sqlservercdc.listener.SqlServerCdcListener;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;

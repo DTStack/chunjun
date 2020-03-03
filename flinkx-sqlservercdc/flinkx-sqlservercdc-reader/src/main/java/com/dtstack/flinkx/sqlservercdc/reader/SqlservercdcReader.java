@@ -57,7 +57,7 @@ public class SqlservercdcReader extends DataReader {
         pavingData = readerConfig.getParameter().getBooleanVal(SqlServerCdcConfigKeys.KEY_PAVING_DATA, false);
         tableList = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
         pollInterval = readerConfig.getLongVal(SqlServerCdcConfigKeys.KEY_POLL_INTERVAL, 1000);
-        lsn = readerConfig.getStringVal(SqlServerCdcConfigKeys.KEY_LSN);
+        lsn = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_LSN);
     }
 
     @Override
