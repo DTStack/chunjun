@@ -71,9 +71,7 @@ public class PhoenixMeta extends BaseDatabaseMeta {
 
     @Override
     public String getInsertStatement(List<String> column, String table) {
-        return "UPSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values ("
-                + StringUtils.repeat("?", ",", column.size()) + ")";
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -84,7 +82,9 @@ public class PhoenixMeta extends BaseDatabaseMeta {
 
     @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        throw new UnsupportedOperationException();
+        return "UPSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") values ("
+                + StringUtils.repeat("?", ",", column.size()) + ")";
     }
 
     @Override
