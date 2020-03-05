@@ -47,9 +47,9 @@ import java.util.regex.Pattern;
 /**
  * @author toutian
  */
-public final class DBUtil {
+public final class HiveDbUtil {
 
-    private static Logger LOG = LoggerFactory.getLogger(DBUtil.class);
+    private static Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
 
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";
 
@@ -69,7 +69,7 @@ public final class DBUtil {
 
     private static ReentrantLock lock = new ReentrantLock();
 
-    private DBUtil() {
+    private HiveDbUtil() {
     }
 
     public static Connection getConnection(ConnectionInfo connectionInfo) {
@@ -85,7 +85,7 @@ public final class DBUtil {
             return RetryUtil.executeWithRetry(new Callable<Connection>() {
                 @Override
                 public Connection call() throws Exception {
-                    return DBUtil.connect(connectionInfo);
+                    return HiveDbUtil.connect(connectionInfo);
                 }
             }, 1, 1000L, false);
         } catch (Exception e1) {
@@ -286,7 +286,7 @@ public final class DBUtil {
         } catch (Exception e) {
             throw new RuntimeException("SQL 执行异常");
         } finally {
-            DBUtil.closeDbResources(res, statement, null);
+            HiveDbUtil.closeDbResources(res, statement, null);
         }
         return result;
     }
@@ -302,7 +302,7 @@ public final class DBUtil {
             flag = false;
             throw new RuntimeException(String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
         } finally {
-            DBUtil.closeDbResources(null, statement, null);
+            HiveDbUtil.closeDbResources(null, statement, null);
         }
 
         return flag;

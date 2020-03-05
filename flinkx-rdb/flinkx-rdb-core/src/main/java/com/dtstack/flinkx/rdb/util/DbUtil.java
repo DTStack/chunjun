@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.rdb.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -124,7 +125,7 @@ public class DbUtil {
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
-        if (!url.startsWith("jdbc:mysql")) {
+        if (!url.startsWith(ConstantValue.PROTOCOL_JDBC_MYSQL)) {
             return getConnectionInternal(url, username, password);
         } else {
             boolean failed = true;

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
@@ -223,7 +224,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.length);
             for (int i = 0; i < fullColNames.length; i++) {
                 Object col = inspector.getStructFieldData(value, fields.get(i));

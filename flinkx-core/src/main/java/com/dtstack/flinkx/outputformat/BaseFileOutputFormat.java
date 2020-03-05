@@ -345,37 +345,112 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         return lastWriteTime;
     }
 
+    /**
+     * 清除脏数据文件
+     */
     protected abstract void cleanDirtyData();
 
+    /**
+     * 写数据前由第一个通道完成指定操作之后调用此方法创建结束标制通知其它通道开始写数据
+     */
     protected abstract void createActionFinishedTag();
 
+    /**
+     * 等待第一个通道完成写数据前的操作
+     */
     protected abstract void waitForActionFinishedBeforeWrite();
 
+    /**
+     * flush数据到存储介质
+     *
+     * @throws IOException 输出异常
+     */
     protected abstract void flushDataInternal() throws IOException;
 
+    /**
+     * 单条数据写入文件
+     *
+     * @param row 要写入的数据
+     * @throws WriteRecordException 脏数据异常
+     */
     protected abstract void writeSingleRecordToFile(Row row) throws WriteRecordException;
 
+    /**
+     * 每个通道写完数据后关闭资源前创建结束标制
+     *
+     * @throws IOException 创建异常
+     */
     protected abstract void createFinishedTag() throws IOException;
 
+    /**
+     * 移动临时数据文件
+     */
     protected abstract void moveTemporaryDataBlockFileToDirectory();
 
+    /**
+     * 等待所有通道操作完成
+     *
+     * @throws IOException 超时异常
+     */
     protected abstract void waitForAllTasksToFinish() throws IOException;
 
+    /**
+     * 覆盖数据操作
+     *
+     * @throws IOException 删除数据异常
+     */
     protected abstract void coverageData() throws IOException;
 
+    /**
+     * 移动所有的临时数据文件
+     *
+     * @throws IOException 重命名文件异常
+     */
     protected abstract void moveTemporaryDataFileToDirectory() throws IOException;
 
+    /**
+     * 正常被close，触发 .data 目录下的文件移动到数据目录
+     *
+     * @throws IOException 重命名文件异常
+     */
     protected abstract void moveAllTemporaryDataFileToDirectory() throws IOException;
 
+    /**
+     * 检查写入路径是否存在，是否为目录
+     */
     protected abstract void checkOutputDir();
 
+    /**
+     * 打开资源
+     *
+     * @throws IOException 打开连接异常
+     */
     protected abstract void openSource() throws IOException;
 
+    /**
+     * 关闭资源
+     *
+     * @throws IOException 关闭连接异常
+     */
     protected abstract void closeSource() throws IOException;
 
+    /**
+     * 清除临时数据文件
+     *
+     * @throws IOException 删除数据异常
+     */
     protected abstract void clearTemporaryDataFiles() throws IOException;
 
+    /**
+     * 获取文件压缩比
+     * @return 压缩比 < 1
+     */
     public abstract float getDeviation();
 
+    /**
+     * 获取文件后缀
+     *
+     * @return .gz
+     */
     protected abstract String getExtension();
 }

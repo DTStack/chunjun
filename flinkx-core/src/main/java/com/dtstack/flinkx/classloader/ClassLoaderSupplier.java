@@ -37,9 +37,11 @@ package com.dtstack.flinkx.classloader;
 public interface ClassLoaderSupplier<T> {
 
     /**
-     * Gets a result.
+     * 使用给定的类加载器创建对象
      *
-     * @return a result
+     * @param cl 类加载器
+     * @return 实例化的对象
+     * @throws Exception NoSuchMethodException SecurityException
      */
     T get(ClassLoader cl) throws Exception;
 }

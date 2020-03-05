@@ -116,6 +116,11 @@ public abstract class BaseDataReader {
         }
     }
 
+    /**
+     * Build the read data flow object
+     *
+     * @return DataStream
+     */
     public abstract DataStream<Row> readData();
 
     @SuppressWarnings("unchecked")

@@ -518,7 +518,8 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         LOG.info("Monitor url:{}", monitors);
 
         JsonParser parser = new JsonParser();
-        for (int i = 0; i < 5; i++) {
+        int retryNumber = 5;
+        for (int i = 0; i < retryNumber; i++) {
             try{
                 String response = UrlUtil.get(httpClient, monitors);
                 LOG.info("response:{}", response);

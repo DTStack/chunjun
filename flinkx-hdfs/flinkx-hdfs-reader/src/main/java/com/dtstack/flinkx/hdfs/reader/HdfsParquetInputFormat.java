@@ -197,10 +197,10 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 case "decimal" : {
                     DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
                     String primitiveTypeName = currentLine.getType().getType(index).asPrimitiveType().getPrimitiveTypeName().name();
-                    if ("INT32".equals(primitiveTypeName)){
+                    if (ColumnType.INT32.name().equals(primitiveTypeName)){
                         int intVal = currentLine.getInteger(index,0);
                         data = longToDecimalStr(intVal,dm.getScale());
-                    } else if("INT64".equals(primitiveTypeName)){
+                    } else if(ColumnType.INT64.name().equals(primitiveTypeName)){
                         long longVal = currentLine.getLong(index,0);
                         data = longToDecimalStr(longVal,dm.getScale());
                     } else {

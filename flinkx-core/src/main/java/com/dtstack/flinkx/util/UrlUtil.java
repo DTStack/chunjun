@@ -98,12 +98,14 @@ public class UrlUtil {
         void call(String response);
 
         /**
-         * 是否结束
+         * 判断是否结束请求循环
+         * @return true:结束，false:继续请求
          */
         boolean isReturn();
 
         /**
-         * 错误处理函数
+         * 对异常进行处理的函数
+         * @param e 待处理的异常
          */
         void processError(Exception e);
     }

@@ -153,6 +153,12 @@ public abstract class BaseDataWriter {
         }
     }
 
+    /**
+     * Build the write data flow with read data flow
+     *
+     * @param dataSet read data flow
+     * @return write data flow
+     */
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
 
     @SuppressWarnings("unchecked")

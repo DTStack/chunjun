@@ -50,7 +50,7 @@ public class HiveUtil {
     public final static String TABLE_COLUMN_TYPE = "type";
     public final static String PARTITION_TEMPLATE = "%s=%s";
 
-    private DBUtil.ConnectionInfo connectionInfo;
+    private HiveDbUtil.ConnectionInfo connectionInfo;
 
     enum HiveReleaseVersion{
         /**
@@ -80,21 +80,21 @@ public class HiveUtil {
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(DBUtil.ConnectionInfo connectionInfo) {
+    public HiveUtil(HiveDbUtil.ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
     }
 
     public void createHiveTableWithTableInfo(TableInfo tableInfo) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             createTable(connection, tableInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDbResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -104,14 +104,14 @@ public class HiveUtil {
     public void createPartition(TableInfo tableInfo, String partition) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
-            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDbResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -124,7 +124,7 @@ public class HiveUtil {
     private void createTable(Connection connection, TableInfo tableInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
-            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);
@@ -156,7 +156,7 @@ public class HiveUtil {
             HiveReleaseVersion hiveVersion = getHiveVersion(connection);
             AbstractHiveMetadataParser metadataParser = getMetadataParser(hiveVersion);
 
-            List<Map<String, Object>> result = DBUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
+            List<Map<String, Object>> result = HiveDbUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             logger.error("{}", e);

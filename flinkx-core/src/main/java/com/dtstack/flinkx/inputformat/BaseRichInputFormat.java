@@ -84,6 +84,12 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
 
+    /**
+     * 有子类实现，打开数据连接
+     *
+     * @param inputSplit 分片
+     * @throws IOException 连接异常
+     */
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -120,6 +126,13 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         return inputSplits;
     }
 
+    /**
+     * 由子类实现，创建数据分片
+     *
+     * @param i 分片数量
+     * @return 分片数组
+     * @throws Exception 可能会出现连接数据源异常
+     */
     protected abstract InputSplit[] createInputSplitsInternal(int i) throws Exception;
 
     @Override
@@ -266,6 +279,13 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         return formatState;
     }
 
+    /**
+     * 由子类实现，读取一条数据
+     *
+     * @param row 需要创建和填充的数据
+     * @return 读取的数据
+     * @throws IOException 读取异常
+     */
     protected abstract Row nextRecordInternal(Row row) throws IOException;
 
     @Override
@@ -318,6 +338,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
     }
 
+    /**
+     * 由子类实现，关闭资源
+     *
+     * @throws IOException 连接关闭异常
+     */
     protected abstract  void closeInternal() throws IOException;
 
     @Override

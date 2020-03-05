@@ -24,10 +24,21 @@ package com.dtstack.flinkx.kafkabase.reader;
  */
 public interface IClient extends Runnable {
 
+    /**
+     * 线程方法
+     */
     @Override
     void run();
 
+    /**
+     * 处理消息的方法
+     *
+     * @param message 待处理的消息
+     */
     void processMessage(String message);
 
+    /**
+     * 关闭连接
+     */
     void close();
 }

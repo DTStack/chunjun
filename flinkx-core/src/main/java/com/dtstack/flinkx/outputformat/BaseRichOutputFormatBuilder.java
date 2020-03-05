@@ -71,6 +71,9 @@ public abstract class BaseRichOutputFormatBuilder {
         this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
+    /**
+     * Check the value of parameters
+     */
     protected abstract void checkFormat();
 
     public BaseRichOutputFormat finish() {

@@ -39,4 +39,9 @@ public class ConstantValue {
 
     public static final String KEY_HTTP = "http";
 
+    public static final String PROTOCOL_HTTP = "http://";
+    public static final String PROTOCOL_HTTPS = "https://";
+    public static final String PROTOCOL_HDFS = "hdfs://";
+    public static final String PROTOCOL_JDBC_MYSQL = "jdbc:mysql://";
+
 }

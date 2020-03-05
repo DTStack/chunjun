@@ -51,6 +51,9 @@ public abstract class BaseRichInputFormatBuilder {
         format.logConfig = logConfig;
     }
 
+    /**
+     * Check the value of parameters
+     */
     protected abstract void checkFormat();
 
     public BaseRichInputFormat finish() {

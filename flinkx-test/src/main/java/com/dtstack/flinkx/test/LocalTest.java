@@ -116,7 +116,7 @@ public class LocalTest {
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-//        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
+//        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
 //        conf.setString("metrics.reporter.promgateway.port","9091");
 //        conf.setString("metrics.reporter.promgateway.jobName","108job");
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");

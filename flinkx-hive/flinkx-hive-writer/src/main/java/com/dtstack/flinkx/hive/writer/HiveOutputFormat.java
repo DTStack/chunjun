@@ -23,7 +23,7 @@ import com.dtstack.flinkx.hdfs.writer.BaseHdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
-import com.dtstack.flinkx.hive.util.DBUtil;
+import com.dtstack.flinkx.hive.util.HiveDbUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
@@ -114,7 +114,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
 
-        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        HiveDbUtil.ConnectionInfo connectionInfo = new HiveDbUtil.ConnectionInfo();
         connectionInfo.setJdbcUrl(jdbcUrl);
         connectionInfo.setUsername(username);
         connectionInfo.setPassword(password);

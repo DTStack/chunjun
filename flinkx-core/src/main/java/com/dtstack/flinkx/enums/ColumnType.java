@@ -40,7 +40,7 @@ public enum ColumnType {
     /**
      * number type
      */
-    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,INTEGER,
+    INT, INT32, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG, INT64 ,SHORT,INTEGER,
 
     /**
      * double type
