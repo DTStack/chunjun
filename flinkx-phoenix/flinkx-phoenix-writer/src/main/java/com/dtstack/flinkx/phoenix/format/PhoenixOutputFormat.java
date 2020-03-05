@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.phoenix.format;
 
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -60,7 +61,7 @@ public class PhoenixOutputFormat extends JdbcOutputFormat {
                     }
                 }
             }
-
+            mode = EWriteMode.UPDATE.name();
             preparedStatement = prepareTemplates();
             readyCheckpoint = false;
 
