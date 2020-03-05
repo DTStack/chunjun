@@ -18,9 +18,11 @@
 package com.dtstack.flinkx.clickhouse.writer;
 
 import com.dtstack.flinkx.clickhouse.core.ClickhouseDatabaseMeta;
+import com.dtstack.flinkx.clickhouse.format.ClickhouseOutputFormat;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
 /**
  * Date: 2019/11/05
@@ -39,5 +41,7 @@ public class ClickhouseWriter extends JdbcDataWriter {
             throw new UnsupportedOperationException(mode + " mode is not supported");
         }
         setDatabaseInterface(new ClickhouseDatabaseMeta());
+
+        super.builder = new JdbcOutputFormatBuilder(new ClickhouseOutputFormat());
     }
 }
