@@ -43,6 +43,7 @@ import java.util.Map;
  */
 public class EmqxOutputFormat extends RichOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(EmqxOutputFormat.class);
+    private static final String CLIENT_ID_PRE = "writer";
 
     public String broker;
     public String topic;
@@ -59,7 +60,7 @@ public class EmqxOutputFormat extends RichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try {
-            client = new MqttClient(broker, jobId);
+            client = new MqttClient(broker, CLIENT_ID_PRE + jobId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(isCleanSession);
             if(StringUtils.isNotBlank(username)){
