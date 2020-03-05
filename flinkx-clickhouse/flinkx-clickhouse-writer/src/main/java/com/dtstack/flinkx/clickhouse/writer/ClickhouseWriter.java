@@ -41,6 +41,8 @@ public class ClickhouseWriter extends JdbcDataWriter {
             throw new UnsupportedOperationException(mode + " mode is not supported");
         }
         setDatabaseInterface(new ClickhouseDatabaseMeta());
+
+        super.builder = new JdbcOutputFormatBuilder(new ClickhouseOutputFormat());
     }
 
     @Override
