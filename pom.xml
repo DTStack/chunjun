@@ -52,6 +52,7 @@
         <module>flinkx-sqlservercdc</module>
 
         <module>flinkx-emqx</module>
+        <module>flinkx-metadatasync</module>
 
     </modules>
 

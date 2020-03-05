@@ -1,0 +1,49 @@
+{
+  "job": {
+    "content": [
+      {
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        },
+        "reader": {
+          "parameter": {
+            "username": "hadoop",
+            "password": "qwer",
+            "connection": [{
+              "jdbcUrl": [
+                "jdbc:hive2://master:10000/tiezhu"
+              ],
+              "table": [
+                "test_1"
+              ]
+            }],
+            "column": [{
+              "name": "id",
+              "type": "int",
+              "values": 123
+            },{
+              "name":"name",
+              "index":1,
+              "type":"String",
+              "value":"",
+              "format":""
+            }]
+          },
+          "name": "metadatasyncreader"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}
