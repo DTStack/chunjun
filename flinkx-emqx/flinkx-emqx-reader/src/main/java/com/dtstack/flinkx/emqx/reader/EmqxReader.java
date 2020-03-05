@@ -48,6 +48,7 @@ public class EmqxReader extends DataReader{
         builder.setCodec(codec);
         builder.setCleanSession(isCleanSession);
         builder.setQos(qos);
+        builder.setRestoreConfig(restoreConfig);
         return createInput(builder.finish());
     }
 }
