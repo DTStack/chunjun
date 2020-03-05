@@ -51,7 +51,7 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
 
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(startLocation);
+                endLocationAccumulator.add(Long.parseLong(startLocation));
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
