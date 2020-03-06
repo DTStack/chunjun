@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class MetaDataReader extends DataReader {
     protected String dbUrl;
-    protected String table;
+    protected List<String> table;
     protected String username;
     protected String pasword;
 
@@ -46,7 +46,7 @@ public class MetaDataReader extends DataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         dbUrl = readerConfig.getParameter().getConnection().get(0).getJdbcUrl().get(0);
-        table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
+        table = readerConfig.getParameter().getConnection().get(0).getTable();
         username = readerConfig.getParameter().getStringVal("username");
         pasword = readerConfig.getParameter().getStringVal("password");
     }
@@ -59,6 +59,7 @@ public class MetaDataReader extends DataReader {
         builder.setUsername(username);
         builder.setPassword(pasword);
         builder.setTable(table);
+        builder.setNumPartitions(numPartitions);
 
         return createInput(builder.finish());
     }

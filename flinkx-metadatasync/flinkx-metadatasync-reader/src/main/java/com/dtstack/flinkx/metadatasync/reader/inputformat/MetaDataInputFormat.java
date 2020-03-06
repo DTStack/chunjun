@@ -20,10 +20,7 @@ package com.dtstack.flinkx.metadatasync.reader.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -40,11 +37,14 @@ import java.util.Map;
  * @description :
  */
 public class MetaDataInputFormat extends RichInputFormat {
-    protected List<String> metaColumns;
+    protected List<String> column = new ArrayList<>();
+    protected List<String> partitionColumn = new ArrayList<>();
     protected String dbUrl;
     protected String username;
     protected String password;
-    protected String table;
+    protected List<String> table;
+
+    protected int numPartitions;
 
     protected ResultSet resultSet;
     protected int columnCount;
@@ -56,7 +56,6 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     protected Map<String, Map<String, String>> filterData;
 
-    protected String jsonRow;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -66,21 +65,22 @@ public class MetaDataInputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            resultSet = excuteSql(buildDescSql(table, true));
+            LOG.info("inputSplit = {}", inputSplit);
+
+            resultSet = excuteSql(buildDescSql(table.get(1), true));
             columnCount = resultSet.getMetaData().getColumnCount();
             filterData = transformDataToMap(resultSet);
-            jsonRow = mapToJson(filterData);
-            metaColumns = getTableColumns(table);
-        } catch (Exception e) {
-            e.printStackTrace();
+            getTableColumns(table.get(1));
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException("openInternal 异常，具体信息为：", e);
         }
     }
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        InputSplit[] inputSplits = new InputSplit[minNumSplits];
+        InputSplit[] inputSplits = new MetadataInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new GenericInputSplit(i, minNumSplits);
+            inputSplits[i] = new MetadataInputSplit(i, numPartitions, dbUrl, table.get(0));
         }
         return inputSplits;
     }
@@ -89,8 +89,7 @@ public class MetaDataInputFormat extends RichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
-        row.setField(0, objectMapper.writeValueAsString(selectUsedData(filterData))
-                .replace("\\", ""));
+        row.setField(0, objectMapper.writeValueAsString(selectUsedData(filterData)));
         hasNext = false;
         return row;
     }
@@ -115,8 +114,8 @@ public class MetaDataInputFormat extends RichInputFormat {
             connection = DriverManager.getConnection(dbUrl, username, password);
             statement = connection.createStatement();
             result = statement.executeQuery(sql);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException("查询异常，请检查相关配置:" + dbUrl + " " + username + " " + password);
         }
         return result;
     }
@@ -131,6 +130,12 @@ public class MetaDataInputFormat extends RichInputFormat {
         return sql;
     }
 
+    /**
+     * 从查询结果中构建Map
+     *
+     * @param resultSet
+     * @return
+     */
     public static Map<String, Map<String, String>> transformDataToMap(ResultSet resultSet) {
         Map<String, Map<String, String>> result = new HashMap<>();
         String tempK = "";
@@ -159,40 +164,44 @@ public class MetaDataInputFormat extends RichInputFormat {
             }
             result.put(tempK, map);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("查询结果转化异常", e);
         }
         return result;
     }
 
-    public String mapToJson(Map<String, Map<String, String>> map) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String result = "";
-        Integer count = map.size();
-        Object[] temp = map.keySet().toArray();
-        for (int i = 0; i < count; i++) {
-            map.get(temp[i]).remove(null);
-        }
-        result = objectMapper.writeValueAsString(map);
-        return result;
-    }
-
+    /**
+     * 从查询的结果中构建需要的信息
+     *
+     * @param map
+     * @return
+     */
     public Map<String, Object> selectUsedData(Map<String, Map<String, String>> map) {
         Map<String, Object> result = new HashMap<>();
         Map<String, String> temp = new HashMap<>();
-        List<Map> tempList = new ArrayList<>();
+        List<Map> tempColumnList = new ArrayList<>();
+        List<Map> tempPartitionColumnList = new ArrayList<>();
 
         // TODO 根据查询得到的字段名组合需要的信息
-        for (String item : metaColumns) {
-            tempList.add(setColumnMap(item, map.get(item), metaColumns.indexOf(item)));
+        for (String item : column) {
+            tempColumnList.add(setColumnMap(item, map.get(item), column.indexOf(item)));
         }
+        result.put("column", tempColumnList);
+
+        for(String item:partitionColumn){
+            tempPartitionColumnList.add(setColumnMap(item, map.get(item), partitionColumn.indexOf(item)));
+        }
+        result.put("partitionColumn", tempPartitionColumnList);
 
         // TODO 根据不同的inputformat确定不同的文件存储方式
         String storedType = "text";
         if (map.get("InputFormat").keySet().toString().contains("TextInputformat")) {
             storedType = "text";
         }
+        if (map.get("InputFormat").keySet().toString().contains("MapredParquetInputFormat")) {
+            storedType = "Parquet";
+        }
 
-        result.put("column", tempList);
+
         result.put("table", table);
         temp.put("comment", map.get("Table Parameters").get("comment"));
         temp.put("storedType", storedType);
@@ -202,19 +211,43 @@ public class MetaDataInputFormat extends RichInputFormat {
         return result;
     }
 
-    public List<String> getTableColumns(String table) {
-        List<String> result = new ArrayList<>();
+    /**
+     * 获取查询表中字段名列表
+     *
+     * @param table
+     * @return
+     */
+    public void getTableColumns(String table) {
+        boolean flag = false;
         try {
             ResultSet temp = excuteSql(buildDescSql(table, false));
             while (temp.next()) {
-                result.add((String) temp.getObject(1));
+                if (temp.getString(1).trim().contains("Partition Information")) {
+                    flag = true;
+                }
+                if (flag) {
+                    partitionColumn.add(temp.getString(1).trim());
+                } else {
+                    column.add(temp.getString(1));
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException("获取字段名列表异常");
         }
-        return result;
+        partitionColumn.remove(0);
+        partitionColumn.remove(0);
+        partitionColumn.remove(0);
+        column.remove("");
     }
 
+    /**
+     * 通过查询得到的结果构建字段名相应的信息
+     *
+     * @param columnName
+     * @param map
+     * @param index
+     * @return
+     */
     public Map<String, Object> setColumnMap(String columnName, Map<String, String> map, int index) {
         Map<String, Object> result = new HashMap<>();
         result.put("name", columnName);

@@ -47,8 +47,12 @@ public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
         format.password = password;
     }
 
-    public void setTable(String table) {
+    public void setTable(List<String> table) {
         format.table = table;
+    }
+
+    public void setNumPartitions(int numPartitions){
+        format.numPartitions = numPartitions;
     }
 
 
