@@ -18,20 +18,8 @@
               ],
               "table": [
                 "test_1",
-                "test_2",
-                "test_3"
+                "test_2"
               ]
-            }],
-            "column": [{
-              "name": "id",
-              "type": "int",
-              "values": 123
-            },{
-              "name":"name",
-              "index":1,
-              "type":"String",
-              "value":"",
-              "format":""
             }]
           },
           "name": "metadatasyncreader"

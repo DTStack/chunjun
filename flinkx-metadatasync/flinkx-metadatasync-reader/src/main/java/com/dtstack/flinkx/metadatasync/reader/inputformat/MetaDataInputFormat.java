@@ -53,6 +53,7 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     protected Connection connection;
     protected Statement statement;
+    protected int count;
 
     protected Map<String, Map<String, String>> filterData;
 
@@ -66,11 +67,12 @@ public class MetaDataInputFormat extends RichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
-
-            resultSet = excuteSql(buildDescSql(table.get(1), true));
+            count = table.size();
+            resultSet = excuteSql(buildDescSql(((MetadataInputSplit) inputSplit).getTable(), true));
             columnCount = resultSet.getMetaData().getColumnCount();
             filterData = transformDataToMap(resultSet);
-            getTableColumns(table.get(1));
+            getTableColumns(((MetadataInputSplit) inputSplit).getTable());
+            count--;
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("openInternal 异常，具体信息为：", e);
         }
@@ -78,9 +80,10 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+        minNumSplits = table.size();
         InputSplit[] inputSplits = new MetadataInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new MetadataInputSplit(i, numPartitions, dbUrl, table.get(0));
+            inputSplits[i] = new MetadataInputSplit(i, numPartitions, dbUrl, table.get(i));
         }
         return inputSplits;
     }
@@ -90,7 +93,10 @@ public class MetaDataInputFormat extends RichInputFormat {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
         row.setField(0, objectMapper.writeValueAsString(selectUsedData(filterData)));
-        hasNext = false;
+        count--;
+        if (count == 0) {
+            hasNext = false;
+        }
         return row;
     }
 
@@ -101,10 +107,7 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        if (hasNext) {
-            return false;
-        }
-        return true;
+        return !hasNext;
     }
 
     public ResultSet excuteSql(String sql) throws ClassNotFoundException {
@@ -115,7 +118,8 @@ public class MetaDataInputFormat extends RichInputFormat {
             statement = connection.createStatement();
             result = statement.executeQuery(sql);
         } catch (SQLException e) {
-            throw new RuntimeException("查询异常，请检查相关配置:" + dbUrl + " " + username + " " + password);
+            throw new RuntimeException("查询异常，请检查相关配置:"
+                    + dbUrl + " " + username + " " + password + "当前查询语句为: " + sql);
         }
         return result;
     }
@@ -123,9 +127,9 @@ public class MetaDataInputFormat extends RichInputFormat {
     public String buildDescSql(String table, boolean formatted) {
         String sql = "";
         if (formatted) {
-            sql = String.format("DESC FORMATTED " + table);
+            sql = "DESC FORMATTED " + table;
         } else {
-            sql = String.format("DESC " + table);
+            sql = "DESC " + table;
         }
         return sql;
     }
@@ -181,13 +185,12 @@ public class MetaDataInputFormat extends RichInputFormat {
         List<Map> tempColumnList = new ArrayList<>();
         List<Map> tempPartitionColumnList = new ArrayList<>();
 
-        // TODO 根据查询得到的字段名组合需要的信息
         for (String item : column) {
             tempColumnList.add(setColumnMap(item, map.get(item), column.indexOf(item)));
         }
         result.put("column", tempColumnList);
 
-        for(String item:partitionColumn){
+        for (String item : partitionColumn) {
             tempPartitionColumnList.add(setColumnMap(item, map.get(item), partitionColumn.indexOf(item)));
         }
         result.put("partitionColumn", tempPartitionColumnList);
@@ -201,11 +204,12 @@ public class MetaDataInputFormat extends RichInputFormat {
             storedType = "Parquet";
         }
 
+        result.put("table", table.get(1));
 
-        result.put("table", table);
         temp.put("comment", map.get("Table Parameters").get("comment"));
         temp.put("storedType", storedType);
         result.put("tablePropertites", temp);
+
         // TODO 下面的这些还不确定如何获取
         result.put("operateType", "createTable");
         return result;
@@ -234,9 +238,10 @@ public class MetaDataInputFormat extends RichInputFormat {
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("获取字段名列表异常");
         }
-        partitionColumn.remove(0);
-        partitionColumn.remove(0);
-        partitionColumn.remove(0);
+        // 除去多余的字段
+        partitionColumn.remove("# Partition Information");
+        partitionColumn.remove("");
+        partitionColumn.remove("# col_name");
         column.remove("");
     }
 
@@ -251,7 +256,11 @@ public class MetaDataInputFormat extends RichInputFormat {
     public Map<String, Object> setColumnMap(String columnName, Map<String, String> map, int index) {
         Map<String, Object> result = new HashMap<>();
         result.put("name", columnName);
-        result.put("type", map.keySet().toArray()[0]);
+        if (map.keySet().toArray()[0] == null) {
+            result.put("type", map.keySet().toArray()[1]);
+        } else {
+            result.put("type", map.keySet().toArray()[0]);
+        }
         result.put("index", index);
         result.put("comment", map.values().toArray()[0]);
         return result;
