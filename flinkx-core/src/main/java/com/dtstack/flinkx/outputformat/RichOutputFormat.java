@@ -192,7 +192,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
      */
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        LOG.info("subtask[" + taskNumber +  "] open start");
+        LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
@@ -437,7 +437,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     @Override
     public void close() throws IOException {
-        LOG.info("subtask[" + taskNumber + "] close()");
+        LOG.info("subtask[{}}] close()", taskNumber);
 
         try{
             if(rows.size() != 0) {
@@ -473,7 +473,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     accumulatorCollector.close();
                 }
             }
-            LOG.info("subtask[" + taskNumber + "] close() finished");
+            LOG.info("subtask[{}}] close() finished", taskNumber);
         }
     }
 
