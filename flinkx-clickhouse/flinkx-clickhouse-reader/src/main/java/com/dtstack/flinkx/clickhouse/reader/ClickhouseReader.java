@@ -34,7 +34,6 @@ public class ClickhouseReader extends JdbcDataReader {
     public ClickhouseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new ClickhouseDatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new ClickhouseInputFormat());
     }
 
     @Override
