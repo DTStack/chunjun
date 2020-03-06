@@ -45,6 +45,7 @@ public class EmqxInputFormat extends RichInputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(EmqxInputFormat.class);
 
     private static final String DEFAULT_CODEC = "json";
+    private static final String CLIENT_ID_PRE = "reader";
 
     public String broker;
     public String topic;
@@ -69,7 +70,7 @@ public class EmqxInputFormat extends RichInputFormat {
 
         try {
             queue = new SynchronousQueue<>(false);
-            client = new MqttClient(broker, jobId);
+            client = new MqttClient(broker, CLIENT_ID_PRE + jobId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(isCleanSession);
             if(StringUtils.isNotBlank(username)){
