@@ -51,9 +51,6 @@ public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
         format.table = table;
     }
 
-    public void setMetaColumns(List<MetaColumn> metaColumns){
-        format.metaColumns = metaColumns;
-    }
 
     @Override
     protected void checkFormat() {

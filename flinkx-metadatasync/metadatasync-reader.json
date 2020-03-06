@@ -17,7 +17,9 @@
                 "jdbc:hive2://master:10000/tiezhu"
               ],
               "table": [
-                "test_1"
+                "test_1",
+                "test_2",
+                "test_3"
               ]
             }],
             "column": [{

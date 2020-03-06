@@ -40,7 +40,6 @@ public class MetaDataReader extends DataReader {
     protected String table;
     protected String username;
     protected String pasword;
-    protected List<MetaColumn> metaColumns;
 
     public MetaDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -50,7 +49,6 @@ public class MetaDataReader extends DataReader {
         table = readerConfig.getParameter().getConnection().get(0).getTable().get(0);
         username = readerConfig.getParameter().getStringVal("username");
         pasword = readerConfig.getParameter().getStringVal("password");
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
@@ -61,7 +59,6 @@ public class MetaDataReader extends DataReader {
         builder.setUsername(username);
         builder.setPassword(pasword);
         builder.setTable(table);
-        builder.setMetaColumns(metaColumns);
 
         return createInput(builder.finish());
     }
