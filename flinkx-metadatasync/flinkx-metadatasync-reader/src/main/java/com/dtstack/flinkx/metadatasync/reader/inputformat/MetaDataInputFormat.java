@@ -48,6 +48,7 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     protected ResultSet resultSet;
     protected int columnCount;
+    protected String queryTable;
 
     protected boolean hasNext = true;
 
@@ -68,8 +69,8 @@ public class MetaDataInputFormat extends RichInputFormat {
         try {
             LOG.info("inputSplit = {}", inputSplit);
             hasNext = true;
-            count = table.size();
-            resultSet = excuteSql(buildDescSql(((MetadataInputSplit) inputSplit).getTable(), true));
+            queryTable = ((MetadataInputSplit) inputSplit).getTable();
+            resultSet = excuteSql(buildDescSql(queryTable, true));
             columnCount = resultSet.getMetaData().getColumnCount();
             filterData = transformDataToMap(resultSet);
             getTableColumns(((MetadataInputSplit) inputSplit).getTable());
@@ -206,7 +207,7 @@ public class MetaDataInputFormat extends RichInputFormat {
             storedType = "Parquet";
         }
 
-        result.put("table", table.get(1));
+        result.put("table", queryTable);
 
         temp.put("comment", map.get("Table Parameters").get("comment"));
         temp.put("storedType", storedType);
