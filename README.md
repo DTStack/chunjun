@@ -288,7 +288,9 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MySQL binlog读取插件](docs/binlog.md)
 * [KafKa读取插件](docs/kafkareader.md)
 * [Kudu读取插件](docs/kudureader.md)
+* [Emqx读取插件](docs/emqxreader.md)
 * [Oracle实时采集插件](docs/logminer.md)
+* [SqlServerCdc实时采集插件](docs/sqlservercdc.md)
 
 
 ### 5.2 写入插件
@@ -306,6 +308,8 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Kafka写入插件](docs/kafkawriter.md)
 * [Hive写入插件](docs/hivewriter.md)
 * [Kudu写入插件](docs/kuduwriter.md)
+* [Emqx写入插件](docs/emqxwriter.md)
+
 
 [断点续传和实时采集功能介绍](docs/restore.md)
 

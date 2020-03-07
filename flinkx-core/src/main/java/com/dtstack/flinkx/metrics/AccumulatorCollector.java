@@ -227,9 +227,6 @@ public class AccumulatorCollector {
                         }
                     }
                 }
-                if(DtLogger.isEnableTrace()){
-                    LOG.trace("monitorUrl = {}, response = {}", monitorUrl, response);
-                }
             } catch (Exception e){
                 checkErrorTimes();
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);

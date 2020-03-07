@@ -43,13 +43,22 @@ public class UrlUtil {
 
     private static Charset charset = Charset.forName("UTF-8");
 
+    public static InputStream open(String url, int retryTimes) throws Exception {
+        return RetryUtil.executeWithRetry(new Callable<InputStream>() {
+            @Override
+            public InputStream call() throws Exception{
+                return new URL(url).openStream();
+            }
+        }, retryTimes, SLEEP_TIME_MILLI_SECOND, false);
+    }
+
     public static InputStream open(String url) throws Exception{
         return RetryUtil.executeWithRetry(new Callable<InputStream>() {
             @Override
             public InputStream call() throws Exception{
                 return new URL(url).openStream();
             }
-        },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+        }, MAX_RETRY_TIMES, SLEEP_TIME_MILLI_SECOND, false);
     }
 
     public static void get(String url, long sleepTime, int retryTimes, Callback callback){

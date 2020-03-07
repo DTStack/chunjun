@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class TelnetUtil {
     private static Pattern JDBC_PATTERN = Pattern.compile("(?<host>[^:@/]+):(?<port>\\d+).*");
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
+    private static final String SPLIT_KEY = ",";
 
     public static void telnet(String ip,int port) {
         try {
@@ -87,6 +89,15 @@ public class TelnetUtil {
         System.out.println("host:" + host);
         System.out.println("port:" + port);
 
-        telnet(host,port);
+        if(host.contains(SPLIT_KEY)){
+            String[] hosts = host.split(SPLIT_KEY);
+            for (String s : hosts) {
+                if(StringUtils.isNotBlank(s)){
+                    telnet(s,port);
+                }
+            }
+        }else{
+            telnet(host,port);
+        }
     }
 }

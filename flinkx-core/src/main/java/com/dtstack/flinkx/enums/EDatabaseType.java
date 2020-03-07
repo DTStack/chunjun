@@ -48,5 +48,6 @@ public enum EDatabaseType {
     Carbondata,
     GBase,
     clickhouse,
-    polarDB
+    polarDB,
+    Phoenix
 }

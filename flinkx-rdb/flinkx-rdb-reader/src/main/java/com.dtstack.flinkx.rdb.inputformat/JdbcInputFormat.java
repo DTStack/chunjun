@@ -780,13 +780,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
-        if(isTimestamp){
-            ps.setTimestamp(1, Timestamp.valueOf(startLocation));
+        if(StringUtils.isNotBlank(startLocation)){
+            if(isTimestamp){
+                ps.setTimestamp(1, Timestamp.valueOf(startLocation));
+            }else{
+                ps.setInt(1, Integer.parseInt(startLocation));
+            }
+            resultSet = ps.executeQuery();
+            hasNext = resultSet.next();
         }else{
-            ps.setInt(1, Integer.parseInt(startLocation));
+            queryStartLocation();
         }
-        resultSet = ps.executeQuery();
-        hasNext = resultSet.next();
     }
 
     /**
@@ -801,16 +805,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (incrementConfig.isPolling()) {
             if(StringUtils.isBlank(startLocation)){
                 LOG.info("startLocation = null, execute sql = {}", querySql);
-                Statement st = dbConn.createStatement();
-                st.setFetchSize(fetchSize);
-                st.setQueryTimeout(queryTimeOut);
-                resultSet = st.executeQuery(querySql);
-                hasNext = resultSet.next();
-                querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
-                ps = dbConn.prepareStatement(querySql);
-                ps.setFetchSize(fetchSize);
-                ps.setQueryTimeout(queryTimeOut);
-                LOG.info("update querySql, sql = {}", querySql);
+                queryStartLocation();
             }else{
                 ps = dbConn.prepareStatement(querySql);
                 ps.setFetchSize(fetchSize);
@@ -823,6 +818,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             statement.setQueryTimeout(queryTimeOut);
             resultSet = statement.executeQuery(querySql);
             hasNext = resultSet.next();
+        }
+    }
+
+    private void queryStartLocation() throws SQLException{
+        ps = dbConn.prepareStatement(querySql,ResultSet.TYPE_FORWARD_ONLY,ResultSet.CONCUR_READ_ONLY);
+        ps.setFetchSize(fetchSize);
+        ps.setFetchDirection(ResultSet.FETCH_REVERSE);
+        ps.setQueryTimeout(queryTimeOut);
+        resultSet = ps.executeQuery();
+        hasNext = resultSet.next();
+        if(hasNext){
+            querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
+            ps = dbConn.prepareStatement(querySql);
+            ps.setFetchSize(fetchSize);
+            ps.setQueryTimeout(queryTimeOut);
+            LOG.info("update querySql, sql = {}", querySql);
         }
     }
 
