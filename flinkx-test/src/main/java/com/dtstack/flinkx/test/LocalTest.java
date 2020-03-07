@@ -82,7 +82,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +147,7 @@ public class LocalTest {
 
         dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
                 new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+                        new CustomPartitioner<>()));
 
         BaseDataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream);

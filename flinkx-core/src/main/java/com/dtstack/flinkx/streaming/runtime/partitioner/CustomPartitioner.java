@@ -31,7 +31,7 @@ import org.apache.flink.streaming.runtime.partitioner.StreamPartitioner;
  * TODO 这个类后面会删掉
  */
 @Internal
-public class DTRebalancePartitioner<T> extends StreamPartitioner<T> {
+public class CustomPartitioner<T> extends StreamPartitioner<T> {
     private static final long serialVersionUID = 1L;
 
     @Override

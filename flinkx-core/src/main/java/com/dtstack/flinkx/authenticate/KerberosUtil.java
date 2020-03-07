@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.authenticate;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.Md5Util;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -50,11 +51,13 @@ public class KerberosUtil {
     public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
+    private static final String JAVA_VENDOR_IBM = "IBM";
+
     private static String LOCAL_CACHE_DIR;
     static {
-        String systemInfo = System.getProperty("os.name");
-        if(systemInfo.toLowerCase().startsWith("windows")){
-            LOCAL_CACHE_DIR = System.getProperty("user.dir");
+        String systemInfo = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_OS);
+        if(systemInfo.toLowerCase().startsWith(ConstantValue.OS_WINDOWS)){
+            LOCAL_CACHE_DIR = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_USER_DIR);
         } else {
             LOCAL_CACHE_DIR = "/tmp/flinkx/keytab";
         }
@@ -92,7 +95,7 @@ public class KerberosUtil {
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
 
         try {
-            if (!System.getProperty("java.vendor").contains("IBM")) {
+            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR).contains(JAVA_VENDOR_IBM)) {
                 Config.refresh();
             }
         } catch (Exception e){
@@ -164,9 +167,9 @@ public class KerberosUtil {
         if (fileExists(fileLocalPath)) {
             return fileLocalPath;
         } else {
-            SFTPHandler handler = null;
+            SftpHandler handler = null;
             try {
-                handler = SFTPHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
+                handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
                 if(handler.isFileExist(filePathOnSftp)){
                     handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
 

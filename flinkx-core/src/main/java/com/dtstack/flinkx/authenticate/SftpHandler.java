@@ -35,9 +35,9 @@ import java.util.concurrent.Callable;
  * @author jiangbo
  * @date 2019/8/21
  */
-public class SFTPHandler {
+public class SftpHandler {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(SFTPHandler.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(SftpHandler.class);
 
     private static final String KEY_USERNAME = "username";
     private static final String KEY_PASSWORD = "password";
@@ -52,16 +52,16 @@ public class SFTPHandler {
     private Session session;
     private ChannelSftp channelSftp;
 
-    private SFTPHandler(Session session, ChannelSftp channelSftp) {
+    private SftpHandler(Session session, ChannelSftp channelSftp) {
         this.session = session;
         this.channelSftp = channelSftp;
     }
 
-    public static SFTPHandler getInstanceWithRetry(Map<String, String> sftpConfig){
+    public static SftpHandler getInstanceWithRetry(Map<String, String> sftpConfig){
         try {
-            return RetryUtil.executeWithRetry(new Callable<SFTPHandler>() {
+            return RetryUtil.executeWithRetry(new Callable<SftpHandler>() {
                 @Override
-                public SFTPHandler call() throws Exception {
+                public SftpHandler call() throws Exception {
                     return getInstance(sftpConfig);
                 }
             }, 3, 1000, false);
@@ -70,7 +70,7 @@ public class SFTPHandler {
         }
     }
 
-    private static SFTPHandler getInstance(Map<String, String> sftpConfig){
+    private static SftpHandler getInstance(Map<String, String> sftpConfig){
         checkConfig(sftpConfig);
 
         String host = MapUtils.getString(sftpConfig, KEY_HOST);
@@ -94,7 +94,7 @@ public class SFTPHandler {
             ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();
 
-            return new SFTPHandler(session, channelSftp);
+            return new SftpHandler(session, channelSftp);
         } catch (Exception e){
             String message = String.format("与ftp服务器建立连接失败 : [%s]",
                     "message:host =" + host + ",username = " + username + ",port =" + port);

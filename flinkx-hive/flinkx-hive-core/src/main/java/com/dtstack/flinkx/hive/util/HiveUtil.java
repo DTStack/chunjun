@@ -172,7 +172,7 @@ public class HiveUtil {
         if (HiveReleaseVersion.APACHE_2.equals(hiveVersion) || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
             return new Apache2MetadataParser();
         } else {
-            return new CDH2HiveMetadataParser();
+            return new Cdh2HiveMetadataParser();
         }
     }
 

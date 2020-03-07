@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,7 +81,7 @@ public class FtpHandler implements IFtpHandler {
                 throw new RuntimeException(message);
             }
             //设置命令传输编码
-            String fileEncoding = System.getProperty("file.encoding");
+            String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
         } catch (Exception e) {
             throw new RuntimeException(e);

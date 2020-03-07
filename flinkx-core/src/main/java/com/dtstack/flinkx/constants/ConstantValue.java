@@ -44,4 +44,10 @@ public class ConstantValue {
     public static final String PROTOCOL_HDFS = "hdfs://";
     public static final String PROTOCOL_JDBC_MYSQL = "jdbc:mysql://";
 
+    public static final String SYSTEM_PROPERTIES_KEY_OS = "os.name";
+    public static final String SYSTEM_PROPERTIES_KEY_USER_DIR = "user.dir";
+    public static final String SYSTEM_PROPERTIES_KEY_JAVA_VENDOR = "java.vendor";
+    public static final String SYSTEM_PROPERTIES_KEY_FILE_ENCODING = "file.encoding";
+
+    public static final String OS_WINDOWS = "windows";
 }

@@ -29,7 +29,7 @@ import java.util.Map;
  * @author jiangbo
  * @date 2019/11/29
  */
-public class CDH2HiveMetadataParser extends AbstractHiveMetadataParser {
+public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
 
     @Override
     public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {

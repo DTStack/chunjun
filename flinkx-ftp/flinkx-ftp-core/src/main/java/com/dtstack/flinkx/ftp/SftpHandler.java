@@ -61,6 +61,8 @@ public class SftpHandler implements IFtpHandler {
 
     private static String PATH_NOT_EXIST_ERR = "no such file";
 
+    private static String MSG_AUTH_FAIL = "Auth fail";
+
     @Override
     public void loginFtpServer(FtpConfig ftpConfig) {
         try {
@@ -109,7 +111,7 @@ public class SftpHandler implements IFtpHandler {
                     throw new RuntimeException(e);
                 }
             }else {
-                if("Auth fail".equals(e.getMessage())){
+                if(MSG_AUTH_FAIL.equals(e.getMessage())){
                     String message = String.format("与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
                             "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
                     LOG.error(message);

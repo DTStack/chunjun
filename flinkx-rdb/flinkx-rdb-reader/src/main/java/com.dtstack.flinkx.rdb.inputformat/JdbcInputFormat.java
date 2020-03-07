@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
@@ -242,7 +243,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
-            if (!"*".equals(metaColumns.get(0).getName())) {
+            if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
                     if (val == null && metaColumns.get(i).getValue() != null) {
@@ -256,7 +257,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
             }
 
-            if (incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc())) {
+            boolean isUpdateLocation = incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc());
+            if (isUpdateLocation) {
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
                 String location;
                 if(incrementConfig.isPolling()){

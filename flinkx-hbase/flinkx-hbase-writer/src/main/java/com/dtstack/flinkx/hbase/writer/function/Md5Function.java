@@ -25,7 +25,7 @@ import com.dtstack.flinkx.util.Md5Util;
  * @author: toutian
  * @create: 2019/7/23
  */
-public class MD5Function implements IFunction {
+public class Md5Function implements IFunction {
 
     @Override
     public String evaluate(Object str) throws Exception{

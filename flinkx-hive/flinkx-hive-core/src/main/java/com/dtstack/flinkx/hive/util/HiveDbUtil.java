@@ -67,6 +67,8 @@ public final class HiveDbUtil {
     public static final String PARAM_KEY = "param";
     public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY = "hive.server2.authentication.kerberos.keytab";
 
+    private static final String ERROR_MSG_NO_DB = "NoSuchDatabaseException";
+
     private static ReentrantLock lock = new ReentrantLock();
 
     private HiveDbUtil() {
@@ -237,7 +239,7 @@ public final class HiveDbUtil {
                         connection.close();
                     }
 
-                    if (e.getMessage().contains("NoSuchDatabaseException")) {
+                    if (e.getMessage().contains(ERROR_MSG_NO_DB)) {
                         throw new RuntimeException(e.getMessage());
                     } else {
                         throw e;

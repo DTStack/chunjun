@@ -73,6 +73,11 @@ public abstract class AbstractRecordWriter {
         this.carbonTable = carbonTable;
     }
 
+    /**
+     * get record index
+     * @param record record
+     * @return index
+     */
     protected abstract int getRecordWriterNumber(String[] record);
 
     protected TaskAttemptContext createTaskContext() {
@@ -161,8 +166,10 @@ public abstract class AbstractRecordWriter {
         }
     }
 
+    /**
+     * add recordWriter to recordWriter list
+     */
     protected abstract void createRecordWriterList();
-
 
     protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context) throws IOException {
 

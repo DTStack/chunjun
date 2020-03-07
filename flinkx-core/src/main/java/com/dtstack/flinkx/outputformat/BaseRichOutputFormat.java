@@ -183,9 +183,18 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         // do nothing
     }
 
+    /**
+     * 子类实现，打开资源
+     *
+     * @param taskNumber 通道索引
+     * @param numTasks 通道数量
+     * @throws IOException
+     */
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
 
     /**
+     * 打开资源的前后做一些初始化操作
+     *
      * @param taskNumber The number of the parallel instance.
      * @param numTasks The number of parallel tasks.
      * @throws IOException
@@ -383,6 +392,12 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         return getClass().getName() + " WriteRecord error: when converting field[" + pos + "] in Row(" + row + ")";
     }
 
+    /**
+     * 写出单条数据
+     *
+     * @param row 数据
+     * @throws WriteRecordException
+     */
     protected abstract void writeSingleRecordInternal(Row row) throws WriteRecordException;
 
     protected void writeMultipleRecords() throws Exception {
@@ -394,6 +409,11 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
     }
 
+    /**
+     * 写出多条数据
+     *
+     * @throws Exception
+     */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
     protected void writeRecordInternal() {
