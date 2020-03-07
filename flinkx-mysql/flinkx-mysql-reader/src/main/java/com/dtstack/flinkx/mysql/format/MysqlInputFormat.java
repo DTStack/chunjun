@@ -51,7 +51,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
 
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(startLocation);
+                endLocationAccumulator.add(Long.parseLong(startLocation));
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -63,7 +63,6 @@ public class MysqlInputFormat extends JdbcInputFormat {
                 return;
             }
 
-            fetchSize = Integer.MIN_VALUE;
             querySql = buildQuerySql(inputSplit);
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
