@@ -37,31 +37,41 @@ import java.util.Map;
  * @description :
  */
 public class MetaDataInputFormat extends RichInputFormat {
-    protected List<String> column = new ArrayList<>();
+    protected int numPartitions;
+
+    protected List<String> tableColumn = new ArrayList<>();
     protected List<String> partitionColumn = new ArrayList<>();
+    protected int columnCount;
+
     protected String dbUrl;
     protected String username;
     protected String password;
     protected List<String> table;
 
-    protected int numPartitions;
+    protected Connection connection;
+    protected Statement statement;
 
     protected ResultSet resultSet;
-    protected int columnCount;
     protected String queryTable;
 
     protected boolean hasNext = true;
 
-    protected Connection connection;
-    protected Statement statement;
-    protected int count;
-
     protected Map<String, Map<String, String>> filterData;
 
+    protected Map<String, String> errorMessage;
+    protected Map<String, Object> currentMessage;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
+        try {
+            Class.forName("org.apache.hive.jdbc.HiveDriver");
+            connection = DriverManager.getConnection(dbUrl, username, password);
+            statement = connection.createStatement();
+        } catch (SQLException | ClassNotFoundException e) {
+            errorMessage = setErrorMessage(e, "can not connect to hive! current dbUrl: " + dbUrl);
+            throw new RuntimeException("jdbc连接异常");
+        }
     }
 
     @Override
@@ -69,12 +79,9 @@ public class MetaDataInputFormat extends RichInputFormat {
         try {
             LOG.info("inputSplit = {}", inputSplit);
             hasNext = true;
-            queryTable = ((MetadataInputSplit) inputSplit).getTable();
-            resultSet = excuteSql(buildDescSql(queryTable, true));
-            columnCount = resultSet.getMetaData().getColumnCount();
-            filterData = transformDataToMap(resultSet);
-            getTableColumns(((MetadataInputSplit) inputSplit).getTable());
-        } catch (SQLException | ClassNotFoundException e) {
+            currentMessage = getMetaData(inputSplit);
+        } catch (SQLException e) {
+            errorMessage = setErrorMessage(e, "can not read data! current split: " + inputSplit.toString());
             throw new RuntimeException("openInternal 异常，具体信息为：", e);
         }
     }
@@ -89,15 +96,22 @@ public class MetaDataInputFormat extends RichInputFormat {
         return inputSplits;
     }
 
+    /**
+     * 如果程序正常执行，那么传递正常的数据，程序出现异常，则传递异常信息
+     */
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
-        row.setField(0, objectMapper.writeValueAsString(selectUsedData(filterData)));
+        if (filterData != null) {
+            row.setField(0, objectMapper.writeValueAsString(currentMessage));
+        } else {
+            row.setField(0, objectMapper.writeValueAsString(errorMessage));
+        }
 
         hasNext = false;
 
-        column.clear();
+        tableColumn.clear();
         partitionColumn.clear();
 
         return row;
@@ -105,7 +119,7 @@ public class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        DBUtil.closeDBResources(resultSet, statement, connection, true);
+
     }
 
     @Override
@@ -113,22 +127,25 @@ public class MetaDataInputFormat extends RichInputFormat {
         return !hasNext;
     }
 
-    public ResultSet excuteSql(String sql) throws ClassNotFoundException {
-        Class.forName("org.apache.hive.jdbc.HiveDriver");
-        ResultSet result = null;
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
+        DBUtil.closeDBResources(resultSet, statement, connection, true);
+    }
+
+    public ResultSet executeSql(String sql) {
+        ResultSet result;
         try {
-            connection = DriverManager.getConnection(dbUrl, username, password);
-            statement = connection.createStatement();
             result = statement.executeQuery(sql);
         } catch (SQLException e) {
-            throw new RuntimeException("查询异常，请检查相关配置:"
-                    + dbUrl + " " + username + " " + password + "当前查询语句为: " + sql);
+            errorMessage = setErrorMessage(e, "query error! current sql: " + sql);
+            throw new RuntimeException(e);
         }
         return result;
     }
 
     public String buildDescSql(String table, boolean formatted) {
-        String sql = "";
+        String sql;
         if (formatted) {
             sql = "DESC FORMATTED " + table;
         } else {
@@ -143,7 +160,7 @@ public class MetaDataInputFormat extends RichInputFormat {
      * @param resultSet
      * @return
      */
-    public static Map<String, Map<String, String>> transformDataToMap(ResultSet resultSet) {
+    public Map<String, Map<String, String>> transformDataToMap(ResultSet resultSet) {
         Map<String, Map<String, String>> result = new HashMap<>();
         String tempK = "";
         Map<String, String> map = new HashMap<>();
@@ -171,9 +188,22 @@ public class MetaDataInputFormat extends RichInputFormat {
             }
             result.put(tempK, map);
         } catch (Exception e) {
+            errorMessage = setErrorMessage(e, "transform data error");
             throw new RuntimeException("查询结果转化异常", e);
         }
         return result;
+    }
+
+    public Map<String, Object> getMetaData(InputSplit inputSplit) throws SQLException {
+        Map<String, Object> map;
+        queryTable = ((MetadataInputSplit) inputSplit).getTable();
+        dbUrl = ((MetadataInputSplit) inputSplit).getDbUrl();
+        resultSet = statement.executeQuery(buildDescSql(queryTable, true));
+
+        filterData = transformDataToMap(resultSet);
+        getTableColumns(queryTable);
+        map = selectUsedData(filterData);
+        return map;
     }
 
     /**
@@ -188,33 +218,32 @@ public class MetaDataInputFormat extends RichInputFormat {
         List<Map> tempColumnList = new ArrayList<>();
         List<Map> tempPartitionColumnList = new ArrayList<>();
 
-        for (String item : column) {
-            tempColumnList.add(setColumnMap(item, map.get(item), column.indexOf(item)));
+        for (String item : tableColumn) {
+            tempColumnList.add(setColumnMap(item, map.get(item), tableColumn.indexOf(item)));
         }
-        result.put("column", tempColumnList);
+        result.put(MetaDataCons.KEY_COLUMN, tempColumnList);
 
         for (String item : partitionColumn) {
             tempPartitionColumnList.add(setColumnMap(item, map.get(item), partitionColumn.indexOf(item)));
         }
-        result.put("partitionColumn", tempPartitionColumnList);
+        result.put(MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
 
-        // TODO 根据不同的inputformat确定不同的文件存储方式
-        String storedType = "text";
-        if (map.get("InputFormat").keySet().toString().contains("TextInputformat")) {
+        String storedType = null;
+        if (map.get(MetaDataCons.KEY_INPUT_FORMAT).keySet().toString().contains(MetaDataCons.TYPE_TEXT)) {
             storedType = "text";
         }
-        if (map.get("InputFormat").keySet().toString().contains("MapredParquetInputFormat")) {
+        if (map.get(MetaDataCons.KEY_INPUT_FORMAT).keySet().toString().contains(MetaDataCons.TYPE_PARQUET)) {
             storedType = "Parquet";
         }
 
-        result.put("table", queryTable);
+        result.put(MetaDataCons.KEY_TYPE, queryTable);
 
-        temp.put("comment", map.get("Table Parameters").get("comment"));
-        temp.put("storedType", storedType);
-        result.put("tablePropertites", temp);
+        temp.put(MetaDataCons.KEY_COMMENT, map.get("Table Parameters").get("comment"));
+        temp.put(MetaDataCons.KEY_STORED_TYPE, storedType);
+        result.put(MetaDataCons.KEY_TABLE_PROPERTIES, temp);
 
-        // TODO 下面的这些还不确定如何获取
-        result.put("operateType", "createTable");
+        // 全量读取为createType
+        result.put(MetaDataCons.KEY_OPERA_TYPE, "createTable");
         return result;
     }
 
@@ -225,27 +254,30 @@ public class MetaDataInputFormat extends RichInputFormat {
      * @return
      */
     public void getTableColumns(String table) {
-        boolean flag = false;
+        boolean isPartitionColumn = false;
         try {
-            ResultSet temp = excuteSql(buildDescSql(table, false));
+            ResultSet temp = executeSql(buildDescSql(table, false));
             while (temp.next()) {
                 if (temp.getString(1).trim().contains("Partition Information")) {
-                    flag = true;
+                    isPartitionColumn = true;
                 }
-                if (flag) {
+                if (isPartitionColumn) {
                     partitionColumn.add(temp.getString(1).trim());
                 } else {
-                    column.add(temp.getString(1));
+                    tableColumn.add(temp.getString(1));
                 }
             }
-        } catch (SQLException | ClassNotFoundException e) {
+
+            // 除去多余的字段
+            partitionColumn.remove("# Partition Information");
+            partitionColumn.remove("");
+            partitionColumn.remove("# col_name");
+            tableColumn.remove("");
+
+        } catch (SQLException e) {
+            errorMessage = setErrorMessage(e, "can not get column");
             throw new RuntimeException("获取字段名列表异常");
         }
-        // 除去多余的字段
-        partitionColumn.remove("# Partition Information");
-        partitionColumn.remove("");
-        partitionColumn.remove("# col_name");
-        column.remove("");
     }
 
     /**
@@ -258,14 +290,24 @@ public class MetaDataInputFormat extends RichInputFormat {
      */
     public Map<String, Object> setColumnMap(String columnName, Map<String, String> map, int index) {
         Map<String, Object> result = new HashMap<>();
-        result.put("name", columnName);
+        result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
         if (map.keySet().toArray()[0] == null) {
-            result.put("type", map.keySet().toArray()[1]);
+            result.put(MetaDataCons.KEY_COLUMN_TYPE, map.keySet().toArray()[1]);
         } else {
-            result.put("type", map.keySet().toArray()[0]);
+            result.put(MetaDataCons.KEY_COLUMN_TYPE, map.keySet().toArray()[0]);
         }
-        result.put("index", index);
-        result.put("comment", map.values().toArray()[0]);
+        result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
+        result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.values().toArray()[0]);
         return result;
+    }
+
+    /**
+     * 生成任务异常信息map
+     */
+    public Map<String, String> setErrorMessage(Exception e, String message) {
+        Map<String, String> map = new HashMap<>();
+        map.put("error message", message);
+        map.put(e.getClass().getSimpleName(), e.getMessage());
+        return map;
     }
 }

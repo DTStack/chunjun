@@ -23,7 +23,6 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadatasync.reader.inputformat.MetaDataInputFormat;
 import com.dtstack.flinkx.metadatasync.reader.inputformat.MetaDataInputFormatBuilder;
 import com.dtstack.flinkx.reader.DataReader;
-import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -39,7 +38,7 @@ public class MetaDataReader extends DataReader {
     protected String dbUrl;
     protected List<String> table;
     protected String username;
-    protected String pasword;
+    protected String password;
 
     public MetaDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -48,7 +47,7 @@ public class MetaDataReader extends DataReader {
         dbUrl = readerConfig.getParameter().getConnection().get(0).getJdbcUrl().get(0);
         table = readerConfig.getParameter().getConnection().get(0).getTable();
         username = readerConfig.getParameter().getStringVal("username");
-        pasword = readerConfig.getParameter().getStringVal("password");
+        password = readerConfig.getParameter().getStringVal("password");
     }
 
     @Override
@@ -57,7 +56,7 @@ public class MetaDataReader extends DataReader {
 
         builder.setDBUrl(dbUrl);
         builder.setUsername(username);
-        builder.setPassword(pasword);
+        builder.setPassword(password);
         builder.setTable(table);
         builder.setNumPartitions(numPartitions);
 
