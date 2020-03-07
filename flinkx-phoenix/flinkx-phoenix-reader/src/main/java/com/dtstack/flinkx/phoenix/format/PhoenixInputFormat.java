@@ -19,7 +19,7 @@ package com.dtstack.flinkx.phoenix.format;
 
 import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -33,7 +33,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Company: www.dtstack.com
@@ -47,7 +47,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
         try {
             LOG.info(inputSplit.toString());
 
-            ClassUtil.forName(drivername, getClass().getClassLoader());
+            ClassUtil.forName(driverName, getClass().getClassLoader());
 
             if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
                 getMaxValue(inputSplit);
@@ -62,7 +62,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
                 return;
             }
 
-            dbConn = PhoenixUtil.getConnectionInternal(dbURL, username, password);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password);
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
@@ -84,7 +84,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

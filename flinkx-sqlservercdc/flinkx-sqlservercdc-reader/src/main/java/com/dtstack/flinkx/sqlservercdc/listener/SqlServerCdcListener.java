@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.sqlservercdc.listener;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.sqlservercdc.*;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormat;
 import com.dtstack.flinkx.util.Clock;
@@ -58,7 +59,7 @@ public class SqlServerCdcListener implements Runnable{
         this.logPosition = format.getLogPosition();
         this.tableList = format.getTableList();
         this.cat = new HashSet<>();
-        for (String type : format.getCat().split(",")) {
+        for (String type : format.getCat().split(ConstantValue.COMMA_SYMBOL)) {
             cat.addAll(SqlserverCdcEnum.transform(type));
         }
         this.pavingData = format.isPavingData();

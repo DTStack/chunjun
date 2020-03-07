@@ -23,7 +23,7 @@ import com.dtstack.flinkx.phoenix.PhoenixMeta;
 import com.dtstack.flinkx.phoenix.format.PhoenixOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 
 import java.util.Collections;
 
@@ -38,11 +38,11 @@ public class PhoenixWriter extends JdbcDataWriter {
     public PhoenixWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new PhoenixMeta());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
+    @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new PhoenixOutputFormat());
     }
-
 }

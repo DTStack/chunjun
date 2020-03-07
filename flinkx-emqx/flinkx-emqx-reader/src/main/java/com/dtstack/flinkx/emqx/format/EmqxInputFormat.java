@@ -20,7 +20,7 @@ package com.dtstack.flinkx.emqx.format;
 import com.dtstack.flinkx.emqx.decoder.IDecode;
 import com.dtstack.flinkx.emqx.decoder.JsonDecoder;
 import com.dtstack.flinkx.emqx.decoder.PlainDecoder;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -41,7 +41,7 @@ import java.util.concurrent.SynchronousQueue;
  *
  * @author tudou
  */
-public class EmqxInputFormat extends RichInputFormat {
+public class EmqxInputFormat extends BaseRichInputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(EmqxInputFormat.class);
 
     private static final String DEFAULT_CODEC = "json";

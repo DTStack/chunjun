@@ -19,7 +19,7 @@ package com.dtstack.flinkx.emqx.format;
 
 import com.dtstack.flinkx.emqx.decoder.JsonDecoder;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
@@ -41,7 +41,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class EmqxOutputFormat extends RichOutputFormat {
+public class EmqxOutputFormat extends BaseRichOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(EmqxOutputFormat.class);
     private static final String CLIENT_ID_PRE = "writer";
 

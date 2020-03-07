@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sqlservercdc.Lsn;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
@@ -47,7 +47,7 @@ import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
  *
  * @author tudou
  */
-public class SqlserverCdcInputFormat extends RichInputFormat {
+public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     protected String username;
     protected String password;
     protected String url;

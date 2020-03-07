@@ -20,7 +20,7 @@ package com.dtstack.flinkx.emqx.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.emqx.format.EmqxOutputFormatBuilder;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -33,7 +33,7 @@ import static com.dtstack.flinkx.emqx.EmqxConfigKeys.*;
  *
  * @author tudou
  */
-public class EmqxWriter extends DataWriter {
+public class EmqxWriter extends BaseDataWriter {
     private String broker;
     private String topic;
     private String username;

@@ -23,7 +23,7 @@ import com.dtstack.flinkx.phoenix.PhoenixMeta;
 import com.dtstack.flinkx.phoenix.format.PhoenixInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Collections;
@@ -39,9 +39,10 @@ public class PhoenixReader extends JdbcDataReader {
     public PhoenixReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new PhoenixMeta());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
+    @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new PhoenixInputFormat());
     }

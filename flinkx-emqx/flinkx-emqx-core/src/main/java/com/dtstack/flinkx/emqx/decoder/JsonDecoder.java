@@ -35,18 +35,20 @@ public class JsonDecoder implements IDecode {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final String KEY_MESSAGE = "message";
+
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> decode(final String message) {
         try {
             Map<String, Object> event = objectMapper.readValue(message, Map.class);
-            if (!event.containsKey("message")) {
-                event.put("message", message);
+            if (!event.containsKey(KEY_MESSAGE)) {
+                event.put(KEY_MESSAGE, message);
             }
             return event;
         } catch (Exception e) {
             LOG.error(e.getMessage());
-            return Collections.singletonMap("message", message);
+            return Collections.singletonMap(KEY_MESSAGE, message);
         }
 
     }
