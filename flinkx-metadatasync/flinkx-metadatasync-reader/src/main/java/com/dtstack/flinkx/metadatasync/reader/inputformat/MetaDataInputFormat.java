@@ -67,12 +67,12 @@ public class MetaDataInputFormat extends RichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
+            hasNext = true;
             count = table.size();
             resultSet = excuteSql(buildDescSql(((MetadataInputSplit) inputSplit).getTable(), true));
             columnCount = resultSet.getMetaData().getColumnCount();
             filterData = transformDataToMap(resultSet);
             getTableColumns(((MetadataInputSplit) inputSplit).getTable());
-            count--;
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException("openInternal 异常，具体信息为：", e);
         }
@@ -93,10 +93,12 @@ public class MetaDataInputFormat extends RichInputFormat {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
         row.setField(0, objectMapper.writeValueAsString(selectUsedData(filterData)));
-        count--;
-        if (count == 0) {
-            hasNext = false;
-        }
+
+        hasNext = false;
+
+        column.clear();
+        partitionColumn.clear();
+
         return row;
     }
 
