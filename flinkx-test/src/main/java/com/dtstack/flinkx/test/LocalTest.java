@@ -41,6 +41,7 @@ import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
+import com.dtstack.flinkx.hive2metadatasync.reader.reader.Hive2MetaDataSyncReader;
 import com.dtstack.flinkx.kafka.reader.KafkaReader;
 import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
@@ -208,6 +209,8 @@ public class LocalTest {
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATASYNC_READER:reader = new MetaDataReader(config, env); break;
+            case PluginNameConstrant.HIVE2METADATASYNC_READER:reader = new Hive2MetaDataSyncReader(config, env);break;
+
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 

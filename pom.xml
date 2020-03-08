@@ -53,6 +53,8 @@
 
         <module>flinkx-emqx</module>
         <module>flinkx-metadatasync</module>
+        <module>flinkx-metadata</module>
+        <module>flinkx-hive2metadatasync</module>
 
     </modules>
 

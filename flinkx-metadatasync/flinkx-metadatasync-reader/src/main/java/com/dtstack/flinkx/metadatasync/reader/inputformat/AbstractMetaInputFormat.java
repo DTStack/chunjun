@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * @author : tiezhu
  * @date : 2020/3/8
- * @description :
+ * @description : 元数据读取子类
  */
 public class AbstractMetaInputFormat extends RichInputFormat {
     protected int numPartitions;

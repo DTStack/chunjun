@@ -420,6 +420,12 @@
             <version>1.6</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-hive2metadatasync-reader</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 

@@ -22,7 +22,7 @@
               ]
             }]
           },
-          "name": "metadatasyncreader"
+          "name": "hive2metadatasyncreader"
         }
       }
     ],
