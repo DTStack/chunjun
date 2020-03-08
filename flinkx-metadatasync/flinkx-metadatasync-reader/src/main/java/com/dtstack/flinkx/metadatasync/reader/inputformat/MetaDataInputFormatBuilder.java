@@ -29,9 +29,9 @@ import java.util.List;
  * @description :
  */
 public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
-    private MetaDataInputFormat format;
+    private AbstractMetaInputFormat format;
 
-    public MetaDataInputFormatBuilder(MetaDataInputFormat format) {
+    public MetaDataInputFormatBuilder(AbstractMetaInputFormat format) {
         super.format = this.format = format;
     }
 
