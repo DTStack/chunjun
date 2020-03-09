@@ -19,8 +19,6 @@ import java.util.Map;
  * @description : 元数据读取的抽象类
  */
 public abstract class MetaDataInputFormat extends RichInputFormat {
-    protected String sourceId;
-
     protected int numPartitions;
     protected Map<String, String> errorMessage = new HashMap<>();
     protected String dbUrl;
@@ -45,17 +43,10 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         currentMessage = new HashMap<>();
         currentQueryTable = ((MetaDataInputSplit)inputSplit).getTable();
         beforeUnit(currentQueryTable);
-        currentMessage.put("sourceId", sourceId);
-        currentMessage.put("jobId", jobId);
         currentMessage.put("data" ,unitMetaData(currentQueryTable));
         hasNext = true;
 
     }
-
-    /**
-     * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
-     */
-    protected abstract void beforeUnit(String currentQueryTable);
 
     @Override
     public void openInputFormat() throws IOException {
@@ -98,6 +89,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
             currentMessage.put("errorMsg", errorMessage);
         } else {
             currentMessage.put("querySuccess", false);
+            currentMessage.put("errorMsg", errorMessage);
         }
         row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
@@ -137,6 +129,11 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     }
 
     /**
+     * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
+     */
+    protected abstract void beforeUnit(String currentQueryTable);
+
+    /**
      * 从结果集中解析有关表的元数据信息
      * @param currentQueryTable
      * @return 有关表的元数据信息
@@ -169,17 +166,14 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         result.put("operateType", "createTable");
 
         if(!columnPreportities.isEmpty()){
-//            result.putAll(columnPreportities);
             result.put(MetaDataCons.KEY_COLUMN, columnPreportities);
         }
 
         if(!tablePropertities.isEmpty()){
-//            result.putAll(tablePropertities);
             result.put("tablePropertites", tablePropertities);
         }
 
         if(!partitionPreprotities.isEmpty()){
-//            result.putAll(partitionPreprotities);
             result.put("partitionPropertites", partitionPreprotities);
         }
 

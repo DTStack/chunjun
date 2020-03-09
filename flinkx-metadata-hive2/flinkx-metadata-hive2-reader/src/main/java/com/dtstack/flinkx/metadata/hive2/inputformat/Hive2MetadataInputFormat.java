@@ -3,24 +3,20 @@ package com.dtstack.flinkx.metadata.hive2.inputformat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.hive2.common.Hive2MetaDataCons;
 import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormat;
-import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputSplit;
-import org.apache.flink.core.io.InputSplit;
 
-import java.io.IOException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/9
- * @description :
  */
 public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     protected List<String> tableColumn;
     protected List<String> partitionColumn;
 
     protected Map<String, Object> columnMap;
-    protected Map<String, Object> tableMap;
 
     @Override
     protected void beforeUnit(String currentQueryTable) {
@@ -37,12 +33,13 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         cleanRawData(result);
 
         // 对result遍历，重新组合
-        Iterator entries = result.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, Object> entry = (Map.Entry) entries.next();
-            temp.put(entry.getKey(), ((Map)entry.getValue()).keySet()
+        for (Map.Entry<String, Object> stringObjectEntry : result.entrySet()) {
+            temp.put(toLowerCaseFirstOne((String) ((Map.Entry) stringObjectEntry).getKey()), ((Map) stringObjectEntry.getValue()).keySet()
                     .toString().replace("[", "")
                     .replace("]", "").trim());
+        }
+        if (temp.get("inputFormat").toString().contains("TextInputFormat")) {
+            temp.put("storedType", "text");
         }
         return temp;
     }
@@ -50,7 +47,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     @Override
     public Map<String, Object> getColumnPropertites(String currentQueryTable) {
         Map<String, Object> result = new HashMap<>();
-        List<Map> tempColumnList = new ArrayList<>();
+        List<Map<String, Object>> tempColumnList = new ArrayList<>();
 
         for (String item : tableColumn) {
             tempColumnList.add(setColumnMap(item, columnMap.get(item), tableColumn.indexOf(item)));
@@ -62,12 +59,17 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     @Override
     public Map<String, Object> getPartitionPropertites(String currentQueryTable) {
         Map<String, Object> result = new HashMap<>();
-        List<Map> tempPartitionColumnList = new ArrayList<>();
+        try {
+            List<Map<String, Object>> tempPartitionColumnList = new ArrayList<Map<String, Object>>();
 
-        for (String item : partitionColumn) {
-            tempPartitionColumnList.add(setColumnMap(item, columnMap.get(item), partitionColumn.indexOf(item)));
+            for (String item : partitionColumn) {
+                tempPartitionColumnList.add(setColumnMap(item, columnMap.get(item), partitionColumn.indexOf(item)));
+            }
+            result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
+            result.put("partitions", getPartitions(currentQueryTable));
+        } catch (Exception e) {
+            setErrorMessage(e, "get partitions error");
         }
-        result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
         return result;
     }
 
@@ -75,7 +77,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         //过滤无关信息和空值
         cleanData(map);
         // 过滤表字段的相关信息
-        for (String item : tableColumn){
+        for (String item : tableColumn) {
             map.remove(item);
         }
     }
@@ -84,16 +86,14 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
      * 去除无关数据
      */
     public void cleanData(Map<String, Object> map) {
-        Iterator entries = map.entrySet().iterator();
+        Iterator<Map.Entry<String, Object>> entries = map.entrySet().iterator();
         while (entries.hasNext()) {
-            Map.Entry<String, Object> entry = (Map.Entry) entries.next();
+            Map.Entry<String, Object> entry = entries.next();
             if (entry.getKey().contains("#")) {
                 entries.remove();
                 continue;
             }
-            if (((Map<String, String>) entry.getValue()).containsKey(null)) {
-                entries.remove();
-            }
+            ((Map<String, String>) entry.getValue()).remove(null);
         }
     }
 
@@ -114,6 +114,9 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         return sql;
     }
 
+    /**
+     * 获取表中字段名称，包括分区字段和非分区字段
+     */
     public void getColumn() {
         try {
             boolean isPartitionColumn = false;
@@ -148,7 +151,8 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         Map<String, String> map = new HashMap<>();
         try {
             while (resultSet.next()) {
-                String tempK1 = resultSet.getString(1).replace(":", "").trim();
+                String tempK1 = resultSet.getString(1)
+                        .replace(":", "").trim();
                 String tempK2 = resultSet.getString(2);
                 String tempVal = resultSet.getString(3);
                 if (!tempK1.isEmpty()) {
@@ -179,7 +183,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
      * 通过查询得到的结果构建字段名相应的信息
      */
     public Map<String, Object> setColumnMap(String columnName, Object map, int index) {
-        HashMap<String, String> temp = (HashMap) map;
+        HashMap<String, String> temp = (HashMap<String, String>) map;
         Map<String, Object> result = new HashMap<>();
         result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
         if (temp.keySet().toArray()[0] == null) {
@@ -196,5 +200,26 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         return result;
     }
 
+    /**
+     * 获取分区partitions
+     */
+    public List<String> getPartitions(String currentTable) throws SQLException {
+        List<String> partitions = new ArrayList<>();
+        ResultSet resultSet = executeSql("show partitions " + currentTable);
+        while (resultSet.next()) {
+            partitions.add(resultSet.getString(1));
+        }
+        return partitions;
+    }
 
+    /**
+     * 将字符串首字母转小写
+     */
+    public String toLowerCaseFirstOne(String s) {
+        if (Character.isLowerCase(s.charAt(0))) {
+            return s;
+        } else {
+            return Character.toLowerCase(s.charAt(0)) + s.substring(1);
+        }
+    }
 }
