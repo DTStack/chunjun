@@ -63,7 +63,6 @@ public class MysqlInputFormat extends JdbcInputFormat {
                 return;
             }
 
-            fetchSize = Integer.MIN_VALUE;
             querySql = buildQuerySql(inputSplit);
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
