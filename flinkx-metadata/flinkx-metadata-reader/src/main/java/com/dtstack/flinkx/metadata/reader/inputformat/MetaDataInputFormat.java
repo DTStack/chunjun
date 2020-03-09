@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.metadata.reader.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -18,13 +19,14 @@ import java.util.Map;
  * @description : 元数据读取的抽象类
  */
 public abstract class MetaDataInputFormat extends RichInputFormat {
+    protected String sourceId;
+
     protected int numPartitions;
     protected Map<String, String> errorMessage = new HashMap<>();
     protected String dbUrl;
     protected List<String> table;
     protected String username;
     protected String password;
-    protected ResultSet resultSet;
 
     protected String currentQueryTable;
 
@@ -40,12 +42,20 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
-        currentQueryTable = ((MetaDataInputSplit) inputSplit).getTable();
-        resultSet = executeSql(buildQuerySql(currentQueryTable));
-        currentMessage = getMetaData(resultSet);
+        currentMessage = new HashMap<>();
+        currentQueryTable = ((MetaDataInputSplit)inputSplit).getTable();
+        beforeUnit(currentQueryTable);
+        currentMessage.put("sourceId", sourceId);
+        currentMessage.put("jobId", jobId);
+        currentMessage.put("data" ,unitMetaData(currentQueryTable));
         hasNext = true;
 
     }
+
+    /**
+     * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
+     */
+    protected abstract void beforeUnit(String currentQueryTable);
 
     @Override
     public void openInputFormat() throws IOException {
@@ -63,7 +73,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     public void closeInputFormat() {
         try {
             super.closeInputFormat();
-            ConnUtil.closeConn(resultSet, statement, connection, true);
+            ConnUtil.closeConn(null, statement, connection, true);
         } catch (Exception e) {
             setErrorMessage(e, "shut down resources error!");
         }
@@ -83,12 +93,13 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
-        if (currentMessage.isEmpty()) {
-            row.setField(0, objectMapper.writeValueAsString(errorMessage));
-            errorMessage.clear();
+        if(errorMessage.isEmpty()){
+            currentMessage.put("querySuccess", true);
+            currentMessage.put("errorMsg", errorMessage);
         } else {
-            row.setField(0, objectMapper.writeValueAsString(currentMessage));
+            currentMessage.put("querySuccess", false);
         }
+        row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
 
         return row;
@@ -108,8 +119,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      */
     protected void setErrorMessage(Exception e, String message) {
         if (errorMessage.isEmpty()) {
-            errorMessage.put("errorMessage", message);
-            errorMessage.put(e.getClass().getSimpleName(), e.getMessage());
+            errorMessage.put("errorMessage", message + " detail:" + e.getMessage());
         }
     }
 
@@ -127,19 +137,52 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     }
 
     /**
-     * 查询结果集解析
-     *
-     * @param resultSet 查询结果集
-     * @return Map格式的元数据信息
+     * 从结果集中解析有关表的元数据信息
+     * @param currentQueryTable
+     * @return 有关表的元数据信息
      */
-    public abstract Map<String, Object> getMetaData(ResultSet resultSet);
+    public abstract Map<String, Object> getTablePropertites(String currentQueryTable);
+    /**
+     * 从结果集中解析有关表字段的元数据信息
+     *
+     * @return 有关表字段的元数据信息
+     */
+    public abstract Map<String, Object> getColumnPropertites(String currentQueryTable);
 
     /**
-     * 构建查询元数据sql
+     * 从结果集中解析有关分区字段的元数据信息
      *
-     * @param currentQueryTable 当前查询的table
-     * @return 查询语句sql
+     * @return 有关分区字段的元数据信息
      */
-    public abstract String buildQuerySql(String currentQueryTable);
+    public abstract Map<String, Object> getPartitionPropertites(String currentQueryTable);
 
+    /**
+     * 对元数据信息整合
+     */
+    public Map<String, Object> unitMetaData(String currentQueryTable) {
+        Map<String, Object> columnPreportities = getColumnPropertites(currentQueryTable);
+        Map<String, Object> tablePropertities = getTablePropertites(currentQueryTable);
+        Map<String, Object> partitionPreprotities = getPartitionPropertites(currentQueryTable);
+        Map<String, Object> result = new HashMap<>();
+        result.put("dbTypeAndVersion", "");
+        result.put("table", currentQueryTable);
+        result.put("operateType", "createTable");
+
+        if(!columnPreportities.isEmpty()){
+//            result.putAll(columnPreportities);
+            result.put(MetaDataCons.KEY_COLUMN, columnPreportities);
+        }
+
+        if(!tablePropertities.isEmpty()){
+//            result.putAll(tablePropertities);
+            result.put("tablePropertites", tablePropertities);
+        }
+
+        if(!partitionPreprotities.isEmpty()){
+//            result.putAll(partitionPreprotities);
+            result.put("partitionPropertites", partitionPreprotities);
+        }
+
+        return result;
+    }
 }
