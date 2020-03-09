@@ -22,7 +22,7 @@
               ]
             }]
           },
-          "name": "hive2metadatasyncreader"
+          "name": "metadatahive2reader"
         }
       }
     ],

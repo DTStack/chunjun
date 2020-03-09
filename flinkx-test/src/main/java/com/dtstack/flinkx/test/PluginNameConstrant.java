@@ -50,8 +50,7 @@ public class PluginNameConstrant {
     public static final String PHOENIX_READER = "phoenixreader";
     public static final String EMQX_READER = "emqxreader";
     public static final String SQLSERVER_CDC_READER = "sqlservercdcreader";
-    public static final String METADATASYNC_READER = "metadatasyncreader";
-    public static final String HIVE2METADATASYNC_READER = "hive2metadatasyncreader";
+    public static final String METADATAHIVE2_READER = "metadatahive2reader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";

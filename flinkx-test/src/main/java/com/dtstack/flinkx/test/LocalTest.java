@@ -41,7 +41,6 @@ import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
-import com.dtstack.flinkx.hive2metadatasync.reader.reader.Hive2MetaDataSyncReader;
 import com.dtstack.flinkx.kafka.reader.KafkaReader;
 import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
@@ -52,7 +51,7 @@ import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
-import com.dtstack.flinkx.metadatasync.reader.reader.MetaDataReader;
+import com.dtstack.flinkx.metadata.hive2.reader.Hive2MetadataReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -129,7 +128,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadatasync\\metadatasync-reader.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -208,8 +207,7 @@ public class LocalTest {
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
-            case PluginNameConstrant.METADATASYNC_READER:reader = new MetaDataReader(config, env); break;
-            case PluginNameConstrant.HIVE2METADATASYNC_READER:reader = new Hive2MetaDataSyncReader(config, env);break;
+            case PluginNameConstrant.METADATAHIVE2_READER : reader = new Hive2MetadataReader(config, env);break;
 
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }

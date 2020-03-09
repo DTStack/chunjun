@@ -52,9 +52,9 @@
         <module>flinkx-sqlservercdc</module>
 
         <module>flinkx-emqx</module>
-        <module>flinkx-metadatasync</module>
+
         <module>flinkx-metadata</module>
-        <module>flinkx-hive2metadatasync</module>
+        <module>flinkx-metadata-hive2</module>
 
     </modules>
 
