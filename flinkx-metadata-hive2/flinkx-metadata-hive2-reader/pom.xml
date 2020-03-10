@@ -42,8 +42,8 @@
 
                             <relocations>
                                 <relocation>
-                                    <pattern>com.metadata</pattern>
-                                    <shadedPattern>shade.hive2.com.metadata</shadedPattern>
+                                    <pattern>org.apache.hive.jdbc</pattern>
+                                    <shadedPattern>shade.hive2</shadedPattern>
                                 </relocation>
                             </relocations>
 

@@ -28,20 +28,26 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     public Map<String, Object> getTablePropertites(String currentQueryTable) {
         ResultSet resultSet = executeSql(buildDescSql(currentQueryTable, true));
         Map<String, Object> result;
-        Map<String, Object> temp = new HashMap<>();
+        // 获取初始数据map
         result = transformDataToMap(resultSet);
-        cleanRawData(result);
-
-        // 对result遍历，重新组合
-        for (Map.Entry<String, Object> stringObjectEntry : result.entrySet()) {
-            temp.put(toLowerCaseFirstOne((String) ((Map.Entry) stringObjectEntry).getKey()), ((Map) stringObjectEntry.getValue()).keySet()
-                    .toString().replace("[", "")
-                    .replace("]", "").trim());
+        // 对初始数据清洗，除去无关信息，如带有key中#
+        result.entrySet().removeIf(entry -> entry.getKey().contains("#"));
+        // 过滤表字段的相关信息
+        for (String item : tableColumn) {
+            result.remove(item);
+            result.remove(item+"_comment");
         }
-        if (temp.get("inputFormat").toString().contains("TextInputFormat")) {
-            temp.put("storedType", "text");
+        // 判断文件存储类型
+        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("TextInputFormat")){
+            result.put(MetaDataCons.KEY_STORED_TYPE, "text");
         }
-        return temp;
+        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("OrcInputFormat")){
+            result.put(MetaDataCons.KEY_STORED_TYPE, "orc");
+        }
+        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("MapredParquetInputFormat")){
+            result.put(MetaDataCons.KEY_STORED_TYPE, "parquet");
+        }
+        return result;
     }
 
     @Override
@@ -50,7 +56,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         List<Map<String, Object>> tempColumnList = new ArrayList<>();
 
         for (String item : tableColumn) {
-            tempColumnList.add(setColumnMap(item, columnMap.get(item), tableColumn.indexOf(item)));
+            tempColumnList.add(setColumnMap(item, columnMap, tableColumn.indexOf(item)));
         }
         result.put(MetaDataCons.KEY_COLUMN, tempColumnList);
         return result;
@@ -63,7 +69,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
             List<Map<String, Object>> tempPartitionColumnList = new ArrayList<Map<String, Object>>();
 
             for (String item : partitionColumn) {
-                tempPartitionColumnList.add(setColumnMap(item, columnMap.get(item), partitionColumn.indexOf(item)));
+                tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
             }
             result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
             result.put("partitions", getPartitions(currentQueryTable));
@@ -71,34 +77,6 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
             setErrorMessage(e, "get partitions error");
         }
         return result;
-    }
-
-    public void cleanRawData(Map<String, Object> map) {
-        //过滤无关信息和空值
-        cleanData(map);
-        // 过滤表字段的相关信息
-        for (String item : tableColumn) {
-            map.remove(item);
-        }
-    }
-
-    /**
-     * 去除无关数据
-     */
-    public void cleanData(Map<String, Object> map) {
-        Iterator<Map.Entry<String, Object>> entries = map.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, Object> entry = entries.next();
-            if (entry.getKey().contains("#")) {
-                entries.remove();
-                continue;
-            }
-            ((Map<String, String>) entry.getValue()).remove(null);
-        }
-    }
-
-    public void cleanData(List<String> list) {
-        list.removeIf(item -> item.contains("#") || item.isEmpty());
     }
 
     /**
@@ -134,8 +112,8 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
                 }
             }
             // 除去多余的字段
-            cleanData(tableColumn);
-            cleanData(partitionColumn);
+            tableColumn.removeIf(item -> item.contains("#") || item.isEmpty());
+            partitionColumn.removeIf(item -> item.contains("#") || item.isEmpty());
 
         } catch (Exception e) {
             setErrorMessage(e, "get column error!");
@@ -147,32 +125,24 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
      */
     public Map<String, Object> transformDataToMap(ResultSet resultSet) {
         Map<String, Object> result = new HashMap<>();
-        String tempK = "";
-        Map<String, String> map = new HashMap<>();
         try {
             while (resultSet.next()) {
-                String tempK1 = resultSet.getString(1)
-                        .replace(":", "").trim();
-                String tempK2 = resultSet.getString(2);
-                String tempVal = resultSet.getString(3);
-                if (!tempK1.isEmpty()) {
-                    if (!map.isEmpty()) {
-                        result.put(tempK, map);
-                        map = new HashMap<>();
+                String key1 = resultSet.getString(1);
+                String key2 = resultSet.getString(2);
+                String key3 = resultSet.getString(3);
+                if (key1.isEmpty()) {
+                    if (key2 != null) {
+                        result.put(key2.trim(), key3.trim());
                     }
-                    tempK = tempK1;
-                    map.put(tempK2, tempVal);
                 } else {
-                    if (tempK2 != null) {
-                        map.put(tempK2.trim(), tempVal);
-                    } else {
-                        map.put(tempK2, tempVal);
+                    if (key2 != null) {
+                        result.put(toLowerCaseFirstOne(key1).replace(":", "").trim(), key2.trim());
                     }
-                    continue;
+                    if (key3 != null) {
+                        result.put(key1.trim() + "_comment", key3);
+                    }
                 }
-                result.put(tempK, map);
             }
-            result.put(tempK, map);
         } catch (Exception e) {
             setErrorMessage(e, "transform data error");
         }
@@ -181,22 +151,15 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
 
     /**
      * 通过查询得到的结果构建字段名相应的信息
+     *
+     * @return
      */
-    public Map<String, Object> setColumnMap(String columnName, Object map, int index) {
-        HashMap<String, String> temp = (HashMap<String, String>) map;
+    public Map<String, Object> setColumnMap(String columnName, Map<String, Object> map, int index) {
         Map<String, Object> result = new HashMap<>();
         result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
-        if (temp.keySet().toArray()[0] == null) {
-            result.put(MetaDataCons.KEY_COLUMN_TYPE, temp.keySet().toArray()[1]);
-        } else {
-            result.put(MetaDataCons.KEY_COLUMN_TYPE, temp.keySet().toArray()[0]);
-        }
+        result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.get(columnName+"_comment"));
+        result.put(MetaDataCons.KEY_COLUMN_TYPE, map.get(columnName));
         result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
-        if (temp.values().toArray()[0] == null) {
-            result.put(MetaDataCons.KEY_COLUMN_COMMENT, temp.values().toArray()[1]);
-        } else {
-            result.put(MetaDataCons.KEY_COLUMN_COMMENT, temp.values().toArray()[0]);
-        }
         return result;
     }
 

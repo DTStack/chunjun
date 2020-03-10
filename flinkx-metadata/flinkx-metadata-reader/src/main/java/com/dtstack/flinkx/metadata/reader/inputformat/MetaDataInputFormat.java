@@ -41,9 +41,9 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
         currentMessage = new HashMap<>();
-        currentQueryTable = ((MetaDataInputSplit)inputSplit).getTable();
+        currentQueryTable = ((MetaDataInputSplit) inputSplit).getTable();
         beforeUnit(currentQueryTable);
-        currentMessage.put("data" ,unitMetaData(currentQueryTable));
+        currentMessage.put("data", unitMetaData(currentQueryTable));
         hasNext = true;
 
     }
@@ -84,7 +84,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
-        if(errorMessage.isEmpty()){
+        if (errorMessage.isEmpty()) {
             currentMessage.put("querySuccess", true);
             currentMessage.put("errorMsg", errorMessage);
         } else {
@@ -135,10 +135,12 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     /**
      * 从结果集中解析有关表的元数据信息
+     *
      * @param currentQueryTable
      * @return 有关表的元数据信息
      */
     public abstract Map<String, Object> getTablePropertites(String currentQueryTable);
+
     /**
      * 从结果集中解析有关表字段的元数据信息
      *
@@ -157,24 +159,24 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      * 对元数据信息整合
      */
     public Map<String, Object> unitMetaData(String currentQueryTable) {
-        Map<String, Object> columnPreportities = getColumnPropertites(currentQueryTable);
         Map<String, Object> tablePropertities = getTablePropertites(currentQueryTable);
+        Map<String, Object> columnPreportities = getColumnPropertites(currentQueryTable);
         Map<String, Object> partitionPreprotities = getPartitionPropertites(currentQueryTable);
         Map<String, Object> result = new HashMap<>();
         result.put("dbTypeAndVersion", "");
-        result.put("table", currentQueryTable);
-        result.put("operateType", "createTable");
+        result.put(MetaDataCons.KEY_TABLE, currentQueryTable);
+        result.put(MetaDataCons.KEY_OPERA_TYPE, "createTable");
 
-        if(!columnPreportities.isEmpty()){
+        if (!columnPreportities.isEmpty()) {
             result.put(MetaDataCons.KEY_COLUMN, columnPreportities);
         }
 
-        if(!tablePropertities.isEmpty()){
-            result.put("tablePropertites", tablePropertities);
+        if (!tablePropertities.isEmpty()) {
+            result.put(MetaDataCons.KEY_TABLE_PROPERTITES, tablePropertities);
         }
 
-        if(!partitionPreprotities.isEmpty()){
-            result.put("partitionPropertites", partitionPreprotities);
+        if (!partitionPreprotities.isEmpty()) {
+            result.put(MetaDataCons.KEY_PARTITION_PROPERTITES, partitionPreprotities);
         }
 
         return result;
