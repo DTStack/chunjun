@@ -1,6 +1,5 @@
 package com.dtstack.flinkx.metadata.reader.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
 
 import java.util.List;

@@ -4,7 +4,6 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.hive2.inputformat.Hive2MetadataInputFormat;
 import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.reader.MetaDataReader;
-import com.sun.xml.internal.ws.api.databinding.MetadataReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**

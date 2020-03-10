@@ -22,12 +22,5 @@
             <version>1.6</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata</artifactId>
-            <version>1.6</version>
-        </dependency>
     </dependencies>
-
 </project>
