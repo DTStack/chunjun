@@ -7,7 +7,6 @@ import java.util.List;
 /**
  * @author : tiezhu
  * @date : 2020/3/8
- * @description :
  */
 public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
     private MetaDataInputFormat format ;
@@ -44,9 +43,5 @@ public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
         if (format.dbUrl == null) {
             throw new IllegalArgumentException("请检查url是否填写");
         }
-        if (format.table == null) {
-            throw new IllegalArgumentException("请检查table是否填写");
-        }
     }
-
 }

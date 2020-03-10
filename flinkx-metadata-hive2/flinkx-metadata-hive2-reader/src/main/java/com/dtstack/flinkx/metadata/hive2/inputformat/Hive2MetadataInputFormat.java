@@ -81,6 +81,11 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         return result;
     }
 
+    @Override
+    public String queryTableSql() {
+        return "show tables";
+    }
+
     /**
      * 构建查询语句
      */

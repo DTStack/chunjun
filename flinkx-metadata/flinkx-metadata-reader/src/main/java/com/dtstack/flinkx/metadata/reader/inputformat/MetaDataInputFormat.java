@@ -164,6 +164,12 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     public abstract Map<String, Object> getPartitionPropertites(String currentQueryTable);
 
     /**
+     * 构建查询表名sql，如show tables
+     * @return 返回能够查询tables的sql语句
+     */
+    public abstract String queryTableSql();
+
+    /**
      * 对元数据信息整合
      */
     public Map<String, Object> unitMetaData(String currentQueryTable) {
@@ -198,10 +204,11 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         Class.forName(driverName);
         connection = DriverManager.getConnection(dbUrl, username, password);
         statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SHOW tables");
+        ResultSet resultSet = statement.executeQuery(queryTableSql());
         while (resultSet.next()) {
             tableList.add(resultSet.getString(1));
         }
+        ConnUtil.closeConn(resultSet, statement, connection, true);
         return tableList;
     }
 }
