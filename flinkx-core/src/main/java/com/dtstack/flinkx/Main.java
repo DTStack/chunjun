@@ -33,6 +33,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.time.Time;
 import org.apache.flink.client.program.ContextEnvironment;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -50,6 +51,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main class entry
@@ -63,6 +65,8 @@ public class Main {
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     private static ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final int RESTART_ATTEMPTS = 5;
 
     public static void main(String[] args) throws Exception {
         com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
@@ -89,9 +93,14 @@ public class Main {
                 new MyLocalStreamEnvironment();
 
         env = openCheckpointConf(env, confProperties);
+        if (needRestart(config)) {
+            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                    RESTART_ATTEMPTS,
+                    Time.of(10, TimeUnit.SECONDS)
+            ));
+        }
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
         DataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
 
@@ -114,6 +123,10 @@ public class Main {
         if(env instanceof MyLocalStreamEnvironment){
             ResultPrintUtil.printResult(result);
         }
+    }
+
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isRestore();
     }
 
     private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{

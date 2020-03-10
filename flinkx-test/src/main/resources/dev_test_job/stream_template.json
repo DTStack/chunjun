@@ -2,7 +2,7 @@
   "job" : {
     "content" : [ {
       "reader": {
-        "name": "mysqlreader",
+        "name": "streamreader",
         "parameter": {
           "column": [
             {
@@ -13,23 +13,7 @@
               "name": "name",
               "type": "string"
             }
-          ],
-          "increColumn": "id",
-          "startLocation": "3",
-          "password": "abc123",
-          "username": "dtstack",
-          "connection": [
-            {
-              "jdbcUrl": [
-                "jdbc:mysql://172.16.8.109:3306/ide_jiangbo"
-              ],
-              "table": [
-                "increment_test"
-              ]
-            }
-          ],
-          "splitKey":"id",
-          "customSql": ""
+          ]
         }
       },
       "writer" : {
@@ -41,8 +25,10 @@
     } ],
     "setting" : {
       "restore" : {
-        "isRestore" : false,
-        "isStream" : false
+        "isRestore" : true,
+        "isStream" : false,
+        "restoreColumnIndex": 0,
+        "restoreColumnName": "id"
       },
       "errorLimit" : {
       },
