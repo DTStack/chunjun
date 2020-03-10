@@ -35,16 +35,16 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
         // 过滤表字段的相关信息
         for (String item : tableColumn) {
             result.remove(item);
-            result.remove(item+"_comment");
+            result.remove(item + "_comment");
         }
         // 判断文件存储类型
-        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("TextInputFormat")){
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("TextInputFormat")) {
             result.put(MetaDataCons.KEY_STORED_TYPE, "text");
         }
-        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("OrcInputFormat")){
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("OrcInputFormat")) {
             result.put(MetaDataCons.KEY_STORED_TYPE, "orc");
         }
-        if(result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("MapredParquetInputFormat")){
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("MapredParquetInputFormat")) {
             result.put(MetaDataCons.KEY_STORED_TYPE, "parquet");
         }
         return result;
@@ -66,13 +66,15 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     public Map<String, Object> getPartitionPropertites(String currentQueryTable) {
         Map<String, Object> result = new HashMap<>();
         try {
-            List<Map<String, Object>> tempPartitionColumnList = new ArrayList<Map<String, Object>>();
+            List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
 
             for (String item : partitionColumn) {
                 tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
             }
             result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
-            result.put("partitions", getPartitions(currentQueryTable));
+            if (!tempPartitionColumnList.isEmpty()) {
+                result.put("partitions", getPartitions(currentQueryTable));
+            }
         } catch (Exception e) {
             setErrorMessage(e, "get partitions error");
         }
@@ -152,12 +154,12 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     /**
      * 通过查询得到的结果构建字段名相应的信息
      *
-     * @return
+     * @return result 返回column信息List<Map>
      */
     public Map<String, Object> setColumnMap(String columnName, Map<String, Object> map, int index) {
         Map<String, Object> result = new HashMap<>();
         result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
-        result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.get(columnName+"_comment"));
+        result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.get(columnName + "_comment"));
         result.put(MetaDataCons.KEY_COLUMN_TYPE, map.get(columnName));
         result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
         return result;
