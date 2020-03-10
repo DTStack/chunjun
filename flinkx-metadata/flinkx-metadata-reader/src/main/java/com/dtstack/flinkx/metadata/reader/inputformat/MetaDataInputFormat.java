@@ -9,6 +9,7 @@ import com.dtstack.flinkx.metadata.util.ConnUtil;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected String password;
 
     protected String currentQueryTable;
+
+    protected List<String> tableList;
 
     protected Map<String, Object> currentMessage;
 
@@ -72,10 +75,15 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        minNumSplits = table.size();
+        if (table.isEmpty()) {
+            tableList = getTableList();
+        } else {
+            tableList = table;
+        }
+        minNumSplits = tableList.size();
         InputSplit[] inputSplits = new MetaDataInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new MetaDataInputSplit(i, numPartitions, dbUrl, table.get(i));
+            inputSplits[i] = new MetaDataInputSplit(i, numPartitions, dbUrl, tableList.get(i));
         }
         return inputSplits;
     }
@@ -180,5 +188,20 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         }
 
         return result;
+    }
+
+    /**
+     * 如果传递的表为空，那么通过show tables 获取tableList
+     */
+    public List<String> getTableList() throws SQLException, ClassNotFoundException {
+        List<String> tableList = new ArrayList<>();
+        Class.forName(driverName);
+        connection = DriverManager.getConnection(dbUrl, username, password);
+        statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SHOW tables");
+        while (resultSet.next()) {
+            tableList.add(resultSet.getString(1));
+        }
+        return tableList;
     }
 }

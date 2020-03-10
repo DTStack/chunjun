@@ -10,17 +10,13 @@
         },
         "reader": {
           "parameter": {
-            "username": "root",
-            "password": "abc123",
+            "username": "hadoop",
+            "password": "qwer",
             "connection": [{
               "jdbcUrl": [
-                "jdbc:hive2://172.16.100.105:10000"
+                "jdbc:hive2://master:10000/tiezhu"
               ],
-              "table": [
-                "text_tb",
-                "text_tb2",
-                "text_tb3"
-              ]
+              "table": []
             }]
           },
           "name": "metadatahive2reader"

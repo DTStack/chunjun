@@ -9,7 +9,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 /**
  * @author : tiezhu
  * @date : 2020/3/9
- * @description :
  */
 public class Hive2MetadataReader extends MetaDataReader {
     public Hive2MetadataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
