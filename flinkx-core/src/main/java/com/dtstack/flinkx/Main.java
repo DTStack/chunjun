@@ -75,8 +75,6 @@ public class Main {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final int RESTART_ATTEMPTS = 5;
-
     public static void main(String[] args) throws Exception {
         com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
         String job = options.getJob();
@@ -156,17 +154,21 @@ public class Main {
             return restartConfig;
         }
 
-        Object restartConfigObj = config.getJob().getContent().get(0).getReader().getParameter().getVal("restart");
+        Object restartConfigObj = config.getJob().getContent().get(0).getReader().getParameter().getVal(RestartConfig.KEY_STRATEGY);
         if (null != restartConfigObj) {
             return new RestartConfig((Map<String, Object>)restartConfigObj);
         }
 
-        restartConfigObj = config.getJob().getContent().get(0).getWriter().getParameter().getVal("restart");
+        restartConfigObj = config.getJob().getContent().get(0).getWriter().getParameter().getVal(RestartConfig.KEY_STRATEGY);
         if (null != restartConfigObj) {
             return new RestartConfig((Map<String, Object>)restartConfigObj);
         }
 
         return RestartConfig.defaultConfig();
+    }
+
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isStream();
     }
 
     private static void speedTest(DataTransferConfig config) {
@@ -180,10 +182,6 @@ public class Main {
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);
-    }
-
-    private static boolean needRestart(DataTransferConfig config){
-        return config.getJob().getSetting().getRestoreConfig().isStream();
     }
 
     private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{

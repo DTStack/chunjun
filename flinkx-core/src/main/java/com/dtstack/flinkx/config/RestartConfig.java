@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class RestartConfig extends AbstractConfig {
 
-    private static final String KEY_STRATEGY = "strategy";
+    public static final String KEY_STRATEGY = "strategy";
     public static final String KEY_RESTART_ATTEMPTS = "restartAttempts";
     public static final String KEY_DELAY_INTERVAL = "delayInterval";
     public static final String KEY_FAILURE_RATE = "failureRate";
@@ -41,6 +41,8 @@ public class RestartConfig extends AbstractConfig {
     public static final String DEFAULT_STRATEGY = STRATEGY_FIXED_DELAY;
     public static final int DEFAULT_RESTART_ATTEMPTS = 5;
     public static final int DEFAULT_DELAY_INTERVAL = 10;
+    public static final int DEFAULT_FAILURE_RATE = 2;
+    public static final int DEFAULT_FAILURE_INTERVAL = 60;
 
     public RestartConfig(Map<String, Object> map) {
         super(map);
@@ -64,10 +66,10 @@ public class RestartConfig extends AbstractConfig {
     }
 
     public int getFailureRate() {
-        return getIntVal(KEY_FAILURE_RATE, 1);
+        return getIntVal(KEY_FAILURE_RATE, DEFAULT_FAILURE_RATE);
     }
 
     public int getFailureInterval(){
-        return getIntVal(KEY_FAILURE_INTERVAL, 1);
+        return getIntVal(KEY_FAILURE_INTERVAL, DEFAULT_FAILURE_INTERVAL);
     }
 }
