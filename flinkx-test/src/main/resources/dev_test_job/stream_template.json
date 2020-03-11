@@ -1,24 +1,23 @@
 {
   "job" : {
     "content" : [ {
-      "reader": {
-        "name": "streamreader",
-        "parameter": {
-          "column": [
-            {
-              "name": "id",
-              "type": "int"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
-          ]
-        }
+      "reader" : {
+        "parameter" : {
+          "password" : "abc123",
+          "port" : 3306,
+          "cat" : "insert,update,delete",
+          "host" : "172.16.8.178",
+          "jdbcUrl" : "jdbc:mysql://172.16.8.178:3306/binlog_test",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "binlog_test" ],
+          "username" : "root"
+        },
+        "name" : "binlogreader"
       },
       "writer" : {
         "parameter" : {
-          "print": true
+
         },
         "name" : "streamwriter"
       }
@@ -26,15 +25,17 @@
     "setting" : {
       "restore" : {
         "isRestore" : true,
-        "isStream" : false,
-        "restoreColumnIndex": 0,
-        "restoreColumnName": "id"
+        "isStream" : true
       },
-      "errorLimit" : {
-      },
+      "errorLimit" : { },
       "speed" : {
-        "bytes" : 0,
+        "bytes" : -1048576,
         "channel" : 1
+      },
+      "test": {
+        "failedPerRecord": 100,
+        "errorMsg": "失败测试",
+        "speedTest": null
       }
     }
   }

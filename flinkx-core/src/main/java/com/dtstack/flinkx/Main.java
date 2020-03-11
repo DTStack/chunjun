@@ -20,7 +20,10 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
+import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestartConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.ConfigConstrant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.DataReader;
@@ -62,6 +65,12 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
+
+    public static final String READER = "reader";
+    public static final String WRITER = "writer";
+    public static final String STREAM_READER = "streamreader";
+    public static final String STREAM_WRITER = "streamwriter";
+
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -79,6 +88,7 @@ public class Main {
 
         // 解析jobPath指定的任务配置文件
         DataTransferConfig config = DataTransferConfig.parse(job);
+        speedTest(config);
 
         if(StringUtils.isNotEmpty(monitor)) {
             config.setMonitorUrls(monitor);
@@ -93,12 +103,7 @@ public class Main {
                 new MyLocalStreamEnvironment();
 
         env = openCheckpointConf(env, confProperties);
-        if (needRestart(config)) {
-            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-                    RESTART_ATTEMPTS,
-                    Time.of(10, TimeUnit.SECONDS)
-            ));
-        }
+        configRestartStrategy(env, config);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
         DataReader dataReader = DataReaderFactory.getDataReader(config, env);
@@ -125,8 +130,60 @@ public class Main {
         }
     }
 
+    private static void configRestartStrategy(StreamExecutionEnvironment env, DataTransferConfig config){
+        if (needRestart(config)) {
+            RestartConfig restartConfig = findRestartConfig(config);
+            if (RestartConfig.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restartConfig.getStrategy())) {
+                env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                        restartConfig.getRestartAttempts(),
+                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                ));
+            } else if (RestartConfig.STRATEGY_FAILURE_RATE.equalsIgnoreCase(restartConfig.getStrategy())) {
+                env.setRestartStrategy(RestartStrategies.failureRateRestart(
+                        restartConfig.getFailureRate(),
+                        Time.of(restartConfig.getFailureInterval(), TimeUnit.SECONDS),
+                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                ));
+            } else {
+                env.setRestartStrategy(RestartStrategies.noRestart());
+            }
+        }
+    }
+
+    private static RestartConfig findRestartConfig(DataTransferConfig config) {
+        RestartConfig restartConfig = config.getJob().getSetting().getRestartConfig();
+        if (null != restartConfig) {
+            return restartConfig;
+        }
+
+        Object restartConfigObj = config.getJob().getContent().get(0).getReader().getParameter().getVal("restart");
+        if (null != restartConfigObj) {
+            return new RestartConfig((Map<String, Object>)restartConfigObj);
+        }
+
+        restartConfigObj = config.getJob().getContent().get(0).getWriter().getParameter().getVal("restart");
+        if (null != restartConfigObj) {
+            return new RestartConfig((Map<String, Object>)restartConfigObj);
+        }
+
+        return RestartConfig.defaultConfig();
+    }
+
+    private static void speedTest(DataTransferConfig config) {
+        TestConfig testConfig = config.getJob().getSetting().getTestConfig();
+        if (READER.equalsIgnoreCase(testConfig.getSpeedTest())) {
+            ContentConfig contentConfig = config.getJob().getContent().get(0);
+            contentConfig.getWriter().setName(STREAM_WRITER);
+        } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
+            ContentConfig contentConfig = config.getJob().getContent().get(0);
+            contentConfig.getReader().setName(STREAM_READER);
+        }
+
+        config.getJob().getSetting().getSpeed().setBytes(-1);
+    }
+
     private static boolean needRestart(DataTransferConfig config){
-        return config.getJob().getSetting().getRestoreConfig().isRestore();
+        return config.getJob().getSetting().getRestoreConfig().isStream();
     }
 
     private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{

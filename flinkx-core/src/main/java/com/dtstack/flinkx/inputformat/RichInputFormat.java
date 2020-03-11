@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -61,6 +62,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected RestoreConfig restoreConfig;
 
     protected FormatState formatState;
+
+    protected TestConfig testConfig;
 
     protected transient BaseMetric inputMetric;
 
@@ -194,6 +197,14 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         if(bytesReadCounter!=null){
             bytesReadCounter.add(internalRow.toString().length());
         }
+
+        if (testConfig.errorTest()) {
+            if (numReadCounter.getLocalValue() > 0
+                    && numReadCounter.getLocalValue() % testConfig.getFailedPerRecord() == 0) {
+                throw new RuntimeException(testConfig.getErrorMsg());
+            }
+        }
+
         return internalRow;
     }
 
@@ -287,5 +298,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
+    }
+
+    public void setTestConfig(TestConfig testConfig) {
+        this.testConfig = testConfig;
     }
 }
