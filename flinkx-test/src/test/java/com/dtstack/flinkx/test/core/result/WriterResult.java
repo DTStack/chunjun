@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.util;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
+package com.dtstack.flinkx.test.core.result;
+
+import org.apache.flink.api.common.JobExecutionResult;
+
 
 /**
- * Date: 2019/09/11
- * Company: www.dtstack.com
- * @author tudou
+ * @author jiangbo
+ * @date 2020/2/8
  */
-public class JsonUtils {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+public class WriterResult extends BaseResult {
 
-    public static <T> T jsonStrToObject(String jsonStr, Class<T> clazz) throws JsonParseException, JsonMappingException, JsonGenerationException, IOException {
-        return  objectMapper.readValue(jsonStr, clazz);
+    public WriterResult(JobExecutionResult executionResult) {
+        super(executionResult);
     }
 }

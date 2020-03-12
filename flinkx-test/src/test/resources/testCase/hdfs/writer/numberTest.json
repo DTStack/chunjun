@@ -1,0 +1,94 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+
+        },
+        "name" : "streamreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "fileName" : "fileType=text",
+          "column" : [ {
+            "name" : "tinyint",
+            "index" : 0,
+            "type" : "tinyint"
+          }, {
+            "name" : "smallint",
+            "index" : 1,
+            "type" : "smallint"
+          }, {
+            "name" : "int",
+            "index" : 2,
+            "type" : "int"
+          }, {
+            "name" : "bigint",
+            "index" : 3,
+            "type" : "bigint"
+          }, {
+            "name" : "float",
+            "index" : 4,
+            "type" : "float"
+          }, {
+            "name" : "double",
+            "index" : 5,
+            "type" : "double"
+          }, {
+            "name" : "decimal",
+            "index" : 6,
+            "type" : "decimal(5,3)"
+          }, {
+            "name" : "string",
+            "index" : 7,
+            "type" : "string"
+          }, {
+            "name" : "varchar",
+            "index" : 8,
+            "type" : "varchar"
+          }, {
+            "name" : "char",
+            "index" : 9,
+            "type" : "char"
+          }, {
+            "name" : "boolean",
+            "index" : 10,
+            "type" : "boolean"
+          }, {
+            "name" : "date",
+            "index" : 11,
+            "type" : "date"
+          }, {
+            "name" : "timestamp",
+            "index" : 12,
+            "type" : "timestamp"
+          }],
+          "writeMode" : "overwrite",
+          "fieldDelimiter" : "\u0001",
+          "encoding" : "utf-8",
+          "path" : "/flinkx",
+          "defaultFS" : null,
+          "fileType" : "text",
+          "fullColumnName" : ["tinyint", "smallint", "int", "bigint", "float", "double", "decimal(5,3)", "string", "varchar", "char", "boolean", "date", "timestamp"],
+          "fullColumnType" : ["tinyint", "smallint", "int", "bigint", "float", "double", "decimal(5,3)", "string", "varchar", "char", "boolean", "date", "timestamp"]
+        },
+        "name" : "hdfswriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : false,
+        "restoreColumnName" : "",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 100
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

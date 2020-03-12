@@ -37,7 +37,7 @@ public class Md5Util {
             byte[] bytes = md5.digest(value.getBytes(StandardCharsets.UTF_8));
             return bytes2Hex(bytes);
         } catch (Exception e) {
-            throw new RuntimeException("获取本地路径出错", e);
+            throw new RuntimeException("Get md5 error:", e);
         }
     }
 

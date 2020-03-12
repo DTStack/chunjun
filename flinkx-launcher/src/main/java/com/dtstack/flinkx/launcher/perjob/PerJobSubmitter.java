@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.launcher.perjob;
 
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.JsonUtils;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
@@ -50,7 +50,7 @@ public class PerJobSubmitter {
      */
     public static String submit(Options options, JobGraph jobGraph) throws Exception{
         LOG.info("start to submit per-job task, LauncherOptions = {}", options.toString());
-        Properties conProp = JsonUtils.jsonStrToObject(options.getConfProp(), Properties.class);
+        Properties conProp = MapUtil.jsonStrToObject(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());

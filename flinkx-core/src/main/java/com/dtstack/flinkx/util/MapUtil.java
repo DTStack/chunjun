@@ -1,9 +1,13 @@
 package com.dtstack.flinkx.util;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.internal.LinkedHashTreeMap;
 import com.google.gson.internal.LinkedTreeMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,4 +48,7 @@ public class MapUtil {
         return objectMapper.readValue(objectMapper.writeValueAsBytes(obj), Map.class);
     }
 
+    public static <T> T jsonStrToObject(String jsonStr, Class<T> clazz) throws JsonParseException, JsonMappingException, JsonGenerationException, IOException {
+        return  objectMapper.readValue(jsonStr, clazz);
+    }
 }

@@ -120,7 +120,8 @@ public class CustomPrometheusReporter {
         deleteOnShutdown = configuration.getBoolean(KEY_DELETE_ON_SHUTDOWN, true);
 
         if (StringUtils.isNullOrWhitespaceOnly(host) || port < 1) {
-            throw new IllegalArgumentException("Invalid host/port configuration. Host: " + host + " Port: " + port);
+            return;
+//            throw new IllegalArgumentException("Invalid host/port configuration. Host: " + host + " Port: " + port);
         }
 
         if (randomSuffix) {
@@ -142,8 +143,10 @@ public class CustomPrometheusReporter {
 
     public void report() {
         try {
-            pushGateway.push(defaultRegistry, jobName);
-            LOG.info("push metrics to PushGateway with jobName {}.", jobName);
+            if (null != pushGateway) {
+                pushGateway.push(defaultRegistry, jobName);
+                LOG.info("push metrics to PushGateway with jobName {}.", jobName);
+            }
         } catch (Exception e) {
             LOG.warn("Failed to push metrics to PushGateway with jobName {}.", jobName, e);
             if (makeTaskFailedWhenReportFailed) {

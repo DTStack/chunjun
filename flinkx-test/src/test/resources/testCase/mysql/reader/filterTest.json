@@ -4,6 +4,7 @@
       {
         "reader": {
           "parameter": {
+            "splitPk": "id",
             "column": [
               {
                 "name": "id",
@@ -14,9 +15,12 @@
                 "type": "string"
               }
             ],
-            "sliceRecordCount":100
+            "where": "id > 5",
+            "table": [
+              "filter_test"
+            ]
           },
-          "name": "streamreader"
+          "name": "mysqlreader"
         },
         "writer": {
           "parameter": {
@@ -33,7 +37,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 2
       }
     }
   }
