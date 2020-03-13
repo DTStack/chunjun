@@ -86,9 +86,6 @@ public class TelnetUtil {
             return;
         }
 
-        System.out.println("host:" + host);
-        System.out.println("port:" + port);
-
         if(host.contains(SPLIT_KEY)){
             String[] hosts = host.split(SPLIT_KEY);
             for (String s : hosts) {
