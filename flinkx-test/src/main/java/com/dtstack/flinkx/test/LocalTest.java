@@ -61,7 +61,6 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
-import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
 import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -72,7 +71,6 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
-import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.util.ResultPrintUtil;
@@ -207,9 +205,7 @@ public class LocalTest {
             case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
-            case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
-            case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
