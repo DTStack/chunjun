@@ -1,46 +1,36 @@
 {
-  "job": {
-    "content": [
-      {
-        "writer": {
-          "parameter": {
-            "print": true
-          },
-          "name": "streamwriter"
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "Dtstack#2020",
+          "port" : 10219,
+          "cat" : "insert,update,delete",
+          "host" : "cdb-lp88g9sa.bj.tencentcdb.com",
+          "jdbcUrl" : "jdbc:mysql://cdb-lp88g9sa.bj.tencentcdb.com:10219/binlog_test",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "binlog_test" ],
+          "username" : "root"
         },
-        "reader":{
-          "parameter":{
-            "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
-            "username": "root",
-            "password": "123456",
-            "database": "admin",
-            "collectionName": "test",
-            "writeMode": "insert",
-            "authenticationMechanism": "SCRAM-SHA-256",
-            "batchSize":1,
-            "column": [
-              {
-                "name":"id",
-                "type":"int"
-              },
-              {
-                "name":"date_col",
-                "type":"date"
-              }
-            ],
-            "replaceKey":"id"
-          },
-          "name":"mongodbreader"
-        }
-      }
-    ],
-    "setting": {
-      "errorLimit": {
-        "record": 100
+        "name" : "binlogreader"
       },
-      "speed": {
-        "bytes": 1048576,
-        "channel": 1
+      "writer" : {
+        "parameter" : {
+
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
       }
     }
   }
