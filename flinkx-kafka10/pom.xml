@@ -13,7 +13,6 @@
     <artifactId>flinkx-kafka10</artifactId>
 
     <modules>
-        <module>flinkx-kafka10-core</module>
         <module>flinkx-kafka10-reader</module>
         <module>flinkx-kafka10-writer</module>
     </modules>
@@ -24,6 +23,25 @@
             <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.10.2.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>snappy-java</artifactId>
+                    <groupId>org.xerial.snappy</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

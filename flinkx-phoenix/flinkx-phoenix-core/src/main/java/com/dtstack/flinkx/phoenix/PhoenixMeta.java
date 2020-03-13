@@ -44,24 +44,24 @@ public class PhoenixMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT * FROM " + tableName + " LIMIT 0";
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
     }
 
     @Override
     public String getStartQuote() {
         // 对于字段名和表名的quote得用双引号，对于字段值为字符串的得用单引号表示常量
-        return "\"";
+        return "";
     }
 
     @Override
     public String getEndQuote() {
-        return "\"";
+        return "";
     }
 
     @Override
@@ -71,9 +71,7 @@ public class PhoenixMeta extends BaseDatabaseMeta {
 
     @Override
     public String getInsertStatement(List<String> column, String table) {
-        return "UPSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values ("
-                + StringUtils.repeat("?", ",", column.size()) + ")";
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -84,7 +82,9 @@ public class PhoenixMeta extends BaseDatabaseMeta {
 
     @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        throw new UnsupportedOperationException();
+        return "UPSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") values ("
+                + StringUtils.repeat("?", ",", column.size()) + ")";
     }
 
     @Override

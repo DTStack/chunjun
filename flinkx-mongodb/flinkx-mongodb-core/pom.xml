@@ -16,13 +16,13 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver</artifactId>
-            <version>3.4.1</version>
+            <version>3.11.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
-            <version>3.4.1</version>
+            <version>3.11.1</version>
         </dependency>
     </dependencies>
 </project>

@@ -19,9 +19,21 @@
     <dependencies>
 
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>19.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
         </dependency>
 
         <dependency>
@@ -254,7 +266,7 @@
             <artifactId>flinkx-rdb-writer</artifactId>
             <version>1.6</version>
         </dependency>
-             
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-gbase-reader</artifactId>
@@ -277,6 +289,12 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hive-writer</artifactId>
             <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-serde</artifactId>
+            <version>2.1.0</version>
         </dependency>
 
         <dependency>
@@ -362,15 +380,60 @@
             <artifactId>flinkx-polardb-writer</artifactId>
             <version>1.6</version>
         </dependency>
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-cassandra-reader</artifactId>
+            <artifactId>flinkx-oraclelogminer-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-sqlservercdc-reader</artifactId>
             <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-cassandra-writer</artifactId>
+            <artifactId>flinkx-phoenix-reader</artifactId>
             <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>10.14.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-emqx-reader</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-emqx-writer</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

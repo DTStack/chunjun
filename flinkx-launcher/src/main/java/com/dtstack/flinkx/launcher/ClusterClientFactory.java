@@ -113,12 +113,13 @@ public class ClusterClientFactory {
 
                     int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
                     int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
-                    if(thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores) {
+
+                    boolean isOverMaxResource = thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
+                    if(isOverMaxResource) {
                         maxMemory = thisMemory;
                         maxCores = thisCores;
                         applicationId = report.getApplicationId();
                     }
-
                 }
 
                 if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {

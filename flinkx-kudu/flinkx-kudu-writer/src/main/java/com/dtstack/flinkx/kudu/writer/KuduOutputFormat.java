@@ -23,7 +23,7 @@ import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +37,7 @@ import java.util.List;
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduOutputFormat extends RichOutputFormat {
+public class KuduOutputFormat extends BaseRichOutputFormat {
 
     protected List<MetaColumn> columns;
 

@@ -24,10 +24,9 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.kudu.client.AsyncKuduClient;
 
@@ -39,7 +38,7 @@ import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduWriter extends DataWriter {
+public class KuduWriter extends BaseDataWriter {
 
     private List<MetaColumn> columns;
 

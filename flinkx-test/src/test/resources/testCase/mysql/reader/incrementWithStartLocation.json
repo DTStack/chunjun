@@ -1,0 +1,45 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "increColumn": "id",
+            "startLocation": "10",
+            "splitPk": "id",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "table": [
+              "filter_test"
+            ]
+          },
+          "name": "mysqlreader"
+        },
+        "writer": {
+          "parameter": {
+            "print":false
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}

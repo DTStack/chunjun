@@ -18,21 +18,19 @@
 
 package com.dtstack.flinkx.test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
-import com.dtstack.flinkx.cassandra.reader.CassandraReader;
-import com.dtstack.flinkx.cassandra.writer.CassandraWriter;
 import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
 import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.SpeedConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
+import com.dtstack.flinkx.emqx.reader.EmqxReader;
+import com.dtstack.flinkx.emqx.writer.EmqxWriter;
 import com.dtstack.flinkx.es.reader.EsReader;
 import com.dtstack.flinkx.es.writer.EsWriter;
 import com.dtstack.flinkx.ftp.reader.FtpReader;
@@ -63,18 +61,22 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
+import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
+import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -86,6 +88,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,14 +118,12 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-//        setLogLevel(Level.INFO.toString());
-
         Properties confProperties = new Properties();
-//        confProperties.put("flink.checkpoint.interval", "10000");
+//        confProperties.put("flink.checkpoint.interval", "60000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-//        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
+//        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
 //        conf.setString("metrics.reporter.promgateway.port","9091");
 //        conf.setString("metrics.reporter.promgateway.jobName","108job");
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
@@ -131,13 +133,6 @@ public class LocalTest {
         String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
-    }
-
-    private static void setLogLevel(String level){
-        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
-        //设置全局日志级别
-        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{
@@ -156,7 +151,7 @@ public class LocalTest {
         env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
 
-        DataReader reader = buildDataReader(config, env);
+        BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
         dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
 
@@ -164,7 +159,7 @@ public class LocalTest {
             dataStream = dataStream.rebalance();
         }
 
-        DataWriter writer = buildDataWriter(config);
+        BaseDataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream).setParallelism(speedConfig.getWriterChannel());
 
         if(StringUtils.isNotEmpty(savepointPath)){
@@ -185,9 +180,9 @@ public class LocalTest {
         }
     }
 
-    private static DataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
+    private static BaseDataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
         String readerName = config.getJob().getContent().get(0).getReader().getName();
-        DataReader reader ;
+        BaseDataReader reader ;
         switch (readerName){
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
@@ -212,16 +207,19 @@ public class LocalTest {
             case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
-            case PluginNameConstrant.CASSANDRA_READER : reader = new CassandraReader(config, env); break;
+            case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
+            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
+            case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
+            case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
         return reader;
     }
 
-    private static DataWriter buildDataWriter(DataTransferConfig config){
+    private static BaseDataWriter buildDataWriter(DataTransferConfig config){
         String writerName = config.getJob().getContent().get(0).getWriter().getName();
-        DataWriter writer;
+        BaseDataWriter writer;
         switch (writerName){
             case PluginNameConstrant.STREAM_WRITER : writer = new StreamWriter(config); break;
             case PluginNameConstrant.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;
@@ -246,7 +244,8 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
-            case PluginNameConstrant.CASSANDRA_WRITER : writer = new CassandraWriter(config); break;
+            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
+            case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
@@ -258,10 +257,10 @@ public class LocalTest {
             return;
         }
 
-        if(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
+        if(properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
             return;
         }else{
-            long interval = Long.parseLong(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
+            long interval = Long.parseLong(properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
 
             //start checkpoint every ${interval}
             env.enableCheckpointing(interval);
@@ -269,7 +268,7 @@ public class LocalTest {
             LOG.info("Open checkpoint with interval:" + interval);
         }
 
-        String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+        String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
         if(checkpointTimeoutStr != null){
             long checkpointTimeout = Long.parseLong(checkpointTimeoutStr);
             //checkpoints have to complete within one min,or are discard

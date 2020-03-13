@@ -1,0 +1,30 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "print":false
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}

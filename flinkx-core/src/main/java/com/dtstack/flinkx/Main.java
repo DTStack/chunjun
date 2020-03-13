@@ -22,12 +22,12 @@ import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.SpeedConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
@@ -42,6 +42,8 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +96,7 @@ public class Main {
 
         env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
-        DataReader dataReader = DataReaderFactory.getDataReader(config, env);
+        BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
         dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
 
@@ -102,7 +104,7 @@ public class Main {
             dataStream = dataStream.rebalance();
         }
 
-        DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
+        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         dataWriter.writeData(dataStream).setParallelism(speedConfig.getWriterChannel());
 
         if(env instanceof MyLocalStreamEnvironment) {
@@ -158,14 +160,14 @@ public class Main {
 
     private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
         if(properties!=null){
-            String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
+            String interval = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY);
             if(StringUtils.isNotBlank(interval)){
-                env.enableCheckpointing(Long.valueOf(interval.trim()));
+                env.enableCheckpointing(Long.parseLong(interval.trim()));
                 LOG.info("Open checkpoint with interval:" + interval);
             }
-            String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+            String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
             if(checkpointTimeoutStr != null){
-                long checkpointTimeout = Long.valueOf(checkpointTimeoutStr.trim());
+                long checkpointTimeout = Long.parseLong(checkpointTimeoutStr.trim());
                 //checkpoints have to complete within one min,or are discard
                 env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
 

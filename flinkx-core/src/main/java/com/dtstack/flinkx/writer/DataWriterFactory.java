@@ -36,7 +36,7 @@ public class DataWriterFactory {
 
     private DataWriterFactory() {}
 
-    public static DataWriter getDataWriter(DataTransferConfig config) {
+    public static BaseDataWriter getDataWriter(DataTransferConfig config) {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
@@ -45,7 +45,7 @@ public class DataWriterFactory {
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
                 Constructor constructor = clazz.getConstructor(DataTransferConfig.class);
-                return (DataWriter)constructor.newInstance(config);
+                return (BaseDataWriter)constructor.newInstance(config);
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

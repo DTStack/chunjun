@@ -20,7 +20,7 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,7 +41,7 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormat extends FileOutputFormat {
+public class FtpOutputFormat extends BaseFileOutputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -65,7 +65,7 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected void openSource() throws IOException {
         if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
+            ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }

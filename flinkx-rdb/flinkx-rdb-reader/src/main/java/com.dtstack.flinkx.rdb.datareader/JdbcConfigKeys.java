@@ -49,4 +49,8 @@ public class JdbcConfigKeys {
     public static final String KEY_ORDER_BY_COLUMN = "orderByColumn";
 
     public static final String KEY_USE_MAX_FUNC = "useMaxFunc";
+
+    public static final String KEY_POLLING = "polling";
+
+    public static final String KEY_POLLING_INTERVAL = "pollingInterval";
 }

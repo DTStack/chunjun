@@ -150,6 +150,12 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         return updateColumns;
     }
 
+    /**
+     * 构造查询sql
+     *
+     * @param column 字段列表
+     * @return 查询sql
+     */
     abstract protected String makeValues(List<String> column);
 
     protected String getUpdateSql(List<String> column, String leftTable, String rightTable) {

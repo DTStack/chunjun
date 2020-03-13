@@ -18,8 +18,10 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import jodd.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
@@ -27,6 +29,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
@@ -45,22 +48,32 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsTextInputFormat extends HdfsInputFormat {
+public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
-    protected void configureAnythingElse() {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         this.inputFormat = new TextInputFormat();
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
-        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(conf, HdfsPathFilter.class);
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        try {
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
-        conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
-        inputFormat.configure(conf);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+
+        jobConf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
+        inputFormat.configure(jobConf);
+        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
             HdfsTextInputSplit[] hdfsTextInputSplits = new HdfsTextInputSplit[splits.length];
@@ -87,7 +100,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
         String[] fields = line.split(delimiter);
 
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);
@@ -163,7 +176,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         }
 
         public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFS = defaultFs;
+            format.defaultFs = defaultFs;
             return this;
         }
 

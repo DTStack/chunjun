@@ -1,50 +1,36 @@
 {
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "parameter": {
-            "sliceRecordCount": [1000,100],
-            "column": [
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "age",
-                "type": "int",
-                "value": "26"
-              },
-              {
-                "name": "father",
-                "type": "string"
-              },
-              {
-                "name": "adress",
-                "type": "string"
-              }
-            ]
-          },
-          "name": "streamreader"
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "Dtstack#2020",
+          "port" : 10219,
+          "cat" : "insert,update,delete",
+          "host" : "cdb-lp88g9sa.bj.tencentcdb.com",
+          "jdbcUrl" : "jdbc:mysql://cdb-lp88g9sa.bj.tencentcdb.com:10219/binlog_test",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "binlog_test" ],
+          "username" : "root"
         },
-        "writer": {
-          "parameter": {
-            "print": true
-          },
-          "name": "streamwriter"
-        }
-      }
-    ],
-    "setting": {
-      "errorLimit": {
-        "record": 100
+        "name" : "binlogreader"
       },
-      "speed": {
-        "bytes": 1048576,
-        "channel": 2,
-        "rebalance": false,
-        "readerChannel": 1,
-        "writerChannel": 1
+      "writer" : {
+        "parameter" : {
+
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
       }
     }
   }

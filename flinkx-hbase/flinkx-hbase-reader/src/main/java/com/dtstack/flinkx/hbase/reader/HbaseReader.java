@@ -22,10 +22,11 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.hbase.HbaseConfigKeys;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseReader extends DataReader {
+public class HbaseReader extends BaseDataReader {
 
     protected List<String> columnName;
     protected List<String> columnType;
@@ -106,6 +107,7 @@ public class HbaseReader extends DataReader {
         builder.setScanCacheSize(scanCacheSize);
         builder.setScanBatchSize(scanBatchSize);
         builder.setMonitorUrls(monitorUrls);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

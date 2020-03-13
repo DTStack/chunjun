@@ -25,6 +25,7 @@ import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -77,7 +78,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 dbConn.setAutoCommit(false);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.warn("", e);
         }
     }
 
@@ -104,7 +105,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
             }
 
             String rowVal = sb.toString();
-            ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes());
+            ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
         } catch (Exception e) {
             processWriteException(e, index, row);
@@ -154,7 +155,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
 
         String rowVal = sb.toString();
-        ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes());
+        ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
         copyManager.copyIn(copySql, bi);
 
         if(restoreConfig.isRestore()){

@@ -19,10 +19,6 @@
 package com.dtstack.flinkx.hive.util;
 
 import com.dtstack.flinkx.hive.TableInfo;
-import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.io.BytesWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +37,12 @@ public class HiveUtil {
 
     private static Logger logger = LoggerFactory.getLogger(HiveUtil.class);
 
+    public static final String LEFT_BRACKETS = "(";
 
     private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
     private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
 
-    private static final String NoSuchTableException = "NoSuchTableException";
+    private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
 
     private final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
 
@@ -53,11 +50,28 @@ public class HiveUtil {
     public final static String TABLE_COLUMN_TYPE = "type";
     public final static String PARTITION_TEMPLATE = "%s=%s";
 
-    private String writeMode;
-    private DBUtil.ConnectionInfo connectionInfo;
+    private HiveDbUtil.ConnectionInfo connectionInfo;
 
     enum HiveReleaseVersion{
-        APACHE_1, APACHE_2, CDH_1, CDH_2
+        /**
+         * apache hive 1.x
+         */
+        APACHE_1,
+
+        /**
+         * apache hive 2.x
+         */
+        APACHE_2,
+
+        /**
+         * cdh hive 1.x
+         */
+        CDH_1,
+
+        /**
+         * cdh hive 2.x
+         */
+        CDH_2
     }
 
     public HiveUtil() {
@@ -66,22 +80,21 @@ public class HiveUtil {
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(DBUtil.ConnectionInfo connectionInfo, String writeMode) {
+    public HiveUtil(HiveDbUtil.ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
-        this.writeMode = writeMode;
     }
 
     public void createHiveTableWithTableInfo(TableInfo tableInfo) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             createTable(connection, tableInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -91,14 +104,14 @@ public class HiveUtil {
     public void createPartition(TableInfo tableInfo, String partition) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -111,7 +124,7 @@ public class HiveUtil {
     private void createTable(Connection connection, TableInfo tableInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
-            DBUtil.executeSqlWithoutResultSet(connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);
@@ -143,11 +156,11 @@ public class HiveUtil {
             HiveReleaseVersion hiveVersion = getHiveVersion(connection);
             AbstractHiveMetadataParser metadataParser = getMetadataParser(hiveVersion);
 
-            List<Map<String, Object>> result = DBUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
+            List<Map<String, Object>> result = HiveDbUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             logger.error("{}", e);
-            if (e.getMessage().contains(NoSuchTableException)) {
+            if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
                 throw new RuntimeException(String.format("表%s不存在", tableInfo.getTablePath()));
             } else {
                 throw e;
@@ -159,7 +172,7 @@ public class HiveUtil {
         if (HiveReleaseVersion.APACHE_2.equals(hiveVersion) || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
             return new Apache2MetadataParser();
         } else {
-            return new CDH2HiveMetadataParser();
+            return new Cdh2HiveMetadataParser();
         }
     }
 
@@ -215,7 +228,19 @@ public class HiveUtil {
         return fieldsb.toString();
     }
 
-    public static String convertType(String type) {
+    public static String getHiveColumnType(String originType) {
+        originType = originType.trim();
+        int indexOfBrackets = originType.indexOf(LEFT_BRACKETS);
+        if (indexOfBrackets > -1) {
+            String type = originType.substring(0, indexOfBrackets);
+            String params = originType.substring(indexOfBrackets);
+            return convertType(type) + params;
+        } else {
+            return convertType(originType);
+        }
+    }
+
+    private static String convertType(String type) {
         switch (type.toUpperCase()) {
             case "BIT":
             case "TINYINT":
@@ -284,52 +309,5 @@ public class HiveUtil {
                 type = "STRING";
         }
         return type;
-    }
-
-    public static ObjectInspector columnTypeToObjectInspetor(String columnType) {
-        ObjectInspector objectInspector;
-        switch (columnType.toUpperCase()) {
-            case "TINYINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "SMALLINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Short.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "INT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Integer.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BIGINT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Long.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "FLOAT":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Float.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DOUBLE":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Double.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DECIMAL":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(HiveDecimalWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "TIMESTAMP":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Timestamp.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "DATE":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(java.sql.Date.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "STRING":
-            case "VARCHAR":
-            case "CHAR":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BOOLEAN":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Boolean.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            case "BINARY":
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(BytesWritable.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-                break;
-            default:
-                objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(String.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);
-        }
-        return objectInspector;
     }
 }

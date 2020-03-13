@@ -23,7 +23,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -38,7 +38,7 @@ import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduReader extends DataReader {
+public class KuduReader extends BaseDataReader {
 
     private List<MetaColumn> columns;
 
@@ -75,6 +75,7 @@ public class KuduReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
         builder.setKuduConfig(kuduConfig);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

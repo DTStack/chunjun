@@ -19,11 +19,10 @@
 
 package com.dtstack.flinkx.kudu.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.kudu.Type;
@@ -36,7 +35,7 @@ import java.util.List;
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduInputFormat extends RichInputFormat {
+public class KuduInputFormat extends BaseRichInputFormat {
 
     protected List<MetaColumn> columns;
 
@@ -62,7 +61,7 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("execute openInternal,splitNumber = {}, indexOfSubtask  = {}", inputSplit.getSplitNumber(), indexOfSubtask);
+        LOG.info("execute openInternal,splitNumber = {}, indexOfSubtask  = {}", inputSplit.getSplitNumber(), indexOfSubTask);
         KuduTableSplit kuduTableSplit = (KuduTableSplit) inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
     }
@@ -117,7 +116,7 @@ public class KuduInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
         List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString());
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
@@ -130,7 +129,7 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        LOG.info("execute reachedEnd, indexOfSubtask = {}", indexOfSubtask);
+        LOG.info("execute reachedEnd, indexOfSubtask = {}", indexOfSubTask);
         if (iterator == null || !iterator.hasNext()) {
             return getNextRows();
         }
@@ -149,7 +148,7 @@ public class KuduInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        LOG.info("execute closeInternal, indexOfSubtask = {}", indexOfSubtask);
+        LOG.info("execute closeInternal, indexOfSubtask = {}", indexOfSubTask);
         if (scanner != null) {
             scanner.close();
             scanner = null;
@@ -164,10 +163,5 @@ public class KuduInputFormat extends RichInputFormat {
             client.close();
             client = null;
         }
-    }
-
-    @Override
-    public void configure(Configuration parameters) {
-
     }
 }

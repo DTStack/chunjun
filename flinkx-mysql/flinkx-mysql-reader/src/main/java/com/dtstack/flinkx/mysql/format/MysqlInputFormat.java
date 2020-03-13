@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -29,10 +29,9 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/19
@@ -45,35 +44,27 @@ public class MysqlInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            LOG.info(inputSplit.toString());
+            LOG.info("inputSplit = {}", inputSplit);
 
-            ClassUtil.forName(drivername, getClass().getClassLoader());
+            ClassUtil.forName(driverName, getClass().getClassLoader());
+            initMetric(inputSplit);
 
-            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
+            String startLocation = incrementConfig.getStartLocation();
+            if (incrementConfig.isPolling()) {
+                endLocationAccumulator.add(Long.parseLong(startLocation));
+                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
+            } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
             }
 
-            initMetric(inputSplit);
-
             if(!canReadData(inputSplit)){
                 LOG.warn("Not read data when the start location are equal to end location");
-
                 hasNext = false;
                 return;
             }
 
-            dbConn = DBUtil.getConnection(dbURL, username, password);
-
-            // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
-            dbConn.setAutoCommit(false);
-
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-
-            statement.setFetchSize(Integer.MIN_VALUE);
-
-            statement.setQueryTimeout(queryTimeOut);
-            String querySql = buildQuerySql(inputSplit);
-            resultSet = statement.executeQuery(querySql);
+            querySql = buildQuerySql(inputSplit);
+            executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 
             boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
@@ -81,10 +72,8 @@ public class MysqlInputFormat extends JdbcInputFormat {
                 columnCount = columnCount-1;
             }
 
-            hasNext = resultSet.next();
-
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

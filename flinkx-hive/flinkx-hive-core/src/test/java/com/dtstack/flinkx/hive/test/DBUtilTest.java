@@ -19,7 +19,7 @@
 
 package com.dtstack.flinkx.hive.test;
 
-import com.dtstack.flinkx.hive.util.DBUtil;
+import com.dtstack.flinkx.hive.util.HiveDbUtil;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,15 +47,13 @@ public class DBUtilTest {
         hiveConf.put("sftpConf", sftpConf);
         hiveConf.put("remoteDir", "/home/sftp/keytab/jiangbo");
 
-        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        HiveDbUtil.ConnectionInfo connectionInfo = new HiveDbUtil.ConnectionInfo();
         connectionInfo.setJdbcUrl("jdbc:hive2://172.16.10.75:10000/default;principal=hive/cdh02@HADOOP.COM");
         connectionInfo.setUsername("");
         connectionInfo.setPassword("");
-        connectionInfo.setJobId("");
-        connectionInfo.setPlugin("");
         connectionInfo.setHiveConf(hiveConf);
 
-        Connection connection = DBUtil.getConnection(connectionInfo);
+        Connection connection = HiveDbUtil.getConnection(connectionInfo);
         ResultSet rs = connection.createStatement().executeQuery("show tables");
         while (rs.next()) {
             System.out.println(rs.getObject(2));

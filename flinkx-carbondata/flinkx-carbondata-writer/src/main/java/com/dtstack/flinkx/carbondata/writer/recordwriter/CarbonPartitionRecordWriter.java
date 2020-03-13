@@ -37,6 +37,7 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -139,7 +140,7 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
                 v = date.getTime();
             } else if(v instanceof String && partitioner instanceof RangePartitioner) {
                 String s = (String) v;
-                v = s.getBytes();
+                v = s.getBytes(StandardCharsets.UTF_8);
             }
         } else {
             v = null;

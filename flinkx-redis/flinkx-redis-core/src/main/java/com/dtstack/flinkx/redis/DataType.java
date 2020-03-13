@@ -26,7 +26,18 @@ package com.dtstack.flinkx.redis;
  */
 public enum DataType {
 
-    STRING("string"),LIST("list"),SET("set"),Z_SET("zset"),HASH("hash");
+    /**
+     * redis data struct
+     */
+    STRING("string"),
+
+    LIST("list"),
+
+    SET("set"),
+
+    Z_SET("zset"),
+
+    HASH("hash");
 
     private String type;
 

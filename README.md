@@ -25,6 +25,8 @@
 * 单机模式：对应Flink集群的单机模式
 * standalone模式：对应Flink集群的分布式模式
 * yarn模式：对应Flink集群的yarn模式
+* yarnPer模式: 对应Flink集群的Per-job模式
+
 
 ### 3.2 执行环境
 
@@ -57,6 +59,7 @@ mvn clean package -DskipTests -Prelease -DscriptType=sh
     * local: 本地模式
     * standalone: 独立部署模式的flink集群
     * yarn: yarn模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"
+    * yarnPer: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster"
   * 必选：否
   * 默认值：local
 
@@ -74,7 +77,7 @@ mvn clean package -DskipTests -Prelease -DscriptType=sh
 
 * **flinkconf**
   
-  * 描述：flink配置文件所在的目录（单机模式下不需要），如/hadoop/flink-1.4.0/conf
+  * 描述：flink配置文件所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.8.1/conf
   * 必选：否
   * 默认值：无
 
@@ -83,25 +86,79 @@ mvn clean package -DskipTests -Prelease -DscriptType=sh
   * 描述：Hadoop配置文件（包括hdfs和yarn）所在的目录（单机模式下不需要），如/hadoop/etc/hadoop
   * 必选：否
   * 默认值：无
+  
+* **flinkLibJar**
+  
+  * 描述：flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.8.1/lib
+  * 必选：否
+  * 默认值：无
+  
+* **confProp**
+  
+  * 描述：flink相关参数，如{\"flink.checkpoint.interval\":200000}
+  * 必选：否
+  * 默认值：无
+     
+* **queue**
+  
+  * 描述：yarn队列，如default
+  * 必选：否
+  * 默认值：无
+  
+* **pluginLoadMode**
+  
+  * 描述：yarnPer模式插件加载方式：
+    * classpath：提交任务时不上传插件包，需要在yarn-node节点pluginRoot目录下部署插件包，但任务启动速度较快
+    * shipfile：提交任务时上传pluginRoot目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境
+  * 必选：否
+  * 默认值：classpath        
 
 #### 3.4.2 启动数据同步任务
 
 * **以本地模式启动数据同步任务**
 
 ```
-bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
+bin/flinkx -mode local \
+            -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json \
+            -plugin /Users/softfly/company/flink-data-transfer/plugins \
+            -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" \
+            -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
 ```
 
 * **以standalone模式启动数据同步任务**
 
 ```
-bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
+bin/flinkx -mode standalone \
+            -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json \
+            -plugin /Users/softfly/company/flink-data-transfer/plugins \
+            -flinkconf /hadoop/flink-1.4.0/conf \
+            -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" \
+            -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
 ```
 
 * **以yarn模式启动数据同步任务**
 
 ```
-bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -pluginRoot /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
+bin/flinkx -mode yarn \
+            -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json \
+            -plugin /opt/dtstack/flinkplugin/syncplugin \
+            -flinkconf /opt/dtstack/myconf/conf \
+            -yarnconf /opt/dtstack/myconf/hadoop \
+            -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" \
+            -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
+```
+
+* **以perjob模式启动数据同步任务**
+
+```
+bin/flinkx -mode yarnPer \
+            -job /test.json \
+            -pluginRoot /opt/dtstack/syncplugin \
+            -flinkconf /opt/dtstack/flink-1.8.1/conf \
+            -yarnconf /opt/dtstack/hadoop-2.7.3/etc/hadoop \
+            -flinkLibJar /opt/dtstack/flink-1.8.1/lib \
+            -confProp {\"flink.checkpoint.interval\":200000} \
+            -queue c -pluginLoadMode classpath
 ```
 
 ## 4 数据同步任务模版
@@ -198,6 +255,25 @@ setting包括speed、errorLimit和dirty三部分，分别描述限速、错误�
 
 restore配置请参考[断点续传](docs/restore.md)
 
+#### 4.1.5  log
+
+```
+"log" : {
+        "isLogger": true,
+        "level" : "warn",
+        "path" : "/opt/log/",
+        "pattern":""
+      }
+```
+* isLogger: 日志是否保存到磁盘, `true`: 是; `false`(默认): 否;
+* level: 日志输出级别, `trace`, `debug`, `info`(默认), `warn`, `error`;
+* path: 日志保存路径, 默认为`/tmp/dtstack/flinkx/`, 日志名称为当前flink任务的jobID，如: `97501729f8c44c260d889d099968cc74.log`
+* pattern: 日志输出格式
+    * log4j默认格式为: `%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n`; 
+    * logback默认格式为: `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n`
+
+注意：该日志记录功能只会记录`com.dtstack`包下的输出日志, 如需变更，可修改类参数`DtLogger.LOGGER_NAME`。
+
 ### 4.2 content
 
 ```
@@ -246,6 +322,9 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [KafKa读取插件](docs/kafkareader.md)
 * [Kudu读取插件](docs/kudureader.md)
 * [Cassandra读取插件](docs/cassandrareader.md)
+* [Emqx读取插件](docs/emqxreader.md)
+* [Oracle实时采集插件](docs/logminer.md)
+* [SqlServerCdc实时采集插件](docs/sqlservercdc.md)
 
 ### 5.2 写入插件
 
@@ -263,6 +342,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Hive写入插件](docs/hivewriter.md)
 * [Kudu写入插件](docs/kuduwriter.md)
 * [Cassandra写入插件](docs/cassandrawriter.md)
+* [Emqx写入插件](docs/emqxwriter.md)
 
 [断点续传和实时采集功能介绍](docs/restore.md)
 

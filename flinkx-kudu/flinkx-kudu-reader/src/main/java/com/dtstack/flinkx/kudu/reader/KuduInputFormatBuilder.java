@@ -19,7 +19,7 @@
 
 package com.dtstack.flinkx.kudu.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 
@@ -29,7 +29,7 @@ import java.util.List;
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduInputFormatBuilder extends RichInputFormatBuilder {
+public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private KuduInputFormat format;
 
