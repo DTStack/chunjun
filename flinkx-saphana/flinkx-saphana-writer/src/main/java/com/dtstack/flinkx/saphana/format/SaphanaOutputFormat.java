@@ -15,41 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.saphana.format;
 
-package com.dtstack.flinkx.enums;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 
 /**
- * Database type
- *
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author wuhui
  */
-public enum EDatabaseType {
-
-    /**
-     * database type
-     */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    SapHana,
-    TeraData,
-
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix
+public class SaphanaOutputFormat extends JdbcOutputFormat {
 }

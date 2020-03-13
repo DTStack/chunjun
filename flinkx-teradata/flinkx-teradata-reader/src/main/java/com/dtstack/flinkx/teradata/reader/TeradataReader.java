@@ -16,40 +16,31 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.teradata.reader;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.teradata.TeradataDatabaseMeta;
+import com.dtstack.flinkx.teradata.format.TeradataInputFormat;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 
 /**
- * Database type
+ * SapHana reader plugin
  *
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author wuhui
  */
-public enum EDatabaseType {
+public class TeradataReader extends JdbcDataReader {
 
-    /**
-     * database type
-     */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    SapHana,
-    TeraData,
+    public TeradataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+        setDatabaseInterface(new TeradataDatabaseMeta());
+    }
 
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new TeradataInputFormat());
+    }
 }

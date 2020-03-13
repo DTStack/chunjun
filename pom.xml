@@ -27,6 +27,9 @@
         <module>flinkx-db2</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-saphana</module>
+        <module>flinkx-teradata</module>
+        <module>flinkx-cassandra</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
