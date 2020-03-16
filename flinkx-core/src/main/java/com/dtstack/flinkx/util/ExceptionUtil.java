@@ -35,28 +35,27 @@ public class ExceptionUtil {
     public static String getErrorMessage(Throwable e) {
         StringWriter stringWriter = null;
         PrintWriter writer = null;
-        try{
-                stringWriter= new StringWriter();
-                writer = new PrintWriter(stringWriter);
-                e.printStackTrace(writer);
-                writer.flush();
-                stringWriter.flush();
-                StringBuffer buffer= stringWriter.getBuffer();
-                return buffer.toString();
-        }catch(Throwable ee){
-                logger.error("",ee);
-
-        }finally {
-                if(writer!=null){
-                        writer.close();
+        try {
+            stringWriter = new StringWriter();
+            writer = new PrintWriter(stringWriter);
+            e.printStackTrace(writer);
+            writer.flush();
+            stringWriter.flush();
+            StringBuffer buffer = stringWriter.getBuffer();
+            return buffer.toString();
+        } catch (Throwable ee) {
+            logger.error("", ee);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+            if (stringWriter != null) {
+                try {
+                    stringWriter.close();
+                } catch (Throwable ee) {
+                    logger.error("", ee);
                 }
-                if(stringWriter!=null){
-                        try{
-                                stringWriter.close();
-                        }catch (Throwable ee){
-                                logger.error("",ee);
-                        }
-                }
+            }
         }
         return null;
     }

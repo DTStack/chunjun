@@ -227,28 +227,6 @@ public class DbUtil {
     }
 
     /**
-     * 获取某数据库某表的主键和唯一索引
-     * @param table     表名
-     * @param dbConn    数据库连接
-     * @return
-     * @throws SQLException
-     */
-    public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
-        Map<String,List<String>> keyMap = new HashMap<>(16);
-        DatabaseMetaData meta = dbConn.getMetaData();
-        ResultSet rs = meta.getIndexInfo(null,null,table,true,false);
-        while(rs.next()) {
-            String pkName = rs.getString(6);
-            String columnName = rs.getString(9);
-            if(!keyMap.containsKey(pkName)) {
-                keyMap.put(pkName, new ArrayList<>());
-            }
-            keyMap.get(pkName).add(columnName);
-        }
-        return keyMap;
-    }
-
-    /**
      * 封装channel通道顺序
      * @param channels
      * @return
@@ -308,46 +286,6 @@ public class DbUtil {
         }
 
         return ret;
-    }
-
-    /**
-     * 占位符设值
-     * @param param         参数
-     * @param statement     PreparedStatement
-     * @param i             占位符位置
-     * @throws SQLException
-     */
-    public static void setParameterValue(Object param,PreparedStatement statement,int i) throws SQLException{
-        if (param instanceof String) {
-            statement.setString(i + 1, (String) param);
-        } else if (param instanceof Long) {
-            statement.setLong(i + 1, (Long) param);
-        } else if (param instanceof Integer) {
-            statement.setInt(i + 1, (Integer) param);
-        } else if (param instanceof Double) {
-            statement.setDouble(i + 1, (Double) param);
-        } else if (param instanceof Boolean) {
-            statement.setBoolean(i + 1, (Boolean) param);
-        } else if (param instanceof Float) {
-            statement.setFloat(i + 1, (Float) param);
-        } else if (param instanceof BigDecimal) {
-            statement.setBigDecimal(i + 1, (BigDecimal) param);
-        } else if (param instanceof Byte) {
-            statement.setByte(i + 1, (Byte) param);
-        } else if (param instanceof Short) {
-            statement.setShort(i + 1, (Short) param);
-        } else if (param instanceof Date) {
-            statement.setDate(i + 1, (Date) param);
-        } else if (param instanceof Time) {
-            statement.setTime(i + 1, (Time) param);
-        } else if (param instanceof Timestamp) {
-            statement.setTimestamp(i + 1, (Timestamp) param);
-        } else if (param instanceof Array) {
-            statement.setArray(i + 1, (Array) param);
-        } else {
-            //extends with other types if needed
-            throw new IllegalArgumentException("open() failed. Parameter " + i + " of type " + param.getClass() + " is not handled (yet)." );
-        }
     }
 
     /**

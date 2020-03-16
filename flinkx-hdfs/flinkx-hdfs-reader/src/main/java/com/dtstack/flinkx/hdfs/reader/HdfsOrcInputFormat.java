@@ -22,6 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -141,7 +142,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         }
     }
 
-    private List<String> parseColumnAndType(String typeStruct){
+    public List<String> parseColumnAndType(String typeStruct){
         List<String> cols = new ArrayList<>();
         List<String> splits = Arrays.asList(typeStruct.split(","));
         Iterator<String> it = splits.iterator();
@@ -207,7 +208,6 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-
         if(isFileEmpty){
             return;
         }
@@ -249,7 +249,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
                 }
 
                 if(val instanceof String || val instanceof org.apache.hadoop.io.Text){
-                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                    val = StringUtil.string2col(String.valueOf(val), metaColumn.getType(), metaColumn.getTimeFormat());
                 } else if(val != null){
                     val = HdfsUtil.getWritableValue(val);
                 }

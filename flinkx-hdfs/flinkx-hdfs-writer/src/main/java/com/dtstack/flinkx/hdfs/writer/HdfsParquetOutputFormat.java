@@ -21,13 +21,13 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.ECompressType;
+import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
-import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
@@ -59,21 +59,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     private MessageType schema;
 
-    private static Calendar cal = Calendar.getInstance();
-
-    private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
-
-    private static final long JULIAN_EPOCH_OFFSET_DAYS = 2440588;
-
     private static ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(10, 0);
-
-    static {
-        try {
-            cal.setTime(DateUtil.getDateFormatter().parse("1970-01-01"));
-        } catch (Exception e){
-            throw new RuntimeException("Init calendar fail:",e);
-        }
-    }
 
     @Override
     protected void openSource() throws IOException{
@@ -233,7 +219,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
             case "timestamp" :
                 Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
-                byte[] dst = longToByteArray(ts.getTime());
+                byte[] dst = HdfsUtil.longToByteArray(ts.getTime());
                 group.add(colName, Binary.fromConstantByteArray(dst));
                 break;
             case "decimal" :
@@ -246,7 +232,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                     throw new WriteRecordException(msg, new IllegalArgumentException());
                 }
 
-                group.add(colName,decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                group.add(colName, HdfsUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
                 break;
             case "date" :
                 Date date = DateUtil.columnToDate(valObj,null);
@@ -254,29 +240,6 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 break;
             default: group.add(colName,val);break;
         }
-    }
-
-    private Binary decimalToBinary(final HiveDecimal hiveDecimal, int prec,int scale) {
-        byte[] decimalBytes = hiveDecimal.setScale(scale).unscaledValue().toByteArray();
-
-        // Estimated number of bytes needed.
-        int precToBytes = ParquetHiveSerDe.PRECISION_TO_BYTE_COUNT[prec - 1];
-        if (precToBytes == decimalBytes.length) {
-            // No padding needed.
-            return Binary.fromReusedByteArray(decimalBytes);
-        }
-
-        byte[] tgt = new byte[precToBytes];
-        if (hiveDecimal.signum() == -1) {
-            // For negative number, initializing bits to 1
-            for (int i = 0; i < precToBytes; i++) {
-                tgt[i] |= 0xFF;
-            }
-        }
-
-        // Padding leading zeroes/ones.
-        System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
-        return Binary.fromReusedByteArray(tgt);
     }
 
     @Override
@@ -317,7 +280,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                                 .as(OriginalType.DECIMAL)
                                 .precision(decimalInfo.getPrecision())
                                 .scale(decimalInfo.getScale())
-                                .length(computeMinBytesForPrecision(decimalInfo.getPrecision()))
+                                .length(HdfsUtil.computeMinBytesForPrecision(decimalInfo.getPrecision()))
                                 .named(name);
 
                         decimalColInfo = Collections.singletonMap(name, decimalInfo);
@@ -329,56 +292,5 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         }
 
         return typeBuilder.named("Pair");
-    }
-
-    private int computeMinBytesForPrecision(int precision){
-        int numBytes = 1;
-        while (Math.pow(2.0, 8 * numBytes - 1) < Math.pow(10.0, precision)) {
-            numBytes += 1;
-        }
-        return numBytes;
-    }
-
-    private static byte[] longToByteArray(long data){
-        long nano = data * 1000_000;
-
-        int julianDays = (int) ((nano / NANO_SECONDS_PER_DAY) + JULIAN_EPOCH_OFFSET_DAYS);
-        byte[] julianDaysBytes = getBytes(julianDays);
-        flip(julianDaysBytes);
-
-        long lastDayNanos = nano % NANO_SECONDS_PER_DAY;
-        byte[] lastDayNanosBytes = getBytes(lastDayNanos);
-        flip(lastDayNanosBytes);
-
-        byte[] dst = new byte[12];
-
-        System.arraycopy(lastDayNanosBytes, 0, dst, 0, 8);
-        System.arraycopy(julianDaysBytes, 0, dst, 8, 4);
-
-        return dst;
-    }
-
-    private static byte[] getBytes(long i) {
-        byte[] bytes=new byte[8];
-        bytes[0]=(byte)((i >> 56) & 0xFF);
-        bytes[1]=(byte)((i >> 48) & 0xFF);
-        bytes[2]=(byte)((i >> 40) & 0xFF);
-        bytes[3]=(byte)((i >> 32) & 0xFF);
-        bytes[4]=(byte)((i >> 24) & 0xFF);
-        bytes[5]=(byte)((i >> 16) & 0xFF);
-        bytes[6]=(byte)((i >> 8) & 0xFF);
-        bytes[7]=(byte)(i & 0xFF);
-        return bytes;
-    }
-
-    /**
-     * @param bytes
-     */
-    private static void flip(byte[] bytes) {
-        for(int i=0,j=bytes.length-1;i<j;i++,j--) {
-            byte t=bytes[i];
-            bytes[i]=bytes[j];
-            bytes[j]=t;
-        }
     }
 }

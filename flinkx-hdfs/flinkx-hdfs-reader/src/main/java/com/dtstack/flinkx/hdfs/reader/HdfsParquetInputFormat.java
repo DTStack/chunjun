@@ -23,6 +23,7 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -152,7 +153,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 }
 
                 if(val instanceof String){
-                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                    val = StringUtil.string2col(String.valueOf(val), metaColumn.getType(), metaColumn.getTimeFormat());
                 }
 
                 row.setField(i,val);
@@ -167,7 +168,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return !nextLine();
     }
 
-    private Object getData(Group currentLine,String type,int index){
+    public Object getData(Group currentLine,String type,int index){
         Object data = null;
         ColumnType columnType = ColumnType.fromString(type);
 

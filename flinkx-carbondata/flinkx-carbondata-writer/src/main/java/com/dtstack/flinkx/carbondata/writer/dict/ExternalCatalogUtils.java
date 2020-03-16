@@ -68,11 +68,4 @@ public class ExternalCatalogUtils {
     private static boolean needsEscaping(char c) {
         return c >= 0 && c < charToEscape.size() && charToEscape.get(c);
     }
-
-    public static void main(String[] args) {
-        String s = "2018-01-01 08:08:08";
-        String d = escapePathName(s);
-        System.out.println(d);
-    }
-
 }

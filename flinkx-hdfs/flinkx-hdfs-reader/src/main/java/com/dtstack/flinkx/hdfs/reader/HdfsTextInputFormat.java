@@ -22,7 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
-import jodd.util.StringUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -121,7 +121,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                 }
 
                 if(value != null){
-                    value = HdfsUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                    value = StringUtil.string2col(String.valueOf(value), metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 
                 row.setField(i, value);
@@ -139,66 +139,62 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     }
 
 
-    public static class HdfsTextInputFormatBuilder {
-
-        private HdfsTextInputFormat format;
-
-        private HdfsTextInputFormatBuilder() {
-            format = new HdfsTextInputFormat();
-        }
-
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
-            format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
-            format.inputPath = inputPaths;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
-            if(delimiter == null) {
-                delimiter = "\\001";
-            }
-            format.delimiter = delimiter;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFs = defaultFs;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
-            if(StringUtil.isNotEmpty(charsetName)) {
-                if(!Charset.isSupported(charsetName)) {
-                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-                }
-                this.format.charsetName = charsetName;
-            }
-
-            return this;
-        }
-
-        public HdfsTextInputFormat finish() {
-            return format;
-        }
-    }
-
-    public static HdfsTextInputFormatBuilder buildHdfsTextInputFormat() {
-        return new HdfsTextInputFormatBuilder();
-    }
+//    public static class HdfsTextInputFormatBuilder {
+//
+//        private HdfsTextInputFormat format;
+//
+//        private HdfsTextInputFormatBuilder() {
+//            format = new HdfsTextInputFormat();
+//        }
+//
+//        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
+//            format.hadoopConfig = hadoopConfig;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
+//            format.inputPath = inputPaths;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setBytes(long bytes) {
+//            format.bytes = bytes;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
+//            format.monitorUrls = monitorUrls;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
+//            if(delimiter == null) {
+//                delimiter = "\\001";
+//            }
+//            format.delimiter = delimiter;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
+//            format.defaultFs = defaultFs;
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
+//            if(StringUtil.isNotEmpty(charsetName)) {
+//                if(!Charset.isSupported(charsetName)) {
+//                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
+//                }
+//                this.format.charsetName = charsetName;
+//            }
+//
+//            return this;
+//        }
+//
+//        public HdfsTextInputFormat finish() {
+//            return format;
+//        }
+//    }
 
     static class HdfsTextInputSplit implements InputSplit {
         int splitNumber;

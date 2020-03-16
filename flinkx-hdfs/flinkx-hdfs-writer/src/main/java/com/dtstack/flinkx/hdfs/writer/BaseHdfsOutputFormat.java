@@ -120,7 +120,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 n++;
             }
         } catch (Exception e){
-
+            LOG.warn("Call method waitForActionFinishedBeforeWrite error", e);
         }
     }
 
