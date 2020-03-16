@@ -70,6 +70,8 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.reader.RestAPIReader;
+import com.dtstack.flinkx.restapi.writer.RestAPIWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -128,7 +130,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\logminer_stream.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-restapi\\flinkx-restapi-writer\\restapi-writer.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -208,7 +210,7 @@ public class LocalTest {
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Hive2MetadataReader(config, env);break;
-
+            case PluginNameConstrant.RESTAPI_READER : reader = new RestAPIReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -244,6 +246,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
+            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestAPIWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
