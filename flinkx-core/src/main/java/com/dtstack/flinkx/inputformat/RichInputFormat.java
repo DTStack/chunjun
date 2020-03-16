@@ -24,6 +24,7 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang.StringUtils;
@@ -80,6 +81,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private AtomicBoolean isClosed = new AtomicBoolean(false);
 
+    protected transient CustomPrometheusReporter customPrometheusReporter;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -90,6 +93,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     @Override
     public void openInputFormat() throws IOException {
         initJobInfo();
+        initPrometheusReporter();
+
         startTime = System.currentTimeMillis();
         DtLogger.config(logConfig, jobId);
     }
@@ -140,6 +145,21 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         if (inputSplit instanceof ErrorInputSplit) {
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
         }
+    }
+
+    private void initPrometheusReporter() {
+        if (useCustomPrometheusReporter()) {
+            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
+            customPrometheusReporter.open();
+        }
+    }
+
+    protected boolean useCustomPrometheusReporter() {
+        return false;
+    }
+
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return false;
     }
 
     private void initAccumulatorCollector(){
@@ -274,8 +294,16 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             accumulatorCollector.close();
         }
 
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.report();
+        }
+
         if(inputMetric != null){
             inputMetric.waitForMetricReport();
+        }
+
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.close();
         }
 
         isClosed.set(true);
@@ -309,11 +337,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         return restoreConfig;
     }
 
-    public void setLogConfig(LogConfig logConfig) {
-        this.logConfig = logConfig;
-    }
-
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
     }
 }

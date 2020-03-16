@@ -23,6 +23,8 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.oraclelogminer.util.LogMinerUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -31,6 +33,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.concurrent.Callable;
 
 /**
  * @author jiangbo
@@ -57,10 +60,9 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     private boolean skipRecord = true;
 
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
-    }
+    private static final int RETRY_TIMES = 3;
+
+    private static final int SLEEP_TIME = 2000;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -68,10 +70,16 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
-            connection = DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword());
+
+            connection = RetryUtil.executeWithRetry(new Callable<Connection>() {
+                @Override
+                public Connection call() throws Exception {
+                    return DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword());
+                }
+            }, RETRY_TIMES, SLEEP_TIME,false);
 
             LOG.info("获取连接成功,url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
-        } catch (SQLException e){
+        } catch (Exception e){
             LOG.error("获取连接失败，url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
             throw new RuntimeException(e);
         }
@@ -132,43 +140,47 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     private Long getMinScn(){
         Long minScn = null;
+        PreparedStatement minScnStmt = null;
+        ResultSet minScnResultSet = null;
+
         try {
-            PreparedStatement minScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION);
+            minScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION);
             LogMinerUtil.configStatement(minScnStmt, logMinerConfig);
 
-            ResultSet minScnResultSet = minScnStmt.executeQuery();
+            minScnResultSet = minScnStmt.executeQuery();
             while(minScnResultSet.next()){
                 minScn = minScnResultSet.getLong(LogMinerUtil.KEY_FIRST_CHANGE);
             }
-
-            minScnStmt.close();
-            minScnResultSet.close();
 
             return minScn;
         } catch (SQLException e) {
             LOG.error("获取最早归档日志起始位置出错", e);
             throw new RuntimeException(e);
+        } finally {
+            closeResources(minScnResultSet, minScnStmt, null);
         }
     }
 
     private Long getCurrentScn() {
         Long currentScn = null;
+        CallableStatement currentScnStmt = null;
+        ResultSet currentScnResultSet = null;
+
         try {
-            CallableStatement currentScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_CURRENT_SCN);
+            currentScnStmt = connection.prepareCall(LogMinerUtil.SQL_GET_CURRENT_SCN);
             LogMinerUtil.configStatement(currentScnStmt, logMinerConfig);
 
-            ResultSet currentScnResultSet = currentScnStmt.executeQuery();
+            currentScnResultSet = currentScnStmt.executeQuery();
             while(currentScnResultSet.next()){
                 currentScn = currentScnResultSet.getLong(LogMinerUtil.KEY_CURRENT_SCN);
             }
-
-            currentScnResultSet.close();
-            currentScnStmt.close();
 
             return currentScn;
         } catch (SQLException e) {
             LOG.error("获取当前的SCN出错:", e);
             throw new RuntimeException(e);
+        } finally {
+            closeResources(currentScnResultSet, currentScnStmt, null);
         }
     }
 
@@ -183,52 +195,55 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
      */
     private Long getLogFileStartPositionByScn(Long scn) {
         Long logFileFirstChange = null;
+        PreparedStatement lastLogFileStmt = null;
+        ResultSet lastLogFileResultSet = null;
 
         try {
-            PreparedStatement lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
+            lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
             LogMinerUtil.configStatement(lastLogFileStmt, logMinerConfig);
 
             lastLogFileStmt.setLong(1, scn);
             lastLogFileStmt.setLong(2, scn);
-            ResultSet lastLogFileResultSet = lastLogFileStmt.executeQuery();
+            lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while(lastLogFileResultSet.next()){
                 logFileFirstChange = lastLogFileResultSet.getLong(LogMinerUtil.KEY_FIRST_CHANGE);
             }
-
-            lastLogFileStmt.close();
-            lastLogFileResultSet.close();
 
             return logFileFirstChange;
         } catch (SQLException e) {
             LOG.error("根据scn:[{}]获取指定归档日志起始位置出错", scn, e);
             throw new RuntimeException(e);
+        } finally {
+            closeResources(lastLogFileResultSet, lastLogFileStmt, null);
         }
     }
 
     private Long getLogFileStartPositionByTime(Long time) {
         Long logFileFirstChange = null;
 
+        PreparedStatement lastLogFileStmt = null;
+        ResultSet lastLogFileResultSet = null;
+
         try {
             String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
 
-            PreparedStatement lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
+            lastLogFileStmt = connection.prepareCall(LogMinerUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
             LogMinerUtil.configStatement(lastLogFileStmt, logMinerConfig);
 
             lastLogFileStmt.setString(1, timeStr);
             lastLogFileStmt.setString(2, timeStr);
             lastLogFileStmt.setString(3, timeStr);
-            ResultSet lastLogFileResultSet = lastLogFileStmt.executeQuery();
+            lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while(lastLogFileResultSet.next()){
                 logFileFirstChange = lastLogFileResultSet.getLong(LogMinerUtil.KEY_FIRST_CHANGE);
             }
-
-            lastLogFileStmt.close();
-            lastLogFileResultSet.close();
 
             return logFileFirstChange;
         } catch (SQLException e) {
             LOG.error("根据时间:[{}]获取指定归档日志起始位置出错", time, e);
             throw new RuntimeException(e);
+        } finally {
+            closeResources(lastLogFileResultSet, lastLogFileStmt, null);
         }
     }
 
@@ -325,38 +340,42 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     }
 
     @Override
+    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
+        return new InputSplit[]{new GenericInputSplit(1,1)};
+    }
+
+    @Override
     protected void closeInternal() throws IOException {
-        try {
-            if(logMinerData != null){
-                logMinerData.close();
+        closeResources(logMinerData, logMinerSelectStmt, connection);
+        closeResources(null, logMinerStartStmt, null);
+    }
+
+    private void closeResources(ResultSet rs, Statement stmt, Connection conn) {
+        if (null != rs) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            LOG.warn("关闭资源logMinerData出错:", e);
         }
 
-        try {
-            if(logMinerSelectStmt != null){
-                logMinerSelectStmt.cancel();
-                logMinerSelectStmt.close();
+        if (null != stmt) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            LOG.warn("关闭资源logMinerSelectStmt出错:", e);
         }
 
-        try {
-            if (logMinerStartStmt != null) {
-                logMinerStartStmt.close();
+        if (null != conn) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            LOG.warn("关闭资源logMinerStartStmt出错:", e);
-        }
-
-        try {
-            if (connection != null) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            LOG.warn("关闭资源connection出错:", e);
         }
     }
 
