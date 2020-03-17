@@ -8,22 +8,22 @@
             "header": [],
             "body": [],
             "method": "post",
-            "params": ""
+            "params": "",
+            "column": []
           },
           "name": "restapiwriter"
         },
         "reader": {
           "parameter": {
-            "username": "hadoop",
-            "password": "qwer",
-            "connection": [{
-              "jdbcUrl": [
-                "jdbc:hive2://master:10000/tiezhu"
-              ],
-              "table": []
-            }]
+            "column": [
+              {
+               "name": "id",
+                "type": "int"
+              }
+            ],
+            "sliceRecordCount": []
           },
-          "name": "metadatahive2reader"
+          "name": "streamreader"
         }
       }
     ],

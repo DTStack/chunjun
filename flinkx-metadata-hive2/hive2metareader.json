@@ -4,9 +4,13 @@
       {
         "writer": {
           "parameter": {
-            "print": true
+            "url": "http://172.16.8.109/server/index.php?g=Web&c=Mock&o=mock&projectID=58&uri=/api/tiezhu/test/get",
+            "header": [],
+            "body": [],
+            "method": "post",
+            "params": ""
           },
-          "name": "streamwriter"
+          "name": "restapiwriter"
         },
         "reader": {
           "parameter": {

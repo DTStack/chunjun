@@ -77,4 +77,5 @@ public class PluginNameConstrant {
     public static final String POLARDB_WRITER = "polardbwriter";
     public static final String PHOENIX_WRITER = "phoenixwriter";
     public static final String EMQX_WRITER = "emqxwriter";
+    public static final String RESTAPI_WRITER = "restapiwriter";
 }
