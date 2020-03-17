@@ -357,6 +357,11 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 | 1.5.x | 1.5.4   |
 | 1.8.x | 1.8.1   |
 
-## 7.招聘信息
+## 7.交流群
+<div align=center>
+    <img src=https://user-images.githubusercontent.com/11881814/76816457-3df44800-683b-11ea-94cc-707fb0250a9a.png width=600 />
+</div>
+
+## 8.招聘信息
 
  1.大数据平台开发工程师，想了解岗位详细信息可以添加本人微信号ysqwhiletrue,注明招聘，如有意者发送简历至sishu@dtstack.com。
