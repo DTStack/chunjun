@@ -12,12 +12,22 @@
           "parameter": {
             "username": "hadoop",
             "password": "qwer",
-            "connection": [{
-              "jdbcUrl": [
-                "jdbc:hive2://master:10000/tiezhu"
-              ],
-              "table": []
-            }]
+            "jdbcUrl": "jdbc:hive2://master:10000",
+            "dbList": [
+              {
+                "dbName": "tiezhu",
+                "tableList": [
+                  "test_1",
+                  "test_2"
+                ]
+              },
+              {
+                "dbName": "tiezhu_schema",
+                "tableList": [
+                  "test_1"
+                ]
+              }
+            ]
           },
           "name": "metadatahive2reader"
         }

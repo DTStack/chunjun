@@ -1,11 +1,28 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.metadata.reader.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import com.dtstack.flinkx.metadata.util.ConnUtil;
 
 import java.io.IOException;
 import java.sql.*;
@@ -27,6 +44,8 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected String username;
     protected String password;
 
+    protected List<Map> dbList;
+
     protected String currentQueryTable;
 
     protected List<String> tableList;
@@ -34,6 +53,8 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     protected Map<String, Object> currentMessage;
 
     protected boolean hasNext;
+
+    protected boolean isAllDB;
 
     protected String driverName;
 
@@ -75,12 +96,36 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        if (table.isEmpty()) {
-            tableList = getTableList();
+        initConnect();
+        return initSplit();
+    }
+
+    /**
+     * 创建分片方法
+     *
+     * @return 返回分片数组
+     */
+    protected InputSplit[] initSplit() throws SQLException {
+        List<String> dbInfo;
+        List<String> tableList = new ArrayList<>();
+        if (isAllDB) {
+            dbInfo = getDBList();
+            tableList = getTableList(dbInfo);
         } else {
-            tableList = table;
+            for(Map item : dbList){
+                if(item.get("tableList").equals(null)){
+                    // 查询当前库下的所有表的元数据信息
+                    tableList.addAll(getTableList((String) item.get("dbName")));
+                } else{
+                    List<String> tempList = (List<String>) item.get("tableList");
+                    for(String table : tempList){
+                        tableList.add(item.get("dbName") + "." + table);
+                    }
+                }
+            }
         }
-        minNumSplits = tableList.size();
+        table = tableList;
+        int minNumSplits = tableList.size();
         InputSplit[] inputSplits = new MetaDataInputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             inputSplits[i] = new MetaDataInputSplit(i, numPartitions, dbUrl, tableList.get(i));
@@ -94,11 +139,10 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         row = new Row(1);
         if (errorMessage.isEmpty()) {
             currentMessage.put("querySuccess", true);
-            currentMessage.put("errorMsg", errorMessage);
         } else {
             currentMessage.put("querySuccess", false);
-            currentMessage.put("errorMsg", errorMessage);
         }
+        currentMessage.put("errorMsg", errorMessage);
         row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
 
@@ -138,13 +182,15 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     /**
      * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
+     *
+     * @param currentQueryTable 当前查询的table
      */
     protected abstract void beforeUnit(String currentQueryTable);
 
     /**
      * 从结果集中解析有关表的元数据信息
      *
-     * @param currentQueryTable
+     * @param currentQueryTable 当前查询的table名
      * @return 有关表的元数据信息
      */
     public abstract Map<String, Object> getTablePropertites(String currentQueryTable);
@@ -165,9 +211,24 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     /**
      * 构建查询表名sql，如show tables
+     *
      * @return 返回能够查询tables的sql语句
      */
     public abstract String queryTableSql();
+
+    /**
+     * 构建查询当前连接下可查询的所有数据库名，如show databases;
+     *
+     * @return 返回能够查询databases的sql语句
+     */
+    public abstract String queryDBSql();
+
+    /**
+     * 构建切换databases的执行语句，如use default;
+     * @param dbName
+     * @return
+     */
+    public abstract String changeDBSql(String dbName);
 
     /**
      * 对元数据信息整合
@@ -196,19 +257,44 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         return result;
     }
 
-    /**
-     * 如果传递的表为空，那么通过show tables 获取tableList
-     */
-    public List<String> getTableList() throws SQLException, ClassNotFoundException {
+    public List<String> getTableList(String dbName) throws SQLException {
         List<String> tableList = new ArrayList<>();
-        Class.forName(driverName);
-        connection = DriverManager.getConnection(dbUrl, username, password);
         statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(queryTableSql());
         while (resultSet.next()) {
-            tableList.add(resultSet.getString(1));
+            tableList.add(dbName + "." + resultSet.getString(1));
         }
-        ConnUtil.closeConn(resultSet, statement, connection, true);
         return tableList;
+    }
+
+    public List<String> getTableList(List<String> dbList) throws SQLException {
+        List<String> tableList = new ArrayList<>();
+        for (String item : dbList) {
+            statement.execute(changeDBSql(item));
+            tableList.addAll(getTableList(item));
+        }
+        return tableList;
+    }
+
+    /**
+     * 如果isAllDB为true，那么通过 show databases获取全部的dbName
+     */
+    public List<String> getDBList() throws SQLException {
+        List<String> result = new ArrayList<>();
+        statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(queryDBSql());
+        while (resultSet.next()) {
+            result.add(resultSet.getString(1));
+        }
+        return result;
+    }
+
+    public void initConnect() {
+        try {
+            Class.forName(driverName);
+            connection = DriverManager.getConnection(dbUrl, username, password);
+        } catch (Exception e) {
+            setErrorMessage(e, "init connect error");
+        }
     }
 }

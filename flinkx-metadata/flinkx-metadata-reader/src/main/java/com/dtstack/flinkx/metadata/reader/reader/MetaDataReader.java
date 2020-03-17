@@ -1,9 +1,25 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.metadata.reader.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormat;
 import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormatBuilder;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -12,6 +28,7 @@ import org.apache.flink.types.Row;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author : tiezhu
@@ -19,8 +36,8 @@ import java.util.List;
  * @description :
  */
 public class MetaDataReader extends DataReader {
-    protected String dbUrl;
-    protected List<String> table;
+    protected String jdbcUrl;
+    protected List<Map> dbList;
     protected String username;
     protected String password;
     protected String driverName;
@@ -30,21 +47,22 @@ public class MetaDataReader extends DataReader {
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
-        dbUrl = readerConfig.getParameter().getConnection().get(0).getJdbcUrl().get(0);
-        table = readerConfig.getParameter().getConnection().get(0).getTable();
+        jdbcUrl = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_JDBC_URL);
         username = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_CONN_USERNAME);
         password = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_CONN_PASSWORD);
+        dbList = (List<Map>) readerConfig.getParameter().getVal(MetaDataCons.KEY_DB_LIST);
+
     }
 
     @Override
     public DataStream<Row> readData() {
         MetaDataInputFormatBuilder builder = getBuilder();
 
-        builder.setDBUrl(dbUrl);
+        builder.setDBUrl(jdbcUrl);
         builder.setPassword(password);
         builder.setUsername(username);
-        builder.setTable(table);
         builder.setDriverName(driverName);
+        builder.setDBList(dbList);
         builder.setNumPartitions(1);
 
         RichInputFormat format = builder.finish();
