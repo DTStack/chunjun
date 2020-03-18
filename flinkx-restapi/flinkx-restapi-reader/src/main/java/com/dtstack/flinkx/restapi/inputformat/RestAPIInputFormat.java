@@ -59,7 +59,7 @@ public class RestAPIInputFormat extends RichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        HttpUriRequest request = HttpUtil.getRequest(method, null, url);
+        HttpUriRequest request = HttpUtil.getRequest(method, header,null, url);
         try {
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             HttpEntity entity = httpResponse.getEntity();
