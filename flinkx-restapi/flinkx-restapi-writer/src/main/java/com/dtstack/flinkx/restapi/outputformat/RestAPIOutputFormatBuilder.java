@@ -38,7 +38,7 @@ public class RestAPIOutputFormatBuilder extends RichOutputFormatBuilder {
         this.format.url = url;
     }
 
-    public void setHeader(Map<String, Object> header) {
+    public void setHeader(Map<String, String> header) {
         this.format.header = header;
     }
 

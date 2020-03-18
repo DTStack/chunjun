@@ -51,7 +51,7 @@ import java.util.*;
 public class RestAPIOutputFormat extends RichOutputFormat {
 
     protected String url;
-    protected Map<String, Object> header;
+    protected Map<String, String> header;
     protected String method;
     protected Map<String, Object> body;
     protected ArrayList<String> column;

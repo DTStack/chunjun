@@ -75,13 +75,9 @@ public class HttpUtil {
 
     public static HttpRequestBase getRequest(String method, Map<String,
                                              Object> requestBody,
-                                             Map<String, Object> header,
+                                             Map<String, String> header,
                                              String url) {
         HttpRequestBase request = null;
-
-        for (Map.Entry<String, Object> entry : header.entrySet()) {
-           request.addHeader(entry.getKey(), entry.getValue().toString());
-        }
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
@@ -91,6 +87,10 @@ public class HttpUtil {
             HttpPost post = new HttpPost(url);
             post.setEntity(getEntityData(requestBody));
             request = post;
+        }
+
+        for (Map.Entry<String, String> entry : header.entrySet()) {
+            request.addHeader(entry.getKey(), entry.getValue());
         }
         return request;
     }

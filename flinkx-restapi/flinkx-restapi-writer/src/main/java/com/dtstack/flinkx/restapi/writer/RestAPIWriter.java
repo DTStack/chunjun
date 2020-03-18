@@ -37,9 +37,10 @@ import java.util.Map;
 public class RestAPIWriter extends DataWriter {
     protected String url;
     protected String method;
-    protected Map<String, Object> header = new HashMap<>();
+    protected Map<String, String> header = new HashMap<>();
     protected Map<String, Object> body = new HashMap<>();
     protected ArrayList<Map<String, Object>> temp;
+    protected ArrayList<Map<String, String>> tempHeader;
     protected ArrayList<String> column;
     protected Map<String, Object> params;
 
@@ -52,9 +53,9 @@ public class RestAPIWriter extends DataWriter {
         method = writerConfig.getParameter().getStringVal("method");
         column = (ArrayList<String>) writerConfig.getParameter().getVal("column");
 
-        temp = (ArrayList<Map<String, Object>>) writerConfig.getParameter().getVal("header");
+        tempHeader = (ArrayList<Map<String, String>>) writerConfig.getParameter().getVal("header");
 
-        for (Map<String, Object> map : temp) {
+        for (Map<String, String> map : tempHeader) {
             header.putAll(map);
         }
         temp = (ArrayList<Map<String, Object>>) writerConfig.getParameter().getVal("body");
