@@ -73,8 +73,16 @@ public class HttpUtil {
                 .build();
     }
 
-    public static HttpRequestBase getRequest(String method, Map<String, Object> requestBody, String url) {
+    public static HttpRequestBase getRequest(String method, Map<String,
+                                             Object> requestBody,
+                                             Map<String, Object> header,
+                                             String url) {
         HttpRequestBase request = null;
+
+        for (Map.Entry<String, Object> entry : header.entrySet()) {
+           request.addHeader(entry.getKey(), entry.getValue().toString());
+        }
+
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
         }

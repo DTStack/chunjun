@@ -69,7 +69,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
         Map<String, Object> columnData = new HashMap<>();
         String dataRow = "";
         try {
-            if (column != null) {
+            if (!column.isEmpty()) {
                 for (; index < row.getArity(); index++) {
                     columnData.put(column.get(index), row.getField(index));
                 }
@@ -85,7 +85,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
                 body.put((String) entry.getKey(), entry.getValue());
             }
 
-            HttpRequestBase request = HttpUtil.getRequest(method, body, url);
+            HttpRequestBase request = HttpUtil.getRequest(method, body, header, url);
 
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             // 重试之后返回状态码不为200

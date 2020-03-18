@@ -27,8 +27,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class MetadataHive2Reader extends MetaDataReader {
-    public MetadataHive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
+public class Metadatahive2Reader extends MetaDataReader {
+    public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         driverName = "org.apache.hive.jdbc.HiveDriver";
     }
