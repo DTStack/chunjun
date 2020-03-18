@@ -49,6 +49,7 @@
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
+
                             </filters>
                             <relocations>
                                 <relocation>
@@ -80,11 +81,11 @@
                             <tasks>
                                 <copy todir="${basedir}/../../plugins/restapireader">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar" />
+                                        <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/restapireader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/restapireader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/restapireader/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

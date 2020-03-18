@@ -34,7 +34,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestAPIWriter extends DataWriter {
+public class RestapiWriter extends DataWriter {
     protected String url;
     protected String method;
     protected Map<String, String> header = new HashMap<>();
@@ -44,7 +44,7 @@ public class RestAPIWriter extends DataWriter {
     protected ArrayList<String> column;
     protected Map<String, Object> params;
 
-    public RestAPIWriter(DataTransferConfig config) {
+    public RestapiWriter(DataTransferConfig config) {
         super(config);
 
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();

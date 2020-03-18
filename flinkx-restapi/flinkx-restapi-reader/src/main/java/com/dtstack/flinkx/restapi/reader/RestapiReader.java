@@ -33,13 +33,13 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestAPIReader extends DataReader {
+public class RestapiReader extends DataReader {
     private String url;
     private String method;
     private Map<String, Object> header = new HashMap<>();
     private ArrayList<Map<String, String>> temp;
 
-    public RestAPIReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 

@@ -17,12 +17,16 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
+import com.dtstack.flinkx.util.JsonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -73,8 +77,8 @@ public class HttpUtil {
                 .build();
     }
 
-    public static HttpRequestBase getRequest(String method, Map<String,
-                                             Object> requestBody,
+    public static HttpRequestBase getRequest(String method,
+                                             Map<String, Object> requestBody,
                                              Map<String, String> header,
                                              String url) {
         HttpRequestBase request = null;
@@ -84,6 +88,14 @@ public class HttpUtil {
         }
 
         if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
+
+//            PostMethod postMethod = new PostMethod(url);
+//            try {
+//                postMethod.addParameter("data", JsonUtils.objectToJsonStr(requestBody));
+//            }catch (Exception e){
+//
+//            }
+
             HttpPost post = new HttpPost(url);
             post.setEntity(getEntityData(requestBody));
             request = post;
@@ -94,6 +106,7 @@ public class HttpUtil {
         }
         return request;
     }
+
     public static void closeClient(CloseableHttpClient httpClient) {
         try {
             httpClient.close();
@@ -102,15 +115,13 @@ public class HttpUtil {
         }
     }
 
-    public static UrlEncodedFormEntity getEntityData(Map<String, Object> body) {
-        List<NameValuePair> urlParameters = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : body.entrySet()) {
-            urlParameters.add(new BasicNameValuePair(
-                    entry.getKey(), entry.getValue().toString()));
-        }
+    public static StringEntity getEntityData(Map<String, Object> body) {
+
         try {
-            return new UrlEncodedFormEntity(urlParameters);
-        } catch (UnsupportedEncodingException e) {
+            StringEntity stringEntity = new StringEntity(JsonUtils.objectToJsonStr(body), "utf-8");
+            stringEntity.setContentEncoding("UTF-8");
+            return stringEntity;
+        } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("set entity error");
         }
     }
