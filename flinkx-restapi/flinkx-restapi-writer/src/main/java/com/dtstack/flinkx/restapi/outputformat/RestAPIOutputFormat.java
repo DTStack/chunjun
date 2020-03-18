@@ -54,7 +54,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
     protected Map<String, String> header;
     protected String method;
     protected Map<String, Object> body;
-    protected ArrayList<String> column;
+    protected ArrayList<String> column ;
     protected Map<String, Object> params;
 
     @Override
@@ -78,7 +78,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
                 dataRow = row.getField(index).toString();
             }
 
-            body.put("data", JsonUtils.jsonStrToObject(dataRow, Map.class));
+            body.put("data", (JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class)).get("data"));
             Iterator iterator = params.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) iterator.next();
@@ -123,6 +123,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
             Map.Entry entry = (Map.Entry) iterator.next();
             body.put((String) entry.getKey(), entry.getValue());
         }
+        System.out.println(JsonUtils.objectToJsonStr(body));
     }
 
     private void requestErrorMessage(Exception e, int index, Row row) {

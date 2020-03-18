@@ -41,18 +41,21 @@ public class RestapiWriter extends DataWriter {
     protected Map<String, Object> body = new HashMap<>();
     protected ArrayList<Map<String, Object>> temp;
     protected ArrayList<Map<String, String>> tempHeader;
-    protected ArrayList<String> column;
+    protected ArrayList<String> column = new ArrayList<>();
     protected Map<String, Object> params;
 
     public RestapiWriter(DataTransferConfig config) {
         super(config);
+        Object tempObj;
 
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         url = writerConfig.getParameter().getStringVal("url");
         method = writerConfig.getParameter().getStringVal("method");
-        column = (ArrayList<String>) writerConfig.getParameter().getVal("column");
-
+        tempObj = writerConfig.getParameter().getVal("column");
+        if(tempObj != null){
+            column = (ArrayList<String>)tempObj;
+        }
         tempHeader = (ArrayList<Map<String, String>>) writerConfig.getParameter().getVal("header");
 
         for (Map<String, String> map : tempHeader) {
