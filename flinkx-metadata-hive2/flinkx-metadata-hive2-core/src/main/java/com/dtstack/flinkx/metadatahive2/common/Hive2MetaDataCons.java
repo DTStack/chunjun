@@ -15,26 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadata.hive2.reader;
-
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.hive2.inputformat.Hive2MetadataInputFormat;
-import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.reader.MetaDataReader;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+package com.dtstack.flinkx.metadatahive2.common;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/9
+ * @description :
  */
-public class Hive2MetadataReader extends MetaDataReader {
-    public Hive2MetadataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        driverName = "org.apache.hive.jdbc.HiveDriver";
-    }
+public class Hive2MetaDataCons {
+    public static final String INPUT_FORMAT_TEXT = "TextInputFormat";
+    public static final String INPUT_FORMAT_PARQUET = "MapredParquetInputFormat";
+    public static final String INPUT_FORMAT_ORC = "OrcInputFormat";
 
-    @Override
-    protected MetaDataInputFormatBuilder getBuilder(){
-        return new MetaDataInputFormatBuilder(new Hive2MetadataInputFormat());
-    }
+    public static final String TYPE_TEXT = "text";
+    public static final String TYPE_ORC = "orc";
+    public static final String TYPE_PARQUET = "parquet";
+
+    public static final String KEY_TABLE_PROPERTIES = "tableProperties";
+    public static final String KEY_PARTITION_COLUMN = "partitionColumn";
+    public static final String KEY_INPUT_FORMAT = "inputFormat";
+
 }

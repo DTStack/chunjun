@@ -51,7 +51,7 @@ import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
-import com.dtstack.flinkx.metadata.hive2.reader.Hive2MetadataReader;
+import com.dtstack.flinkx.metadatahive2.reader.MetadataHive2Reader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -129,7 +129,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader-streamwriter.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -208,7 +208,7 @@ public class LocalTest {
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
-            case PluginNameConstrant.METADATAHIVE2_READER : reader = new Hive2MetadataReader(config, env);break;
+            case PluginNameConstrant.METADATAHIVE2_READER : reader = new MetadataHive2Reader(config, env);break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 

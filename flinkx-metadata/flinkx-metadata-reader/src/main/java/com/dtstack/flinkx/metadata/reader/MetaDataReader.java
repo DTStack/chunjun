@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadata.reader.reader;
+package com.dtstack.flinkx.metadata.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormatBuilder;
+import com.dtstack.flinkx.metadata.inputformat.MetaDataInputFormatBuilder;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

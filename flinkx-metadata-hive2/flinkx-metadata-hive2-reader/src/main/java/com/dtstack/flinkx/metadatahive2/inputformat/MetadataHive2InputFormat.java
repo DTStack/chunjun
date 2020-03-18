@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadata.hive2.inputformat;
+package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
-import com.dtstack.flinkx.metadata.hive2.common.Hive2MetaDataCons;
-import com.dtstack.flinkx.metadata.reader.inputformat.MetaDataInputFormat;
+import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
+import com.dtstack.flinkx.metadata.inputformat.MetaDataInputFormat;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,7 +29,7 @@ import java.util.*;
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class Hive2MetadataInputFormat extends MetaDataInputFormat {
+public class MetadataHive2InputFormat extends MetaDataInputFormat {
     protected List<String> tableColumn;
     protected List<String> partitionColumn;
 
