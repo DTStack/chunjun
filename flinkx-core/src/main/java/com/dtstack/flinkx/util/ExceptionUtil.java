@@ -33,6 +33,10 @@ public class ExceptionUtil {
     private static Logger logger = LoggerFactory.getLogger(ExceptionUtil.class);
 
     public static String getErrorMessage(Throwable e) {
+        if (null == e) {
+            return null;
+        }
+
         StringWriter stringWriter = null;
         PrintWriter writer = null;
         try {
