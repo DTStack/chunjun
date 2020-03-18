@@ -26,7 +26,8 @@ import org.apache.flink.core.io.GenericInputSplit;
  */
 public class MetaDataInputSplit extends GenericInputSplit {
     private String dbUrl;
-    private String table;
+    private String tableName;
+    private String dbName;
 
 
     /**
@@ -35,26 +36,31 @@ public class MetaDataInputSplit extends GenericInputSplit {
      * @param partitionNumber         The number of the split's partition.
      * @param totalNumberOfPartitions The total number of the splits (partitions).
      */
-    public MetaDataInputSplit(int partitionNumber, int totalNumberOfPartitions, String dbUrl, String table) {
+    public MetaDataInputSplit(int partitionNumber, int totalNumberOfPartitions, String dbUrl, String tablesName, String dbName) {
         super(partitionNumber, totalNumberOfPartitions);
         this.dbUrl = dbUrl;
-        this.table = table;
+        this.tableName = tablesName;
+        this.dbName = dbName;
     }
 
     public String getDbUrl() {
         return dbUrl;
     }
 
-    public String getTable() {
-        return table;
+    public String getTableName() {
+        return tableName;
     }
 
+    public String getDbName() {
+        return dbName;
+    }
 
     @Override
     public String toString() {
         return "MetaDataInputSplit{" +
                 "dbUrl='" + dbUrl + '\'' +
-                ", table='" + table + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", dbName='" + dbName + '\'' +
                 '}';
     }
 }

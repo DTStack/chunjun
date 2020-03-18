@@ -8,27 +8,25 @@
             "header": [],
             "body": [],
             "method": "post",
-            "params": ""
+            "params": {
+              "sourceId": 123,
+              "jobId": 123
+            }
           },
           "name": "restapiwriter"
         },
         "reader": {
           "parameter": {
-            "username": "hadoop",
-            "password": "qwer",
-            "jdbcUrl": "jdbc:hive2://master:10000",
+            "username": "root",
+            "password": "abc123",
+            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
             "dbList": [
               {
                 "dbName": "tiezhu",
                 "tableList": [
                   "test_1",
-                  "test_2"
-                ]
-              },
-              {
-                "dbName": "tiezhu_schema",
-                "tableList": [
-                  "test_1"
+                  "test_2",
+                  "test_3"
                 ]
               }
             ]

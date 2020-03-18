@@ -41,10 +41,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author : tiezhu
@@ -58,6 +55,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
     protected String method;
     protected Map<String, Object> body;
     protected ArrayList<String> column;
+    protected Map<String, Object> params;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -81,6 +79,11 @@ public class RestAPIOutputFormat extends RichOutputFormat {
             }
 
             body.put("data", JsonUtils.jsonStrToObject(dataRow, Map.class));
+            Iterator iterator = params.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                body.put((String) entry.getKey(), entry.getValue());
+            }
 
             HttpRequestBase request = HttpUtil.getRequest(method, body, url);
 
@@ -115,6 +118,11 @@ public class RestAPIOutputFormat extends RichOutputFormat {
             }
         }
         body.put("data", JsonUtils.objectToJsonStr(dataRow));
+        Iterator iterator = params.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            body.put((String) entry.getKey(), entry.getValue());
+        }
     }
 
     private void requestErrorMessage(Exception e, int index, Row row) {

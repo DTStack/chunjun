@@ -54,6 +54,10 @@ public class RestAPIOutputFormatBuilder extends RichOutputFormatBuilder {
         format.column = column;
     }
 
+    public void setParams(Map<String, Object> params){
+        format.params = params;
+    }
+
     @Override
     protected void checkFormat() {
         if (format.url.isEmpty()) {

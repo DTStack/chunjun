@@ -20,6 +20,7 @@ package com.dtstack.flinkx.restapi.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.restapi.outputformat.RestAPIOutputFormatBuilder;
+import com.dtstack.flinkx.util.JsonUtils;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -40,6 +41,7 @@ public class RestAPIWriter extends DataWriter {
     protected Map<String, Object> body = new HashMap<>();
     protected ArrayList<Map<String, Object>> temp;
     protected ArrayList<String> column;
+    protected Map<String, Object> params;
 
     public RestAPIWriter(DataTransferConfig config) {
         super(config);
@@ -60,6 +62,7 @@ public class RestAPIWriter extends DataWriter {
         for (Map<String, Object> map : temp) {
             body.putAll(map);
         }
+        params = (HashMap) writerConfig.getParameter().getVal("params");
     }
 
     @Override
@@ -71,6 +74,7 @@ public class RestAPIWriter extends DataWriter {
         builder.setUrl(url);
         builder.setBody(body);
         builder.setColumn(column);
+        builder.setParams(params);
 
         return createOutput(dataSet, builder.finish());
     }

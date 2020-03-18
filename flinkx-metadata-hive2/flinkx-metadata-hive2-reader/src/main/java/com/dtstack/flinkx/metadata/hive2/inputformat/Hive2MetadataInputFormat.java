@@ -36,14 +36,15 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     protected Map<String, Object> columnMap;
 
     @Override
-    protected void beforeUnit(String currentQueryTable) {
-        getColumn();
-        columnMap = transformDataToMap(executeSql(buildDescSql(currentQueryTable, false)));
+    protected void beforeUnit(String currentQueryTable, String currentDbName) {
+        getColumn(currentQueryTable, currentDbName);
+        columnMap = transformDataToMap(executeSql(
+                buildDescSql(currentDbName + "." + currentQueryTable, false)));
     }
 
     @Override
-    public Map<String, Object> getTablePropertites(String currentQueryTable) {
-        ResultSet resultSet = executeSql(buildDescSql(currentQueryTable, true));
+    public Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName) {
+        ResultSet resultSet = executeSql(buildDescSql(currentDbName + "." + currentQueryTable, true));
         Map<String, Object> result;
         // 获取初始数据map
         result = transformDataToMap(resultSet);
@@ -55,14 +56,14 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
             result.remove(item + "_comment");
         }
         // 判断文件存储类型
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("TextInputFormat")) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, "text");
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_TEXT)) {
+            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_TEXT);
         }
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("OrcInputFormat")) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, "orc");
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_ORC)) {
+            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_ORC);
         }
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains("MapredParquetInputFormat")) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, "parquet");
+        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_PARQUET)) {
+            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_PARQUET);
         }
         return result;
     }
@@ -80,7 +81,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     }
 
     @Override
-    public Map<String, Object> getPartitionPropertites(String currentQueryTable) {
+    public Map<String, Object> getPartitionPropertites(String currentQueryTable, String currentDbName) {
         Map<String, Object> result = new HashMap<>();
         try {
             List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
@@ -90,7 +91,7 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
             }
             result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
             if (!tempPartitionColumnList.isEmpty()) {
-                result.put("partitions", getPartitions(currentQueryTable));
+                result.put("partitions", getPartitions(currentDbName + "." + currentQueryTable));
             }
         } catch (Exception e) {
             setErrorMessage(e, "get partitions error");
@@ -129,12 +130,12 @@ public class Hive2MetadataInputFormat extends MetaDataInputFormat {
     /**
      * 获取表中字段名称，包括分区字段和非分区字段
      */
-    public void getColumn() {
+    public void getColumn(String currentQueryTable, String currentDbName) {
         try {
             boolean isPartitionColumn = false;
             tableColumn = new ArrayList<>();
             partitionColumn = new ArrayList<>();
-            ResultSet temp = executeSql(buildDescSql(currentQueryTable, false));
+            ResultSet temp = executeSql(buildDescSql(currentDbName + "." + currentQueryTable, false));
             while (temp.next()) {
                 if (temp.getString(1).trim().contains("Partition Information")) {
                     isPartitionColumn = true;
