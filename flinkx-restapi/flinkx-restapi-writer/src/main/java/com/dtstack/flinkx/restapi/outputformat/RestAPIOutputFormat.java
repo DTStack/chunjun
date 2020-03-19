@@ -67,18 +67,18 @@ public class RestAPIOutputFormat extends RichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> columnData = new HashMap<>();
-        String dataRow = "";
+        List<Object> dataRow = new ArrayList<>();
         try {
             if (!column.isEmpty()) {
                 for (; index < row.getArity(); index++) {
                     columnData.put(column.get(index), row.getField(index));
                 }
-                dataRow = JsonUtils.objectToJsonStr(columnData);
+                dataRow.add(JsonUtils.objectToJsonStr(columnData));
             } else {
-                dataRow = row.getField(index).toString();
+                dataRow.add(JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class).get("data"));
             }
 
-            body.put("data", (JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class)).get("data"));
+            body.put("data", dataRow);
             Iterator iterator = params.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) iterator.next();

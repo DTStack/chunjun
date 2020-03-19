@@ -169,9 +169,11 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      */
     protected ResultSet executeSql(String sql) {
         ResultSet result = null;
+        LOG.info("current query sql : {}", sql);
         try {
             result = statement.executeQuery(sql);
         } catch (SQLException e) {
+            LOG.error("query error! current query sql:" + sql, e);
             setErrorMessage(e, "query error! current sql: " + sql);
         }
         return result;
@@ -181,6 +183,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
      *
      * @param currentQueryTable 当前查询的table
+     * @param currentDbName 当前查询的db
      */
     protected abstract void beforeUnit(String currentQueryTable, String currentDbName);
 
@@ -188,13 +191,14 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      * 从结果集中解析有关表的元数据信息
      *
      * @param currentQueryTable 当前查询的table名
+     * @param currentDbName 当前查询的db
      * @return 有关表的元数据信息
      */
     public abstract Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName);
 
     /**
      * 从结果集中解析有关表字段的元数据信息
-     *
+     * @param currentQueryTable 当前查询的table
      * @return 有关表字段的元数据信息
      */
     public abstract Map<String, Object> getColumnPropertites(String currentQueryTable);
@@ -222,11 +226,16 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     /**
      * 构建切换databases的执行语句，如use default;
-     *
-     * @param dbName
-     * @return
+     * @param dbName 需要切换的数据库名称
+     * @return 返回能够切换数据库的sql,如use default
      */
     public abstract String changeDBSql(String dbName);
+
+    public abstract String getStartQuote();
+
+    public abstract String getEndQuote();
+
+    public abstract String quoteData(String data);
 
     /**
      * 对元数据信息整合
@@ -267,8 +276,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     public List<String> getTableList(String dbName) throws SQLException {
         List<String> tableList = new ArrayList<>();
-        statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(queryTableSql());
+        ResultSet resultSet = executeSql(queryTableSql());
         while (resultSet.next()) {
             tableList.add(dbName + "." + resultSet.getString(1));
         }
@@ -280,8 +288,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      */
     public List<String> getDataList(String queryDataSql) throws SQLException{
         List<String> result = new ArrayList<>();
-        statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(queryDataSql);
+        ResultSet resultSet = executeSql(queryDataSql);
         while (resultSet.next()) {
             result.add(resultSet.getString(1));
         }
@@ -292,6 +299,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         try {
             Class.forName(driverName);
             connection = DriverManager.getConnection(dbUrl, username, password);
+            statement = connection.createStatement();
         } catch (Exception e) {
             setErrorMessage(e, "init connect error");
         }

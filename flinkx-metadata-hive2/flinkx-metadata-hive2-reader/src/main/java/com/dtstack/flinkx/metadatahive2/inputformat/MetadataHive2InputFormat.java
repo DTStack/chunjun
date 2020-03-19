@@ -111,7 +111,22 @@ public class MetadataHive2InputFormat extends MetaDataInputFormat {
 
     @Override
     public String changeDBSql(String dbName) {
-        return "use " + dbName;
+        return "use " + quoteData(dbName);
+    }
+
+    @Override
+    public String getStartQuote() {
+        return "`";
+    }
+
+    @Override
+    public String getEndQuote() {
+        return "`";
+    }
+
+    @Override
+    public String quoteData(String data) {
+        return getStartQuote() + data + getEndQuote();
     }
 
     /**
@@ -203,7 +218,7 @@ public class MetadataHive2InputFormat extends MetaDataInputFormat {
      */
     public List<String> getPartitions(String currentTable) throws SQLException {
         List<String> partitions = new ArrayList<>();
-        ResultSet resultSet = executeSql("show partitions " + currentTable);
+        ResultSet resultSet = executeSql("show partitions " + quoteData(currentTable));
         while (resultSet.next()) {
             partitions.add(resultSet.getString(1));
         }
