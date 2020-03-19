@@ -359,7 +359,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ## 7.交流群
 <div align=center>
-    <img src=https://user-images.githubusercontent.com/11881814/76816457-3df44800-683b-11ea-94cc-707fb0250a9a.png width=600 />
+    <img src=docs/images/ding.jpg width=400 />
 </div>
 
 ## 8.招聘信息
