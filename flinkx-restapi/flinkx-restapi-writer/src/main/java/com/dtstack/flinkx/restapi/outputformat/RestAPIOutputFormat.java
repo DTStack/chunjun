@@ -73,7 +73,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
                 body.put((String) entry.getKey(), entry.getValue());
             }
 
-            requestBody.put("data", body);
+            requestBody.put("data", body.toString());
 
             HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
 
