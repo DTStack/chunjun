@@ -19,28 +19,15 @@ package com.dtstack.flinkx.restapi.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.restapi.common.MyHttpRequestRetryHandler;
-import com.dtstack.flinkx.restapi.common.MyServiceUnavailableRetryStrategy;
 import com.dtstack.flinkx.util.JsonUtils;
-import org.apache.avro.data.Json;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -67,6 +54,7 @@ public class RestAPIOutputFormat extends RichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> columnData = new HashMap<>();
+        Map<String, Object> requestBody = new HashMap<>();
         List<Object> dataRow = new ArrayList<>();
         try {
             if (!column.isEmpty()) {
@@ -85,7 +73,9 @@ public class RestAPIOutputFormat extends RichOutputFormat {
                 body.put((String) entry.getKey(), entry.getValue());
             }
 
-            HttpRequestBase request = HttpUtil.getRequest(method, body, header, url);
+            requestBody.put("data", body);
+
+            HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
 
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             // 重试之后返回状态码不为200

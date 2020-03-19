@@ -129,7 +129,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader-streamwriter.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

@@ -19,10 +19,7 @@ package com.dtstack.flinkx.restapi.common;
 
 import com.dtstack.flinkx.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -30,12 +27,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -88,13 +81,6 @@ public class HttpUtil {
         }
 
         if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
-
-//            PostMethod postMethod = new PostMethod(url);
-//            try {
-//                postMethod.addParameter("data", JsonUtils.objectToJsonStr(requestBody));
-//            }catch (Exception e){
-//
-//            }
 
             HttpPost post = new HttpPost(url);
             post.setEntity(getEntityData(requestBody));

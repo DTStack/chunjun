@@ -295,7 +295,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
             connection = DriverManager.getConnection(dbUrl, username, password);
             statement = connection.createStatement();
         } catch (Exception e) {
-            setErrorMessage(e, "init connect error");
+            throw new RuntimeException("");
         }
     }
 }
