@@ -70,13 +70,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        try {
-            Class.forName(driverName);
-            connection = DriverManager.getConnection(dbUrl, username, password);
-            statement = connection.createStatement();
-        } catch (Exception e) {
-            setErrorMessage(e, "connect error! current dbUrl" + dbUrl);
-        }
+        initConnect();
     }
 
     @Override
