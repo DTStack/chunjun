@@ -25,10 +25,10 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestAPIInputFormatBuilder extends RichInputFormatBuilder {
-    protected RestAPIInputFormat format;
+public class RestapiInputFormatBuilder extends RichInputFormatBuilder {
+    protected RestapiInputFormat format;
 
-    public RestAPIInputFormatBuilder(){ super.format = format = new RestAPIInputFormat();}
+    public RestapiInputFormatBuilder(){ super.format = format = new RestapiInputFormat();}
 
     public void setUrl(String url){this.format.url = url;}
     public void setHeader(Map<String, Object> header){ this.format.header = header;}

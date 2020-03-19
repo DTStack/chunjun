@@ -36,7 +36,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestAPIInputFormat extends RichInputFormat {
+public class RestapiInputFormat extends RichInputFormat {
     protected String url;
     protected Map<String, Object> header;
     protected String method;

@@ -32,7 +32,6 @@ import java.util.*;
 public class MetadataHive2InputFormat extends MetaDataInputFormat {
     protected List<String> tableColumn;
     protected List<String> partitionColumn;
-
     protected Map<String, Object> columnMap;
 
     @Override
@@ -45,6 +44,11 @@ public class MetadataHive2InputFormat extends MetaDataInputFormat {
     @Override
     public Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName) {
         ResultSet resultSet = executeSql(buildDescSql(currentDbName + "." + currentQueryTable, true));
+        if (resultSet == null) {
+            LOG.warn("query result was null");
+            setErrorMessage(new SQLException(),"query result was null");
+            return null;
+        }
         Map<String, Object> result;
         // 获取初始数据map
         result = transformDataToMap(resultSet);
@@ -69,23 +73,19 @@ public class MetadataHive2InputFormat extends MetaDataInputFormat {
     }
 
     @Override
-    public Map<String, Object> getColumnPropertites(String currentQueryTable) {
-        Map<String, Object> result = new HashMap<>();
+    public List<Map<String, Object>> getColumnPropertites(String currentQueryTable) {
         List<Map<String, Object>> tempColumnList = new ArrayList<>();
-
         for (String item : tableColumn) {
             tempColumnList.add(setColumnMap(item, columnMap, tableColumn.indexOf(item)));
         }
-        result.put(MetaDataCons.KEY_COLUMN, tempColumnList);
-        return result;
+        return tempColumnList;
     }
 
     @Override
-    public Map<String, Object> getPartitionPropertites(String currentQueryTable, String currentDbName) {
+    public List<Map<String, Object>> getPartitionPropertites(String currentQueryTable, String currentDbName) {
         Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
         try {
-            List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
-
             for (String item : partitionColumn) {
                 tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
             }
@@ -96,7 +96,7 @@ public class MetadataHive2InputFormat extends MetaDataInputFormat {
         } catch (Exception e) {
             setErrorMessage(e, "get partitions error");
         }
-        return result;
+        return tempPartitionColumnList;
     }
 
     @Override

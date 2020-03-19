@@ -129,7 +129,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\test.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -141,6 +141,9 @@ public class LocalTest {
 
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
+
+        conf.setString("akka.ask.timeout", "180 s");
+        conf.setString("web.timeout", String.valueOf(100000));
 
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 

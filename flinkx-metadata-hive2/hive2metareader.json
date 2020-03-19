@@ -4,6 +4,7 @@
       {
         "writer": {
           "parameter": {
+            "batchInterval": 100,
             "url": "http://172.16.1.206:8876/dassets/v1/syncJob/syncCallBack",
             "header": [
               {
@@ -13,17 +14,19 @@
             "body": [],
             "method": "post",
             "params": {
-              "sourceId": 123,
-              "jobId": 123
+              "sourceId": 30,
+              "jobId": "bbcea31111c",
+              "tenantId": 18,
+              "taskId": 13
             }
           },
           "name": "restapiwriter"
         },
         "reader": {
           "parameter": {
-            "username": "hadoop",
-            "password": "qwer",
-            "jdbcUrl": "jdbc:hive2://master:10000",
+            "username": "root",
+            "password": "abc123",
+            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
             "dbList": []
           },
           "name": "metadatahive2reader"

@@ -38,36 +38,39 @@ import java.util.Map;
 public class HttpUtil {
     private static final int COUNT = 32;
     private static final int TOTAL_COUNT = 1000;
+    private static final int TIME_OUT = 5000;
+    private static final int EXECUTION_COUNT = 5;
 
     public static CloseableHttpClient getHttpClient() {
         // 设置自定义的重试策略
         MyServiceUnavailableRetryStrategy strategy = new MyServiceUnavailableRetryStrategy
                 .Builder()
-                .executionCount(5)
+                .executionCount(EXECUTION_COUNT)
                 .retryInterval(1000)
                 .build();
         // 设置自定义的重试Handler
         MyHttpRequestRetryHandler retryHandler = new MyHttpRequestRetryHandler
                 .Builder()
-                .executionCount(5)
+                .executionCount(EXECUTION_COUNT)
                 .build();
         // 设置超时时间
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(5000)
-                .setConnectionRequestTimeout(5000)
-                .setSocketTimeout(5000)
+                .setConnectTimeout(TIME_OUT)
+                .setConnectionRequestTimeout(TIME_OUT)
+                .setSocketTimeout(TIME_OUT)
                 .build();
         // 设置Http连接池
         PoolingHttpClientConnectionManager pcm = new PoolingHttpClientConnectionManager();
         pcm.setDefaultMaxPerRoute(COUNT);
         pcm.setMaxTotal(TOTAL_COUNT);
 
-        return HttpClientBuilder.create()
-                .setServiceUnavailableRetryStrategy(strategy)
-                .setRetryHandler(retryHandler)
-                .setDefaultRequestConfig(requestConfig)
-                .setConnectionManager(pcm)
-                .build();
+//        return HttpClientBuilder.create()
+//                .setServiceUnavailableRetryStrategy(strategy)
+//                .setRetryHandler(retryHandler)
+//                .setDefaultRequestConfig(requestConfig)
+//                .setConnectionManager(pcm)
+//                .build();
+        return HttpClientBuilder.create().build();
     }
 
     public static HttpRequestBase getRequest(String method,
@@ -81,7 +84,6 @@ public class HttpUtil {
         }
 
         if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
-
             HttpPost post = new HttpPost(url);
             post.setEntity(getEntityData(requestBody));
             request = post;
@@ -102,7 +104,6 @@ public class HttpUtil {
     }
 
     public static StringEntity getEntityData(Map<String, Object> body) {
-
         try {
             StringEntity stringEntity = new StringEntity(JsonUtils.objectToJsonStr(body), "utf-8");
             stringEntity.setContentEncoding("UTF-8");
@@ -111,4 +112,6 @@ public class HttpUtil {
             throw new IllegalArgumentException("set entity error");
         }
     }
+
+
 }

@@ -26,12 +26,12 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestAPIOutputFormatBuilder extends RichOutputFormatBuilder {
+public class RestapiOutputFormatBuilder extends RichOutputFormatBuilder {
 
-    private RestAPIOutputFormat format;
+    private RestapiOutputFormat format;
 
-    public RestAPIOutputFormatBuilder() {
-        super.format = format = new RestAPIOutputFormat();
+    public RestapiOutputFormatBuilder() {
+        super.format = format = new RestapiOutputFormat();
     }
 
     public void setUrl(String url) {
@@ -57,6 +57,7 @@ public class RestAPIOutputFormatBuilder extends RichOutputFormatBuilder {
     public void setParams(Map<String, Object> params){
         format.params = params;
     }
+
 
     @Override
     protected void checkFormat() {

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
+import com.dtstack.flinkx.util.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -61,8 +62,18 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
         LOG.info("inputSplit = {}", inputSplit);
         String currentDbName = ((MetaDataInputSplit) inputSplit).getDbName();
         String currentQueryTable = ((MetaDataInputSplit) inputSplit).getTableName();
+
         beforeUnit(currentQueryTable, currentDbName);
-        currentMessage.put("data", unitMetaData(currentQueryTable, currentDbName));
+
+        Map<String, Object> resultMap = unitMetaData(currentQueryTable, currentDbName);
+
+        if (errorMessage.isEmpty()) {
+            resultMap.put("querySuccess", true);
+        } else {
+            resultMap.put("querySuccess", false);
+        }
+        resultMap.put("errorMsg", errorMessage);
+        currentMessage.put("data", resultMap);
         hasNext = true;
 
     }
@@ -77,7 +88,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     public void closeInputFormat() {
         try {
             super.closeInputFormat();
-            ConnUtil.closeConn(null, statement, connection, true);
+            ConnUtil.closeDBResources(null, statement, connection, true);
         } catch (Exception e) {
             setErrorMessage(e, "shut down resources error!");
         }
@@ -125,15 +136,10 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
+//        ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
-        if (errorMessage.isEmpty()) {
-            currentMessage.put("querySuccess", true);
-        } else {
-            currentMessage.put("querySuccess", false);
-        }
-        currentMessage.put("errorMsg", errorMessage);
-        row.setField(0, objectMapper.writeValueAsString(currentMessage));
+        row.setField(0, JsonUtils.objectToJsonStr(currentMessage));
+//        row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
         errorMessage.clear();
 
@@ -177,7 +183,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
      *
      * @param currentQueryTable 当前查询的table
-     * @param currentDbName 当前查询的db
+     * @param currentDbName     当前查询的db
      */
     protected abstract void beforeUnit(String currentQueryTable, String currentDbName);
 
@@ -185,24 +191,25 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      * 从结果集中解析有关表的元数据信息
      *
      * @param currentQueryTable 当前查询的table名
-     * @param currentDbName 当前查询的db
+     * @param currentDbName     当前查询的db
      * @return 有关表的元数据信息
      */
     public abstract Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName);
 
     /**
      * 从结果集中解析有关表字段的元数据信息
+     *
      * @param currentQueryTable 当前查询的table
      * @return 有关表字段的元数据信息
      */
-    public abstract Map<String, Object> getColumnPropertites(String currentQueryTable);
+    public abstract List<Map<String, Object>> getColumnPropertites(String currentQueryTable);
 
     /**
      * 从结果集中解析有关分区字段的元数据信息
      *
      * @return 有关分区字段的元数据信息
      */
-    public abstract Map<String, Object> getPartitionPropertites(String currentQueryTable, String currentDbName);
+    public abstract List<Map<String, Object>> getPartitionPropertites(String currentQueryTable, String currentDbName);
 
     /**
      * 构建查询表名sql，如show tables
@@ -220,8 +227,9 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     /**
      * 构建切换databases的执行语句，如use default;
+     *
      * @param dbName 需要切换的数据库名称
-     * @return 返回能够切换数据库的sql,如use default
+     * @return 返回能够切换数据库的sql, 如use default
      */
     public abstract String changeDBSql(String dbName);
 
@@ -236,25 +244,19 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
      */
     public Map<String, Object> unitMetaData(String currentQueryTable, String currentDbName) {
         Map<String, Object> tableDetailInformation = getTablePropertites(currentQueryTable, currentDbName);
-        Map<String, Object> columnDetailInformation = getColumnPropertites(currentQueryTable);
-        Map<String, Object> partitionDetailInformation = getPartitionPropertites(currentQueryTable, currentDbName);
+        List<Map<String, Object>> columnDetailInformation = getColumnPropertites(currentQueryTable);
+        List<Map<String, Object>> partitionDetailInformation = getPartitionPropertites(currentQueryTable, currentDbName);
         Map<String, Object> result = new HashMap<>();
         result.put(MetaDataCons.KEY_TABLE, currentQueryTable);
         result.put(MetaDataCons.KEY_SCHEMA, currentDbName);
         // 当前为全量查询，所以type固定为createTable
         result.put(MetaDataCons.KEY_OPERA_TYPE, "createTable");
 
-        if (!columnDetailInformation.isEmpty()) {
-            result.put(MetaDataCons.KEY_COLUMN, columnDetailInformation);
-        }
+        result.put(MetaDataCons.KEY_COLUMN, columnDetailInformation);
 
-        if (!tableDetailInformation.isEmpty()) {
-            result.put(MetaDataCons.KEY_TABLE_PROPERTITES, tableDetailInformation);
-        }
+        result.put(MetaDataCons.KEY_TABLE_PROPERTITES, tableDetailInformation);
 
-        if (!partitionDetailInformation.isEmpty()) {
-            result.put(MetaDataCons.KEY_PARTITION_PROPERTITES, partitionDetailInformation);
-        }
+        result.put(MetaDataCons.KEY_PARTITION_PROPERTITES, partitionDetailInformation);
 
         return result;
     }
@@ -280,7 +282,7 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     /**
      * 如果isAllDB为true，那么通过 show databases获取全部的dbName
      */
-    public List<String> getDataList(String queryDataSql) throws SQLException{
+    public List<String> getDataList(String queryDataSql) throws SQLException {
         List<String> result = new ArrayList<>();
         ResultSet resultSet = executeSql(queryDataSql);
         while (resultSet.next()) {
@@ -292,10 +294,10 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
     public void initConnect() {
         try {
             Class.forName(driverName);
-            connection = DriverManager.getConnection(dbUrl, username, password);
+            connection = ConnUtil.getConnection(dbUrl, username, password);
             statement = connection.createStatement();
         } catch (Exception e) {
-            throw new RuntimeException("");
+            throw new RuntimeException("get connect error!", e);
         }
     }
 }

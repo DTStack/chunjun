@@ -19,15 +19,18 @@ package com.dtstack.flinkx.restapi.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.restapi.outputformat.RestAPIOutputFormatBuilder;
-import com.dtstack.flinkx.util.JsonUtils;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.RestapiKeys;
+import com.dtstack.flinkx.restapi.outputformat.RestapiOutputFormatBuilder;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,10 +42,9 @@ public class RestapiWriter extends DataWriter {
     protected String method;
     protected Map<String, String> header = new HashMap<>();
     protected Map<String, Object> body = new HashMap<>();
-    protected ArrayList<Map<String, Object>> temp;
-    protected ArrayList<Map<String, String>> tempHeader;
     protected ArrayList<String> column = new ArrayList<>();
-    protected Map<String, Object> params;
+    protected Map<String, Object> params = new HashMap<>();
+    protected int batchInterval;
 
     public RestapiWriter(DataTransferConfig config) {
         super(config);
@@ -50,28 +52,36 @@ public class RestapiWriter extends DataWriter {
 
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
-        url = writerConfig.getParameter().getStringVal("url");
-        method = writerConfig.getParameter().getStringVal("method");
-        tempObj = writerConfig.getParameter().getVal("column");
-        if(tempObj != null){
-            column = (ArrayList<String>)tempObj;
+        url = writerConfig.getParameter().getStringVal(RestapiKeys.KEY_URL);
+        method = writerConfig.getParameter().getStringVal(RestapiKeys.KEY_METHOD);
+        batchInterval = writerConfig.getParameter().getIntVal(RestapiKeys.KEY_BATCH_INTERVAL, 1);
+        tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_COLUMN);
+        if (tempObj != null) {
+            column = (ArrayList<String>) tempObj;
         }
-        tempHeader = (ArrayList<Map<String, String>>) writerConfig.getParameter().getVal("header");
 
-        for (Map<String, String> map : tempHeader) {
-            header.putAll(map);
+        tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_HEADER);
+        if (tempObj != null) {
+            for (Map<String, String> map : (ArrayList<Map<String, String>>) tempObj) {
+                header.putAll(map);
+            }
         }
-        temp = (ArrayList<Map<String, Object>>) writerConfig.getParameter().getVal("body");
 
-        for (Map<String, Object> map : temp) {
-            body.putAll(map);
+        tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_BODY);
+        if (tempObj != null) {
+            for (Map<String, Object> map : (ArrayList<Map<String, Object>>) tempObj) {
+                body.putAll(map);
+            }
         }
-        params = (HashMap) writerConfig.getParameter().getVal("params");
+        tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_PARAMS);
+        if (tempObj != null) {
+            params = (HashMap)tempObj;
+        }
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        RestAPIOutputFormatBuilder builder = new RestAPIOutputFormatBuilder();
+        RestapiOutputFormatBuilder builder = new RestapiOutputFormatBuilder();
 
         builder.setHeader(header);
         builder.setMethod(method);
@@ -79,6 +89,7 @@ public class RestapiWriter extends DataWriter {
         builder.setBody(body);
         builder.setColumn(column);
         builder.setParams(params);
+        builder.setBatchInterval(batchInterval);
 
         return createOutput(dataSet, builder.finish());
     }

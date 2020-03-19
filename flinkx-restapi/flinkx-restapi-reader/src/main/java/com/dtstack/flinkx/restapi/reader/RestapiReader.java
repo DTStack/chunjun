@@ -20,7 +20,7 @@ package com.dtstack.flinkx.restapi.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
-import com.dtstack.flinkx.restapi.inputformat.RestAPIInputFormatBuilder;
+import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -55,7 +55,7 @@ public class RestapiReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        RestAPIInputFormatBuilder builder = new RestAPIInputFormatBuilder();
+        RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
 
         builder.setHeader(header);
         builder.setMethod(method);

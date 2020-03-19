@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.metadata.util;
 
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.SysUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.regex.Pattern;
 
 /**
  * @author : tiezhu
@@ -36,9 +37,114 @@ public class ConnUtil {
     private static final Logger LOG = LoggerFactory.getLogger(ConnUtil.class);
 
     /**
-     * 关闭连接资源
+     * 数据库连接的最大重试次数
      */
-    public static void closeConn(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+    private static int MAX_RETRY_TIMES = 3;
+
+    /**
+     * 秒级时间戳的长度为10位
+     */
+    private static int SECOND_LENGTH = 10;
+    /**
+     * 毫秒级时间戳的长度为13位
+     */
+    private static int MILLIS_LENGTH = 13;
+    /**
+     * 微秒级时间戳的长度为16位
+     */
+    private static int MICRO_LENGTH = 16;
+    /**
+     * 纳秒级时间戳的长度为19位
+     */
+    private static int NANOS_LENGTH = 19;
+
+    /**
+     * jdbc连接URL的分割正则，用于获取URL?后的连接参数
+     */
+    public static final Pattern DB_PATTERN = Pattern.compile("\\?");
+
+    /**
+     * 增量任务过滤条件占位符
+     */
+    public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
+
+    /**
+     * 断点续传过滤条件占位符
+     */
+    public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
+
+    public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
+
+    public static final String NULL_STRING = "null";
+
+    /**
+     * 获取jdbc连接(超时10S)
+     * @param url       url
+     * @param username  账号
+     * @param password  密码
+     * @return
+     * @throws SQLException
+     */
+    private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
+        Connection dbConn;
+        synchronized (ClassUtil.lock_str){
+            DriverManager.setLoginTimeout(10);
+            // telnet
+            TelnetUtil.telnet(url);
+
+            if (username == null) {
+                dbConn = DriverManager.getConnection(url);
+            } else {
+                dbConn = DriverManager.getConnection(url, username, password);
+            }
+        }
+
+        return dbConn;
+    }
+
+    /**
+     * 获取jdbc连接(重试3次)
+     * @param url       url
+     * @param username  账号
+     * @param password  密码
+     * @return
+     * @throws SQLException
+     */
+    public static Connection getConnection(String url, String username, String password) throws SQLException {
+        if (!url.startsWith("jdbc:mysql")) {
+            return getConnectionInternal(url, username, password);
+        } else {
+            boolean failed = true;
+            Connection dbConn = null;
+            for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
+                try {
+                    dbConn = getConnectionInternal(url, username, password);
+                    dbConn.createStatement().execute("select 111");
+                    failed = false;
+                } catch (Exception e) {
+                    if (dbConn != null) {
+                        dbConn.close();
+                    }
+                    if (i == MAX_RETRY_TIMES - 1) {
+                        throw e;
+                    } else {
+                        SysUtil.sleep(3000);
+                    }
+                }
+            }
+
+            return dbConn;
+        }
+    }
+
+    /**
+     * 关闭连接资源
+     * @param rs        ResultSet
+     * @param stmt      Statement
+     * @param conn      Connection
+     * @param commit
+     */
+    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 rs.close();
@@ -69,7 +175,8 @@ public class ConnUtil {
     }
 
     /**
-     * 提交事务
+     * 手动提交事物
+     * @param conn Connection
      */
     public static void commit(Connection conn){
         try {
