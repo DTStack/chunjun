@@ -20,7 +20,10 @@ package com.dtstack.flinkx.metadatahive2.inputformat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.types.Row;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -34,6 +37,18 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     protected List<String> partitionColumn;
 
     protected Map<String, Object> columnMap;
+
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    protected Row nextRecordInternal(Row row) throws IOException {
+        row = new Row(1);
+        row.setField(0, objectMapper.writeValueAsString(currentMessage));
+        hasNext = false;
+        errorMessage.clear();
+
+        return row;
+    }
 
     @Override
     protected void beforeUnit(String currentQueryTable, String currentDbName) {

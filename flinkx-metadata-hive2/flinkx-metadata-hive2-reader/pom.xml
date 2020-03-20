@@ -61,6 +61,10 @@
                                     <shadedPattern>shade.hive2writer.com.fasterxml.jackson.databind</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.fasterxml.jackson.core</pattern>
+                                    <shadedPattern>shade.hive2writer.com.fasterxml.jackson.core</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>org.apache.hive.jdbc</pattern>
                                     <shadedPattern>shade.hive2</shadedPattern>
                                 </relocation>
