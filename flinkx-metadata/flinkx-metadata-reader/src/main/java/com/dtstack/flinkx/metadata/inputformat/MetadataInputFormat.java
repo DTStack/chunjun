@@ -45,7 +45,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected String username;
     protected String password;
 
-    protected List<Map<String, Object>> dbList;
+    protected List<Map> dbList;
 
     protected boolean hasNext;
 
