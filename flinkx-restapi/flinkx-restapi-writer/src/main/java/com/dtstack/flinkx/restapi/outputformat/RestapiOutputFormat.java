@@ -40,10 +40,9 @@ public class RestapiOutputFormat extends RichOutputFormat {
     protected String url;
     protected String method;
     protected ArrayList<String> column;
-
-    protected transient Map<String, Object> params;
-    protected transient Map<String, Object> body;
-    protected transient Map<String, String> header;
+    protected Map<String, Object> params;
+    protected Map<String, Object> body;
+    protected Map<String, String> header;
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -54,6 +53,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+        LOG.info("start write single record");
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> columnData = new HashMap<>();
@@ -70,14 +70,19 @@ public class RestapiOutputFormat extends RichOutputFormat {
                 dataRow.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
             }
 //            dataRow = getDataFromRow(row, column);
-            Iterator iterator = params.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                body.put((String) entry.getKey(), entry.getValue());
+            if (!params.isEmpty()) {
+                Iterator iterator = params.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iterator.next();
+                    body.put((String) entry.getKey(), entry.getValue());
+                }
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
             HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
+
+            System.out.println(objectMapper.writeValueAsString(requestBody));
+
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             // 重试之后返回状态码不为200
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -94,6 +99,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
+        LOG.info("start write multiple records");
         try {
             CloseableHttpClient httpClient = HttpUtil.getHttpClient();
             List<Object> dataRow = new ArrayList<>();
@@ -111,13 +117,16 @@ public class RestapiOutputFormat extends RichOutputFormat {
                     dataRow.add((objectMapper.readValue(row.getField(index).toString(), Map.class)).get("data"));
                 }
             }
-            Iterator iterator = params.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                body.put((String) entry.getKey(), entry.getValue());
+            if (!params.isEmpty()) {
+                Iterator iterator = params.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iterator.next();
+                    body.put((String) entry.getKey(), entry.getValue());
+                }
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
+            System.out.println(objectMapper.writeValueAsString(requestBody));
             HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             // 重试之后返回状态码不为200
@@ -137,7 +146,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
         if (index < row.getArity()) {
             recordConvertDetailErrorMessage(index, row);
-            LOG.warn("添加脏数据:"+row.getField(index));
+            LOG.warn("添加脏数据:" + row.getField(index));
         }
     }
 

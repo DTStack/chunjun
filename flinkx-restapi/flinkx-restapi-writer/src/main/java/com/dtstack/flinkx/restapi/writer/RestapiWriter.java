@@ -19,7 +19,6 @@ package com.dtstack.flinkx.restapi.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.RestapiKeys;
 import com.dtstack.flinkx.restapi.outputformat.RestapiOutputFormatBuilder;
 import com.dtstack.flinkx.writer.DataWriter;
@@ -27,10 +26,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +43,7 @@ public class RestapiWriter extends DataWriter {
     protected Map<String, Object> params = new HashMap<>();
     protected int batchInterval;
 
+    @SuppressWarnings("unchecked")
     public RestapiWriter(DataTransferConfig config) {
         super(config);
         Object tempObj;

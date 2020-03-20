@@ -27,6 +27,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -36,6 +38,7 @@ import java.util.Map;
  * @date : 2020/3/16
  */
 public class HttpUtil {
+    protected static final Logger LOG = LoggerFactory.getLogger(HttpUtil.class);
     private static final int COUNT = 32;
     private static final int TOTAL_COUNT = 1000;
     private static final int TIME_OUT = 5000;
@@ -66,19 +69,20 @@ public class HttpUtil {
         pcm.setDefaultMaxPerRoute(COUNT);
         pcm.setMaxTotal(TOTAL_COUNT);
 
-//        return HttpClientBuilder.create()
-//                .setServiceUnavailableRetryStrategy(strategy)
-//                .setRetryHandler(retryHandler)
-//                .setDefaultRequestConfig(requestConfig)
-//                .setConnectionManager(pcm)
-//                .build();
-        return HttpClientBuilder.create().build();
+        return HttpClientBuilder.create()
+                .setServiceUnavailableRetryStrategy(strategy)
+                .setRetryHandler(retryHandler)
+                .setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(pcm)
+                .build();
+//        return HttpClientBuilder.create().build();
     }
 
     public static HttpRequestBase getRequest(String method,
                                              Map<String, Object> requestBody,
                                              Map<String, String> header,
                                              String url) {
+        LOG.debug("current request url: {}  current method:{} \n", url, method);
         HttpRequestBase request = null;
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
@@ -114,6 +118,4 @@ public class HttpUtil {
             throw new IllegalArgumentException("set entity error");
         }
     }
-
-
 }

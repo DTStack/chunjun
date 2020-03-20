@@ -42,6 +42,7 @@ public class MetadataReader extends DataReader {
     protected String password;
     protected String driverName;
 
+    @SuppressWarnings("unchecked")
     protected MetadataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 

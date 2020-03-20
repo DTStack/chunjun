@@ -6,11 +6,7 @@
           "parameter": {
             "batchInterval": 100,
             "url": "http://172.16.1.206:8876/dassets/v1/syncJob/syncCallBack",
-            "header": [
-              {
-                "Cookie": "dt_language=zh; dt_user_id=2; dt_username=admin%40dtstack.com; dt_tenant_id=5; dt_tenant_name=%E5%B0%98%E4%BA%8C; dt_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRfaWQiOiI1IiwidXNlcl9pZCI6IjEiLCJ1c2VyX25hbWUiOiJhZG1pbkBkdHN0YWNrLmNvbSIsImV4cCI6MTYxNDQwNzg1NCwiaWF0IjoxNTgzMzAzODk2fQ.gG4jMI55lpZGq71arqD7Q674rb3MOYym1Em8G3eW67Q; dt_is_tenant_admin=true; dt_is_tenant_creator=true; dt_product_code=RDOS; DT_SESSION_ID=e0050179-c6a6-43df-9259-9e80b7d0e98e"
-              }
-            ],
+            "header": [],
             "body": [],
             "method": "post",
             "params": {
@@ -27,7 +23,12 @@
             "username": "root",
             "password": "abc123",
             "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
-            "dbList": []
+            "dbList": [
+              {
+                "dbName": "tiezhu",
+                "tableList": []
+              }
+            ]
           },
           "name": "metadatahive2reader"
         }
