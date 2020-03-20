@@ -48,7 +48,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             LOG.info("inputSplit = {}", inputSplit);
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);

@@ -1,16 +1,11 @@
 package com.dtstack.flinkx.util;
 
-import org.apache.camel.util.Time;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
+import org.junit.Assert;
+import org.junit.Test;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
-import static org.mockito.Mockito.*;
 
 /**
  * @author jiangbo

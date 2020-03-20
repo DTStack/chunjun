@@ -1,8 +1,7 @@
 package com.dtstack.flinkx.util;
 
-import org.mockito.MockitoAnnotations;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author jiangbo
