@@ -67,9 +67,9 @@ public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
         }
         // 判断是否是全库全表查询
         if(format.dbList.isEmpty()){
-            format.isAllDB = true;
+            format.isAll = true;
         } else {
-            format.isAllDB = false;
+            format.isAll = false;
         }
     }
 

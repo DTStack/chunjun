@@ -38,8 +38,9 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     @Override
     protected void beforeUnit(String currentQueryTable, String currentDbName) {
         getColumn(currentQueryTable, currentDbName);
-        columnMap = transformDataToMap(executeSql(
-                buildDescSql(currentDbName + "." + currentQueryTable, false)));
+        columnMap = new HashMap<>();
+        columnMap.putAll(transformDataToMap(executeSql(
+                buildDescSql(currentDbName + "." + currentQueryTable, false))));
     }
 
     @Override

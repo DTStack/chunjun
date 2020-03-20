@@ -39,7 +39,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
     protected String url;
     protected String method;
-    protected ArrayList<String> column = new ArrayList<>();
+    protected ArrayList<String> column;
 
     protected transient Map<String, Object> params;
     protected transient Map<String, Object> body;

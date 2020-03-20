@@ -45,18 +45,18 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected String username;
     protected String password;
 
-    protected List<Map> dbList;
+    protected List<Map<String, Object>> dbList;
 
     protected boolean hasNext;
 
-    protected boolean isAllDB;
+    protected boolean isAll;
 
     protected String driverName;
 
     protected transient Connection connection;
     protected transient Statement statement;
-    protected  Map<String, String> errorMessage = new HashMap<>();
-    protected  Map<String, Object> currentMessage = new HashMap<>();
+    protected  Map<String, String> errorMessage;
+    protected  Map<String, Object> currentMessage;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -82,6 +82,8 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
+        errorMessage = new HashMap<>();
+        currentMessage = new HashMap<>();
         initConnect();
     }
 
@@ -109,7 +111,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected InputSplit[] initSplit() throws SQLException {
         List<String> dbInfo;
         List<String> tableList = new ArrayList<>();
-        if (isAllDB) {
+        if (isAll) {
             dbInfo = getDataList(queryDBSql());
             tableList = getTableList(dbInfo);
         } else {

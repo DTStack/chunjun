@@ -57,7 +57,7 @@ public class RestapiWriter extends DataWriter {
         batchInterval = writerConfig.getParameter().getIntVal(RestapiKeys.KEY_BATCH_INTERVAL, 1);
         tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_COLUMN);
         if (tempObj != null) {
-            column = (ArrayList<String>) tempObj;
+            column.addAll((ArrayList<String>) tempObj);
         }
 
         tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_HEADER);
@@ -75,7 +75,7 @@ public class RestapiWriter extends DataWriter {
         }
         tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_PARAMS);
         if (tempObj != null) {
-            params = (HashMap)tempObj;
+            params = (HashMap) tempObj;
         }
     }
 
