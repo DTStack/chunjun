@@ -18,23 +18,23 @@
 package com.dtstack.flinkx.metadatahive2.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatahive2.inputformat.MetadataHive2InputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetaDataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetaDataReader;
+import com.dtstack.flinkx.metadatahive2.inputformat.Metadatahive2InputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
+import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class Metadatahive2Reader extends MetaDataReader {
+public class Metadatahive2Reader extends MetadataReader {
     public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         driverName = "org.apache.hive.jdbc.HiveDriver";
     }
 
     @Override
-    protected MetaDataInputFormatBuilder getBuilder(){
-        return new MetaDataInputFormatBuilder(new MetadataHive2InputFormat());
+    protected MetadataInputFormatBuilder getBuilder(){
+        return new MetadataInputFormatBuilder(new Metadatahive2InputFormat());
     }
 }

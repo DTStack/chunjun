@@ -26,10 +26,10 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/8
  */
-public class MetaDataInputFormatBuilder extends RichInputFormatBuilder {
-    private MetaDataInputFormat format;
+public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
+    private MetadataInputFormat format;
 
-    public MetaDataInputFormatBuilder(MetaDataInputFormat format) {
+    public MetadataInputFormatBuilder(MetadataInputFormat format) {
         super.format = this.format = format;
     }
 

@@ -38,11 +38,12 @@ import java.util.*;
 public class RestapiOutputFormat extends RichOutputFormat {
 
     protected String url;
-    protected Map<String, String> header;
     protected String method;
-    protected Map<String, Object> body;
     protected ArrayList<String> column = new ArrayList<>();
-    protected Map<String, Object> params;
+
+    protected transient Map<String, Object> params;
+    protected transient Map<String, Object> body;
+    protected transient Map<String, String> header;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -129,14 +130,13 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
     private void requestErrorMessage(Exception e, int index, Row row) {
         if (e instanceof IOException) {
-            throw new RuntimeException(e.getMessage());
+
         }
 
         if (index < row.getArity()) {
             recordConvertDetailErrorMessage(index, row);
-//            throw new RuntimeException("添加脏数据:" + row.getField(index));
+            LOG.warn("添加脏数据:"+row.getField(index));
         }
-//        throw new RuntimeException("request error");
     }
 
     private List<Object> getDataFromRow(Row row, List<String> column) throws IOException {

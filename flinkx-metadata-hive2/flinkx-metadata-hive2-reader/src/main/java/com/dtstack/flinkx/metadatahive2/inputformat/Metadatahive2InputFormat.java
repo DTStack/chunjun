@@ -19,7 +19,7 @@ package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
-import com.dtstack.flinkx.metadata.inputformat.MetaDataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormat;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,9 +29,10 @@ import java.util.*;
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class MetadataHive2InputFormat extends MetaDataInputFormat {
+public class Metadatahive2InputFormat extends MetadataInputFormat {
     protected List<String> tableColumn;
     protected List<String> partitionColumn;
+
     protected Map<String, Object> columnMap;
 
     @Override

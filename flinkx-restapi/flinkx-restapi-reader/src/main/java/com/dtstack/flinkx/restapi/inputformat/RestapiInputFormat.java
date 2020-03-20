@@ -38,12 +38,12 @@ import java.util.Map;
  */
 public class RestapiInputFormat extends RichInputFormat {
     protected String url;
-    protected Map<String, Object> header;
     protected String method;
 
-    private transient CloseableHttpClient httpClient;
-    private Map entityDataToMap;
-    private boolean getData;
+    protected transient CloseableHttpClient httpClient;
+    protected  Map<String, Object> header;
+    protected  Map<String, Object> entityDataToMap;
+    protected boolean getData;
 
     @Override
     public void openInputFormat() throws IOException {

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.metadata.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetaDataInputFormatBuilder;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.reader.DataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -35,14 +35,14 @@ import java.util.Map;
  * @date : 2020/3/8
  * @description :
  */
-public class MetaDataReader extends DataReader {
+public class MetadataReader extends DataReader {
     protected String jdbcUrl;
     protected List<Map> dbList;
     protected String username;
     protected String password;
     protected String driverName;
 
-    protected MetaDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    protected MetadataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
 
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
@@ -56,7 +56,7 @@ public class MetaDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        MetaDataInputFormatBuilder builder = getBuilder();
+        MetadataInputFormatBuilder builder = getBuilder();
 
         builder.setDBUrl(jdbcUrl);
         builder.setPassword(password);
@@ -70,7 +70,7 @@ public class MetaDataReader extends DataReader {
         return createInput(format);
     }
 
-    protected MetaDataInputFormatBuilder getBuilder(){
+    protected MetadataInputFormatBuilder getBuilder(){
         throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 }

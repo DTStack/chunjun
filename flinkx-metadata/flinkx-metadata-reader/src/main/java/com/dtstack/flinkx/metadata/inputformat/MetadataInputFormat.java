@@ -21,12 +21,14 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.JsonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,16 +39,13 @@ import java.util.Map;
  * @date : 2020/3/8
  * @description : 元数据同步的抽象类
  */
-public abstract class MetaDataInputFormat extends RichInputFormat {
+public abstract class MetadataInputFormat extends RichInputFormat {
     protected int numPartitions;
     protected String dbUrl;
     protected String username;
     protected String password;
 
     protected List<Map> dbList;
-
-    protected Map<String, String> errorMessage = new HashMap<>();
-    protected Map<String, Object> currentMessage = new HashMap<>();
 
     protected boolean hasNext;
 
@@ -56,12 +55,14 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
 
     protected transient Connection connection;
     protected transient Statement statement;
+    protected  Map<String, String> errorMessage = new HashMap<>();
+    protected  Map<String, Object> currentMessage = new HashMap<>();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
-        String currentDbName = ((MetaDataInputSplit) inputSplit).getDbName();
-        String currentQueryTable = ((MetaDataInputSplit) inputSplit).getTableName();
+        String currentDbName = ((MetadataInputSplit) inputSplit).getDbName();
+        String currentQueryTable = ((MetadataInputSplit) inputSplit).getTableName();
 
         beforeUnit(currentQueryTable, currentDbName);
 
@@ -125,21 +126,19 @@ public abstract class MetaDataInputFormat extends RichInputFormat {
             }
         }
         int minNumSplits = tableList.size();
-        InputSplit[] inputSplits = new MetaDataInputSplit[minNumSplits];
+        InputSplit[] inputSplits = new MetadataInputSplit[minNumSplits];
         for (int index = 0; index < minNumSplits; index++) {
             String dbName = tableList.get(index).split("\\.")[0];
             String tableName = tableList.get(index).split("\\.")[1];
-            inputSplits[index] = new MetaDataInputSplit(index, numPartitions, dbUrl, tableName, dbName);
+            inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbUrl, tableName, dbName);
         }
         return inputSplits;
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-//        ObjectMapper objectMapper = new ObjectMapper();
         row = new Row(1);
         row.setField(0, JsonUtils.objectToJsonStr(currentMessage));
-//        row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
         errorMessage.clear();
 
