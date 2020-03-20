@@ -19,7 +19,7 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -45,6 +45,8 @@ public class RestapiInputFormat extends RichInputFormat {
     protected  Map<String, Object> entityDataToMap;
     protected boolean getData;
 
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -65,7 +67,7 @@ public class RestapiInputFormat extends RichInputFormat {
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 String entityData = EntityUtils.toString(entity);
-                entityDataToMap = JsonUtils.jsonStrToObject(entityData, Map.class);
+                entityDataToMap = objectMapper.readValue(entityData, Map.class);
                 getData = true;
             } else {
                 throw new RuntimeException("entity is null");

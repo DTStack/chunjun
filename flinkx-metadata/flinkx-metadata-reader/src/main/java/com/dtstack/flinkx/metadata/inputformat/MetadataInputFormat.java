@@ -20,7 +20,7 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
-import com.dtstack.flinkx.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -57,6 +57,8 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected transient Statement statement;
     protected  Map<String, String> errorMessage;
     protected  Map<String, Object> currentMessage;
+
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -140,7 +142,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         row = new Row(1);
-        row.setField(0, JsonUtils.objectToJsonStr(currentMessage));
+        row.setField(0, objectMapper.writeValueAsString(currentMessage));
         hasNext = false;
         errorMessage.clear();
 

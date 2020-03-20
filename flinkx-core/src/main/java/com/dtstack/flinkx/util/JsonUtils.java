@@ -19,7 +19,6 @@ package com.dtstack.flinkx.util;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,9 +34,5 @@ public class JsonUtils {
 
     public static <T> T jsonStrToObject(String jsonStr, Class<T> clazz) throws JsonParseException, JsonMappingException, JsonGenerationException, IOException {
         return  objectMapper.readValue(jsonStr, clazz);
-    }
-
-    public static String objectToJsonStr(Object value) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(value);
     }
 }

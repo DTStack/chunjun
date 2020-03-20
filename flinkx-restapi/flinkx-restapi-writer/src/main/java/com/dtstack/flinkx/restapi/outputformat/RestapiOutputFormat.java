@@ -20,7 +20,7 @@ package com.dtstack.flinkx.restapi.outputformat;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,6 +45,8 @@ public class RestapiOutputFormat extends RichOutputFormat {
     protected transient Map<String, Object> body;
     protected transient Map<String, String> header;
 
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         // Nothing to do
@@ -62,10 +64,10 @@ public class RestapiOutputFormat extends RichOutputFormat {
                 for (; index < row.getArity(); index++) {
                     columnData.put(column.get(index), row.getField(index));
                 }
-                dataRow.add(JsonUtils.objectToJsonStr(columnData));
+                dataRow.add(objectMapper.writeValueAsString(columnData));
             } else {
                 // 以下只针对元数据同步采集情况
-                dataRow.add(JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class).get("data"));
+                dataRow.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
             }
 //            dataRow = getDataFromRow(row, column);
             Iterator iterator = params.entrySet().iterator();
@@ -106,7 +108,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
                         dataRow.add(temp);
                     }
                 } else {
-                    dataRow.add((JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class)).get("data"));
+                    dataRow.add((objectMapper.readValue(row.getField(index).toString(), Map.class)).get("data"));
                 }
             }
             Iterator iterator = params.entrySet().iterator();
@@ -148,10 +150,10 @@ public class RestapiOutputFormat extends RichOutputFormat {
             for (; index < row.getArity(); index++) {
                 columnData.put(column.get(index), row.getField(index));
             }
-            result.add(JsonUtils.objectToJsonStr(columnData));
+            result.add(objectMapper.writeValueAsString(columnData));
         } else {
             // 以下只针对元数据同步采集情况
-            result.add(JsonUtils.jsonStrToObject(row.getField(index).toString(), Map.class).get("data"));
+            result.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
         }
         return result;
     }

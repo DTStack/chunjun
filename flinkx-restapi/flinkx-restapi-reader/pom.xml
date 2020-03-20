@@ -53,6 +53,10 @@
                             </filters>
                             <relocations>
                                 <relocation>
+                                    <pattern>com.fasterxml.jackson.databind</pattern>
+                                    <shadedPattern>shade.restapireader.com.fasterxml.jackson.databind</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>shade.restapireader.io.netty</shadedPattern>
                                 </relocation>

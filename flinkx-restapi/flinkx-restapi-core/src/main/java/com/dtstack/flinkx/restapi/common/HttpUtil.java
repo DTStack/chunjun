@@ -17,8 +17,8 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
-import com.dtstack.flinkx.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -40,6 +40,8 @@ public class HttpUtil {
     private static final int TOTAL_COUNT = 1000;
     private static final int TIME_OUT = 5000;
     private static final int EXECUTION_COUNT = 5;
+
+    private transient static ObjectMapper objectMapper = new ObjectMapper();
 
     public static CloseableHttpClient getHttpClient() {
         // 设置自定义的重试策略
@@ -105,7 +107,7 @@ public class HttpUtil {
 
     public static StringEntity getEntityData(Map<String, Object> body) {
         try {
-            StringEntity stringEntity = new StringEntity(JsonUtils.objectToJsonStr(body), "utf-8");
+            StringEntity stringEntity = new StringEntity(objectMapper.writeValueAsString(body), "utf-8");
             stringEntity.setContentEncoding("UTF-8");
             return stringEntity;
         } catch (JsonProcessingException e) {
