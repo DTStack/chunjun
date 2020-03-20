@@ -204,6 +204,10 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
+                                    <pattern>com.fasterxml.jackson.databind</pattern>
+                                    <shadedPattern>shade.core.com.fasterxml.jackson.databind</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>shade.core.com.google.common</shadedPattern>
                                 </relocation>
