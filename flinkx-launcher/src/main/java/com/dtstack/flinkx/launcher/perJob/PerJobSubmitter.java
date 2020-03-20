@@ -20,7 +20,6 @@ package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
@@ -42,8 +41,6 @@ import java.util.Properties;
 public class PerJobSubmitter {
     private static final Logger LOG = LoggerFactory.getLogger(PerJobSubmitter.class);
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
-
     /**
      * submit per-job task
      * @param options LauncherOptions
@@ -53,7 +50,7 @@ public class PerJobSubmitter {
      */
     public static String submit(Options options, JobGraph jobGraph) throws Exception{
         LOG.info("start to submit per-job task, LauncherOptions = {}", options.toString());
-        Properties conProp = objectMapper.readValue(options.getConfProp(), Properties.class);
+        Properties conProp = JsonUtils.jsonStrToObject(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FLinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
