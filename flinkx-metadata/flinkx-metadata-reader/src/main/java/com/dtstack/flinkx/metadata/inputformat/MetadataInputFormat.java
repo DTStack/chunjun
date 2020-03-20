@@ -116,7 +116,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
             tableList = getTableList(dbInfo);
         } else {
             for (Map item : dbList) {
-                if (item.get(MetaDataCons.KEY_TABLE_LIST).equals(null)) {
+                if (((ArrayList)item.get(MetaDataCons.KEY_TABLE_LIST)).size() == 0) {
                     // 查询当前库下的所有表的元数据信息
                     tableList.addAll(getTableList((String) item.get(MetaDataCons.KEY_DB_NAME)));
                 } else {
@@ -265,7 +265,6 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     public List<String> getTableList(List<String> dbList) throws SQLException {
         List<String> tableList = new ArrayList<>();
         for (String item : dbList) {
-            statement.execute(changeDBSql(item));
             tableList.addAll(getTableList(item));
         }
         return tableList;
@@ -273,6 +272,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
 
     public List<String> getTableList(String dbName) throws SQLException {
         List<String> tableList = new ArrayList<>();
+        statement.execute(changeDBSql(dbName));
         ResultSet resultSet = executeSql(queryTableSql());
         while (resultSet.next()) {
             tableList.add(dbName + "." + resultSet.getString(1));
