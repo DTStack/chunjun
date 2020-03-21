@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,16 +19,15 @@ package com.dtstack.flinkx.metadata.inputformat;
 
 import org.apache.flink.core.io.GenericInputSplit;
 
+import java.util.List;
+
 /**
  * @author : tiezhu
- * @date : 2020/3/8
- * @description :
+ * @date : 2020/3/20
  */
 public class MetadataInputSplit extends GenericInputSplit {
-    private String dbUrl;
-    private String tableName;
     private String dbName;
-
+    private List<String> tableList;
 
     /**
      * Creates a generic input split with the given split number.
@@ -36,31 +35,27 @@ public class MetadataInputSplit extends GenericInputSplit {
      * @param partitionNumber         The number of the split's partition.
      * @param totalNumberOfPartitions The total number of the splits (partitions).
      */
-    public MetadataInputSplit(int partitionNumber, int totalNumberOfPartitions, String dbUrl, String tablesName, String dbName) {
+    public MetadataInputSplit(int partitionNumber,
+                              int totalNumberOfPartitions,
+                              String dbName,
+                              List<String> tableList) {
         super(partitionNumber, totalNumberOfPartitions);
-        this.dbUrl = dbUrl;
-        this.tableName = tablesName;
         this.dbName = dbName;
-    }
-
-    public String getDbUrl() {
-        return dbUrl;
-    }
-
-    public String getTableName() {
-        return tableName;
+        this.tableList = tableList;
     }
 
     public String getDbName() {
         return dbName;
     }
 
+    public List<String> getTableList() {
+        return tableList;
+    }
+
     @Override
     public String toString() {
-        return "MetaDataInputSplit{" +
-                "dbUrl='" + dbUrl + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", dbName='" + dbName + '\'' +
+        return "MetadataInputSplitDb{" +
+                "dbName='" + dbName + '\'' +
                 '}';
     }
 }
