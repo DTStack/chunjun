@@ -73,10 +73,10 @@ public abstract class MetadataInputFormat extends RichInputFormat {
         try {
             // 切换数据库，获取当前数据库下的元数据信息
             statement.execute(changeDbSql(currentDb));
-            if(tableList.isEmpty()){
+            if (tableList.isEmpty()) {
                 tableList.addAll(getDataList(queryTableSql()));
             }
-            for(String currentTable : tableList){
+            for (String currentTable : tableList) {
                 beforeUnit(currentTable, currentDb);
 
                 Map<String, Object> resultMap = unitMetaData(currentDb, currentTable);
@@ -132,7 +132,11 @@ public abstract class MetadataInputFormat extends RichInputFormat {
         }
         InputSplit[] inputSplits = new MetadataInputSplit[dbInfo.size()];
         for (int index = 0; index < dbInfo.size(); index++) {
-            inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbInfo.get(index), tableList.get(index));
+            if (tableList.size() == 0) {
+                inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbInfo.get(index), new ArrayList<>());
+            } else {
+                inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbInfo.get(index), tableList.get(index));
+            }
         }
         return inputSplits;
     }
@@ -189,7 +193,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     }
 
 
-    protected  Map<String, Object> unitMetaData(String currentDb, String currentTable){
+    protected Map<String, Object> unitMetaData(String currentDb, String currentTable) {
         Map<String, Object> tableDetailInformation = getTablePropertites(currentTable, currentDb);
         List<Map<String, Object>> columnDetailInformation = getColumnPropertites(currentTable);
         List<Map<String, Object>> partitionDetailInformation = getPartitionPropertites(currentTable, currentDb);

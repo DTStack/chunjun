@@ -23,16 +23,7 @@
             "username": "root",
             "password": "abc123",
             "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
-            "dbList": [
-              {
-                "dbName": "tiezhu",
-                "tableList": []
-              },
-              {
-                "dbName": "jiangbo",
-                "tableList": ["tb1", "tb2"]
-              }
-            ]
+            "dbList": []
           },
           "name": "metadatahive2reader"
         }
