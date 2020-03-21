@@ -252,7 +252,7 @@ public class AccumulatorCollector {
         }
     }
 
-    class ValueAccumulator{
+    static class ValueAccumulator{
         private long global;
         private LongCounter local;
 

@@ -134,7 +134,6 @@ public class CustomPrometheusReporter {
 
         if (StringUtils.isNullOrWhitespaceOnly(host) || port < 1) {
             return;
-//            throw new IllegalArgumentException("Invalid host/port configuration. Host: " + host + " Port: " + port);
         }
 
         if (randomSuffix) {
@@ -203,6 +202,10 @@ public class CustomPrometheusReporter {
                 count = collectorWithCount.getValue();
             } else {
                 collector = createCollector(metric, dimensionKeys, dimensionValues, scopedMetricName, helpString);
+                if (null == collector) {
+                    return;
+                }
+
                 try {
                     collector.register(defaultRegistry);
                 } catch (Exception e) {

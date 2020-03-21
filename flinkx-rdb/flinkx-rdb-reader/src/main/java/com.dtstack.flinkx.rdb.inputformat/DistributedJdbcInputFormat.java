@@ -41,6 +41,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,7 +70,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     protected List<String> descColumnTypeList;
 
-    protected List<DataSource> sourceList;
+    protected ArrayList<DataSource> sourceList;
 
     protected transient int sourceIndex;
 
@@ -213,7 +214,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
             Object[][] parmeter = DbUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
                 DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-                List<DataSource> sourceCopy = deepCopyList(sourceList);
+                ArrayList<DataSource> sourceCopy = deepCopyList(sourceList);
                 for (int i = 0; i < sourceCopy.size(); i++) {
                     sourceCopy.get(i).setSplitByKey(true);
                     sourceCopy.get(i).setParameterValues(parmeter[j]);
@@ -226,7 +227,9 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
             if (partNum == 0){
                 for (int i = 0; i < sourceList.size(); i++) {
                     DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(i,numPartitions);
-                    split.setSourceList(Arrays.asList(sourceList.get(i)));
+                    ArrayList<DataSource> arrayList = new ArrayList<>();
+                    arrayList.add(sourceList.get(i));
+                    split.setSourceList(arrayList);
                     inputSplits[i] = split;
                 }
             } else {
@@ -255,7 +258,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         return readNextRecord();
     }
 
-    public <T> List<T> deepCopyList(List<T> src) throws IOException{
+    public <T> ArrayList<T> deepCopyList(ArrayList<T> src) throws IOException{
         try {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteOut);
@@ -263,7 +266,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
             ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
             ObjectInputStream in = new ObjectInputStream(byteIn);
-            List<T> dest = (List<T>) in.readObject();
+            ArrayList<T> dest = (ArrayList<T>) in.readObject();
 
             return dest;
         } catch (Exception e){

@@ -137,9 +137,10 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             // 当前的region为最后一个region
             // 如果最后一个region的start Key大于用户指定的userEndKey,则最后一个region，应该不包含在内
             // 注意如果用户指定userEndKey为"",则此判断应该不成立。userEndKey为""表示取得最大的region
-            if (Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
+            boolean isSkip = Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
                     && (endRowkeyByte.length != 0 && (Bytes.compareTo(
-                    regionStartKey, endRowkeyByte) > 0))) {
+                    regionStartKey, endRowkeyByte) > 0));
+            if (isSkip) {
                 continue;
             }
 

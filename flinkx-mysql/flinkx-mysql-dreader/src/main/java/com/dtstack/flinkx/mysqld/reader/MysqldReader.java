@@ -47,8 +47,8 @@ public class MysqldReader extends DistributedJdbcDataReader {
     }
 
     @Override
-    protected List<DataSource> buildConnections(){
-        List<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
+    protected ArrayList<DataSource> buildConnections(){
+        ArrayList<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
         for (ReaderConfig.ParameterConfig.ConnectionConfig connectionConfig : connectionConfigs) {
             String curUsername = (connectionConfig.getUsername() == null || connectionConfig.getUsername().length() == 0)
                     ? username : connectionConfig.getUsername();

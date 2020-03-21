@@ -269,6 +269,10 @@ public class DbUtil {
         ResultSet rs = null;
         try {
             dbConn = getConnection(dbUrl, username, password);
+            if (null == dbConn) {
+                throw new RuntimeException("Get hive connection error");
+            }
+
             stmt = dbConn.createStatement();
             rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();

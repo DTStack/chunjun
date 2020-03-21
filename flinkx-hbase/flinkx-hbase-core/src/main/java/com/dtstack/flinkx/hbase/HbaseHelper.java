@@ -69,7 +69,7 @@ public class HbaseHelper {
     );
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
-        Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
+        Validate.isTrue(MapUtils.isEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
             return getConnectionWithKerberos(hbaseConfigMap);
@@ -122,6 +122,10 @@ public class HbaseHelper {
 
     public static Configuration getConfig(Map<String,Object> hbaseConfigMap){
         Configuration hConfiguration = HBaseConfiguration.create();
+        if (MapUtils.isEmpty(hbaseConfigMap)) {
+            return hConfiguration;
+        }
+
         for (Map.Entry<String, Object> entry : hbaseConfigMap.entrySet()) {
             if(entry.getValue() != null && !(entry.getValue() instanceof Map)){
                 hConfiguration.set(entry.getKey(), entry.getValue().toString());

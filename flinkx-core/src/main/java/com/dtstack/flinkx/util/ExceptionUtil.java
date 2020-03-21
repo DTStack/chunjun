@@ -37,11 +37,8 @@ public class ExceptionUtil {
             return null;
         }
 
-        StringWriter stringWriter = null;
-        PrintWriter writer = null;
-        try {
-            stringWriter = new StringWriter();
-            writer = new PrintWriter(stringWriter);
+        try (StringWriter stringWriter = new StringWriter();
+             PrintWriter writer = new PrintWriter(stringWriter)) {
             e.printStackTrace(writer);
             writer.flush();
             stringWriter.flush();
@@ -49,17 +46,6 @@ public class ExceptionUtil {
             return buffer.toString();
         } catch (Throwable ee) {
             logger.error("", ee);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-            if (stringWriter != null) {
-                try {
-                    stringWriter.close();
-                } catch (Throwable ee) {
-                    logger.error("", ee);
-                }
-            }
         }
         return null;
     }

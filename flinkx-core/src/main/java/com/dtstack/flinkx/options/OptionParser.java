@@ -111,9 +111,4 @@ public class OptionParser {
         }
         return args;
     }
-
-    private void printUsage() {
-        System.out.print(options.toString());
-    }
-
 }

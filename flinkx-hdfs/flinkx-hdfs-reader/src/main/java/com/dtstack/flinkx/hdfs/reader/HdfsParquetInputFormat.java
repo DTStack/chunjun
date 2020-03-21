@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.StringUtil;

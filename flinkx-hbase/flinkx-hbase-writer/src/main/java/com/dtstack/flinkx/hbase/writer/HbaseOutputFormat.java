@@ -27,6 +27,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -164,17 +165,19 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                 String name = columnNames.get(i);
                 String[] cfAndQualifier = nameMaps.get(name);
                 byte[][] cfAndQualifierBytes = nameByteMaps.get(name);
-                if(cfAndQualifier == null || cfAndQualifierBytes==null){
-                    String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
+                if(cfAndQualifier == null || cfAndQualifierBytes == null){
                     cfAndQualifier = name.split(":");
-                    Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
-                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
-                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
-                    nameMaps.put(name,cfAndQualifier);
-                    cfAndQualifierBytes = new byte[2][];
-                    cfAndQualifierBytes[0] = Bytes.toBytes(cfAndQualifier[0]);
-                    cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
-                    nameByteMaps.put(name,cfAndQualifierBytes);
+                    if(cfAndQualifier.length == 2
+                            && StringUtils.isNotBlank(cfAndQualifier[0])
+                            && StringUtils.isNotBlank(cfAndQualifier[1])){
+                        nameMaps.put(name,cfAndQualifier);
+                        cfAndQualifierBytes = new byte[2][];
+                        cfAndQualifierBytes[0] = Bytes.toBytes(cfAndQualifier[0]);
+                        cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
+                        nameByteMaps.put(name,cfAndQualifierBytes);
+                    } else {
+                        throw new IllegalArgumentException("Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name);
+                    }
                 }
 
                 ColumnType columnType = ColumnType.getType(type);
@@ -200,20 +203,21 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
     }
 
     private SimpleDateFormat getSimpleDateFormat(String sign){
-        SimpleDateFormat format = null;
+        SimpleDateFormat format;
         if("sss".equalsIgnoreCase(sign)){
             format = timeSecondFormatThreadLocal.get();
             if(format == null){
                 format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 timeSecondFormatThreadLocal.set(format);
             }
-        }else if("SSS".equalsIgnoreCase(sign)){
+        } else {
             format = timeMillisecondFormatThreadLocal.get();
             if(format == null){
                 format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
                 timeMillisecondFormatThreadLocal.set(format);
             }
         }
+
         return format;
     }
 
@@ -375,7 +379,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         if(column instanceof Integer) {
             intValue = (Integer) column;
         } else if(column instanceof Long) {
-            intValue = Integer.valueOf(((Long)column).intValue());
+            intValue = ((Long) column).intValue();
         } else if(column instanceof Double) {
             intValue = ((Double) column).intValue();
         } else if(column instanceof Float) {
@@ -383,7 +387,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         } else if(column instanceof  Short) {
             intValue = ((Short) column).intValue();
         } else if(column instanceof  Boolean) {
-            intValue = ((Boolean) column).booleanValue() ? 1 : 0;
+            intValue = (Boolean) column ? 1 : 0;
         } else if(column instanceof String) {
             intValue = Integer.valueOf((String) column);
         } else {
@@ -406,7 +410,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         } else if(column instanceof  Short) {
             longValue = ((Short) column).longValue();
         } else if(column instanceof  Boolean) {
-            longValue = ((Boolean) column).booleanValue() ? 1L : 0L;
+            longValue = (Boolean) column ? 1L : 0L;
         } else if(column instanceof String) {
             longValue = Long.valueOf((String) column);
         }else if (column instanceof Timestamp){
@@ -431,7 +435,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         } else if(column instanceof  Short) {
             doubleValue = ((Short) column).doubleValue();
         } else if(column instanceof  Boolean) {
-            doubleValue = ((Boolean) column).booleanValue() ? 1.0 : 0.0;
+            doubleValue = (Boolean) column ? 1.0 : 0.0;
         } else if(column instanceof String) {
             doubleValue = Double.valueOf((String) column);
         } else {
@@ -454,7 +458,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         } else if(column instanceof  Short) {
             floatValue = ((Short) column).floatValue();
         } else if(column instanceof  Boolean) {
-            floatValue = ((Boolean) column).booleanValue() ? 1.0f : 0.0f;
+            floatValue = (Boolean) column ? 1.0f : 0.0f;
         } else if(column instanceof String) {
             floatValue = Float.valueOf((String) column);
         } else {
@@ -477,7 +481,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         } else if(column instanceof  Short) {
             shortValue = (Short) column;
         } else if(column instanceof  Boolean) {
-            shortValue = ((Boolean) column).booleanValue() ? (short) 1 : (short) 0 ;
+            shortValue = (Boolean) column ? (short) 1 : (short) 0 ;
         } else if(column instanceof String) {
             shortValue = Short.valueOf((String) column);
         } else {
@@ -489,15 +493,15 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
     private byte[] boolToBytes(Object column) {
         Boolean booleanValue = null;
         if(column instanceof Integer) {
-            booleanValue = (Integer)column == 0 ? false : true;
+            booleanValue = (Integer) column != 0;
         } else if(column instanceof Long) {
-            booleanValue = (Long) column == 0L ? false : true;
+            booleanValue = (Long) column != 0L;
         } else if(column instanceof Double) {
-            booleanValue = (Double) column == 0.0 ? false : true;
+            booleanValue = new Double(0.0).compareTo((Double) column) != 0;
         } else if(column instanceof Float) {
-            booleanValue = (Float) column == 0.0f ? false : true;
+            booleanValue = new Float(0.0f).compareTo((Float) column) != 0;
         } else if(column instanceof  Short) {
-            booleanValue =  (Short) column == 0 ? false : true;
+            booleanValue = (Short) column != 0;
         } else if(column instanceof  Boolean) {
             booleanValue = (Boolean) column;
         } else if(column instanceof String) {

@@ -138,64 +138,6 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
         return isFileEmpty || !recordReader.next(key, value);
     }
 
-
-//    public static class HdfsTextInputFormatBuilder {
-//
-//        private HdfsTextInputFormat format;
-//
-//        private HdfsTextInputFormatBuilder() {
-//            format = new HdfsTextInputFormat();
-//        }
-//
-//        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
-//            format.hadoopConfig = hadoopConfig;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
-//            format.inputPath = inputPaths;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setBytes(long bytes) {
-//            format.bytes = bytes;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
-//            format.monitorUrls = monitorUrls;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
-//            if(delimiter == null) {
-//                delimiter = "\\001";
-//            }
-//            format.delimiter = delimiter;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-//            format.defaultFs = defaultFs;
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
-//            if(StringUtil.isNotEmpty(charsetName)) {
-//                if(!Charset.isSupported(charsetName)) {
-//                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-//                }
-//                this.format.charsetName = charsetName;
-//            }
-//
-//            return this;
-//        }
-//
-//        public HdfsTextInputFormat finish() {
-//            return format;
-//        }
-//    }
-
     static class HdfsTextInputSplit implements InputSplit {
         int splitNumber;
         byte[] textSplitData;

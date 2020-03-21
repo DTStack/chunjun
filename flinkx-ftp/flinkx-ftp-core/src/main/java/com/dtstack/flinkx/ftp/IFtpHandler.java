@@ -41,6 +41,7 @@ public interface IFtpHandler {
 
     /**
      * 登出服务器
+     * @throws IOException logout error
      */
     void logoutFtpServer() throws IOException;
 
