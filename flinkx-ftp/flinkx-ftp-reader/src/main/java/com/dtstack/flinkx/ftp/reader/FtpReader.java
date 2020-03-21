@@ -21,6 +21,7 @@ package com.dtstack.flinkx.ftp.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
@@ -29,8 +30,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.List;
-
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
 
 /**
  * The reader plugin of Ftp
@@ -57,7 +56,7 @@ public class FtpReader extends BaseDataReader {
             ftpConfig.setDefaultPort();
         }
 
-        if(!DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
+        if(!FtpConfigConstants.DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }

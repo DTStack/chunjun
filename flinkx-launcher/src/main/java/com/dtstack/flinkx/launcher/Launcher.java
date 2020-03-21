@@ -162,9 +162,8 @@ public class Launcher {
     }
 
     private static String readJob(String job) {
-        try {
-            File file = new File(job);
-            FileInputStream in = new FileInputStream(file);
+        File file = new File(job);
+        try (FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             in.close();

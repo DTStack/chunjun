@@ -19,7 +19,12 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.ftp.*;
+import com.dtstack.flinkx.ftp.EProtocol;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.ftp.SftpHandler;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;

@@ -48,7 +48,10 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * The main class entry

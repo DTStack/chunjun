@@ -26,6 +26,8 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,8 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class HbaseReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(HbaseReader.class);
 
     protected List<String> columnName;
     protected List<String> columnType;
@@ -82,7 +86,8 @@ public class HbaseReader extends BaseDataReader {
                 columnValue.add((String) sm.get("value"));
                 columnFormat.add((String) sm.get("format"));
             }
-            System.out.println("init column finished");
+
+            LOG.info("init column finished");
         } else{
             throw new IllegalArgumentException("column argument error");
         }

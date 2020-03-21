@@ -30,9 +30,15 @@ import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
  * OutputFormat for writing data to redis database.

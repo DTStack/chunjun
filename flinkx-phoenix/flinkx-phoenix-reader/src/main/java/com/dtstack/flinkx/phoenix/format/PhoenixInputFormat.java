@@ -67,7 +67,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
 
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             statement.setFetchSize(0);
 

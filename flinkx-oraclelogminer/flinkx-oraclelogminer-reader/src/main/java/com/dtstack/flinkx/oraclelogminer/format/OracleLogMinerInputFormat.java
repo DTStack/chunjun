@@ -32,7 +32,13 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.Callable;
 
 /**

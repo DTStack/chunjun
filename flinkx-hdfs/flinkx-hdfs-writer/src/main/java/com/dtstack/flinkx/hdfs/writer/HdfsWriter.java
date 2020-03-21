@@ -31,7 +31,23 @@ import parquet.hadoop.ParquetWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
+
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COMPRESS;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_DEFAULT_FS;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ENCODING;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_NAME;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_TYPE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_NAME_LIST;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_TYPE_LIST;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_MAX_FILE_SIZE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_PATH;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_WRITE_MODE;
 
 /**
  * The writer plugin of Hdfs

@@ -76,7 +76,7 @@ public class PerJobClusterClientBuilder {
         yarnClient.init(yarnConf);
         yarnClient.start();
 
-        System.out.println("----init yarn success ----");
+        LOG.info("----init yarn success ----");
     }
 
     /**

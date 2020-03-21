@@ -31,8 +31,23 @@ import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static com.dtstack.flinkx.hbase.HbaseConfigConstants.*;
-import static com.dtstack.flinkx.hbase.HbaseConfigKeys.*;
+
+import static com.dtstack.flinkx.hbase.HbaseConfigConstants.DEFAULT_WAL_FLAG;
+import static com.dtstack.flinkx.hbase.HbaseConfigConstants.DEFAULT_WRITE_BUFFER_SIZE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_ENCODING;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_HBASE_CONFIG;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_NULL_MODE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_ROW_KEY_COLUMN;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_ROW_KEY_COLUMN_INDEX;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_ROW_KEY_COLUMN_VALUE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_TABLE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_VERSION_COLUMN;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_VERSION_COLUMN_INDEX;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_VERSION_COLUMN_VALUE;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_WAL_FLAG;
+import static com.dtstack.flinkx.hbase.HbaseConfigKeys.KEY_WRITE_BUFFER_SIZE;
 
 /**
  * The Writer plugin of HBase

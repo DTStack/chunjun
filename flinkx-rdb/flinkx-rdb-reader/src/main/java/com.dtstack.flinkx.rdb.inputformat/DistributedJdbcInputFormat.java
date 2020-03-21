@@ -30,7 +30,11 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

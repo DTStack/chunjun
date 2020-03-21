@@ -18,7 +18,13 @@
 package com.dtstack.flinkx.sqlservercdc.listener;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.sqlservercdc.*;
+import com.dtstack.flinkx.sqlservercdc.ChangeTable;
+import com.dtstack.flinkx.sqlservercdc.ChangeTablePointer;
+import com.dtstack.flinkx.sqlservercdc.Lsn;
+import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
+import com.dtstack.flinkx.sqlservercdc.SqlserverCdcEnum;
+import com.dtstack.flinkx.sqlservercdc.TableId;
+import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormat;
 import com.dtstack.flinkx.util.Clock;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -31,7 +37,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Date: 2019/12/04

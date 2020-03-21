@@ -165,8 +165,7 @@ public class LocalTest {
     }
 
     private static String readJob(File file) {
-        try {
-            FileInputStream in = new FileInputStream(file);
+        try(FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             return new String(fileContent, StandardCharsets.UTF_8);

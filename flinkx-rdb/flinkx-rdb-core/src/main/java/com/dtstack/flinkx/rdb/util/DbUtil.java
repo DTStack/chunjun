@@ -31,8 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -133,8 +138,10 @@ public class DbUtil {
             for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
-                    dbConn.createStatement().execute("select 111");
-                    failed = false;
+                    try (Statement statement = dbConn.createStatement()){
+                        statement.execute("select 111");
+                        failed = false;
+                    }
                 } catch (Exception e) {
                     if (dbConn != null) {
                         dbConn.close();
@@ -213,8 +220,7 @@ public class DbUtil {
             return;
         }
 
-        try {
-            Statement stmt = dbConn.createStatement();
+        try (Statement stmt = dbConn.createStatement()) {
             for(String sql : sqls) {
                 stmt.addBatch(sql);
             }

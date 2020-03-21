@@ -28,7 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.hive.EStoreType.*;
+import static com.dtstack.flinkx.hive.EStoreType.ORC;
+import static com.dtstack.flinkx.hive.EStoreType.TEXT;
 
 /**
  * @author toutian
@@ -178,8 +179,7 @@ public class HiveUtil {
 
     public HiveReleaseVersion getHiveVersion(Connection connection){
         HiveReleaseVersion version = HiveReleaseVersion.APACHE_2;
-        try {
-            ResultSet resultSet = connection.createStatement().executeQuery("select version()");
+        try (ResultSet resultSet = connection.createStatement().executeQuery("select version()")) {
             if (resultSet.next()) {
                 String versionMsg = resultSet.getString(1);
                 if (versionMsg.contains("cdh")){

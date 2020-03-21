@@ -24,7 +24,6 @@ import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.DateUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;

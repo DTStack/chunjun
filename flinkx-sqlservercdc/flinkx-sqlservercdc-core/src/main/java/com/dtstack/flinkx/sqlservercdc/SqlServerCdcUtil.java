@@ -24,8 +24,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.sql.*;
-import java.util.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,7 +63,9 @@ public class SqlServerCdcUtil {
     private static final String GET_ALL_CHANGES_FOR_TABLE = "SELECT * FROM cdc.[fn_cdc_get_all_changes_#](ISNULL(?,sys.fn_cdc_get_min_lsn('#')), ?, N'all update old')";
 
     public static void changeDatabase(Connection conn, String databaseName) throws SQLException {
-        conn.createStatement().execute(" use " + databaseName);
+        try (Statement statement = conn.createStatement()) {
+            statement.execute(" use " + databaseName);
+        }
     }
 
     public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName) throws SQLException {

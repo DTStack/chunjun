@@ -232,10 +232,10 @@ public final class HiveDbUtil {
             url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
-                try {
-                    connection.createStatement().execute("use " + db);
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute("use " + db);
                 } catch (SQLException e) {
-                    if (connection != null) {
+                    if (null != connection) {
                         connection.close();
                     }
 

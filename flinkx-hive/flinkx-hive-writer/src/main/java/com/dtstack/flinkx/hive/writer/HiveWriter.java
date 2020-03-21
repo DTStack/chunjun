@@ -37,7 +37,24 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_ANALYTICAL_RULES;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_BUFFER_SIZE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_CHARSET_NAME;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_COMPRESS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_DEFAULT_FS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_DISTRIBUTE_TABLE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FILE_TYPE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FS_DEFAULT_FS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_JDBC_URL;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_MAX_FILE_SIZE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PARTITION;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PARTITION_TYPE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE_COLUMN;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_USERNAME;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_WRITE_MODE;
 
 /**
  * @author toutian

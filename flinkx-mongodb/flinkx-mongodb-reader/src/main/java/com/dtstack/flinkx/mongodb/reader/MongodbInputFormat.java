@@ -37,7 +37,8 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Read plugin for reading static data
