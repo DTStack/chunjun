@@ -53,7 +53,7 @@ public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
         format.driverName = driverName;
     }
 
-    public void setDBList(List<Map> dbList){
+    public void setDBList(List<Map<String, Object>> dbList){
         format.dbList = dbList;
     }
 

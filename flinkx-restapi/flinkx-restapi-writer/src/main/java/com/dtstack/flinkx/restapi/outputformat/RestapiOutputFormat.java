@@ -56,20 +56,10 @@ public class RestapiOutputFormat extends RichOutputFormat {
         LOG.info("start write single record");
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
-        Map<String, Object> columnData = new HashMap<>();
         Map<String, Object> requestBody = new HashMap<>();
-        List<Object> dataRow = new ArrayList<>();
+        List<Object> dataRow;
         try {
-            if (!column.isEmpty()) {
-                for (; index < row.getArity(); index++) {
-                    columnData.put(column.get(index), row.getField(index));
-                }
-                dataRow.add(objectMapper.writeValueAsString(columnData));
-            } else {
-                // 以下只针对元数据同步采集情况
-                dataRow.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
-            }
-//            dataRow = getDataFromRow(row, column);
+            dataRow = getDataFromRow(row, column);
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -79,16 +69,8 @@ public class RestapiOutputFormat extends RichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
-
-            System.out.println(objectMapper.writeValueAsString(requestBody));
-
-            CloseableHttpResponse httpResponse = httpClient.execute(request);
-            // 重试之后返回状态码不为200
-            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOG.warn("当前请求状态码为" + httpResponse.getStatusLine().getStatusCode());
-                throw new IOException("经过重试之后请求响应仍不成功");
-            }
+            LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+            sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
         } finally {
@@ -103,19 +85,10 @@ public class RestapiOutputFormat extends RichOutputFormat {
         try {
             CloseableHttpClient httpClient = HttpUtil.getHttpClient();
             List<Object> dataRow = new ArrayList<>();
-            Map<String, Object> temp = new HashMap<>();
             Map<String, Object> requestBody = new HashMap<>();
-            int index = 0;
             // rows 用于批量写入数据
             for (Row row : rows) {
-                if (!column.isEmpty()) {
-                    for (; index < column.size(); index++) {
-                        temp.put(column.get(index), row.getField(index));
-                        dataRow.add(temp);
-                    }
-                } else {
-                    dataRow.add((objectMapper.readValue(row.getField(index).toString(), Map.class)).get("data"));
-                }
+                dataRow.add(getDataFromRow(row, column));
             }
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
@@ -126,24 +99,14 @@ public class RestapiOutputFormat extends RichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            System.out.println(objectMapper.writeValueAsString(requestBody));
-            HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
-            CloseableHttpResponse httpResponse = httpClient.execute(request);
-            // 重试之后返回状态码不为200
-            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOG.warn("当前请求状态码为" + httpResponse.getStatusLine().getStatusCode());
-                throw new IOException("经过重试之后请求响应仍不成功");
-            }
+            LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+            sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.warn("write record error !", e);
         }
     }
 
     private void requestErrorMessage(Exception e, int index, Row row) {
-        if (e instanceof IOException) {
-
-        }
-
         if (index < row.getArity()) {
             recordConvertDetailErrorMessage(index, row);
             LOG.warn("添加脏数据:" + row.getField(index));
@@ -162,8 +125,22 @@ public class RestapiOutputFormat extends RichOutputFormat {
             result.add(objectMapper.writeValueAsString(columnData));
         } else {
             // 以下只针对元数据同步采集情况
-            result.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
+            result.addAll((Collection<?>) objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
         }
         return result;
+    }
+
+    private void sendRequest(CloseableHttpClient httpClient,
+                             Map<String, Object> requestBody,
+                             String method,
+                             Map<String, String> header,
+                             String url) throws IOException {
+        LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+        HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
+        CloseableHttpResponse httpResponse = httpClient.execute(request);
+        // 重试之后返回状态码不为200
+        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            LOG.warn("重试之后当前请求状态码为" + httpResponse.getStatusLine().getStatusCode());
+        }
     }
 }

@@ -18,8 +18,8 @@
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
-import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormat;
+import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.types.Row;
 
@@ -54,13 +54,13 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     protected void beforeUnit(String currentQueryTable, String currentDbName) {
         getColumn(currentQueryTable, currentDbName);
         columnMap = new HashMap<>();
-        columnMap.putAll(transformDataToMap(executeSql(
+        columnMap.putAll(transformDataToMap(executeQuerySql(
                 buildDescSql(currentDbName + "." + currentQueryTable, false))));
     }
 
     @Override
     public Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName) {
-        ResultSet resultSet = executeSql(buildDescSql(currentDbName + "." + currentQueryTable, true));
+        ResultSet resultSet = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, true));
         if (resultSet == null) {
             LOG.warn("query result was null");
             setErrorMessage(new SQLException(),"query result was null");
@@ -122,12 +122,12 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     }
 
     @Override
-    public String queryDBSql() {
+    public String queryDbSql() {
         return "show databases";
     }
 
     @Override
-    public String changeDBSql(String dbName) {
+    public String changeDbSql(String dbName) {
         return "use " + quoteData(dbName);
     }
 
@@ -167,7 +167,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
             boolean isPartitionColumn = false;
             tableColumn = new ArrayList<>();
             partitionColumn = new ArrayList<>();
-            ResultSet temp = executeSql(buildDescSql(currentDbName + "." + currentQueryTable, false));
+            ResultSet temp = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, false));
             while (temp.next()) {
                 if (temp.getString(1).trim().contains("Partition Information")) {
                     isPartitionColumn = true;
@@ -235,7 +235,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
      */
     public List<String> getPartitions(String currentTable) throws SQLException {
         List<String> partitions = new ArrayList<>();
-        ResultSet resultSet = executeSql("show partitions " + quoteData(currentTable));
+        ResultSet resultSet = executeQuerySql("show partitions " + quoteData(currentTable));
         while (resultSet.next()) {
             partitions.add(resultSet.getString(1));
         }

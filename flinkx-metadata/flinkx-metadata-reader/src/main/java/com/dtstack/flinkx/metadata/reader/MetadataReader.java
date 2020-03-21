@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class MetadataReader extends DataReader {
     protected String jdbcUrl;
-    protected List<Map> dbList;
+    protected List<Map<String, Object>> dbList;
     protected String username;
     protected String password;
     protected String driverName;
@@ -51,7 +51,7 @@ public class MetadataReader extends DataReader {
         jdbcUrl = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_JDBC_URL);
         username = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_CONN_USERNAME);
         password = readerConfig.getParameter().getStringVal(MetaDataCons.KEY_CONN_PASSWORD);
-        dbList = (List<Map>) readerConfig.getParameter().getVal(MetaDataCons.KEY_DB_LIST);
+        dbList = (List<Map<String, Object>>) readerConfig.getParameter().getVal(MetaDataCons.KEY_DB_LIST);
 
     }
 

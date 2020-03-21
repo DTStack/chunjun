@@ -4,7 +4,7 @@
       {
         "writer": {
           "parameter": {
-            "batchInterval": 100,
+            "batchInterval": 1,
             "url": "http://172.16.1.206:8876/dassets/v1/syncJob/syncCallBack",
             "header": [],
             "body": [],
@@ -27,6 +27,10 @@
               {
                 "dbName": "tiezhu",
                 "tableList": []
+              },
+              {
+                "dbName": "jiangbo",
+                "tableList": ["tb1", "tb2"]
               }
             ]
           },
