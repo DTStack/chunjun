@@ -42,9 +42,14 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
+        Map<String, Object> currentMessage =  resultMapList.pop();
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", currentMessage);
         row = new Row(1);
-        row.setField(0, objectMapper.writeValueAsString(currentMessage));
-        hasNext = false;
+        row.setField(0, objectMapper.writeValueAsString(data));
+        if(resultMapList.isEmpty()) {
+            hasNext = false;
+        }
         errorMessage.clear();
 
         return row;

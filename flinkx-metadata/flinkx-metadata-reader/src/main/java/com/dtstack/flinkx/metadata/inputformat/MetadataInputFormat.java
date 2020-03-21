@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
+import com.google.common.collect.Maps;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -28,10 +29,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author : tiezhu
@@ -53,14 +51,13 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected transient static Connection connection;
     protected transient static Statement statement;
 
-    protected Map<String, String> errorMessage;
-    protected Map<String, Object> currentMessage;
+    protected Map<String, String> errorMessage = Maps.newHashMap();
+//    protected Map<String, Object> currentMessage = Maps.newHashMap();
+    protected LinkedList<Map<String, Object>> resultMapList;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        errorMessage = new HashMap<>();
-        currentMessage = new HashMap<>();
         initConnect();
     }
 
@@ -69,7 +66,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
         LOG.info("inputSplit = {}", inputSplit);
         String currentDb = ((MetadataInputSplit) inputSplit).getDbName();
         List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
-        List<Map<String, Object>> resultMapList = new ArrayList<>();
+        resultMapList = new LinkedList<>();
         try {
             // 切换数据库，获取当前数据库下的元数据信息
             statement.execute(changeDbSql(currentDb));
@@ -90,7 +87,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
                 hasNext = true;
                 resultMapList.add(resultMap);
             }
-            currentMessage.put("data", resultMapList);
+//            currentMessage.put("data", resultMapList);
         } catch (SQLException e) {
             setErrorMessage(e, "openInternal error");
         }
