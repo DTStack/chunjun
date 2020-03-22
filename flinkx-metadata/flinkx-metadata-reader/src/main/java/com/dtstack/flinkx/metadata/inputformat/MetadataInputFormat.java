@@ -189,10 +189,10 @@ public abstract class MetadataInputFormat extends RichInputFormat {
 
 
     protected Map<String, Object> unitMetaData(String currentDb, String currentTable) {
-        Map<String, Object> tableDetailInformation = getTablePropertites(currentTable, currentDb);
-        List<Map<String, Object>> columnDetailInformation = getColumnPropertites(currentTable);
-        List<Map<String, Object>> partitionDetailInformation = getPartitionPropertites(currentTable, currentDb);
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> tableDetailInformation = getTableProperties(currentTable, currentDb);
+        List<Map<String, Object>> columnDetailInformation = getColumnProperties(currentTable);
+        List<Map<String, Object>> partitionDetailInformation = getPartitionProperties(currentTable, currentDb);
+        Map<String, Object> result = Maps.newHashMap();
         result.put(MetaDataCons.KEY_TABLE, currentTable);
         result.put(MetaDataCons.KEY_SCHEMA, currentDb);
         // 当前为全量查询，所以type固定为createTable
@@ -200,9 +200,11 @@ public abstract class MetadataInputFormat extends RichInputFormat {
 
         result.put(MetaDataCons.KEY_COLUMN, columnDetailInformation);
 
-        result.put(MetaDataCons.KEY_TABLE_PROPERTITES, tableDetailInformation);
+        result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableDetailInformation);
 
-        result.put(MetaDataCons.KEY_PARTITION_PROPERTITES, partitionDetailInformation);
+        result.put(MetaDataCons.KEY_PARTITION_COLUMNS, partitionDetailInformation);
+
+        result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList());
 
         return result;
     }
@@ -222,7 +224,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
      * @param currentDbName     当前查询的db
      * @return 有关表的元数据信息
      */
-    public abstract Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName);
+    public abstract Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName);
 
     /**
      * 从结果集中解析有关表字段的元数据信息
@@ -230,14 +232,16 @@ public abstract class MetadataInputFormat extends RichInputFormat {
      * @param currentQueryTable 当前查询的table
      * @return 有关表字段的元数据信息
      */
-    public abstract List<Map<String, Object>> getColumnPropertites(String currentQueryTable);
+    public abstract List<Map<String, Object>> getColumnProperties(String currentQueryTable);
 
     /**
      * 从结果集中解析有关分区字段的元数据信息
      *
+     * @param currentQueryTable 当前查询table
+     * @param currentDbName     当前查询Db
      * @return 有关分区字段的元数据信息
      */
-    public abstract List<Map<String, Object>> getPartitionPropertites(String currentQueryTable, String currentDbName);
+    public abstract List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName);
 
     /**
      * 构建查询表名sql，如show tables
@@ -261,9 +265,32 @@ public abstract class MetadataInputFormat extends RichInputFormat {
      */
     public abstract String changeDbSql(String dbName);
 
+    /**
+     * 添加quote
+     *
+     * @return sql语句的quote
+     */
     public abstract String getStartQuote();
 
+    /**
+     * 添加quote
+     *
+     * @return sql语句的quote
+     */
     public abstract String getEndQuote();
 
+
+    /**
+     * 给data添加quote
+     *
+     * @param data 需要添加quote的data,如查询时的table
+     * @return 已经添加好的data
+     */
     public abstract String quoteData(String data);
+
+    /**
+     * 获取分区字段名列表
+     * @return 分区字段名列表
+     */
+    public abstract List<String> getPartitionList();
 }

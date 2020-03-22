@@ -21,6 +21,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormat;
 import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         Map<String, Object> currentMessage =  resultMapList.pop();
-        Map<String, Object> data = new HashMap<>();
+        Map<String, Object> data = Maps.newHashMap();
         data.put("data", currentMessage);
         row = new Row(1);
         row.setField(0, objectMapper.writeValueAsString(data));
@@ -58,13 +59,13 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     @Override
     protected void beforeUnit(String currentQueryTable, String currentDbName) {
         getColumn(currentQueryTable, currentDbName);
-        columnMap = new HashMap<>();
+        columnMap = Maps.newHashMap();
         columnMap.putAll(transformDataToMap(executeQuerySql(
                 buildDescSql(currentDbName + "." + currentQueryTable, false))));
     }
 
     @Override
-    public Map<String, Object> getTablePropertites(String currentQueryTable, String currentDbName) {
+    public Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) {
         ResultSet resultSet = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, true));
         if (resultSet == null) {
             LOG.warn("query result was null");
@@ -95,7 +96,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     }
 
     @Override
-    public List<Map<String, Object>> getColumnPropertites(String currentQueryTable) {
+    public List<Map<String, Object>> getColumnProperties(String currentQueryTable) {
         List<Map<String, Object>> tempColumnList = new ArrayList<>();
         for (String item : tableColumn) {
             tempColumnList.add(setColumnMap(item, columnMap, tableColumn.indexOf(item)));
@@ -104,16 +105,11 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     }
 
     @Override
-    public List<Map<String, Object>> getPartitionPropertites(String currentQueryTable, String currentDbName) {
-        Map<String, Object> result = new HashMap<>();
+    public List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName) {
         List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
         try {
             for (String item : partitionColumn) {
                 tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
-            }
-            result.put(Hive2MetaDataCons.KEY_PARTITION_COLUMN, tempPartitionColumnList);
-            if (!tempPartitionColumnList.isEmpty()) {
-                result.put("partitions", getPartitions(currentDbName + "." + currentQueryTable));
             }
         } catch (Exception e) {
             setErrorMessage(e, "get partitions error");
@@ -149,6 +145,11 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     @Override
     public String quoteData(String data) {
         return getStartQuote() + data + getEndQuote();
+    }
+
+    @Override
+    public List<String> getPartitionList() {
+        return partitionColumn;
     }
 
     /**
@@ -196,7 +197,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
      * 从查询结果中构建Map
      */
     public Map<String, Object> transformDataToMap(ResultSet resultSet) {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = Maps.newHashMap();
         try {
             while (resultSet.next()) {
                 String key1 = resultSet.getString(1);
@@ -227,7 +228,7 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
      * @return result 返回column信息List<Map>
      */
     public Map<String, Object> setColumnMap(String columnName, Map<String, Object> map, int index) {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = Maps.newHashMap();
         result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
         result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.get(columnName + "_comment"));
         result.put(MetaDataCons.KEY_COLUMN_TYPE, map.get(columnName));

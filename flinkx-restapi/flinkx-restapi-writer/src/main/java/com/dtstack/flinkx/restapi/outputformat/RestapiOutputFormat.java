@@ -21,6 +21,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -56,7 +57,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
         LOG.info("start write single record");
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
-        Map<String, Object> requestBody = new HashMap<>();
+        Map<String, Object> requestBody = Maps.newHashMap();
         List<Object> dataRow;
         try {
             dataRow = getDataFromRow(row, column);
@@ -85,7 +86,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
         try {
             CloseableHttpClient httpClient = HttpUtil.getHttpClient();
             List<Object> dataRow = new ArrayList<>();
-            Map<String, Object> requestBody = new HashMap<>();
+            Map<String, Object> requestBody = Maps.newHashMap();
             // rows 用于批量写入数据
             for (Row row : rows) {
                 dataRow.add(getDataFromRow(row, column));
@@ -115,7 +116,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
 
     private List<Object> getDataFromRow(Row row, List<String> column) throws IOException {
         List<Object> result = new ArrayList<>();
-        Map<String, Object> columnData = new HashMap<>();
+        Map<String, Object> columnData = Maps.newHashMap();
         int index = 0;
         if (!column.isEmpty()) {
             // 如果column不为空，那么将数据和字段名一一对应

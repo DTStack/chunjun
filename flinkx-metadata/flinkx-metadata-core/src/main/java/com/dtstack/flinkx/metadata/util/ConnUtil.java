@@ -36,6 +36,8 @@ public class ConnUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnUtil.class);
 
+    private static final String JDBC_MYSQL = "jdbc:mysql";
+
     /**
      * 数据库连接的最大重试次数
      */
@@ -111,7 +113,7 @@ public class ConnUtil {
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
-        if (!url.startsWith("jdbc:mysql")) {
+        if (!url.startsWith(JDBC_MYSQL)) {
             return getConnectionInternal(url, username, password);
         } else {
             boolean failed = true;
@@ -144,7 +146,7 @@ public class ConnUtil {
      * @param conn      Connection
      * @param commit
      */
-    public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+    public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 rs.close();

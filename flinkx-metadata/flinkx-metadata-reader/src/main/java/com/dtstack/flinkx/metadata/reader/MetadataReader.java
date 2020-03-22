@@ -59,11 +59,11 @@ public class MetadataReader extends DataReader {
     public DataStream<Row> readData() {
         MetadataInputFormatBuilder builder = getBuilder();
 
-        builder.setDBUrl(jdbcUrl);
+        builder.setDbUrl(jdbcUrl);
         builder.setPassword(password);
         builder.setUsername(username);
         builder.setDriverName(driverName);
-        builder.setDBList(dbList);
+        builder.setDbList(dbList);
         builder.setNumPartitions(1);
 
         RichInputFormat format = builder.finish();

@@ -33,7 +33,7 @@ public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
         super.format = this.format = format;
     }
 
-    public void setDBUrl(String dbUrl) {
+    public void setDbUrl(String dbUrl) {
         format.dbUrl = dbUrl;
     }
 
@@ -53,7 +53,7 @@ public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
         format.driverName = driverName;
     }
 
-    public void setDBList(List<Map<String, Object>> dbList){
+    public void setDbList(List<Map<String, Object>> dbList){
         format.dbList = dbList;
     }
 

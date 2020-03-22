@@ -36,8 +36,9 @@ public class MetaDataCons {
     public static final String KEY_STORED_TYPE = "storedType";
     public static final String KEY_OPERA_TYPE = "operaType";
     public static final String KEY_TABLE = "table";
-    public static final String KEY_TABLE_PROPERTITES= "tablePropertites";
-    public static final String KEY_PARTITION_PROPERTITES = "partitionPropertites";
+    public static final String KEY_TABLE_PROPERTIES = "tableProperties";
+    public static final String KEY_PARTITION_COLUMNS = "partitionColumn";
+    public static final String KEY_PARTITIONS = "partitions";
 
     public static final String KEY_COLUMN_NAME = "name";
     public static final String KEY_COLUMN_INDEX = "index";
