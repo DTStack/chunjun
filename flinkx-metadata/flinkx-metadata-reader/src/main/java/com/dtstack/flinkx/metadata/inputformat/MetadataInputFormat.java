@@ -52,7 +52,6 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected transient static Statement statement;
 
     protected Map<String, String> errorMessage = Maps.newHashMap();
-//    protected Map<String, Object> currentMessage = Maps.newHashMap();
     protected LinkedList<Map<String, Object>> resultMapList;
 
     @Override
@@ -87,7 +86,6 @@ public abstract class MetadataInputFormat extends RichInputFormat {
                 hasNext = true;
                 resultMapList.add(resultMap);
             }
-//            currentMessage.put("data", resultMapList);
         } catch (SQLException e) {
             setErrorMessage(e, "openInternal error");
         }
