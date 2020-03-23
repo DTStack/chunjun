@@ -77,6 +77,8 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
 
+    protected long numReadeForTest;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
@@ -198,9 +200,9 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             bytesReadCounter.add(internalRow.toString().length());
         }
 
-        if (testConfig.errorTest()) {
-            if (numReadCounter.getLocalValue() > 0
-                    && numReadCounter.getLocalValue() % testConfig.getFailedPerRecord() == 0) {
+        if (testConfig.errorTest() && testConfig.getFailedPerRecord() > 0) {
+            numReadeForTest++;
+            if (numReadeForTest > testConfig.getFailedPerRecord()) {
                 throw new RuntimeException(testConfig.getErrorMsg());
             }
         }

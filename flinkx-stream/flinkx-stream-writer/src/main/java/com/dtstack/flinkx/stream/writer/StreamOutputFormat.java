@@ -47,7 +47,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, row));
+            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, row);
         }
     }
 
