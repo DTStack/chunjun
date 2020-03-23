@@ -237,18 +237,6 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
     }
 
     /**
-     * 获取分区partitions
-     */
-    public List<String> getPartitions(String currentTable) throws SQLException {
-        List<String> partitions = new ArrayList<>();
-        ResultSet resultSet = executeQuerySql("show partitions " + quoteData(currentTable));
-        while (resultSet.next()) {
-            partitions.add(resultSet.getString(1));
-        }
-        return partitions;
-    }
-
-    /**
      * 将字符串首字母转小写
      */
     public String toLowerCaseFirstOne(String s) {
