@@ -65,6 +65,8 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     private static final String OVERWRITE_MODE = "overwrite";
 
+    private static final int FILE_NAME_PART_SIZE = 3;
+
     @Override
     protected void openSource() throws IOException {
         if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
@@ -109,7 +111,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) <= fileIndex;
                 }
 
