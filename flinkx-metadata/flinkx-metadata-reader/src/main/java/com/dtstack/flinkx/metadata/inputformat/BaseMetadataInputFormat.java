@@ -36,11 +36,16 @@ import java.util.*;
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public abstract class MetadataInputFormat extends RichInputFormat {
+public abstract class BaseMetadataInputFormat extends RichInputFormat {
+
     protected int numPartitions;
+
     protected String dbUrl;
+
     protected String username;
+
     protected String password;
+
     protected String driverName;
 
     protected List<Map<String, Object>> dbList;
@@ -50,9 +55,11 @@ public abstract class MetadataInputFormat extends RichInputFormat {
     protected boolean isAll;
 
     protected transient static Connection connection;
+
     protected transient static Statement statement;
 
     protected Map<String, String> errorMessage = Maps.newHashMap();
+
     protected LinkedList<Map<String, Object>> resultMapList;
 
     @Override
@@ -291,6 +298,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
 
     /**
      * 获取分区字段名列表
+     *
      * @return 分区字段名列表
      */
     public abstract List<String> getPartitionList();

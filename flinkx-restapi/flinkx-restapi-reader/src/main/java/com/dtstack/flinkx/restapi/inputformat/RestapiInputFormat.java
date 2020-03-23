@@ -37,12 +37,17 @@ import java.util.Map;
  * @date : 2020/3/12
  */
 public class RestapiInputFormat extends RichInputFormat {
+
     protected String url;
+
     protected String method;
 
     protected transient CloseableHttpClient httpClient;
+
     protected  Map<String, Object> header;
+
     protected  Map<String, Object> entityDataToMap;
+
     protected boolean getData;
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();

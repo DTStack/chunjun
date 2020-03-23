@@ -39,10 +39,15 @@ import java.util.*;
 public class RestapiOutputFormat extends RichOutputFormat {
 
     protected String url;
+
     protected String method;
+
     protected ArrayList<String> column;
+
     protected Map<String, Object> params;
+
     protected Map<String, Object> body;
+
     protected Map<String, String> header;
 
     private transient static ObjectMapper objectMapper = new ObjectMapper();
@@ -87,7 +92,6 @@ public class RestapiOutputFormat extends RichOutputFormat {
             CloseableHttpClient httpClient = HttpUtil.getHttpClient();
             List<Object> dataRow = new ArrayList<>();
             Map<String, Object> requestBody = Maps.newHashMap();
-            // rows 用于批量写入数据
             for (Row row : rows) {
                 dataRow.add(getDataFromRow(row, column));
             }

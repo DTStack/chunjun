@@ -21,12 +21,12 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
+import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,11 +34,16 @@ import java.util.Map;
  * @date : 2020/3/12
  */
 public class RestapiReader extends DataReader {
+
     private String url;
+
     private String method;
-    private Map<String, Object> header = new HashMap<>();
+
+    private Map<String, Object> header = Maps.newHashMap();
+
     private ArrayList<Map<String, String>> temp;
 
+    @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();

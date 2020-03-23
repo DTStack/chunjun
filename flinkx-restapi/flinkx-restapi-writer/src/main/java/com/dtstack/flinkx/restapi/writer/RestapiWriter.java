@@ -22,6 +22,8 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.restapi.common.RestapiKeys;
 import com.dtstack.flinkx.restapi.outputformat.RestapiOutputFormatBuilder;
 import com.dtstack.flinkx.writer.DataWriter;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -35,12 +37,19 @@ import java.util.Map;
  * @date : 2020/3/12
  */
 public class RestapiWriter extends DataWriter {
+
     protected String url;
+
     protected String method;
-    protected Map<String, String> header = new HashMap<>();
-    protected Map<String, Object> body = new HashMap<>();
-    protected ArrayList<String> column = new ArrayList<>();
-    protected Map<String, Object> params = new HashMap<>();
+
+    protected Map<String, String> header = Maps.newHashMap();
+
+    protected Map<String, Object> body =Maps.newHashMap();
+
+    protected ArrayList<String> column = Lists.newArrayList();
+
+    protected Map<String, Object> params = Maps.newHashMap();
+
     protected int batchInterval;
 
     @SuppressWarnings("unchecked")
@@ -73,7 +82,7 @@ public class RestapiWriter extends DataWriter {
         }
         tempObj = writerConfig.getParameter().getVal(RestapiKeys.KEY_PARAMS);
         if (tempObj != null) {
-            params = (HashMap) tempObj;
+            params = (HashMap<String, Object>) tempObj;
         }
     }
 

@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
@@ -33,8 +33,10 @@ import java.util.*;
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class Metadatahive2InputFormat extends MetadataInputFormat {
+public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
+
     protected List<String> tableColumn;
+
     protected List<String> partitionColumn;
 
     protected Map<String, Object> columnMap;
@@ -66,7 +68,8 @@ public class Metadatahive2InputFormat extends MetadataInputFormat {
 
     @Override
     public Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) {
-        ResultSet resultSet = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, true));
+        ResultSet resultSet = executeQuerySql(
+                buildDescSql(currentDbName + "." + currentQueryTable, true));
         if (resultSet == null) {
             LOG.warn("query result was null");
             setErrorMessage(new SQLException(),"query result was null");
