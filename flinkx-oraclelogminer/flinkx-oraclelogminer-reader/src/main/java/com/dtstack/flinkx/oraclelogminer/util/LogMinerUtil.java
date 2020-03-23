@@ -243,6 +243,10 @@ public class LogMinerUtil {
                 if(afterDataMap.containsKey(col)){
                     String value = cleanString(expr.getRightExpression().toString());
                     beforeDataMap.put(col, value);
+                } else {
+                    String value = cleanString(expr.getRightExpression().toString());
+                    beforeDataMap.put(col, value);
+                    afterDataMap.put(col, value);
                 }
             }
         });
