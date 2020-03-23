@@ -55,6 +55,8 @@ public final class HiveDbUtil {
 
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
 
+    public static final int JDBC_PART_SIZE = 2;
+
     public static final String JDBC_REGEX = "[\\?|;|#]";
     public static final String KEY_VAL_DELIMITER = "=";
     public static final String PARAM_DELIMITER = "&";
@@ -126,7 +128,7 @@ public final class HiveDbUtil {
 
     private static boolean openKerberos(final String jdbcUrl){
         String[] splits = jdbcUrl.split(JDBC_REGEX);
-        if (splits.length != 2) {
+        if (splits.length != JDBC_PART_SIZE) {
             return false;
         }
 

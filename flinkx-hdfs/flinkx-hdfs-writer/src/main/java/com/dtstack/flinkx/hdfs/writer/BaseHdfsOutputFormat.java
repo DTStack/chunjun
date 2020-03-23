@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
+    private static final int FILE_NAME_PART_SIZE = 3;
+
     protected int rowGroupSize;
 
     protected FileSystem fs;
@@ -142,7 +144,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) > fileIndex;
                 }
 

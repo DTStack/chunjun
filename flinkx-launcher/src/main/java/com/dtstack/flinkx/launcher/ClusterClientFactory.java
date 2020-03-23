@@ -71,29 +71,29 @@ public class ClusterClientFactory {
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
 
-        StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(config);
-        RestClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance());
+        try (StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(config)) {
+            RestClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance());
 
-        LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
-        InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
-        config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
-        config.setInteger(JobManagerOptions.PORT, address.getPort());
-        clusterClient.setDetached(true);
-        return clusterClient;
+            LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
+            InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
+            config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
+            config.setInteger(JobManagerOptions.PORT, address.getPort());
+            clusterClient.setDetached(true);
+            return clusterClient;
+        }
     }
 
-    public static ClusterClient createYarnClient(Options launcherOptions) {
+    public static ClusterClient createYarnClient(Options launcherOptions) throws Exception{
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
         String yarnConfDir = launcherOptions.getYarnconf();
         if(StringUtils.isNotBlank(yarnConfDir)) {
+            config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
+            FileSystem.initialize(config);
 
-            try {
-                config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
-                FileSystem.initialize(config);
+            YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
 
-                YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
-                YarnClient yarnClient = YarnClient.createYarnClient();
+            try (YarnClient yarnClient = YarnClient.createYarnClient()) {
                 yarnClient.init(yarnConf);
                 yarnClient.start();
                 ApplicationId applicationId = null;
@@ -134,10 +134,12 @@ public class ClusterClientFactory {
                 if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
                     config.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
                 }
-                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false);
-                ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
-                clusterClient.setDetached(true);
-                return clusterClient;
+
+                try (YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false)) {
+                    ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
+                    clusterClient.setDetached(true);
+                    return clusterClient;
+                }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
@@ -145,6 +147,4 @@ public class ClusterClientFactory {
 
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
-
-
 }

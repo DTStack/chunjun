@@ -75,6 +75,8 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
+    private static final int TIMESTAMP_BINARY_LENGTH = 12;
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         currentSplitFilePaths = ((HdfsParquetSplit)inputSplit).getPaths();
@@ -300,13 +302,12 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     private String getTypeName(String method){
         String typeName;
         switch (method){
+            case "getBoolean":
             case "getInteger" : typeName = "int";break;
             case "getInt96" : typeName = "bigint";break;
             case "getFloat" : typeName = "float";break;
             case "getDouble" : typeName = "double";break;
             case "getBinary" : typeName = "binary";break;
-            case "getString" : typeName = "string";break;
-            case "getBoolean" : typeName = "int";break;
             default:typeName = "string";
         }
 
@@ -317,11 +318,11 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
      * @param timestampBinary
      * @return
      */
-    private long getTimestampMillis(Binary timestampBinary)
-    {
-        if (timestampBinary.length() != 12) {
+    private long getTimestampMillis(Binary timestampBinary) {
+        if (timestampBinary.length() != TIMESTAMP_BINARY_LENGTH) {
             return 0;
         }
+
         byte[] bytes = timestampBinary.getBytes();
 
         long timeOfDayNanos = Longs.fromBytes(bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]);

@@ -76,6 +76,10 @@ public class DbUtil {
      */
     private static int NANOS_LENGTH = 19;
 
+    private static int FORMAT_TIME_NANOS_LENGTH = 29;
+
+    public static int NANOS_PART_LENGTH = 9;
+
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
      */
@@ -324,12 +328,12 @@ public class DbUtil {
 
     /**
      * 获取纳秒字符串
-     * @param timeStr
+     * @param timeStr 2020-03-23 11:03:22.000000000
      * @return
      */
     public static String getNanosTimeStr(String timeStr){
-        if(timeStr.length() < 29){
-            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+        if(timeStr.length() < FORMAT_TIME_NANOS_LENGTH){
+            timeStr += StringUtils.repeat("0",FORMAT_TIME_NANOS_LENGTH - timeStr.length());
         }
         return timeStr;
     }

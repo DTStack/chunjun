@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.kafkabase.decoder.DecodeEnum;
 import com.dtstack.flinkx.kafkabase.decoder.IDecode;
 import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
 import com.dtstack.flinkx.kafkabase.decoder.PlainDecoder;
@@ -61,7 +62,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         queue = new SynchronousQueue<>(false);
-        if ("json".equals(codec)) {
+        if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
             decode = new JsonDecoder();
         } else {
             decode = new PlainDecoder();

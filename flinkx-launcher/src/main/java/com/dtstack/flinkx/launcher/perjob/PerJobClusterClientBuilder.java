@@ -50,7 +50,7 @@ import java.util.Properties;
 public class PerJobClusterClientBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
 
-    private static final String DEFAULT_CONF_DIR = "./";
+    private static final String CLASS_LOAD_MODE_SHIP_FILE = "shipfile";
 
     private YarnClient yarnClient;
 
@@ -112,7 +112,8 @@ public class PerJobClusterClientBuilder {
                 }
             }
         }
-        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
+
+        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), CLASS_LOAD_MODE_SHIP_FILE)) {
             Map<String, DistributedCache.DistributedCacheEntry> jobCacheFileConfig = jobGraph.getUserArtifacts();
             for(Map.Entry<String,  DistributedCache.DistributedCacheEntry> tmp : jobCacheFileConfig.entrySet()){
                 if(tmp.getKey().startsWith("class_path")){
@@ -120,9 +121,11 @@ public class PerJobClusterClientBuilder {
                 }
             }
         }
+
         if (StringUtils.isNotBlank(options.getQueue())) {
             descriptor.setQueue(options.getQueue());
         }
+
         File log4j = new File(options.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
         if(log4j.exists()){
             shipFiles.add(log4j);

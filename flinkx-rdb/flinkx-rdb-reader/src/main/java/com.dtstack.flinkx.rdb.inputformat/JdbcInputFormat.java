@@ -386,7 +386,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         String url = monitorUrls;
-        if (monitorUrls.startsWith("http")) {
+        if (monitorUrls.startsWith(ConstantValue.PROTOCOL_HTTP)) {
             url = String.format("%s/jobs/%s/accumulators", monitorUrls, jobId);
         }
 
@@ -722,10 +722,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 long time = ((Timestamp) columnVal).getTime() / 1000;
 
                 String nanosStr = String.valueOf(((Timestamp) columnVal).getNanos());
-                if (nanosStr.length() == 9) {
+                if (nanosStr.length() == DbUtil.NANOS_PART_LENGTH) {
                     location = time + nanosStr;
                 } else {
-                    String fillZeroStr = StringUtils.repeat("0", 9 - nanosStr.length());
+                    String fillZeroStr = StringUtils.repeat("0", DbUtil.NANOS_PART_LENGTH - nanosStr.length());
                     location = time + fillZeroStr + nanosStr;
                 }
             } else {

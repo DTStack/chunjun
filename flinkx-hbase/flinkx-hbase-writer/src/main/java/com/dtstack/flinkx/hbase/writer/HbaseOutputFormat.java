@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
@@ -188,8 +189,6 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
                             cfAndQualifierBytes[0],
                             cfAndQualifierBytes[1],
                             columnBytes);
-                }else{
-                    continue;
                 }
             }
 
@@ -204,7 +203,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
 
     private SimpleDateFormat getSimpleDateFormat(String sign){
         SimpleDateFormat format;
-        if("sss".equalsIgnoreCase(sign)){
+        if(ConstantValue.TIME_SECOND_SUFFIX.equals(sign)){
             format = timeSecondFormatThreadLocal.get();
             if(format == null){
                 format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -258,8 +257,8 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
             if(record.getField(index)  == null){
                 throw new IllegalArgumentException("null verison column!");
             }
-            SimpleDateFormat dfSeconds = getSimpleDateFormat("sss");
-            SimpleDateFormat dfMs = getSimpleDateFormat("SSS");
+            SimpleDateFormat dfSeconds = getSimpleDateFormat(ConstantValue.TIME_SECOND_SUFFIX);
+            SimpleDateFormat dfMs = getSimpleDateFormat(ConstantValue.TIME_MILLISECOND_SUFFIX);
             Object column = record.getField(index);
             if(column instanceof Long){
                 Long longValue = (Long) column;

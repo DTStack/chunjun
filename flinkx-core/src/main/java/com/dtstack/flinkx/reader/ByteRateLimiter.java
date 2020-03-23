@@ -88,7 +88,7 @@ public class ByteRateLimiter {
 
         if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE && totalBytes != 0
                 && thisWriteRatio.compareTo(new BigDecimal(0)) == 0) {
-            double bpr = totalBytes / totalRecords;
+            double bpr = totalBytes / (double)totalRecords;
             double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio.doubleValue();
             rateLimiter.setRate(permitsPerSecond);
         }

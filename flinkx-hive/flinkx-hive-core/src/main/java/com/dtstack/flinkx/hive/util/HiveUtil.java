@@ -57,22 +57,47 @@ public class HiveUtil {
         /**
          * apache hive 1.x
          */
-        APACHE_1,
+        APACHE_1("apache", "1"),
 
         /**
          * apache hive 2.x
          */
-        APACHE_2,
+        APACHE_2("apache", "2"),
 
         /**
          * cdh hive 1.x
          */
-        CDH_1,
+        CDH_1("cdh", "1"),
 
         /**
          * cdh hive 2.x
          */
-        CDH_2
+        CDH_2("cdh", "2");
+
+        private String name;
+
+        private String version;
+
+        HiveReleaseVersion(String name, String version) {
+            this.name = name;
+            this.version = version;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
     }
 
     public HiveUtil() {
@@ -182,11 +207,11 @@ public class HiveUtil {
         try (ResultSet resultSet = connection.createStatement().executeQuery("select version()")) {
             if (resultSet.next()) {
                 String versionMsg = resultSet.getString(1);
-                if (versionMsg.contains("cdh")){
+                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())){
                     // 结果示例：2.1.1-cdh6.3.1 re8d55f408b4f9aa2648bc9e34a8f802d53d6aab3
-                    if (versionMsg.startsWith("2")) {
+                    if (versionMsg.startsWith(HiveReleaseVersion.CDH_2.getVersion())) {
                         version = HiveReleaseVersion.CDH_2;
-                    } else if(versionMsg.startsWith("1")){
+                    } else if(versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())){
                         version = HiveReleaseVersion.CDH_1;
                     }
                 } else {
