@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -143,7 +144,7 @@ public abstract class MetadataInputFormat extends RichInputFormat {
      * @return result 查询结果拆分之后的数据
      */
     public List<String> getDataList(String queryDataSql) throws SQLException {
-        List<String> result = new ArrayList<>();
+        List<String> result = Lists.newArrayList();
         ResultSet resultSet = executeQuerySql(queryDataSql);
         while (resultSet.next()) {
             result.add(resultSet.getString(1));

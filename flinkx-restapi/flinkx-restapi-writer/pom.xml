@@ -63,10 +63,10 @@
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>shade.restapiwriter.io.netty</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.restapiwriter.com.google</shadedPattern>
-                                </relocation>
+<!--                                <relocation>-->
+<!--                                    <pattern>com.google</pattern>-->
+<!--                                    <shadedPattern>shade.restapiwriter.com.google</shadedPattern>-->
+<!--                                </relocation>-->
                             </relocations>
                         </configuration>
                     </execution>
