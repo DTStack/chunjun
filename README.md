@@ -1,4 +1,11 @@
-# FlinkX
+## 7.技术交流
+  * 招聘大数据平台开发工程师，想了解岗位详细信息可以添加本人微信号ysqwhiletrue,注明招聘，如有意者发送简历至sishu@dtstack.com
+  
+  * 可以搜索群号30537511或者扫描下面的二维码进入钉钉群
+   <div align=center>
+     <img src=docs/images/ding.jpg width=400 />
+   </div>
+
 
 ## 1 什么是FlinkX
 
@@ -356,12 +363,3 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 | ----- | ------- |
 | 1.5.x | 1.5.4   |
 | 1.8.x | 1.8.1   |
-
-## 7.钉钉交流群（可以搜索群号30537511，也可以扫描下面的二维码）
-<div align=center>
-    <img src=docs/images/ding.jpg width=400 />
-</div>
-
-## 8.招聘信息
-
- 1.大数据平台开发工程师，想了解岗位详细信息可以添加本人微信号ysqwhiletrue,注明招聘，如有意者发送简历至sishu@dtstack.com。
