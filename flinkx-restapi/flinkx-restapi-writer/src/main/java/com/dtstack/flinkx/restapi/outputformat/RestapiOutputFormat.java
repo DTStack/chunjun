@@ -58,7 +58,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> requestBody = Maps.newHashMap();
-        List<Object> dataRow;
+        Object dataRow;
         try {
             dataRow = getDataFromRow(row, column);
             if (!params.isEmpty()) {
@@ -113,9 +113,25 @@ public class RestapiOutputFormat extends RichOutputFormat {
             LOG.warn("添加脏数据:" + row.getField(index));
         }
     }
+//
+//    private List<Object> getDataFromRow(Row row, List<String> column) throws IOException {
+//        List<Object> result = new ArrayList<>();
+//        Map<String, Object> columnData = Maps.newHashMap();
+//        int index = 0;
+//        if (!column.isEmpty()) {
+//            // 如果column不为空，那么将数据和字段名一一对应
+//            for (; index < row.getArity(); index++) {
+//                columnData.put(column.get(index), row.getField(index));
+//            }
+//            result.add(objectMapper.writeValueAsString(columnData));
+//        } else {
+//            // 以下只针对元数据同步采集情况
+//            result.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
+//        }
+//        return result;
+//    }
 
-    private List<Object> getDataFromRow(Row row, List<String> column) throws IOException {
-        List<Object> result = new ArrayList<>();
+    private Object getDataFromRow(Row row, List<String> column) throws IOException {
         Map<String, Object> columnData = Maps.newHashMap();
         int index = 0;
         if (!column.isEmpty()) {
@@ -123,13 +139,13 @@ public class RestapiOutputFormat extends RichOutputFormat {
             for (; index < row.getArity(); index++) {
                 columnData.put(column.get(index), row.getField(index));
             }
-            result.add(objectMapper.writeValueAsString(columnData));
+            return objectMapper.writeValueAsString(columnData);
         } else {
             // 以下只针对元数据同步采集情况
-            result.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
+           return objectMapper.readValue(row.getField(index).toString(), Map.class).get("data");
         }
-        return result;
     }
+
 
     private void sendRequest(CloseableHttpClient httpClient,
                              Map<String, Object> requestBody,
