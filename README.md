@@ -357,7 +357,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 | 1.5.x | 1.5.4   |
 | 1.8.x | 1.8.1   |
 
-## 7.交流群
+## 7.钉钉交流群（可以搜索群号30537511，也可以扫描下面的二维码）
 <div align=center>
     <img src=docs/images/ding.jpg width=400 />
 </div>
