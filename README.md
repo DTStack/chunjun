@@ -3,7 +3,7 @@
   
   * 可以搜索群号30537511或者扫描下面的二维码进入钉钉群
    <div align=center>
-     <img src=docs/images/ding.jpg width=400 />
+     <img src=docs/images/ding.jpg width=300 />
    </div>
 
 
