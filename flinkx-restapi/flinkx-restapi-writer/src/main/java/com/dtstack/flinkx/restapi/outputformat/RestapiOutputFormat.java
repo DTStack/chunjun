@@ -126,7 +126,7 @@ public class RestapiOutputFormat extends RichOutputFormat {
             result.add(objectMapper.writeValueAsString(columnData));
         } else {
             // 以下只针对元数据同步采集情况
-            result.addAll((Collection<?>) objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
+            result.add(objectMapper.readValue(row.getField(index).toString(), Map.class).get("data"));
         }
         return result;
     }

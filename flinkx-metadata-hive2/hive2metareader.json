@@ -4,7 +4,7 @@
       {
         "writer": {
           "parameter": {
-            "batchInterval": 1,
+            "batchInterval": 2,
             "url": "http://172.16.1.206:8876/dassets/v1/syncJob/syncCallBack",
             "header": [],
             "body": [],
@@ -23,7 +23,13 @@
             "username": "root",
             "password": "abc123",
             "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
-            "dbList": []
+            "dbList": [
+              {
+                "dbName":"tiezhu",
+                "tableList": ["test_1", "test_2", "test_3", "test_4"]
+              }
+
+            ]
           },
           "name": "metadatahive2reader"
         }
