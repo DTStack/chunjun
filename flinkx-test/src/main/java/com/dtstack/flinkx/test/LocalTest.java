@@ -115,17 +115,17 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-        confProperties.put("flink.checkpoint.interval", "10000");
+        confProperties.put("flink.checkpoint.interval", "120000");
         confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
-        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-        conf.setString("metrics.reporter.promgateway.host","172.16.8.178");
-        conf.setString("metrics.reporter.promgateway.port","9091");
-        conf.setString("metrics.reporter.promgateway.jobName","jiangboJob");
-        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","false");
+//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+//        conf.setString("metrics.reporter.promgateway.host","172.16.8.178");
+//        conf.setString("metrics.reporter.promgateway.port","9091");
+//        conf.setString("metrics.reporter.promgateway.jobName","jiangboJob");
+//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","false");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
+        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

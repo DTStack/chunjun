@@ -6,8 +6,8 @@
           "password" : "abc123",
           "port" : 3306,
           "cat" : "insert,update,delete",
-          "host" : "172.16.8.178",
-          "jdbcUrl" : "jdbc:mysql://172.16.8.178:3306/binlog_test",
+          "host" : "172.16.10.196",
+          "jdbcUrl" : "jdbc:mysql://172.16.10.196:3306/binlog_test",
           "start" : { },
           "pavingData" : false,
           "table" : [ "binlog_test" ],
@@ -17,9 +17,22 @@
       },
       "writer" : {
         "parameter" : {
-
+          "path" : "/data/ftp",
+          "fileName" : "restart",
+          "host": "172.16.10.212",
+          "port": 22,
+          "username": "root",
+          "password": "abc123",
+          "protocol": "sftp",
+          "fieldDelimiter": ",",
+          "writeMode": "APPEND",
+          "column" : [ {
+            "name" : "message",
+            "index" : 0,
+            "type" : "string"
+          } ]
         },
-        "name" : "streamwriter"
+        "name" : "ftpwriter"
       }
     } ],
     "setting" : {
@@ -33,7 +46,7 @@
         "channel" : 1
       },
       "test": {
-        "failedPerRecord": 100,
+        "failedPerRecord": 5,
         "errorMsg": "失败测试",
         "speedTest": null
       }

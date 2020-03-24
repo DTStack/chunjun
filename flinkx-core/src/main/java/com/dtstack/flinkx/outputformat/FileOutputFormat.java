@@ -56,6 +56,10 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
     protected static final String ACTION_FINISHED = ".action_finished";
 
+    protected static final String RESTART_FILE_NAME_SUFFIX = "restart";
+
+    protected static final String JOB_ID_DELIMITER = "_";
+
     protected static final int SECOND_WAIT = 30;
 
     protected static final String SP = "/";
@@ -108,6 +112,9 @@ public abstract class FileOutputFormat extends RichOutputFormat {
             outputFilePath = path;
         }
 
+        jobId = getCurrentJobId();
+        LOG.info("current jobId:{}", jobId);
+
         currentBlockFileNamePrefix = taskNumber + "." + jobId;
         tmpPath = outputFilePath + SP + DATA_SUBDIR;
         finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
@@ -115,6 +122,28 @@ public abstract class FileOutputFormat extends RichOutputFormat {
 
         LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
+    }
+
+    /**
+     * 加了失败恢复策略后，jobId是一样的，失败前和恢复后会产生名称相同的文件，导致数据写入异常，这里对这种情况做特殊处理
+     * @return 新的jobId
+     */
+    private String getCurrentJobId() {
+        if (null == formatState || StringUtils.isEmpty(formatState.getJobId())) {
+            return jobId;
+        }
+
+        // 如果这次的jobId和上次的jobId一样，则任务是自动恢复的，需要处理jobId
+        if(formatState.getJobId().equals(jobId)) {
+            if (jobId.contains(RESTART_FILE_NAME_SUFFIX)) {
+                int restartNumber = Integer.parseInt(jobId.split("_")[2]) + 1;
+                return String.format("%s_%s_%s", jobId, RESTART_FILE_NAME_SUFFIX, restartNumber);
+            } else {
+                return String.format("%s_%s_%s", jobId, RESTART_FILE_NAME_SUFFIX, 0);
+            }
+        }
+
+        return jobId;
     }
 
     protected void actionBeforeWriteData(){
