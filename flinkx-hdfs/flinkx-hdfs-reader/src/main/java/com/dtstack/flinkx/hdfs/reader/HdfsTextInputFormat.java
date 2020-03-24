@@ -21,7 +21,6 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
-import jodd.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -37,9 +36,6 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.Map;
 
 /**
  * The subclass of HdfsInputFormat which handles text files
@@ -134,69 +130,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
     public boolean reachedEnd() throws IOException {
         key = new LongWritable();
         value = new Text();
-        return isFileEmpty || !recordReader.next(key, value);
-    }
-
-
-    public static class HdfsTextInputFormatBuilder {
-
-        private HdfsTextInputFormat format;
-
-        private HdfsTextInputFormatBuilder() {
-            format = new HdfsTextInputFormat();
-        }
-
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
-            format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
-            format.inputPath = inputPaths;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
-            if(delimiter == null) {
-                delimiter = "\\001";
-            }
-            format.delimiter = delimiter;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFS = defaultFs;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
-            if(StringUtil.isNotEmpty(charsetName)) {
-                if(!Charset.isSupported(charsetName)) {
-                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-                }
-                this.format.charsetName = charsetName;
-            }
-
-            return this;
-        }
-
-        public HdfsTextInputFormat finish() {
-            return format;
-        }
-    }
-
-    public static HdfsTextInputFormatBuilder buildHdfsTextInputFormat() {
-        return new HdfsTextInputFormatBuilder();
+        return !recordReader.next(key, value);
     }
 
     static class HdfsTextInputSplit implements InputSplit {
@@ -228,5 +162,4 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             return splitNumber;
         }
     }
-
 }
