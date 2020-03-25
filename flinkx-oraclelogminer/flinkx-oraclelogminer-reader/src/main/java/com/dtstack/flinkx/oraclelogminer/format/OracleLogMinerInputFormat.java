@@ -130,13 +130,12 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
             offsetScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
         } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
-            scnCopy = Long.parseLong(logMinerConfig.getStartSCN());
-
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartSCN())){
                 throw new RuntimeException("读取模式为[scn]时必须指定[startSCN]");
             }
 
+            scnCopy = Long.parseLong(logMinerConfig.getStartSCN());
             offsetScn = getLogFileStartPositionByScn(Long.parseLong(logMinerConfig.getStartSCN()));
         } else {
             throw new RuntimeException("不支持的读取模式:" + logMinerConfig.getReadPosition());
