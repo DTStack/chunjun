@@ -53,6 +53,7 @@
         <module>flinkx-kafka</module>
 
         <module>flinkx-emqx</module>
+        <module>flinkx-pulsar</module>
 
     </modules>
 
@@ -136,15 +137,15 @@
     </dependencies>
 
     <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <package.name>${git.branch}</package.name>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
+<!--        <profile>-->
+<!--            <id>dev</id>-->
+<!--            <properties>-->
+<!--                <package.name>${git.branch}</package.name>-->
+<!--            </properties>-->
+<!--            <activation>-->
+<!--                <activeByDefault>true</activeByDefault>-->
+<!--            </activation>-->
+<!--        </profile>-->
 
         <profile>
             <id>release</id>
