@@ -36,11 +36,19 @@ public class SettingConfig extends AbstractConfig {
 
     public static final String KEY_RESTORE = "restore";
 
+    public static final String KEY_TEST = "test";
+
+    public static final String KEY_RESTART = "restart";
+
     private SpeedConfig speed = SpeedConfig.defaultConfig();
 
     private ErrorLimitConfig errorLimit = ErrorLimitConfig.defaultConfig();
 
     private RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
+
+    private TestConfig testConfig = TestConfig.defaultConfig();
+
+    private RestartConfig restartConfig = RestartConfig.defaultConfig();
 
     private DirtyConfig dirty;
 
@@ -58,6 +66,14 @@ public class SettingConfig extends AbstractConfig {
 
         if (map.containsKey(KEY_RESTORE)){
             restoreConfig = new RestoreConfig((Map<String, Object>) map.get(KEY_RESTORE));
+        }
+
+        if (map.containsKey(KEY_TEST)) {
+            testConfig = new TestConfig((Map<String, Object>) map.get(KEY_TEST));
+        }
+
+        if (map.containsKey(KEY_RESTART)) {
+            restartConfig = new RestartConfig((Map<String, Object>) map.get(KEY_RESTART));
         }
     }
 
@@ -91,6 +107,22 @@ public class SettingConfig extends AbstractConfig {
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public TestConfig getTestConfig() {
+        return testConfig;
+    }
+
+    public void setTestConfig(TestConfig testConfig) {
+        this.testConfig = testConfig;
+    }
+
+    public RestartConfig getRestartConfig() {
+        return restartConfig;
+    }
+
+    public void setRestartConfig(RestartConfig restartConfig) {
+        this.restartConfig = restartConfig;
     }
 }
 

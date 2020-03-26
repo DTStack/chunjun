@@ -21,6 +21,7 @@ package com.dtstack.flinkx.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
@@ -52,6 +53,8 @@ public abstract class DataReader {
     protected String monitorUrls;
 
     protected RestoreConfig restoreConfig;
+
+    protected TestConfig testConfig;
 
     protected List<String> srcCols = new ArrayList<>();
 
@@ -86,7 +89,7 @@ public abstract class DataReader {
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
-        this.exceptionIndex = config.getJob().getContent().get(0).getReader().getParameter().getLongVal("exceptionIndex",0);
+        this.testConfig = config.getJob().getSetting().getTestConfig();
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
         if (dirtyConfig != null) {

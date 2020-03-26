@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -103,6 +104,8 @@ public class HiveOutputFormat extends RichOutputFormat {
     private Map<String, TableInfo> tableCache;
     private Map<String, HdfsOutputFormat> outputFormats;
 
+    private Map<String, FormatState> formatStateMap = new HashMap<>();
+
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
@@ -116,6 +119,11 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
+
+        if (null != formatState && null != formatState.getState()) {
+            HiveFormatState hiveFormatState = (HiveFormatState)formatState.getState();
+            formatStateMap.putAll(hiveFormatState.getFormatStateMap());
+        }
 
         DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
         connectionInfo.setJdbcUrl(jdbcUrl);
@@ -132,7 +140,6 @@ public class HiveOutputFormat extends RichOutputFormat {
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
     }
 
-
     @Override
     public FormatState getFormatState() {
         if (!restoreConfig.isRestore()) {
@@ -140,17 +147,23 @@ public class HiveOutputFormat extends RichOutputFormat {
             return null;
         }
 
-        flushOutputFormat();
+        Map<String, FormatState> formatStateMap = flushOutputFormat();
+
+        HiveFormatState hiveFormatState = new HiveFormatState(formatStateMap);
+        formatState.setState(hiveFormatState);
 
         super.getFormatState();
         return formatState;
     }
 
-    private void flushOutputFormat() {
+    private Map<String, FormatState> flushOutputFormat() {
+        Map<String, FormatState> formatStateMap = new HashMap<>();
         Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
-            entry.getValue().getFormatState();
+            FormatState formatState = entry.getValue().getFormatState();
+            formatStateMap.put(entry.getValue().getFormatId(), formatState);
+
             if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                 try {
                     entry.getValue().close();
@@ -161,6 +174,8 @@ public class HiveOutputFormat extends RichOutputFormat {
                 }
             }
         }
+
+        return formatStateMap;
     }
 
     @Override
@@ -230,9 +245,11 @@ public class HiveOutputFormat extends RichOutputFormat {
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
             outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
+            outputFormat.setRestoreState(formatStateMap.get(hiveTablePath));
             outputFormat.configure(parameters);
             outputFormat.open(taskNumber, numTasks);
             outputFormats.put(hiveTablePath, outputFormat);
@@ -294,4 +311,19 @@ public class HiveOutputFormat extends RichOutputFormat {
         return builder;
     }
 
+    static class HiveFormatState implements Serializable {
+        private Map<String, FormatState> formatStateMap;
+
+        public HiveFormatState(Map<String, FormatState> formatStateMap) {
+            this.formatStateMap = formatStateMap;
+        }
+
+        public Map<String, FormatState> getFormatStateMap() {
+            return formatStateMap;
+        }
+
+        public void setFormatStateMap(Map<String, FormatState> formatStateMap) {
+            this.formatStateMap = formatStateMap;
+        }
+    }
 }

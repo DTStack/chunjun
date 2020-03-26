@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,10 @@ public abstract class RichInputFormatBuilder {
 
     public void setRestoreConfig(RestoreConfig restoreConfig){
         format.restoreConfig = restoreConfig;
+    }
+
+    public void setTestConfig(TestConfig testConfig) {
+        format.testConfig = testConfig;
     }
 
     protected abstract void checkFormat();

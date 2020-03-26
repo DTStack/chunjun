@@ -47,25 +47,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, row));
-        }
-
-        // 模拟脏数据的产生
-        int n = 0;
-        try {
-            for (int i = 0; i < row.getArity(); i++) {
-                n = i;
-                Object val = row.getField(i);
-                if (val != null) {
-                    StringUtil.string2col(val.toString(), metaColumns.get(i).getType(), null);
-                }
-            }
-        } catch (Exception e) {
-            throw new WriteRecordException(recordConvertDetailErrorMessage(n, row), e, n, row);
-        }
-
-        if (restoreConfig.isRestore()) {
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
+            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, row);
         }
     }
 
@@ -75,11 +57,6 @@ public class StreamOutputFormat extends RichOutputFormat {
             for (Row row : rows) {
                 System.out.println(row);
             }
-        }
-
-        if (restoreConfig.isRestore()) {
-            Row row = rows.get(rows.size() - 1);
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
         }
     }
 }
