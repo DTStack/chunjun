@@ -4,11 +4,11 @@
       "reader" : {
         "parameter" : {
           "schema" : "KMINER",
-          "startSCN" : null,
+          "startSCN" : "2127023",
           "password" : "kminerpass",
           "cat" : "insert,update,delete",
-          "jdbcUrl" : "jdbc:oracle:thin:@172.16.101.24:1521/baiyang",
-          "readPosition" : "current",
+          "jdbcUrl" : "jdbc:oracle:thin:@172.16.101.194:1521/dtstack",
+          "readPosition" : "scn",
           "pavingData" : true,
           "table" : [ "KMINER.logtest" ],
           "username" : "kminer"

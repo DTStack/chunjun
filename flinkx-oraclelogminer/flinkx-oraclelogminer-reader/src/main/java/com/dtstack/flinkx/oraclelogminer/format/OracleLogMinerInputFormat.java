@@ -269,7 +269,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     private void startSelectData() {
         String logMinerSelectSql = LogMinerUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
         try {
-            logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql);
+            logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             LogMinerUtil.configStatement(logMinerSelectStmt, logMinerConfig);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
@@ -318,6 +318,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
                 row = LogMinerUtil.parseSql(logMinerData, sqlRedo.toString(), logMinerConfig.getPavingData());
 
                 offsetScn = scn;
+
+                System.out.println("------------" + row);
                 return row;
             }
         } catch (Exception e) {
@@ -325,7 +327,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
             throw new RuntimeException(e);
         }
 
-        throw new RuntimeException("获取不到下一条数据，程序自动失败");
+        return null;
+//        throw new RuntimeException("获取不到下一条数据，程序自动失败");
     }
 
     @Override

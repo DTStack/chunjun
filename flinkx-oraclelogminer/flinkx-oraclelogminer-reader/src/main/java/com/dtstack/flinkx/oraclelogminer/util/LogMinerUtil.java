@@ -57,33 +57,85 @@ public class LogMinerUtil {
     public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
 
     /**
-     * OPTIONS参数说明:
-     * DBMS_LOGMNR.SKIP_CORRUPTION - 跳过出错的redlog
-     * DBMS_LOGMNR.NO_SQL_DELIMITER - 不使用 ';'分割redo sql
-     * DBMS_LOGMNR.NO_ROWID_IN_STMT - 默认情况下，用于UPDATE和DELETE操作的SQL_REDO和SQL_UNDO语句在where子句中包含“ ROWID =”。
-     *                                但是，这对于想要重新执行SQL语句的应用程序是不方便的。设置此选项后，“ ROWID”不会放置在重构语句的末尾
-     * DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG - 使用在线字典
-     * DBMS_LOGMNR.CONTINUOUS_MINE - 需要在生成重做日志的同一实例中使用日志
-     * DBMS_LOGMNR.COMMITTED_DATA_ONLY - 指定此选项时，LogMiner将属于同一事务的所有DML操作分组在一起。事务按提交顺序返回。
-     * DBMS_LOGMNR.STRING_LITERALS_IN_STMT - 默认情况下，格式化格式化的SQL语句时，SQL_REDO和SQL_UNDO语句会使用数据库会话的NLS设置
-     *                                       例如NLS_DATE_FORMAT，NLS_NUMERIC_CHARACTERS等）。使用此选项，将使用ANSI / ISO字符串文字格式对重构的SQL语句进行格式化。
+     * 启动logminer
+     * 视图说明：
+     * v$log：存储未归档的日志
+     * v$archived_log：存储已归档的日志文件
+     * v$logfile：
      */
     public final static String SQL_START_LOGMINER = "" +
-            "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
-            "STARTSCN => ?," +
-            "OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
-            "+ DBMS_LOGMNR.NO_SQL_DELIMITER " +
-            "+ DBMS_LOGMNR.NO_ROWID_IN_STMT " +
-            "+ DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
-            "+ DBMS_LOGMNR.CONTINUOUS_MINE " +
-            "+ DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
-            "+ DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
-            ");" +
+            "DECLARE\n" +
+            "    st          BOOLEAN := true;\n" +
+            "    start_scn   NUMBER := ?;\n" +
+            "BEGIN\n" +
+            "    FOR l_log_rec IN (\n" +
+            "        SELECT\n" +
+            "            MIN(name) name,\n" +
+            "            first_change#,\n" +
+            "            next_change#\n" +
+            "        FROM\n" +
+            "            (\n" +
+            "                SELECT\n" +
+            "                    MIN(member) AS name,\n" +
+            "                    first_change#,\n" +
+            "                    next_change#\n" +
+            "                FROM\n" +
+            "                    v$log       l\n" +
+            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "                GROUP BY\n" +
+            "                    first_change#,\n" +
+            "                    next_change#\n" +
+            "                UNION\n" +
+            "                SELECT\n" +
+            "                    name,\n" +
+            "                    first_change#,\n" +
+            "                    next_change#\n" +
+            "                FROM\n" +
+            "                    v$archived_log\n" +
+            "                WHERE\n" +
+            "                    name IS NOT NULL\n" +
+            "            )\n" +
+            "        WHERE\n" +
+            "            first_change# >= start_scn\n" +
+            "            OR start_scn < next_change#\n" +
+            "        GROUP BY\n" +
+            "            first_change#,\n" +
+            "            next_change#\n" +
+            "        ORDER BY\n" +
+            "            first_change#\n" +
+            "    ) LOOP IF st THEN\n" +
+            "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.new);\n" +
+            "        st := false;\n" +
+            "    ELSE\n" +
+            "        dbms_logmnr.add_logfile(l_log_rec.name);\n" +
+            "    END IF;\n" +
+            "    END LOOP;\n" +
+            "\n" +
+            "    dbms_logmnr.start_logmnr(options => " +
+            "dbms_logmnr.skip_corruption " +
+            "+ dbms_logmnr.no_sql_delimiter " +
+            "+ dbms_logmnr.no_rowid_in_stmt\n" +
+            "+ dbms_logmnr.dict_from_online_catalog " +
+            "+ DBMS_LOGMNR.committed_data_only" +
+            "+ dbms_logmnr.string_literals_in_stmt);\n" +
+            "\n" +
             "END;";
 
-    public final static String SQL_SELECT_DATA = "SELECT SCN, COMMIT_SCN, TIMESTAMP, OPERATION, SEG_OWNER, TABLE_NAME, SQL_REDO, ROW_ID, CSF " +
-            " FROM v$logmnr_contents " +
-            " WHERE SCN >=?";
+    public final static String SQL_SELECT_DATA = "" +
+            "SELECT\n" +
+            "    scn,\n" +
+            "    commit_scn,\n" +
+            "    timestamp,\n" +
+            "    operation,\n" +
+            "    seg_owner,\n" +
+            "    table_name,\n" +
+            "    sql_redo,\n" +
+            "    row_id,\n" +
+            "    csf\n" +
+            "FROM\n" +
+            "    v$logmnr_contents\n" +
+            "WHERE\n" +
+            "    scn >= ?";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 
