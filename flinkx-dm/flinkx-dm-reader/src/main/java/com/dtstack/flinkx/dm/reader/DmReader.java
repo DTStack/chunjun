@@ -15,33 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.dm.reader;
 
-package com.dtstack.flinkx.enums;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.dm.DmDatabaseMeta;
+import com.dtstack.flinkx.dm.format.DmInputFormat;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Database type
- *
+ * Date: 2020/03/18
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author tudou
  */
-public enum EDatabaseType {
+public class DmReader extends JdbcDataReader {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm
+    public DmReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+        setDatabaseInterface(new DmDatabaseMeta());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new DmInputFormat());
+    }
 }

@@ -26,10 +26,6 @@
                     <groupId>ch.qos.logback</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>protobuf-java</artifactId>
                     <groupId>com.google.protobuf</groupId>
                 </exclusion>
@@ -101,6 +97,12 @@
                                 </excludes>
                             </filter>
                         </filters>
+                        <relocations>
+                            <relocation>
+                                <pattern>com.google.common</pattern>
+                                <shadedPattern>shade.binlog.com.google.common</shadedPattern>
+                            </relocation>
+                        </relocations>
                     </configuration>
                 </execution>
             </executions>

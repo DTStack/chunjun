@@ -432,6 +432,18 @@
             <version>1.6</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-dm-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-dm-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 

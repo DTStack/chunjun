@@ -25,6 +25,7 @@
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-db2</module>
+        <module>flinkx-dm</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
         <module>flinkx-oraclelogminer</module>
@@ -50,7 +51,6 @@
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
         <module>flinkx-sqlservercdc</module>
-
         <module>flinkx-emqx</module>
 
         <module>flinkx-metadata</module>

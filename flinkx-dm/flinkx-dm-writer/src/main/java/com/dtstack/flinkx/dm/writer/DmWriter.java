@@ -15,33 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.dm.writer;
 
-package com.dtstack.flinkx.enums;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.dm.DmDatabaseMeta;
+import com.dtstack.flinkx.dm.format.DmOutputFormat;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
 /**
- * Database type
- *
+ * Date: 2020/03/18
  * Company: www.dtstack.com
- * @author jiangbo
+ *
+ * @author tudou
  */
-public enum EDatabaseType {
+public class DmWriter extends JdbcDataWriter {
 
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm
+    public DmWriter(DataTransferConfig config) {
+        super(config);
+        setDatabaseInterface(new DmDatabaseMeta());
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new DmOutputFormat());
+    }
 }
