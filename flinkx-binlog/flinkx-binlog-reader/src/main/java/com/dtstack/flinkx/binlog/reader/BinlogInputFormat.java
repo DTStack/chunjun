@@ -216,7 +216,7 @@ public class BinlogInputFormat extends RichInputFormat {
 
     private void checkBinlogFile(String journalName) {
         if (StringUtils.isNotEmpty(journalName)) {
-            if (!new BinlogJournalValidator(host, port, username, password).check(journalName)) {
+            if (!new BinlogJournalValidator(binlogConfig.getHost(), binlogConfig.getPort(), binlogConfig.getUsername(), binlogConfig.getPassword()).check(journalName)) {
                 throw new IllegalArgumentException("Can't find journalName: " + journalName);
             }
         }

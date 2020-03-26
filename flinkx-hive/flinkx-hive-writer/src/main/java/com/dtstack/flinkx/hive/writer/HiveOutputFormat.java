@@ -245,20 +245,20 @@ public class HiveOutputFormat extends RichOutputFormat {
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
-            outputFormat = createHdfsOutputFormat(tableInfo, path);
+            outputFormat = createHdfsOutputFormat(tableInfo, path, hiveTablePath);
             outputFormats.put(hiveTablePath, outputFormat);
         }
         return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
+    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path, String hiveTablePath) {
         try {
             HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
             hdfsOutputFormatBuilder.setPath(path);
             hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-            outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
