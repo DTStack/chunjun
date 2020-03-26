@@ -13,9 +13,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.dm</groupId>
-            <artifactId>Dm7JdbcDriver18</artifactId>
-            <version>7.6.0.197</version>
+            <groupId>dm.jdbc.driver</groupId>
+            <artifactId>dm7</artifactId>
+            <version>18.0.0</version>
         </dependency>
     </dependencies>
 </project>
