@@ -51,6 +51,7 @@ import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
+import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -69,6 +70,7 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.DataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -127,7 +129,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
+        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -139,6 +141,9 @@ public class LocalTest {
 
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
+
+        conf.setString("akka.ask.timeout", "180 s");
+        conf.setString("web.timeout", String.valueOf(100000));
 
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 
@@ -206,6 +211,7 @@ public class LocalTest {
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
+            case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -241,6 +247,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
+            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
