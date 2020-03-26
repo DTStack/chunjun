@@ -1,54 +1,71 @@
 {
-  "job" : {
-    "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "password" : "abc123",
-          "port" : 3306,
-          "cat" : "insert,update,delete",
-          "host" : "172.16.10.196",
-          "jdbcUrl" : "jdbc:mysql://172.16.10.196:3306/binlog_test",
-          "start" : { },
-          "pavingData" : false,
-          "table" : [ "binlog_test" ],
-          "username" : "root"
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "schema": "yeluo_test",
+            "filter": "yeluo_test\\.primary_key_table_23271",
+            "password": "root",
+            "database": "yeluo_test",
+            "port": 3306,
+            "cat": "insert,update,delete",
+            "jdbcUrl": "jdbc:mysql://172.16.8.193:3306/yeluo_test",
+            "host": "172.16.8.193",
+            "pavingData": true,
+            "username": "root"
+          },
+          "name": "binlogreader",
+          "type": 1
         },
-        "name" : "binlogreader"
-      },
-      "writer" : {
-        "parameter" : {
-          "path" : "/data/ftp",
-          "fileName" : "restart",
-          "host": "172.16.10.212",
-          "port": 22,
-          "username": "root",
-          "password": "abc123",
-          "protocol": "sftp",
-          "fieldDelimiter": ",",
-          "writeMode": "APPEND",
-          "column" : [ {
-            "name" : "message",
-            "index" : 0,
-            "type" : "string"
-          } ]
-        },
-        "name" : "ftpwriter"
+        "writer": {
+          "parameter": {
+            "fileName": "pt",
+            "writeMode": "append",
+            "fieldDelimiter": "\u0001",
+            "partitionType": "DAY",
+            "path": "",
+            "analyticalRules": "stream_${schema}_${table}_23271",
+            "tablesColumn": "{\"primary_key_table_23271\":[{\"type\":\"INT\",\"key\":\"before_id\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"INT\",\"key\":\"after_id\"},{\"type\":\"VARCHAR\",\"key\":\"before_test_name\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_test_name\"},{\"type\":\"VARCHAR\",\"key\":\"before_test_phone\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_test_phone\"},{\"type\":\"VARCHAR\",\"key\":\"before_test_address\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR\",\"key\":\"after_test_address\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+            "partition": "pt",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "fs.defaultFS": "hdfs://ns1",
+              "dfs.namenode.rpc-address.ns1.nn2": "172.16.101.235:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1": "172.16.100.223:9000",
+              "dfs.nameservices": "ns1",
+              "fs.hdfs.impl.disable.cache": "true",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            },
+            "jdbcUrl": "jdbc:hive2://172.16.100.223:10000/re_yeluo_dtstack_test",
+            "defaultFS": "hdfs://ns1",
+            "fileType": "orc",
+            "charsetName": "utf-8",
+            "username": "",
+            "bufferSize": 1048576
+          },
+          "name": "hivewriter",
+          "type": 7
+        }
       }
-    } ],
-    "setting" : {
-      "restore" : {
-        "isRestore" : true,
-        "isStream" : true
+    ],
+    "setting": {
+      "dirty": {
+
       },
-      "errorLimit" : { },
-      "speed" : {
-        "bytes" : -1048576,
-        "channel" : 1
+      "restore": {
+        "isRestore": true,
+        "isStream": true
       },
-      "test": {
-        "failedPerRecord": 5,
-        "errorMsg": "失败测试",
-        "speedTest": null
+      "errorLimit": {},
+      "speed": {
+        "bytes": 4194304,
+        "channel": 1
+      },
+      "test":  {
+        "failedPerRecord": 4,
+        "errorMsg": "失败测试"
       }
     }
   }

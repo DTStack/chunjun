@@ -115,7 +115,7 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-        confProperties.put("flink.checkpoint.interval", "120000");
+        confProperties.put("flink.checkpoint.interval", "60000");
         confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
