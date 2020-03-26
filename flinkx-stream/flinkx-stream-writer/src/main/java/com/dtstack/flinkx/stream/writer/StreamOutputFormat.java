@@ -53,6 +53,7 @@ public class StreamOutputFormat extends RichOutputFormat {
 
         if (restoreConfig.isRestore()) {
             formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
+            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, row);
         }
     }
 
@@ -63,16 +64,5 @@ public class StreamOutputFormat extends RichOutputFormat {
                 LOG.info(String.valueOf(row));
             }
         }
-    }
-
-    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < row.getArity(); i++) {
-            if (i > 0) {
-                sb.append(writeDelimiter);
-            }
-            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
-        }
-        return sb.toString();
     }
 }

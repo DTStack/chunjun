@@ -82,7 +82,9 @@ import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
@@ -117,15 +119,15 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        confProperties.put("flink.checkpoint.interval", "60000");
+//        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 //
-//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-//        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
-//        conf.setString("metrics.reporter.promgateway.port","9091");
-//        conf.setString("metrics.reporter.promgateway.jobName","108job");
-//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+        conf.setString("metrics.reporter.promgateway.host","172.16.8.178");
+        conf.setString("metrics.reporter.promgateway.port","9091");
+        conf.setString("metrics.reporter.promgateway.jobName","jiangboJob");
+        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","false");
 
         String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
@@ -145,7 +147,13 @@ public class LocalTest {
         openCheckpointConf(env, confProperties);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
+
+        if (needRestart(config)) {
+            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                    10,
+                    Time.of(10, TimeUnit.SECONDS)
+            ));
+        }
 
         DataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
@@ -162,6 +170,10 @@ public class LocalTest {
         }
 
         return env.execute();
+    }
+
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isRestore();
     }
 
     private static String readJob(File file) {
@@ -277,6 +289,7 @@ public class LocalTest {
         env.getCheckpointConfig().enableExternalizedCheckpoints(
                 CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
+        env.setStateBackend(new FsStateBackend(new Path("file:///tmp/flinkx_checkpoint")));
         env.setRestartStrategy(RestartStrategies.failureRateRestart(
                 FAILURE_RATE,
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),

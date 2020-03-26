@@ -197,15 +197,14 @@ public class BinlogInputFormat extends RichInputFormat {
         EntryPosition startPosition = null;
         if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
             startPosition = (EntryPosition) formatState.getState();
+            checkBinlogFile(startPosition.getJournalName());
         } else if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
             startPosition = new EntryPosition();
             String journalName = (String) binlogConfig.getStart().get("journalName");
+            checkBinlogFile(journalName);
+
             if (StringUtils.isNotEmpty(journalName)) {
-                if (new BinlogJournalValidator(binlogConfig.getHost(), binlogConfig.getPort(), binlogConfig.getUsername(), binlogConfig.getPassword()).check(journalName)) {
-                    startPosition.setJournalName(journalName);
-                } else {
-                    throw new IllegalArgumentException("Can't find journalName: " + journalName);
-                }
+                startPosition.setJournalName(journalName);
             }
 
             startPosition.setTimestamp(MapUtils.getLong(binlogConfig.getStart(), "timestamp"));
@@ -213,6 +212,14 @@ public class BinlogInputFormat extends RichInputFormat {
         }
 
         return startPosition;
+    }
+
+    private void checkBinlogFile(String journalName) {
+        if (StringUtils.isNotEmpty(journalName)) {
+            if (!new BinlogJournalValidator(host, port, username, password).check(journalName)) {
+                throw new IllegalArgumentException("Can't find journalName: " + journalName);
+            }
+        }
     }
 
     @Override

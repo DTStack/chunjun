@@ -111,6 +111,7 @@ public class EsReader extends DataReader {
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
