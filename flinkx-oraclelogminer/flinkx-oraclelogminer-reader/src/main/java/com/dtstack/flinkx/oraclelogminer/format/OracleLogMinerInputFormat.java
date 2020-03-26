@@ -65,11 +65,6 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     private static final int SLEEP_TIME = 2000;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
-    }
-
-    @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
@@ -342,6 +337,11 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         return false;
+    }
+
+    @Override
+    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
+        return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
     @Override
