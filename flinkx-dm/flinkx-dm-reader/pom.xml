@@ -60,11 +60,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.db2reader.io.netty</shadedPattern>
+                                    <shadedPattern>shade.dmreader.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google</pattern>
-                                    <shadedPattern>shade.db2reader.com.google</shadedPattern>
+                                    <shadedPattern>shade.dmreader.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -85,13 +85,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/db2reader">
+                                <copy todir="${basedir}/../../plugins/dmreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/db2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/db2reader/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../plugins/dmreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/dmreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

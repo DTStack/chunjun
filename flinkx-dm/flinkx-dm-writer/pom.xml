@@ -60,11 +60,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.db2writer.io.netty</shadedPattern>
+                                    <shadedPattern>shade.dmwriter.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google</pattern>
-                                    <shadedPattern>shade.db2writer.com.google</shadedPattern>
+                                    <shadedPattern>shade.dmwriter.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -85,13 +85,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/db2writer">
+                                <copy todir="${basedir}/../../plugins/dmwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/db2writer/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/db2writer/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../plugins/dmwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/dmwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
