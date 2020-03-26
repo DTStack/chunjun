@@ -62,6 +62,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
+    protected String formatId;
+
     public static final String RUNNING_STATE = "RUNNING";
 
     public static final int LOG_PRINT_INTERNAL = 2000;
@@ -598,5 +600,13 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
+    }
+
+    public String getFormatId() {
+        return formatId;
+    }
+
+    public void setFormatId(String formatId) {
+        this.formatId = formatId;
     }
 }
