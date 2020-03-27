@@ -4,19 +4,9 @@
       {
         "writer": {
           "parameter": {
-            "batchInterval": 2,
-            "url": "http://172.16.1.206:8876/dassets/v1/syncJob/syncCallBack",
-            "header": [],
-            "body": [],
-            "method": "post",
-            "params": {
-              "sourceId": 30,
-              "jobId": "bbcea31111c",
-              "tenantId": 18,
-              "taskId": 13
-            }
+            "print": true
           },
-          "name": "restapiwriter"
+          "name": "streamwriter"
         },
         "reader": {
           "parameter": {
@@ -26,7 +16,7 @@
             "dbList": [
               {
                 "dbName":"tiezhu",
-                "tableList": ["test_1", "test_2", "test_3", "test_4"]
+                "tableList": ["test_2"]
               }
 
             ]
