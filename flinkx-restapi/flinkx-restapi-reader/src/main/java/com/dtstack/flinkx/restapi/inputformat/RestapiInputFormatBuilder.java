@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.restapi.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestapiInputFormatBuilder extends RichInputFormatBuilder {
+public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
     protected RestapiInputFormat format;
 
     public RestapiInputFormatBuilder(){ super.format = format = new RestapiInputFormat();}

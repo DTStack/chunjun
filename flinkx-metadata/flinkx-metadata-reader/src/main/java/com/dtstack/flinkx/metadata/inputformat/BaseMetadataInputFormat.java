@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.google.common.collect.Lists;
@@ -36,7 +36,7 @@ import java.util.*;
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public abstract class BaseMetadataInputFormat extends RichInputFormat {
+public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected int numPartitions;
 
