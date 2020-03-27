@@ -148,7 +148,7 @@ public class HdfsUtil {
 
     public static int computeMinBytesForPrecision(int precision){
         int numBytes = 1;
-        while (Math.pow(SCALE_TWO, BIT_SIZE * numBytes - 1) < Math.pow(SCALE_TEN, precision)) {
+        while (Math.pow(SCALE_TWO, BIT_SIZE * numBytes - 1.0) < Math.pow(SCALE_TEN, precision)) {
             numBytes += 1;
         }
         return numBytes;
