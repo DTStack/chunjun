@@ -17,11 +17,11 @@
  */
 package com.dtstack.flinkx.kafkabase.reader;
 
+import com.dtstack.flinkx.decoder.DecodeEnum;
+import com.dtstack.flinkx.decoder.IDecode;
+import com.dtstack.flinkx.decoder.JsonDecoder;
+import com.dtstack.flinkx.decoder.PlainDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.kafkabase.decoder.DecodeEnum;
-import com.dtstack.flinkx.kafkabase.decoder.IDecode;
-import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
-import com.dtstack.flinkx.kafkabase.decoder.PlainDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;

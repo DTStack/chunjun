@@ -15,22 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.emqx.decoder;
+package com.dtstack.flinkx.decoder;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
 
 /**
- * Date: 2020/02/12
+ * Date: 2019/11/21
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class PlainDecoder implements IDecode {
+public class JsonDecoder implements IDecode {
+    private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String KEY_MESSAGE = "message";
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> decode(final String message) {
-        return Collections.singletonMap("message", message);
+        try {
+            Map<String, Object> event = objectMapper.readValue(message, Map.class);
+            if (!event.containsKey(KEY_MESSAGE)) {
+                event.put(KEY_MESSAGE, message);
+            }
+            return event;
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+            return Collections.singletonMap(KEY_MESSAGE, message);
+        }
     }
-
 }

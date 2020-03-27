@@ -17,9 +17,9 @@
  */
 package com.dtstack.flinkx.emqx.format;
 
-import com.dtstack.flinkx.emqx.decoder.IDecode;
-import com.dtstack.flinkx.emqx.decoder.JsonDecoder;
-import com.dtstack.flinkx.emqx.decoder.PlainDecoder;
+import com.dtstack.flinkx.decoder.IDecode;
+import com.dtstack.flinkx.decoder.JsonDecoder;
+import com.dtstack.flinkx.decoder.PlainDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
