@@ -54,6 +54,8 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     private transient ResultSet logMinerData;
 
+    private transient LogMinerListener logMinerListener;
+
     private Long offsetScn;
 
     private Long scnCopy;
