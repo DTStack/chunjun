@@ -35,6 +35,8 @@ import java.util.Set;
  */
 public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializable {
 
+    public static final int DB_TABLE_PART_SIZE = 2;
+
     @Override
     public String getStartQuote() {
         return "\"";

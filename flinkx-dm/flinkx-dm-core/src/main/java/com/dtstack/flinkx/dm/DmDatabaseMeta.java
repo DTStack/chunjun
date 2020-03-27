@@ -47,7 +47,7 @@ public class DmDatabaseMeta  extends BaseDatabaseMeta {
     public String quoteTable(String table) {
         table = table.replace("\"","");
         String[] part = table.split("\\.");
-        if(part.length == 2) {
+        if(part.length == DB_TABLE_PART_SIZE) {
             table = getStartQuote() + part[0] + getEndQuote() + "." + getStartQuote() + part[1] + getEndQuote();
         } else {
             table = getStartQuote() + table + getEndQuote();

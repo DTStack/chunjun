@@ -32,8 +32,6 @@ import java.util.List;
  */
 public class OracleDatabaseMeta extends BaseDatabaseMeta {
 
-    public static final int DB_TABLE_PART_SIZE = 2;
-
     @Override
     public String quoteTable(String table) {
         table = table.replace("\"","");
