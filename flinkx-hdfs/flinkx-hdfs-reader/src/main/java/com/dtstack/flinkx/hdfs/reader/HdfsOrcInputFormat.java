@@ -92,45 +92,20 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
             String typeStruct = null;
 
             if(fs.isDirectory(path)) {
-                RemoteIterator<LocatedFileStatus> iterator = fs.listFiles(path, true);
-                while(iterator.hasNext()) {
-                    FileStatus fileStatus = iterator.next();
-                    if(fileStatus.isFile() && fileStatus.getLen() > 49) {
-                        Path subPath = fileStatus.getPath();
-                        reader = OrcFile.createReader(subPath, readerOptions);
-                        typeStruct = reader.getObjectInspector().getTypeName();
-                        if(StringUtils.isNotEmpty(typeStruct)) {
-                            break;
-                        }
-                    }
-                }
-
+                reader = getReader(fs, path, readerOptions);
                 if(reader == null) {
-                    //throw new RuntimeException("orcfile dir is empty!");
                     LOG.error("orc file {} is empty!", inputPath);
                     isFileEmpty = true;
                     return;
+                } else {
+                    typeStruct = reader.getObjectInspector().getTypeName();
                 }
-
             } else {
                 reader = OrcFile.createReader(path, readerOptions);
                 typeStruct = reader.getObjectInspector().getTypeName();
             }
 
-            if (StringUtils.isEmpty(typeStruct)) {
-                throw new RuntimeException("can't retrieve type struct from " + path);
-            }
-
-
-            int startIndex = typeStruct.indexOf("<") + 1;
-            int endIndex = typeStruct.lastIndexOf(">");
-            typeStruct = typeStruct.substring(startIndex, endIndex);
-
-            if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
-                throw new RuntimeException("Field types such as array, map, and struct are not supported.");
-            }
-
-            List<String> cols = parseColumnAndType(typeStruct);
+            List<String> cols = parseColumns(typeStruct, path);
 
             fullColNames = new String[cols.size()];
             fullColTypes = new String[cols.size()];
@@ -151,6 +126,43 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private org.apache.hadoop.hive.ql.io.orc.Reader getReader(FileSystem fs,
+                                                              Path path,
+                                                              OrcFile.ReaderOptions readerOptions) throws Exception{
+        org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
+        RemoteIterator<LocatedFileStatus> iterator = fs.listFiles(path, true);
+        while(iterator.hasNext()) {
+            FileStatus fileStatus = iterator.next();
+            if(fileStatus.isFile() && fileStatus.getLen() > 49) {
+                Path subPath = fileStatus.getPath();
+                reader = OrcFile.createReader(subPath, readerOptions);
+                String typeStruct = reader.getObjectInspector().getTypeName();
+                if(StringUtils.isNotEmpty(typeStruct)) {
+                    break;
+                }
+            }
+        }
+
+        return reader;
+    }
+
+    private List<String> parseColumns(String typeStruct, Path path) {
+        if (StringUtils.isEmpty(typeStruct)) {
+            throw new RuntimeException("can't retrieve type struct from " + path);
+        }
+
+
+        int startIndex = typeStruct.indexOf("<") + 1;
+        int endIndex = typeStruct.lastIndexOf(">");
+        typeStruct = typeStruct.substring(startIndex, endIndex);
+
+        if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
+            throw new RuntimeException("Field types such as array, map, and struct are not supported.");
+        }
+
+        return parseColumnAndType(typeStruct);
     }
 
     public List<String> parseColumnAndType(String typeStruct){

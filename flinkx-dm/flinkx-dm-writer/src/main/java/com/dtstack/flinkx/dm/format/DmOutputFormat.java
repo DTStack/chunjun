@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.dm.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
@@ -65,7 +66,7 @@ public class DmOutputFormat extends JdbcOutputFormat {
         String schema =null;
 
         String[] parts = table.split("\\.");
-        if(parts.length == 2) {
+        if(parts.length == BaseDatabaseMeta.DB_TABLE_PART_SIZE) {
             schema = parts[0].toUpperCase();
             table = parts[1];
         }

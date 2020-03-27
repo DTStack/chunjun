@@ -76,6 +76,8 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
 
     private static final int CRITICAL_TIME = 60 * 60 * 24 * 30;
 
+    private static final int KEY_VALUE_SIZE = 2;
+
     @Override
     public void configure(Configuration parameters) {
         super.configure(parameters);
@@ -144,7 +146,7 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
     }
 
     private List<Object> getFieldAndValue(Row row){
-        if(row.getArity() - keyIndexes.size() != 2){
+        if(row.getArity() - keyIndexes.size() != KEY_VALUE_SIZE){
             throw new IllegalArgumentException("Each row record can have only one pair of attributes and values except key");
         }
 
