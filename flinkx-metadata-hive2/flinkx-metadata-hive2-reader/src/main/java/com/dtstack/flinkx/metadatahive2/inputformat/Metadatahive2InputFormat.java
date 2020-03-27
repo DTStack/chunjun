@@ -193,6 +193,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
             tableColumn.removeIf(item -> item.contains("#") || item.isEmpty());
             partitionColumn.removeIf(item -> item.contains("#") || item.isEmpty());
 
+            tableColumn.removeIf(col -> partitionColumn.contains(col));
         } catch (Exception e) {
             setErrorMessage(e, "get column error!");
         }
