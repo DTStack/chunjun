@@ -821,7 +821,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 queryForPolling(startLocation);
             }
         } else {
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             resultSet = statement.executeQuery(querySql);

@@ -77,24 +77,26 @@ public class DmOutputFormat extends JdbcOutputFormat {
     @Override
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
         Map<String, List<String>> map = new HashMap<>();
-        PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
-        ResultSet rs = ps.executeQuery();
 
-        while(rs.next()) {
-            String indexName = rs.getString("INDEX_NAME");
-            if(!map.containsKey(indexName)) {
-                map.put(indexName,new ArrayList<>());
+        try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
+             ResultSet rs = ps.executeQuery()) {
+            while(rs.next()) {
+                String indexName = rs.getString("INDEX_NAME");
+                if(!map.containsKey(indexName)) {
+                    map.put(indexName,new ArrayList<>());
+                }
+                map.get(indexName).add(rs.getString("COLUMN_NAME"));
             }
-            map.get(indexName).add(rs.getString("COLUMN_NAME"));
-        }
-        Map<String,List<String>> retMap = new HashMap<>();
-        for(Map.Entry<String,List<String>> entry: map.entrySet()) {
-            String k = entry.getKey();
-            List<String> v = entry.getValue();
-            if(v!=null && v.size() != 0 && v.get(0) != null) {
-                retMap.put(k, v);
+
+            Map<String,List<String>> retMap = new HashMap<>();
+            for(Map.Entry<String,List<String>> entry: map.entrySet()) {
+                String k = entry.getKey();
+                List<String> v = entry.getValue();
+                if(v!=null && v.size() != 0 && v.get(0) != null) {
+                    retMap.put(k, v);
+                }
             }
+            return retMap;
         }
-        return retMap;
     }
 }

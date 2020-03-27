@@ -109,7 +109,7 @@ public class SqlServerCdcListener implements Runnable{
                     fromLsn = logPosition.getCommitLsn();
                 }
 
-                ResultSet[] resultSets = SqlServerCdcUtil.getChangesForTables(conn, tablesSlot, fromLsn, currentMaxLsn);
+                SqlServerCdcUtil.StatementResult[] resultSets = SqlServerCdcUtil.getChangesForTables(conn, tablesSlot, fromLsn, currentMaxLsn);
                 int tableCount = resultSets.length;
                 final ChangeTablePointer[] changeTables = new ChangeTablePointer[tableCount];
                 for (int i = 0; i < tableCount; i++) {
