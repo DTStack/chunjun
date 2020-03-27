@@ -211,8 +211,8 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
-    public static ResultSet[] getChangesForTables(Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn) throws SQLException {
-        ResultSet[] resultSets = new ResultSet[changeTables.length];
+    public static StatementResult[] getChangesForTables(Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn) throws SQLException {
+        StatementResult[] resultSets = new StatementResult[changeTables.length];
         String sql;
         int idx = 0;
         try {
@@ -220,12 +220,11 @@ public class SqlServerCdcUtil {
                 sql = GET_ALL_CHANGES_FOR_TABLE.replace(STATEMENTS_PLACEHOLDER, changeTable.getCaptureInstance());
                 Lsn fromLsn = changeTable.getStartLsn().compareTo(intervalFromLsn) > 0 ? changeTable.getStartLsn() : intervalFromLsn;
 
-                //notice : statement is not closed, there maybe have problem.
                 PreparedStatement statement = conn.prepareStatement(sql);
                 statement.setBytes(1, fromLsn.getBinary());
                 statement.setBytes(2, intervalToLsn.getBinary());
                 ResultSet rs = statement.executeQuery();
-                resultSets[idx] = rs;
+                resultSets[idx] = new StatementResult(statement, rs);
                 idx++;
             }
         } catch (Exception e) {
@@ -318,6 +317,32 @@ public class SqlServerCdcUtil {
             } catch (SQLException e) {
                 LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
             }
+        }
+    }
+
+    public static class StatementResult {
+        private Statement statement;
+        private ResultSet resultSet;
+
+        public StatementResult(Statement statement, ResultSet resultSet) {
+            this.statement = statement;
+            this.resultSet = resultSet;
+        }
+
+        public Statement getStatement() {
+            return statement;
+        }
+
+        public void setStatement(Statement statement) {
+            this.statement = statement;
+        }
+
+        public ResultSet getResultSet() {
+            return resultSet;
+        }
+
+        public void setResultSet(ResultSet resultSet) {
+            this.resultSet = resultSet;
         }
     }
 }

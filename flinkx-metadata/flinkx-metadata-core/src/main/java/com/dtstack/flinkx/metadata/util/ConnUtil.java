@@ -125,8 +125,10 @@ public class ConnUtil {
             for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
-                    dbConn.createStatement().execute("select 111");
-                    failed = false;
+                    try (Statement st = dbConn.createStatement()) {
+                        st.execute("select 111");
+                        failed = false;
+                    }
                 } catch (Exception e) {
                     if (dbConn != null) {
                         dbConn.close();
