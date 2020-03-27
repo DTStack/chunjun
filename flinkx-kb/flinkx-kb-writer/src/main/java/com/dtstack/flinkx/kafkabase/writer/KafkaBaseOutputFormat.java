@@ -18,8 +18,8 @@
 package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;

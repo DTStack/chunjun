@@ -1,6 +1,6 @@
 package com.dtstack.flinkx.kafka11.reader;
 
-import com.dtstack.flinkx.kafkabase.decoder.IDecode;
+import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.kafkabase.reader.IClient;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;

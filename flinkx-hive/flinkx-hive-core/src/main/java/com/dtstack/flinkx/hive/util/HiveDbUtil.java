@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hive.util;
 import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
