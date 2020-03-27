@@ -28,6 +28,8 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
+import com.dtstack.flinkx.dm.reader.DmReader;
+import com.dtstack.flinkx.dm.writer.DmWriter;
 import com.dtstack.flinkx.emqx.reader.EmqxReader;
 import com.dtstack.flinkx.emqx.writer.EmqxWriter;
 import com.dtstack.flinkx.es.reader.EsReader;
@@ -127,7 +129,7 @@ public class LocalTest {
         conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
         conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "F:\\公司\\项目\\flinkx\\flinkx-metadata-hive2\\hive2metareader.json";
+        String jobPath = "D:\\project\\dt-center-flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_template.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -209,6 +211,7 @@ public class LocalTest {
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
+            case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -245,6 +248,7 @@ public class LocalTest {
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
+            case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
