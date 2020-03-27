@@ -362,11 +362,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         return restoreConfig;
     }
 
-    public void setLogConfig(LogConfig logConfig) {
-        this.logConfig = logConfig;
-    }
-
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
     }
 }

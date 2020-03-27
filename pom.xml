@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-        <module>flinkx-test</module>
+<!--        <module>flinkx-test</module>-->
         <module>flinkx-examples</module>
         <module>flinkx-stream</module>
 
@@ -52,6 +52,10 @@
         <module>flinkx-sqlservercdc</module>
 
         <module>flinkx-emqx</module>
+
+        <module>flinkx-metadata</module>
+        <module>flinkx-metadata-hive2</module>
+        <module>flinkx-restapi</module>
 
     </modules>
 
@@ -153,6 +157,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

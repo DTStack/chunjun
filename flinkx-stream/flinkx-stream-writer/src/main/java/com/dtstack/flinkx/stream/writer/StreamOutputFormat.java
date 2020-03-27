@@ -30,8 +30,8 @@ import java.util.List;
 /**
  * OutputFormat for stream writer
  *
- * @author jiangbo
  * @Company: www.dtstack.com
+ * @author jiangbo
  */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
