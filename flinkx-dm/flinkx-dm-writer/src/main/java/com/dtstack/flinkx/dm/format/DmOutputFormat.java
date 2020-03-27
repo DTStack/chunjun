@@ -22,7 +22,11 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +80,7 @@ public class DmOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
-        Map<String, List<String>> map = new HashMap<>();
+        Map<String, List<String>> map = new HashMap<>(16);
 
         try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
              ResultSet rs = ps.executeQuery()) {
@@ -88,7 +92,7 @@ public class DmOutputFormat extends JdbcOutputFormat {
                 map.get(indexName).add(rs.getString("COLUMN_NAME"));
             }
 
-            Map<String,List<String>> retMap = new HashMap<>();
+            Map<String,List<String>> retMap = new HashMap<>(16);
             for(Map.Entry<String,List<String>> entry: map.entrySet()) {
                 String k = entry.getKey();
                 List<String> v = entry.getValue();

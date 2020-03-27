@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.kafkabase.reader;
 
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.kafkabase.decoder.DecodeEnum;
 import com.dtstack.flinkx.kafkabase.decoder.IDecode;
