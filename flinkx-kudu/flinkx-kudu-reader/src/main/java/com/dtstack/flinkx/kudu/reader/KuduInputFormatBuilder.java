@@ -50,5 +50,9 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (format.columns == null || format.columns.size() == 0){
             throw new IllegalArgumentException("columns can not be empty");
         }
+
+        if (format.kuduConfig.getBatchSizeBytes() > 1024 * 1024 * 1024) {
+            throw new IllegalArgumentException("批量读取字节数必须小于[1G]");
+        }
     }
 }

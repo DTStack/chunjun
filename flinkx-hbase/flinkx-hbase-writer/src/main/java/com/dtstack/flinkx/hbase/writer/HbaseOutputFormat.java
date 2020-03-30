@@ -227,7 +227,7 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        throw new IllegalArgumentException();
+        notSupportBatchWrite("HbaseWriter");
     }
 
     private byte[] getRowkey(Row record) throws Exception{

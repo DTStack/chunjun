@@ -163,6 +163,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("HiveWriter");
     }
 
     @Override

@@ -418,6 +418,10 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
+    protected void notSupportBatchWrite(String writerName) {
+        throw new UnsupportedOperationException(writerName + "不支持批量写入");
+    }
+
     protected void writeRecordInternal() {
         try {
             writeMultipleRecords();

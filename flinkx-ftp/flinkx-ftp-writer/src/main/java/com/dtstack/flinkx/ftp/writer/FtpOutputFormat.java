@@ -321,4 +321,9 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected String getExtension() {
         return ".csv";
     }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("FtpWriter");
+    }
 }

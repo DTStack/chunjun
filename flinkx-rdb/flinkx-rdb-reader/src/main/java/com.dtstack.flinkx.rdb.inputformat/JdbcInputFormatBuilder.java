@@ -128,6 +128,10 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isEmpty(format.splitKey) && format.numPartitions > 1){
             throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
         }
+
+        if (format.fetchSize > 200000) {
+            throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
+        }
     }
 
 }

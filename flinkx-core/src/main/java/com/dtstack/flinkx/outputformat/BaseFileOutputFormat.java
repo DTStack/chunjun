@@ -316,11 +316,6 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
-    }
-
-    @Override
     protected boolean needWaitAfterCloseInternal() {
         return true;
     }

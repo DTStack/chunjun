@@ -132,7 +132,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     public boolean reachedEnd() throws IOException {
         key = new LongWritable();
         value = new Text();
-        return isFileEmpty || !recordReader.next(key, value);
+        return !recordReader.next(key, value);
     }
 
     static class HdfsTextInputSplit implements InputSplit {
@@ -164,5 +164,4 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
             return splitNumber;
         }
     }
-
 }

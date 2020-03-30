@@ -55,5 +55,9 @@ public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        if (format.mongodbConfig.getFetchSize() > 200000) {
+            throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
+        }
     }
 }

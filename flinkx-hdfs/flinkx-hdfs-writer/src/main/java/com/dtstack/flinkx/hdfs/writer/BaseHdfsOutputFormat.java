@@ -310,4 +310,8 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
     }
 
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("HdfsWriter");
+    }
 }

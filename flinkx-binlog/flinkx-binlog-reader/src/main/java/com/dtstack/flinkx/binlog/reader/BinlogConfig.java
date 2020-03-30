@@ -32,7 +32,7 @@ public class BinlogConfig implements Serializable {
 
     public long period = 1000L;
 
-    public int bufferSize = 1024;
+    public int bufferSize = 256;
 
     public boolean pavingData = true;
 

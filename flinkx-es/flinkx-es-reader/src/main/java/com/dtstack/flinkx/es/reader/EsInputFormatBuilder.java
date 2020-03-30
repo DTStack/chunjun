@@ -103,5 +103,9 @@ public class EsInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        if (format.batchSize > 200000) {
+            throw new IllegalArgumentException("批量读取数量不能大于[200000]条");
+        }
     }
 }
