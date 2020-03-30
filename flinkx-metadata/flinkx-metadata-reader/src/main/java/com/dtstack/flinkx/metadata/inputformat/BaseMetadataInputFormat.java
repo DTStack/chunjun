@@ -51,9 +51,9 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected List<Map<String, Object>> dbTableList;
 
-    protected transient static Connection connection;
+    protected transient static ThreadLocal<Connection> connection = new ThreadLocal<>();
 
-    protected transient static Statement statement;
+    protected transient static ThreadLocal<Statement> statement = new ThreadLocal<>();
 
     protected String currentDb;
 
@@ -64,7 +64,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
         super.openInputFormat();
 
         try {
-            connection = getConnection();
+            connection.set(getConnection());
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -75,7 +75,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
         LOG.info("inputSplit = {}", inputSplit);
 
         try {
-            statement = connection.createStatement();
+            statement.set(connection.get().createStatement());
         } catch (SQLException e) {
             throw new IOException("create statement error", e);
         }
@@ -149,10 +149,10 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if (null != statement) {
+        if (null != statement.get()) {
             try {
-                statement.close();
-                statement = null;
+                statement.get().close();
+                statement.remove();
             } catch (SQLException e) {
                 throw new IOException("close statement error", e);
             }
@@ -163,9 +163,10 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
     public void closeInputFormat() throws IOException {
         super.closeInputFormat();
 
-        if (null != connection) {
+        if (null != connection.get()) {
             try {
-                connection.close();
+                connection.get().close();
+                connection.remove();
             } catch (SQLException e) {
                 throw new IOException("close connection error", e);
             }

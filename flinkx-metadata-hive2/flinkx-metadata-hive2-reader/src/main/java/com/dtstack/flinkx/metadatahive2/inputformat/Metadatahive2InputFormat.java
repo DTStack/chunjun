@@ -56,13 +56,13 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void switchDatabase(String database) throws SQLException {
-        statement.execute(String.format("use %s", quote(database)));
+        statement.get().execute(String.format("use %s", quote(database)));
     }
 
     @Override
     protected List<String> showTables() throws SQLException {
         List<String> tables = new ArrayList<>();
-        try (ResultSet rs = statement.executeQuery("show tables")) {
+        try (ResultSet rs = statement.get().executeQuery("show tables")) {
             while (rs.next()) {
                 tables.add(rs.getString(1));
             }
@@ -130,15 +130,15 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
             }
 
             if (name.contains("Location:")) {
-                tableProperties.put("location", metaDatum.get("data_type"));
+                tableProperties.put("location", getData(metaDatum.get("data_type")));
             }
 
             if (name.contains("CreateTime:")) {
-                tableProperties.put("createTime", metaDatum.get("data_type"));
+                tableProperties.put("createTime", getData(metaDatum.get("data_type")));
             }
 
             if (name.contains("LastAccessTime:")) {
-                tableProperties.put("lastAccessTime", metaDatum.get("data_type"));
+                tableProperties.put("lastAccessTime", getData(metaDatum.get("data_type")));
             }
 
             if (name.contains("OutputFormat:")) {
@@ -156,17 +156,25 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
                     nameInternal = nameInternal.trim();
                     if (nameInternal.contains("comment")) {
-                        tableProperties.put("comment", metaDatum.get("comment"));
+                        tableProperties.put("comment", getData(metaDatum.get("comment")));
                     }
 
                     if (nameInternal.contains("totalSize")) {
-                        tableProperties.put("totalSize", metaDatum.get("comment"));
+                        tableProperties.put("totalSize", getData(metaDatum.get("comment")));
                     }
                 }
             }
         }
 
         return tableProperties;
+    }
+
+    private String getData(String data) {
+        if (null == data) {
+            return null;
+        }
+
+        return data.trim();
     }
 
     private String getStoredType(String storedClass) {
@@ -277,7 +285,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     }
 
     private List<Map<String, String>> queryData(String table) throws SQLException{
-        try (ResultSet rs = statement.executeQuery(String.format("desc formatted %s", quote(table)))) {
+        try (ResultSet rs = statement.get().executeQuery(String.format("desc formatted %s", quote(table)))) {
             ResultSetMetaData metaData = rs.getMetaData();
 
             List<String> columnNames = new ArrayList<>();
@@ -301,7 +309,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
     private List<String> showPartitions (String table) throws SQLException{
         List<String> partitions = new ArrayList<>();
-        try (ResultSet rs = statement.executeQuery(String.format("show partitions %s", quote(table)))) {
+        try (ResultSet rs = statement.get().executeQuery(String.format("show partitions %s", quote(table)))) {
             while (rs.next()) {
                 partitions.add(rs.getString(1));
             }

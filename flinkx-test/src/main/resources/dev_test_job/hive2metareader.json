@@ -5,12 +5,7 @@
         "reader": {
           "parameter": {
             "dbList": [
-              {
-                "dbName": "default",
-                "tableList": [
-                  "jiangbo_test","jiangbo_test2"
-                ]
-              }
+
             ],
             "password": "abc123",
             "jdbcUrl": "jdbc:hive2://172.16.100.132:10000",
@@ -23,7 +18,7 @@
             "print": true,
             "method": "post",
             "column": [],
-            "batchInterval": 500,
+            "batchInterval": 10,
             "header": [],
             "body": [],
             "params": {
@@ -44,7 +39,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 2
       }
     }
   }
