@@ -79,8 +79,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String table) throws SQLException {
         Map<String, Object> result = new HashMap<>();
-        result.put("schema", currentDb);
-        result.put("table", table);
 
         List<Map<String, String>> metaData = queryData(table);
 

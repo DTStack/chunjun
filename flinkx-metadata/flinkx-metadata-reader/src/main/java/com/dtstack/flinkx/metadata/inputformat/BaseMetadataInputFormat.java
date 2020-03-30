@@ -55,7 +55,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected transient static ThreadLocal<Statement> statement = new ThreadLocal<>();
 
-    protected String currentDb;
+    protected ThreadLocal<String> currentDb = new ThreadLocal<>();
 
     protected transient Iterator<String> tableIterator;
 
@@ -81,8 +81,8 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
         }
 
         try {
-            currentDb = ((MetadataInputSplit) inputSplit).getDbName();
-            switchDatabase(currentDb);
+            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+            switchDatabase(currentDb.get());
         } catch (Exception e) {
             throw new IOException("switch database error", e);
         }
@@ -130,8 +130,11 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
         Map<String, Object> metaData = new HashMap<>();
         metaData.put("operaType", "createTable");
 
+        String tableName = tableIterator.next();
+        metaData.put("schema", currentDb);
+        metaData.put("table", tableName);
+
         try {
-            String tableName = tableIterator.next();
             metaData.putAll(queryMetaData(tableName));
             metaData.put("querySuccess", true);
         } catch (Exception e) {
