@@ -26,11 +26,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -73,15 +69,6 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-
-        FileSystem fs;
-        try {
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        orcSerde = new OrcSerde();
         inputFormat = new OrcInputFormat();
     }
 

@@ -72,7 +72,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         conf = buildConfig();
 
         try {
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
         } catch (Exception e) {
             throw new IOException(e);
         }
