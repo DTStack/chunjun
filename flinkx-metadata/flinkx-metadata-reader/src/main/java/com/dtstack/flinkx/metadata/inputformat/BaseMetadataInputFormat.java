@@ -20,8 +20,10 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -58,8 +60,6 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected transient static Statement statement;
 
-    protected Map<String, String> errorMessage = Maps.newHashMap();
-
     protected LinkedList<Map<String, Object>> resultMapList;
 
     @Override
@@ -74,28 +74,21 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
         String currentDb = ((MetadataInputSplit) inputSplit).getDbName();
         List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
         resultMapList = new LinkedList<>();
+
         try {
             // 切换数据库，获取当前数据库下的元数据信息
             statement.execute(changeDbSql(currentDb));
             if (tableList.isEmpty()) {
                 tableList.addAll(getDataList(queryTableSql()));
             }
-            for (String currentTable : tableList) {
-                beforeUnit(currentTable, currentDb);
-
-                Map<String, Object> resultMap = unitMetaData(currentDb, currentTable);
-
-                if (errorMessage.isEmpty()) {
-                    resultMap.put("querySuccess", true);
-                } else {
-                    resultMap.put("querySuccess", false);
-                }
-                resultMap.put("errorMsg", errorMessage);
-                hasNext = true;
-                resultMapList.add(resultMap);
-            }
         } catch (SQLException e) {
-            setErrorMessage(e, "openInternal error");
+            throw new RuntimeException(e);
+        }
+
+        for (String currentTable : tableList) {
+            Map<String, Object> resultMap = unitMetaData(currentDb, currentTable);
+            hasNext = true;
+            resultMapList.add(resultMap);
         }
     }
 
@@ -162,24 +155,14 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
     /**
      * 执行查询计划
      */
-    protected ResultSet executeQuerySql(String sql) {
+    protected ResultSet executeQuerySql(String sql) throws SQLException{
         LOG.info("current query sql : {}", sql);
         try {
             return statement.executeQuery(sql);
         } catch (SQLException e) {
             LOG.warn("query error! current query sql:" + sql, e);
-            setErrorMessage(e, "query error! current sql: " + sql);
         }
         return null;
-    }
-
-    /**
-     * 任务异常信息
-     */
-    protected void setErrorMessage(Exception e, String message) {
-        if (errorMessage.isEmpty()) {
-            errorMessage.put("errorMessage", message + " detail:" + e.getMessage());
-        }
     }
 
     /**
@@ -197,10 +180,24 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
 
     protected Map<String, Object> unitMetaData(String currentDb, String currentTable) {
-        Map<String, Object> tableDetailInformation = getTableProperties(currentTable, currentDb);
-        List<Map<String, Object>> columnDetailInformation = getColumnProperties(currentTable);
-        List<Map<String, Object>> partitionDetailInformation = getPartitionProperties(currentTable, currentDb);
         Map<String, Object> result = Maps.newHashMap();
+        Map<String, Object> tableDetailInformation = Maps.newHashMap();
+        List<Map<String, Object>> columnDetailInformation = new ArrayList<>();
+        List<Map<String, Object>> partitionDetailInformation = new ArrayList<>();
+
+        try {
+            beforeUnit(currentTable, currentDb);
+
+            tableDetailInformation = getTableProperties(currentTable, currentDb);
+            columnDetailInformation = getColumnProperties(currentTable);
+            partitionDetailInformation = getPartitionProperties(currentTable, currentDb);
+
+            result.put("querySuccess", true);
+        } catch (SQLException e) {
+            result.put("querySuccess", false);
+            result.put("errorMsg", ExceptionUtil.getErrorMessage(e));
+        }
+
         result.put(MetaDataCons.KEY_TABLE, currentTable);
         result.put(MetaDataCons.KEY_SCHEMA, currentDb);
         // 当前为全量查询，所以type固定为createTable
@@ -212,7 +209,9 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
         result.put(MetaDataCons.KEY_PARTITION_COLUMNS, partitionDetailInformation);
 
-        result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList(currentTable));
+        if (CollectionUtils.isNotEmpty(partitionDetailInformation)) {
+            result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList(currentTable));
+        }
 
         return result;
     }
@@ -223,7 +222,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
      * @param currentQueryTable 当前查询的table
      * @param currentDbName     当前查询的db
      */
-    protected abstract void beforeUnit(String currentQueryTable, String currentDbName);
+    protected abstract void beforeUnit(String currentQueryTable, String currentDbName) throws SQLException;
 
     /**
      * 从结果集中解析有关表的元数据信息
@@ -232,7 +231,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
      * @param currentDbName     当前查询的db
      * @return 有关表的元数据信息
      */
-    public abstract Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName);
+    public abstract Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) throws SQLException;
 
     /**
      * 从结果集中解析有关表字段的元数据信息
@@ -240,7 +239,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
      * @param currentQueryTable 当前查询的table
      * @return 有关表字段的元数据信息
      */
-    public abstract List<Map<String, Object>> getColumnProperties(String currentQueryTable);
+    public abstract List<Map<String, Object>> getColumnProperties(String currentQueryTable) throws SQLException;
 
     /**
      * 从结果集中解析有关分区字段的元数据信息
@@ -249,7 +248,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
      * @param currentDbName     当前查询Db
      * @return 有关分区字段的元数据信息
      */
-    public abstract List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName);
+    public abstract List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName) throws SQLException;
 
     /**
      * 构建查询表名sql，如show tables

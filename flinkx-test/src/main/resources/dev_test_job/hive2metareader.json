@@ -8,7 +8,7 @@
               {
                 "dbName": "all_database_syn_02",
                 "tableList": [
-                  "partition_01"
+                  "partition_01","partition_01_x"
                 ]
               }
             ],

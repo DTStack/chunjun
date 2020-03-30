@@ -53,31 +53,27 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         if(resultMapList.isEmpty()) {
             hasNext = false;
         }
-        errorMessage.clear();
 
         return row;
     }
 
     @Override
-    protected void beforeUnit(String currentQueryTable, String currentDbName) {
+    protected void beforeUnit(String currentQueryTable, String currentDbName) throws SQLException{
         getColumn(currentQueryTable, currentDbName);
         columnMap = Maps.newHashMap();
-        columnMap.putAll(transformDataToMap(executeQuerySql(
-                buildDescSql(currentDbName + "." + currentQueryTable, false))));
+
+        String sql = buildDescSql(currentDbName + "." + currentQueryTable, false);
+        try(ResultSet rs = statement.executeQuery(sql)) {
+            columnMap.putAll(transformDataToMap(rs));
+        }
     }
 
     @Override
-    public Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) {
-        ResultSet resultSet = executeQuerySql(
-                buildDescSql(currentDbName + "." + currentQueryTable, true));
-        if (resultSet == null) {
-            LOG.warn("query result was null");
-            setErrorMessage(new SQLException(),"query result was null");
-            return null;
-        }
-        Map<String, Object> result;
+    public Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) throws SQLException{
+        String sql = buildDescSql(currentDbName + "." + currentQueryTable, true);
+        ResultSet resultSet = statement.executeQuery(sql);
         // 获取初始数据map
-        result = transformDataToMap(resultSet);
+        Map<String, Object> result = transformDataToMap(resultSet);
         // 对初始数据清洗，除去无关信息，如带有key中#
         result.entrySet().removeIf(entry -> entry.getKey().contains("#"));
         // 过滤表字段的相关信息
@@ -110,13 +106,10 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     @Override
     public List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName) {
         List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
-        try {
-            for (String item : partitionColumn) {
-                tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
-            }
-        } catch (Exception e) {
-            setErrorMessage(e, "get partitions error");
+        for (String item : partitionColumn) {
+            tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
         }
+
         return tempPartitionColumnList;
     }
 
@@ -181,12 +174,12 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     /**
      * 获取表中字段名称，包括分区字段和非分区字段
      */
-    public void getColumn(String currentQueryTable, String currentDbName) {
-        try {
-            boolean isPartitionColumn = false;
-            tableColumn = new ArrayList<>();
-            partitionColumn = new ArrayList<>();
-            ResultSet temp = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, false));
+    public void getColumn(String currentQueryTable, String currentDbName) throws SQLException{
+        boolean isPartitionColumn = false;
+        tableColumn = new ArrayList<>();
+        partitionColumn = new ArrayList<>();
+        String sql = buildDescSql(currentDbName + "." + currentQueryTable, false);
+        try(ResultSet temp = statement.executeQuery(sql)){
             while (temp.next()) {
                 if (temp.getString(1).trim().contains("Partition Information")) {
                     isPartitionColumn = true;
@@ -197,42 +190,38 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     tableColumn.add(temp.getString(1));
                 }
             }
+
             // 除去多余的字段
             tableColumn.removeIf(item -> item.contains("#") || item.isEmpty());
             partitionColumn.removeIf(item -> item.contains("#") || item.isEmpty());
 
             tableColumn.removeIf(col -> partitionColumn.contains(col));
-        } catch (Exception e) {
-            setErrorMessage(e, "get column error!");
         }
     }
 
     /**
      * 从查询结果中构建Map
      */
-    public Map<String, Object> transformDataToMap(ResultSet resultSet) {
+    public Map<String, Object> transformDataToMap(ResultSet resultSet) throws SQLException{
         Map<String, Object> result = Maps.newHashMap();
-        try {
-            while (resultSet.next()) {
-                String key1 = resultSet.getString(1);
-                String key2 = resultSet.getString(2);
-                String key3 = resultSet.getString(3);
-                if (key1.isEmpty()) {
-                    if (key2 != null) {
-                        result.put(key2.trim(), key3.trim());
-                    }
-                } else {
-                    if (key2 != null) {
-                        result.put(toLowerCaseFirstOne(key1).replace(":", "").trim(), key2.trim());
-                    }
-                    if (key3 != null) {
-                        result.put(key1.trim() + "_comment", key3);
-                    }
+        while (resultSet.next()) {
+            String key1 = resultSet.getString(1);
+            String key2 = resultSet.getString(2);
+            String key3 = resultSet.getString(3);
+            if (key1.isEmpty()) {
+                if (key2 != null) {
+                    result.put(key2.trim(), key3.trim());
+                }
+            } else {
+                if (key2 != null) {
+                    result.put(toLowerCaseFirstOne(key1).replace(":", "").trim(), key2.trim());
+                }
+                if (key3 != null) {
+                    result.put(key1.trim() + "_comment", key3);
                 }
             }
-        } catch (Exception e) {
-            setErrorMessage(e, "transform data error");
         }
+
         return result;
     }
 
