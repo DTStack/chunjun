@@ -25,7 +25,13 @@ package com.dtstack.flinkx.oraclelogminer.format;
  */
 public class PositionManager {
 
-    private String scn;
+    private Long scn;
 
+    public void updatePosition(Long scn) {
+        this.scn = scn;
+    }
 
+    public Long getPosition() {
+        return this.scn;
+    }
 }
