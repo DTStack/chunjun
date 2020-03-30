@@ -18,29 +18,28 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/20
  */
 public abstract class BaseMetadataInputFormat extends RichInputFormat {
-
-    protected int numPartitions;
 
     protected String dbUrl;
 
@@ -50,255 +49,177 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected String driverName;
 
-    protected List<Map<String, Object>> dbList;
+    protected List<Map<String, Object>> dbTableList;
 
-    protected boolean hasNext;
+    protected transient static ThreadLocal<Connection> connection = new ThreadLocal<>();
 
-    protected boolean isAll;
+    protected transient static ThreadLocal<Statement> statement = new ThreadLocal<>();
 
-    protected transient static Connection connection;
+    protected ThreadLocal<String> currentDb = new ThreadLocal<>();
 
-    protected transient static Statement statement;
-
-    protected LinkedList<Map<String, Object>> resultMapList;
+    protected transient Iterator<String> tableIterator;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        initConnect();
+
+        try {
+            connection.set(getConnection());
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
-        String currentDb = ((MetadataInputSplit) inputSplit).getDbName();
-        List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
-        resultMapList = new LinkedList<>();
 
         try {
-            // 切换数据库，获取当前数据库下的元数据信息
-            statement.execute(changeDbSql(currentDb));
-            if (tableList.isEmpty()) {
-                tableList.addAll(getDataList(queryTableSql()));
-            }
+            statement.set(connection.get().createStatement());
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new IOException("create statement error", e);
         }
 
-        for (String currentTable : tableList) {
-            Map<String, Object> resultMap = unitMetaData(currentDb, currentTable);
-            hasNext = true;
-            resultMapList.add(resultMap);
+        try {
+            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+            switchDatabase(currentDb.get());
+        } catch (Exception e) {
+            throw new IOException("switch database error", e);
         }
+
+        List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+        if (CollectionUtils.isEmpty(tableList)) {
+            try {
+                tableList = showTables();
+            } catch (SQLException e) {
+                throw new IOException("show tables error", e);
+            }
+        }
+
+        tableIterator = tableList.iterator();
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        initConnect();
-        return initSplits();
+    protected InputSplit[] createInputSplitsInternal(int splitNumber) throws Exception {
+        if (CollectionUtils.isEmpty(dbTableList)) {
+            try (Connection connection = getConnection()) {
+                List<String> dbList = showDatabases(connection);
+                InputSplit[] inputSplits = new MetadataInputSplit[dbList.size()];
+                for (int i = 0; i < dbList.size(); i++) {
+                    inputSplits[i] = new MetadataInputSplit(splitNumber, dbList.get(i), null);
+                }
+
+                return inputSplits;
+            }
+        } else {
+            InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
+            for (int index = 0; index < dbTableList.size(); index++) {
+                Map<String, Object> dbTables = dbTableList.get(index);
+                String dbName = MapUtils.getString(dbTables, "dbName");
+                if(StringUtils.isNotEmpty(dbName)){
+                    List<String> tables = (List<String>)dbTables.get("tableList");
+                    inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
+                }
+            }
+            return inputSplits;
+        }
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return null;
-    }
+        Map<String, Object> metaData = new HashMap<>();
+        metaData.put("operaType", "createTable");
 
-    @Override
-    protected void closeInternal() throws IOException {
+        String tableName = tableIterator.next();
+        metaData.put("schema", currentDb);
+        metaData.put("table", tableName);
+
+        try {
+            metaData.putAll(queryMetaData(tableName));
+            metaData.put("querySuccess", true);
+        } catch (Exception e) {
+            metaData.put("querySuccess", false);
+            metaData.put("errorMsg", ExceptionUtil.getErrorMessage(e));
+        }
+
+        return Row.of(metaData);
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return !hasNext;
+        return !tableIterator.hasNext();
     }
 
-    /**
-     * 创建分片
-     */
-    private InputSplit[] initSplits() throws SQLException {
-        List<String> dbInfo = new ArrayList<>();
-        List<List<String>> tableList = new ArrayList<>();
-        if (isAll) {
-            dbInfo.addAll(new ArrayList<>(getDataList(queryDbSql())));
-        } else {
-            for (Map<String, Object> item : dbList) {
-                dbInfo.add(item.get(MetaDataCons.KEY_DB_NAME).toString());
-                tableList.add((List<String>) item.get(MetaDataCons.KEY_TABLE_LIST));
+    @Override
+    protected void closeInternal() throws IOException {
+        if (null != statement.get()) {
+            try {
+                statement.get().close();
+                statement.remove();
+            } catch (SQLException e) {
+                throw new IOException("close statement error", e);
             }
         }
-        InputSplit[] inputSplits = new MetadataInputSplit[dbInfo.size()];
-        for (int index = 0; index < dbInfo.size(); index++) {
-            if (tableList.size() == 0) {
-                inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbInfo.get(index), new ArrayList<>());
-            } else {
-                inputSplits[index] = new MetadataInputSplit(index, numPartitions, dbInfo.get(index), tableList.get(index));
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
+
+        if (null != connection.get()) {
+            try {
+                connection.get().close();
+                connection.remove();
+            } catch (SQLException e) {
+                throw new IOException("close connection error", e);
             }
         }
-        return inputSplits;
     }
 
     /**
-     * 执行查询语句，例如查询库名、表名
-     *
-     * @param queryDataSql 查询sql语句
-     * @return result 查询结果拆分之后的数据
+     * 创建连接
      */
-    public List<String> getDataList(String queryDataSql) throws SQLException {
-        List<String> result = Lists.newArrayList();
-        ResultSet resultSet = executeQuerySql(queryDataSql);
-        while (resultSet.next()) {
-            result.add(resultSet.getString(1));
-        }
-        return result;
+    public Connection getConnection() throws Exception{
+        Class.forName(driverName);
+        return ConnUtil.getConnection(dbUrl, username, password);
     }
 
     /**
-     * 执行查询计划
-     */
-    protected ResultSet executeQuerySql(String sql) throws SQLException{
-        LOG.info("current query sql : {}", sql);
-        try {
-            return statement.executeQuery(sql);
-        } catch (SQLException e) {
-            LOG.warn("query error! current query sql:" + sql, e);
-        }
-        return null;
-    }
-
-    /**
-     * 初始化连接
-     */
-    public void initConnect() {
-        try {
-            Class.forName(driverName);
-            connection = ConnUtil.getConnection(dbUrl, username, password);
-            statement = connection.createStatement();
-        } catch (Exception e) {
-            throw new RuntimeException("get connect error!", e);
-        }
-    }
-
-
-    protected Map<String, Object> unitMetaData(String currentDb, String currentTable) {
-        Map<String, Object> result = Maps.newHashMap();
-        Map<String, Object> tableDetailInformation = Maps.newHashMap();
-        List<Map<String, Object>> columnDetailInformation = new ArrayList<>();
-        List<Map<String, Object>> partitionDetailInformation = new ArrayList<>();
-
-        try {
-            beforeUnit(currentTable, currentDb);
-
-            tableDetailInformation = getTableProperties(currentTable, currentDb);
-            columnDetailInformation = getColumnProperties(currentTable);
-            partitionDetailInformation = getPartitionProperties(currentTable, currentDb);
-
-            result.put("querySuccess", true);
-        } catch (SQLException e) {
-            result.put("querySuccess", false);
-            result.put("errorMsg", ExceptionUtil.getErrorMessage(e));
-        }
-
-        result.put(MetaDataCons.KEY_TABLE, currentTable);
-        result.put(MetaDataCons.KEY_SCHEMA, currentDb);
-        // 当前为全量查询，所以type固定为createTable
-        result.put(MetaDataCons.KEY_OPERA_TYPE, "createTable");
-
-        result.put(MetaDataCons.KEY_COLUMN, columnDetailInformation);
-
-        result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableDetailInformation);
-
-        result.put(MetaDataCons.KEY_PARTITION_COLUMNS, partitionDetailInformation);
-
-        if (CollectionUtils.isNotEmpty(partitionDetailInformation)) {
-            result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList(currentTable));
-        }
-
-        return result;
-    }
-
-    /**
-     * 组合元数据信息之前的操作，比如hive2的获取字段名和分区字段
+     * query all databases
      *
-     * @param currentQueryTable 当前查询的table
-     * @param currentDbName     当前查询的db
+     * @param connection jdbc connection
+     * @return db list
+     * @throws SQLException e
      */
-    protected abstract void beforeUnit(String currentQueryTable, String currentDbName) throws SQLException;
+    protected abstract List<String> showDatabases(Connection connection) throws SQLException;
 
     /**
-     * 从结果集中解析有关表的元数据信息
      *
-     * @param currentQueryTable 当前查询的table名
-     * @param currentDbName     当前查询的db
-     * @return 有关表的元数据信息
+     * @return
+     * @throws SQLException
      */
-    public abstract Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) throws SQLException;
+    protected abstract List<String> showTables() throws SQLException;
 
     /**
-     * 从结果集中解析有关表字段的元数据信息
+     * switch db
      *
-     * @param currentQueryTable 当前查询的table
-     * @return 有关表字段的元数据信息
+     * @param database
+     * @throws SQLException
      */
-    public abstract List<Map<String, Object>> getColumnProperties(String currentQueryTable) throws SQLException;
+    protected abstract void switchDatabase(String database) throws SQLException;
 
     /**
-     * 从结果集中解析有关分区字段的元数据信息
-     *
-     * @param currentQueryTable 当前查询table
-     * @param currentDbName     当前查询Db
-     * @return 有关分区字段的元数据信息
+     * query metadata
+     * @param table
+     * @return
+     * @throws SQLException
      */
-    public abstract List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName) throws SQLException;
+    protected abstract Map<String, Object> queryMetaData(String table) throws SQLException;
 
     /**
-     * 构建查询表名sql，如show tables
-     *
-     * @return 返回能够查询tables的sql语句
+     * quote database,table,column
+     * @param value
+     * @return
      */
-    public abstract String queryTableSql();
-
-    /**
-     * 构建查询当前连接下可查询的所有数据库名，如show databases;
-     *
-     * @return 返回能够查询databases的sql语句
-     */
-    public abstract String queryDbSql();
-
-    /**
-     * 构建切换databases的执行语句，如use default;
-     *
-     * @param dbName 需要切换的数据库名称
-     * @return 返回能够切换数据库的sql, 如use default
-     */
-    public abstract String changeDbSql(String dbName);
-
-    /**
-     * 添加quote
-     *
-     * @return sql语句的quote
-     */
-    public abstract String getStartQuote();
-
-    /**
-     * 添加quote
-     *
-     * @return sql语句的quote
-     */
-    public abstract String getEndQuote();
-
-
-    /**
-     * 给data添加quote
-     *
-     * @param data 需要添加quote的data,如查询时的table
-     * @return 已经添加好的data
-     */
-    public abstract String quoteData(String data);
-
-    /**
-     * 获取分区字段名列表
-     *
-     * @return 分区字段名列表
-     */
-    public abstract List<String> getPartitionList(String currentTable);
+    protected abstract String quote(String value);
 }
