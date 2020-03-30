@@ -6,15 +6,15 @@
           "parameter": {
             "dbList": [
               {
-                "dbName": "all_database_syn_02",
+                "dbName": "default",
                 "tableList": [
-                  "partition_01","partition_01_x"
+                  "jiangbo_test","jiangbo_test2"
                 ]
               }
             ],
-            "password": "",
-            "jdbcUrl": "jdbc:hive2://172.16.100.223:10000",
-            "username": ""
+            "password": "abc123",
+            "jdbcUrl": "jdbc:hive2://172.16.100.132:10000",
+            "username": "root"
           },
           "name": "metadatahive2reader"
         },

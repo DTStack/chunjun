@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
-import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
 
@@ -25,21 +25,16 @@ import java.util.List;
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public class MetadataInputSplit extends GenericInputSplit {
+public class MetadataInputSplit implements InputSplit {
+
+    private int splitNumber;
+
     private String dbName;
+
     private List<String> tableList;
 
-    /**
-     * Creates a generic input split with the given split number.
-     *
-     * @param partitionNumber         The number of the split's partition.
-     * @param totalNumberOfPartitions The total number of the splits (partitions).
-     */
-    public MetadataInputSplit(int partitionNumber,
-                              int totalNumberOfPartitions,
-                              String dbName,
-                              List<String> tableList) {
-        super(partitionNumber, totalNumberOfPartitions);
+    public MetadataInputSplit(int splitNumber, String dbName, List<String> tableList) {
+        this.splitNumber = splitNumber;
         this.dbName = dbName;
         this.tableList = tableList;
     }
@@ -57,5 +52,10 @@ public class MetadataInputSplit extends GenericInputSplit {
         return "MetadataInputSplitDb{" +
                 "dbName='" + dbName + '\'' +
                 '}';
+    }
+
+    @Override
+    public int getSplitNumber() {
+        return splitNumber;
     }
 }
