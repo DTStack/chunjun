@@ -76,5 +76,7 @@ public class OdpsOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        notSupportBatchWrite("OdpsWriter");
     }
 }
