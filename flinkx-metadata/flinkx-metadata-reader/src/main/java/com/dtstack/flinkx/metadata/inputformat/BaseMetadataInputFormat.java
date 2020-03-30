@@ -212,7 +212,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
         result.put(MetaDataCons.KEY_PARTITION_COLUMNS, partitionDetailInformation);
 
-        result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList());
+        result.put(MetaDataCons.KEY_PARTITIONS, getPartitionList(currentTable));
 
         return result;
     }
@@ -301,5 +301,5 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
      *
      * @return 分区字段名列表
      */
-    public abstract List<String> getPartitionList();
+    public abstract List<String> getPartitionList(String currentTable);
 }

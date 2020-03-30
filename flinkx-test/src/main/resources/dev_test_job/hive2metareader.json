@@ -2,26 +2,39 @@
   "job": {
     "content": [
       {
-        "writer": {
-          "parameter": {
-            "print": true
-          },
-          "name": "streamwriter"
-        },
         "reader": {
           "parameter": {
-            "username": "root",
-            "password": "abc123",
-            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
             "dbList": [
               {
-                "dbName":"tiezhu",
-                "tableList": ["test_2"]
+                "dbName": "all_database_syn_02",
+                "tableList": [
+                  "partition_01"
+                ]
               }
-
-            ]
+            ],
+            "password": "",
+            "jdbcUrl": "jdbc:hive2://172.16.100.223:10000",
+            "username": ""
           },
           "name": "metadatahive2reader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true,
+            "method": "post",
+            "column": [],
+            "batchInterval": 500,
+            "header": [],
+            "body": [],
+            "params": {
+              "sourceId": 3,
+              "jobId": "5e3752a0",
+              "tenantId": 2,
+              "taskId": 44
+            },
+            "url": "http://rdos.dtstack.insight.cn//dassets/v1/syncJob/syncCallBack"
+          },
+          "name": "streamwriter"
         }
       }
     ],
