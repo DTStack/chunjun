@@ -160,6 +160,10 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     if (nameInternal.contains("totalSize")) {
                         tableProperties.put("totalSize", getData(metaDatum.get("comment")));
                     }
+
+                    if (nameInternal.contains("transient_lastDdlTime")) {
+                        tableProperties.put("transient_lastDdlTime", getData(metaDatum.get("comment")));
+                    }
                 }
             }
         }
