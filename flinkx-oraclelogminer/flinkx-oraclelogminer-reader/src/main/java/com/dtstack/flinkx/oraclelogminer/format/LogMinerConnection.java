@@ -23,14 +23,23 @@ import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -73,6 +82,8 @@ public class LogMinerConnection {
 
     private Pair<Long, Map<String, Object>> result;
 
+    private boolean addedLog = false;
+
     public LogMinerConnection(LogMinerConfig logMinerConfig, Long startScn) {
         this.logMinerConfig = logMinerConfig;
         this.startScn = startScn;
@@ -104,6 +115,11 @@ public class LogMinerConnection {
 
     public void startQueryData() {
         initStartScn();
+
+        if (!logMinerConfig.getSupportAutoAddLog()) {
+            addLog();
+        }
+
         startLogMiner();
         queryData();
     }
@@ -322,8 +338,31 @@ public class LogMinerConnection {
         }
     }
 
-    public void updateLog() {
+    public void addLog() {
+        List<String> logFiles = getLogFiles();
+        if (CollectionUtils.isEmpty(logFiles)) {
+            return;
+        }
 
+        try (Statement st = connection.createStatement()) {
+            for (String logFile : logFiles) {
+                if (addedLog) {
+                    st.execute(String.format("dbms_logmnr.add_logfile('%s', dbms_logmnr.new)", logFile));
+                } else {
+                    st.execute(String.format("dbms_logmnr.add_logfile('%s', dbms_logmnr.addfile)", logFile));
+                    addedLog = true;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("add log error", e);
+        }
+    }
+
+    private List<String> getLogFiles() {
+        // 根据scn获取文件
+
+
+        return null;
     }
 
     public boolean hasNext() throws SQLException{

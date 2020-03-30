@@ -32,9 +32,29 @@ import java.util.List;
 public class SqlUtil {
 
     /**
-     *
+     * OPTIONS参数说明:
+     * DBMS_LOGMNR.SKIP_CORRUPTION - 跳过出错的redlog
+     * DBMS_LOGMNR.NO_SQL_DELIMITER - 不使用 ';'分割redo sql
+     * DBMS_LOGMNR.NO_ROWID_IN_STMT - 默认情况下，用于UPDATE和DELETE操作的SQL_REDO和SQL_UNDO语句在where子句中包含“ ROWID =”。
+     *                                但是，这对于想要重新执行SQL语句的应用程序是不方便的。设置此选项后，“ ROWID”不会放置在重构语句的末尾
+     * DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG - 使用在线字典
+     * DBMS_LOGMNR.CONTINUOUS_MINE - 需要在生成重做日志的同一实例中使用日志
+     * DBMS_LOGMNR.COMMITTED_DATA_ONLY - 指定此选项时，LogMiner将属于同一事务的所有DML操作分组在一起。事务按提交顺序返回。
+     * DBMS_LOGMNR.STRING_LITERALS_IN_STMT - 默认情况下，格式化格式化的SQL语句时，SQL_REDO和SQL_UNDO语句会使用数据库会话的NLS设置
+     *                                       例如NLS_DATE_FORMAT，NLS_NUMERIC_CHARACTERS等）。使用此选项，将使用ANSI / ISO字符串文字格式对重构的SQL语句进行格式化。
      */
-    public final static String SQL_START_LOG_MINER_AUTO_ADD_LOG = "";
+    public final static String SQL_START_LOG_MINER_AUTO_ADD_LOG = "" +
+            "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
+            "STARTSCN => ?," +
+            "OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "+ DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "+ DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "+ DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "+ DBMS_LOGMNR.CONTINUOUS_MINE " +
+            "+ DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
+            "+ DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
+            ");" +
+            "END;";
 
     /**
      * 启动logminer
@@ -87,7 +107,7 @@ public class SqlUtil {
             "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.new);\n" +
             "        st := false;\n" +
             "    ELSE\n" +
-            "        dbms_logmnr.add_logfile(l_log_rec.name);\n" +
+            "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.addfile);\n" +
             "    END IF;\n" +
             "    END LOOP;\n" +
             "\n" +
