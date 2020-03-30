@@ -151,8 +151,18 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    public List<String> getPartitionList() {
-        return partitionColumn;
+    public List<String> getPartitionList(String currentTable) {
+        String sql = "show partitions " + currentTable;
+        List<String> partitions = new ArrayList<>();
+        try (ResultSet rs = statement.executeQuery(sql)) {
+            while (rs.next()) {
+                partitions.add(rs.getString(1));
+            }
+        } catch (Exception e) {
+            LOG.error("get partitons error for table:{}", currentTable, e);
+        }
+
+        return partitions;
     }
 
     /**
