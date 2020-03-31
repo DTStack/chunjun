@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import java.util.Objects;
+
 /**
  * @author jiangbo
  * @date 2020/3/31
@@ -53,5 +55,35 @@ public class LogFile {
 
     public void setNextChange(Long nextChange) {
         this.nextChange = nextChange;
+    }
+
+    @Override
+    public String toString() {
+        return "LogFile{" +
+                "fileName='" + fileName + '\'' +
+                ", firstChange=" + firstChange +
+                ", nextChange=" + nextChange +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o){
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()){
+            return false;
+        }
+
+        LogFile logFile = (LogFile) o;
+        return Objects.equals(fileName, logFile.fileName) &&
+                Objects.equals(firstChange, logFile.firstChange) &&
+                Objects.equals(nextChange, logFile.nextChange);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fileName, firstChange, nextChange);
     }
 }
