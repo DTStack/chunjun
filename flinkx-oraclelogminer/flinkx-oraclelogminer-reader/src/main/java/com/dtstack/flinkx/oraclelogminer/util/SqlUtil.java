@@ -45,14 +45,14 @@ public class SqlUtil {
      */
     public final static String SQL_START_LOG_MINER_AUTO_ADD_LOG = "" +
             "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
-            "STARTSCN => ?," +
-            "OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
-            "+ DBMS_LOGMNR.NO_SQL_DELIMITER " +
-            "+ DBMS_LOGMNR.NO_ROWID_IN_STMT " +
-            "+ DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
-            "+ DBMS_LOGMNR.CONTINUOUS_MINE " +
-            "+ DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
-            "+ DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
+            "   STARTSCN => ?," +
+            "   OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "       + DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "       + DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "       + DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "       + DBMS_LOGMNR.CONTINUOUS_MINE " +
+            "       + DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
+            "       + DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
             ");" +
             "END;";
 
@@ -64,61 +64,14 @@ public class SqlUtil {
      * v$logfile：
      */
     public final static String SQL_START_LOG_MINER = "" +
-            "DECLARE\n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
-            "        FROM\n" +
-            "            (\n" +
-            "                SELECT\n" +
-            "                    MIN(member) AS name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                GROUP BY\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                UNION\n" +
-            "                SELECT\n" +
-            "                    name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$archived_log\n" +
-            "                WHERE\n" +
-            "                    name IS NOT NULL\n" +
-            "            )\n" +
-            "        WHERE\n" +
-            "            first_change# >= start_scn\n" +
-            "            OR start_scn < next_change#\n" +
-            "        GROUP BY\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
-            "        ORDER BY\n" +
-            "            first_change#\n" +
-            "    ) LOOP IF st THEN\n" +
-            "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.new);\n" +
-            "        st := false;\n" +
-            "    ELSE\n" +
-            "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.addfile);\n" +
-            "    END IF;\n" +
-            "    END LOOP;\n" +
-            "\n" +
-            "    dbms_logmnr.start_logmnr(options => " +
-            "dbms_logmnr.skip_corruption " +
-            "+ dbms_logmnr.no_sql_delimiter " +
-            "+ dbms_logmnr.no_rowid_in_stmt\n" +
-            "+ dbms_logmnr.dict_from_online_catalog " +
-            "+ DBMS_LOGMNR.committed_data_only" +
-            "+ dbms_logmnr.string_literals_in_stmt);\n" +
-            "\n" +
+            "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
+            "   STARTSCN => ?," +
+            "   OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "       + DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "       + DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "       + DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "       + DBMS_LOGMNR.COMMITTED_DATA_ONLY" +
+            "       + DBMS_LOGMNR.STRING_LITERALS_IN_STMT); " +
             "END;";
 
     public final static String SQL_QUERY_LOG_FILE =
@@ -127,22 +80,29 @@ public class SqlUtil {
             "    first_change#,\n" +
             "    next_change#\n" +
             "FROM\n" +
-            "    v$log       l\n" +
-            "    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "    (\n" +
+            "        SELECT\n" +
+            "            member,\n" +
+            "            first_change#,\n" +
+            "            next_change#\n" +
+            "        FROM\n" +
+            "            v$log       l\n" +
+            "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "        UNION\n" +
+            "        SELECT\n" +
+            "            name,\n" +
+            "            first_change#,\n" +
+            "            next_change#\n" +
+            "        FROM\n" +
+            "            v$archived_log\n" +
+            "        WHERE\n" +
+            "            name IS NOT NULL\n" +
+            "    ) tmp\n" +
             "GROUP BY\n" +
             "    first_change#,\n" +
             "    next_change#\n" +
-            "UNION\n" +
-            "SELECT\n" +
-            "    name,\n" +
-            "    first_change#,\n" +
-            "    next_change#\n" +
-            "FROM\n" +
-            "    v$archived_log\n" +
-            "WHERE\n" +
-            "    name IS NOT NULL\n" +
             "ORDER BY\n" +
-            "    first_change# ASC;";
+            "    first_change# ASC";
 
     public final static String SQL_SELECT_DATA = "" +
             "SELECT\n" +

@@ -62,6 +62,7 @@ public class LogParser {
         String sqlLog = MapUtils.getString(logData, "sqlLog");
 
         Map<String,Object> message = new LinkedHashMap<>();
+        message.put("scn", pair.getLeft());
         message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);

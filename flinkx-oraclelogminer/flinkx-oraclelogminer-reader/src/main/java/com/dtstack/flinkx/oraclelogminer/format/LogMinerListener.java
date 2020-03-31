@@ -77,6 +77,7 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
+        logMinerConnection.initStartScn();
         logMinerConnection.startQueryData();
 
         executor.submit(this);
@@ -92,7 +93,7 @@ public class LogMinerListener implements Runnable {
                     Pair<Long, Map<String, Object>> log = logMinerConnection.next();
                     queue.add(logParser.parse(log));
                 } else if (!logMinerConfig.getSupportAutoAddLog()) {
-                    logMinerConnection.addLog();
+                    logMinerConnection.setStartScnInStartLogMiner(positionManager.getPosition());
                     logMinerConnection.startQueryData();
                 }
             } catch (Exception e) {

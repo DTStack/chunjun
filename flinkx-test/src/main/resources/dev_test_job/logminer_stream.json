@@ -8,7 +8,7 @@
           "password" : "kminerpass",
           "cat" : "insert,update,delete",
           "jdbcUrl" : "jdbc:oracle:thin:@172.16.101.194:1521/dtstack",
-          "readPosition" : "scn",
+          "readPosition" : "all",
           "pavingData" : true,
           "table" : [ "KMINER.logtest" ],
           "username" : "kminer"
