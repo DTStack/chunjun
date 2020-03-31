@@ -93,8 +93,11 @@ public class LogMinerListener implements Runnable {
                     Pair<Long, Map<String, Object>> log = logMinerConnection.next();
                     queue.add(logParser.parse(log));
                 } else if (!logMinerConfig.getSupportAutoAddLog()) {
-                    logMinerConnection.setStartScnInStartLogMiner(positionManager.getPosition());
+                    logMinerConnection.setContinueReadPosition(positionManager.getPosition());
                     logMinerConnection.startQueryData();
+
+                    System.out.println("Update log and continue read:" + positionManager.getPosition());
+                    LOG.info("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
                 // TODO

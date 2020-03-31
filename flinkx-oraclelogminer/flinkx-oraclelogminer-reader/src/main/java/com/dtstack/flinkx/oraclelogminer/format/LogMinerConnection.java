@@ -476,6 +476,7 @@ public class LogMinerConnection {
                     continue;
                 }
 
+                System.out.println("skip data with scn:" + scn);
                 LOG.debug("Skipping data with scn :{}", scn);
                 continue;
             }
@@ -509,8 +510,10 @@ public class LogMinerConnection {
         return false;
     }
 
-    public void setStartScnInStartLogMiner(Long startScnInStartLogMiner) {
+    public void setContinueReadPosition(Long startScnInStartLogMiner) {
         this.startScnInStartLogMiner = startScnInStartLogMiner;
+        this.startScn = startScnInStartLogMiner;
+//        this.skipRecord = true;
     }
 
     private void configStatement(java.sql.Statement statement) throws SQLException {
