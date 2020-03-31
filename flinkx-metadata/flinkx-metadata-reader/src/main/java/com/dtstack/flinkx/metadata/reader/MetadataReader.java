@@ -64,7 +64,6 @@ public class MetadataReader extends BaseDataReader {
         builder.setUsername(username);
         builder.setDriverName(driverName);
         builder.setDbList(dbList);
-        builder.setNumPartitions(1);
 
         BaseRichInputFormat format = builder.finish();
 

@@ -17,17 +17,17 @@
  */
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadatahive2.common.Hive2MetaDataCons;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Maps;
-import org.apache.flink.types.Row;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,219 +37,286 @@ import java.util.Map;
  */
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
-    protected List<String> tableColumn;
-
-    protected List<String> partitionColumn;
-
-    protected Map<String, Object> columnMap;
-
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
+    private static final String TEXT_FORMAT = "TextOutputFormat";
+    private static final String ORC_FORMAT = "OrcOutputFormat";
+    private static final String PARQUET_FORMAT = "MapredParquetOutputFormat";
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        Map<String, Object> currentMessage =  resultMapList.pop();
-        Map<String, Object> data = Maps.newHashMap();
-        data.put("data", currentMessage);
-        row = new Row(1);
-        row.setField(0, objectMapper.writeValueAsString(data));
-        if(resultMapList.isEmpty()) {
-            hasNext = false;
+    protected List<String> showDatabases(Connection connection) throws SQLException {
+        List<String> dbNameList = new ArrayList<>();
+        try(Statement st = connection.createStatement();
+            ResultSet rs = st.executeQuery("show databases")) {
+            while (rs.next()) {
+                dbNameList.add(rs.getString(1));
+            }
         }
-        errorMessage.clear();
 
-        return row;
+        return dbNameList;
     }
 
     @Override
-    protected void beforeUnit(String currentQueryTable, String currentDbName) {
-        getColumn(currentQueryTable, currentDbName);
-        columnMap = Maps.newHashMap();
-        columnMap.putAll(transformDataToMap(executeQuerySql(
-                buildDescSql(currentDbName + "." + currentQueryTable, false))));
+    protected void switchDatabase(String database) throws SQLException {
+        statement.get().execute(String.format("use %s", quote(database)));
     }
 
     @Override
-    public Map<String, Object> getTableProperties(String currentQueryTable, String currentDbName) {
-        ResultSet resultSet = executeQuerySql(
-                buildDescSql(currentDbName + "." + currentQueryTable, true));
-        if (resultSet == null) {
-            LOG.warn("query result was null");
-            setErrorMessage(new SQLException(),"query result was null");
+    protected List<String> showTables() throws SQLException {
+        List<String> tables = new ArrayList<>();
+        try (ResultSet rs = statement.get().executeQuery("show tables")) {
+            while (rs.next()) {
+                tables.add(rs.getString(1));
+            }
+        }
+
+        return tables;
+    }
+
+    @Override
+    protected String quote(String value) {
+        return String.format("`%s`", value);
+    }
+
+    @Override
+    protected Map<String, Object> queryMetaData(String table) throws SQLException {
+        Map<String, Object> result = new HashMap<>();
+
+        List<Map<String, String>> metaData = queryData(table);
+
+        Map<String, Object> tableProperties = parseTableProperties(metaData);
+        result.put("tableProperties", tableProperties);
+
+        List<Map<String, Object>> partitionColumnList = parsePartitionColumn(metaData);
+        result.put("partitionColumn", partitionColumnList);
+
+        List<Map<String, Object>> columnList = parseColumn(metaData);
+        if (partitionColumnList.size() > 0) {
+            List<String> partitionColumnNames = new ArrayList<>();
+            for (Map<String, Object> partitionColumn : partitionColumnList) {
+                partitionColumnNames.add(partitionColumn.get("name").toString());
+            }
+
+            columnList.removeIf(column -> partitionColumnNames.contains(column.get("name").toString()));
+        }
+
+        result.put("column", columnList);
+
+        if (partitionColumnList.size() > 0) {
+            result.put("partitions", showPartitions(table));
+        }
+
+        return result;
+    }
+
+    /**
+     * "comment": "this is tableA",
+     *                 "totalSize": 12,
+     */
+    private Map<String, Object> parseTableProperties(List<Map<String, String>> metaData) {
+        Map<String, Object> tableProperties = new HashMap<>();
+
+        Iterator<Map<String, String>> it = metaData.iterator();
+        while (it.hasNext()) {
+            Map<String, String> metaDatum = it.next();
+            String name = metaDatum.get("col_name");
+            if (null == name) {
+                continue;
+            }
+
+            name = name.trim();
+            if (name.length() == 0 || name.startsWith("#")) {
+                continue;
+            }
+
+            if (name.contains("Location:")) {
+                tableProperties.put("location", getData(metaDatum.get("data_type")));
+            }
+
+            if (name.contains("CreateTime:")) {
+                tableProperties.put("createTime", getData(metaDatum.get("data_type")));
+            }
+
+            if (name.contains("LastAccessTime:")) {
+                tableProperties.put("lastAccessTime", getData(metaDatum.get("data_type")));
+            }
+
+            if (name.contains("OutputFormat:")) {
+                String storedClass = metaDatum.get("data_type");
+                tableProperties.put("storedType", getStoredType(storedClass));
+            }
+
+            if (name.contains("Table Parameters:")) {
+                while (it.hasNext()) {
+                    metaDatum = it.next();
+                    String nameInternal = metaDatum.get("data_type");
+                    if (null == nameInternal) {
+                        continue;
+                    }
+
+                    nameInternal = nameInternal.trim();
+                    if (nameInternal.contains("comment")) {
+                        tableProperties.put("comment", getData(metaDatum.get("comment")));
+                    }
+
+                    if (nameInternal.contains("totalSize")) {
+                        tableProperties.put("totalSize", getData(metaDatum.get("comment")));
+                    }
+
+                    if (nameInternal.contains("transient_lastDdlTime")) {
+                        tableProperties.put("transient_lastDdlTime", getData(metaDatum.get("comment")));
+                    }
+                }
+            }
+        }
+
+        return tableProperties;
+    }
+
+    private String getData(String data) {
+        if (null == data) {
             return null;
         }
-        Map<String, Object> result;
-        // 获取初始数据map
-        result = transformDataToMap(resultSet);
-        // 对初始数据清洗，除去无关信息，如带有key中#
-        result.entrySet().removeIf(entry -> entry.getKey().contains("#"));
-        // 过滤表字段的相关信息
-        for (String item : tableColumn) {
-            result.remove(item);
-            result.remove(item + "_comment");
-        }
-        // 判断文件存储类型
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_TEXT)) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_TEXT);
-        }
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_ORC)) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_ORC);
-        }
-        if (result.get(Hive2MetaDataCons.KEY_INPUT_FORMAT).toString().contains(Hive2MetaDataCons.INPUT_FORMAT_PARQUET)) {
-            result.put(MetaDataCons.KEY_STORED_TYPE, Hive2MetaDataCons.TYPE_PARQUET);
-        }
-        return result;
+
+        return data.trim();
     }
 
-    @Override
-    public List<Map<String, Object>> getColumnProperties(String currentQueryTable) {
-        List<Map<String, Object>> tempColumnList = new ArrayList<>();
-        for (String item : tableColumn) {
-            tempColumnList.add(setColumnMap(item, columnMap, tableColumn.indexOf(item)));
-        }
-        return tempColumnList;
-    }
-
-    @Override
-    public List<Map<String, Object>> getPartitionProperties(String currentQueryTable, String currentDbName) {
-        List<Map<String, Object>> tempPartitionColumnList = new ArrayList<>();
-        try {
-            for (String item : partitionColumn) {
-                tempPartitionColumnList.add(setColumnMap(item, columnMap, partitionColumn.indexOf(item)));
-            }
-        } catch (Exception e) {
-            setErrorMessage(e, "get partitions error");
-        }
-        return tempPartitionColumnList;
-    }
-
-    @Override
-    public String queryTableSql() {
-        return "show tables";
-    }
-
-    @Override
-    public String queryDbSql() {
-        return "show databases";
-    }
-
-    @Override
-    public String changeDbSql(String dbName) {
-        return "use " + quoteData(dbName);
-    }
-
-    @Override
-    public String getStartQuote() {
-        return "`";
-    }
-
-    @Override
-    public String getEndQuote() {
-        return "`";
-    }
-
-    @Override
-    public String quoteData(String data) {
-        return getStartQuote() + data + getEndQuote();
-    }
-
-    @Override
-    public List<String> getPartitionList() {
-        return partitionColumn;
-    }
-
-    /**
-     * 构建查询语句
-     */
-    public String buildDescSql(String currentQueryTable, boolean formatted) {
-        String sql;
-        if (formatted) {
-            sql = "DESC FORMATTED " + currentQueryTable;
+    private String getStoredType(String storedClass) {
+        if (storedClass.endsWith(TEXT_FORMAT)){
+            return "text";
+        } else if (storedClass.endsWith(ORC_FORMAT)){
+            return "orc";
+        } else if (storedClass.endsWith(PARQUET_FORMAT)){
+            return "parquet";
         } else {
-            sql = "DESC " + currentQueryTable;
-        }
-        return sql;
-    }
-
-    /**
-     * 获取表中字段名称，包括分区字段和非分区字段
-     */
-    public void getColumn(String currentQueryTable, String currentDbName) {
-        try {
-            boolean isPartitionColumn = false;
-            tableColumn = new ArrayList<>();
-            partitionColumn = new ArrayList<>();
-            ResultSet temp = executeQuerySql(buildDescSql(currentDbName + "." + currentQueryTable, false));
-            while (temp.next()) {
-                if (temp.getString(1).trim().contains("Partition Information")) {
-                    isPartitionColumn = true;
-                }
-                if (isPartitionColumn) {
-                    partitionColumn.add(temp.getString(1).trim());
-                } else {
-                    tableColumn.add(temp.getString(1));
-                }
-            }
-            // 除去多余的字段
-            tableColumn.removeIf(item -> item.contains("#") || item.isEmpty());
-            partitionColumn.removeIf(item -> item.contains("#") || item.isEmpty());
-
-            tableColumn.removeIf(col -> partitionColumn.contains(col));
-        } catch (Exception e) {
-            setErrorMessage(e, "get column error!");
+            return storedClass;
         }
     }
 
-    /**
-     * 从查询结果中构建Map
-     */
-    public Map<String, Object> transformDataToMap(ResultSet resultSet) {
-        Map<String, Object> result = Maps.newHashMap();
-        try {
-            while (resultSet.next()) {
-                String key1 = resultSet.getString(1);
-                String key2 = resultSet.getString(2);
-                String key3 = resultSet.getString(3);
-                if (key1.isEmpty()) {
-                    if (key2 != null) {
-                        result.put(key2.trim(), key3.trim());
+    private List<Map<String, Object>> parseColumn(List<Map<String, String>> metaData) {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        Iterator<Map<String, String>> it = metaData.iterator();
+        while (it.hasNext()) {
+            Map<String, String> lineData = it.next();
+            String colName = lineData.get("col_name");
+            if (null == colName) {
+                continue;
+            }
+
+            colName = colName.trim();
+
+            if (StringUtils.isNotEmpty(colName) && "# col_name".equals(colName)) {
+                while (it.hasNext()) {
+                    Map<String, String> lineDataInternal = it.next();
+                    String colNameInternal = lineDataInternal.get("col_name");
+                    if (null == colNameInternal) {
+                        continue;
                     }
-                } else {
-                    if (key2 != null) {
-                        result.put(toLowerCaseFirstOne(key1).replace(":", "").trim(), key2.trim());
+
+                    colNameInternal = colNameInternal.trim();
+                    if (colNameInternal.trim().length() == 0) {
+                        continue;
                     }
-                    if (key3 != null) {
-                        result.put(key1.trim() + "_comment", key3);
+
+                    if (colNameInternal.startsWith("#")) {
+                        break;
                     }
+
+                    String dataTypeInternal = lineDataInternal.get("data_type");
+                    String commentInternal = lineDataInternal.get("comment");
+
+                    Map<String, Object> lineResult = new HashMap<>();
+                    lineResult.put("name", colNameInternal);
+                    lineResult.put("type", dataTypeInternal);
+                    lineResult.put("comment", commentInternal);
+                    lineResult.put("index", result.size());
+
+                    result.add(lineResult);
                 }
             }
-        } catch (Exception e) {
-            setErrorMessage(e, "transform data error");
         }
+
         return result;
     }
 
-    /**
-     * 通过查询得到的结果构建字段名相应的信息
-     *
-     * @return result 返回column信息List<Map>
-     */
-    public Map<String, Object> setColumnMap(String columnName, Map<String, Object> map, int index) {
-        Map<String, Object> result = Maps.newHashMap();
-        result.put(MetaDataCons.KEY_COLUMN_NAME, columnName);
-        result.put(MetaDataCons.KEY_COLUMN_COMMENT, map.get(columnName + "_comment"));
-        result.put(MetaDataCons.KEY_COLUMN_TYPE, map.get(columnName));
-        result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
+    private List<Map<String, Object>> parsePartitionColumn(List<Map<String, String>> metaData) {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        Iterator<Map<String, String>> it = metaData.iterator();
+        while (it.hasNext()) {
+            Map<String, String> lineData = it.next();
+            String colName = lineData.get("col_name");
+            if (null == colName) {
+                continue;
+            }
+
+            colName = colName.trim();
+
+            if (StringUtils.isNotEmpty(colName) && "# Partition Information".equals(colName)) {
+                it.next();
+                while (it.hasNext()) {
+                    Map<String, String> lineDataInternal = it.next();
+                    String colNameInternal = lineDataInternal.get("col_name");
+                    if (null == colNameInternal) {
+                        continue;
+                    }
+
+                    colNameInternal = colNameInternal.trim();
+                    if (colNameInternal.trim().length() == 0) {
+                        continue;
+                    }
+
+                    if (colNameInternal.startsWith("#")) {
+                        break;
+                    }
+
+                    String dataTypeInternal = lineDataInternal.get("data_type");
+                    String commentInternal = lineDataInternal.get("comment");
+
+                    Map<String, Object> lineResult = new HashMap<>();
+                    lineResult.put("name", colNameInternal);
+                    lineResult.put("type", dataTypeInternal);
+                    lineResult.put("comment", commentInternal);
+                    lineResult.put("index", result.size());
+
+                    result.add(lineResult);
+                }
+            }
+        }
+
         return result;
     }
 
-    /**
-     * 将字符串首字母转小写
-     */
-    public String toLowerCaseFirstOne(String s) {
-        if (Character.isLowerCase(s.charAt(0))) {
-            return s;
-        } else {
-            return Character.toLowerCase(s.charAt(0)) + s.substring(1);
+    private List<Map<String, String>> queryData(String table) throws SQLException{
+        try (ResultSet rs = statement.get().executeQuery(String.format("desc formatted %s", quote(table)))) {
+            ResultSetMetaData metaData = rs.getMetaData();
+
+            List<String> columnNames = new ArrayList<>();
+            for (int i = 0; i < metaData.getColumnCount(); i++) {
+                columnNames.add(metaData.getColumnName(i+1));
+            }
+
+            List<Map<String, String>> data = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, String> lineData = new HashMap<>();
+                for (String columnName : columnNames) {
+                    lineData.put(columnName, rs.getString(columnName));
+                }
+
+                data.add(lineData);
+            }
+
+            return data;
         }
+    }
+
+    private List<String> showPartitions (String table) throws SQLException{
+        List<String> partitions = new ArrayList<>();
+        try (ResultSet rs = statement.get().executeQuery(String.format("show partitions %s", quote(table)))) {
+            while (rs.next()) {
+                partitions.add(rs.getString(1));
+            }
+        }
+
+        return partitions;
     }
 }

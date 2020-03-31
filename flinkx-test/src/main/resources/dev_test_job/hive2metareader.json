@@ -2,26 +2,34 @@
   "job": {
     "content": [
       {
-        "writer": {
-          "parameter": {
-            "print": true
-          },
-          "name": "streamwriter"
-        },
         "reader": {
           "parameter": {
-            "username": "root",
-            "password": "abc123",
-            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
             "dbList": [
-              {
-                "dbName":"tiezhu",
-                "tableList": ["test_2"]
-              }
 
-            ]
+            ],
+            "password": "abc123",
+            "jdbcUrl": "jdbc:hive2://172.16.100.132:10000",
+            "username": "root"
           },
           "name": "metadatahive2reader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true,
+            "method": "post",
+            "column": [],
+            "batchInterval": 10,
+            "header": [],
+            "body": [],
+            "params": {
+              "sourceId": 3,
+              "jobId": "5e3752a0",
+              "tenantId": 2,
+              "taskId": 44
+            },
+            "url": "http://rdos.dtstack.insight.cn//dassets/v1/syncJob/syncCallBack"
+          },
+          "name": "streamwriter"
         }
       }
     ],
@@ -31,7 +39,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 2
       }
     }
   }

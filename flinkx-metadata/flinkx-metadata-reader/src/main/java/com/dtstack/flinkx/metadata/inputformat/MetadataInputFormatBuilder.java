@@ -45,16 +45,12 @@ public class MetadataInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.password = password;
     }
 
-    public void setNumPartitions(int numPartitions) {
-        format.numPartitions = numPartitions;
-    }
-
     public void setDriverName(String driverName) {
         format.driverName = driverName;
     }
 
-    public void setDbList(List<Map<String, Object>> dbList){
-        format.dbList = dbList;
+    public void setDbList(List<Map<String, Object>> dbTableList){
+        format.dbTableList = dbTableList;
     }
 
     @Override
@@ -65,13 +61,5 @@ public class MetadataInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (format.dbUrl == null) {
             throw new IllegalArgumentException("请检查url是否填写");
         }
-        // 判断是否是全库全表查询
-        if(format.dbList.isEmpty()){
-            format.isAll = true;
-        } else {
-            format.isAll = false;
-        }
     }
-
-
 }
