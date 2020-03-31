@@ -51,11 +51,11 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected List<Map<String, Object>> dbTableList;
 
-    protected transient static ThreadLocal<Connection> connection = new ThreadLocal<>();
+    protected transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
-    protected transient static ThreadLocal<Statement> statement = new ThreadLocal<>();
+    protected transient ThreadLocal<Statement> statement = new ThreadLocal<>();
 
-    protected ThreadLocal<String> currentDb = new ThreadLocal<>();
+    protected transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
     protected transient Iterator<String> tableIterator;
 
@@ -160,6 +160,8 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
                 throw new IOException("close statement error", e);
             }
         }
+
+        currentDb.remove();
     }
 
     @Override
