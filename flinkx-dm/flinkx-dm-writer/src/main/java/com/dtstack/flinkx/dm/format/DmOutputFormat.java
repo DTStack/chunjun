@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.oracle.format;
+package com.dtstack.flinkx.dm.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
@@ -30,19 +30,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2019/09/20
+ * Date: 2020/03/18
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class OracleOutputFormat extends JdbcOutputFormat {
-
+public class DmOutputFormat extends JdbcOutputFormat {
     @Override
     protected Object getField(Row row, int index) {
         Object field = super.getField(row, index);
         String type = columnType.get(index);
 
-        //oracle timestamp to oracle varchar or varchar2 or long field format
         if (!(field instanceof Timestamp)){
             return field;
         }
