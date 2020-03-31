@@ -26,6 +26,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -70,7 +71,12 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return Row.of(logMinerListener.getData());
+        Map<String, Object> data = logMinerListener.getData();
+        if(null != data) {
+            return Row.of(logMinerListener.getData());
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -98,9 +104,5 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
                 throw new IOException("close listener error", e);
             }
         }
-    }
-
-    enum ReadPosition{
-        ALL, CURRENT, TIME, SCN
     }
 }

@@ -24,6 +24,7 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import oracle.sql.SQLUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -38,6 +39,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,8 @@ public class LogMinerConnection {
     private Pair<Long, Map<String, Object>> result;
 
     private boolean addedLog = false;
+
+    private boolean logListCreated = false;
 
     public LogMinerConnection(LogMinerConfig logMinerConfig, Long startScn, PositionManager positionManager) {
         this.logMinerConfig = logMinerConfig;
@@ -188,14 +192,14 @@ public class LogMinerConnection {
         }
 
         // 恢复位置为0，则根据配置项进行处理
-        if(OracleLogMinerInputFormat.ReadPosition.ALL.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        if(ReadPosition.ALL.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             skipRecord = false;
             // 获取最开始的scn
             startScnOfFile = getMinScn();
-        } else if(OracleLogMinerInputFormat.ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else if(ReadPosition.CURRENT.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             skipRecord = false;
             startScnOfFile = getCurrentScn();
-        } else if(OracleLogMinerInputFormat.ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             skipRecord = false;
 
             // 根据指定的时间获取对应时间段的日志文件的起始位置
@@ -204,7 +208,7 @@ public class LogMinerConnection {
             }
 
             startScnOfFile = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
-        } else  if(OracleLogMinerInputFormat.ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
+        } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartSCN())){
                 throw new RuntimeException("读取模式为[scn]时必须指定[startSCN]");
@@ -356,18 +360,18 @@ public class LogMinerConnection {
     }
 
     public void addLog() {
-        List<String> logFiles = getLogFiles();
+        List<String> logFiles = getLogFilesByScn();
         if (CollectionUtils.isEmpty(logFiles)) {
             return;
         }
 
         try (Statement st = connection.createStatement()) {
             for (String logFile : logFiles) {
-                if (addedLog) {
+                if (!logListCreated) {
                     st.execute(String.format("dbms_logmnr.add_logfile('%s', dbms_logmnr.new)", logFile));
+                    logListCreated = true;
                 } else {
                     st.execute(String.format("dbms_logmnr.add_logfile('%s', dbms_logmnr.addfile)", logFile));
-                    addedLog = true;
                 }
             }
         } catch (Exception e) {
@@ -375,15 +379,42 @@ public class LogMinerConnection {
         }
     }
 
-    private List<String> getLogFiles() {
-        // 根据scn获取文件
-        Long currentPosition = positionManager.getPosition();
+    private List<String> getLogFilesByScn() throws SQLException{
+        List<String> logFiles = new ArrayList<>();
+        Long scn;
+        if (!addedLog) {
+            // 第一次添加
+            scn = startScnOfFile;
+        } else {
+            // 增量添加
+            scn = positionManager.getPosition();
+        }
 
-        // 第一次添加
+        List<LogFile> allLogFiles = queryLogFiles();
+        for (LogFile logFile : allLogFiles) {
+            if (logFile.getFirstChange() <= scn && logFile.getNextChange() >= scn) {
 
-        // 增量添加
+            }
+        }
 
-        return null;
+        return logFiles;
+    }
+
+    private List<LogFile> queryLogFiles() throws SQLException{
+        List<LogFile> logFiles = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_LOG_FILE)) {
+            while (rs.next()) {
+                LogFile logFile = new LogFile();
+                logFile.setFileName(rs.getString("name"));
+                logFile.setFirstChange(rs.getLong("first_change#"));
+                logFile.setNextChange(rs.getLong("next_change#"));
+
+                logFiles.add(logFile);
+            }
+        }
+
+        return logFiles;
     }
 
     public boolean hasNext() throws SQLException{
@@ -441,5 +472,9 @@ public class LogMinerConnection {
 
     public Pair<Long, Map<String, Object>> next() throws SQLException {
         return result;
+    }
+
+    enum ReadPosition{
+        ALL, CURRENT, TIME, SCN
     }
 }

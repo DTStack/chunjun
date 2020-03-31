@@ -121,6 +121,29 @@ public class SqlUtil {
             "\n" +
             "END;";
 
+    public final static String SQL_QUERY_LOG_FILE =
+            "SELECT\n" +
+            "    MIN(member) AS name,\n" +
+            "    first_change#,\n" +
+            "    next_change#\n" +
+            "FROM\n" +
+            "    v$log       l\n" +
+            "    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "GROUP BY\n" +
+            "    first_change#,\n" +
+            "    next_change#\n" +
+            "UNION\n" +
+            "SELECT\n" +
+            "    name,\n" +
+            "    first_change#,\n" +
+            "    next_change#\n" +
+            "FROM\n" +
+            "    v$archived_log\n" +
+            "WHERE\n" +
+            "    name IS NOT NULL\n" +
+            "ORDER BY\n" +
+            "    first_change# ASC;";
+
     public final static String SQL_SELECT_DATA = "" +
             "SELECT\n" +
             "    scn,\n" +
