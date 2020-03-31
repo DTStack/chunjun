@@ -3,15 +3,16 @@
     "content" : [ {
       "reader" : {
         "parameter" : {
-          "schema" : "KMINER",
-          "startSCN" : "2131553",
-          "password" : "kminerpass",
+          "schema" : "JIANGBO",
+          "startSCN" : "",
+          "password" : "oracle",
           "cat" : "insert,update,delete",
-          "jdbcUrl" : "jdbc:oracle:thin:@172.16.101.194:1521/dtstack",
-          "readPosition" : "scn",
+          "jdbcUrl" : "jdbc:oracle:thin:@172.16.8.178:1521/xe",
+          "readPosition" : "all",
           "pavingData" : true,
-          "table" : [ "KMINER.logtest" ],
-          "username" : "kminer"
+          "supportAutoAddLog": true,
+          "table" : [ "JIANGBO.TB1" ],
+          "username" : "system"
         },
         "name" : "oraclelogminerreader",
         "type" : 2

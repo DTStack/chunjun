@@ -51,17 +51,13 @@ public class StreamOutputFormat extends RichOutputFormat {
             System.out.println(row);
             LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
         }
-
-        if (restoreConfig.isRestore()) {
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-        }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-                System.out.println(row);
+//                System.out.println(row);
                 LOG.info(String.valueOf(row));
             }
         }

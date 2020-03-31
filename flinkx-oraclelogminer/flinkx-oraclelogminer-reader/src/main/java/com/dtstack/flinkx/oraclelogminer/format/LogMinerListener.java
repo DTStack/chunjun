@@ -71,16 +71,17 @@ public class LogMinerListener implements Runnable {
                 namedThreadFactory,
                 new ThreadPoolExecutor.AbortPolicy());
 
-        logMinerConnection = new LogMinerConnection(logMinerConfig, positionManager.getPosition(), positionManager);
+        logMinerConnection = new LogMinerConnection(logMinerConfig);
         logParser = new LogParser(logMinerConfig);
     }
 
     public void start() {
         logMinerConnection.connect();
-        positionManager.updatePosition(logMinerConnection.getStartScn());
+
+        Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
+        positionManager.updatePosition(startScn);
 
         executor.submit(this);
-
         running = true;
     }
 
@@ -99,7 +100,7 @@ public class LogMinerListener implements Runnable {
                     LOG.info("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
-                // TODO
+                LOG.warn("query data error", e);
             }
         }
     }

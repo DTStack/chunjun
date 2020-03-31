@@ -73,7 +73,7 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         Map<String, Object> data = logMinerListener.getData();
         if(null != data) {
-            return Row.of(logMinerListener.getData());
+            return Row.of(data);
         } else {
             return null;
         }

@@ -171,7 +171,7 @@ public class SqlUtil {
             "FROM\n" +
             "    v$logmnr_contents\n" +
             "WHERE\n" +
-            "    scn >= ?";
+            "    scn > ?";
 
     public final static String SQL_STOP_LOG_MINER = "dbms_logmnr.stop_logmnr";
 
