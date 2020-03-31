@@ -71,7 +71,7 @@ public class LogMinerListener implements Runnable {
                 namedThreadFactory,
                 new ThreadPoolExecutor.AbortPolicy());
 
-        logMinerConnection = new LogMinerConnection(logMinerConfig, 0L);
+        logMinerConnection = new LogMinerConnection(logMinerConfig, positionManager.getPosition(), positionManager);
         logParser = new LogParser(logMinerConfig);
     }
 
@@ -92,7 +92,7 @@ public class LogMinerListener implements Runnable {
                     Pair<Long, Map<String, Object>> log = logMinerConnection.next();
                     queue.add(logParser.parse(log));
                 } else if (!logMinerConfig.getSupportAutoAddLog()) {
-                    logMinerConnection.updateLog();
+                    logMinerConnection.addLog();
                     logMinerConnection.startQueryData();
                 }
             } catch (Exception e) {
@@ -101,7 +101,7 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    public void stop() {
+    public void stop() throws Exception{
         if (null != executor && executor.isShutdown()) {
             executor.shutdown();
             running = false;

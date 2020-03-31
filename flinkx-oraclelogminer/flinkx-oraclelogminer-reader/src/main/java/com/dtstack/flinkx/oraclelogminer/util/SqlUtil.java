@@ -137,6 +137,8 @@ public class SqlUtil {
             "WHERE\n" +
             "    scn >= ?";
 
+    public final static String SQL_STOP_LOG_MINER = "dbms_logmnr.stop_logmnr";
+
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 
     public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO')";

@@ -51,7 +51,15 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         positionManager = new PositionManager();
+        initPosition();
+
         logMinerListener = new LogMinerListener(logMinerConfig, positionManager);
+    }
+
+    private void initPosition() {
+        if (null != formatState && formatState.getState() != null) {
+            positionManager.updatePosition((Long)formatState.getState());
+        }
     }
 
     @Override
@@ -84,7 +92,11 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     @Override
     protected void closeInternal() throws IOException {
         if (null != logMinerListener) {
-            logMinerListener.stop();
+            try {
+                logMinerListener.stop();
+            } catch (Exception e) {
+                throw new IOException("close listener error", e);
+            }
         }
     }
 

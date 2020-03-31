@@ -64,6 +64,8 @@ public class LogMinerConnection {
     public final static String KEY_CURRENT_SCN = "CURRENT_SCN";
     public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
 
+    private PositionManager positionManager;
+
     private LogMinerConfig logMinerConfig;
 
     private Connection connection;
@@ -84,9 +86,10 @@ public class LogMinerConnection {
 
     private boolean addedLog = false;
 
-    public LogMinerConnection(LogMinerConfig logMinerConfig, Long startScn) {
+    public LogMinerConnection(LogMinerConfig logMinerConfig, Long startScn, PositionManager positionManager) {
         this.logMinerConfig = logMinerConfig;
         this.startScn = startScn;
+        this.positionManager = positionManager;
     }
 
     public void connect() {
@@ -107,10 +110,24 @@ public class LogMinerConnection {
         }
     }
 
-    public void disConnect() {
-        // TODO stop log miner
+    public void disConnect() throws SQLException{
+        logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
 
-        // TODO close resourse
+        if (null != logMinerData) {
+            logMinerData.close();
+        }
+
+        if (null != logMinerStartStmt) {
+            logMinerStartStmt.close();
+        }
+
+        if (null != logMinerSelectStmt) {
+            logMinerSelectStmt.close();
+        }
+
+        if (null != connection) {
+            connection.close();
+        }
     }
 
     public void startQueryData() {
@@ -360,7 +377,11 @@ public class LogMinerConnection {
 
     private List<String> getLogFiles() {
         // 根据scn获取文件
+        Long currentPosition = positionManager.getPosition();
 
+        // 第一次添加
+
+        // 增量添加
 
         return null;
     }
