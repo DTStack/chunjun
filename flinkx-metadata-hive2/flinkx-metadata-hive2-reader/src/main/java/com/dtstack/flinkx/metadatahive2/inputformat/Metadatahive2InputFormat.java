@@ -78,7 +78,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected Map<String, Object> queryMetaData(String table) throws SQLException {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>(16);
 
         List<Map<String, String>> metaData = queryData(table);
 
@@ -112,7 +112,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
      *                 "totalSize": 12,
      */
     private Map<String, Object> parseTableProperties(List<Map<String, String>> metaData) {
-        Map<String, Object> tableProperties = new HashMap<>();
+        Map<String, Object> tableProperties = new HashMap<>(16);
 
         Iterator<Map<String, String>> it = metaData.iterator();
         while (it.hasNext()) {
@@ -224,7 +224,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     String dataTypeInternal = lineDataInternal.get("data_type");
                     String commentInternal = lineDataInternal.get("comment");
 
-                    Map<String, Object> lineResult = new HashMap<>();
+                    Map<String, Object> lineResult = new HashMap<>(4);
                     lineResult.put("name", colNameInternal);
                     lineResult.put("type", dataTypeInternal);
                     lineResult.put("comment", commentInternal);
@@ -272,7 +272,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     String dataTypeInternal = lineDataInternal.get("data_type");
                     String commentInternal = lineDataInternal.get("comment");
 
-                    Map<String, Object> lineResult = new HashMap<>();
+                    Map<String, Object> lineResult = new HashMap<>(4);
                     lineResult.put("name", colNameInternal);
                     lineResult.put("type", dataTypeInternal);
                     lineResult.put("comment", commentInternal);
@@ -297,7 +297,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
             List<Map<String, String>> data = new ArrayList<>();
             while (rs.next()) {
-                Map<String, String> lineData = new HashMap<>();
+                Map<String, String> lineData = new HashMap<>(16);
                 for (String columnName : columnNames) {
                     lineData.put(columnName, rs.getString(columnName));
                 }
