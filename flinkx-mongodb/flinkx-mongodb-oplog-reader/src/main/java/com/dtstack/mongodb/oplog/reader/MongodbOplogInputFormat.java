@@ -19,7 +19,7 @@
 
 package com.dtstack.mongodb.oplog.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.restore.FormatState;
@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author jiangbo
  * @date 2019/12/5
  */
-public class MongodbOplogInputFormat extends RichInputFormat {
+public class MongodbOplogInputFormat extends BaseRichInputFormat {
 
     private final static String OPLOG_DB = "local";
     private final static String REPLICA_SET_COLLECTION = "oplog.rs";

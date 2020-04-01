@@ -19,14 +19,14 @@
 
 package com.dtstack.mongodb.oplog.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 
 /**
  * @author jiangbo
  * @date 2019/12/5
  */
-public class MongodbOplogInputFormatBuilder extends RichInputFormatBuilder {
+public class MongodbOplogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private MongodbOplogInputFormat format;
 

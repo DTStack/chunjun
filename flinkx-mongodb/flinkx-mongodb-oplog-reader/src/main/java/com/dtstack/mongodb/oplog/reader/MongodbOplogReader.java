@@ -22,7 +22,7 @@ package com.dtstack.mongodb.oplog.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -31,7 +31,7 @@ import org.apache.flink.types.Row;
  * @author jiangbo
  * @date 2019/12/5
  */
-public class MongodbOplogReader extends DataReader {
+public class MongodbOplogReader extends BaseDataReader {
 
     private MongodbConfig mongodbConfig;
 

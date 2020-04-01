@@ -37,34 +37,35 @@ FlinkX is a data synchronization tool based on Flink. FlinkX can collect static 
 
 The following databases are currently supported:
 
-|                        | Database Type | Reader | Writer |
-|:----------------------:|:-------------:|:------:|:------:|
-| Batch Synchronization  | MySQL         | √      | √      |
-|                        | Oracle        | √      | √      |
-|                        | SqlServer     | √      | √      |
-|                        | PostgreSQL    | √      | √      |
-|                        | DB2           | √      | √      |
-|                        | GBase         | √      | √      |
-|                        | ClickHouse    | √      | √      |
-|                        | PolarDB       | √      | √      |
-|                        | SAP Hana      | √      | √      |
-|                        | Teradata      | √      | √      |
-|                        | Phoenix       | √      | √      |
-|                        | Cassandra     | √      | √      |
-|                        | ODPS          | √      | √      |
-|                        | HBase         | √      | √      |
-|                        | MongoDB       | √      | √      |
-|                        | Kudu          | √      | √      |
-|                        | ElasticSearch | √      | √      |
-|                        | FTP           | √      | √      |
-|                        | HDFS          | √      | √      |
-|                        | Carbondata    | √      | √      |
-|                        | Redis         | √      |        |
-|                        | Hive          |        | √      |
-| Stream Synchronization | Kafka         | √      | √      |
-|                        | EMQX          | √      | √      |
-|                        | MySQL Binlog  | √      |        |
-|                        | MongoDB Oplog  | √      |        |
+|                        | Database Type | Reader                          | Writer                          |
+|:----------------------:|:-------------:|:-------------------------------:|:-------------------------------:|
+| Batch Synchronization  | MySQL         | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | Oracle        | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | SqlServer     | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | PostgreSQL    | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | DB2           | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | GBase         | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | ClickHouse    | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | PolarDB       | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | SAP Hana      | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | Teradata      | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | Phoenix       | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | 达梦            | [doc](docs/rdbreader.md)        | [doc](docs/rdbwriter.md)        |
+|                        | Cassandra     | [doc](docs/cassandrareader.md)  | [doc](docs/cassandrawriter.md)  |
+|                        | ODPS          | [doc](docs/odpsreader.md)       | [doc](docs/odpswriter.md)       |
+|                        | HBase         | [doc](docs/hbasereader.md)      | [doc](docs/hbasewriter.md)      |
+|                        | MongoDB       | [doc](docs/mongodbreader.md)    | [doc](docs/mongodbwriter.md)    |
+|                        | Kudu          | [doc](docs/kudureader.md)       | [doc](docs/kuduwriter.md)       |
+|                        | ElasticSearch | [doc](docs/esreader.md)         | [doc](docs/eswriter.md)         |
+|                        | FTP           | [doc](docs/ftpreader.md)        | [doc](docs/ftpwriter.md)        |
+|                        | HDFS          | [doc](docs/hdfsreader.md)       | [doc](docs/hdfswriter.md)       |
+|                        | Carbondata    | [doc](docs/carbondatareader.md) | [doc](docs/carbondatawriter.md) |
+|                        | Redis         |                                 | [doc](docs/rediswriter.md)      |
+|                        | Hive          |                                 | [doc](docs/hivewriter.md)       |
+| Stream Synchronization | Kafka         | [doc](docs/kafkareader.md)      | [doc](docs/kafkawriter.md)      |
+|                        | EMQX          | [doc](docs/emqxreader.md)       | [doc](docs/emqxwriter.md)       |
+|                        | MySQL Binlog  | [doc](docs/binlog.md)           |                                 |
+|                        | MongoDB Oplog | [doc](docs/mongodb_oplog.md)    |                                 |
 
 # Documentation
 
