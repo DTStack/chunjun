@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.metrics;
 
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -32,6 +33,7 @@ import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -50,6 +52,8 @@ public class AccumulatorCollector {
     private static final String KEY_ACCUMULATORS = "user-task-accumulators";
     private static final String KEY_NAME = "name";
     private static final String KEY_VALUE = "value";
+
+    private static final int MAX_COLLECT_ERROR_TIMES = 100;
 
     private Gson gson = new Gson();
 
@@ -70,6 +74,8 @@ public class AccumulatorCollector {
     private Map<String, ValueAccumulator> valueAccumulatorMap;
 
     private List<String> metricNames;
+
+    private long collectErrorTimes = 0;
 
     public AccumulatorCollector(String jobId, String monitorUrlStr, RuntimeContext runtimeContext, int period, List<String> metricNames){
         Preconditions.checkArgument(jobId != null && jobId.length() > 0);
@@ -118,12 +124,14 @@ public class AccumulatorCollector {
                 monitorUrls.add(url);
             }
         }
+        if(DtLogger.isEnableDebug()){
+            LOG.debug("monitorUrls = {}", gson.toJson(monitorUrls));
+        }
     }
 
     private void checkMonitorUrlIsValid(){
         for (String monitorUrl : monitorUrls) {
-            try {
-                URLUtil.open(monitorUrl);
+            try(InputStream ignored = URLUtil.open(monitorUrl)) {
                 return;
             } catch (Exception e) {
                 LOG.warn("Connect error with monitor url:{}", monitorUrl);
@@ -198,6 +206,7 @@ public class AccumulatorCollector {
         return valueAccumulator.getLocal().getLocalValue();
     }
 
+    @SuppressWarnings("unchecked")
     private void collectAccumulatorWithApi(){
         for (String monitorUrl : monitorUrls) {
             try {
@@ -207,17 +216,33 @@ public class AccumulatorCollector {
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
                     if(name != null && !"tableCol".equalsIgnoreCase(name)) {
-                        long value = Double.valueOf((String) accumulator.get(KEY_VALUE)).longValue();
-                        ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-                        if(valueAccumulator != null){
-                            valueAccumulator.setGlobal(value);
+                        String accValue = (String) accumulator.get(KEY_VALUE);
+                        if(!"null".equals(accValue)){
+                            long value = Double.valueOf(accValue).longValue();
+                            ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
+                            if(valueAccumulator != null){
+                                valueAccumulator.setGlobal(value);
+                            }
                         }
                     }
                 }
             } catch (Exception e){
+                checkErrorTimes();
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);
             }
             break;
+        }
+    }
+
+    /**
+     * 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能
+     */
+    private void checkErrorTimes() {
+        collectErrorTimes++;
+        if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES){
+            // 主动关闭线程和资源，防止异常情况下没有关闭
+            close();
+            throw new RuntimeException("更新统计数据出错次数超过最大限制100次，为了确保数据正确性，任务自动失败");
         }
     }
 

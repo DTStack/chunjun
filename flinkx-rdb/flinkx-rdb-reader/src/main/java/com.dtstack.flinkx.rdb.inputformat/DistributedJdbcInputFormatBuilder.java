@@ -58,10 +58,6 @@ public class DistributedJdbcInputFormatBuilder extends RichInputFormatBuilder {
         format.databaseInterface = databaseInterface;
     }
 
-    public void setTypeConverter(TypeConverterInterface converter){
-        format.typeConverter = converter;
-    }
-
     public void setMetaColumn(List<MetaColumn> metaColumns){
         format.metaColumns = metaColumns;
     }

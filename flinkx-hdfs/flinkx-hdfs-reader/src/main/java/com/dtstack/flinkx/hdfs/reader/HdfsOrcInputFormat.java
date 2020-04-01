@@ -28,6 +28,7 @@ import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hive.ql.io.orc.*;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -57,12 +58,20 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
 
     @Override
-    protected void configureAnythingElse() {
+    public void openInputFormat() throws IOException{
+        super.openInputFormat();
+
+        FileSystem fs;
+        try {
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         orcSerde = new OrcSerde();
         inputFormat = new OrcInputFormat();
         org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
             OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
             readerOptions.filesystem(fs);
 
@@ -164,9 +173,19 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+    public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        try {
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+
+        OrcInputFormat orcInputFormat = new OrcInputFormat();
+        org.apache.hadoop.mapred.InputSplit[] splits = orcInputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
             List<HdfsOrcInputSplit> list = new ArrayList<>(splits.length);

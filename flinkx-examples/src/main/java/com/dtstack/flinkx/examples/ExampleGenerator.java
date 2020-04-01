@@ -31,6 +31,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -62,10 +64,20 @@ public class ExampleGenerator {
     public void generate() throws IOException {
         File dir = new File(outputDir);
         if(!dir.exists()) {
-            dir.mkdir();
+            boolean result = dir.mkdir();
+            if (!result) {
+                throw new RuntimeException("目录创建失败:" + outputDir);
+            }
         } else if(!dir.isDirectory()) {
-            dir.delete();
-            dir.mkdir();
+            boolean deleteResult = dir.delete();
+            if (!deleteResult) {
+                throw new RuntimeException("目录删除失败:" + outputDir);
+            }
+
+            boolean createResult = dir.mkdir();
+            if (!createResult) {
+                throw new RuntimeException("目录创建失败:" + outputDir);
+            }
         }
 
         initVarMap();
@@ -73,10 +85,10 @@ public class ExampleGenerator {
         initTempList();
 
         for(String tempFile : tempList) {
-            String[] part = tempFile.split(File.separator);
+            String[] part = tempFile.split(File.separatorChar=='\\' ? "\\\\" : File.separator);
             String outputPath = outputDir + File.separator + part[part.length - 1];
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile)))) {
-                try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)))) {
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(tempFile), StandardCharsets.UTF_8))) {
+                try(BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath), StandardCharsets.UTF_8))) {
                     String line;
                     while((line = br.readLine()) != null) {
                         bw.write(substituteVars(line));

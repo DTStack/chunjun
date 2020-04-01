@@ -51,8 +51,6 @@ public class DBUtilTest {
         connectionInfo.setJdbcUrl("jdbc:hive2://172.16.10.75:10000/default;principal=hive/cdh02@HADOOP.COM");
         connectionInfo.setUsername("");
         connectionInfo.setPassword("");
-        connectionInfo.setJobId("");
-        connectionInfo.setPlugin("");
         connectionInfo.setHiveConf(hiveConf);
 
         Connection connection = DBUtil.getConnection(connectionInfo);

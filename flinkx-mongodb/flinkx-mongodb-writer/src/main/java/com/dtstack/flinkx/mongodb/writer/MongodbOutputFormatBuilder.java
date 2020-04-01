@@ -24,6 +24,8 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.List;
+
 /**
  * The builder for mongodb writer plugin
  *
@@ -40,6 +42,10 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setMongodbConfig(MongodbConfig mongodbConfig){
         format.mongodbConfig = mongodbConfig;
+    }
+
+    public void setColumns(List<MetaColumn> columns){
+        format.columns = columns;
     }
 
     @Override

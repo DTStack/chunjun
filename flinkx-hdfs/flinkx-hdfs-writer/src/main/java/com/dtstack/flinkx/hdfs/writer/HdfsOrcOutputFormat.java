@@ -42,6 +42,7 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -141,30 +142,33 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-
         if (recordWriter == null){
             nextBlock();
         }
 
+        List<Object> recordList = new ArrayList<>();
         int i = 0;
         try {
-            List<Object> recordList = new ArrayList<>();
             for (; i < fullColumnNames.size(); ++i) {
                 getData(recordList, i, row);
             }
+        } catch (Exception e) {
+            if(e instanceof WriteRecordException){
+                throw (WriteRecordException) e;
+            } else {
+                throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
+            }
+        }
 
+        try {
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
             rowsOfCurrentBlock++;
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
             }
-        } catch(Exception e) {
-            if(e instanceof WriteRecordException){
-                throw (WriteRecordException) e;
-            } else {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
-            }
+        } catch(IOException e) {
+            throw new WriteRecordException(String.format("数据写入hdfs异常，row:{%s}", row), e);
         }
     }
 
@@ -232,8 +236,8 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
                 hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                 if(hiveDecimal == null){
-                    throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
-                            decimalInfo.getPrecision(), decimalInfo.getScale()), new IllegalArgumentException(), index, row);
+                    String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+                    throw new WriteRecordException(msg, new IllegalArgumentException());
                 }
 
                 HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
@@ -259,7 +263,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(DateUtil.columnToTimestamp(column,null));
                 break;
             case BINARY:
-                recordList.add(new BytesWritable(rowData.getBytes()));
+                recordList.add(new BytesWritable(rowData.getBytes(StandardCharsets.UTF_8)));
                 break;
             default:
                 throw new IllegalArgumentException();

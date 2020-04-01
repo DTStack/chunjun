@@ -27,6 +27,10 @@ public class MapUtil {
      */
     public static Map<String, Object> convertToHashMap(Map<String, Object> target){
         for(Map.Entry<String, Object> tmp : target.entrySet()){
+            if (null == tmp.getValue()) {
+                continue;
+            }
+
             if(tmp.getValue().getClass().equals(LinkedTreeMap.class) ||
                     tmp.getValue().getClass().equals(LinkedHashTreeMap.class)){
                 Map<String, Object> convert = convertToHashMap((Map)tmp.getValue());

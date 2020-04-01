@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import jodd.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.flink.core.io.InputSplit;
@@ -27,6 +28,7 @@ import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
@@ -48,17 +50,29 @@ import java.util.Map;
 public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
-    protected void configureAnythingElse() {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         this.inputFormat = new TextInputFormat();
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        try {
+            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
-        conf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
-        inputFormat.configure(conf);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+
+        jobConf.set("mapreduce.input.fileinputformat.input.dir.recursive","true");
+        inputFormat.configure(jobConf);
+        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
             HdfsTextInputSplit[] hdfsTextInputSplits = new HdfsTextInputSplit[splits.length];

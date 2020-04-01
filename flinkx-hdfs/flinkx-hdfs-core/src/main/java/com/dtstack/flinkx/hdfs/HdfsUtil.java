@@ -112,8 +112,6 @@ public class HdfsUtil {
             ret = ((DateWritable) writable).get();
         } else if(writable instanceof DoubleWritable){
             ret = ((DoubleWritable) writable).get();
-        } else if(writable instanceof Writable) {
-            ret = writable.toString();
         } else {
             ret = writable.toString();
         }

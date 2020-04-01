@@ -39,7 +39,10 @@ public class MysqlWriter extends JdbcDataWriter {
         super(config);
         setDatabaseInterface(new MySqlDatabaseMeta());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
-        super.builder = new JdbcOutputFormatBuilder(new MysqlOutputFormat());
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+    }
 }

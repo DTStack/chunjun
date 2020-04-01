@@ -19,7 +19,6 @@
 
 package com.dtstack.flinkx.mongodb;
 
-import com.dtstack.flinkx.util.TelnetUtil;
 import com.mongodb.*;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang.StringUtils;

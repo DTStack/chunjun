@@ -36,6 +36,10 @@ public class GbaseWriter extends JdbcDataWriter {
         super(config);
         setDatabaseInterface(new GbaseDatabaseMeta());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
-        super.builder = new JdbcOutputFormatBuilder(new GbaseOutputFormat());
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new GbaseOutputFormat());
     }
 }

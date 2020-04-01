@@ -12,6 +12,8 @@
 				"name": "eswriter",
 				"parameter": {
 					"address": "host1:9200,host2:9200",
+                    "username": "dtstack",
+                    "password": "abc123",
 					"index": "indexTest",
 					"type": "type1",
 					"bulkAction": 100,
@@ -40,6 +42,22 @@
   * 必选：是 
   
   * 默认值：无
+  
+* **username**
+  
+  * 描述：Elasticsearch认证用户名
+  
+  * 必选：否
+  
+  * 默认值：无   
+  
+* **password**
+  
+  * 描述：Elasticsearch认证密码
+  
+  * 必选：否
+  
+  * 默认值：无   
 
 * **index**
   

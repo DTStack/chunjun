@@ -44,6 +44,10 @@ public class EsOutputFormat extends RichOutputFormat {
 
     protected String address;
 
+    protected String username;
+
+    protected String password;
+
     protected List<Integer> idColumnIndices;
 
     protected List<String> idColumnValues;
@@ -67,7 +71,7 @@ public class EsOutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address, clientConfig);
+        client = EsUtil.getClient(address, username, password, clientConfig);
         bulkRequest = new BulkRequest();
     }
 

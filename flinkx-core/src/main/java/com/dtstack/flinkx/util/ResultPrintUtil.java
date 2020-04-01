@@ -33,10 +33,10 @@ public class ResultPrintUtil {
 
     public static void printResult(JobExecutionResult result){
         List<String> names = Lists.newArrayList();
-        List<Long> values = Lists.newArrayList();
+        List<String> values = Lists.newArrayList();
         result.getAllAccumulatorResults().forEach((name, val) -> {
             names.add(name);
-            values.add((Long) val);
+            values.add(String.valueOf(val));
         });
 
         int maxLength = 0;

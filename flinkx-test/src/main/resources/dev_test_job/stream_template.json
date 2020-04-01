@@ -1,74 +1,36 @@
 {
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "parameter": {
-            "sliceRecordCount": ["1000"],
-            "column": [
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "age",
-                "type": "int",
-                "value": "26"
-              },
-              {
-                "name": "father",
-                "type": "string"
-              },
-              {
-                "name": "adress",
-                "type": "string"
-              }
-            ]
-          },
-          "name": "streamreader"
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "Dtstack#2020",
+          "port" : 10219,
+          "cat" : "insert,update,delete",
+          "host" : "cdb-lp88g9sa.bj.tencentcdb.com",
+          "jdbcUrl" : "jdbc:mysql://cdb-lp88g9sa.bj.tencentcdb.com:10219/binlog_test",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "binlog_test" ],
+          "username" : "root"
         },
-        "writer": {
-          "parameter": {
-            "print": true,
-            "column": [
-              {
-                "name": "cf:name",
-                "type": "string"
-              },
-              {
-                "name": "cf:age",
-                "type": "int"
-              },
-              {
-                "name": "cf:father",
-                "type": "string"
-              },
-              {
-                "name": "cf:adress",
-                "type": "string"
-              }
-            ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
-            "sourceIds": [
-              371
-            ],
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
-            }
-          },
-          "name": "streamwriter"
-        }
-      }
-    ],
-    "setting": {
-      "errorLimit": {
-        "record": 100
+        "name" : "binlogreader"
       },
-      "speed": {
-        "bytes": 1048576,
-        "channel": 1
+      "writer" : {
+        "parameter" : {
+
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
       }
     }
   }

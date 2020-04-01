@@ -30,7 +30,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -58,7 +57,9 @@ public class MongodbInputFormat extends RichInputFormat {
     private transient MongoClient client;
 
     @Override
-    public void configure(Configuration parameters) {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
         buildFilter();
     }
 
@@ -124,7 +125,7 @@ public class MongodbInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         ArrayList<MongodbInputSplit> splits = new ArrayList<>();
 
         MongoClient client = null;
@@ -147,8 +148,6 @@ public class MongodbInputFormat extends RichInputFormat {
             if(size * minNumSplits < docNum){
                 splits.add(new MongodbInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
             }
-        } catch (Exception e){
-            LOG.error("创建分片失败:", e);
         } finally {
             MongodbClientUtil.close(client, null);
         }

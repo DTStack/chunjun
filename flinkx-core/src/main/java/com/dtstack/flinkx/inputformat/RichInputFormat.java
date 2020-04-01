@@ -18,24 +18,32 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
@@ -58,8 +66,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected ByteRateLimiter byteRateLimiter;
 
     protected RestoreConfig restoreConfig;
+    protected LogConfig logConfig;
 
     protected FormatState formatState;
+
+    protected TestConfig testConfig;
 
     protected transient BaseMetric inputMetric;
 
@@ -71,16 +82,54 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     private boolean inited = false;
 
+    private AtomicBoolean isClosed = new AtomicBoolean(false);
+
+    protected transient CustomPrometheusReporter customPrometheusReporter;
+
+    protected long numReadeForTest;
+
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
+
+    @Override
+    public final void configure(Configuration parameters) {
+        // do nothing
+    }
 
     @Override
     public void openInputFormat() throws IOException {
         initJobInfo();
+        initPrometheusReporter();
+
         startTime = System.currentTimeMillis();
+        DtLogger.config(logConfig, jobId);
     }
 
     @Override
+    public final InputSplit[] createInputSplits(int i) throws IOException {
+        try {
+            return createInputSplitsInternal(i);
+        } catch (Exception e){
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+
+            return createErrorInputSplit(e);
+        }
+    }
+
+    private ErrorInputSplit[] createErrorInputSplit(Exception e){
+        ErrorInputSplit[] inputSplits = new ErrorInputSplit[1];
+
+        ErrorInputSplit errorInputSplit = new ErrorInputSplit(ExceptionUtil.getErrorMessage(e));
+        inputSplits[0] = errorInputSplit;
+
+        return inputSplits;
+    }
+
+    protected abstract InputSplit[] createInputSplitsInternal(int i) throws Exception;
+
+    @Override
     public void open(InputSplit inputSplit) throws IOException {
+        checkIfCreateSplitFailed(inputSplit);
+
         if(!inited){
             initAccumulatorCollector();
             initStatisticsAccumulator();
@@ -95,6 +144,27 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         openInternal(inputSplit);
+    }
+
+    private void checkIfCreateSplitFailed(InputSplit inputSplit){
+        if (inputSplit instanceof ErrorInputSplit) {
+            throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
+        }
+    }
+
+    private void initPrometheusReporter() {
+        if (useCustomPrometheusReporter()) {
+            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
+            customPrometheusReporter.open();
+        }
+    }
+
+    protected boolean useCustomPrometheusReporter() {
+        return false;
+    }
+
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return false;
     }
 
     private void initAccumulatorCollector(){
@@ -123,7 +193,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         }
 
         if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
-            indexOfSubtask = Integer.valueOf(vars.get(Metrics.SUBTASK_INDEX));
+            indexOfSubtask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
     }
 
@@ -165,30 +235,36 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             byteRateLimiter.acquire();
         }
         Row internalRow = nextRecordInternal(row);
-        internalRow = setChannelInformation(internalRow);
+        if(internalRow != null){
+            internalRow = setChannelInformation(internalRow);
 
-        updateDuration();
-        if(numReadCounter !=null ){
-            numReadCounter.add(1);
+            updateDuration();
+            if(numReadCounter !=null ){
+                numReadCounter.add(1);
+            }
+            if(bytesReadCounter!=null){
+                bytesReadCounter.add(internalRow.toString().length());
+            }
         }
-        if(bytesReadCounter!=null){
-            bytesReadCounter.add(internalRow.toString().length());
+
+        if (testConfig.errorTest() && testConfig.getFailedPerRecord() > 0) {
+            numReadeForTest++;
+            if (numReadeForTest > testConfig.getFailedPerRecord()) {
+                throw new RuntimeException(testConfig.getErrorMsg());
+            }
         }
+
         return internalRow;
     }
 
     private Row setChannelInformation(Row internalRow){
-        if (internalRow != null){
-            Row rowWithChannel = new Row(internalRow.getArity() + 1);
-            for (int i = 0; i < internalRow.getArity(); i++) {
-                rowWithChannel.setField(i, internalRow.getField(i));
-            }
-
-            rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
-            return rowWithChannel;
+        Row rowWithChannel = new Row(internalRow.getArity() + 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            rowWithChannel.setField(i, internalRow.getField(i));
         }
 
-        return null;
+        rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
+        return rowWithChannel;
     }
 
     /**
@@ -215,12 +291,12 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     @Override
     public void closeInputFormat() throws IOException {
-        if(durationCounter != null){
-            updateDuration();
+        if (isClosed.get()) {
+            return;
         }
 
-        if(inputMetric != null){
-            inputMetric.waitForReportMetrics();
+        if(durationCounter != null){
+            updateDuration();
         }
 
         if(byteRateLimiter != null){
@@ -231,6 +307,19 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             accumulatorCollector.close();
         }
 
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.report();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForMetricReport();
+        }
+
+        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
+            customPrometheusReporter.close();
+        }
+
+        isClosed.set(true);
         LOG.info("subtask input close finished");
     }
 
@@ -244,12 +333,12 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     protected abstract  void closeInternal() throws IOException;
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
+    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
         return null;
     }
 
     @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+    public final InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
         return new DefaultInputSplitAssigner(inputSplits);
     }
 
@@ -259,5 +348,18 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
+    }
+
+
+    public void setTestConfig(TestConfig testConfig) {
+        this.testConfig = testConfig;
     }
 }

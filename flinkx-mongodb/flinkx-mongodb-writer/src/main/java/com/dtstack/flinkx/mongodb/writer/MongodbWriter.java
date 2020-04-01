@@ -59,7 +59,7 @@ public class MongodbWriter extends DataWriter {
         MongodbOutputFormatBuilder builder = new MongodbOutputFormatBuilder();
 
         builder.setMongodbConfig(mongodbConfig);
-
+        builder.setColumns(columns);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setDirtyPath(dirtyPath);

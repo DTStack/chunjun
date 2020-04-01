@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,7 +26,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -34,6 +33,7 @@ import org.apache.hadoop.hdfs.DFSOutputStream;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
@@ -78,8 +78,8 @@ public class DirtyDataManager {
         String errorType = retrieveCategory(ex);
         String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
         try {
-            stream.writeChars(line);
-            stream.writeChars(LINE_DELIMITER);
+            stream.write(line.getBytes(StandardCharsets.UTF_8));
+            stream.write(LINE_DELIMITER.getBytes(StandardCharsets.UTF_8));
             DFSOutputStream dfsOutputStream = (DFSOutputStream) stream.getWrappedStream();
             dfsOutputStream.hsync(syncFlags);
             return errorType;
@@ -103,7 +103,7 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(config, null, jobId, "dirty");
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null);
             Path path = new Path(location);
             stream = fs.create(path, true);
         } catch (Exception e) {

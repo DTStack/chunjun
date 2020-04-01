@@ -6,6 +6,8 @@ db2：[下载](db2jcc-3.72.44.jar)
 
 oracle：[下载](ojdbc8-12.2.0.1.jar)
 
+gbase：[下载](gbase-8.3.81.53.jar)
+
 然后上传到本地仓库：
 
 ```

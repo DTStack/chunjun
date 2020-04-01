@@ -44,7 +44,11 @@ public class PostgresqlReader extends JdbcDataReader {
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
-        super.builder = new JdbcInputFormatBuilder(new PostgresqlInputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 
     @Override
@@ -68,6 +72,7 @@ public class PostgresqlReader extends JdbcDataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setTestConfig(testConfig);
 
         QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());

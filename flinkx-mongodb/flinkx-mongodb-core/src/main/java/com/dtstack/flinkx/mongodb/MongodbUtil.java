@@ -25,15 +25,13 @@ import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import static com.dtstack.flinkx.enums.ColumnType.*;
 
 /**
  * Utilities for mongodb database connection and data format conversion
@@ -61,13 +59,33 @@ public class MongodbUtil {
     }
 
     private static Object convertField(Object val,MetaColumn column){
-        if(val instanceof BigDecimal){
-           val = ((BigDecimal) val).doubleValue();
-        }
-
-        if (val instanceof Timestamp && !column.getType().equalsIgnoreCase(ColumnType.INTEGER.name())){
-            SimpleDateFormat format = DateUtil.getDateTimeFormatter();
-            val= format.format(val);
+        ColumnType type = getType(column.getType());
+        switch (type) {
+            case VARCHAR:
+            case VARCHAR2:
+            case CHAR:
+            case TEXT:
+            case STRING:
+                if (val instanceof Date){
+                    SimpleDateFormat format = DateUtil.getDateTimeFormatter();
+                    val = format.format(val);
+                }
+                break;
+            case TIMESTAMP:
+                if (!(val instanceof Timestamp)) {
+                    val = DateUtil.columnToTimestamp(val, column.getTimeFormat());
+                }
+                break;
+            case DATE:
+                if (!(val instanceof Date)) {
+                    val = DateUtil.columnToDate(val, column.getTimeFormat());
+                }
+                break;
+            default:
+                if(val instanceof BigDecimal){
+                    val = ((BigDecimal) val).doubleValue();
+                }
+                break;
         }
 
         return val;

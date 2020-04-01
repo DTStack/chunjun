@@ -40,7 +40,7 @@ public class FunctionTree {
 
     private List<FunctionTree> inputFunctions = Lists.newArrayList();
 
-    public String evaluate(Map<String, Object> nameValueMap){
+    public String evaluate(Map<String, Object> nameValueMap) throws Exception{
         if(StringUtils.isNotEmpty(columnName) && MapUtils.isNotEmpty(nameValueMap)){
             return function.evaluate(nameValueMap.get(columnName));
         }
