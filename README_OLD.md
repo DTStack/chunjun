@@ -192,7 +192,8 @@ bin/flinkx -mode yarnPer \
     "setting": {
         "speed": {...},
         "errorLimit": {...},
-        "dirty": {...}
+        "dirty": {...},
+        "restart": {...}
     }
 ```
 
@@ -281,6 +282,19 @@ restore配置请参考[断点续传](docs/restore.md)
 
 注意：该日志记录功能只会记录`com.dtstack`包下的输出日志, 如需变更，可修改类参数`DtLogger.LOGGER_NAME`。
 
+#### 4.1.6  restart
+
+```
+"restart": {
+        "strategy": "fixedDelay",
+        "restartAttempts": 5,
+        "delayInterval": 10,
+        "failureRate":2,
+        "failureInterval":60
+      }
+```
+* strategy：重启策略，可选：NoRestart、fixedDelay、failureRate，可参考[Flink文档](https://ci.apache.org/projects/flink/flink-docs-stable/dev/task_failure_recovery.html)
+
 ### 4.2 content
 
 ```
@@ -331,6 +345,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Cassandra读取插件](docs/cassandrareader.md)
 * [Emqx读取插件](docs/emqxreader.md)
 * [MongoDB实时采集插件](docs/mongodb_oplog.md)
+* [PostgreSQL WAL实时采集插件](docs/pgwalreader.md)
 
 ### 5.2 写入插件
 
