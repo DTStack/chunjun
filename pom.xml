@@ -13,7 +13,6 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-        <module>flinkx-test</module>
         <module>flinkx-examples</module>
         <module>flinkx-stream</module>
 
@@ -65,7 +64,7 @@
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <projectVersion>1.8.4_rc0</projectVersion>
+        <projectVersion>release_1.8.5</projectVersion>
         <scriptType>sh</scriptType>
     </properties>
 
@@ -137,25 +136,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-<!--        <profile>-->
-<!--            <id>dev</id>-->
-<!--            <properties>-->
-<!--                <package.name>${git.branch}</package.name>-->
-<!--            </properties>-->
-<!--            <activation>-->
-<!--                <activeByDefault>true</activeByDefault>-->
-<!--            </activation>-->
-<!--        </profile>-->
-
-        <profile>
-            <id>release</id>
-            <properties>
-                <package.name>${projectVersion}</package.name>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
@@ -186,28 +166,6 @@
                 <configuration>
                     <reportOutputDirectory>javadocs</reportOutputDirectory>
                     <destDir>flinkx-java-docs</destDir>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.6</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-                    <verbose>true</verbose>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <gitDescribe>
-                        <always>false</always>
-                        <dirty>-dirty</dirty>
-                        <forceLongFormat>false</forceLongFormat>
-                    </gitDescribe>
                 </configuration>
             </plugin>
         </plugins>

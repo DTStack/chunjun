@@ -47,11 +47,11 @@
 
 windows平台
 ```
-mvn clean package -DskipTests -Prelease -DscriptType=bat
+mvn clean package -DskipTests -DscriptType=bat
 ```
 unix平台
 ```
-mvn clean package -DskipTests -Prelease -DscriptType=sh
+mvn clean package -DskipTests -DscriptType=sh
 ```
 
 打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包
@@ -315,7 +315,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ### 5.1 读取插件
 
-* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase,SAP Hana,Teradata,Phoenix)](docs/rdbreader.md)
+* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase,SAP Hana,Teradata,Phoenix,达梦)](docs/rdbreader.md)
 * [分库分表读取插件](docs/rdbdreader.md)
 * [HDFS读取插件](docs/hdfsreader.md)
 * [HBase读取插件](docs/hbasereader.md)

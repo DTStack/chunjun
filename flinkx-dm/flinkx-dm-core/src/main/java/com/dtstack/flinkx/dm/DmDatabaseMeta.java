@@ -66,12 +66,12 @@ public class DmDatabaseMeta  extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT * FROM " + tableName + " LIMIT 1";
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 1";
     }
 

@@ -21,21 +21,21 @@ FlinkX is a data synchronization tool based on Flink. FlinkX can collect static 
 
 - Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 
-- Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [失败恢复](docs/restore.md)
+- Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [Failure Recovery](docs/restore.md)
 
 - The Reader plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/rdbreader.md)
 
 - Some databases support opening Kerberos security authentication;  [Kerberos](docs/kerberos.md)
 
-- You can limit the reading speed of Reader plugins and reduce the impact on business databases;
+- Limit the reading speed of Reader plugins and reduce the impact on business databases;
 
-- 可以记录writer插件写数据时产生的脏数据；
+- Save the dirty data when writing data;
 
-- 可以限制脏数据的最大数量；
+- Limit the maximum number of dirty data;
 
-- 支持多种运行模式；
+- Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
 
-FlinkX supports rich data source types such as SQL databases, NoSQL databases, and so on
+The following databases are currently supported:
 
 |                        | Database Type | Reader | Writer |
 |:----------------------:|:-------------:|:------:|:------:|

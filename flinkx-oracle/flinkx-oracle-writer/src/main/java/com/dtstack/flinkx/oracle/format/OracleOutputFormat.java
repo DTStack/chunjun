@@ -79,7 +79,7 @@ public class OracleOutputFormat extends JdbcOutputFormat {
     @Override
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
-        PreparedStatement ps = dbConn.prepareStatement(String.format(GET_ORACLE_INDEX_SQL,table));
+        PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
         ResultSet rs = ps.executeQuery();
 
         while(rs.next()) {
