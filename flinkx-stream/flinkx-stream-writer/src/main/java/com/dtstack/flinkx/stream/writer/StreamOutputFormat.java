@@ -50,11 +50,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         if (print) {
             LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
         }
-
-        if (restoreConfig.isRestore()) {
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, row);
-        }
     }
 
     @Override

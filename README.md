@@ -64,6 +64,7 @@ The following databases are currently supported:
 | Stream Synchronization | Kafka         | √      | √      |
 |                        | EMQX          | √      | √      |
 |                        | MySQL Binlog  | √      |        |
+|                        | MongoDB Oplog  | √      |        |
 
 # Documentation
 

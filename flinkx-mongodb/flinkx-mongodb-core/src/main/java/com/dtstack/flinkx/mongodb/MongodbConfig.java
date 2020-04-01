@@ -54,6 +54,10 @@ public class MongodbConfig implements Serializable {
 
     private List<String> monitorCollections;
 
+    private List<String> operateType;
+
+    private boolean pavingData;
+
     private String clusterMode;
 
     private int startLocation;
@@ -261,14 +265,29 @@ public class MongodbConfig implements Serializable {
         this.mongodbConfig = mongodbConfig;
     }
 
+    public List<String> getOperateType() {
+        return operateType;
+    }
+
+    public void setOperateType(List<String> operateType) {
+        this.operateType = operateType;
+    }
+
+    public boolean getPavingData() {
+        return pavingData;
+    }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
+    }
+
     @Override
     public String toString() {
-        // TODO 密码脱敏
         return "MongodbConfig{" +
                 "hostPorts='" + hostPorts + '\'' +
                 ", url='" + url + '\'' +
                 ", username='" + username + '\'' +
-                ", password='" + "******" + '\'' +
+                ", password='******" + '\'' +
                 ", authenticationMechanism='" + authenticationMechanism + '\'' +
                 ", database='" + database + '\'' +
                 ", collectionName='" + collectionName + '\'' +
@@ -276,6 +295,13 @@ public class MongodbConfig implements Serializable {
                 ", fetchSize=" + fetchSize +
                 ", writeMode='" + writeMode + '\'' +
                 ", replaceKey='" + replaceKey + '\'' +
+                ", monitorDatabases=" + monitorDatabases +
+                ", monitorCollections=" + monitorCollections +
+                ", operateType=" + operateType +
+                ", pavingData=" + pavingData +
+                ", clusterMode='" + clusterMode + '\'' +
+                ", startLocation=" + startLocation +
+                ", excludeDocId=" + excludeDocId +
                 ", mongodbConfig=" + mongodbConfig +
                 '}';
     }

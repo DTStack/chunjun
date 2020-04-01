@@ -330,6 +330,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Kudu读取插件](docs/kudureader.md)
 * [Cassandra读取插件](docs/cassandrareader.md)
 * [Emqx读取插件](docs/emqxreader.md)
+* [MongoDB实时采集插件](docs/mongodb_oplog.md)
 
 ### 5.2 写入插件
 
