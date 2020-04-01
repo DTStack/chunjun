@@ -51,11 +51,11 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected List<Map<String, Object>> dbTableList;
 
-    protected transient ThreadLocal<Connection> connection = new ThreadLocal<>();
+    protected static transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
-    protected transient ThreadLocal<Statement> statement = new ThreadLocal<>();
+    protected static transient ThreadLocal<Statement> statement = new ThreadLocal<>();
 
-    protected transient ThreadLocal<String> currentDb = new ThreadLocal<>();
+    protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
     protected transient Iterator<String> tableIterator;
 
