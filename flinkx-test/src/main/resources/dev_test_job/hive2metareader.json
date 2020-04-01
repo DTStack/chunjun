@@ -4,32 +4,29 @@
       {
         "reader": {
           "parameter": {
-            "dbList": [
-
-            ],
+            "dbList": [],
             "password": "abc123",
-            "jdbcUrl": "jdbc:hive2://172.16.100.132:10000",
+            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
             "username": "root"
           },
           "name": "metadatahive2reader"
         },
         "writer": {
           "parameter": {
-            "print": true,
             "method": "post",
             "column": [],
             "batchInterval": 10,
             "header": [],
             "body": [],
             "params": {
-              "sourceId": 3,
-              "jobId": "5e3752a0",
-              "tenantId": 2,
-              "taskId": 44
+              "sourceId": 30,
+              "jobId": "122a4c2f",
+              "tenantId": 47,
+              "taskId": 50
             },
-            "url": "http://rdos.dtstack.insight.cn//dassets/v1/syncJob/syncCallBack"
+            "url": "http://172.16.8.194:8876/dassets/v1/syncJob/syncCallBack"
           },
-          "name": "streamwriter"
+          "name": "restapiwriter"
         }
       }
     ],
@@ -39,7 +36,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 2
+        "channel": 3
       }
     }
   }

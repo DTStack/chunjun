@@ -51,11 +51,11 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     protected List<Map<String, Object>> dbTableList;
 
-    protected transient ThreadLocal<Connection> connection = new ThreadLocal<>();
+    protected static transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
-    protected transient ThreadLocal<Statement> statement = new ThreadLocal<>();
+    protected static transient ThreadLocal<Statement> statement = new ThreadLocal<>();
 
-    protected transient ThreadLocal<String> currentDb = new ThreadLocal<>();
+    protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
     protected transient Iterator<String> tableIterator;
 
@@ -127,7 +127,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        Map<String, Object> metaData = new HashMap<>();
+        Map<String, Object> metaData = new HashMap<>(16);
         metaData.put("operaType", "createTable");
 
         String tableName = tableIterator.next();
@@ -196,6 +196,7 @@ public abstract class BaseMetadataInputFormat extends RichInputFormat {
     protected abstract List<String> showDatabases(Connection connection) throws SQLException;
 
     /**
+     * show tables
      *
      * @return
      * @throws SQLException
