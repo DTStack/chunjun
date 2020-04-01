@@ -25,12 +25,10 @@ import com.dtstack.flinkx.pgwal.listener.PgWalListener;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.postgresql.jdbc.PgConnection;
-import org.postgresql.replication.LogSequenceNumber;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,7 +66,7 @@ public class PgWalInputFormat extends RichInputFormat {
     private volatile boolean running = false;
 
     @Override
-    public void configure(Configuration parameters) {
+    public void openInputFormat() throws IOException{
         executor = Executors.newFixedThreadPool(1);
         queue = new SynchronousQueue<>(true);
     }
@@ -147,7 +145,7 @@ public class PgWalInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
