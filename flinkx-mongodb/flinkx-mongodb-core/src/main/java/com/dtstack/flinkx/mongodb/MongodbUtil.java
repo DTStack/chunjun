@@ -41,8 +41,6 @@ import static com.dtstack.flinkx.enums.ColumnType.*;
  */
 public class MongodbUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MongodbUtil.class);
-
     public static Document convertRowToDoc(Row row,List<MetaColumn> columns) throws WriteRecordException {
         Document doc = new Document();
         for (int i = 0; i < columns.size(); i++) {

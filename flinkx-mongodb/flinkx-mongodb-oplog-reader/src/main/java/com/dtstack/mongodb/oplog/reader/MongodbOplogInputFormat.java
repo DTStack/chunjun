@@ -65,11 +65,6 @@ public class MongodbOplogInputFormat extends RichInputFormat {
     private InputSplit inputSplit;
 
     @Override
-    public void configure(Configuration parameters) {
-        // do nothing
-    }
-
-    @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         this.inputSplit = inputSplit;
         initOffset();
@@ -190,7 +185,7 @@ public class MongodbOplogInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
