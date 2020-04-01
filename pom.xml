@@ -25,8 +25,10 @@
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-db2</module>
+        <module>flinkx-dm</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-oraclelogminer</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -34,6 +36,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
+        <module>flinkx-phoenix</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
 
@@ -42,12 +45,14 @@
 
         <!--******实时******-->
         <module>flinkx-binlog</module>
+        <module>flinkx-kb</module>
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
+        <module>flinkx-sqlservercdc</module>
+        <module>flinkx-emqx</module>
         <module>flinkx-pgwal</module>
-
 
     </modules>
 
@@ -56,6 +61,7 @@
         <scala.binary.version>2.10</scala.binary.version>
         <flink.version>1.8.1</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
+        <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
     </properties>
 
@@ -77,16 +83,23 @@
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-yarn-common</artifactId>
+            <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-common</artifactId>
+            <version>${hadoop.version}</version>
+<!--            <scope>provided</scope>-->
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-client</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -98,7 +111,7 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-api</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>

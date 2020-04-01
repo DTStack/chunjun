@@ -20,8 +20,11 @@ package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -50,7 +53,8 @@ public class PerJobSubmitter {
         Properties conProp = JsonUtils.jsonStrToObject(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FLinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
-        perJobClusterClientBuilder.init(options.getYarnconf());
+        Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        perJobClusterClientBuilder.init(options.getYarnconf(), config, conProp);
 
         AbstractYarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(conProp, options, jobGraph);
         ClusterClient<ApplicationId> clusterClient = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);

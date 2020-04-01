@@ -44,12 +44,18 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
             case "PARQUET":
                 format = new HdfsParquetInputFormat();
                 break;
+            default:
+                format = new HdfsTextInputFormat();
         }
         super.format = format;
     }
 
     public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
+    }
+
+    public void setFilterRegex(String filterRegex){
+        format.filterRegex = filterRegex;
     }
 
     public void setMetaColumn(List<MetaColumn> metaColumn) {

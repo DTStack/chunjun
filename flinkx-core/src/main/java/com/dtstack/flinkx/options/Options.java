@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -71,7 +71,7 @@ public class Options {
     private String s;
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
-    private String pluginLoadMode = "classpath";
+    private String pluginLoadMode = "shipfile";
 
     public String getS() {
         return s;

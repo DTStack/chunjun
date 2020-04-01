@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,14 +22,15 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +60,7 @@ public abstract class DataWriter {
 
     protected List<String> srcCols = new ArrayList<>();
 
-    protected static ObjectMapper objectMapper = new ObjectMapper();
+    protected static ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -154,6 +155,7 @@ public abstract class DataWriter {
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
 
+    @SuppressWarnings("unchecked")
     protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);

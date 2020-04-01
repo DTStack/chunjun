@@ -168,7 +168,7 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
     protected void openSource() throws IOException{
         try{
             conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
         } catch (Exception e){
             throw new RuntimeException("Get FileSystem error", e);
         }

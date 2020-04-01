@@ -27,7 +27,9 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
+
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
 
 /**
@@ -69,6 +71,8 @@ public class FtpReader extends DataReader {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
         builder.setMetaColumn(metaColumns);
+        builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

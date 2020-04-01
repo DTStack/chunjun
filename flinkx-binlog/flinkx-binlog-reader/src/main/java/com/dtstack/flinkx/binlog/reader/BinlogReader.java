@@ -24,11 +24,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.List;
-import java.util.Map;
-
-import static com.dtstack.flinkx.binlog.BinlogConfigKeys.*;
-
 /**
  * company: www.dtstack.com
  * author: toutian
@@ -36,63 +31,27 @@ import static com.dtstack.flinkx.binlog.BinlogConfigKeys.*;
  */
 public class BinlogReader extends DataReader {
 
-    private String host;
+    private BinlogConfig binlogConfig;
 
-    private int port;
-
-    private String username;
-
-    private String password;
-
-    private String jdbcUrl;
-
-    private Map<String, Object> start;
-
-    private String filter;
-
-    private String cat;
-
-    private long period;
-
-    private int bufferSize;
-
-    private boolean pavingData;
-
-    private List<String> table;
-
+    @SuppressWarnings("unchecked")
     public BinlogReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        start = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_START);
-        host = readerConfig.getParameter().getStringVal(KEY_HOST);
-        port = readerConfig.getParameter().getIntVal(KEY_PORT, 3306);
-        username = readerConfig.getParameter().getStringVal(KEY_USER_NAME);
-        password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        jdbcUrl = readerConfig.getParameter().getStringVal(KEY_JDBCURL);
-        cat = readerConfig.getParameter().getStringVal(KEY_CATALOG);
-        filter = readerConfig.getParameter().getStringVal(KEY_FILTER);
-        period = readerConfig.getParameter().getLongVal(KEY_PERIOD, 1000L);
-        bufferSize = readerConfig.getParameter().getIntVal(KEY_BUFFER_SIZE, 1024);
-        pavingData = readerConfig.getParameter().getBooleanVal(KEY_PAVING_DATA, false);
-        table = (List<String>) readerConfig.getParameter().getVal(KEY_TABLE);
+
+        try {
+            binlogConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), BinlogConfig.class);
+        } catch (Exception e) {
+            throw new RuntimeException("解析binlog Config配置出错:", e);
+        }
     }
 
     @Override
     public DataStream<Row> readData() {
         BinlogInputFormat format = new BinlogInputFormat();
-        format.setHost(host);
-        format.setPort(port);
-        format.setUsername(username);
-        format.setPassword(password);
-        format.setJdbcUrl(jdbcUrl);
-        format.setCat(cat);
-        format.setPeriod(period);
-        format.setStart(start);
-        format.setFilter(filter);
-        format.setBufferSize(bufferSize);
-        format.setPavingData(pavingData);
-        format.setTable(table);
+        format.setBinlogConfig(binlogConfig);
         format.setRestoreConfig(restoreConfig);
+        format.setLogConfig(logConfig);
+        format.setTestConfig(testConfig);
         return createInput(format);
     }
 

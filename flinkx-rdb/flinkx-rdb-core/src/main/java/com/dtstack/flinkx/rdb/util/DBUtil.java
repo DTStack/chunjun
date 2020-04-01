@@ -161,9 +161,7 @@ public class DBUtil {
     public static void closeDBResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
-                LOG.info("Start close resultSet");
                 rs.close();
-                LOG.info("Close resultSet successful");
             } catch (SQLException e) {
                 LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
             }
@@ -171,9 +169,7 @@ public class DBUtil {
 
         if (null != stmt) {
             try {
-                LOG.info("Start close statement");
                 stmt.close();
-                LOG.info("Close statement successful");
             } catch (SQLException e) {
                 LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
             }
@@ -185,9 +181,7 @@ public class DBUtil {
                     commit(conn);
                 }
 
-                LOG.info("Start close connection");
                 conn.close();
-                LOG.info("Close connection successful");
             } catch (SQLException e) {
                 LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
             }
@@ -201,9 +195,7 @@ public class DBUtil {
     public static void commit(Connection conn){
         try {
             if (!conn.isClosed() && !conn.getAutoCommit()){
-                LOG.info("Start commit connection");
                 conn.commit();
-                LOG.info("Commit connection successful");
             }
         } catch (SQLException e){
             LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
