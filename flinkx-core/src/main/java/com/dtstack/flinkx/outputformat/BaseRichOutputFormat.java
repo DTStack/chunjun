@@ -63,6 +63,8 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
+    protected String formatId;
+
     public static final String RUNNING_STATE = "RUNNING";
 
     public static final int LOG_PRINT_INTERNAL = 2000;
@@ -623,5 +625,13 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
     public RestoreConfig getRestoreConfig() {
         return restoreConfig;
+    }
+
+    public String getFormatId() {
+        return formatId;
+    }
+
+    public void setFormatId(String formatId) {
+        this.formatId = formatId;
     }
 }

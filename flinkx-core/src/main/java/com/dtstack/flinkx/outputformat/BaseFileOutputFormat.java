@@ -56,6 +56,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     protected static final String ACTION_FINISHED = ".action_finished";
 
+    protected static final String RESTART_FILE_NAME_SUFFIX = "restart";
+
+    protected static final String JOB_ID_DELIMITER = "_";
+
     protected static final int SECOND_WAIT = 30;
 
     protected static final String SP = "/";
@@ -94,6 +98,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        initFileIndex();
         initPath();
         openSource();
         actionBeforeWriteData();
@@ -115,6 +120,14 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
         LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
+    }
+
+    private void initFileIndex() {
+        if (null != formatState && formatState.getFileIndex() > -1) {
+            blockIndex = formatState.getFileIndex() + 1;
+        }
+
+        LOG.info("Start block index:{}", blockIndex);
     }
 
     protected void actionBeforeWriteData(){

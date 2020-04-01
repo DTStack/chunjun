@@ -79,6 +79,7 @@ public class HdfsReader extends BaseDataReader {
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());

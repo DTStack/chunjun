@@ -94,7 +94,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected long rowsOfCurrentTransaction;
 
-    protected final static String GET_ORACLE_INDEX_SQL = "SELECT " +
+    protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
             "FROM " +

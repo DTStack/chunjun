@@ -20,6 +20,7 @@ package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
@@ -70,6 +71,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     protected FormatState formatState;
 
+    protected TestConfig testConfig;
+
     protected transient BaseMetric inputMetric;
 
     protected int indexOfSubTask;
@@ -83,6 +86,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     private AtomicBoolean isClosed = new AtomicBoolean(false);
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
+
+    protected long numReadeForTest;
 
     /**
      * 有子类实现，打开数据连接
@@ -255,6 +260,14 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
                 bytesReadCounter.add(internalRow.toString().length());
             }
         }
+
+        if (testConfig.errorTest() && testConfig.getFailedPerRecord() > 0) {
+            numReadeForTest++;
+            if (numReadeForTest > testConfig.getFailedPerRecord()) {
+                throw new RuntimeException(testConfig.getErrorMsg());
+            }
+        }
+
         return internalRow;
     }
 
@@ -369,5 +382,10 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     public void setRestoreConfig(RestoreConfig restoreConfig) {
         this.restoreConfig = restoreConfig;
+    }
+
+
+    public void setTestConfig(TestConfig testConfig) {
+        this.testConfig = testConfig;
     }
 }

@@ -45,7 +45,7 @@ public class FormatState implements Serializable {
 
     private String jobId;
 
-    private int fileIndex;
+    private int fileIndex = -1;
 
     public FormatState() {
     }

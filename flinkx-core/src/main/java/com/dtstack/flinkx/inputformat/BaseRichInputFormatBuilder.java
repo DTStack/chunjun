@@ -20,6 +20,7 @@ package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,10 @@ public abstract class BaseRichInputFormatBuilder {
     }
     public void setLogConfig(LogConfig logConfig){
         format.logConfig = logConfig;
+    }
+
+    public void setTestConfig(TestConfig testConfig) {
+        format.testConfig = testConfig;
     }
 
     /**

@@ -29,6 +29,8 @@ import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
+import com.dtstack.flinkx.dm.reader.DmReader;
+import com.dtstack.flinkx.dm.writer.DmWriter;
 import com.dtstack.flinkx.emqx.reader.EmqxReader;
 import com.dtstack.flinkx.emqx.writer.EmqxWriter;
 import com.dtstack.flinkx.es.reader.EsReader;
@@ -80,7 +82,9 @@ import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -147,7 +151,13 @@ public class LocalTest {
         openCheckpointConf(env, confProperties);
 
         env.setParallelism(speedConfig.getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
+
+        if (needRestart(config)) {
+            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                    10,
+                    Time.of(10, TimeUnit.SECONDS)
+            ));
+        }
 
         BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
@@ -165,6 +175,10 @@ public class LocalTest {
         }
 
         return env.execute();
+    }
+
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isRestore();
     }
 
     private static String readJob(File file) {
@@ -207,6 +221,7 @@ public class LocalTest {
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
+            case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -242,6 +257,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
+            case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
@@ -278,6 +294,7 @@ public class LocalTest {
         env.getCheckpointConfig().enableExternalizedCheckpoints(
                 CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
+        env.setStateBackend(new FsStateBackend(new Path("file:///tmp/flinkx_checkpoint")));
         env.setRestartStrategy(RestartStrategies.failureRateRestart(
                 FAILURE_RATE,
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),

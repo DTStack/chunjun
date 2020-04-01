@@ -49,7 +49,7 @@
             }
         }],
         "setting": {
-
+        
         }
     }
 }
@@ -59,7 +59,7 @@
 
 * **name**
   
-  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader，gbasereader, clickhousereader, polardbreader,teradatareader,saphanareader,phoenixreader。    
+  * 描述：插件名，此处填写插件名称，当前支持的关系数据库插件包括：mysqlreader，oraclereader，sqlserverreader，postgresqlreader，db2reader，gbasereader, clickhousereader, polardbreader,teradatareader,saphanareader,phoenixreader,dmreader。    
     * 必选：是 
     
     * 默认值：无 
@@ -85,6 +85,8 @@
     - [ClickHouse官方文档](https://clickhouse.yandex/docs/zh/)
     
     - [polarDB官方文档](https://help.aliyun.com/product/58609.html)
+    
+    - [达梦官方文档](http://www.dameng.com/down.aspx)
   
   * 必选：是
   
