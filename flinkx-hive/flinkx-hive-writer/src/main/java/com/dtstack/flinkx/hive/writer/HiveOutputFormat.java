@@ -259,7 +259,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) hdfsOutputFormatBuilder.finish();
             outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
