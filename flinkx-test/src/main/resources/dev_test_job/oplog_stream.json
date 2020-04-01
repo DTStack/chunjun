@@ -5,13 +5,13 @@
         "reader": {
           "name": "mongodboplogreader",
           "parameter": {
-            "hostPorts": "172.16.8.190:30001,172.16.8.190:30002,172.16.8.190:30003",
+            "hostPorts": "127.0.0.1:30001,127.0.0.1:30002,127.0.0.1:30003",
             "username": "root",
             "password": "123456",
             "database": "admin",
             "clusterMode": "REPLICA_SET",
             "authenticationMechanism": "SCRAM-SHA-256",
-            "monitorDatabases": ["jiangbo"],
+            "monitorDatabases": ["test"],
             "excludeDocId": false
           }
         },

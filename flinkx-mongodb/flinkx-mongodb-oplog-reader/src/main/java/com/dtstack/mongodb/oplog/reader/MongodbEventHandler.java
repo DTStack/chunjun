@@ -19,13 +19,12 @@
 
 package com.dtstack.mongodb.oplog.reader;
 
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.apache.flink.types.Row;
 import org.bson.BsonTimestamp;
 import org.bson.Document;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -39,7 +38,9 @@ public class MongodbEventHandler {
     public final static String EVENT_KEY_TS = "ts";
     public final static String EVENT_KEY_DATA = "o";
 
-    public static Row handleEvent(final Document event, AtomicLong offset, boolean excludeDocId){
+    private static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
+
+    public static Row handleEvent(final Document event, AtomicLong offset, boolean excludeDocId, boolean pavingData){
         MongodbOperation mongodbOperation = MongodbOperation.getByInternalNames(event.getString(EVENT_KEY_OP));
         Map<String, Object> eventMap = new LinkedHashMap<>();
         eventMap.put("type", mongodbOperation.name());
@@ -47,8 +48,7 @@ public class MongodbEventHandler {
         parseDbAndCollection(event, eventMap);
 
         BsonTimestamp timestamp = event.get(EVENT_KEY_TS, BsonTimestamp.class);
-        eventMap.put("ts", timestamp.getValue());
-        eventMap.put("ingestion", System.nanoTime());
+        eventMap.put("ts", idWorker.nextId());
 
         final Document data = (Document)event.get(EVENT_KEY_DATA);
         Set<String> keys = data.keySet();
@@ -56,16 +56,35 @@ public class MongodbEventHandler {
             keys.remove("_id");
         }
 
-        for (String key : keys) {
-            eventMap.put("after_" + key, data.get(key));
-        }
+        if (pavingData) {
+            for (String key : keys) {
+                eventMap.put("after_" + key, data.get(key));
+            }
 
-        for (String key : keys) {
-            eventMap.put("before_" + key, null);
+            for (String key : keys) {
+                eventMap.put("before_" + key, null);
+            }
+        } else {
+            eventMap.put("before", processColumnList(keys, data, true));
+            eventMap.put("after", processColumnList(keys, data, false));
+            eventMap = Collections.singletonMap("message", eventMap);
         }
 
         offset.set(timestamp.getValue());
         return Row.of(eventMap);
+    }
+
+    private static Map<String,Object> processColumnList(Set<String> keys, Document data, boolean valueNull) {
+        Map<String, Object> map = new HashMap<>(keys.size());
+        for (String key : keys) {
+            if (valueNull) {
+                map.put(key, null);
+            } else {
+                map.put(key, data.get(key));
+            }
+        }
+
+        return map;
     }
 
     private static void parseDbAndCollection(final Document event, Map<String, Object> eventMap){

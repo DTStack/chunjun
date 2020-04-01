@@ -31,7 +31,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -127,7 +126,10 @@ public class MongodbOplogInputFormat extends RichInputFormat {
         filters.add(Filters.ne(MongodbEventHandler.EVENT_KEY_NS, "config.system.sessions"));
 
         // 过滤操作类型
-        filters.add(Filters.in(MongodbEventHandler.EVENT_KEY_OP, MongodbOperation.internalNames()));
+        if(CollectionUtils.isNotEmpty(mongodbConfig.getOperateType())) {
+            List<String> operateTypes = MongodbOperation.getInternalNames(mongodbConfig.getOperateType());
+            filters.add(Filters.in(MongodbEventHandler.EVENT_KEY_OP, operateTypes));
+        }
 
         return Filters.and(filters);
     }
@@ -165,7 +167,7 @@ public class MongodbOplogInputFormat extends RichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return MongodbEventHandler.handleEvent(cursor.next(), offset, mongodbConfig.getExcludeDocId());
+        return MongodbEventHandler.handleEvent(cursor.next(), offset, mongodbConfig.getExcludeDocId(), mongodbConfig.getPavingData());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.dtstack.mongodb.oplog.reader;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +35,24 @@ public enum MongodbOperation {
         return internalName;
     }
 
-    public static List<String> internalNames(){
-        List<String> names = new ArrayList<>();
-        for (MongodbOperation value : MongodbOperation.values()) {
-            names.add(value.getInternalName());
+    public static List<String> getInternalNames(List<String> names) {
+        List<String> internalNames = new ArrayList(names.size());
+        for (String name : names) {
+            MongodbOperation operation = getByName(name);
+            internalNames.add(operation.getInternalName());
         }
 
-        return names;
+        return internalNames;
+    }
+
+    public static MongodbOperation getByName(String name) {
+        for (MongodbOperation value : MongodbOperation.values()) {
+            if (value.name().equalsIgnoreCase(name)){
+                return value;
+            }
+        }
+
+        throw new RuntimeException("不支持的操作类型:" + name);
     }
 
     public static MongodbOperation getByInternalNames(String name){

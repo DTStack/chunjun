@@ -291,6 +291,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Emqx读取插件](docs/emqxreader.md)
 * [Oracle实时采集插件](docs/logminer.md)
 * [SqlServerCdc实时采集插件](docs/sqlservercdc.md)
+* [MongoDB实时采集插件](docs/mongodb_oplog.md)
 
 
 ### 5.2 写入插件
