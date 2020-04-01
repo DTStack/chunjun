@@ -87,6 +87,7 @@ public class KuduReader extends BaseDataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
         builder.setKuduConfig(kuduConfig);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());

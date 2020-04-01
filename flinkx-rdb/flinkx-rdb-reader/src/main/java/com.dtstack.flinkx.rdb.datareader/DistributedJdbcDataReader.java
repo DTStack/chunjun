@@ -96,6 +96,7 @@ public class DistributedJdbcDataReader extends BaseDataReader {
         builder.setWhere(where);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         BaseRichInputFormat format =  builder.finish();

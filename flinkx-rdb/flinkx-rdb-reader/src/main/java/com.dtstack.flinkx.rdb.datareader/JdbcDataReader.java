@@ -118,6 +118,7 @@ public class JdbcDataReader extends BaseDataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);

@@ -107,6 +107,7 @@ public class CarbondataReader extends BaseDataReader {
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setLogConfig(logConfig);
+        builder.setTestConfig(testConfig);
         return createInput(builder.finish());
     }
 
