@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.launcher;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
@@ -33,6 +35,7 @@ import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -82,6 +85,7 @@ public class Launcher {
     }
 
     public static void main(String[] args) throws Exception {
+        setLogLevel(Level.INFO.toString());
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
         String mode = launcherOptions.getMode();
@@ -172,5 +176,12 @@ public class Launcher {
         } catch (Exception e){
             throw new RuntimeException(e);
         }
+    }
+
+    private static void setLogLevel(String level){
+        LoggerContext loggerContext= (LoggerContext) LoggerFactory.getILoggerFactory();
+        //设置全局日志级别
+        ch.qos.logback.classic.Logger logger=loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 }

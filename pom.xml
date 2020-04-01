@@ -53,6 +53,7 @@
         <module>flinkx-kafka</module>
 
         <module>flinkx-emqx</module>
+        <module>flinkx-pgwal</module>
         <module>flinkx-pulsar</module>
 
     </modules>
