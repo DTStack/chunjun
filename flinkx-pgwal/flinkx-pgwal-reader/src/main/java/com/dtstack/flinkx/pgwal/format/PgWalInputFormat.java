@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.pgwal.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.pgwal.PgRelicationSlot;
 import com.dtstack.flinkx.pgwal.PgWalUtil;
 import com.dtstack.flinkx.pgwal.listener.PgWalListener;
@@ -44,7 +44,7 @@ import java.util.concurrent.SynchronousQueue;
  *
  * @author tudou
  */
-public class PgWalInputFormat extends RichInputFormat {
+public class PgWalInputFormat extends BaseRichInputFormat {
     protected String username;
     protected String password;
     protected String url;

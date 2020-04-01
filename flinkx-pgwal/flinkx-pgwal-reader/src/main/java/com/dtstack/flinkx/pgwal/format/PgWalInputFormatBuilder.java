@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.pgwal.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author tudou
  */
-public class PgWalInputFormatBuilder extends RichInputFormatBuilder {
+public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected PgWalInputFormat format;
 

@@ -206,7 +206,7 @@ public class PgWalUtil {
         PGProperty.PREFER_QUERY_MODE.set(props, "simple");
         //postgres version must > 10
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "10");
-        synchronized (ClassUtil.lock_str) {
+        synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
             // telnet
             TelnetUtil.telnet(url);
