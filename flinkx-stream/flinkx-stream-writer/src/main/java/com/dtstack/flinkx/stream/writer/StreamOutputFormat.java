@@ -22,7 +22,6 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.types.Row;
-import org.apache.flink.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;

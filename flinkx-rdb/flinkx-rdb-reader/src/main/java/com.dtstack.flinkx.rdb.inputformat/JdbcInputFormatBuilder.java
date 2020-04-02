@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
@@ -129,7 +130,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
         }
 
-        if (format.fetchSize > 200000) {
+        if (format.fetchSize > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
         }
     }

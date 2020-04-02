@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.kudu.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -51,7 +52,7 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException("columns can not be empty");
         }
 
-        if (format.kuduConfig.getBatchSizeBytes() > 1024 * 1024 * 1024) {
+        if (format.kuduConfig.getBatchSizeBytes() > ConstantValue.STORE_SIZE_G) {
             throw new IllegalArgumentException("批量读取字节数必须小于[1G]");
         }
     }

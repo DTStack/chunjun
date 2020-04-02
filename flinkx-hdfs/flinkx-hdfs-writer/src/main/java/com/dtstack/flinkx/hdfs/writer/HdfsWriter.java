@@ -19,6 +19,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -100,7 +101,7 @@ public class HdfsWriter extends BaseDataWriter {
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {

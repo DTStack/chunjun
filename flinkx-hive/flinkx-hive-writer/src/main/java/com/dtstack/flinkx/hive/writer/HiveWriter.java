@@ -19,6 +19,7 @@ package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
@@ -112,9 +113,9 @@ public class HiveWriter extends BaseDataWriter {
         partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
         delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
         charSet = writerConfig.getParameter().getStringVal(KEY_CHARSET_NAME);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
-        bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * 1024 * 1024);
+        bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * ConstantValue.STORE_SIZE_M);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
         mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, WriteMode.APPEND.name());

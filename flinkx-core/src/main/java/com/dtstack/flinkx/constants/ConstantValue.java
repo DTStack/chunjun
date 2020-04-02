@@ -56,4 +56,10 @@ public class ConstantValue {
     public static final String TIME_MILLISECOND_SUFFIX = "SSS";
 
     public static final String FILE_SUFFIX_XML = ".xml";
+
+    public static final int MAX_BATCH_SIZE = 200000;
+
+    public static final long STORE_SIZE_G = 1024 * 1024 * 1024;
+
+    public static final long STORE_SIZE_M = 1024 * 1024;
 }

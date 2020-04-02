@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -91,7 +92,7 @@ public abstract class BaseRichOutputFormatBuilder {
          * 在不考虑各插件批量写入对内存特殊要求并且只考虑插件缓存这么多条数据的情况下，batchInterval为400000条时出现fullGC，
          * 为了避免fullGC以及OOM，并且保证batchInterval有足够的配置空间，取最大值的一半200000。
          */
-        if (this.format.getBatchInterval() > 200000) {
+        if (this.format.getBatchInterval() > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量写入条数必须小于[200000]条");
         }
 
