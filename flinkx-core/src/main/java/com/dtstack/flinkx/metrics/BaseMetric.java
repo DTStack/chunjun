@@ -20,11 +20,13 @@
 package com.dtstack.flinkx.metrics;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.util.SysUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.MetricGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +37,8 @@ import java.util.Map;
 public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    private Long delayPeriodMill = 20000L;
 
     private MetricGroup flinkxOutput;
 
@@ -58,5 +62,14 @@ public class BaseMetric {
 
     public Map<String, LongCounter> getMetricCounters() {
         return metricCounters;
+    }
+
+    public void waitForReportMetrics() {
+        try {
+            Thread.sleep(delayPeriodMill);
+        } catch (InterruptedException e){
+            SysUtil.sleep(delayPeriodMill);
+            LOG.warn("Task thread is interrupted");
+        }
     }
 }

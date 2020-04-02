@@ -23,8 +23,8 @@ import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.AbstractRecordWriter;
 import com.dtstack.flinkx.carbondata.writer.recordwriter.RecordWriterFactory;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
-import org.apache.carbondata.core.datastore.impl.FileFactory;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.util.DateUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
@@ -36,7 +36,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +48,11 @@ import java.util.stream.Collectors;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
+public class CarbonOutputFormat extends BaseRichOutputFormat implements CleanupWhenUnsuccessful {
 
     protected Map<String,String> hadoopConfig;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String table;
 
@@ -91,10 +90,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     private List<String> partitionColValue = new ArrayList<>();
 
-    private final SimpleDateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
-    private final SimpleDateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     private final String DEFAULT_SERIAL_NULL_FORMAT = "\\N";
 
     private final List<String> oldSegmentIds = new ArrayList<>();
@@ -102,7 +97,7 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
 
     @Override
     public void configure(Configuration parameters) {
-        CarbondataUtil.initFileFactory(hadoopConfig, defaultFS);
+        CarbondataUtil.initFileFactory(hadoopConfig, defaultFs);
     }
 
     private void parsePartition(){
@@ -148,9 +143,6 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
             parsePartition();
         }
 
-//        TableProcessingOperations.deletePartialLoadDataIfExist(carbonTable, isHivePartitioned);
-//        SegmentStatusManager.deleteLoadsAndUpdateMetadata(carbonTable, false, null);
-
         recordWriterAssemble = RecordWriterFactory.getAssembleInstance(carbonTable, partition);
 
     }
@@ -189,8 +181,8 @@ public class CarbonOutputFormat extends RichOutputFormat implements CleanupWhenU
                     record[i] = DEFAULT_SERIAL_NULL_FORMAT;
                 } else {
                     Object column = row.getField(index);
-                    String s = CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT);
-                    CarbonTypeConverter.checkStringType(s, DEFAULT_SERIAL_NULL_FORMAT, DEFAULT_TIME_FORMAT, DEFAULT_DATE_FORMAT, fullColumnTypes.get(i));
+                    String s = CarbonTypeConverter.objectToString(column, DEFAULT_SERIAL_NULL_FORMAT);
+                    CarbonTypeConverter.checkStringType(s, DEFAULT_SERIAL_NULL_FORMAT, fullColumnTypes.get(i));
                     record[i] = s;
                 }
             }

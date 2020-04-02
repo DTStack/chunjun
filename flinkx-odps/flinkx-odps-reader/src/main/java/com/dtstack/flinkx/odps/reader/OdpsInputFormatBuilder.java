@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.odps.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
@@ -31,7 +31,7 @@ import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsInputFormatBuilder extends RichInputFormatBuilder {
+public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private OdpsInputFormat format;
 

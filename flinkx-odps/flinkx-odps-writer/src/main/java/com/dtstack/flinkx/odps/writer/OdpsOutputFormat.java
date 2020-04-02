@@ -28,12 +28,14 @@ import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.odps.OdpsUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -42,7 +44,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsOutputFormat extends RichOutputFormat {
+public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     protected String[] columnTypes;
 
@@ -84,7 +86,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
         if(taskNumber == 0) {
             Table table = OdpsUtil.getTable(odps, projectName, tableName);
             boolean truncate = false;
-            if(writeMode != null && writeMode.equalsIgnoreCase("overwrite")) {
+            if(WriteMode.OVERWRITE.getMode().equalsIgnoreCase(writeMode)) {
                 truncate = true;
             }
             OdpsUtil.checkTable(odps, table, partition, truncate);
@@ -167,7 +169,7 @@ public class OdpsOutputFormat extends RichOutputFormat {
                         record.setDatetime(i, DateUtil.columnToTimestamp(column,null));
                         break;
                     case BINARY:
-                        record.set(i, new Binary(rowData.getBytes()));
+                        record.set(i, new Binary(rowData.getBytes(StandardCharsets.UTF_8)));
                         break;
                     default:
                         record.set(i,column);

@@ -75,8 +75,6 @@ public class DataTransferConfig extends AbstractConfig {
         JobConfig jobConfig = config.getJob();
         Preconditions.checkNotNull(jobConfig, "Must spedify job element");
 
-        SettingConfig settingConfig = jobConfig.getSetting();
-
         List<ContentConfig> contentConfig = jobConfig.getContent();
         Preconditions.checkNotNull(contentConfig, "Must specify content array");
         Preconditions.checkArgument(contentConfig.size() != 0, "Must specify at least one content element");
@@ -103,7 +101,6 @@ public class DataTransferConfig extends AbstractConfig {
 
     public static DataTransferConfig parse(String json) {
         Gson gson = new Gson();
-        //DataTransferConfig config = gson.fromJson(json, DataTransferConfig.class);
         Map<String,Object> map = gson.fromJson(json, Map.class);
         map = MapUtil.convertToHashMap(map);
         DataTransferConfig config = new DataTransferConfig(map);

@@ -39,7 +39,7 @@ public class TeradataOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = getConnection(dbURL, username, password);
+            dbConn = getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);

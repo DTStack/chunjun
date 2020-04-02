@@ -18,17 +18,11 @@
 package com.dtstack.flinkx.kafka.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.dtstack.flinkx.kafka.KafkaConfigKeys.*;
 
 /**
  * Date: 2019/11/21
@@ -36,26 +30,11 @@ import static com.dtstack.flinkx.kafka.KafkaConfigKeys.*;
  *
  * @author tudou
  */
-public class KafkaWriter extends DataWriter {
+public class KafkaWriter extends KafkaBaseWriter {
 
-    private String timezone;
-
-    private String topic;
-
-    private Map<String, String> producerSettings;
-
-    private List<String> tableFields;
-
-    @SuppressWarnings("unchecked")
     public KafkaWriter(DataTransferConfig config) {
         super(config);
-        WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
-        topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
-        producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
-        tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLEFIELDS);
-
-        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
+        if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
         }
     }

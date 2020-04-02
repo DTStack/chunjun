@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.cassandra.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 
@@ -31,7 +31,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraInputFormatBuilder extends RichInputFormatBuilder {
+public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private CassandraInputFormat format;
 

@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.teradata.util;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 
@@ -24,7 +25,7 @@ public class DBUtil {
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        synchronized (ClassUtil.lock_str){
+        synchronized (ClassUtil.LOCK_STR){
             DriverManager.setLoginTimeout(10);
 
             if (username == null) {
@@ -56,7 +57,7 @@ public class DBUtil {
         try {
             dbConn = getConnection(dbURL, username, password);
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
             Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
@@ -74,7 +75,7 @@ public class DBUtil {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            com.dtstack.flinkx.rdb.util.DBUtil.closeDBResources(rs, stmt, dbConn, false);
+            DbUtil.closeDbResources(rs, stmt, dbConn, false);
         }
 
         return ret;

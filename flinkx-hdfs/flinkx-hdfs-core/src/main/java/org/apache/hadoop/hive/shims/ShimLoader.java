@@ -27,6 +27,7 @@ import java.util.Map;
 /**
  * ShimLoader.
  *
+ * @author jiangbo
  */
 public abstract class ShimLoader {
     private static HadoopShims hadoopShims;

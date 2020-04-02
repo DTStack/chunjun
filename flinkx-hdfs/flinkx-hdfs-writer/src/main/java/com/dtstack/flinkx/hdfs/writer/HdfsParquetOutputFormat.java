@@ -51,7 +51,7 @@ import java.util.*;
  * Company: www.dtstack.com
  * @author jiangbo
  */
-public class HdfsParquetOutputFormat extends HdfsOutputFormat {
+public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     private SimpleGroupFactory groupFactory;
 
@@ -161,84 +161,12 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         int i = 0;
         try {
             for (; i < fullColumnNames.size(); i++) {
-                String colName = fullColumnNames.get(i);
-                String colType = fullColumnTypes.get(i);
-                colType = ColumnType.fromString(colType).name().toLowerCase();
-
                 Object valObj = row.getField(colIndices[i]);
-
                 if(valObj == null){
                     continue;
                 }
 
-                String val = valObj.toString();
-
-                switch (colType){
-                    case "tinyint" :
-                    case "smallint" :
-                    case "int" :
-                        if (valObj instanceof Timestamp){
-                            ((Timestamp) valObj).getTime();
-                            group.add(colName,(int)((Timestamp) valObj).getTime());
-                        } else if(valObj instanceof Date){
-                            group.add(colName,(int)((Date) valObj).getTime());
-                        } else {
-                            group.add(colName,Integer.parseInt(val));
-                        }
-                        break;
-                    case "bigint" :
-                        if (valObj instanceof Timestamp){
-                            group.add(colName,((Timestamp) valObj).getTime());
-                        } else if(valObj instanceof Date){
-                            group.add(colName,((Date) valObj).getTime());
-                        } else {
-                            group.add(colName,Long.parseLong(val));
-                        }
-                        break;
-                    case "float" : group.add(colName,Float.parseFloat(val));break;
-                    case "double" : group.add(colName,Double.parseDouble(val));break;
-                    case "binary" :group.add(colName,Binary.fromString(val));break;
-                    case "char" :
-                    case "varchar" :
-                    case "string" :
-                        if (valObj instanceof Timestamp){
-                            val=DateUtil.getDateTimeFormatter().format(valObj);
-                            group.add(colName,val);
-                        }else {
-                            group.add(colName,val);
-                        }
-                        break;
-                    case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
-                    case "timestamp" :
-                        Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
-                        byte[] dst = longToByteArray(ts.getTime());
-                        group.add(colName, Binary.fromConstantByteArray(dst));
-                        break;
-                    case "decimal" :
-                        ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(colName);
-
-                        HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
-                        hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
-                        if(hiveDecimal == null){
-                            throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
-                                    decimalInfo.getPrecision(), decimalInfo.getScale()), new IllegalArgumentException(), i, row);
-                        }
-
-                        group.add(colName,decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
-                        break;
-                    case "date" :
-                        Date date = DateUtil.columnToDate(valObj,null);
-                        group.add(colName, DateWritable.dateToDays(new java.sql.Date(date.getTime())));
-                        break;
-                    default: group.add(colName,val);break;
-                }
-            }
-
-            writer.write(group);
-            rowsOfCurrentBlock++;
-
-            if(restoreConfig.isRestore()){
-                lastRow = row;
+                addDataToGroup(group, valObj, i);
             }
         } catch (Exception e){
             if(e instanceof WriteRecordException){
@@ -246,6 +174,85 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
             } else {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
+        }
+
+        try {
+            writer.write(group);
+            rowsOfCurrentBlock++;
+
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+            }
+        } catch (IOException e) {
+            throw new WriteRecordException(String.format("数据写入hdfs异常，row:{%s}", row), e);
+        }
+    }
+
+    private void addDataToGroup(Group group, Object valObj, int i) throws Exception{
+        String colName = fullColumnNames.get(i);
+        String colType = fullColumnTypes.get(i);
+        colType = ColumnType.fromString(colType).name().toLowerCase();
+
+        String val = valObj.toString();
+
+        switch (colType){
+            case "tinyint" :
+            case "smallint" :
+            case "int" :
+                if (valObj instanceof Timestamp){
+                    ((Timestamp) valObj).getTime();
+                    group.add(colName,(int)((Timestamp) valObj).getTime());
+                } else if(valObj instanceof Date){
+                    group.add(colName,(int)((Date) valObj).getTime());
+                } else {
+                    group.add(colName,Integer.parseInt(val));
+                }
+                break;
+            case "bigint" :
+                if (valObj instanceof Timestamp){
+                    group.add(colName,((Timestamp) valObj).getTime());
+                } else if(valObj instanceof Date){
+                    group.add(colName,((Date) valObj).getTime());
+                } else {
+                    group.add(colName,Long.parseLong(val));
+                }
+                break;
+            case "float" : group.add(colName,Float.parseFloat(val));break;
+            case "double" : group.add(colName,Double.parseDouble(val));break;
+            case "binary" :group.add(colName,Binary.fromString(val));break;
+            case "char" :
+            case "varchar" :
+            case "string" :
+                if (valObj instanceof Timestamp){
+                    val=DateUtil.getDateTimeFormatter().format(valObj);
+                    group.add(colName,val);
+                }else {
+                    group.add(colName,val);
+                }
+                break;
+            case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
+            case "timestamp" :
+                Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
+                byte[] dst = longToByteArray(ts.getTime());
+                group.add(colName, Binary.fromConstantByteArray(dst));
+                break;
+            case "decimal" :
+                ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(colName);
+
+                HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(val));
+                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                if(hiveDecimal == null){
+                    String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", i, decimalInfo.getPrecision(), decimalInfo.getScale(), valObj);
+                    throw new WriteRecordException(msg, new IllegalArgumentException());
+                }
+
+                group.add(colName,decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                break;
+            case "date" :
+                Date date = DateUtil.columnToDate(valObj,null);
+                group.add(colName, DateWritable.dateToDays(new java.sql.Date(date.getTime())));
+                break;
+            default: group.add(colName,val);break;
         }
     }
 
@@ -256,7 +263,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
         int precToBytes = ParquetHiveSerDe.PRECISION_TO_BYTE_COUNT[prec - 1];
         if (precToBytes == decimalBytes.length) {
             // No padding needed.
-            return Binary.fromByteArray(decimalBytes);
+            return Binary.fromReusedByteArray(decimalBytes);
         }
 
         byte[] tgt = new byte[precToBytes];
@@ -269,7 +276,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
 
         // Padding leading zeroes/ones.
         System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
-        return Binary.fromByteArray(tgt);
+        return Binary.fromReusedByteArray(tgt);
     }
 
     @Override
@@ -285,7 +292,6 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
     }
 
     private MessageType buildSchema(){
-        decimalColInfo = new HashMap<>();
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNames.size(); i++) {
             String name = fullColumnNames.get(i);
@@ -314,7 +320,7 @@ public class HdfsParquetOutputFormat extends HdfsOutputFormat {
                                 .length(computeMinBytesForPrecision(decimalInfo.getPrecision()))
                                 .named(name);
 
-                        decimalColInfo.put(name, decimalInfo);
+                        decimalColInfo = Collections.singletonMap(name, decimalInfo);
                     } else {
                         typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
                     }

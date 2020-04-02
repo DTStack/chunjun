@@ -5,7 +5,7 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 import org.apache.flink.types.Row;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraOutputFormat extends RichOutputFormat {
+public class CassandraOutputFormat extends BaseRichOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraOutputFormat.class);
 
     protected Long batchSize;
@@ -102,6 +102,7 @@ public class CassandraOutputFormat extends RichOutputFormat {
                 throw new WriteRecordException("类型转换失败", e.getCause(), i, row);
             }
         }
+        LOG.info("insertSql: {}" + boundStatement);
         session.execute(boundStatement);
     }
 
@@ -109,14 +110,12 @@ public class CassandraOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (batchSize > 1) {
             BoundStatement boundStatement = pstmt.bind();
-            for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-                for (int columnIndex = 0; columnIndex < columnMeta.size(); columnIndex++) {
-                    Object value = rows.get(rowIndex).getField(columnIndex);
-                    CassandraUtil.bindColumn(boundStatement, columnIndex, columnTypes.get(columnIndex), value);
+            for (Row row : rows) {
+                for (int i = 0; i < columnMeta.size(); i++) {
+                    Object value = row.getField(i);
+                    CassandraUtil.bindColumn(boundStatement, i, columnTypes.get(i), value);
                 }
-                if ((rowIndex % 1000) == 0) {
-                    LOG.info("insertSql: {}", boundStatement);
-                }
+                LOG.info("insertSql: {}" + boundStatement);
                 if(asyncWrite) {
                     unConfirmedWrite.add(session.executeAsync(boundStatement));
                     if (unConfirmedWrite.size() >= batchSize) {
@@ -153,7 +152,7 @@ public class CassandraOutputFormat extends RichOutputFormat {
     }
 
     @Override
-    public void closeInternal() {
+    public void closeInternal() throws IOException {
         CassandraUtil.close(session);
     }
 }

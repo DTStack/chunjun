@@ -25,5 +25,12 @@ package com.dtstack.flinkx.hbase.writer.function;
  */
 public interface IFunction {
 
-    String evaluate(Object val);
+    /**
+     * 具体的计算方法
+     *
+     * @param val 输入参数
+     * @return 计算结果
+     * @throws Exception 捕获的异常，异常类型不确定
+     */
+    String evaluate(Object val) throws Exception;
 }

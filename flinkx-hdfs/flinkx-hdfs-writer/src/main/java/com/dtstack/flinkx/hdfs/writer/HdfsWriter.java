@@ -19,7 +19,7 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -39,11 +39,11 @@ import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsWriter extends DataWriter {
+public class HdfsWriter extends BaseDataWriter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String fileType;
 
@@ -79,7 +79,7 @@ public class HdfsWriter extends DataWriter {
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         List columns = writerConfig.getParameter().getColumn();
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
-        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
+        defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
@@ -115,7 +115,7 @@ public class HdfsWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setPath(path);
         builder.setFileName(fileName);
         builder.setWriteMode(mode);

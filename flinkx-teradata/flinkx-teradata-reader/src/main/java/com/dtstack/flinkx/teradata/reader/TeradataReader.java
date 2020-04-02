@@ -37,6 +37,10 @@ public class TeradataReader extends JdbcDataReader {
     public TeradataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new TeradataDatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new TeradataInputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new TeradataInputFormat());
     }
 }

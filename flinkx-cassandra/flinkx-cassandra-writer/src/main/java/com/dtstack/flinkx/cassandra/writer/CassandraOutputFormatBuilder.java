@@ -1,6 +1,6 @@
 package com.dtstack.flinkx.cassandra.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraOutputFormatBuilder extends RichOutputFormatBuilder {
+public class CassandraOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private CassandraOutputFormat format;
 

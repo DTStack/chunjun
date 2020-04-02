@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Company: www.dtstack.com
@@ -47,7 +47,7 @@ public class TeradataInputFormat extends JdbcInputFormat {
         try {
             LOG.info(inputSplit.toString());
 
-            ClassUtil.forName(drivername, getClass().getClassLoader());
+            ClassUtil.forName(driverName, getClass().getClassLoader());
 
             if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
                 getMaxValue(inputSplit);
@@ -62,7 +62,7 @@ public class TeradataInputFormat extends JdbcInputFormat {
                 return;
             }
 
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn = DBUtil.getConnection(dbUrl, username, password);
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
@@ -84,7 +84,7 @@ public class TeradataInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+                descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

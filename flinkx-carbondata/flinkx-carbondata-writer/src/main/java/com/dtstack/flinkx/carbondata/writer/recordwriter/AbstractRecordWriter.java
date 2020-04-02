@@ -20,11 +20,11 @@
 package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
-import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonDictionaryUtil;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
+import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
 import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
@@ -39,22 +39,11 @@ import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TaskType;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-import java.util.HashMap;
-import java.util.Map;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 
-import org.apache.carbondata.core.metadata.datatype.DataType;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Abstract record writer wrapper
@@ -80,22 +69,24 @@ public abstract class AbstractRecordWriter {
 
     protected List<String[]> data = new ArrayList<>();
 
-    protected boolean dictionaryCreated = false;
-
     public AbstractRecordWriter(CarbonTable carbonTable) {
         this.carbonTable = carbonTable;
     }
 
+    /**
+     * get record index
+     * @param record record
+     * @return index
+     */
     protected abstract int getRecordWriterNumber(String[] record);
 
     protected TaskAttemptContext createTaskContext() {
         Random random = new Random();
         JobID jobId = new JobID(UUID.randomUUID().toString(), 0);
         TaskID task = new TaskID(jobId, TaskType.MAP, random.nextInt());
-        TaskAttemptID attemptID = new TaskAttemptID(task, random.nextInt());
+        TaskAttemptID attemptId = new TaskAttemptID(task, random.nextInt());
         Configuration conf = new Configuration(FileFactory.getConfiguration());
-        TaskAttemptContextImpl context = new TaskAttemptContextImpl(conf, attemptID);
-        return context;
+        return new TaskAttemptContextImpl(conf, attemptId);
     }
 
     public void write(String[] record) throws IOException, InterruptedException {
@@ -175,8 +166,10 @@ public abstract class AbstractRecordWriter {
         }
     }
 
+    /**
+     * add recordWriter to recordWriter list
+     */
     protected abstract void createRecordWriterList();
-
 
     protected RecordWriter createRecordWriter(CarbonLoadModel model, TaskAttemptContext context) throws IOException {
 
@@ -207,8 +200,7 @@ public abstract class AbstractRecordWriter {
             }
         }
 
-        Map<String,String> options = new HashMap<>();
-        options.put("fileheader", StringUtils.join(fullColumnNames, ","));
+        Map<String,String> options = Collections.singletonMap("fileheader", StringUtils.join(fullColumnNames, ","));
 
         Map<String,String> optionsFinal = null;
         try {

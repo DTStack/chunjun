@@ -33,10 +33,10 @@ public class ClassUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassUtil.class);
 
-    public final static String lock_str = "jdbc_lock_str";
+    public final static String LOCK_STR = "jdbc_lock_str";
 
     public static void forName(String clazz, ClassLoader classLoader)  {
-        synchronized (lock_str){
+        synchronized (LOCK_STR){
             try {
                 Class.forName(clazz, true, classLoader);
                 DriverManager.setLoginTimeout(10);

@@ -1,80 +1,69 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.types.Row;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.SimpleDateFormat;
 
 /**
  * @author jiangbo
- * @date 2019/7/8
+ * @date 2020/3/12
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({StringUtil.class, DateUtil.class})
 public class StringUtilTest {
 
-    public static String errorInfoPrefix = "Method " + StringUtil.class.getName();
-
     @Test
-    public void convertRegularExprTest(){
-        String result = StringUtil.convertRegularExpr(null);
-        MatcherAssert.assertThat(errorInfoPrefix + ".convertRegularExpr must return empty string when param is null",
-                result, Matchers.isEmptyString());
+    public void testConvertRegularExpr() {
+        String result = StringUtil.convertRegularExpr("\\t\\r\\n");
+        Assert.assertEquals(result, "\t\r\n");
 
-        result = StringUtil.convertRegularExpr("");
-        MatcherAssert.assertThat(errorInfoPrefix + ".convertRegularExpr must return empty string when param is empty",
-                result, Matchers.isEmptyString());
-
-        List<String> specialChars = new ArrayList<>();
-        specialChars.add("\\t");
-        specialChars.add("\\r");
-        specialChars.add("\\n");
-        specialChars.add("\\122");
-
-        StringBuilder testStr = new StringBuilder();
-        for (String specialChar : specialChars) {
-            testStr.append(" xxxx ").append(specialChar);
-        }
-
-        result = StringUtil.convertRegularExpr(testStr.toString());
-        MatcherAssert.assertThat(result, Matchers.not(Matchers.containsString("\\")));
+        result = StringUtil.convertRegularExpr(null);
+        Assert.assertEquals(result, "");
     }
 
     @Test
-    public void row2stringTest() throws Exception{
-        Row row = new Row(4);
-        row.setField(0, "test");
-        row.setField(1, "");
-        row.setField(2, null);
-        row.setField(3, "test");
+    public void testString2col() {
+        Object result = StringUtil.string2col("", "string", null);
+        Assert.assertEquals(result, "");
 
-        String result = StringUtil.row2string(row, Arrays.asList("STRING", "STRING", "STRING","STRING"), ",", null);
-        MatcherAssert.assertThat("", result, Matchers.equalTo("test,,,test"));
+        result = StringUtil.string2col("123", "TINYINT", null);
+        Assert.assertEquals(result, Byte.valueOf("123"));
+
+        result = StringUtil.string2col("1", "SMALLINT", null);
+        Assert.assertEquals(result, (short)1);
+
+        result = StringUtil.string2col("1", "INT", null);
+        Assert.assertEquals(result, 1);
+
+        result = StringUtil.string2col("1", "MEDIUMINT", null);
+        Assert.assertEquals(result, (long)1);
+
+        result = StringUtil.string2col("1", "BIGINT", null);
+        Assert.assertEquals(result, (long)1);
+
+        result = StringUtil.string2col("1.1", "float", null);
+        Assert.assertEquals(result, (float)1.1);
+
+        result = StringUtil.string2col("1.1", "double", null);
+        Assert.assertEquals(result, 1.1);
+
+        result = StringUtil.string2col("value", "string", null);
+        Assert.assertEquals(result, "value");
+
+        result = StringUtil.string2col("value", "string", null);
+        Assert.assertEquals(result, "value");
+
+        result = StringUtil.string2col("20200312-174412", "string", new SimpleDateFormat("yyyyMMdd-HHmmss"));
+        Assert.assertEquals(result, "2020-03-12 17:44:12");
+
+        result = StringUtil.string2col("true", "boolean", null);
+        Assert.assertEquals(result, true);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmss");
+        java.sql.Date date = new java.sql.Date(System.currentTimeMillis());
+        result = StringUtil.string2col(sdf.format(date), "date", sdf);
+        Assert.assertEquals(result.toString(), date.toString());
+
+        result = StringUtil.string2col("xxx", "xxx", null);
+        Assert.assertEquals(result, "xxx");
     }
 }

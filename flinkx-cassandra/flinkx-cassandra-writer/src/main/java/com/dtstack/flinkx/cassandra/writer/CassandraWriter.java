@@ -3,7 +3,7 @@ package com.dtstack.flinkx.cassandra.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -21,7 +21,7 @@ import static com.dtstack.flinkx.cassandra.CassandraConfigKeys.KEY_MAX_PENDING_C
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraWriter extends DataWriter {
+public class CassandraWriter extends BaseDataWriter {
 
     protected String host;
 

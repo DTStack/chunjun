@@ -18,15 +18,12 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +35,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpInputFormat extends RichInputFormat {
+public class FtpInputFormat extends BaseRichInputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -53,22 +50,24 @@ public class FtpInputFormat extends RichInputFormat {
     private transient String line;
 
     @Override
-    public void configure(Configuration parameters) {
-        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        if(EProtocol.SFTP.name().equalsIgnoreCase(ftpConfig.getProtocol())) {
+            ftpHandler = new SftpHandler();
+        } else if(EProtocol.FTP.name().equalsIgnoreCase(ftpConfig.getProtocol())){
             ftpHandler = new FtpHandler();
+        } else {
+            throw new RuntimeException("协议名称错误:" + ftpConfig.getProtocol());
         }
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics cachedStatistics) throws IOException {
-        return null;
-    }
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
+        ftpHandler.loginFtpServer(ftpConfig);
 
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         List<String> files = new ArrayList<>();
 
         String path = ftpConfig.getPath();
@@ -80,7 +79,7 @@ public class FtpInputFormat extends RichInputFormat {
             }
         }
 
-        int numSplits = (files.size() < minNumSplits ?  files.size() : minNumSplits);
+        int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
         for(int index = 0; index < numSplits; ++index) {
             ftpInputSplits[index] = new FtpInputSplit();
@@ -88,13 +87,9 @@ public class FtpInputFormat extends RichInputFormat {
         for(int i = 0; i < files.size(); ++i) {
             ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
         }
+
         ftpHandler.logoutFtpServer();
         return ftpInputSplits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
@@ -121,7 +116,7 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String[] fields = line.split(ftpConfig.getFieldDelimiter());
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);

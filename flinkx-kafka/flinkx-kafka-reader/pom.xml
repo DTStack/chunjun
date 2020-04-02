@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka-core</artifactId>
+            <artifactId>flinkx-kb-reader</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

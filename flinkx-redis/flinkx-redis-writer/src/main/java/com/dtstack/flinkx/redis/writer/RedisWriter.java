@@ -23,7 +23,7 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -39,7 +39,7 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class RedisWriter extends DataWriter {
+public class RedisWriter extends BaseDataWriter {
 
     private String hostPort;
 

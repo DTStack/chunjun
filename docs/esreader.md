@@ -16,6 +16,8 @@
 							"match_all": {}
 						}
 					},
+                    "username": "dtstack",
+                    "password": "abc123",
 					"index": "indexTest",
 					"type": "type1",
 					"batchSize": 0,
@@ -41,7 +43,23 @@
   
   * 必选：是
   
-  * 默认值：无 
+  * 默认值：无
+  
+* **username**
+  
+  * 描述：Elasticsearch认证用户名
+  
+  * 必选：否
+  
+  * 默认值：无   
+  
+* **password**
+  
+  * 描述：Elasticsearch认证密码
+  
+  * 必选：否
+  
+  * 默认值：无   
 
 * **query**
   

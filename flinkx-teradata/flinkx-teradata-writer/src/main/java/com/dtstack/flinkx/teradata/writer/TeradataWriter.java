@@ -35,7 +35,10 @@ public class TeradataWriter extends JdbcDataWriter {
     public TeradataWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new TeradataDatabaseMeta());
-        super.builder = new JdbcOutputFormatBuilder(new TeradataOutputFormat());
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new TeradataOutputFormat());
+    }
 }

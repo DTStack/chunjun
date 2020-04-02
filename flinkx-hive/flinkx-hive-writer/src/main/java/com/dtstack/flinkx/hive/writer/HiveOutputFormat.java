@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormat;
+import com.dtstack.flinkx.hdfs.writer.BaseHdfsOutputFormat;
 import com.dtstack.flinkx.hdfs.writer.HdfsOutputFormatBuilder;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
-import com.dtstack.flinkx.hive.util.DBUtil;
+import com.dtstack.flinkx.hive.util.HiveDbUtil;
 import com.dtstack.flinkx.hive.util.HiveUtil;
 import com.dtstack.flinkx.hive.util.PathConverterUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.MapUtils;
@@ -37,12 +37,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author toutian
  */
-public class HiveOutputFormat extends RichOutputFormat {
+public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
@@ -65,7 +69,7 @@ public class HiveOutputFormat extends RichOutputFormat {
      */
     protected String compress;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String delimiter;
 
@@ -98,15 +102,17 @@ public class HiveOutputFormat extends RichOutputFormat {
     private int numTasks;
 
     private Map<String, TableInfo> tableCache;
-    private Map<String, HdfsOutputFormat> outputFormats;
+    private Map<String, BaseHdfsOutputFormat> outputFormats;
+
+    private Map<String, FormatState> formatStateMap = new HashMap<>();
 
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
 
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
-        tableCache = new HashMap<String, TableInfo>();
-        outputFormats = new HashMap<String, HdfsOutputFormat>();
+        tableCache = new HashMap<>(16);
+        outputFormats = new HashMap<>(16);
     }
 
     @Override
@@ -114,21 +120,23 @@ public class HiveOutputFormat extends RichOutputFormat {
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
 
-        DBUtil.ConnectionInfo connectionInfo = new DBUtil.ConnectionInfo();
+        if (null != formatState && null != formatState.getState()) {
+            HiveFormatState hiveFormatState = (HiveFormatState)formatState.getState();
+            formatStateMap.putAll(hiveFormatState.getFormatStateMap());
+        }
+
+        HiveDbUtil.ConnectionInfo connectionInfo = new HiveDbUtil.ConnectionInfo();
         connectionInfo.setJdbcUrl(jdbcUrl);
         connectionInfo.setUsername(username);
         connectionInfo.setPassword(password);
         connectionInfo.setHiveConf(hadoopConfig);
-        connectionInfo.setJobId(jobId);
-        connectionInfo.setPlugin("writer");
 
-        hiveUtil = new HiveUtil(connectionInfo, writeMode);
+        hiveUtil = new HiveUtil(connectionInfo);
     }
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
     }
-
 
     @Override
     public FormatState getFormatState() {
@@ -137,17 +145,23 @@ public class HiveOutputFormat extends RichOutputFormat {
             return null;
         }
 
-        flushOutputFormat();
+        Map<String, FormatState> formatStateMap = flushOutputFormat();
+
+        HiveFormatState hiveFormatState = new HiveFormatState(formatStateMap);
+        formatState.setState(hiveFormatState);
 
         super.getFormatState();
         return formatState;
     }
 
-    private void flushOutputFormat() {
-        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+    private Map<String, FormatState> flushOutputFormat() {
+        Map<String, FormatState> formatStateMap = new HashMap<>();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
-            Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
-            entry.getValue().getFormatState();
+            Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
+            FormatState formatState = entry.getValue().getFormatState();
+            formatStateMap.put(entry.getValue().getFormatId(), formatState);
+
             if (partitionFormat.isTimeout(entry.getValue().getLastWriteTime())) {
                 try {
                     entry.getValue().close();
@@ -158,6 +172,8 @@ public class HiveOutputFormat extends RichOutputFormat {
                 }
             }
         }
+
+        return formatStateMap;
     }
 
     @Override
@@ -166,34 +182,47 @@ public class HiveOutputFormat extends RichOutputFormat {
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        boolean fromLogData = false;
+        String tablePath;
+        Map event = null;
+        if (row.getField(0) instanceof Map) {
+            event = (Map) row.getField(0);
+            tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            fromLogData = true;
+        } else {
+            tablePath = tableBasePath;
+        }
+
+        Pair<BaseHdfsOutputFormat, TableInfo> formatPair;
         try {
-            if (row.getArity() == 2) {
-                Object obj = row.getField(0);
-                if (obj != null && obj instanceof Map) {
-                    emitWithMap((Map<String, Object>) obj, row);
-                }
-            } else {
-                emitWithRow(row);
+            formatPair = getHdfsOutputFormat(tablePath, event);
+        } catch (Exception e) {
+            throw new RuntimeException("获取HDFSOutputFormat失败", e);
+        }
+
+        Row rowData = row;
+        if (fromLogData) {
+            rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
+        }
+
+        try {
+            formatPair.getFirst().writeRecord(rowData);
+
+            //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
+            if (fromLogData && bytesWriteCounter != null) {
+                bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
             }
-        } catch (Throwable e) {
-            logger.error("{}", e);
+        } catch (Exception e) {
+            // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
+            if (numWriteCounter.getLocalValue() % 1000 == 0) {
+                LOG.warn("写入hdfs异常:", e);
+            }
         }
     }
 
     @Override
     public void closeInternal() throws IOException {
         closeOutputFormats();
-    }
-
-    private void emitWithMap(Map<String, Object> event, Row row) throws Exception {
-        String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
-        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tablePath, event);
-        Row rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
-        formatPair.getFirst().writeRecord(rowData);
-        //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
-        if(bytesWriteCounter != null){
-            bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
-        }
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
@@ -205,39 +234,36 @@ public class HiveOutputFormat extends RichOutputFormat {
         return rowData;
     }
 
-    private void emitWithRow(Row rowData) throws Exception {
-        Pair<HdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tableBasePath, null);
-        formatPair.getFirst().writeRecord(rowData);
-    }
-
-    private Pair<HdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
+    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tablePath, Map event) throws Exception {
         String partitionValue = partitionFormat.currentTime();
         String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, partition, partitionValue);
         String hiveTablePath = tablePath + SP + partitionPath;
 
-        HdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
+        BaseHdfsOutputFormat outputFormat = outputFormats.get(hiveTablePath);
         TableInfo tableInfo = checkCreateTable(tablePath, event);
         if (outputFormat == null) {
             hiveUtil.createPartition(tableInfo, partitionPath);
             String path = tableInfo.getPath() + SP + partitionPath;
 
-            outputFormat = createHdfsOutputFormat(tableInfo, path);
+            outputFormat = createHdfsOutputFormat(tableInfo, path, hiveTablePath);
             outputFormats.put(hiveTablePath, outputFormat);
         }
-        return new Pair<HdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
+        return new Pair<BaseHdfsOutputFormat, TableInfo>(outputFormat, tableInfo);
     }
 
-    private HdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path) {
+    private BaseHdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path, String hiveTablePath) {
         try {
             HdfsOutputFormatBuilder hdfsOutputFormatBuilder = this.getHdfsOutputFormatBuilder();
             hdfsOutputFormatBuilder.setPath(path);
             hdfsOutputFormatBuilder.setColumnNames(tableInfo.getColumns());
             hdfsOutputFormatBuilder.setColumnTypes(tableInfo.getColumnTypes());
 
-            HdfsOutputFormat outputFormat = (HdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) hdfsOutputFormatBuilder.finish();
+            outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
             outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
+            outputFormat.setRestoreState(formatStateMap.get(hiveTablePath));
             outputFormat.configure(parameters);
             outputFormat.open(taskNumber, numTasks);
 
@@ -270,10 +296,10 @@ public class HiveOutputFormat extends RichOutputFormat {
     }
 
     private void closeOutputFormats() {
-        Iterator<Map.Entry<String, HdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
+        Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             try {
-                Map.Entry<String, HdfsOutputFormat> entry = entryIterator.next();
+                Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
                 logger.error("", e);
@@ -284,7 +310,7 @@ public class HiveOutputFormat extends RichOutputFormat {
     private HdfsOutputFormatBuilder getHdfsOutputFormatBuilder() {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setWriteMode(writeMode);
         builder.setCompress(compress);
         builder.setCharSetName(charsetName);
@@ -297,4 +323,19 @@ public class HiveOutputFormat extends RichOutputFormat {
         return builder;
     }
 
+    static class HiveFormatState implements Serializable {
+        private Map<String, FormatState> formatStateMap;
+
+        public HiveFormatState(Map<String, FormatState> formatStateMap) {
+            this.formatStateMap = formatStateMap;
+        }
+
+        public Map<String, FormatState> getFormatStateMap() {
+            return formatStateMap;
+        }
+
+        public void setFormatStateMap(Map<String, FormatState> formatStateMap) {
+            this.formatStateMap = formatStateMap;
+        }
+    }
 }

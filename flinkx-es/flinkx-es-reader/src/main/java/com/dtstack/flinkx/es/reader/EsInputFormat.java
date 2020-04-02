@@ -19,15 +19,11 @@
 package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.es.EsUtil;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -49,9 +45,13 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsInputFormat extends RichInputFormat {
+public class EsInputFormat extends BaseRichInputFormat {
 
     protected String address;
+
+    protected String username;
+
+    protected String password;
 
     protected String[] index;
 
@@ -82,10 +82,17 @@ public class EsInputFormat extends RichInputFormat {
     private String scrollId;
 
     @Override
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+
+    }
+
+    @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
 
-        client = EsUtil.getClient(address, clientConfig);
+        client = EsUtil.getClient(address, username, password, clientConfig);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -106,7 +113,7 @@ public class EsInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int splitNum) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int splitNum) throws IOException {
         InputSplit[] splits = new InputSplit[splitNum];
         for (int i = 0; i < splitNum; i++) {
             splits[i] = new GenericInputSplit(i,splitNum);
@@ -173,20 +180,5 @@ public class EsInputFormat extends RichInputFormat {
         ClearScrollResponse clearScrollResponse = client.clearScroll(clearScrollRequest);
         boolean succeeded = clearScrollResponse.isSucceeded();
         LOG.info("Clear scroll response:{}", succeeded);
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
-    }
-
-    @Override
-    public BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
-        return null;
-    }
-
-    @Override
-    public void configure(Configuration configuration) {
-
     }
 }

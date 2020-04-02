@@ -66,12 +66,12 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return String.format("SELECT * FROM %s LIMIT 0",tableName);
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         String sql = "select attrelid ::regclass as table_name, attname as col_name, atttypid ::regtype as col_type from pg_attribute \n" +
                 "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
         return String.format(sql,table);
