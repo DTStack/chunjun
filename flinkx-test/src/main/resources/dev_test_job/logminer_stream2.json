@@ -3,15 +3,15 @@
     "content" : [ {
       "reader" : {
         "parameter" : {
-          "schema" : "JIANGBO",
-          "startSCN" : "",
+          "schema" : "SYSTEM",
+          "startSCN" : "2419567",
           "password" : "oracle",
           "cat" : "insert,update,delete",
-          "jdbcUrl" : "jdbc:oracle:thin:@172.16.8.178:1521/xe",
-          "readPosition" : "all",
+          "jdbcUrl" : "jdbc:oracle:thin:@172.16.101.135:1521/xe",
+          "readPosition" : "scn",
           "pavingData" : true,
           "supportAutoAddLog": true,
-          "table" : [ "JIANGBO.TB1" ],
+          "table" : ["SYSTEM.JIANGBO" ],
           "username" : "system"
         },
         "name" : "oraclelogminerreader",
