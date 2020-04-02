@@ -132,7 +132,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         metaData.put("operaType", "createTable");
 
         String tableName = tableIterator.next();
-        metaData.put("schema", currentDb);
+        metaData.put("schema", currentDb.get());
         metaData.put("table", tableName);
 
         try {
