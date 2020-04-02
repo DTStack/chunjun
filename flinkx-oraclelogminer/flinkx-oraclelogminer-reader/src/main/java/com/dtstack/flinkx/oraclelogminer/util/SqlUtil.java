@@ -173,7 +173,7 @@ public class SqlUtil {
             "WHERE\n" +
             "    scn > ?";
 
-    public final static String SQL_STOP_LOG_MINER = "dbms_logmnr.stop_logmnr";
+    public final static String SQL_STOP_LOG_MINER = "BEGIN DBMS_LOGMNR.END_LOGMNR; end;";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 
@@ -182,6 +182,10 @@ public class SqlUtil {
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
 
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
+
+    public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
+
+    public final static String SQL_QUERY_PRIVILEGES = "select * from session_privs";
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 

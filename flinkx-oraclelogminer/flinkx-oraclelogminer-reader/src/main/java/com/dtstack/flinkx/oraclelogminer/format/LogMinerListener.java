@@ -24,6 +24,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -77,6 +78,7 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
+        logMinerConnection.checkPrivileges();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
         positionManager.updatePosition(startScn);
@@ -100,13 +102,17 @@ public class LogMinerListener implements Runnable {
                     LOG.info("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
-                LOG.warn("query data error", e);
+                running = false;
+
+                Map<String, Object> map = new HashMap<>(1);
+                map.put("exception", e);
+                queue.add(Pair.of(0L, map));
             }
         }
     }
 
-    public void stop() throws Exception{
-        if (null != executor && executor.isShutdown()) {
+    public void stop() throws Exception {
+        if (null != executor && !executor.isShutdown()) {
             executor.shutdown();
             running = false;
         }
@@ -123,6 +129,10 @@ public class LogMinerListener implements Runnable {
     public Map<String, Object> getData() {
         try {
             Pair<Long, Map<String, Object>> pair = queue.take();
+            if (pair.getLeft() == 0L) {
+                throw new RuntimeException((Exception)pair.getRight().get("exception"));
+            }
+
             positionManager.updatePosition(pair.getLeft());
             return pair.getRight();
         } catch (InterruptedException e) {
