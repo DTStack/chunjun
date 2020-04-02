@@ -186,7 +186,7 @@ public class RedisOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        // Still not supported
+        notSupportBatchWrite("RedisWriter");
     }
 
     @Override
