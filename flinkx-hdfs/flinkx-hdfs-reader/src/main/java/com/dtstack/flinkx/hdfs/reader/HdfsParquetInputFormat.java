@@ -139,12 +139,14 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 Object val = null;
 
                 if(metaColumn.getIndex() != -1){
-                    if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
-                        val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
-                    }
+                    if (metaColumn.getIndex() < currentLine.getType().getFieldCount()) {
+                        if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
+                            val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
+                        }
 
-                    if (val == null && metaColumn.getValue() != null){
-                        val = metaColumn.getValue();
+                        if (val == null && metaColumn.getValue() != null){
+                            val = metaColumn.getValue();
+                        }
                     }
                 } else if (metaColumn.getValue() != null){
                     val = metaColumn.getValue();
