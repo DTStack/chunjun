@@ -414,6 +414,24 @@
             <artifactId>flinkx-emqx-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-hive2-reader</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-hive2-reader</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-restapi-writer</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>

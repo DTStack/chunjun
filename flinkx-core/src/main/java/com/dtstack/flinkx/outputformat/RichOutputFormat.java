@@ -398,6 +398,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
+    protected void notSupportBatchWrite(String writerName) {
+        throw new UnsupportedOperationException(writerName + "不支持批量写入");
+    }
+
     protected void writeRecordInternal() {
         try {
             writeMultipleRecords();

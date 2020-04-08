@@ -53,7 +53,7 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        notSupportBatchWrite("FtpWriter");
     }
 
 }

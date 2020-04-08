@@ -1,25 +1,171 @@
 {
-  "job" : {
-    "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "password" : "Dtstack#2020",
-          "port" : 10219,
-          "cat" : "insert,update,delete",
-          "host" : "cdb-lp88g9sa.bj.tencentcdb.com",
-          "jdbcUrl" : "jdbc:mysql://cdb-lp88g9sa.bj.tencentcdb.com:10219/binlog_test",
-          "start" : { },
-          "pavingData" : false,
-          "table" : [ "binlog_test" ],
-          "username" : "root"
+  "job": {
+    "content": [
+      {
+        "writer": {
+          "parameter": {
+            "batchInterval": 200001
+          },
+          "name": "streamwriter"
         },
-        "name" : "binlogreader"
-      },
-      "writer" : {
-        "parameter" : {
-
-        },
-        "name" : "streamwriter"
+        "reader":{
+          "parameter":{
+            "column": [
+              {
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              },{
+                "name":"id",
+                "type": "string"
+              }
+            ]
+          },
+          "name":"streamreader"
+        }
       }
     } ],
     "setting" : {
