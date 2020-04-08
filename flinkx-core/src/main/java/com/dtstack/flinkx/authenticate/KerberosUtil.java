@@ -226,6 +226,11 @@ public class KerberosUtil {
             throw new RuntimeException("[principalFile]必须指定");
         }
 
+        boolean useLocalFile = MapUtils.getBooleanValue(config, KEY_USE_LOCAL_FILE);
+        if (useLocalFile) {
+            return fileName;
+        }
+
         if (fileName.contains(SP)) {
             fileName = fileName.substring(fileName.lastIndexOf(SP) + 1);
         }
