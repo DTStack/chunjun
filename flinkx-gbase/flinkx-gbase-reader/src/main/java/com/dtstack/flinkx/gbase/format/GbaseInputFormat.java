@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.gbase.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -65,6 +66,10 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             fetchSize = Integer.MIN_VALUE;
             querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 

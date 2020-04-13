@@ -188,6 +188,12 @@ public class HiveOutputFormat extends RichOutputFormat {
         Map event = null;
         if (row.getField(0) instanceof Map) {
             event = (Map) row.getField(0);
+
+            // FIXME 这块的逻辑有问题，从binlog过来的数据如果不是json平铺，会多一层结构，以后最好想办法优化掉，先临时这样改
+            if (null != event && event.containsKey("message")) {
+                event = MapUtils.getMap(event, "message");
+            }
+
             tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
             fromLogData = true;
         } else {
