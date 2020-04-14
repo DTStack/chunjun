@@ -39,6 +39,8 @@ import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.client.program.ContextEnvironment;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -46,8 +48,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,9 +98,14 @@ public class Main {
             config.setPluginRoot(pluginRoot);
         }
 
+        Configuration flinkConf = new Configuration();
+        if (StringUtils.isNotEmpty(options.getFlinkconf())) {
+            flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        }
+
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
-                new MyLocalStreamEnvironment();
+                new MyLocalStreamEnvironment(flinkConf);
 
         env = openCheckpointConf(env, confProperties);
         configRestartStrategy(env, config);

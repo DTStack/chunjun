@@ -43,7 +43,7 @@ public class Options {
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
 
-    @OptionRequired(required = true, description = "env properties")
+    @OptionRequired(description = "env properties")
     private String pluginRoot;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")

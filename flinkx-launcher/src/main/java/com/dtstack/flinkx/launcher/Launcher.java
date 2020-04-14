@@ -29,10 +29,6 @@ import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
-import org.apache.flink.client.program.PackagedProgramUtils;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
-import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.LoggerFactory;
@@ -54,6 +50,10 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public class Launcher {
+
+    public static final String KEY_FLINKX_HOME = "FLINKX_HOME";
+
+    public static final String PLUGINS_DIR_NAME = "plugins";
 
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
 
@@ -88,6 +88,8 @@ public class Launcher {
         setLogLevel(Level.INFO.toString());
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
+        findDefaultPluginRoot(launcherOptions);
+
         String mode = launcherOptions.getMode();
         List<String> argList = optionParser.getProgramExeArgList();
         if(mode.equals(ClusterMode.local.name())) {
@@ -106,7 +108,9 @@ public class Launcher {
                 argList.add(monitor);
 
                 String[] remoteArgs = argList.toArray(new String[0]);
-                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+
+                ClassLoaderType classLoaderType = ClassLoaderType.getByClassMode(launcherOptions.getPluginLoadMode());
+                PackagedProgram program = new PackagedProgram(jarFile, urlList, classLoaderType, "com.dtstack.flinkx.Main", remoteArgs);
 
                 if (StringUtils.isNotEmpty(launcherOptions.getS())){
                     program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
@@ -126,19 +130,35 @@ public class Launcher {
                 }
 
                 argList.add("-monitor");
-                argList.add("application_default");
+                argList.add("");
 
                 //jdk内在优化，使用空数组效率更高
                 String[] remoteArgs = argList.toArray(new String[0]);
-                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
-                if (StringUtils.isNotEmpty(launcherOptions.getS())){
-                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
-                }
-                String flinkConfDir = launcherOptions.getFlinkconf();
-                Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
-                JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, Integer.parseInt(launcherOptions.getParallelism()));
-                PerJobSubmitter.submit(launcherOptions, jobGraph);
+                PerJobSubmitter.submit(launcherOptions, jarFile, remoteArgs);
             }
+        }
+    }
+
+    private static void findDefaultPluginRoot(Options launcherOptions) {
+        String pluginRoot = launcherOptions.getPluginRoot();
+        if (StringUtils.isNotEmpty(pluginRoot)) {
+            return;
+        }
+
+        String flinkxHome = System.getenv(KEY_FLINKX_HOME);
+        if (StringUtils.isEmpty(flinkxHome)) {
+            flinkxHome = System.getProperty(KEY_FLINKX_HOME);
+        }
+
+        if (StringUtils.isNotEmpty(flinkxHome)) {
+            flinkxHome = flinkxHome.trim();
+            if (flinkxHome.endsWith(File.separator)) {
+                pluginRoot = flinkxHome + PLUGINS_DIR_NAME;
+            } else {
+                pluginRoot = flinkxHome + File.separator + PLUGINS_DIR_NAME;
+            }
+
+            launcherOptions.setPluginRoot(pluginRoot);
         }
     }
 

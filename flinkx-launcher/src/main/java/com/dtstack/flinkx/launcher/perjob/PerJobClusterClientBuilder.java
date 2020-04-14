@@ -17,13 +17,11 @@
  */
 package com.dtstack.flinkx.launcher.perjob;
 
-import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
-import com.google.common.base.Strings;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
@@ -37,10 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Date: 2019/09/11
@@ -48,30 +43,21 @@ import java.util.Properties;
  * @author tudou
  */
 public class PerJobClusterClientBuilder {
-    private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
 
-    private static final String DEFAULT_CONF_DIR = "./";
+    private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
 
     private YarnClient yarnClient;
 
     private YarnConfiguration yarnConf;
 
-    private Configuration flinkConfig;
-
     /**
      * init yarnClient
-     * @param yarnConfDir the path of yarnconf
      */
-    public void init(String yarnConfDir, Configuration flinkConfig, Properties userConf) throws Exception {
-
-        if(Strings.isNullOrEmpty(yarnConfDir)) {
-            throw new RuntimeException("parameters of yarn is required");
-        }
+    public void init(YarnConfiguration yarnConf, Configuration flinkConfig, Properties userConf) throws Exception {
         userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
-        this.flinkConfig = flinkConfig;
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
-        yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
+        this.yarnConf = yarnConf;
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
@@ -83,11 +69,10 @@ public class PerJobClusterClientBuilder {
      * create a yarn cluster descriptor which is used to start the application master
      * @param confProp taskParams
      * @param options LauncherOptions
-     * @param jobGraph JobGraph
      * @return
      * @throws MalformedURLException
      */
-    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options, JobGraph jobGraph) throws MalformedURLException {
+    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options) throws MalformedURLException {
         String flinkJarPath = options.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
@@ -112,17 +97,16 @@ public class PerJobClusterClientBuilder {
                 }
             }
         }
+
         if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
-            Map<String, DistributedCache.DistributedCacheEntry> jobCacheFileConfig = jobGraph.getUserArtifacts();
-            for(Map.Entry<String,  DistributedCache.DistributedCacheEntry> tmp : jobCacheFileConfig.entrySet()){
-                if(tmp.getKey().startsWith("class_path")){
-                    shipFiles.add(new File(tmp.getValue().filePath));
-                }
-            }
+            List<File> files = fillAllPluginPathForYarnSession(options.getPluginRoot());
+            shipFiles.addAll(files);
         }
+
         if (StringUtils.isNotBlank(options.getQueue())) {
             descriptor.setQueue(options.getQueue());
         }
+
         File log4j = new File(options.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
         if(log4j.exists()){
             shipFiles.add(log4j);
@@ -134,5 +118,23 @@ public class PerJobClusterClientBuilder {
         }
         descriptor.addShipFiles(shipFiles);
         return descriptor;
+    }
+
+    private List<File> fillAllPluginPathForYarnSession(String flinkPluginRoot) {
+        List<File> pluginPaths = Lists.newArrayList();
+        //预加载同步插件jar包
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(flinkPluginRoot)) {
+            try {
+                File[] jars = new File(flinkPluginRoot).listFiles();
+                if (jars != null) {
+                    pluginPaths.addAll(Arrays.asList(jars));
+                } else {
+                    LOG.warn("jars in flinkPluginRoot is null, flinkPluginRoot = {}", flinkPluginRoot);
+                }
+            } catch (Exception e) {
+                LOG.error("error to load jars in flinkPluginRoot, flinkPluginRoot = {}, e = {}", flinkPluginRoot, ExceptionUtil.getErrorMessage(e));
+            }
+        }
+        return pluginPaths;
     }
 }

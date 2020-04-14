@@ -40,7 +40,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/mongodboplogreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mongodboplogreader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/mongodboplogreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

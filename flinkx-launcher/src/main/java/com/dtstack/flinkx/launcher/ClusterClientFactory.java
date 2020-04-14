@@ -141,6 +141,4 @@ public class ClusterClientFactory {
 
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
-
-
 }
