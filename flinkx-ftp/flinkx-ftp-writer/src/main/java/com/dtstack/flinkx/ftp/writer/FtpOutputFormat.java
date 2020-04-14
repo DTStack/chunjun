@@ -33,8 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
-
 /**
  * The OutputFormat Implementation which reads data from ftp servers.
  *
@@ -64,11 +62,7 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     @Override
     protected void openSource() throws IOException {
-        if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 

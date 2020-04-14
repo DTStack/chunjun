@@ -43,9 +43,9 @@ import java.util.Vector;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class SFtpHandler implements IFtpHandler {
+public class SftpHandler implements IFtpHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SFtpHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SftpHandler.class);
 
     private Session session = null;
 

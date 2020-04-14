@@ -52,11 +52,7 @@ public class FtpInputFormat extends RichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -153,5 +149,4 @@ public class FtpInputFormat extends RichInputFormat {
             ftpHandler.logoutFtpServer();
         }
     }
-
 }
