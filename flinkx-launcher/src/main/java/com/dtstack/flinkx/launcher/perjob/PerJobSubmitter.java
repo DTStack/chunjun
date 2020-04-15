@@ -62,6 +62,7 @@ public class PerJobSubmitter {
 
         YarnConfiguration yarnConf = StringUtils.isEmpty(options.getYarnconf()) ? new YarnConfiguration() : YarnConfLoader.getYarnConf(options.getYarnconf());
         Configuration flinkConfig = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        flinkConfig.setString("classloader.resolve-order", "child-first");
 
         Properties conProp = MapUtil.jsonStrToObject(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
@@ -79,8 +80,7 @@ public class PerJobSubmitter {
         clusterSpecification.setCreateProgramDelay(true);
         clusterSpecification.setYarnConfiguration(yarnConf);
 
-        ClassLoaderType classLoaderType = ClassLoaderType.getByClassMode(options.getPluginLoadMode());
-        clusterSpecification.setClassLoaderType(classLoaderType);
+        clusterSpecification.setClassLoaderType(ClassLoaderType.PARENT_FIRST_CACHE);
 
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         perJobClusterClientBuilder.init(yarnConf, flinkConfig, conProp);

@@ -17,9 +17,8 @@
  */
 package com.dtstack.flinkx.launcher.perjob;
 
+import com.dtstack.flinkx.launcher.PluginUtil;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.security.SecurityConfiguration;
@@ -62,7 +61,7 @@ public class PerJobClusterClientBuilder {
         yarnClient.init(yarnConf);
         yarnClient.start();
 
-        System.out.println("----init yarn success ----");
+        LOG.info("----init yarn success ----");
     }
 
     /**
@@ -86,6 +85,8 @@ public class PerJobClusterClientBuilder {
         confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
 
         AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, options.getFlinkconf(), yarnClient, false);
+        descriptor.setName(options.getJobid());
+
         List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
         if (jars != null) {
@@ -98,10 +99,10 @@ public class PerJobClusterClientBuilder {
             }
         }
 
-        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
-            List<File> files = fillAllPluginPathForYarnSession(options.getPluginRoot());
-            shipFiles.addAll(files);
-        }
+//        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
+//            List<File> files = PluginUtil.getAllPluginPath(options.getPluginRoot());
+//            shipFiles.addAll(files);
+//        }
 
         if (StringUtils.isNotBlank(options.getQueue())) {
             descriptor.setQueue(options.getQueue());
@@ -118,23 +119,5 @@ public class PerJobClusterClientBuilder {
         }
         descriptor.addShipFiles(shipFiles);
         return descriptor;
-    }
-
-    private List<File> fillAllPluginPathForYarnSession(String flinkPluginRoot) {
-        List<File> pluginPaths = Lists.newArrayList();
-        //预加载同步插件jar包
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(flinkPluginRoot)) {
-            try {
-                File[] jars = new File(flinkPluginRoot).listFiles();
-                if (jars != null) {
-                    pluginPaths.addAll(Arrays.asList(jars));
-                } else {
-                    LOG.warn("jars in flinkPluginRoot is null, flinkPluginRoot = {}", flinkPluginRoot);
-                }
-            } catch (Exception e) {
-                LOG.error("error to load jars in flinkPluginRoot, flinkPluginRoot = {}, e = {}", flinkPluginRoot, ExceptionUtil.getErrorMessage(e));
-            }
-        }
-        return pluginPaths;
     }
 }

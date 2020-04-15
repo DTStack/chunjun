@@ -189,6 +189,20 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		this.shipFiles.addAll(shipFiles);
 	}
 
+    /**
+     * Sets the user jar which is included in the system classloader of all nodes.
+     */
+    public void setProvidedUserJarFiles(List<URL> userJarFiles) {
+        for (URL jarFile : userJarFiles) {
+            try {
+                this.userJarFiles.add(new File(jarFile.toURI()));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Couldn't add local user jar: " + jarFile
+                        + " Currently only file:/// URLs are supported.");
+            }
+        }
+    }
+
 	public void setDynamicPropertiesEncoded(String dynamicPropertiesEncoded) {
 		this.dynamicPropertiesEncoded = dynamicPropertiesEncoded;
 	}

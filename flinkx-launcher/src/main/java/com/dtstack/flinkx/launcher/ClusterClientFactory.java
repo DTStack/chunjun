@@ -31,18 +31,22 @@ import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.runtime.util.LeaderConnectionInfo;
 import org.apache.flink.runtime.util.LeaderRetrievalUtils;
+import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterDescriptor;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.InetSocketAddress;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.URL;
+import java.util.*;
 
 /**
  * The Factory of ClusterClient
@@ -79,60 +83,37 @@ public class ClusterClientFactory {
     }
 
     public static ClusterClient createYarnClient(Options launcherOptions) {
-        String flinkConfDir = launcherOptions.getFlinkconf();
-        Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
+        Configuration flinkConfig = GlobalConfiguration.loadConfiguration(launcherOptions.getFlinkconf());
         String yarnConfDir = launcherOptions.getYarnconf();
         if(StringUtils.isNotBlank(yarnConfDir)) {
-
             try {
-                config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
-                FileSystem.initialize(config);
+                flinkConfig.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
+                FileSystem.initialize(flinkConfig);
 
                 YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
                 YarnClient yarnClient = YarnClient.createYarnClient();
                 yarnClient.init(yarnConf);
                 yarnClient.start();
-                ApplicationId applicationId = null;
+                ApplicationId applicationId;
 
-                Set<String> set = new HashSet<>();
-                set.add("Apache Flink");
-                EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
-                enumSet.add(YarnApplicationState.RUNNING);
-                List<ApplicationReport> reportList = yarnClient.getApplications(set, enumSet);
-
-                int maxMemory = -1;
-                int maxCores = -1;
-                for(ApplicationReport report : reportList) {
-                    if(!report.getName().startsWith("Flink session")){
-                        continue;
+                if (StringUtils.isEmpty(launcherOptions.getAppId())) {
+                    applicationId = getAppIdFromYarn(yarnClient);
+                    if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {
+                        throw new RuntimeException("No flink session found on yarn cluster.");
                     }
-
-                    if(!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
-                        continue;
-                    }
-
-                    int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
-                    int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
-
-                    boolean isOverMaxResource = thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
-                    if(isOverMaxResource) {
-                        maxMemory = thisMemory;
-                        maxCores = thisCores;
-                        applicationId = report.getApplicationId();
-                    }
+                } else {
+                    applicationId = ConverterUtils.toApplicationId(launcherOptions.getAppId());
                 }
 
-                if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {
-                    throw new RuntimeException("No flink session found on yarn cluster.");
-                }
-
-                HighAvailabilityMode highAvailabilityMode = LeaderRetrievalUtils.getRecoveryMode(config);
+                HighAvailabilityMode highAvailabilityMode = LeaderRetrievalUtils.getRecoveryMode(flinkConfig);
                 if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
-                    config.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
+                    flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
                 }
-                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false);
+
+                AbstractYarnClusterDescriptor yarnClusterDescriptor = getClusterDescriptor(launcherOptions, yarnClient, yarnConf, flinkConfig);
                 ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
                 clusterClient.setDetached(true);
+
                 return clusterClient;
             } catch(Exception e) {
                 throw new RuntimeException(e);
@@ -140,5 +121,71 @@ public class ClusterClientFactory {
         }
 
         throw new UnsupportedOperationException("Haven't been developed yet!");
+    }
+
+    private static AbstractYarnClusterDescriptor getClusterDescriptor(Options launcherOptions,
+                                                                      YarnClient yarnClient,
+                                                                      YarnConfiguration yarnConf,
+                                                                      Configuration flinkConfig) throws Exception{
+        AbstractYarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(flinkConfig, yarnConf, "", yarnClient, true);
+
+        // plugin dependent on shipfile
+        if (StringUtils.isNotEmpty(launcherOptions.getPluginLoadMode()) && "shipfile".equalsIgnoreCase(launcherOptions.getPluginLoadMode())) {
+            List<File> pluginPaths = PluginUtil.getAllPluginPath(launcherOptions.getPluginRoot());
+            if (!pluginPaths.isEmpty()) {
+                yarnClusterDescriptor.addShipFiles(pluginPaths);
+            }
+        }
+
+        String flinkJarPath = launcherOptions.getFlinkLibJar();
+        if (StringUtils.isNotEmpty(flinkJarPath)) {
+            List<URL> classpaths = new ArrayList<>();
+            File[] jars = new File(flinkJarPath).listFiles();
+            for (File file : jars) {
+                if (file.toURI().toURL().toString().contains("flink-dist")) {
+                    yarnClusterDescriptor.setLocalJarPath(new Path(file.toURI().toURL().toString()));
+                } else {
+                    classpaths.add(file.toURI().toURL());
+                }
+            }
+
+            yarnClusterDescriptor.setProvidedUserJarFiles(classpaths);
+        }
+
+        yarnClusterDescriptor.setName(launcherOptions.getJobid());
+        return yarnClusterDescriptor;
+    }
+
+    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient) throws Exception{
+        Set<String> set = new HashSet<>();
+        set.add("Apache Flink");
+        EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
+        enumSet.add(YarnApplicationState.RUNNING);
+        List<ApplicationReport> reportList = yarnClient.getApplications(set, enumSet);
+
+        ApplicationId applicationId = null;
+        int maxMemory = -1;
+        int maxCores = -1;
+        for(ApplicationReport report : reportList) {
+            if(!report.getName().startsWith("Flink session")){
+                continue;
+            }
+
+            if(!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
+                continue;
+            }
+
+            int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
+            int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
+
+            boolean isOverMaxResource = thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
+            if(isOverMaxResource) {
+                maxMemory = thisMemory;
+                maxCores = thisCores;
+                applicationId = report.getApplicationId();
+            }
+        }
+
+        return applicationId;
     }
 }

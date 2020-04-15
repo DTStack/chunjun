@@ -45,13 +45,8 @@
 
 进入项目根目录，使用maven打包：
 
-windows平台
 ```
-mvn clean package -DskipTests -DscriptType=bat
-```
-unix平台
-```
-mvn clean package -DskipTests -DscriptType=sh
+mvn clean package -DskipTests
 ```
 
 打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包

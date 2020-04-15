@@ -52,6 +52,8 @@ import java.util.List;
 public class Launcher {
 
     public static final String KEY_FLINKX_HOME = "FLINKX_HOME";
+    public static final String KEY_FLINK_HOME = "FLINK_HOME";
+    public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
 
     public static final String PLUGINS_DIR_NAME = "plugins";
 
@@ -88,7 +90,7 @@ public class Launcher {
         setLogLevel(Level.INFO.toString());
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
-        findDefaultPluginRoot(launcherOptions);
+        findDefaultConfigDir(launcherOptions);
 
         String mode = launcherOptions.getMode();
         List<String> argList = optionParser.getProgramExeArgList();
@@ -139,17 +141,57 @@ public class Launcher {
         }
     }
 
+    private static void findDefaultConfigDir(Options launcherOptions) {
+        findDefaultPluginRoot(launcherOptions);
+
+        if (ClusterMode.local.name().equalsIgnoreCase(launcherOptions.getMode())) {
+            return;
+        }
+
+        findDefaultFlinkConf(launcherOptions);
+        findDefaultHadoopConf(launcherOptions);
+    }
+
+    private static void findDefaultHadoopConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getYarnconf())) {
+            return;
+        }
+
+        String hadoopHome = getSystemProperty(KEY_HADOOP_HOME);
+        if (StringUtils.isNotEmpty(hadoopHome)) {
+            hadoopHome = hadoopHome.trim();
+            if (hadoopHome.endsWith(File.separator)) {
+                hadoopHome = hadoopHome.substring(0, hadoopHome.lastIndexOf(File.separator));
+            }
+
+            launcherOptions.setYarnconf(hadoopHome + "/etc/hadoop");
+        }
+    }
+
+    private static void findDefaultFlinkConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getFlinkconf()) && StringUtils.isNotEmpty(launcherOptions.getFlinkLibJar())) {
+            return;
+        }
+
+        String flinkHome = getSystemProperty(KEY_FLINK_HOME);
+        if (StringUtils.isNotEmpty(flinkHome)) {
+            flinkHome = flinkHome.trim();
+            if (flinkHome.endsWith(File.separator)){
+                flinkHome = flinkHome.substring(0, flinkHome.lastIndexOf(File.separator));
+            }
+
+            launcherOptions.setFlinkconf(flinkHome + "/conf");
+            launcherOptions.setFlinkLibJar(flinkHome + "/lib");
+        }
+    }
+
     private static void findDefaultPluginRoot(Options launcherOptions) {
         String pluginRoot = launcherOptions.getPluginRoot();
         if (StringUtils.isNotEmpty(pluginRoot)) {
             return;
         }
 
-        String flinkxHome = System.getenv(KEY_FLINKX_HOME);
-        if (StringUtils.isEmpty(flinkxHome)) {
-            flinkxHome = System.getProperty(KEY_FLINKX_HOME);
-        }
-
+        String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
         if (StringUtils.isNotEmpty(flinkxHome)) {
             flinkxHome = flinkxHome.trim();
             if (flinkxHome.endsWith(File.separator)) {
@@ -160,6 +202,15 @@ public class Launcher {
 
             launcherOptions.setPluginRoot(pluginRoot);
         }
+    }
+
+    private static String getSystemProperty(String name) {
+        String property = System.getenv(name);
+        if (StringUtils.isEmpty(property)) {
+            property = System.getProperty(name);
+        }
+
+        return property;
     }
 
     private static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{

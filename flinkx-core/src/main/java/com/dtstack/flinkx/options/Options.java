@@ -73,6 +73,17 @@ public class Options {
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
 
+    @OptionRequired(description = "applicationId on yarn cluster")
+    private String appId;
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
     public String getS() {
         return s;
     }
