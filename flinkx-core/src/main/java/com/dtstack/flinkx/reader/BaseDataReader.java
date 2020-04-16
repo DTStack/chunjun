@@ -89,7 +89,8 @@ public abstract class BaseDataReader {
 
     protected BaseDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
-        this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
+        this.numPartitions = Math.max(config.getJob().getSetting().getSpeed().getChannel(),
+                config.getJob().getSetting().getSpeed().getReaderChannel());
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
         this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
