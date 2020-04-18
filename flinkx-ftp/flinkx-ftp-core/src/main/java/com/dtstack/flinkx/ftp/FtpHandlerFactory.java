@@ -28,7 +28,7 @@ public class FtpHandlerFactory {
     public static IFtpHandler createFtpHandler(String protocolStr){
         IFtpHandler ftpHandler;
 
-        EProtocol protocol = EProtocol.valueOf(protocolStr);
+        EProtocol protocol = EProtocol.getByName(protocolStr);
         if(EProtocol.SFTP.equals(protocol)) {
             ftpHandler = new SftpHandler();
         } else {

@@ -65,8 +65,8 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
             throw new IOException(e);
         }
 
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
-        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+        JobConf jobConf = buildConfig();
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(jobConf, HdfsPathFilter.class);
 
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.ftp.*;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import java.io.IOException;
@@ -73,7 +74,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
         String path = ftpConfig.getPath();
         if(path != null && path.length() > 0){
             path = path.replace("\n","").replace("\r","");
-            String[] pathArray = path.split(",");
+            String[] pathArray = StringUtils.split(path, ",");
             for (String p : pathArray) {
                 files.addAll(ftpHandler.getFiles(p.trim()));
             }

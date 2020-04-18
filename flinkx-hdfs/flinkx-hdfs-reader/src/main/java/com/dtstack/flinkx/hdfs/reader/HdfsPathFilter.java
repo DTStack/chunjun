@@ -37,9 +37,12 @@ public class HdfsPathFilter implements HdfsConfigurablePathFilter {
 
     private String regex;
 
+    private String parentPath;
+
     private static final String DEFAULT_REGEX = ".*";
 
     public static final String KEY_REGEX = "file.path.regexFilter";
+    public static final String KEY_PATH = "file.path";
 
     private static final PathFilter HIDDEN_FILE_FILTER = p -> {
         String name = p.getName();
@@ -65,12 +68,22 @@ public class HdfsPathFilter implements HdfsConfigurablePathFilter {
             return false;
         }
 
+        if (path.toUri().getPath().equals(parentPath)) {
+            return true;
+        }
+
         return PATTERN.matcher(path.getName()).matches();
     }
 
     @Override
     public void configure(JobConf jobConf) {
         this.regex = jobConf.get(KEY_REGEX);
+
+        String path = jobConf.get(KEY_PATH);
+        if (StringUtils.isNotEmpty(path)) {
+            this.parentPath = new Path(path).toUri().getPath();
+        }
+
         compileRegex();
     }
 }

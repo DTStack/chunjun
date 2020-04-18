@@ -14,5 +14,15 @@ public enum EProtocol {
     /**
      * 安全的FTP协议
      */
-    SFTP
+    SFTP;
+
+    public static EProtocol getByName(String name) {
+        for (EProtocol value : EProtocol.values()) {
+            if (value.name().equalsIgnoreCase(name)) {
+                return value;
+            }
+        }
+
+        return SFTP;
+    }
 }
