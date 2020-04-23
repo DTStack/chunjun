@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.launcher.perjob;
+package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.util.ValueUtil;
 import org.apache.flink.client.deployment.ClusterSpecification;
@@ -37,7 +37,7 @@ public class FlinkPerJobResourceUtil {
 
     public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
     public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
-    public final static String NUMBER_TASK_MANAGERS = "taskmanager.num";
+//    public final static String NUMBER_TASK_MANAGERS = "taskmanager.num";
     public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
 
     /**
@@ -48,7 +48,6 @@ public class FlinkPerJobResourceUtil {
     public static ClusterSpecification createClusterSpecification(Properties conProp){
         int jobmanagerMemoryMb = 768;
         int taskmanagerMemoryMb = 768;
-        int numberTaskManagers = 1;
         int slotsPerTaskManager = 1;
 
         if(conProp != null){
@@ -58,11 +57,6 @@ public class FlinkPerJobResourceUtil {
             if(conProp.contains(TASKMANAGER_MEMORY_MB)){
                 taskmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
             }
-
-            if (conProp.containsKey(NUMBER_TASK_MANAGERS)){
-                numberTaskManagers = ValueUtil.getInt(conProp.get(NUMBER_TASK_MANAGERS));
-            }
-
             if (conProp.containsKey(SLOTS_PER_TASKMANAGER)){
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
             }
@@ -71,7 +65,6 @@ public class FlinkPerJobResourceUtil {
         return new ClusterSpecification.ClusterSpecificationBuilder()
                 .setMasterMemoryMB(jobmanagerMemoryMb)
                 .setTaskManagerMemoryMB(taskmanagerMemoryMb)
-                .setNumberTaskManagers(numberTaskManagers)
                 .setSlotsPerTaskManager(slotsPerTaskManager)
                 .createClusterSpecification();
     }

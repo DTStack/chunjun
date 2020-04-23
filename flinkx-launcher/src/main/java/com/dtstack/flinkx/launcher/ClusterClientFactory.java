@@ -24,14 +24,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.deployment.StandaloneClusterId;
 import org.apache.flink.client.program.ClusterClient;
-import org.apache.flink.client.program.rest.RestClusterClient;
-import org.apache.flink.configuration.*;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.HighAvailabilityOptions;
 import org.apache.flink.core.fs.FileSystem;
-import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
-import org.apache.flink.runtime.util.LeaderConnectionInfo;
-import org.apache.flink.runtime.util.LeaderRetrievalUtils;
-import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
+import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -40,11 +37,8 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -68,26 +62,24 @@ public class ClusterClientFactory {
     }
 
     public static ClusterClient createStandaloneClient(Options launcherOptions) throws Exception {
-        String flinkConfDir = launcherOptions.getFlinkconf();
-        Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
+        Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
 
-        StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(config);
-        RestClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance());
+        StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf);
+        ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
 
-        LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
-        InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
-        config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
-        config.setInteger(JobManagerOptions.PORT, address.getPort());
-        clusterClient.setDetached(true);
+//        LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
+//        InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
+//        config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
+//        config.setInteger(JobManagerOptions.PORT, address.getPort());
+//        clusterClient.setDetached(true);
         return clusterClient;
     }
 
     public static ClusterClient createYarnClient(Options launcherOptions) {
-        Configuration flinkConfig = GlobalConfiguration.loadConfiguration(launcherOptions.getFlinkconf());
+        Configuration flinkConfig = launcherOptions.loadFlinkConfiguration();
         String yarnConfDir = launcherOptions.getYarnconf();
         if(StringUtils.isNotBlank(yarnConfDir)) {
             try {
-                flinkConfig.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
                 FileSystem.initialize(flinkConfig);
 
                 YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
@@ -105,16 +97,18 @@ public class ClusterClientFactory {
                     applicationId = ConverterUtils.toApplicationId(launcherOptions.getAppId());
                 }
 
-                HighAvailabilityMode highAvailabilityMode = LeaderRetrievalUtils.getRecoveryMode(flinkConfig);
+                HighAvailabilityMode highAvailabilityMode = HighAvailabilityMode.fromConfig(flinkConfig);
                 if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
-                    flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
+                    flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
                 }
-
-                AbstractYarnClusterDescriptor yarnClusterDescriptor = getClusterDescriptor(launcherOptions, yarnClient, yarnConf, flinkConfig);
-                ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
-                clusterClient.setDetached(true);
-
-                return clusterClient;
+//                YarnClusterDescriptor yarnClusterDescriptor = getClusterDescriptor(launcherOptions, yarnClient, yarnConf, flinkConfig);
+                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
+                        flinkConfig,
+                        yarnConf,
+                        yarnClient,
+                        YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                        true);
+                return yarnClusterDescriptor.retrieve(applicationId).getClusterClient();
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
@@ -123,11 +117,16 @@ public class ClusterClientFactory {
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
 
-    private static AbstractYarnClusterDescriptor getClusterDescriptor(Options launcherOptions,
+    private static YarnClusterDescriptor getClusterDescriptor(Options launcherOptions,
                                                                       YarnClient yarnClient,
                                                                       YarnConfiguration yarnConf,
                                                                       Configuration flinkConfig) throws Exception{
-        AbstractYarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(flinkConfig, yarnConf, "", yarnClient, true);
+        YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
+                flinkConfig,
+                yarnConf,
+                yarnClient,
+                YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                true);
 
         // plugin dependent on shipfile
         if (StringUtils.isNotEmpty(launcherOptions.getPluginLoadMode()) && "shipfile".equalsIgnoreCase(launcherOptions.getPluginLoadMode())) {
@@ -149,10 +148,9 @@ public class ClusterClientFactory {
                 }
             }
 
-            yarnClusterDescriptor.setProvidedUserJarFiles(classpaths);
+//            yarnClusterDescriptor.setProvidedUserJarFiles(classpaths);
         }
 
-        yarnClusterDescriptor.setName(launcherOptions.getJobid());
         return yarnClusterDescriptor;
     }
 

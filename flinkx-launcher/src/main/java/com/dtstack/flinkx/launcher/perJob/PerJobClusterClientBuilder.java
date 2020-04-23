@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.launcher.perjob;
+package com.dtstack.flinkx.launcher.perJob;
 
-import com.dtstack.flinkx.launcher.PluginUtil;
+import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
-import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
+import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.flink.yarn.cli.FlinkYarnSessionCli;
 import org.apache.hadoop.fs.Path;
@@ -34,7 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Date: 2019/09/11
@@ -42,21 +45,29 @@ import java.util.*;
  * @author tudou
  */
 public class PerJobClusterClientBuilder {
-
     private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
 
     private YarnClient yarnClient;
 
     private YarnConfiguration yarnConf;
 
+    private Configuration flinkConfig;
+
     /**
      * init yarnClient
+     * @param launcherOptions flinkx args
+     * @param conProp flink args
      */
-    public void init(YarnConfiguration yarnConf, Configuration flinkConfig, Properties userConf) throws Exception {
-        userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+    public void init(Options launcherOptions, Properties conProp) throws Exception {
+        String yarnConfDir = launcherOptions.getYarnconf();
+        if(StringUtils.isBlank(yarnConfDir)) {
+            throw new RuntimeException("parameters of yarn is required");
+        }
+        flinkConfig = launcherOptions.loadFlinkConfiguration();
+        conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
-        this.yarnConf = yarnConf;
+        yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
@@ -67,12 +78,13 @@ public class PerJobClusterClientBuilder {
     /**
      * create a yarn cluster descriptor which is used to start the application master
      * @param confProp taskParams
-     * @param options LauncherOptions
+     * @param launcherOptions LauncherOptions
+     * @param jobGraph JobGraph
      * @return
      * @throws MalformedURLException
      */
-    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options) throws MalformedURLException {
-        String flinkJarPath = options.getFlinkLibJar();
+    public YarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options launcherOptions, JobGraph jobGraph) throws MalformedURLException {
+        String flinkJarPath = launcherOptions.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
                 throw new IllegalArgumentException("The Flink jar path is not exist");
@@ -83,9 +95,12 @@ public class PerJobClusterClientBuilder {
 
         Configuration conf = new Configuration();
         confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
-
-        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, options.getFlinkconf(), yarnClient, false);
-        descriptor.setName(options.getJobid());
+        YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
+                flinkConfig,
+                yarnConf,
+                yarnClient,
+                YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                false);
 
         List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
@@ -99,20 +114,11 @@ public class PerJobClusterClientBuilder {
             }
         }
 
-//        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
-//            List<File> files = PluginUtil.getAllPluginPath(options.getPluginRoot());
-//            shipFiles.addAll(files);
-//        }
-
-        if (StringUtils.isNotBlank(options.getQueue())) {
-            descriptor.setQueue(options.getQueue());
-        }
-
-        File log4j = new File(options.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
+        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
         if(log4j.exists()){
             shipFiles.add(log4j);
         }else{
-            File logback = new File(options.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
+            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
             if(logback.exists()){
                 shipFiles.add(logback);
             }
