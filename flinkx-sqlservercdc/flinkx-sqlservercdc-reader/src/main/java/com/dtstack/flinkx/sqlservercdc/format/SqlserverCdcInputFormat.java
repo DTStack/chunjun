@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sqlservercdc.Lsn;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
@@ -37,7 +37,13 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
 
@@ -47,7 +53,7 @@ import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
  *
  * @author tudou
  */
-public class SqlserverCdcInputFormat extends RichInputFormat {
+public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     protected String username;
     protected String password;
     protected String url;

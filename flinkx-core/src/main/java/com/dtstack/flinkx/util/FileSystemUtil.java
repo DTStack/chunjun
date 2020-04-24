@@ -91,7 +91,7 @@ public class FileSystemUtil {
         String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
         KerberosUtil.loadKrb5Conf(hadoopConfig);
 
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
         UserGroupInformation.setLoginUser(ugi);
 
         return ugi.doAs(new PrivilegedAction<FileSystem>() {
@@ -134,7 +134,7 @@ public class FileSystemUtil {
 
     private static Map<String, Object> fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
-            confMap = new HashMap<>();
+            confMap = new HashMap<>(8);
         }
 
         if (isHaMode(confMap)) {

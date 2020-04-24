@@ -16,9 +16,9 @@
  */
 package com.dtstack.flinkx.kafka09.reader;
 
-import com.dtstack.flinkx.kafkaBase.decoder.IDecode;
-import com.dtstack.flinkx.kafkaBase.reader.IClient;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.decoder.IDecode;
+import com.dtstack.flinkx.kafkabase.reader.IClient;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
@@ -38,12 +38,12 @@ public class Kafka09Client implements IClient {
     private static final Logger LOG = LoggerFactory.getLogger(Kafka09Client.class);
 
     private volatile boolean running = true;
-    private KafkaStream<byte[], byte[]> m_stream;
+    private KafkaStream<byte[], byte[]> mStream;
     private IDecode decode;
     private KafkaBaseInputFormat format;
 
-    public Kafka09Client(KafkaStream<byte[], byte[]> a_stream, KafkaBaseInputFormat format) {
-        this.m_stream = a_stream;
+    public Kafka09Client(KafkaStream<byte[], byte[]> aStream, KafkaBaseInputFormat format) {
+        this.mStream = aStream;
         this.decode = format.getDecode();
         this.format = format;
     }
@@ -52,7 +52,7 @@ public class Kafka09Client implements IClient {
     public void run() {
         try {
             while (running) {
-                ConsumerIterator<byte[], byte[]> it = m_stream.iterator();
+                ConsumerIterator<byte[], byte[]> it = mStream.iterator();
                 while (it.hasNext()) {
                     String m = null;
                     try {

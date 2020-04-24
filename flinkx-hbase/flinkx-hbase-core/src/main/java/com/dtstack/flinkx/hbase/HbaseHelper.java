@@ -27,7 +27,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.client.BufferedMutator;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.RegionLocator;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -65,7 +69,7 @@ public class HbaseHelper {
     );
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
-        Validate.isTrue(hbaseConfigMap != null && hbaseConfigMap.size() !=0, "hbaseConfig不能为空Map结构!");
+        Validate.isTrue(MapUtils.isEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
             return getConnectionWithKerberos(hbaseConfigMap);
@@ -97,7 +101,7 @@ public class HbaseHelper {
 
         UserGroupInformation ugi;
         try {
-            ugi = KerberosUtil.loginAndReturnUGI(conf, principal, keytabFileName);
+            ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
         } catch (Exception e){
             throw new RuntimeException("Login kerberos error", e);
         }
@@ -118,6 +122,10 @@ public class HbaseHelper {
 
     public static Configuration getConfig(Map<String,Object> hbaseConfigMap){
         Configuration hConfiguration = HBaseConfiguration.create();
+        if (MapUtils.isEmpty(hbaseConfigMap)) {
+            return hConfiguration;
+        }
+
         for (Map.Entry<String, Object> entry : hbaseConfigMap.entrySet()) {
             if(entry.getValue() != null && !(entry.getValue() instanceof Map)){
                 hConfiguration.set(entry.getKey(), entry.getValue().toString());

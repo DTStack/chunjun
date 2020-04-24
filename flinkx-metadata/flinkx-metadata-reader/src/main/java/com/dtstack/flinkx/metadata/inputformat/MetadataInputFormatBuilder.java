@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/8
  */
-public class MetadataInputFormatBuilder extends RichInputFormatBuilder {
+public class MetadataInputFormatBuilder extends BaseRichInputFormatBuilder {
     private BaseMetadataInputFormat format;
 
     public MetadataInputFormatBuilder(BaseMetadataInputFormat format) {

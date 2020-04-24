@@ -16,7 +16,7 @@
  * limitations under the License.
  */package com.dtstack.flinkx.emqx.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class EmqxInputFormatBuilder extends RichInputFormatBuilder {
+public class EmqxInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private EmqxInputFormat format;
 

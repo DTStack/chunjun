@@ -22,7 +22,7 @@ package com.dtstack.flinkx.oraclelogminer.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -33,7 +33,7 @@ import org.apache.flink.types.Row;
  * @author jiangbo
  * @date 2019/12/14
  */
-public class OraclelogminerReader extends DataReader {
+public class OraclelogminerReader extends BaseDataReader {
 
     private LogMinerConfig logMinerConfig;
 

@@ -17,8 +17,8 @@
  */
 package com.dtstack.flinkx.kafka09.writer;
 
-import com.dtstack.flinkx.kafkaBase.Formatter;
-import com.dtstack.flinkx.kafkaBase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -28,9 +28,9 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 

@@ -91,7 +91,7 @@ public class OptionParser {
     }
 
     public List<String> getProgramExeArgList() throws Exception {
-        Map<String,Object> mapConf = MapUtil.ObjectToMap(properties);
+        Map<String,Object> mapConf = MapUtil.objectToMap(properties);
         List<String> args = new ArrayList<>();
         for(Map.Entry<String, Object> one : mapConf.entrySet()){
             String key = one.getKey();
@@ -100,19 +100,15 @@ public class OptionParser {
                 continue;
             }else if(OPTION_JOB.equalsIgnoreCase(key)){
                 File file = new File(value.toString());
-                FileInputStream in = new FileInputStream(file);
-                byte[] filecontent = new byte[(int) file.length()];
-                in.read(filecontent);
-                value = new String(filecontent, Charsets.UTF_8.name());
+                try (FileInputStream in = new FileInputStream(file)) {
+                    byte[] filecontent = new byte[(int) file.length()];
+                    in.read(filecontent);
+                    value = new String(filecontent, Charsets.UTF_8.name());
+                }
             }
             args.add("-" + key);
             args.add(value.toString());
         }
         return args;
     }
-
-    private void printUsage() {
-        System.out.print(options.toString());
-    }
-
 }
