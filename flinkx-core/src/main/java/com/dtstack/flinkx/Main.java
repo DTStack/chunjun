@@ -145,6 +145,8 @@ public class Main {
             } else {
                 env.setRestartStrategy(RestartStrategies.noRestart());
             }
+        } else {
+            env.setRestartStrategy(RestartStrategies.noRestart());
         }
     }
 
