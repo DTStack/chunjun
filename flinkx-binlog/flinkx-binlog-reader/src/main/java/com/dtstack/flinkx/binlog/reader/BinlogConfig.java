@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.binlog.reader;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,7 +32,7 @@ public class BinlogConfig implements Serializable {
 
     public long period = 1000L;
 
-    public int bufferSize = 1024;
+    public int bufferSize = 256;
 
     public boolean pavingData = true;
 
@@ -43,7 +44,8 @@ public class BinlogConfig implements Serializable {
 
     private boolean detectingEnable = true;
 
-    private String detectingSQL = "select CURRENT_DATE";
+    @JsonProperty("detectingSQL")
+    private String detectingSql = "SELECT CURRENT_DATE";
 
     private boolean enableTsdb = true;
 
@@ -51,14 +53,15 @@ public class BinlogConfig implements Serializable {
 
     private int parallelThreadSize = 2;
 
-    private boolean isGTIDMode = false;
+    @JsonProperty("isGTIDMode")
+    private boolean isGtidMode = false;
 
-    public boolean getGTIDMode() {
-        return isGTIDMode;
+    public boolean getGtidMode() {
+        return isGtidMode;
     }
 
-    public void setGTIDMode(boolean GTIDMode) {
-        isGTIDMode = GTIDMode;
+    public void setGtidMode(boolean gtidMode) {
+        isGtidMode = gtidMode;
     }
 
     public int getParallelThreadSize() {
@@ -85,12 +88,12 @@ public class BinlogConfig implements Serializable {
         this.enableTsdb = enableTsdb;
     }
 
-    public String getDetectingSQL() {
-        return detectingSQL;
+    public String getDetectingSql() {
+        return detectingSql;
     }
 
-    public void setDetectingSQL(String detectingSQL) {
-        this.detectingSQL = detectingSQL;
+    public void setDetectingSql(String detectingSql) {
+        this.detectingSql = detectingSql;
     }
 
     public boolean getDetectingEnable() {
@@ -231,11 +234,11 @@ public class BinlogConfig implements Serializable {
                 ", slaveId=" + slaveId +
                 ", connectionCharset='" + connectionCharset + '\'' +
                 ", detectingEnable=" + detectingEnable +
-                ", detectingSQL='" + detectingSQL + '\'' +
+                ", detectingSQL='" + detectingSql + '\'' +
                 ", enableTsdb=" + enableTsdb +
                 ", parallel=" + parallel +
                 ", parallelThreadSize=" + parallelThreadSize +
-                ", isGTIDMode=" + isGTIDMode +
+                ", isGTIDMode=" + isGtidMode +
                 '}';
     }
 }

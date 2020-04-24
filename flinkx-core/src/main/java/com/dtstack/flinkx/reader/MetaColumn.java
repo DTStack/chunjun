@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -131,9 +131,9 @@ public class MetaColumn implements Serializable {
                     metaColumns.add(mc);
                 }
             } else if (columns.get(0) instanceof String) {
-                if(columns.size() == 1 && columns.get(0).equals("*")){
+                if(columns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(columns.get(0))){
                     MetaColumn mc = new MetaColumn();
-                    mc.setName("*");
+                    mc.setName(ConstantValue.STAR_SYMBOL);
                     metaColumns.add(mc);
                 } else {
                     for (Object column : columns) {

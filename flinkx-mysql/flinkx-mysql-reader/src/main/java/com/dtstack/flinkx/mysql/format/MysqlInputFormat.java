@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/19
@@ -46,7 +46,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
         try {
             LOG.info("inputSplit = {}", inputSplit);
 
-            ClassUtil.forName(drivername, getClass().getClassLoader());
+            ClassUtil.forName(driverName, getClass().getClassLoader());
             initMetric(inputSplit);
 
             String startLocation = incrementConfig.getStartLocation();
@@ -73,7 +73,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

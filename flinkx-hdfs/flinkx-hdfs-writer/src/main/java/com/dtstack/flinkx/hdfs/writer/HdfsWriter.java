@@ -19,7 +19,8 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -31,7 +32,23 @@ import parquet.hadoop.ParquetWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
+
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COMPRESS;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_DEFAULT_FS;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ENCODING;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_NAME;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_TYPE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_NAME_LIST;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_TYPE_LIST;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_MAX_FILE_SIZE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_PATH;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_WRITE_MODE;
 
 /**
  * The writer plugin of Hdfs
@@ -39,11 +56,11 @@ import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsWriter extends DataWriter {
+public class HdfsWriter extends BaseDataWriter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String fileType;
 
@@ -79,12 +96,12 @@ public class HdfsWriter extends DataWriter {
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         List columns = writerConfig.getParameter().getColumn();
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
-        defaultFS = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
+        defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
         path = writerConfig.getParameter().getStringVal(KEY_PATH);
         fieldDelimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER);
         charSet = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
+        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
@@ -115,7 +132,7 @@ public class HdfsWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setPath(path);
         builder.setFileName(fileName);
         builder.setWriteMode(mode);

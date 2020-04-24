@@ -101,7 +101,6 @@ public class DataTransferConfig extends AbstractConfig {
 
     public static DataTransferConfig parse(String json) {
         Gson gson = new Gson();
-        //DataTransferConfig config = gson.fromJson(json, DataTransferConfig.class);
         Map<String,Object> map = gson.fromJson(json, Map.class);
         map = MapUtil.convertToHashMap(map);
         DataTransferConfig config = new DataTransferConfig(map);

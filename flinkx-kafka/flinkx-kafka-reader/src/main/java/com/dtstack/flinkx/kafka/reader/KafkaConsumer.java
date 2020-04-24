@@ -16,8 +16,8 @@
  */
 package com.dtstack.flinkx.kafka.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseConsumer;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 
 import java.util.Arrays;
 import java.util.Properties;

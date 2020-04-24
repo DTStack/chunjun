@@ -33,7 +33,7 @@ import java.sql.SQLException;
 public class PhoenixUtil {
     public static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        synchronized (ClassUtil.lock_str){
+        synchronized (ClassUtil.LOCK_STR){
             DriverManager.setLoginTimeout(10);
 
             // telnet

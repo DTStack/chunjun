@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.streaming.api.functions.source;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
@@ -36,6 +37,7 @@ import org.apache.flink.runtime.jobgraph.tasks.InputSplitProviderException;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +46,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 
 /**
  * A {@link SourceFunction} that reads data using an {@link InputFormat}.
+ *
+ * @author jiangbo
  */
 @Internal
 public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<OUT> implements CheckpointedFunction {
@@ -89,11 +92,11 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 			((RichInputFormat) format).setRuntimeContext(context);
 		}
 
-        if (format instanceof com.dtstack.flinkx.inputformat.RichInputFormat){
-			RestoreConfig restoreConfig = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getRestoreConfig();
+        if (format instanceof BaseRichInputFormat){
+			RestoreConfig restoreConfig = ((BaseRichInputFormat) format).getRestoreConfig();
 			isStream = restoreConfig != null && restoreConfig.isStream();
             if(formatStateMap != null){
-                ((com.dtstack.flinkx.inputformat.RichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+                ((BaseRichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
         }
 
@@ -228,7 +231,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        FormatState formatState = ((com.dtstack.flinkx.inputformat.RichInputFormat) format).getFormatState();
+        FormatState formatState = ((BaseRichInputFormat) format).getFormatState();
         if (formatState != null){
             LOG.info("InputFormat format state:{}", formatState.toString());
             unionOffsetStates.clear();
@@ -247,7 +250,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
         LOG.info("Is restored:{}", context.isRestored());
 		if (context.isRestored()){
-			formatStateMap = new HashMap<>();
+			formatStateMap = new HashMap<>(16);
 			for (FormatState formatState : unionOffsetStates.get()) {
 				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
 				LOG.info("Input format state into:{}", formatState.toString());

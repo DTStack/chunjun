@@ -24,7 +24,7 @@ import com.dtstack.flinkx.gbase.GbaseDatabaseMeta;
 import com.dtstack.flinkx.gbase.format.GbaseOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 
 /**
  * @author jiangbo
@@ -35,7 +35,7 @@ public class GbaseWriter extends JdbcDataWriter {
     public GbaseWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new GbaseDatabaseMeta());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, null);
     }
 
     @Override

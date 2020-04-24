@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.emqx.format;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class EmqxOutputFormatBuilder extends RichOutputFormatBuilder {
+public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     private EmqxOutputFormat format;
 
     public EmqxOutputFormatBuilder(){

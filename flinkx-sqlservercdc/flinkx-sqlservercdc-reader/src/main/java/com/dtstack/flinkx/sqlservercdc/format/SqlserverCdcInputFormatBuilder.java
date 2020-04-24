@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author tudou
  */
-public class SqlserverCdcInputFormatBuilder extends RichInputFormatBuilder {
+public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected SqlserverCdcInputFormat format;
 

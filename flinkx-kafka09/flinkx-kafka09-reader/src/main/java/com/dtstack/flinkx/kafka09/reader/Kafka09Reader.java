@@ -19,17 +19,17 @@ package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.kafkaBase.KafkaConfigKeys;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseReader;
+import com.dtstack.flinkx.kafkabase.KafkaConfigKeys;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.nio.charset.StandardCharsets;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka09Reader extends KafkaBaseReader {
     private String encoding;

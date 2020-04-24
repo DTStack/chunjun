@@ -46,9 +46,14 @@ public interface Clock {
         return SYSTEM;
     }
 
+    /**
+     * Get current time
+     * @return time
+     */
     default Instant currentTime() {
         return Instant.ofEpochMilli(currentTimeInMillis());
     }
+
     /**
      * Get the current time in nanoseconds.
      * @return the current time in nanoseconds.
