@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 
@@ -62,6 +63,10 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected String filterRegex;
 
+    protected String partitionName;
+
+    protected String currentPartition;
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -84,6 +89,20 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     public void closeInternal() throws IOException {
         if(recordReader != null) {
             recordReader.close();
+        }
+    }
+
+    /**
+     * 从hdfs路径中获取当前分区信息
+     * @param path hdfs路径
+     */
+    public void findCurrentPartition(Path path){
+        currentPartition = path.getParent().getName().substring(partitionName.length() + 1);
+        for (MetaColumn column : metaColumns) {
+            if(column.getName().equalsIgnoreCase(partitionName)){
+                column.setValue(currentPartition);
+                break;
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -117,10 +117,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     private void nextFile() throws IOException{
-        String path = currentSplitFilePaths.get(currentFileIndex);
-        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), new Path(path)).withConf(conf);
+        Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
+        findCurrentPartition(path);
+        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), path).withConf(conf);
         currentFileReader = reader.build();
-
         currentFileIndex++;
     }
 
@@ -138,7 +138,9 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if (metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
                         val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
                     }
@@ -146,8 +148,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if (metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String){

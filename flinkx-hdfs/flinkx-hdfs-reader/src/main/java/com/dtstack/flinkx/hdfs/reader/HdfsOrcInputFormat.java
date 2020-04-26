@@ -24,17 +24,18 @@ import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hive.ql.io.orc.*;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile;
+import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
+import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
+import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.*;
 
 /**
@@ -214,6 +215,7 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         numReadCounter = getRuntimeContext().getLongCounter("numRead");
         HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
+        findCurrentPartition(orcSplit.getPath());
         recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
         key = recordReader.createKey();
         value = recordReader.createValue();
@@ -238,13 +240,13 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     val = inspector.getStructFieldData(value, fields.get(metaColumn.getIndex()));
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if(metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String || val instanceof org.apache.hadoop.io.Text){
