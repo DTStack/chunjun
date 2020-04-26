@@ -46,7 +46,6 @@ public class HdfsReader extends DataReader {
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
     protected String filterRegex;
-    protected String partitionName;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -56,7 +55,6 @@ public class HdfsReader extends DataReader {
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
         filterRegex = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILTER, "");
-        partitionName = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PARTITION_NAME);
 
         fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
 
@@ -78,7 +76,6 @@ public class HdfsReader extends DataReader {
         builder.setFilterRegex(filterRegex);
         builder.setDefaultFs(defaultFS);
         builder.setDelimiter(fieldDelimiter);
-        builder.setPartitionName(partitionName);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);

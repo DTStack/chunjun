@@ -77,10 +77,6 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
         format.defaultFS = defaultFs;
     }
 
-    public void setPartitionName(String partitionName){
-        format.partitionName = partitionName;
-    }
-
     @Override
     protected void checkFormat() {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){

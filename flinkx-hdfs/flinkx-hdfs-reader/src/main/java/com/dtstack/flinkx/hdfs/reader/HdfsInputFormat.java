@@ -37,6 +37,8 @@ import java.util.Map;
  */
 public abstract class HdfsInputFormat extends RichInputFormat {
 
+    private static final char PARTITION_SPLIT_CHAR = '=';
+
     protected Map<String,Object> hadoopConfig;
 
     protected List<MetaColumn> metaColumns;
@@ -62,8 +64,6 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     protected boolean isFileEmpty = false;
 
     protected String filterRegex;
-
-    protected String partitionName;
 
     protected String currentPartition;
 
@@ -97,9 +97,10 @@ public abstract class HdfsInputFormat extends RichInputFormat {
      * @param path hdfs路径
      */
     public void findCurrentPartition(Path path){
-        currentPartition = path.getParent().getName().substring(partitionName.length() + 1);
+        String ptPathName = path.getParent().getName();
+        currentPartition = ptPathName.substring(ptPathName.lastIndexOf(PARTITION_SPLIT_CHAR) + 1);
         for (MetaColumn column : metaColumns) {
-            if(column.getName().equalsIgnoreCase(partitionName)){
+            if(column.getPart()){
                 column.setValue(currentPartition);
                 break;
             }
