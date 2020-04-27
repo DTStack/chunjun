@@ -51,4 +51,10 @@ public class ConstantValue {
     public static final String SYSTEM_PROPERTIES_KEY_FILE_ENCODING = "file.encoding";
 
     public static final String OS_WINDOWS = "windows";
+
+    public static final String SHIP_FILE_PLUGIN_LOAD_MODE = "shipfile";
+    public static final String CLASS_PATH_PLUGIN_LOAD_MODE = "classpath";
+
+    public static final String CLASSLOADER_CHILD_FIRST = "child-first";
+    public static final String CLASSLOADER_PARENT_FIRST = "parent-first";
 }

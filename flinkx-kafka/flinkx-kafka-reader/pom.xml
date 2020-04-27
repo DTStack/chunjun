@@ -51,13 +51,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/kafkareader">
+                                <copy todir="${basedir}/../../syncplugins/kafkareader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/kafkareader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafkareader/${project.name}-${package.name}.jar"/>
+                                <move file="${basedir}/../../syncplugins/kafkareader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/kafkareader/${project.name}-${package.name}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

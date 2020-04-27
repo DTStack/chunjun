@@ -30,7 +30,6 @@ import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -38,9 +37,10 @@ import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import java.io.File;
-import java.net.URL;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The Factory of ClusterClient
@@ -66,12 +66,6 @@ public class ClusterClientFactory {
 
         StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf);
         ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
-
-//        LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
-//        InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
-//        config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
-//        config.setInteger(JobManagerOptions.PORT, address.getPort());
-//        clusterClient.setDetached(true);
         return clusterClient;
     }
 
@@ -89,7 +83,7 @@ public class ClusterClientFactory {
                 ApplicationId applicationId;
 
                 if (StringUtils.isEmpty(launcherOptions.getAppId())) {
-                    applicationId = getAppIdFromYarn(yarnClient);
+                    applicationId = getAppIdFromYarn(yarnClient, launcherOptions);
                     if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {
                         throw new RuntimeException("No flink session found on yarn cluster.");
                     }
@@ -101,7 +95,6 @@ public class ClusterClientFactory {
                 if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
                     flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
                 }
-//                YarnClusterDescriptor yarnClusterDescriptor = getClusterDescriptor(launcherOptions, yarnClient, yarnConf, flinkConfig);
                 YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
                         flinkConfig,
                         yarnConf,
@@ -117,44 +110,7 @@ public class ClusterClientFactory {
         throw new UnsupportedOperationException("Haven't been developed yet!");
     }
 
-    private static YarnClusterDescriptor getClusterDescriptor(Options launcherOptions,
-                                                                      YarnClient yarnClient,
-                                                                      YarnConfiguration yarnConf,
-                                                                      Configuration flinkConfig) throws Exception{
-        YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
-                flinkConfig,
-                yarnConf,
-                yarnClient,
-                YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                true);
-
-        // plugin dependent on shipfile
-        if (StringUtils.isNotEmpty(launcherOptions.getPluginLoadMode()) && "shipfile".equalsIgnoreCase(launcherOptions.getPluginLoadMode())) {
-            List<File> pluginPaths = PluginUtil.getAllPluginPath(launcherOptions.getPluginRoot());
-            if (!pluginPaths.isEmpty()) {
-                yarnClusterDescriptor.addShipFiles(pluginPaths);
-            }
-        }
-
-        String flinkJarPath = launcherOptions.getFlinkLibJar();
-        if (StringUtils.isNotEmpty(flinkJarPath)) {
-            List<URL> classpaths = new ArrayList<>();
-            File[] jars = new File(flinkJarPath).listFiles();
-            for (File file : jars) {
-                if (file.toURI().toURL().toString().contains("flink-dist")) {
-                    yarnClusterDescriptor.setLocalJarPath(new Path(file.toURI().toURL().toString()));
-                } else {
-                    classpaths.add(file.toURI().toURL());
-                }
-            }
-
-//            yarnClusterDescriptor.setProvidedUserJarFiles(classpaths);
-        }
-
-        return yarnClusterDescriptor;
-    }
-
-    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient) throws Exception{
+    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient, Options launcherOptions) throws Exception{
         Set<String> set = new HashSet<>();
         set.add("Apache Flink");
         EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
@@ -170,6 +126,10 @@ public class ClusterClientFactory {
             }
 
             if(!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
+                continue;
+            }
+
+            if(!report.getQueue().equals(launcherOptions.getQueue())) {
                 continue;
             }
 

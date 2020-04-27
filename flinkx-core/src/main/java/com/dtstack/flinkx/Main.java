@@ -38,6 +38,7 @@ import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -111,14 +112,19 @@ public class Main {
         env.setRestartStrategy(RestartStrategies.noRestart());
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
-        dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
+        if(speedConfig.getReaderChannel() > 0){
+            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
+        }
 
         if (speedConfig.isRebalance()) {
             dataStream = dataStream.rebalance();
         }
 
         BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
-        dataWriter.writeData(dataStream).setParallelism(speedConfig.getWriterChannel());
+        DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
+        if(speedConfig.getWriterChannel() > 0){
+            dataStreamSink.setParallelism(speedConfig.getWriterChannel());
+        }
 
         if(env instanceof MyLocalStreamEnvironment) {
             if(StringUtils.isNotEmpty(savepointPath)){
@@ -201,22 +207,6 @@ public class Main {
         if(env instanceof MyLocalStreamEnvironment){
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(classPathSet));
         }
-        /* else if(env instanceof StreamContextEnvironment){
-            Field field = env.getClass().getDeclaredField("ctx");
-            field.setAccessible(true);
-            ContextEnvironment contextEnvironment= (ContextEnvironment) field.get(env);
-
-            List<String> originUrlList = new ArrayList<>();
-            for (URL url : contextEnvironment.getClasspaths()) {
-                originUrlList.add(url.toString());
-            }
-
-            for (URL url : classPathSet) {
-                if (!originUrlList.contains(url.toString())){
-                    contextEnvironment.getClasspaths().add(url);
-                }
-            }
-        }*/
     }
 
     private static Properties parseConf(String confStr) throws Exception{

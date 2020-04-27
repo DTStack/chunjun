@@ -84,13 +84,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/polardbreader">
+                                <copy todir="${basedir}/../../syncplugins/polardbreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/polardbreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/polardbreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/polardbreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/polardbreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

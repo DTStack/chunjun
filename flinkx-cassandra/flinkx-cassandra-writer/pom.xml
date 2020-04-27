@@ -78,13 +78,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/cassandrawriter">
+                                <copy todir="${basedir}/../../syncplugins/cassandrawriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/cassandrawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/cassandrawriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/cassandrawriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/cassandrawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

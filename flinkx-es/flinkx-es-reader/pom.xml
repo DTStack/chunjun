@@ -71,13 +71,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/esreader">
+                                <copy todir="${basedir}/../../syncplugins/esreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/esreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/esreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/esreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/esreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -34,13 +34,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/mongodboplogreader">
+                                <copy todir="${basedir}/../../syncplugins/mongodboplogreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/mongodboplogreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mongodboplogreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/mongodboplogreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/mongodboplogreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

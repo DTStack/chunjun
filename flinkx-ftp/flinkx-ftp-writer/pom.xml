@@ -90,13 +90,13 @@ under the License.
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/ftpwriter">
+                                <copy todir="${basedir}/../../syncplugins/ftpwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/ftpwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/ftpwriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/ftpwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/ftpwriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

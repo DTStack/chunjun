@@ -84,19 +84,19 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/teradatareader">
+                                <copy todir="${basedir}/../../syncplugins/teradatareader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <copy todir="${basedir}/../../plugins/teradatareader">
+                                <copy todir="${basedir}/../../syncplugins/teradatareader">
                                     <fileset dir="${basedir}/../../jars/">
                                         <include name="tdgssconfig.jar" />
                                         <include name="terajdbc4.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/teradatareader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/teradatareader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/teradatareader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/teradatareader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

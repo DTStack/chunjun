@@ -78,13 +78,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/mongodbreader">
+                                <copy todir="${basedir}/../../syncplugins/mongodbreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/mongodbreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mongodbreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/mongodbreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/mongodbreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

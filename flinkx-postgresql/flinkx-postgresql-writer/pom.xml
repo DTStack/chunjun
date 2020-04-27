@@ -84,13 +84,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/postgresqlwriter">
+                                <copy todir="${basedir}/../../syncplugins/postgresqlwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/postgresqlwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/postgresqlwriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/postgresqlwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/postgresqlwriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

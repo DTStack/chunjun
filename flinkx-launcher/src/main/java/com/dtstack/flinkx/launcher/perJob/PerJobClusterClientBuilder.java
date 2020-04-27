@@ -19,7 +19,7 @@ package com.dtstack.flinkx.launcher.perJob;
 
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;

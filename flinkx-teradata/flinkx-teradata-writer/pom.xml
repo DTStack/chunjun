@@ -84,19 +84,19 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/teradatawriter">
+                                <copy todir="${basedir}/../../syncplugins/teradatawriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <copy todir="${basedir}/../../plugins/teradatawriter">
+                                <copy todir="${basedir}/../../syncplugins/teradatawriter">
                                     <fileset dir="${basedir}/../../jars/">
                                         <include name="tdgssconfig.jar" />
                                         <include name="terajdbc4.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/teradatawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/teradatawriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/teradatawriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/teradatawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

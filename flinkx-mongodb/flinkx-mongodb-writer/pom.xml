@@ -78,13 +78,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/mongodbwriter">
+                                <copy todir="${basedir}/../../syncplugins/mongodbwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/mongodbwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mongodbwriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/mongodbwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/mongodbwriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -26,6 +26,9 @@ import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY;
+import static com.dtstack.flinkx.constants.ConstantValue.*;
+
 /**
  * This class define commandline options for the Launcher program
  *
@@ -74,7 +77,7 @@ public class Options {
     private String s;
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
-    private String pluginLoadMode = "shipfile";
+    private String pluginLoadMode = SHIP_FILE_PLUGIN_LOAD_MODE;
 
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
@@ -93,11 +96,12 @@ public class Options {
             if(StringUtils.isNotBlank(yarnconf)){
                 flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
             }
-            if("classpath".equalsIgnoreCase(pluginLoadMode)){
-                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
+            if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, CLASSLOADER_CHILD_FIRST);
             }else{
-                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, CLASSLOADER_PARENT_FIRST);
             }
+            flinkConfiguration.setString(FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
         }
         return flinkConfiguration;
     }

@@ -110,13 +110,13 @@ under the License.
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/hivewriter">
+                                <copy todir="${basedir}/../../syncplugins/hivewriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/hivewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hivewriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/hivewriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/hivewriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

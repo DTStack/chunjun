@@ -68,13 +68,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/odpsreader">
+                                <copy todir="${basedir}/../../syncplugins/odpsreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/odpsreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/odpsreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/odpsreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/odpsreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

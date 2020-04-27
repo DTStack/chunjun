@@ -85,13 +85,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/carbondatawriter">
+                                <copy todir="${basedir}/../../syncplugins/carbondatawriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/carbondatawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/carbondatawriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/carbondatawriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/carbondatawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

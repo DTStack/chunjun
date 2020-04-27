@@ -26,7 +26,7 @@ import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.client.ClientUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
@@ -62,6 +62,7 @@ public class Launcher {
 
     public static final String PLUGINS_DIR_NAME = "plugins";
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
+    public static final String MAIN_CLASS = "com.dtstack.flinkx.Main";
 
     public static void main(String[] args) throws Exception {
         setLogLevel(Level.DEBUG.toString());
@@ -91,8 +92,8 @@ public class Launcher {
                     throw new IllegalArgumentException("per-job mode must have flink lib path!");
                 }
                 argList.add("-monitor");
-                argList.add("application_default");
-                PerJobSubmitter.submit(launcherOptions, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                argList.add("");
+                PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
         }
     }
 
@@ -109,7 +110,7 @@ public class Launcher {
         PackagedProgram program = PackagedProgram.newBuilder()
                 .setJarFile(jarFile)
                 .setUserClassPaths(urlList)
-                .setEntryPointClassName("com.dtstack.flinkx.Main")
+                .setEntryPointClassName(MAIN_CLASS)
                 .setConfiguration(launcherOptions.loadFlinkConfiguration())
                 .setSavepointRestoreSettings(savepointRestoreSettings)
                 .setArguments(remoteArgs)
@@ -117,7 +118,7 @@ public class Launcher {
         return PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
     }
 
-    private static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
+    public static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
         List<URL> urlList = new ArrayList<>();
 
         String jobJson = readJob(content);
@@ -214,7 +215,7 @@ public class Launcher {
         return property;
     }
 
-    private static String getCoreJarFileName(String pluginRoot) throws FileNotFoundException {
+    public static String getCoreJarFileName(String pluginRoot) throws FileNotFoundException {
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {

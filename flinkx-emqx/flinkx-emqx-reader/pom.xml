@@ -71,13 +71,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/emqxreader">
+                                <copy todir="${basedir}/../../syncplugins/emqxreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/emqxreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/emqxreader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/emqxreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/emqxreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

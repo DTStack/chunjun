@@ -73,13 +73,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/clickhousewriter">
+                                <copy todir="${basedir}/../../syncplugins/clickhousewriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/clickhousewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/clickhousewriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/clickhousewriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/clickhousewriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

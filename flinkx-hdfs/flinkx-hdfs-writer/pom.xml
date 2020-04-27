@@ -116,13 +116,13 @@ under the License.
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/hdfswriter">
+                                <copy todir="${basedir}/../../syncplugins/hdfswriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/hdfswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hdfswriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/hdfswriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/hdfswriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

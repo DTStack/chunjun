@@ -85,13 +85,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/dmwriter">
+                                <copy todir="${basedir}/../../syncplugins/dmwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/dmwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/dmwriter/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/dmwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/dmwriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

@@ -84,13 +84,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/saphanareader">
+                                <copy todir="${basedir}/../../syncplugins/saphanareader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/saphanareader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/saphanareader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/saphanareader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/saphanareader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

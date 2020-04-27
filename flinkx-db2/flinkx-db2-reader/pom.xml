@@ -85,13 +85,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/db2reader">
+                                <copy todir="${basedir}/../../syncplugins/db2reader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/db2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/db2reader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/db2reader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/db2reader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

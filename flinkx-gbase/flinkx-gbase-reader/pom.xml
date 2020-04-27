@@ -84,13 +84,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/gbasereader">
+                                <copy todir="${basedir}/../../syncplugins/gbasereader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/gbasereader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/gbasereader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/gbasereader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/gbasereader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

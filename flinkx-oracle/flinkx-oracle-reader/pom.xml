@@ -84,13 +84,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/oraclereader">
+                                <copy todir="${basedir}/../../syncplugins/oraclereader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/oraclereader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/oraclereader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/oraclereader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/oraclereader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

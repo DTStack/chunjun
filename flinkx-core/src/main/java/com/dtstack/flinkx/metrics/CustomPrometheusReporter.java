@@ -122,7 +122,6 @@ public class CustomPrometheusReporter {
 
         if (StringUtils.isNullOrWhitespaceOnly(host) || port < 1) {
             return;
-//            throw new IllegalArgumentException("Invalid host/port configuration. Host: " + host + " Port: " + port);
         }
 
         if (randomSuffix) {
