@@ -32,6 +32,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -39,6 +40,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.security.PrivilegedAction;
 import java.util.Map;
 
 /**
@@ -58,14 +60,27 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFS);
-        } catch (Exception e) {
-            throw new IOException(e);
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFS);
+            LOG.info("user:{}, ", ugi.getShortUserName());
+            return ugi.doAs(new PrivilegedAction<InputSplit[]>() {
+                @Override
+                public InputSplit[] run() {
+                    try {
+                        return createTextSplit(minNumSplits);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            return createTextSplit(minNumSplits);
         }
+    }
 
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFS);
-        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+    private InputSplit[] createTextSplit(int minNumSplits) throws IOException{
+        JobConf jobConf = buildConfig();
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(jobConf, HdfsPathFilter.class);
 
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
@@ -87,11 +102,22 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
-        org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
-        recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
-        key = new LongWritable();
-        value = new Text();
+        ugi.doAs(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                try {
+                    HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
+                    org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
+                    recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
+                    key = new LongWritable();
+                    value = new Text();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+                return null;
+            }
+        });
     }
 
     @Override
