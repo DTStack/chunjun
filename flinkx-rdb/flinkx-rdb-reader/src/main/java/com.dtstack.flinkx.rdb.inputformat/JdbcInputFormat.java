@@ -322,7 +322,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             startLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
         endLocationAccumulator = new LongMaximum();
         String endLocation = ((JdbcInputSplit) split).getEndLocation();
         if (endLocation != null && incrementConfig.isUseMaxFunc()) {
@@ -331,6 +331,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             endLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
 
     /**
