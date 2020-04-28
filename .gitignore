@@ -1,6 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
-plugins/
+syncplugins/
 *.iml
 target/
 lib/
@@ -9,4 +9,3 @@ nohup.out
 flinkconf/
 hadoopconf/
 /default_task_id_output
-/syncplugins/
