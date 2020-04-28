@@ -23,6 +23,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
 import java.util.List;
@@ -62,10 +63,19 @@ public abstract class HdfsInputFormat extends RichInputFormat {
 
     protected String filterRegex;
 
+    protected transient UserGroupInformation ugi;
+
+    protected boolean openKerberos;
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         conf = buildConfig();
+
+        openKerberos = FileSystemUtil.isOpenKerberos(hadoopConfig);
+        if (openKerberos) {
+            ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFS);
+        }
     }
 
     protected JobConf buildConfig() {

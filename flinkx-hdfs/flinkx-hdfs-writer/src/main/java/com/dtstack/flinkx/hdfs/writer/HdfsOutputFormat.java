@@ -70,8 +70,21 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        // 这里休眠一段时间是为了避免reader和writer或者多个任务在同一个taskmanager里同时认证kerberos
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            sleepRandomTime();
+        }
+
         initColIndices();
         super.openInternal(taskNumber, numTasks);
+    }
+
+    private void sleepRandomTime() {
+        try {
+            Thread.sleep(5000L + (long)(10000 * Math.random()));
+        } catch (Exception exception) {
+            LOG.warn("", exception);
+        }
     }
 
     @Override
