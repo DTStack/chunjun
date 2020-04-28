@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
-import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
@@ -36,6 +35,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.google.common.collect.Maps;
+import org.apache.hadoop.security.UserGroupInformation;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -98,6 +99,37 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration parameters) {
+
+    }
+
+    @Override
+    public void openInternal(int taskNumber, int numTasks) throws IOException {
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
+        if (openKerberos) {
+            sleepRandomTime();
+
+            UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    openConnection();
+                    return null;
+                }
+            });
+        } else {
+            openConnection();
+        }
+    }
+
+    private void sleepRandomTime() {
+        try {
+            Thread.sleep(5000L + (long)(10000 * Math.random()));
+        } catch (Exception exception) {
+            LOG.warn("", exception);
+        }
+    }
+
+    public void openConnection() {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
         nameByteMaps = Maps.newConcurrentMap();
@@ -106,9 +138,9 @@ public class HbaseOutputFormat extends RichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
-
             org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
+            connection = ConnectionFactory.createConnection(hConfiguration);
+
             bufferedMutator = connection.getBufferedMutator(
                     new BufferedMutatorParams(TableName.valueOf(tableName))
                             .pool(HTable.getDefaultExecutor(hConfiguration))
@@ -130,11 +162,6 @@ public class HbaseOutputFormat extends RichOutputFormat {
         }
 
         LOG.info("HbaseOutputFormat configure end");
-    }
-
-    @Override
-    public void openInternal(int taskNumber, int numTasks) throws IOException {
-        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
     }
 
     @Override

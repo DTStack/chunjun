@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.hbase.reader;
 
-import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import org.apache.commons.lang.ArrayUtils;
@@ -35,10 +34,12 @@ import org.apache.hadoop.hbase.util.Pair;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.google.common.collect.Maps;
+import org.apache.hadoop.security.UserGroupInformation;
 
 
 /**
@@ -68,8 +69,6 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Result next;
     private transient Map<String,byte[][]> nameMaps;
 
-    private boolean openKerberos = false;
-
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -85,7 +84,17 @@ public class HbaseInputFormat extends RichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig)) {
-            return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            if(HbaseHelper.openKerberos(hbaseConfig)) {
+                UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
+                return ugi.doAs(new PrivilegedAction<HbaseInputSplit[]>() {
+                    @Override
+                    public HbaseInputSplit[] run() {
+                        return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+                    }
+                });
+            } else {
+                return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            }
         }
     }
 
@@ -207,8 +216,6 @@ public class HbaseInputFormat extends RichInputFormat {
         if(null == connection || connection.isClosed()){
             connection = HbaseHelper.getHbaseConnection(hbaseConfig);
         }
-
-        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
 
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
