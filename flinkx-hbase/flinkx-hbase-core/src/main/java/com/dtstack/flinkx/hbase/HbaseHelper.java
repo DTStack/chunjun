@@ -90,7 +90,7 @@ public class HbaseHelper {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
         keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
         KerberosUtil.loadKrb5Conf(hbaseConfigMap);
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
