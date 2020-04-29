@@ -73,6 +73,8 @@ public class HdfsWriter extends DataWriter {
 
     protected long flushInterval;
 
+    protected boolean enableDictionary;
+
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -86,6 +88,7 @@ public class HdfsWriter extends DataWriter {
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, 1024 * 1024 * 1024);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
+        enableDictionary = writerConfig.getParameter().getBooleanVal(KEY_ENABLE_DICTIONARY, true);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
@@ -136,6 +139,7 @@ public class HdfsWriter extends DataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(flushInterval);
+        builder.setEnableDictionary(enableDictionary);
 
         return createOutput(dataSet, builder.finish());
     }

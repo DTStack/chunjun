@@ -66,6 +66,8 @@ public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     protected Configuration conf;
 
+    protected boolean enableDictionary;
+
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
     @Override
