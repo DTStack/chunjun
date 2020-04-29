@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +66,10 @@ public class FtpHandler implements IFtpHandler {
             // 不需要写死ftp server的OS TYPE,FTPClient getSystemType()方法会自动识别
             ftpClient.setConnectTimeout(ftpConfig.getTimeout());
             ftpClient.setDataTimeout(ftpConfig.getTimeout());
-            if ("PASV".equals(ftpConfig.getConnectPattern())) {
+            if (EFtpMode.PASV.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterRemotePassiveMode();
                 ftpClient.enterLocalPassiveMode();
-            } else if ("PORT".equals(ftpConfig.getConnectPattern())) {
+            } else if (EFtpMode.PORT.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterLocalActiveMode();
             }
             int reply = ftpClient.getReplyCode();
@@ -80,7 +81,7 @@ public class FtpHandler implements IFtpHandler {
                 throw new RuntimeException(message);
             }
             //设置命令传输编码
-            String fileEncoding = System.getProperty("file.encoding");
+            String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -88,23 +89,14 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void logoutFtpServer() {
+    public void logoutFtpServer() throws IOException{
         if (ftpClient.isConnected()) {
             try {
                 ftpClient.logout();
-            } catch (IOException e) {
-                LOG.error(DISCONNECT_FAIL_MESSAGE);
-                throw new RuntimeException(e);
-            }finally {
+            } finally {
                 if(ftpClient.isConnected()){
-                    try {
-                        ftpClient.disconnect();
-                    } catch (IOException e) {
-                        LOG.error(DISCONNECT_FAIL_MESSAGE);
-                        throw new RuntimeException(e);
-                    }
+                    ftpClient.disconnect();
                 }
-
             }
         }
     }

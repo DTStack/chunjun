@@ -22,6 +22,8 @@ package com.dtstack.flinkx.util;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -30,6 +32,8 @@ import java.util.List;
  * @date 2019/7/18
  */
 public class ResultPrintUtil {
+
+    private static Logger LOG = LoggerFactory.getLogger(ResultPrintUtil.class);
 
     public static void printResult(JobExecutionResult result){
         List<String> names = Lists.newArrayList();
@@ -56,8 +60,8 @@ public class ResultPrintUtil {
             }
         }
 
-        System.out.println("---------------------------------");
-        System.out.println(builder.toString());
-        System.out.println("---------------------------------");
+        LOG.info("---------------------------------");
+        LOG.info(builder.toString());
+        LOG.info("---------------------------------");
     }
 }

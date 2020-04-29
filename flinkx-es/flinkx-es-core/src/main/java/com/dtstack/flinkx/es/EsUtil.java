@@ -103,7 +103,7 @@ public class EsUtil {
 
     public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) throws WriteRecordException {
         Preconditions.checkArgument(row.getArity() == fields.size());
-        Map<String,Object> jsonMap = new HashMap<>();
+        Map<String,Object> jsonMap = new HashMap<>((fields.size()<<2)/3);
         int i = 0;
         try {
             for(; i < fields.size(); ++i) {
@@ -113,7 +113,7 @@ public class EsUtil {
                 for(int j = 0; j < parts.length - 1; ++j) {
                     String key = parts[j];
                     if(currMap.get(key) == null) {
-                        currMap.put(key, new HashMap<String,Object>());
+                        currMap.put(key, new HashMap<String,Object>(16));
                     }
                     currMap = (Map<String, Object>) currMap.get(key);
                 }

@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.stream.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamInputFormatBuilder extends RichInputFormatBuilder {
+public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private StreamInputFormat format;
 

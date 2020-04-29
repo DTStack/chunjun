@@ -19,8 +19,11 @@
 package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.ftp.SftpHandler;
+import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,7 +44,7 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormat extends FileOutputFormat {
+public class FtpOutputFormat extends BaseFileOutputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -62,10 +65,12 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     private static final String OVERWRITE_MODE = "overwrite";
 
+    private static final int FILE_NAME_PART_SIZE = 3;
+
     @Override
     protected void openSource() throws IOException {
         if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
+            ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }
@@ -106,7 +111,7 @@ public class FtpOutputFormat extends FileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) <= fileIndex;
                 }
 
@@ -315,5 +320,10 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected String getExtension() {
         return ".csv";
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("FtpWriter");
     }
 }

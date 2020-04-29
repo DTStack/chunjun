@@ -29,6 +29,7 @@ import java.util.Set;
  * @author tudou
  */
 public enum  SqlserverCdcEnum {
+
     /**
      * 操作未知
      */
@@ -48,7 +49,9 @@ public enum  SqlserverCdcEnum {
     /**
      * 更新后操作
      */
-    UPDATE_AFTER(4, "update_after");
+    UPDATE_AFTER(4, "update_after"),
+
+    UPDATE(5, "update");
 
     public int code;
     public String name;
@@ -79,7 +82,7 @@ public enum  SqlserverCdcEnum {
     }
 
     public static Set<Integer> transform(String name){
-        if(Objects.equals(name, "update")){
+        if(Objects.equals(name, UPDATE.name)){
             Set<Integer> set = new HashSet<>();
             set.add(UPDATE_BEFORE.code);
             set.add(UPDATE_AFTER.code);

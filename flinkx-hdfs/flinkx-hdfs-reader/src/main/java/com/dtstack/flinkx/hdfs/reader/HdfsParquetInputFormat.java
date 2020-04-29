@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -54,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  * Company: www.dtstack.com
  * @author jiangbo
  */
-public class HdfsParquetInputFormat extends HdfsInputFormat {
+public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private transient Group currentLine;
 
@@ -73,6 +74,8 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private static final long MILLIS_IN_DAY = TimeUnit.DAYS.toMillis(1);
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
+
+    private static final int TIMESTAMP_BINARY_LENGTH = 12;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -126,7 +129,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.size());
             for (int i = 0; i < fullColNames.size(); i++) {
                 Object val = getData(currentLine,fullColTypes.get(i),i);
@@ -151,7 +154,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 }
 
                 if(val instanceof String){
-                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                    val = StringUtil.string2col(String.valueOf(val), metaColumn.getType(), metaColumn.getTimeFormat());
                 }
 
                 row.setField(i,val);
@@ -166,7 +169,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return !nextLine();
     }
 
-    private Object getData(Group currentLine,String type,int index){
+    public Object getData(Group currentLine,String type,int index){
         Object data = null;
         ColumnType columnType = ColumnType.fromString(type);
 
@@ -196,10 +199,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 case "decimal" : {
                     DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
                     String primitiveTypeName = currentLine.getType().getType(index).asPrimitiveType().getPrimitiveTypeName().name();
-                    if ("INT32".equals(primitiveTypeName)){
+                    if (ColumnType.INT32.name().equals(primitiveTypeName)){
                         int intVal = currentLine.getInteger(index,0);
-                        data = longToDecimalStr((long)intVal,dm.getScale());
-                    } else if("INT64".equals(primitiveTypeName)){
+                        data = longToDecimalStr(intVal,dm.getScale());
+                    } else if(ColumnType.INT64.name().equals(primitiveTypeName)){
                         long longVal = currentLine.getLong(index,0);
                         data = longToDecimalStr(longVal,dm.getScale());
                     } else {
@@ -227,7 +230,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         List<String> allFilePaths;
         HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
 
-        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS)) {
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs)) {
             allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
         } catch (Exception e) {
             throw new IOException(e);
@@ -299,13 +302,12 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private String getTypeName(String method){
         String typeName;
         switch (method){
+            case "getBoolean":
             case "getInteger" : typeName = "int";break;
             case "getInt96" : typeName = "bigint";break;
             case "getFloat" : typeName = "float";break;
             case "getDouble" : typeName = "double";break;
             case "getBinary" : typeName = "binary";break;
-            case "getString" : typeName = "string";break;
-            case "getBoolean" : typeName = "int";break;
             default:typeName = "string";
         }
 
@@ -316,11 +318,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
      * @param timestampBinary
      * @return
      */
-    private long getTimestampMillis(Binary timestampBinary)
-    {
-        if (timestampBinary.length() != 12) {
+    private long getTimestampMillis(Binary timestampBinary) {
+        if (timestampBinary.length() != TIMESTAMP_BINARY_LENGTH) {
             return 0;
         }
+
         byte[] bytes = timestampBinary.getBytes();
 
         long timeOfDayNanos = Longs.fromBytes(bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]);

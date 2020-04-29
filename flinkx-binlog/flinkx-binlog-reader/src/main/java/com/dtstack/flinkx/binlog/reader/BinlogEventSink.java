@@ -36,7 +36,9 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-
+/**
+ * @author toutian
+ */
 public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
@@ -101,7 +103,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         }
 
         for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            Map<String,Object> message = new HashMap<>();
+            Map<String,Object> message = new HashMap<>(8);
             message.put("type", eventType.toString());
             message.put("schema", schema);
             message.put("table", table);
@@ -134,7 +136,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     }
 
     private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
             map.put(column.getName(), column.getValue());
         }

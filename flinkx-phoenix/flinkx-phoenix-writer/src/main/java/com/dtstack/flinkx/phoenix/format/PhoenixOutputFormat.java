@@ -39,7 +39,7 @@ public class PhoenixOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = PhoenixUtil.getConnectionInternal(dbURL, username, password);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
