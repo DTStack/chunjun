@@ -293,11 +293,12 @@ public abstract class FileOutputFormat extends RichOutputFormat {
                     moveAllTemporaryDataFileToDirectory();
 
                     LOG.info("The task ran successfully,clear temporary data files");
+                    closeSource();
                     clearTemporaryDataFiles();
                 }
+            }else{
+                closeSource();
             }
-
-            closeSource();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
