@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 
@@ -36,6 +37,8 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
+
+    private static final char PARTITION_SPLIT_CHAR = '=';
 
     protected Map<String,Object> hadoopConfig;
 
@@ -63,6 +66,8 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     protected Object value;
 
     protected String filterRegex;
+
+    protected String currentPartition;
 
     protected transient FileSystem fs;
 
@@ -94,6 +99,21 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     public void closeInternal() throws IOException {
         if(recordReader != null) {
             recordReader.close();
+        }
+    }
+
+    /**
+     * 从hdfs路径中获取当前分区信息
+     * @param path hdfs路径
+     */
+    public void findCurrentPartition(Path path){
+        String ptPathName = path.getParent().getName();
+        currentPartition = ptPathName.substring(ptPathName.lastIndexOf(PARTITION_SPLIT_CHAR) + 1);
+        for (MetaColumn column : metaColumns) {
+            if(column.getPart()){
+                column.setValue(currentPartition);
+                break;
+            }
         }
     }
 

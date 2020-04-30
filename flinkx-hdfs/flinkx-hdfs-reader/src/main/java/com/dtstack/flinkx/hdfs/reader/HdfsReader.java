@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,9 +43,9 @@ public class HdfsReader extends BaseDataReader {
     protected String fileType;
     protected String path;
     protected String fieldDelimiter;
-    private List<MetaColumn> metaColumns;
+    protected List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
-    private String filterRegex;
+    protected String filterRegex;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);

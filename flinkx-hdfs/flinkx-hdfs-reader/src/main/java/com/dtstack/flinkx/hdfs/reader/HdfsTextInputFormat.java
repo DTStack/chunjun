@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -87,6 +87,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
         org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
+        findCurrentPartition(((FileSplit) fileSplit).getPath());
         recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
         key = new LongWritable();
         value = new Text();

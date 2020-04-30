@@ -31,6 +31,12 @@ import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile;
+import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
+import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
+import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.mapred.JobConf;
@@ -47,6 +53,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
+import java.io.*;
+import java.util.*;
 
 /**
  * The subclass of HdfsInputFormat which handles orc files
@@ -212,13 +221,13 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     val = inspector.getStructFieldData(value, fields.get(metaColumn.getIndex()));
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if(metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String || val instanceof org.apache.hadoop.io.Text){
