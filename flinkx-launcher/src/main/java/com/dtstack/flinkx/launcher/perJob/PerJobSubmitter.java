@@ -74,7 +74,7 @@ public class PerJobSubmitter {
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         perJobClusterClientBuilder.init(launcherOptions, conProp);
 
-        YarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(conProp, launcherOptions, jobGraph);
+        YarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(launcherOptions);
         ClusterClientProvider<ApplicationId> provider = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
         String flinkJobId = jobGraph.getJobID().toString();

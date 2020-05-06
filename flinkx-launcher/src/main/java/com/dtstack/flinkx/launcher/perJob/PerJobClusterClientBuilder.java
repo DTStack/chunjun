@@ -21,7 +21,6 @@ import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
@@ -77,13 +76,11 @@ public class PerJobClusterClientBuilder {
 
     /**
      * create a yarn cluster descriptor which is used to start the application master
-     * @param confProp taskParams
      * @param launcherOptions LauncherOptions
-     * @param jobGraph JobGraph
      * @return
      * @throws MalformedURLException
      */
-    public YarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options launcherOptions, JobGraph jobGraph) throws MalformedURLException {
+    public YarnClusterDescriptor createPerJobClusterDescriptor(Options launcherOptions) throws MalformedURLException {
         String flinkJarPath = launcherOptions.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
@@ -92,9 +89,6 @@ public class PerJobClusterClientBuilder {
         } else {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
-
-        Configuration conf = new Configuration();
-        confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
         YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
                 flinkConfig,
                 yarnConf,
