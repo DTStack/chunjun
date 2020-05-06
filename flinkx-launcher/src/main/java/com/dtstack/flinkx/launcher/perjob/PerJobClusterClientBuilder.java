@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.launcher.perjob;
 
-import com.dtstack.flinkx.launcher.PluginUtil;
 import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
@@ -34,7 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Date: 2019/09/11
@@ -49,14 +50,17 @@ public class PerJobClusterClientBuilder {
 
     private YarnConfiguration yarnConf;
 
+    private Configuration flinkConfig;
+
     /**
      * init yarnClient
      */
-    public void init(YarnConfiguration yarnConf, Configuration flinkConfig, Properties userConf) throws Exception {
-        userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+    public void init(YarnConfiguration yarnConf, Configuration flinkConfig, Properties conProp) throws Exception {
+        conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         this.yarnConf = yarnConf;
+        this.flinkConfig = flinkConfig;
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
@@ -66,12 +70,11 @@ public class PerJobClusterClientBuilder {
 
     /**
      * create a yarn cluster descriptor which is used to start the application master
-     * @param confProp taskParams
      * @param options LauncherOptions
      * @return
      * @throws MalformedURLException
      */
-    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options) throws MalformedURLException {
+    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Options options) throws MalformedURLException {
         String flinkJarPath = options.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
@@ -81,10 +84,7 @@ public class PerJobClusterClientBuilder {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
 
-        Configuration conf = new Configuration();
-        confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
-
-        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, options.getFlinkconf(), yarnClient, false);
+        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(flinkConfig, yarnConf, options.getFlinkconf(), yarnClient, false);
         descriptor.setName(options.getJobid());
 
         List<File> shipFiles = new ArrayList<>();
@@ -98,11 +98,6 @@ public class PerJobClusterClientBuilder {
                 }
             }
         }
-
-//        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), "shipfile")) {
-//            List<File> files = PluginUtil.getAllPluginPath(options.getPluginRoot());
-//            shipFiles.addAll(files);
-//        }
 
         if (StringUtils.isNotBlank(options.getQueue())) {
             descriptor.setQueue(options.getQueue());
