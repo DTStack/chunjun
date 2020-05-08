@@ -50,6 +50,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.*;
 
@@ -118,6 +119,8 @@ public class JdbcInputFormat extends RichInputFormat {
     protected MetaColumn restoreColumn;
 
     protected Row lastRow = null;
+
+    protected transient final static ThreadLocal<SimpleDateFormat> sdf = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMddHHmmss"));
 
     /**
      * The hadoop config for metric
@@ -576,7 +579,12 @@ public class JdbcInputFormat extends RichInputFormat {
         } else if(ColumnType.isNumberType(incrementColType)){
             endLocationSql = incrementCol + operator + location;
         } else {
-            endTimeStr = String.format("'%s'",location);
+            // FIXME 京东方特殊逻辑
+            String part1 = location.substring(0, 13);
+            String part2 = location.substring(13);
+            String timeStr = sdf.get().format(new Date(Long.parseLong(part1))) + part2;
+
+            endTimeStr = String.format("'%s'",timeStr);
             endLocationSql = incrementCol + operator + endTimeStr;
         }
 
@@ -655,7 +663,7 @@ public class JdbcInputFormat extends RichInputFormat {
      * @return
      */
     private String getLocation(String columnType, Object columnVal){
-        String location;
+        String location = null;
         if (columnVal == null){
             return null;
         }
@@ -682,7 +690,17 @@ public class JdbcInputFormat extends RichInputFormat {
         } else if(ColumnType.isNumberType(columnType)){
             location = String.valueOf(columnVal);
         } else {
-            location = String.valueOf(columnVal);
+            // FIXME 京东方逻辑
+            String timeStr = columnVal.toString();
+            String part1 = timeStr.substring(0, 14);
+            String part2 = timeStr.substring(14);
+
+            try {
+                Date date = sdf.get().parse(part1);
+                location = date.getTime() + part2;
+            } catch (Exception e) {
+                LOG.warn("Parse increment column error:", e);
+            }
         }
 
         return location;
