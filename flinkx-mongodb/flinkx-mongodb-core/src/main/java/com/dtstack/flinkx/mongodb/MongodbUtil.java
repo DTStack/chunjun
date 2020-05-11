@@ -70,6 +70,8 @@ public class MongodbUtil {
 
     private static  final Integer DEFAULT_SOCKET_TIMEOUT = 0;
 
+    private static  final Integer DEFAULT_SERVER_SELECTION_TIMEOUT = 5 * 1000;
+
     /**
      * Get mongo client
      * @param mongodbConfig
@@ -96,7 +98,8 @@ public class MongodbUtil {
 
                 mongoClient = new MongoClient(serverAddress,credentials,options);
             }
-
+            //验证client是否连接成功
+            mongoClient.listDatabases();
             LOG.info("Get mongodb client successful");
             return mongoClient;
         }catch (Exception e){
@@ -195,6 +198,10 @@ public class MongodbUtil {
         int socketTimeout = MapUtils.getIntValue(mongodbConfig, KEY_SOCKET_TIMEOUT, DEFAULT_SOCKET_TIMEOUT);
         LOG.info("Mongodb config -- socketTimeout:" + socketTimeout);
         build.maxWaitTime(socketTimeout);
+
+        int serverSelectionTimeout = MapUtils.getIntValue(mongodbConfig, KEY_SERVER_SELECTION_TIMEOUT, DEFAULT_SERVER_SELECTION_TIMEOUT);
+        LOG.info("Mongodb config -- serverSelectionTimeout:" + serverSelectionTimeout);
+        build.serverSelectionTimeout(serverSelectionTimeout);
 
         build.writeConcern(WriteConcern.UNACKNOWLEDGED);
         return build.build();

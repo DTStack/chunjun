@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbConfigKeys;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -38,7 +39,9 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Read plugin for reading static data
@@ -171,7 +174,8 @@ public class MongodbInputFormat extends RichInputFormat {
                 splits.add(new MongodbInputSplit((int)(size * minNumSplits), (int)(docNum - size * minNumSplits)));
             }
         } catch (Exception e){
-            LOG.error("{}", e);
+            LOG.error("error to create inputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
+            throw e;
         } finally {
             MongodbUtil.close(client, null);
         }
