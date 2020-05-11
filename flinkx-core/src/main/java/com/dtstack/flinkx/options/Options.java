@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,22 +28,22 @@ import com.dtstack.flinkx.enums.ClusterMode;
  */
 public class Options {
 
-      @OptionRequired(description = "Running mode")
-      private String mode = ClusterMode.local.name();
+    @OptionRequired(description = "Running mode")
+    private String mode = ClusterMode.local.name();
 
-      @OptionRequired(required = true,description = "Job config")
-      private String job;
+    @OptionRequired(required = true, description = "Job config")
+    private String job;
 
-      @OptionRequired(description = "Monitor Addresses")
-      private String monitor;
+    @OptionRequired(description = "Monitor Addresses")
+    private String monitor;
 
-      @OptionRequired(description = "Job unique id")
-      private String jobid = "Flink Job";
+    @OptionRequired(description = "Job unique id")
+    private String jobid = "Flink Job";
 
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
 
-    @OptionRequired(required = true,description = "env properties")
+    @OptionRequired(required = true, description = "env properties")
     private String pluginRoot;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
@@ -69,6 +69,9 @@ public class Options {
      */
     @OptionRequired(description = "savepoint path")
     private String s;
+
+    @OptionRequired(description = "plugin load mode, by classpath or shipfile")
+    private String pluginLoadMode = "shipfile";
 
     public String getS() {
         return s;
@@ -172,5 +175,13 @@ public class Options {
 
     public void setFlinkLibJar(String flinkLibJar) {
         this.flinkLibJar = flinkLibJar;
+    }
+
+    public String getPluginLoadMode() {
+        return pluginLoadMode;
+    }
+
+    public void setPluginLoadMode(String pluginLoadMode) {
+        this.pluginLoadMode = pluginLoadMode;
     }
 }

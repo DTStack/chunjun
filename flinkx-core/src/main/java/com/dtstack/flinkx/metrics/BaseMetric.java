@@ -64,7 +64,7 @@ public class BaseMetric {
         return metricCounters;
     }
 
-    public void waitForReportMetrics() {
+    public void waitForMetricReport(){
         try {
             Thread.sleep(delayPeriodMill);
         } catch (InterruptedException e){

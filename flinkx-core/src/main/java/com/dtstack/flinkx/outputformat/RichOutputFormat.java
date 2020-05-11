@@ -24,6 +24,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
@@ -193,7 +194,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
      */
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        LOG.info("subtask[" + taskNumber +  " open start");
+        LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
@@ -340,6 +341,9 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
                 LOG.error(e.getMessage());
             }
+            if(DtLogger.isEnableTrace()){
+                LOG.trace("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
+            }
         }
     }
 
@@ -394,6 +398,10 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
+    protected void notSupportBatchWrite(String writerName) {
+        throw new UnsupportedOperationException(writerName + "不支持批量写入");
+    }
+
     protected void writeRecordInternal() {
         try {
             writeMultipleRecords();
@@ -435,7 +443,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     @Override
     public void close() throws IOException {
-        LOG.info("subtask[" + taskNumber + "] close()");
+        LOG.info("subtask[{}}] close()", taskNumber);
 
         try{
             if(rows.size() != 0) {
@@ -458,8 +466,8 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     waitWhile("#4");
                 }
 
-                if(outputMetric != null){
-                    outputMetric.waitForReportMetrics();
+                if (outputMetric != null) {
+                    outputMetric.waitForMetricReport();
                 }
             }finally {
                 if(dirtyDataManager != null) {
@@ -471,7 +479,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
                     accumulatorCollector.close();
                 }
             }
-            LOG.info("subtask[" + taskNumber + "] close() finished");
+            LOG.info("subtask[{}}] close() finished", taskNumber);
         }
     }
 

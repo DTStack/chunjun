@@ -67,6 +67,8 @@ public class StreamReader extends DataReader {
         builder.setBytes(bytes);
         builder.setRestoreConfig(restoreConfig);
         builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
+
         return createInput(builder.finish());
     }
 }

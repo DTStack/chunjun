@@ -29,7 +29,9 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.security.PrivilegedAction;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -43,17 +45,15 @@ public class FileSystemUtil {
     private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
     private static final String KEY_HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
-    private static final String KEY_DFS_NAMENODE_KERBEROS_RINCIPAL = "dfs.namenode.kerberos.principal";
-    private static final String KEY_DFS_NAMENODE_KEYTAB_FILE = "dfs.namenode.keytab.file";
     private static final String KEY_DEFAULT_FS = "fs.default.name";
     private static final String KEY_FS_HDFS_IMPL_DISABLE_CACHE = "fs.hdfs.impl.disable.cache";
     private static final String KEY_HA_DEFAULT_FS = "fs.defaultFS";
     private static final String KEY_DFS_NAMESERVICES = "dfs.nameservices";
     private static final String KEY_HADOOP_USER_NAME = "hadoop.user.name";
 
-    public static FileSystem getFileSystem(Map<String, Object> hadoopConfigMap, String defaultFs, String jobId, String plugin) throws Exception {
+    public static FileSystem getFileSystem(Map<String, Object> hadoopConfigMap, String defaultFs) throws Exception {
         if(isOpenKerberos(hadoopConfigMap)){
-            return getFsWithKerberos(hadoopConfigMap, jobId, plugin, defaultFs);
+            return getFsWithKerberos(hadoopConfigMap, defaultFs);
         }
 
         Configuration conf = getConfiguration(hadoopConfigMap, defaultFs);
@@ -77,7 +77,7 @@ public class FileSystemUtil {
         }
     }
 
-    private static boolean isOpenKerberos(Map<String, Object> hadoopConfig){
+    public static boolean isOpenKerberos(Map<String, Object> hadoopConfig){
         if(!MapUtils.getBoolean(hadoopConfig, KEY_HADOOP_SECURITY_AUTHORIZATION, false)){
             return false;
         }
@@ -85,15 +85,10 @@ public class FileSystemUtil {
         return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
     }
 
-    private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String jobId, String plugin, String defaultFs) throws Exception{
-        String keytab = getKeytab(hadoopConfig);
-        String principal = getPrincipal(hadoopConfig);
+    private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String defaultFs) throws Exception{
+        UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs);
+        UserGroupInformation.setLoginUser(ugi);
 
-        keytab = KerberosUtil.loadFile(hadoopConfig, keytab, jobId, plugin);
-        principal = KerberosUtil.findPrincipalFromKeytab(principal, keytab);
-        KerberosUtil.loadKrb5Conf(hadoopConfig, jobId, plugin);
-
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytab);
         return ugi.doAs(new PrivilegedAction<FileSystem>() {
             @Override
             public FileSystem run(){
@@ -106,32 +101,23 @@ public class FileSystemUtil {
         });
     }
 
-    private static String getPrincipal(Map<String, Object> hadoopConfig){
-        String principal = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KERBEROS_RINCIPAL);
-        if(StringUtils.isNotEmpty(principal)){
-            return principal;
-        }
+    public static UserGroupInformation getUGI(Map<String, Object> hadoopConfig, String defaultFs) throws IOException {
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
 
-        throw new IllegalArgumentException("Can not find principal from hadoopConfig");
-    }
+        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName);
+        String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
+        KerberosUtil.loadKrb5Conf(hadoopConfig);
 
-    private static String getKeytab(Map<String, Object> hadoopConfig){
-        String keytab = MapUtils.getString(hadoopConfig, KEY_DFS_NAMENODE_KEYTAB_FILE);
-        if(StringUtils.isNotEmpty(keytab)){
-            return keytab;
-        }
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUGI(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation.setLoginUser(ugi);
 
-        throw new IllegalArgumentException("Can not find keytab from hadoopConfig");
+        return ugi;
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
-        fillConfig(confMap, defaultFs);
+        confMap = fillConfig(confMap, defaultFs);
 
         Configuration conf = new Configuration();
-        if(confMap == null){
-            return conf;
-        }
-
         confMap.forEach((key, val) -> {
             if(val != null){
                 conf.set(key, val.toString());
@@ -142,13 +128,9 @@ public class FileSystemUtil {
     }
 
     public static JobConf getJobConf(Map<String, Object> confMap, String defaultFs){
-        fillConfig(confMap, defaultFs);
+        confMap = fillConfig(confMap, defaultFs);
 
         JobConf jobConf = new JobConf();
-        if (confMap == null) {
-            return jobConf;
-        }
-
         confMap.forEach((key, val) -> {
             if(val != null){
                 jobConf.set(key, val.toString());
@@ -158,9 +140,9 @@ public class FileSystemUtil {
         return jobConf;
     }
 
-    private static void fillConfig(Map<String, Object> confMap, String defaultFs) {
+    private static Map<String, Object> fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
-            return;
+            confMap = new HashMap<>();
         }
 
         if (isHaMode(confMap)) {
@@ -174,6 +156,7 @@ public class FileSystemUtil {
         }
 
         confMap.put(KEY_FS_HDFS_IMPL_DISABLE_CACHE, "true");
+        return confMap;
     }
 
     private static boolean isHaMode(Map<String, Object> confMap){

@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
@@ -42,6 +43,7 @@ import org.apache.parquet.schema.Type;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -60,8 +62,6 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private transient ParquetReader<Group> currentFileReader;
 
-    private transient List<String> allFilePaths;
-
     private transient List<String> fullColNames;
 
     private transient List<String> fullColTypes;
@@ -77,41 +77,39 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
     @Override
-    protected void configureAnythingElse() {
-        FileSystem fs = null;
-        try {
-            HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
-
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
-            allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        } finally {
-            if(fs != null){
-                try {
-                    fs.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Close FileSystem error after get all files", e);
-                }
-            }
-        }
-    }
-
-    @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         currentSplitFilePaths = ((HdfsParquetSplit)inputSplit).getPaths();
     }
 
     private boolean nextLine() throws IOException{
         if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
-            nextFile();
+            if (openKerberos) {
+                ugi.doAs(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        try {
+                            nextFile();
+                            return null;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            } else {
+                nextFile();
+            }
         }
 
         if (currentFileReader == null){
             return false;
         }
 
-        currentLine = currentFileReader.read();
+        if (openKerberos) {
+            currentLine = nextLineWithKerberos();
+        } else {
+            currentLine = currentFileReader.read();
+        }
+
         if (fullColNames == null && currentLine != null){
             fullColNames = new ArrayList<>();
             fullColTypes = new ArrayList<>();
@@ -137,6 +135,19 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         }
 
         return currentLine != null;
+    }
+
+    private Group nextLineWithKerberos() {
+        return ugi.doAs(new PrivilegedAction<Group>() {
+            @Override
+            public Group run() {
+                try {
+                    return currentFileReader.read();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     private void nextFile() throws IOException{
@@ -235,7 +246,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 }
                 case "date" : {
                     String val = currentLine.getValueToString(index,0);
-                    data = new Timestamp(Integer.parseInt(val) * 60 * 60 * 24 * 1000L).toString().substring(0,10);
+                    data = new Timestamp(Integer.parseInt(val) * MILLIS_IN_DAY).toString().substring(0,10);
                     break;
                 }
                 default: data = currentLine.getValueToString(index,0);break;
@@ -248,8 +259,17 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsParquetSplit[] createInputSplits(int minNumSplits) throws IOException {
-        if(allFilePaths != null && allFilePaths.size() > 0){
+    public HdfsParquetSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        List<String> allFilePaths;
+        HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
+
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS)) {
+            allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
+        if(allFilePaths.size() > 0){
             HdfsParquetSplit[] splits = new HdfsParquetSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
                 splits[i] = new HdfsParquetSplit(i, new ArrayList<>());

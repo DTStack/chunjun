@@ -22,11 +22,7 @@ import com.dtstack.flinkx.ftp.*;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,22 +49,18 @@ public class FtpInputFormat extends RichInputFormat {
     private transient String line;
 
     @Override
-    public void configure(Configuration parameters) {
-        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
     @Override
-    public BaseStatistics getStatistics(BaseStatistics cachedStatistics) throws IOException {
-        return null;
-    }
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
+        ftpHandler.loginFtpServer(ftpConfig);
 
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
         List<String> files = new ArrayList<>();
 
         String path = ftpConfig.getPath();
@@ -88,13 +80,9 @@ public class FtpInputFormat extends RichInputFormat {
         for(int i = 0; i < files.size(); ++i) {
             ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
         }
+
         ftpHandler.logoutFtpServer();
         return ftpInputSplits;
-    }
-
-    @Override
-    public InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
     }
 
     @Override
@@ -161,5 +149,4 @@ public class FtpInputFormat extends RichInputFormat {
             ftpHandler.logoutFtpServer();
         }
     }
-
 }

@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.metrics;
 
+import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.URLUtil;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -123,6 +124,9 @@ public class AccumulatorCollector {
                 monitorUrls.add(url);
             }
         }
+        if(DtLogger.isEnableDebug()){
+            LOG.debug("monitorUrls = {}", gson.toJson(monitorUrls));
+        }
     }
 
     private void checkMonitorUrlIsValid(){
@@ -202,6 +206,7 @@ public class AccumulatorCollector {
         return valueAccumulator.getLocal().getLocalValue();
     }
 
+    @SuppressWarnings("unchecked")
     private void collectAccumulatorWithApi(){
         for (String monitorUrl : monitorUrls) {
             try {
@@ -211,10 +216,13 @@ public class AccumulatorCollector {
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
                     if(name != null && !"tableCol".equalsIgnoreCase(name)) {
-                        long value = Double.valueOf((String) accumulator.get(KEY_VALUE)).longValue();
-                        ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-                        if(valueAccumulator != null){
-                            valueAccumulator.setGlobal(value);
+                        String accValue = (String) accumulator.get(KEY_VALUE);
+                        if(!"null".equals(accValue)){
+                            long value = Double.valueOf(accValue).longValue();
+                            ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
+                            if(valueAccumulator != null){
+                                valueAccumulator.setGlobal(value);
+                            }
                         }
                     }
                 }

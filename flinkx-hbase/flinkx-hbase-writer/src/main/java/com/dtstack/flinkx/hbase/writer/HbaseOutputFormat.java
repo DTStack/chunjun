@@ -35,6 +35,7 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -105,7 +106,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "writer");
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
 
             org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
             bufferedMutator = connection.getBufferedMutator(
@@ -220,17 +221,17 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        throw new IllegalArgumentException();
+        notSupportBatchWrite("HbaseWriter");
     }
 
-    private byte[] getRowkey(Row record) {
+    private byte[] getRowkey(Row record) throws Exception{
         Map<String, Object> nameValueMap = new HashMap<>();
         for (Integer keyColumnIndex : rowKeyColumnIndex) {
             nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
         }
 
         String rowKeyStr = functionTree.evaluate(nameValueMap);
-        return rowKeyStr.getBytes();
+        return rowKeyStr.getBytes(StandardCharsets.UTF_8);
     }
 
     public long getVersion(Row record){
@@ -480,10 +481,6 @@ public class HbaseOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
-
-        if(openKerberos){
-            KerberosUtil.clear(jobId);
-        }
     }
 
 }

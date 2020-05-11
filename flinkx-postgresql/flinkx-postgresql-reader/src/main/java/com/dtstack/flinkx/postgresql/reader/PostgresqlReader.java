@@ -44,7 +44,11 @@ public class PostgresqlReader extends JdbcDataReader {
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
-        super.builder = new JdbcInputFormatBuilder(new PostgresqlInputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 
     @Override

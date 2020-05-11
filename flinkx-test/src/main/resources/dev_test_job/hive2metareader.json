@@ -1,0 +1,43 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "dbList": [],
+            "password": "abc123",
+            "jdbcUrl": "jdbc:hive2://172.16.100.105:10000",
+            "username": "root"
+          },
+          "name": "metadatahive2reader"
+        },
+        "writer": {
+          "parameter": {
+            "method": "post",
+            "column": [],
+            "batchInterval": 10,
+            "header": [],
+            "body": [],
+            "params": {
+              "sourceId": 30,
+              "jobId": "122a4c2f",
+              "tenantId": 47,
+              "taskId": 50
+            },
+            "url": "http://172.16.8.194:8876/dassets/v1/syncJob/syncCallBack"
+          },
+          "name": "restapiwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 3
+      }
+    }
+  }
+}

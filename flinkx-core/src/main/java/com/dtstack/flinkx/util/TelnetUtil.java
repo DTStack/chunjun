@@ -1,6 +1,9 @@
 package com.dtstack.flinkx.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.telnet.TelnetClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
@@ -8,9 +11,12 @@ import java.util.regex.Pattern;
 
 public class TelnetUtil {
 
+    protected static final Logger LOG = LoggerFactory.getLogger(TelnetUtil.class);
+
     private static Pattern JDBC_PATTERN = Pattern.compile("(?<host>[^:@/]+):(?<port>\\d+).*");
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
+    private static final String SPLIT_KEY = ",";
 
     public static void telnet(String ip,int port) {
         try {
@@ -22,6 +28,7 @@ public class TelnetUtil {
                         client = new TelnetClient();
                         client.setConnectTimeout(3000);
                         client.connect(ip,port);
+                        return true;
                     } catch (Exception e){
                         throw new RuntimeException("Unable connect to : " + ip + ":" + port);
                     } finally {
@@ -32,13 +39,11 @@ public class TelnetUtil {
                         } catch (Exception ignore){
                         }
                     }
-                    return null;
                 }
             }, 3,1000,false);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.warn("", e);
         }
-
     }
 
     public static void telnet(String url) {
@@ -56,12 +61,22 @@ public class TelnetUtil {
         }
 
         if (host == null || port == 0){
-            throw new IllegalArgumentException("The url format is incorrect");
+            //oracle高可用jdbc url此处获取不到IP端口，直接return。
+            return;
         }
 
         System.out.println("host:" + host);
         System.out.println("port:" + port);
 
-        telnet(host,port);
+        if(host.contains(SPLIT_KEY)){
+            String[] hosts = host.split(SPLIT_KEY);
+            for (String s : hosts) {
+                if(StringUtils.isNotBlank(s)){
+                    telnet(s,port);
+                }
+            }
+        }else{
+            telnet(host,port);
+        }
     }
 }

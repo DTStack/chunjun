@@ -42,6 +42,7 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -262,7 +263,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(DateUtil.columnToTimestamp(column,null));
                 break;
             case BINARY:
-                recordList.add(new BytesWritable(rowData.getBytes()));
+                recordList.add(new BytesWritable(rowData.getBytes(StandardCharsets.UTF_8)));
                 break;
             default:
                 throw new IllegalArgumentException();

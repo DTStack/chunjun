@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -72,7 +73,7 @@ public class MetricLatch extends Latch {
 
     private int getIntMetricVal(String requestUrl) {
         try(InputStream inputStream = URLUtil.open(requestUrl)) {
-            try(Reader rd = new InputStreamReader(inputStream)) {
+            try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {

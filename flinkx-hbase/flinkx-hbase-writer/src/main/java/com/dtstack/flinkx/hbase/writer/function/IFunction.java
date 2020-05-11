@@ -25,5 +25,5 @@ package com.dtstack.flinkx.hbase.writer.function;
  */
 public interface IFunction {
 
-    String evaluate(Object val);
+    String evaluate(Object val) throws Exception;
 }

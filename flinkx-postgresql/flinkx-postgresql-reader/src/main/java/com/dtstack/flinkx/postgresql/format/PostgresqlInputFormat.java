@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
 import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -29,7 +30,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
@@ -48,40 +48,36 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
             LOG.info(inputSplit.toString());
 
             ClassUtil.forName(drivername, getClass().getClassLoader());
+            initMetric(inputSplit);
 
-            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
+            String startLocation = incrementConfig.getStartLocation();
+            if (incrementConfig.isPolling()) {
+                if (StringUtils.isNotEmpty(startLocation)) {
+                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                }
+                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
+            } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
             }
 
-            initMetric(inputSplit);
-
             if(!canReadData(inputSplit)){
                 LOG.warn("Not read data when the start location are equal to end location");
-
                 hasNext = false;
                 return;
             }
 
-            dbConn = DBUtil.getConnection(dbURL, username, password);
-
-            // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
-            dbConn.setAutoCommit(false);
-
-            // 读取前先提交事务，确保程序异常退出时，下次再读取PG时的顺序不变
-            dbConn.commit();
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-            statement.setFetchSize(fetchSize);
-            statement.setQueryTimeout(queryTimeOut);
-            String querySql = buildQuerySql(inputSplit);
-            resultSet = statement.executeQuery(querySql);
+            querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
+            executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 
             boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
-            hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
                 descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password,databaseInterface,table,metaColumns);

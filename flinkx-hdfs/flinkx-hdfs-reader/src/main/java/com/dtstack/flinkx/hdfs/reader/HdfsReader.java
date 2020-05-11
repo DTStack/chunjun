@@ -28,6 +28,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,6 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class HdfsReader extends DataReader {
-    protected String type;
     protected String defaultFS;
     protected String fileType;
     protected String path;
@@ -80,6 +80,7 @@ public class HdfsReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);
         builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

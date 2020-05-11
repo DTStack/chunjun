@@ -40,6 +40,10 @@ public class MysqlReader extends JdbcDataReader {
         super(config, env);
         setDatabaseInterface(new MySqlDatabaseMeta());
         dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
-        super.builder = new JdbcInputFormatBuilder(new MysqlInputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new MysqlInputFormat());
     }
 }

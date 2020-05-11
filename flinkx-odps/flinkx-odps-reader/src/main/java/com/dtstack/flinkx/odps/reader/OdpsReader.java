@@ -25,8 +25,10 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
+
 import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
 
 /**
@@ -63,6 +65,7 @@ public class OdpsReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
         builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());
     }

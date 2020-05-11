@@ -45,6 +45,10 @@ public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
         format.metaColumns = metaColumns;
     }
 
+    public void setWriteDelimiter(String writeDelimiter) {
+        format.writeDelimiter = writeDelimiter;
+    }
+
     @Override
     protected void checkFormat() {
 
