@@ -56,6 +56,10 @@
                                     <pattern>com.mysql</pattern>
                                     <shadedPattern>shade.polardb.com.mysql</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>shade.core.com.google</shadedPattern>
+                                </relocation>
                             </relocations>
 
                             <transformers>

@@ -62,7 +62,7 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google</pattern>
-                                    <shadedPattern>shade.carbondatareader.com.google</shadedPattern>
+                                    <shadedPattern>shade.core.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

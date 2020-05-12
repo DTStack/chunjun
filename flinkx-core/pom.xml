@@ -204,8 +204,8 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>shade.core.com.google</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.http</pattern>

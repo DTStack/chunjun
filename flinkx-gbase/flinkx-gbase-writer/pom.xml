@@ -63,7 +63,7 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google</pattern>
-                                    <shadedPattern>shade.gbasewriter.com.google</shadedPattern>
+                                    <shadedPattern>shade.core.com.google</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

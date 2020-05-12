@@ -99,8 +99,8 @@
                         </filters>
                         <relocations>
                             <relocation>
-                                <pattern>com.google.common</pattern>
-                                <shadedPattern>shade.binlog.com.google.common</shadedPattern>
+                                <pattern>com.google</pattern>
+                                <shadedPattern>shade.core.com.google</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
