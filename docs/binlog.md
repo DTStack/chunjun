@@ -1,6 +1,6 @@
 # MySQL binlog读取插件（*reader）
 
-## 1.首先给莫个用户赋权，有读binglog的权限
+## 1.首先给某个用户赋权，有读binglog的权限
 
      GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT
      ON *.* TO 'xxx'@'%' IDENTIFIED BY 'xxx';
