@@ -69,6 +69,10 @@
                     <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
     </dependencies>
@@ -99,8 +103,12 @@
                         </filters>
                         <relocations>
                             <relocation>
-                                <pattern>com.google</pattern>
-                                <shadedPattern>shade.core.com.google</shadedPattern>
+                                <pattern>com.google.common</pattern>
+                                <shadedPattern>shade.core.com.google.common</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.google.thirdparty</pattern>
+                                <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
