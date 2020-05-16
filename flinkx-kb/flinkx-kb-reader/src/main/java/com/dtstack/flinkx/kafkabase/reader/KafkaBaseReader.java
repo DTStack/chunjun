@@ -20,10 +20,12 @@ package com.dtstack.flinkx.kafkabase.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
@@ -41,6 +43,7 @@ public class KafkaBaseReader extends BaseDataReader {
     protected String codec;
     protected boolean blankIgnore;
     protected Map<String, String> consumerSettings;
+    protected List<MetaColumn> metaColumns;
 
     @SuppressWarnings("unchecked")
     public KafkaBaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -51,6 +54,7 @@ public class KafkaBaseReader extends BaseDataReader {
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
         blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
@@ -62,7 +66,7 @@ public class KafkaBaseReader extends BaseDataReader {
         format.setBlankIgnore(blankIgnore);
         format.setConsumerSettings(consumerSettings);
         format.setRestoreConfig(restoreConfig);
-
+        format.setMetaColumns(metaColumns);
         return createInput(format);
     }
 

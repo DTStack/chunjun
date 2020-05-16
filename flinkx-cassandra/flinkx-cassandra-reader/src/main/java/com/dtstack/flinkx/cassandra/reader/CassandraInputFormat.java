@@ -20,6 +20,7 @@ package com.dtstack.flinkx.cassandra.reader;
 
 import com.datastax.driver.core.*;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
@@ -180,7 +181,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     private String getQueryString(CassandraInputSplit inputSplit) {
         StringBuilder columns = new StringBuilder();
         if (columnMeta == null) {
-            columns.append("*");
+            columns.append(ConstantValue.STAR_SYMBOL);
         } else {
             for(MetaColumn column : columnMeta) {
                 if(columns.length() > 0 ) {

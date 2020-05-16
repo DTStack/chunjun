@@ -27,6 +27,7 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.flink.types.Row;
@@ -383,6 +384,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void beforeWriteRecords()  {
         if(taskNumber == 0) {
+            LOG.info("start to execute preSql, preSql = {}", new Gson().toJson(preSql));
             DbUtil.executeBatch(dbConn, preSql);
         }
     }
@@ -396,6 +398,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void beforeCloseInternal() {
         // 执行postsql
         if(taskNumber == 0) {
+            LOG.info("start to execute postSql, postSql = {}", new Gson().toJson(postSql));
             DbUtil.executeBatch(dbConn, postSql);
         }
     }

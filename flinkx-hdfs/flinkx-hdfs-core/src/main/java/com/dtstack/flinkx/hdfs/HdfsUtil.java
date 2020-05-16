@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -98,12 +98,12 @@ public class HdfsUtil {
 
     public static Object getWritableValue(Object writable) {
         Class<?> clz = writable.getClass();
-        Object ret = null;
+        Object ret;
 
         if(clz == IntWritable.class) {
             ret = ((IntWritable) writable).get();
         } else if(clz == Text.class) {
-            ret = ((Text) writable).toString();
+            ret = writable.toString();
         } else if(clz == LongWritable.class) {
             ret = ((LongWritable) writable).get();
         } else if(clz == ByteWritable.class) {
@@ -120,7 +120,7 @@ public class HdfsUtil {
     }
 
     public static ObjectInspector columnTypeToObjectInspetor(ColumnType columnType) {
-        ObjectInspector objectInspector = null;
+        ObjectInspector objectInspector;
         switch(columnType) {
             case TINYINT:
                 objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);

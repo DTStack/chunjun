@@ -800,7 +800,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {
-        dbConn = DbUtil.getConnection(dbUrl, username, password);
+        if(dbConn==null){
+            dbConn = DbUtil.getConnection(dbUrl, username, password);
+        }
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {

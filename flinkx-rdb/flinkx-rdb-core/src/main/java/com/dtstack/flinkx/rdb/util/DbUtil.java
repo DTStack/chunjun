@@ -25,6 +25,7 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.CollectionUtil;
 import org.slf4j.Logger;
@@ -40,9 +41,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- *
  * Utilities for relational database connection and sql execution
  * company: www.dtstack.com
+ *
  * @author huyifan_zju@
  */
 public class DbUtil {
@@ -92,15 +93,16 @@ public class DbUtil {
 
     /**
      * 获取jdbc连接(超时10S)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
+     *
+     * @param url      url
+     * @param username 账号
+     * @param password 密码
      * @return
      * @throws SQLException
      */
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        synchronized (ClassUtil.LOCK_STR){
+        synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
 
             // telnet
@@ -118,9 +120,10 @@ public class DbUtil {
 
     /**
      * 获取jdbc连接(重试3次)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
+     *
+     * @param url      url
+     * @param username 账号
+     * @param password 密码
      * @return
      * @throws SQLException
      */
@@ -154,9 +157,10 @@ public class DbUtil {
 
     /**
      * 关闭连接资源
-     * @param rs        ResultSet
-     * @param stmt      Statement
-     * @param conn      Connection
+     *
+     * @param rs     ResultSet
+     * @param stmt   Statement
+     * @param conn   Connection
      * @param commit
      */
     public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
@@ -178,7 +182,7 @@ public class DbUtil {
 
         if (null != conn) {
             try {
-                if(commit){
+                if (commit) {
                     commit(conn);
                 }
 
@@ -191,36 +195,38 @@ public class DbUtil {
 
     /**
      * 手动提交事物
+     *
      * @param conn Connection
      */
-    public static void commit(Connection conn){
+    public static void commit(Connection conn) {
         try {
-            if (!conn.isClosed() && !conn.getAutoCommit()){
+            if (!conn.isClosed() && !conn.getAutoCommit()) {
                 conn.commit();
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
     /**
      * 批量执行sql
+     *
      * @param dbConn Connection
      * @param sqls   sql列表
      */
     public static void executeBatch(Connection dbConn, List<String> sqls) {
-        if(sqls == null || sqls.size() == 0) {
+        if (sqls == null || sqls.size() == 0) {
             return;
         }
 
         try {
             Statement stmt = dbConn.createStatement();
-            for(String sql : sqls) {
+            for (String sql : sqls) {
                 stmt.addBatch(sql);
             }
             stmt.executeBatch();
         } catch (SQLException e) {
-            throw new RuntimeException("execute batch sql error:{}",e);
+            throw new RuntimeException("execute batch sql error:{}", e);
         } finally {
             commit(dbConn);
         }
@@ -228,19 +234,20 @@ public class DbUtil {
 
     /**
      * 获取某数据库某表的主键和唯一索引
-     * @param table     表名
-     * @param dbConn    数据库连接
+     *
+     * @param table  表名
+     * @param dbConn 数据库连接
      * @return
      * @throws SQLException
      */
-    public static Map<String,List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
-        Map<String,List<String>> keyMap = new HashMap<>(16);
+    public static Map<String, List<String>> getPrimaryOrUniqueKeys(String table, Connection dbConn) throws SQLException {
+        Map<String, List<String>> keyMap = new HashMap<>(16);
         DatabaseMetaData meta = dbConn.getMetaData();
-        ResultSet rs = meta.getIndexInfo(null,null,table,true,false);
-        while(rs.next()) {
+        ResultSet rs = meta.getIndexInfo(null, null, table, true, false);
+        while (rs.next()) {
             String pkName = rs.getString(6);
             String columnName = rs.getString(9);
-            if(!keyMap.containsKey(pkName)) {
+            if (!keyMap.containsKey(pkName)) {
                 keyMap.put(pkName, new ArrayList<>());
             }
             keyMap.get(pkName).add(columnName);
@@ -250,13 +257,14 @@ public class DbUtil {
 
     /**
      * 封装channel通道顺序
+     *
      * @param channels
      * @return
      */
-    public static Object[][] getParameterValues(final int channels){
+    public static Object[][] getParameterValues(final int channels) {
         ParameterValuesProvider provider = () -> {
             Integer[][] parameters = new Integer[channels][];
-            for(int i = 0; i < channels; ++i) {
+            for (int i = 0; i < channels; ++i) {
                 parameters[i] = new Integer[2];
                 parameters[i][0] = channels;
                 parameters[i][1] = i;
@@ -269,17 +277,17 @@ public class DbUtil {
 
     /**
      * 获取表列名类型列表
+     *
      * @param dbUrl             jdbc url
      * @param username          数据库账号
      * @param password          数据库密码
      * @param databaseInterface DatabaseInterface
      * @param table             表名
-     * @param metaColumns       MetaColumn列表
-     * @return
+     * @param metaColumns    MetaColumn列表
+     * @return 字段类型list列表
      */
-    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                            String table, List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>(metaColumns.size());
+    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface, String table, List<MetaColumn> metaColumns) {
+        List<String> descColumnTypeList = new ArrayList<>(metaColumns.size());
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -289,35 +297,43 @@ public class DbUtil {
             rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
 
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            boolean flag = ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName());
+            Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            for (int i = 1; i <= rd.getColumnCount(); i++) {
+                if(flag){
+                    descColumnTypeList.add(rd.getColumnTypeName(i));
+                }else{
+                    nameTypeMap.put(rd.getColumnName(i), rd.getColumnTypeName(i));
+                }
             }
-
-            for (MetaColumn metaColumn : metaColumns) {
-                if(metaColumn.getValue() != null){
-                    ret.add("string");
-                } else {
-                    ret.add(nameTypeMap.get(metaColumn.getName()));
+            if(!flag){
+                for (MetaColumn metaColumn : metaColumns) {
+                    if (metaColumn.getValue() != null) {
+                        descColumnTypeList.add("string");
+                    } else {
+                        descColumnTypeList.add(nameTypeMap.get(metaColumn.getName()));
+                    }
                 }
             }
         } catch (SQLException e) {
+            LOG.error("error to analyzeTable, dbUrl =  {}, table = {}, metaColumns = {}, e = {}", dbUrl, table, new Gson().toJson(metaColumns), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         } finally {
             closeDbResources(rs, stmt, dbConn, false);
         }
 
-        return ret;
+        return descColumnTypeList;
     }
 
     /**
      * 占位符设值
-     * @param param         参数
-     * @param statement     PreparedStatement
-     * @param i             占位符位置
+     *
+     * @param param     参数
+     * @param statement PreparedStatement
+     * @param i         占位符位置
      * @throws SQLException
      */
-    public static void setParameterValue(Object param,PreparedStatement statement,int i) throws SQLException{
+    public static void setParameterValue(Object param, PreparedStatement statement, int i) throws SQLException {
         if (param instanceof String) {
             statement.setString(i + 1, (String) param);
         } else if (param instanceof Long) {
@@ -346,24 +362,25 @@ public class DbUtil {
             statement.setArray(i + 1, (Array) param);
         } else {
             //extends with other types if needed
-            throw new IllegalArgumentException("open() failed. Parameter " + i + " of type " + param.getClass() + " is not handled (yet)." );
+            throw new IllegalArgumentException("open() failed. Parameter " + i + " of type " + param.getClass() + " is not handled (yet).");
         }
     }
 
     /**
      * clob转string
-     * @param obj   clob
+     *
+     * @param obj clob
      * @return
      * @throws Exception
      */
-    public static Object clobToString(Object obj) throws Exception{
+    public static Object clobToString(Object obj) throws Exception {
         String dataStr;
-        if(obj instanceof Clob){
-            Clob clob = (Clob)obj;
+        if (obj instanceof Clob) {
+            Clob clob = (Clob) obj;
             BufferedReader bf = new BufferedReader(clob.getCharacterStream());
             StringBuilder stringBuilder = new StringBuilder();
             String line;
-            while ((line = bf.readLine()) != null){
+            while ((line = bf.readLine()) != null) {
                 stringBuilder.append(line);
             }
             dataStr = stringBuilder.toString();
@@ -376,32 +393,34 @@ public class DbUtil {
 
     /**
      * 获取纳秒字符串
+     *
      * @param timeStr
      * @return
      */
-    public static String getNanosTimeStr(String timeStr){
-        if(timeStr.length() < 29){
-            timeStr += StringUtils.repeat("0",29 - timeStr.length());
+    public static String getNanosTimeStr(String timeStr) {
+        if (timeStr.length() < 29) {
+            timeStr += StringUtils.repeat("0", 29 - timeStr.length());
         }
         return timeStr;
     }
 
     /**
      * 将边界位置时间转换成对应饿的纳秒时间
+     *
      * @param startLocation 边界位置(起始/结束)
      * @return
      */
-    public static int getNanos(long startLocation){
+    public static int getNanos(long startLocation) {
         String timeStr = String.valueOf(startLocation);
         int nanos;
-        if (timeStr.length() == SECOND_LENGTH){
+        if (timeStr.length() == SECOND_LENGTH) {
             nanos = 0;
-        } else if (timeStr.length() == MILLIS_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MILLIS_LENGTH)) * 1000000;
-        } else if (timeStr.length() == MICRO_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MICRO_LENGTH)) * 1000;
-        } else if (timeStr.length() == NANOS_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,NANOS_LENGTH));
+        } else if (timeStr.length() == MILLIS_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MILLIS_LENGTH)) * 1000000;
+        } else if (timeStr.length() == MICRO_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MICRO_LENGTH)) * 1000;
+        } else if (timeStr.length() == NANOS_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, NANOS_LENGTH));
         } else {
             throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
         }
@@ -411,19 +430,20 @@ public class DbUtil {
 
     /**
      * 将边界位置时间转换成对应饿的毫秒时间
-      * @param startLocation 边界位置(起始/结束)
+     *
+     * @param startLocation 边界位置(起始/结束)
      * @return
      */
-    public static long getMillis(long startLocation){
+    public static long getMillis(long startLocation) {
         String timeStr = String.valueOf(startLocation);
         long millisSecond;
-        if (timeStr.length() == SECOND_LENGTH){
+        if (timeStr.length() == SECOND_LENGTH) {
             millisSecond = startLocation * 1000;
-        } else if (timeStr.length() == MILLIS_LENGTH){
+        } else if (timeStr.length() == MILLIS_LENGTH) {
             millisSecond = startLocation;
-        } else if (timeStr.length() == MICRO_LENGTH){
+        } else if (timeStr.length() == MICRO_LENGTH) {
             millisSecond = startLocation / 1000;
-        } else if (timeStr.length() == NANOS_LENGTH){
+        } else if (timeStr.length() == NANOS_LENGTH) {
             millisSecond = startLocation / 1000000;
         } else {
             throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
@@ -434,23 +454,24 @@ public class DbUtil {
 
     /**
      * 格式化jdbc连接
-     * @param dbUrl         原jdbc连接
-     * @param extParamMap   需要额外添加的参数
-     * @return  格式化后jdbc连接URL字符串
+     *
+     * @param dbUrl       原jdbc连接
+     * @param extParamMap 需要额外添加的参数
+     * @return 格式化后jdbc连接URL字符串
      */
-    public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
+    public static String formatJdbcUrl(String dbUrl, Map<String, String> extParamMap) {
         String[] splits = DB_PATTERN.split(dbUrl);
 
-        Map<String,String> paramMap = new HashMap<>(16);
-        if(splits.length > 1) {
+        Map<String, String> paramMap = new HashMap<>(16);
+        if (splits.length > 1) {
             String[] pairs = splits[1].split("&");
-            for(String pair : pairs) {
+            for (String pair : pairs) {
                 String[] leftRight = pair.split("=");
                 paramMap.put(leftRight[0], leftRight[1]);
             }
         }
 
-        if(!CollectionUtil.isNullOrEmpty(extParamMap)){
+        if (!CollectionUtil.isNullOrEmpty(extParamMap)) {
             paramMap.putAll(extParamMap);
         }
         paramMap.put("useCursorFetch", "true");
@@ -459,8 +480,8 @@ public class DbUtil {
         StringBuffer sb = new StringBuffer(dbUrl.length() + 128);
         sb.append(splits[0]).append("?");
         int index = 0;
-        for(Map.Entry<String,String> entry : paramMap.entrySet()) {
-            if(index != 0) {
+        for (Map.Entry<String, String> entry : paramMap.entrySet()) {
+            if (index != 0) {
                 sb.append("&");
             }
             sb.append(entry.getKey()).append("=").append(entry.getValue());

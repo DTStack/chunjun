@@ -56,12 +56,12 @@ and id > ${offset}
 offset存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0
 and id > ${offset_0};
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1
 and id > ${offset_1};
@@ -70,11 +70,11 @@ and id > ${offset_1};
 offset不存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0;
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1;
 ```
