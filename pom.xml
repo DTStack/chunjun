@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-        <module>flinkx-examples</module>
+        <module>flinkx-test</module>
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -61,6 +61,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flink.version>1.10.0</flink.version>
+        <flinkx.version>1.6</flinkx.version>
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
