@@ -24,12 +24,6 @@
             <version>2.7</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>slf4j-log4j12</artifactId>-->
-<!--            <version>1.7.21</version>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -200,12 +194,19 @@
                                     <include>org.slf4j:*</include>
                                     <include>org.apache.httpcomponents:*</include>
                                     <include>io.prometheus:*</include>
+                                    <include>org.apache.avro:*</include>
+                                    <include>org.codehaus.jackson:*</include>
+                                    <include>commons-*:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.http</pattern>
