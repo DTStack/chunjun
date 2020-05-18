@@ -5,7 +5,7 @@
 名称：**sqlserverwriter**<br />
 <a name="JSVBM"></a>
 ## 二、支持的数据源版本
-**Microsoft SQL Server 2012及以后**<br />
+**Microsoft SQL Server 2012及以上**<br />
 <a name="hwps8"></a>
 ## 三、参数说明
 

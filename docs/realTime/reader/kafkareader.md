@@ -9,7 +9,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 | kafka 0.9 | kafka09reader |
 | kafka 0.10 | kafka10reader |
 | kafka 0.11 | kafka11reader |
-| kafka 1.0及以后 | kafkareader |
+| kafka 1.0及以上 | kafkareader |
 
 <br />
 <a name="8Xm5p"></a>

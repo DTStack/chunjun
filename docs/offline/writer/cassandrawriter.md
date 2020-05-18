@@ -5,7 +5,7 @@
 名称：**cassandrawriter**<br />
 <a name="jVb3v"></a>
 ## 二、支持的数据源版本
-**Cassandra 3.0以以上**<br />
+**Cassandra 3.0及以上**<br />
 <a name="Jt6EN"></a>
 ## 三、参数说明
 
