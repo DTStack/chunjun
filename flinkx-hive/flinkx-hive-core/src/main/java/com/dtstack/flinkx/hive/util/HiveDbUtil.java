@@ -106,7 +106,7 @@ public final class HiveDbUtil {
         String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConf());
 
         keytabFileName = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytabFileName);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
         KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf());
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);

@@ -58,13 +58,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if(EProtocol.SFTP.name().equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SftpHandler();
-        } else if(EProtocol.FTP.name().equalsIgnoreCase(ftpConfig.getProtocol())){
-            ftpHandler = new FtpHandler();
-        } else {
-            throw new RuntimeException("协议名称错误:" + ftpConfig.getProtocol());
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -161,5 +155,4 @@ public class FtpInputFormat extends BaseRichInputFormat {
             ftpHandler.logoutFtpServer();
         }
     }
-
 }

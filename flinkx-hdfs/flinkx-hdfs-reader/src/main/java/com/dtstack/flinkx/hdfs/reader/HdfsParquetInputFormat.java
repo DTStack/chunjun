@@ -43,6 +43,7 @@ import org.apache.parquet.schema.Type;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -84,14 +85,33 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private boolean nextLine() throws IOException{
         if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
-            nextFile();
+            if (openKerberos) {
+                ugi.doAs(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        try {
+                            nextFile();
+                            return null;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            } else {
+                nextFile();
+            }
         }
 
         if (currentFileReader == null){
             return false;
         }
 
-        currentLine = currentFileReader.read();
+        if (openKerberos) {
+            currentLine = nextLineWithKerberos();
+        } else {
+            currentLine = currentFileReader.read();
+        }
+
         if (fullColNames == null && currentLine != null){
             fullColNames = new ArrayList<>();
             fullColTypes = new ArrayList<>();
@@ -117,6 +137,19 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         }
 
         return currentLine != null;
+    }
+
+    private Group nextLineWithKerberos() {
+        return ugi.doAs(new PrivilegedAction<Group>() {
+            @Override
+            public Group run() {
+                try {
+                    return currentFileReader.read();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     private void nextFile() throws IOException{

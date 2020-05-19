@@ -1,174 +1,51 @@
 {
-  "job": {
-    "content": [
-      {
-        "writer": {
-          "parameter": {
-            "batchInterval": 200001
-          },
-          "name": "streamwriter"
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "1abc123",
+          "port" : 3306,
+          "cat" : "insert,update,delete",
+          "host" : "172.16.10.204",
+          "jdbcUrl" : "jdbc:mysql://172.16.10.204:3306/mqtest",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "yc01" ],
+          "username" : "dtstack"
         },
-        "reader":{
-          "parameter":{
-            "column": [
-              {
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              },{
-                "name":"id",
-                "type": "string"
-              }
-            ]
+        "name" : "binlogreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "fileName" : "pt",
+          "writeMode" : "append",
+          "fieldDelimiter" : "\u0001",
+          "partitionType" : "DAY",
+          "path" : "",
+          "analyticalRules" : "stream_${schema}_${table}",
+          "password" : "",
+          "tablesColumn" : "{\"yc01\":[{\"type\":\"INT\",\"key\":\"id\",\"comment\":\"\"},{\"type\":\"VARCHAR\",\"key\":\"address\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+          "partition" : "pt",
+          "hadoopConfig" : {
+            "fs.defaultFS" : "hdfs://tools:8020",
+            "fs.hdfs.impl.disable.cache" : "true",
+            "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
           },
-          "name":"streamreader"
-        }
+          "jdbcUrl" : "jdbc:hive2://172.16.101.229:10000/yc_project_01",
+          "defaultFS" : "hdfs://tools:8020",
+          "fileType" : "orc",
+          "charsetName" : "utf-8",
+          "username" : "",
+          "bufferSize" : 10485760
+        },
+        "name" : "hivewriter",
+        "type" : 7
       }
     } ],
     "setting" : {
+      "dirty" : {
+        "path" : "dirty_mysql2hive2_57"
+      },
       "restore" : {
         "isRestore" : true,
         "isStream" : true

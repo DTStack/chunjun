@@ -31,31 +31,16 @@ import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hive.ql.io.orc.OrcFile;
-import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
-import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
-import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.*;
+import java.security.PrivilegedAction;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The subclass of HdfsInputFormat which handles orc files
@@ -95,6 +80,28 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
             throw new IOException("初始化[inspector]出错", e);
         }
 
+        if (openKerberos) {
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        openOrcReader(inputSplit);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    return null;
+                }
+            });
+        } else {
+            openOrcReader(inputSplit);
+        }
+    }
+
+    private void openOrcReader(InputSplit inputSplit) throws IOException{
+        numReadCounter = getRuntimeContext().getLongCounter("numRead");
+        HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
+        OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
         recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
         key = recordReader.createKey();
         value = recordReader.createValue();
@@ -175,12 +182,25 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
-        } catch (Exception e) {
-            throw new IOException(e);
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+            LOG.info("user:{}, ", ugi.getShortUserName());
+            return ugi.doAs(new PrivilegedAction<HdfsOrcInputSplit[]>() {
+                @Override
+                public HdfsOrcInputSplit[] run() {
+                    try {
+                        return createOrcSplit(minNumSplits);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            return createOrcSplit(minNumSplits);
         }
+    }
 
+    private HdfsOrcInputSplit[] createOrcSplit(int minNumSplits) throws IOException{
         JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);

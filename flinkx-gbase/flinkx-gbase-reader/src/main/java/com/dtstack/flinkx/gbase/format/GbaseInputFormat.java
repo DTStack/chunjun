@@ -19,6 +19,8 @@ package com.dtstack.flinkx.gbase.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +54,6 @@ public class GbaseInputFormat extends JdbcInputFormat {
                 if (StringUtils.isNotEmpty(startLocation)) {
                     endLocationAccumulator.add(Long.parseLong(startLocation));
                 }
-
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -66,6 +67,10 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             fetchSize = Integer.MIN_VALUE;
             querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 

@@ -25,6 +25,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
 import java.util.List;
@@ -67,6 +68,10 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected String filterRegex;
 
+    protected transient UserGroupInformation ugi;
+
+    protected boolean openKerberos;
+
     protected String currentPartition;
 
     protected transient FileSystem fs;
@@ -76,10 +81,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         conf = buildConfig();
 
-        try {
-            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
-        } catch (Exception e) {
-            throw new IOException(e);
+        openKerberos = FileSystemUtil.isOpenKerberos(hadoopConfig);
+        if (openKerberos) {
+            ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
         }
     }
 

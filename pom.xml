@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-        <module>flinkx-test</module>
+<!--        <module>flinkx-test</module>-->
         <module>flinkx-examples</module>
         <module>flinkx-stream</module>
 
@@ -121,11 +121,6 @@
             <artifactId>avro</artifactId>
             <version>1.8.2</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
         </dependency>
 
         <dependency>

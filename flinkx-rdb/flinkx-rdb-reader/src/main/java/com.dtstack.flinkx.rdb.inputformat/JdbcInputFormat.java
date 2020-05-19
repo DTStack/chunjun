@@ -173,7 +173,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 if (StringUtils.isNotEmpty(startLocation)) {
                     endLocationAccumulator.add(Long.parseLong(startLocation));
                 }
-
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
