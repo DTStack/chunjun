@@ -67,7 +67,8 @@ public class FtpSeqInputStream extends InputStream {
     @Override
     public int available() throws IOException {
         if (in == null) {
-            return 0; // no way to signal EOF from available()
+            // no way to signal EOF from available()
+            return 0;
         }
         return in.available();
     }
@@ -85,7 +86,7 @@ public class FtpSeqInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte b[], int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
         if (in == null) {
             return -1;
         } else if (b == null) {

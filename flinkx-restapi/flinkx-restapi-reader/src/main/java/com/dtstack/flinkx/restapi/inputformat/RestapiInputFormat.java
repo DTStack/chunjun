@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.restapi.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -36,7 +36,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestapiInputFormat extends RichInputFormat {
+public class RestapiInputFormat extends BaseRichInputFormat {
 
     protected String url;
 

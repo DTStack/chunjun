@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class DistributedJdbcInputSplit extends GenericInputSplit {
 
-    private List<DataSource> sourceList;
+    private ArrayList<DataSource> sourceList;
 
     public DistributedJdbcInputSplit(int partitionNumber, int totalNumberOfPartitions) {
         super(partitionNumber, totalNumberOfPartitions);
@@ -54,11 +54,11 @@ public class DistributedJdbcInputSplit extends GenericInputSplit {
         this.sourceList.add(source);
     }
 
-    public List<DataSource> getSourceList() {
+    public ArrayList<DataSource> getSourceList() {
         return sourceList;
     }
 
-    public void setSourceList(List<DataSource> sourceList) {
+    public void setSourceList(ArrayList<DataSource> sourceList) {
         this.sourceList = sourceList;
     }
 }

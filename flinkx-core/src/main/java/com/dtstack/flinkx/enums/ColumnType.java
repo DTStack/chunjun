@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.enums;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,10 +31,26 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public enum ColumnType {
+
+    /**
+     * string type
+     */
     STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY,
-    INT, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG,SHORT,INTEGER,
+
+    /**
+     * number type
+     */
+    INT, INT32, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG, INT64 ,SHORT,INTEGER,
+
+    /**
+     * double type
+     */
     DOUBLE, FLOAT,
     BOOLEAN,
+
+    /**
+     * date type
+     */
     DATE, TIMESTAMP,TIME,
     DECIMAL,YEAR,BIT;
 
@@ -49,19 +67,19 @@ public enum ColumnType {
             throw new RuntimeException("null ColumnType!");
         }
 
-        if(type.contains("(")){
-            type = type.substring(0, type.indexOf("("));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
         return valueOf(type.toUpperCase());
     }
 
     public static ColumnType getType(String type){
-        if(type.contains("(")){
-            type = type.substring(0, type.indexOf("("));
+        if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
+            type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
-        if(type.toLowerCase().contains("timestamp")){
+        if(type.toLowerCase().contains(ColumnType.TIMESTAMP.name().toLowerCase())){
             return TIMESTAMP;
         }
 

@@ -19,8 +19,10 @@
 package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -39,7 +41,7 @@ import java.util.function.Predicate;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormat extends FileOutputFormat {
+public class FtpOutputFormat extends BaseFileOutputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -59,6 +61,8 @@ public class FtpOutputFormat extends FileOutputFormat {
     private static final String FILE_SUFFIX = ".csv";
 
     private static final String OVERWRITE_MODE = "overwrite";
+
+    private static final int FILE_NAME_PART_SIZE = 3;
 
     @Override
     protected void openSource() throws IOException {
@@ -100,7 +104,7 @@ public class FtpOutputFormat extends FileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) <= fileIndex;
                 }
 

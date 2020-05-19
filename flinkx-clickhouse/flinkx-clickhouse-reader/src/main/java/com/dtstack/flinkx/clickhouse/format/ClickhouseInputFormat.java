@@ -19,7 +19,7 @@ package com.dtstack.flinkx.clickhouse.format;
 
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -29,10 +29,9 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/11/05
@@ -46,9 +45,9 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
-            ClassUtil.forName(drivername, getClass().getClassLoader());
-            dbConn = ClickhouseUtil.getConnection(dbURL, username, password);
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            ClassUtil.forName(driverName, getClass().getClassLoader());
+            dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
@@ -63,7 +62,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbURL, username, password, databaseInterface, table, metaColumns);
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {

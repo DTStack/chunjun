@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Date: 2019/12/03
@@ -28,13 +29,15 @@ public class ChangeTablePointer {
     private static final int COL_DATA = 5;
 
     private final ChangeTable changeTable;
+    private final Statement statement;
     private final ResultSet resultSet;
     private boolean completed = false;
     private TxLogPosition currentChangePosition;
 
-    public ChangeTablePointer(ChangeTable changeTable, ResultSet resultSet) {
+    public ChangeTablePointer(ChangeTable changeTable, SqlServerCdcUtil.StatementResult statementResult) {
         this.changeTable = changeTable;
-        this.resultSet = resultSet;
+        this.resultSet = statementResult.getResultSet();
+        this.statement = statementResult.getStatement();
     }
 
     public ChangeTable getChangeTable() {
@@ -64,6 +67,7 @@ public class ChangeTablePointer {
         if (completed) {
             LOG.debug("Closing result set of change tables for table {}", changeTable);
             resultSet.close();
+            statement.close();
         }
         return !completed;
     }

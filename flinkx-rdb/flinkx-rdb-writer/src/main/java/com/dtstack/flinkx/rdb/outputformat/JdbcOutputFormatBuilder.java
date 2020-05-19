@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.rdb.outputformat;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author sishu.yss
  */
-public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
+public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private JdbcOutputFormat format;
 
@@ -48,8 +48,8 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         format.driverName = driverName;
     }
 
-    public void setDBUrl(String dbURL) {
-        format.dbURL = dbURL;
+    public void setDbUrl(String dbUrl) {
+        format.dbUrl = dbUrl;
     }
 
     public void setPreSql(List<String> preSql) {
@@ -100,7 +100,7 @@ public class JdbcOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.password == null) {
             LOG.info("Password was not supplied separately.");
         }
-        if (format.dbURL == null) {
+        if (format.dbUrl == null) {
             throw new IllegalArgumentException("No dababase URL supplied.");
         }
         if (format.driverName == null) {

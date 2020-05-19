@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.stream.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -32,7 +32,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamInputFormat extends RichInputFormat {
+public class StreamInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 

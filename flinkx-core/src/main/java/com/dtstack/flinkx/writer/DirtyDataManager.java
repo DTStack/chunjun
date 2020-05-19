@@ -34,9 +34,16 @@ import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
 /**
  * The class handles dirty data management

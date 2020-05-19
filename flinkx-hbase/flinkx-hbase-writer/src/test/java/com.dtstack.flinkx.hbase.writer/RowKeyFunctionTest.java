@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
-import com.dtstack.flinkx.hbase.writer.function.*;
+import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
+import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
+import com.dtstack.flinkx.hbase.writer.function.Md5Function;
+import com.dtstack.flinkx.hbase.writer.function.StringFunction;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -65,7 +68,7 @@ public class RowKeyFunctionTest {
     public void hasFunc()  throws Exception{
         String express = "_md5(test_$(col1)_test_$(col2)_test)_";
 
-        String expectVal = new MD5Function().evaluate("test_value1_test_value2_test");
+        String expectVal = new Md5Function().evaluate("test_value1_test_value2_test");
         expectVal = String.format("_%s_", expectVal);
 
         FunctionTree functionTree = FunctionParser.parse(express);

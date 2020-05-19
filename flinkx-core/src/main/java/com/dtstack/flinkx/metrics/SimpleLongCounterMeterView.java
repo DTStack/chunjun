@@ -36,6 +36,8 @@ import org.apache.flink.metrics.View;
  * smoother transitions between rates.
  *
  * <p>The events are counted by a {@link Counter}.
+ *
+ * @author toutian
  */
 public class SimpleLongCounterMeterView implements Meter, View {
 	/** The underlying counter maintaining the count. */

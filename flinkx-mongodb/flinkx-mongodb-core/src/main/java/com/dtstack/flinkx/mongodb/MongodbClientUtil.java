@@ -19,7 +19,13 @@
 
 package com.dtstack.flinkx.mongodb;
 
-import com.mongodb.*;
+import com.mongodb.AuthenticationMechanism;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientURI;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCursor;
 import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
@@ -87,9 +93,9 @@ public class MongodbClientUtil {
     }
 
     private static MongoClient getClientWithUrl(MongodbConfig config){
-        MongoClientURI clientURI = new MongoClientURI(config.getUrl());
-        config.setDatabase(clientURI.getDatabase());
-        return new MongoClient(clientURI);
+        MongoClientURI clientUri = new MongoClientURI(config.getUrl());
+        config.setDatabase(clientUri.getDatabase());
+        return new MongoClient(clientUri);
     }
 
     private static MongoClientOptions getOption(MongodbConfig.ConnectionConfig connectionConfig){

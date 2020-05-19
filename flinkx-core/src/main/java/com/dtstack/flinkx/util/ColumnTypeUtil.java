@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.util;
 
+import java.util.Objects;
+
 /**
  * @author jiangbo
  * @date 2019/9/2
@@ -63,6 +65,25 @@ public class ColumnTypeUtil {
 
         public int getScale() {
             return scale;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()){
+                return false;
+
+            }
+            DecimalInfo that = (DecimalInfo) o;
+            return precision == that.precision && scale == that.scale;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(precision, scale);
         }
     }
 }

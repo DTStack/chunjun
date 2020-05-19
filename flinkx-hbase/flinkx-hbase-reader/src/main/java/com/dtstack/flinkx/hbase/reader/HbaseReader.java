@@ -22,10 +22,12 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.hbase.HbaseConfigKeys;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +39,9 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseReader extends DataReader {
+public class HbaseReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(HbaseReader.class);
 
     protected List<String> columnName;
     protected List<String> columnType;
@@ -82,7 +86,8 @@ public class HbaseReader extends DataReader {
                 columnValue.add((String) sm.get("value"));
                 columnFormat.add((String) sm.get("format"));
             }
-            System.out.println("init column finished");
+
+            LOG.info("init column finished");
         } else{
             throw new IllegalArgumentException("column argument error");
         }

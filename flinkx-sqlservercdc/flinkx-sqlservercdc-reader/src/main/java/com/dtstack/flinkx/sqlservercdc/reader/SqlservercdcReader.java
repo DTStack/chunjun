@@ -19,7 +19,7 @@ package com.dtstack.flinkx.sqlservercdc.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcConfigKeys;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormatBuilder;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author tudou
  */
-public class SqlservercdcReader extends DataReader {
+public class SqlservercdcReader extends BaseDataReader {
     private String username;
     private String password;
     private String url;

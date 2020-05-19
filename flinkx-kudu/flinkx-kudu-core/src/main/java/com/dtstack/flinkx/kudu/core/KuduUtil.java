@@ -19,19 +19,29 @@
 
 package com.dtstack.flinkx.kudu.core;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Type;
-import org.apache.kudu.client.*;
+import org.apache.kudu.client.AsyncKuduClient;
+import org.apache.kudu.client.AsyncKuduScanner;
+import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduPredicate;
+import org.apache.kudu.client.KuduScanToken;
+import org.apache.kudu.client.KuduTable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.PrivilegedExceptionAction;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,7 +120,7 @@ public class KuduUtil {
             return;
         }
 
-        Map<String, Type> nameTypeMap = new HashMap<>();
+        Map<String, Type> nameTypeMap = new HashMap<>(columns.size());
         for (MetaColumn column : columns) {
             nameTypeMap.put(column.getName(), getType(column.getType()));
         }
@@ -183,7 +193,7 @@ public class KuduUtil {
             return null;
         }
 
-        if(value.startsWith("\"") || value.endsWith("'")){
+        if(value.startsWith(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL) || value.endsWith(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL)){
             value = value.substring(1, value.length() - 1);
         }
 

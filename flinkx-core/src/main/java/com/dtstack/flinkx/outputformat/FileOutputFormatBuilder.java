@@ -28,11 +28,11 @@ import java.nio.charset.UnsupportedCharsetException;
  * @author jiangbo
  * @date 2019/8/28
  */
-public class FileOutputFormatBuilder extends RichOutputFormatBuilder {
+public class FileOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    protected FileOutputFormat format;
+    protected BaseFileOutputFormat format;
 
-    public void setFormat(FileOutputFormat format) {
+    public void setFormat(BaseFileOutputFormat format) {
         this.format = format;
         super.format = format;
     }

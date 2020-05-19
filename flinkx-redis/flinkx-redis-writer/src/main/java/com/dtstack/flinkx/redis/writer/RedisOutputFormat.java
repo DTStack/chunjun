@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.redis.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
@@ -29,11 +29,16 @@ import org.apache.flink.types.Row;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
  * OutputFormat for writing data to redis database.
@@ -41,7 +46,7 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class RedisOutputFormat extends RichOutputFormat {
+public class RedisOutputFormat extends BaseRichOutputFormat {
 
     protected String hostPort;
 
@@ -70,6 +75,8 @@ public class RedisOutputFormat extends RichOutputFormat {
     private SimpleDateFormat sdf;
 
     private static final int CRITICAL_TIME = 60 * 60 * 24 * 30;
+
+    private static final int KEY_VALUE_SIZE = 2;
 
     @Override
     public void configure(Configuration parameters) {
@@ -139,7 +146,7 @@ public class RedisOutputFormat extends RichOutputFormat {
     }
 
     private List<Object> getFieldAndValue(Row row){
-        if(row.getArity() - keyIndexes.size() != 2){
+        if(row.getArity() - keyIndexes.size() != KEY_VALUE_SIZE){
             throw new IllegalArgumentException("Each row record can have only one pair of attributes and values except key");
         }
 
