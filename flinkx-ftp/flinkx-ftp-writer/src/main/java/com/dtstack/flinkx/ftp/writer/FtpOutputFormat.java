@@ -20,9 +20,8 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
-import com.dtstack.flinkx.ftp.SftpHandler;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
