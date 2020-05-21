@@ -34,17 +34,14 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.BufferedMutator;
-import org.apache.hadoop.hbase.client.BufferedMutatorParams;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -100,8 +97,40 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
 
     private transient ThreadLocal<SimpleDateFormat> timeMillisecondFormatThreadLocal;
 
+    private boolean openKerberos = false;
+
     @Override
     public void configure(Configuration parameters) {
+    }
+
+    @Override
+    public void openInternal(int taskNumber, int numTasks) throws IOException {
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
+        if (openKerberos) {
+            sleepRandomTime();
+
+            UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    openConnection();
+                    return null;
+                }
+            });
+        } else {
+            openConnection();
+        }
+    }
+
+    private void sleepRandomTime() {
+        try {
+            Thread.sleep(5000L + (long)(10000 * Math.random()));
+        } catch (Exception exception) {
+            LOG.warn("", exception);
+        }
+    }
+
+    public void openConnection() {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
         nameByteMaps = Maps.newConcurrentMap();
@@ -110,9 +139,9 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
-            connection = HbaseHelper.getHbaseConnection(hbaseConfig);
-
             org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
+            connection = ConnectionFactory.createConnection(hConfiguration);
+
             bufferedMutator = connection.getBufferedMutator(
                     new BufferedMutatorParams(TableName.valueOf(tableName))
                             .pool(HTable.getDefaultExecutor(hConfiguration))
@@ -134,11 +163,6 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         }
 
         LOG.info("HbaseOutputFormat configure end");
-    }
-
-    @Override
-    public void openInternal(int taskNumber, int numTasks) throws IOException {
-
     }
 
     @Override
