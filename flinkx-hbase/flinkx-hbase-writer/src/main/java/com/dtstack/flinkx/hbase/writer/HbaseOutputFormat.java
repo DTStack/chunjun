@@ -36,11 +36,11 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.PrivilegedAction;
 import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -49,8 +49,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Maps;
-import org.apache.hadoop.security.UserGroupInformation;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -136,8 +134,8 @@ public class HbaseOutputFormat extends BaseRichOutputFormat {
         LOG.info("HbaseOutputFormat configure start");
         nameMaps = Maps.newConcurrentMap();
         nameByteMaps = Maps.newConcurrentMap();
-        timesssFormatThreadLocal = new ThreadLocal();
-        timeSSSFormatThreadLocal = new ThreadLocal();
+        timeSecondFormatThreadLocal = new ThreadLocal();
+        timeMillisecondFormatThreadLocal = new ThreadLocal();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
         try {
