@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.restapi.outputformat;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestapiOutputFormatBuilder extends RichOutputFormatBuilder {
+public class RestapiOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private RestapiOutputFormat format;
 

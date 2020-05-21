@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -39,7 +39,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public abstract class BaseMetadataInputFormat extends RichInputFormat {
+public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected String dbUrl;
 

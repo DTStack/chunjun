@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.ftp;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author jiangbo
  * @date 2019/11/21
@@ -28,9 +30,9 @@ public class FtpHandlerFactory {
     public static IFtpHandler createFtpHandler(String protocolStr){
         IFtpHandler ftpHandler;
 
-        Protocol protocol = Protocol.valueOf(protocolStr);
+        Protocol protocol = Protocol.getByName(protocolStr);
         if(Protocol.SFTP.equals(protocol)) {
-            ftpHandler = new SFtpHandler();
+            ftpHandler = new SftpHandler();
         } else {
             ftpHandler = new FtpHandler();
         }
@@ -39,6 +41,14 @@ public class FtpHandlerFactory {
     }
 
     enum Protocol{
-        FTP, SFTP
+        FTP, SFTP;
+
+        public static Protocol getByName(String name) {
+            if (StringUtils.isEmpty(name)) {
+                return SFTP;
+            }
+
+            return Protocol.valueOf(name.toUpperCase());
+        }
     }
 }

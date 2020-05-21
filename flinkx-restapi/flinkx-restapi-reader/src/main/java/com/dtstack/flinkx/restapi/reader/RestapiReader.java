@@ -19,7 +19,7 @@ package com.dtstack.flinkx.restapi.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
 import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -33,7 +33,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestapiReader extends DataReader {
+public class RestapiReader extends BaseDataReader {
 
     private String url;
 

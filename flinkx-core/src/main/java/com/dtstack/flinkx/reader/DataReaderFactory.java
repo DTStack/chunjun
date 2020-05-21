@@ -37,7 +37,7 @@ public class DataReaderFactory {
     private DataReaderFactory() {
     }
 
-    public static DataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public static BaseDataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getContent().get(0).getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
@@ -46,7 +46,7 @@ public class DataReaderFactory {
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
                 Constructor constructor = clazz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
-                return (DataReader)constructor.newInstance(config, env);
+                return (BaseDataReader)constructor.newInstance(config, env);
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -18,8 +18,14 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
-import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.ftp.EProtocol;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.ftp.SftpHandler;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.core.io.InputSplit;
@@ -34,7 +40,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpInputFormat extends RichInputFormat {
+public class FtpInputFormat extends BaseRichInputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -52,11 +58,7 @@ public class FtpInputFormat extends RichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if("sftp".equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -76,7 +78,7 @@ public class FtpInputFormat extends RichInputFormat {
             }
         }
 
-        int numSplits = (files.size() < minNumSplits ?  files.size() : minNumSplits);
+        int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
         for(int index = 0; index < numSplits; ++index) {
             ftpInputSplits[index] = new FtpInputSplit();
@@ -113,7 +115,7 @@ public class FtpInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String[] fields = line.split(ftpConfig.getFieldDelimiter());
-        if (metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
                 row.setField(i, fields[i]);
@@ -153,5 +155,4 @@ public class FtpInputFormat extends RichInputFormat {
             ftpHandler.logoutFtpServer();
         }
     }
-
 }

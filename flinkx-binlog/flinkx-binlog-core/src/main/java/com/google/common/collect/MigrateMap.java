@@ -21,6 +21,9 @@ import com.google.common.base.Function;
 
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @author toutian
+ */
 public class MigrateMap {
 
     @SuppressWarnings("deprecation")

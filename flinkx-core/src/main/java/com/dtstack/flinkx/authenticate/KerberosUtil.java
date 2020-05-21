@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.authenticate;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.Md5Util;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -31,8 +33,6 @@ import sun.security.krb5.internal.ktab.KeyTabEntry;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Map;
 
 /**
@@ -52,14 +52,13 @@ public class KerberosUtil {
     public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
-    private static final char[] DIGITS_LOWER = {'0', '1', '2', '3', '4', '5',
-            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    private static final String JAVA_VENDOR_IBM = "IBM";
 
     private static String LOCAL_CACHE_DIR;
     static {
-        String systemInfo = System.getProperty("os.name");
-        if(systemInfo.toLowerCase().startsWith("windows")){
-            LOCAL_CACHE_DIR = System.getProperty("user.dir");
+        String systemInfo = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_OS);
+        if(systemInfo.toLowerCase().startsWith(ConstantValue.OS_WINDOWS)){
+            LOCAL_CACHE_DIR = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_USER_DIR);
         } else {
             LOCAL_CACHE_DIR = "/tmp/flinkx/keytab";
         }
@@ -67,7 +66,7 @@ public class KerberosUtil {
         createDir(LOCAL_CACHE_DIR);
     }
 
-    public static UserGroupInformation loginAndReturnUGI(Configuration conf, String principal, String keytab) throws IOException {
+    public static UserGroupInformation loginAndReturnUgi(Configuration conf, String principal, String keytab) throws IOException {
         if (conf == null) {
             throw new IllegalArgumentException("kerberos conf can not be null");
         }
@@ -106,7 +105,7 @@ public class KerberosUtil {
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
 
         try {
-            if (!System.getProperty("java.vendor").contains("IBM")) {
+            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR).contains(JAVA_VENDOR_IBM)) {
                 Config.refresh();
             }
         } catch (Exception e){
@@ -150,7 +149,7 @@ public class KerberosUtil {
                 filePath = filePath.substring(filePath.lastIndexOf(SP) + 1);
             }
 
-            filePath = loadFromSFTP(kerberosConfig, filePath);
+            filePath = loadFromSftp(kerberosConfig, filePath);
         }
 
         return filePath;
@@ -167,24 +166,24 @@ public class KerberosUtil {
        }
     }
 
-    private static String loadFromSFTP(Map<String, Object> config, String fileName){
+    private static String loadFromSftp(Map<String, Object> config, String fileName){
         String remoteDir = MapUtils.getString(config, KEY_REMOTE_DIR);
-        String filePathOnSFTP = remoteDir + "/" + fileName;
+        String filePathOnSftp = remoteDir + "/" + fileName;
 
-        String localDirName = getMD5(remoteDir);
+        String localDirName = Md5Util.getMd5(remoteDir);
         String localDir = LOCAL_CACHE_DIR + SP + localDirName;
         localDir = createDir(localDir);
         String fileLocalPath = localDir + SP + fileName;
         if (fileExists(fileLocalPath)) {
             return fileLocalPath;
         } else {
-            SFTPHandler handler = null;
+            SftpHandler handler = null;
             try {
-                handler = SFTPHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
-                if(handler.isFileExist(filePathOnSFTP)){
-                    handler.downloadFileWithRetry(filePathOnSFTP, fileLocalPath);
+                handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
+                if(handler.isFileExist(filePathOnSftp)){
+                    handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
 
-                    LOG.info("download file:{} to local:{}", filePathOnSFTP, fileLocalPath);
+                    LOG.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
                     return fileLocalPath;
                 }
             } catch (Exception e){
@@ -195,36 +194,8 @@ public class KerberosUtil {
                 }
             }
 
-            throw new RuntimeException("File[" + filePathOnSFTP + "] not exist on sftp");
+            throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
         }
-    }
-
-    private static String getMD5(String filePath) {
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] bytes = md5.digest(filePath.getBytes(StandardCharsets.UTF_8));
-            return bytes2Hex(bytes, DIGITS_LOWER);
-        } catch (Exception e) {
-            throw new RuntimeException("获取本地路径出错", e);
-        }
-    }
-
-    /**
-     * bytes数组转16进制String
-     *
-     * @param data     bytes数组
-     * @param toDigits DIGITS_LOWER或DIGITS_UPPER
-     * @return 转化结果
-     */
-    private static String bytes2Hex(final byte[] data, final char[] toDigits) {
-        final int l = data.length;
-        final char[] out = new char[l << 1];
-        // two characters form the hex value.
-        for (int i = 0, j = 0; i < l; i++) {
-            out[j++] = toDigits[(0xF0 & data[i]) >>> 4];
-            out[j++] = toDigits[0x0F & data[i]];
-        }
-        return new String(out);
     }
 
     private static String findPrincipalFromKeytab(String keytabFile) {

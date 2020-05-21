@@ -31,12 +31,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.7</version>
@@ -404,15 +398,36 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>10.14.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-emqx-reader</artifactId>
             <version>1.6</version>
+            <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-emqx-writer</artifactId>
             <version>1.6</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>

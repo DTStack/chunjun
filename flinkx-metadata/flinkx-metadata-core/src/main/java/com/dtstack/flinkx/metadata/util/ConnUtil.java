@@ -24,7 +24,11 @@ import com.dtstack.flinkx.util.TelnetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.regex.Pattern;
 
 /**
@@ -89,7 +93,7 @@ public class ConnUtil {
      */
     private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        synchronized (ClassUtil.lock_str){
+        synchronized (ClassUtil.LOCK_STR){
             DriverManager.setLoginTimeout(10);
             // telnet
             TelnetUtil.telnet(url);
@@ -121,8 +125,10 @@ public class ConnUtil {
             for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
-                    dbConn.createStatement().execute("select 111");
-                    failed = false;
+                    try (Statement st = dbConn.createStatement()) {
+                        st.execute("select 111");
+                        failed = false;
+                    }
                 } catch (Exception e) {
                     if (dbConn != null) {
                         dbConn.close();

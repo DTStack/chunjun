@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.restapi.outputformat;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
@@ -29,14 +29,17 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/12
  * 当前只考虑了元数据读取，和带有字段名column读取的情况，其他情况暂未考虑
  */
-public class RestapiOutputFormat extends RichOutputFormat {
+public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected String url;
 

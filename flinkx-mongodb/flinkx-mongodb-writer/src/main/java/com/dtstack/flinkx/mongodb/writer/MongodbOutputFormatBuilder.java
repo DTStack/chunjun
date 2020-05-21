@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.mongodb.MongodbConfig;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.commons.lang.StringUtils;
@@ -32,7 +32,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
+public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private MongodbOutputFormat format;
 

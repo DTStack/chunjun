@@ -19,9 +19,9 @@ package com.dtstack.flinkx.metadata.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -35,7 +35,7 @@ import java.util.Map;
  * @date : 2020/3/8
  * @description :
  */
-public class MetadataReader extends DataReader {
+public class MetadataReader extends BaseDataReader {
     protected String jdbcUrl;
     protected List<Map<String, Object>> dbList;
     protected String username;
@@ -65,7 +65,7 @@ public class MetadataReader extends DataReader {
         builder.setDriverName(driverName);
         builder.setDbList(dbList);
 
-        RichInputFormat format = builder.finish();
+        BaseRichInputFormat format = builder.finish();
 
         return createInput(format);
     }

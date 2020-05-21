@@ -47,12 +47,12 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT TOP 1 * FROM " + tableName;
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT TOP 1 " + quoteColumns(column) + " FROM " + quoteTable(table);
     }
 

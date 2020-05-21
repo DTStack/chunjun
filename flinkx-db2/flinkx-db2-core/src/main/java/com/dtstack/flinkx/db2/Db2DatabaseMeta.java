@@ -51,12 +51,12 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT * FROM " + tableName + " FETCH FIRST  1 ROWS ONLY";
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " FETCH FIRST  1 ROWS ONLY";
     }
 

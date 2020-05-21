@@ -68,6 +68,14 @@
                                     <pattern>org.apache.hive.jdbc</pattern>
                                     <shadedPattern>shade.hive2</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
                             </relocations>
 
                             <transformers>
