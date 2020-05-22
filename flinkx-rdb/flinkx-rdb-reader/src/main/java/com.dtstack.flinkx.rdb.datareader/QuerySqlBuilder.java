@@ -160,6 +160,13 @@ public class QuerySqlBuilder {
             querySql.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
+        if (customFilter != null){
+            customFilter = customFilter.trim();
+            if (customFilter.length() > 0){
+                querySql.append(" AND ").append(customFilter);
+            }
+        }
+
         return querySql.toString();
     }
 
