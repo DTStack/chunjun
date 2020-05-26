@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.test;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -42,7 +44,6 @@ import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
-import com.dtstack.flinkx.hive.writer.HiveWriter;
 import com.dtstack.flinkx.kafka.reader.KafkaReader;
 import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
@@ -78,6 +79,7 @@ import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
@@ -93,7 +95,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,18 +121,19 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
+        setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
-        confProperties.put("flink.checkpoint.interval", "60000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+//        confProperties.put("flink.checkpoint.interval", "10000");
+//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 
-        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
-        conf.setString("metrics.reporter.promgateway.port","9091");
-        conf.setString("metrics.reporter.promgateway.jobName","108job");
-        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+//        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
+//        conf.setString("metrics.reporter.promgateway.port","9091");
+//        conf.setString("metrics.reporter.promgateway.jobName","108job");
+//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/metadata/apache2-spark.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -249,7 +251,7 @@ public class LocalTest {
             case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
             case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
-            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
+//            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
             case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
             case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
             case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
@@ -303,5 +305,11 @@ public class LocalTest {
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
                 Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
         ));
+    }
+
+    private static void setLogLevel(String level) {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 }
