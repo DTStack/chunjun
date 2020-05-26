@@ -25,7 +25,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +39,7 @@ import java.util.Map;
  */
 public abstract class HdfsInputFormat extends RichInputFormat {
 
-    private static final char PARTITION_SPLIT_CHAR = '=';
+    private static final String PARTITION_SPLIT_CHAR = "=";
 
     protected Map<String,Object> hadoopConfig;
 
@@ -64,8 +66,6 @@ public abstract class HdfsInputFormat extends RichInputFormat {
     protected boolean isFileEmpty = false;
 
     protected String filterRegex;
-
-    protected String currentPartition;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -97,12 +97,20 @@ public abstract class HdfsInputFormat extends RichInputFormat {
      * @param path hdfs路径
      */
     public void findCurrentPartition(Path path){
-        String ptPathName = path.getParent().getName();
-        currentPartition = ptPathName.substring(ptPathName.lastIndexOf(PARTITION_SPLIT_CHAR) + 1);
+        Map<String, String> map = new HashMap<>(16);
+        String pathStr = path.getParent().toString();
+        int index;
+        while((index = pathStr.lastIndexOf(PARTITION_SPLIT_CHAR)) > 0){
+            int i = pathStr.lastIndexOf(File.separator);
+            String name = pathStr.substring(i + 1, index);
+            String value = pathStr.substring(index + 1);
+            map.put(name, value);
+            pathStr = pathStr.substring(0, i);
+        }
+
         for (MetaColumn column : metaColumns) {
             if(column.getPart()){
-                column.setValue(currentPartition);
-                break;
+                column.setValue(map.get(column.getName()));
             }
         }
     }

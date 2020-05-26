@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -40,8 +40,7 @@ public class RestoreConfig extends AbstractConfig {
     }
 
     public static RestoreConfig defaultConfig(){
-        Map<String, Object> map = new HashMap<>(1);
-        map.put(KEY_IS_RESTORE, false);
+        Map<String, Object> map = Collections.singletonMap(KEY_IS_RESTORE, false);
         return new RestoreConfig(map);
     }
 

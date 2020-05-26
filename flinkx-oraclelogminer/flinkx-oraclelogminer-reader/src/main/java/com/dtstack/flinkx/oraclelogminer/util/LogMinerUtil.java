@@ -200,9 +200,7 @@ public class LogMinerUtil {
         } else {
             message.put("before", beforeDataMap);
             message.put("after", afterDataMap);
-            Map<String,Object> event = new HashMap<>(1);
-            event.put("message", message);
-
+            Map<String,Object> event = Collections.singletonMap("message", message);
             return Row.of(event);
         }
     }
