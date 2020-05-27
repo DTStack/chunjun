@@ -70,7 +70,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     protected FormatState formatState;
 
-    protected TestConfig testConfig;
+    protected TestConfig testConfig = TestConfig.defaultConfig();
 
     protected transient BaseMetric inputMetric;
 

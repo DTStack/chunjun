@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,7 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
@@ -33,11 +34,16 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
+import java.security.PrivilegedAction;
+import java.util.Map;
 
 /**
  * The subclass of HdfsInputFormat which handles text files
@@ -56,14 +62,27 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
-        } catch (Exception e) {
-            throw new IOException(e);
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+            LOG.info("user:{}, ", ugi.getShortUserName());
+            return ugi.doAs(new PrivilegedAction<InputSplit[]>() {
+                @Override
+                public InputSplit[] run() {
+                    try {
+                        return createTextSplit(minNumSplits);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            return createTextSplit(minNumSplits);
         }
+    }
 
-        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
-        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+    private InputSplit[] createTextSplit(int minNumSplits) throws IOException{
+        JobConf jobConf = buildConfig();
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(jobConf, HdfsPathFilter.class);
 
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
         TextInputFormat inputFormat = new TextInputFormat();
@@ -85,17 +104,29 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
-        org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
-        recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
-        key = new LongWritable();
-        value = new Text();
+        ugi.doAs(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                try {
+                    HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
+                    org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
+                    findCurrentPartition(((FileSplit) fileSplit).getPath());
+                    recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
+                    key = new LongWritable();
+                    value = new Text();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+                return null;
+            }
+        });
     }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
-        String[] fields = line.split(delimiter);
+        String[] fields = StringUtils.splitPreserveAllTokens(line, delimiter);
 
         if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);

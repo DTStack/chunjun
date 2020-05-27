@@ -33,22 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COLUMN_TYPE;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_COMPRESS;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_DEFAULT_FS;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ENCODING;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FIELD_DELIMITER;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_NAME;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FILE_TYPE;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_NAME_LIST;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_FULL_COLUMN_TYPE_LIST;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_HADOOP_CONFIG;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_MAX_FILE_SIZE;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_PATH;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_WRITE_MODE;
+import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.*;
 
 /**
  * The writer plugin of Hdfs
@@ -90,6 +75,8 @@ public class HdfsWriter extends BaseDataWriter {
 
     protected long flushInterval;
 
+    protected boolean enableDictionary;
+
     public HdfsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
@@ -103,6 +90,7 @@ public class HdfsWriter extends BaseDataWriter {
         rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
         maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
         flushInterval = writerConfig.getParameter().getLongVal(KEY_FLUSH_INTERVAL, 0);
+        enableDictionary = writerConfig.getParameter().getBooleanVal(KEY_ENABLE_DICTIONARY, true);
 
         if(fieldDelimiter == null || fieldDelimiter.length() == 0) {
             fieldDelimiter = "\001";
@@ -153,6 +141,7 @@ public class HdfsWriter extends BaseDataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setMaxFileSize(maxFileSize);
         builder.setFlushBlockInterval(flushInterval);
+        builder.setEnableDictionary(enableDictionary);
 
         return createOutput(dataSet, builder.finish());
     }

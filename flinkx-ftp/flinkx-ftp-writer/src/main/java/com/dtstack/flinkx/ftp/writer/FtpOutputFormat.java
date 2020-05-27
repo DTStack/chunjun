@@ -20,9 +20,8 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
-import com.dtstack.flinkx.ftp.SftpHandler;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
@@ -35,8 +34,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
 
 /**
  * The OutputFormat Implementation which reads data from ftp servers.
@@ -69,11 +66,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() throws IOException {
-        if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SftpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 

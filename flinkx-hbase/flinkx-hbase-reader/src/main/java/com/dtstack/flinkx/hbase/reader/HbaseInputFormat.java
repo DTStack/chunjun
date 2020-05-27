@@ -41,9 +41,12 @@ import org.apache.hadoop.hbase.util.Pair;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Maps;
+import org.apache.hadoop.security.UserGroupInformation;
 
 
 /**
@@ -92,7 +95,17 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig)) {
-            return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            if(HbaseHelper.openKerberos(hbaseConfig)) {
+                UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
+                return ugi.doAs(new PrivilegedAction<HbaseInputSplit[]>() {
+                    @Override
+                    public HbaseInputSplit[] run() {
+                        return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+                    }
+                });
+            } else {
+                return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            }
         }
     }
 

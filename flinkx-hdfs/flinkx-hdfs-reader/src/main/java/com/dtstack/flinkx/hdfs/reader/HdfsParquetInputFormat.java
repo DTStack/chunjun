@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,6 +43,7 @@ import org.apache.parquet.schema.Type;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -84,14 +85,33 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private boolean nextLine() throws IOException{
         if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
-            nextFile();
+            if (openKerberos) {
+                ugi.doAs(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        try {
+                            nextFile();
+                            return null;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            } else {
+                nextFile();
+            }
         }
 
         if (currentFileReader == null){
             return false;
         }
 
-        currentLine = currentFileReader.read();
+        if (openKerberos) {
+            currentLine = nextLineWithKerberos();
+        } else {
+            currentLine = currentFileReader.read();
+        }
+
         if (fullColNames == null && currentLine != null){
             fullColNames = new ArrayList<>();
             fullColTypes = new ArrayList<>();
@@ -119,11 +139,24 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         return currentLine != null;
     }
 
-    private void nextFile() throws IOException{
-        String path = currentSplitFilePaths.get(currentFileIndex);
-        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), new Path(path)).withConf(conf);
-        currentFileReader = reader.build();
+    private Group nextLineWithKerberos() {
+        return ugi.doAs(new PrivilegedAction<Group>() {
+            @Override
+            public Group run() {
+                try {
+                    return currentFileReader.read();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
 
+    private void nextFile() throws IOException{
+        Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
+        findCurrentPartition(path);
+        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), path).withConf(conf);
+        currentFileReader = reader.build();
         currentFileIndex++;
     }
 
@@ -141,7 +174,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if (metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
                         val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
                     }
@@ -149,8 +184,6 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if (metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String){

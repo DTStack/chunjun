@@ -38,8 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.PrivilegedAction;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,18 +53,6 @@ public class HbaseHelper {
     private final static String AUTHENTICATION_TYPE = "Kerberos";
     private final static String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
-    private final static String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL = "hbase.master.kerberos.principal";
-    private final static String KEY_HBASE_MASTER_KEYTAB_FILE = "hbase.master.keytab.file";
-    private final static String KEY_HBASE_REGIONSERVER_KEYTAB_FILE = "hbase.regionserver.keytab.file";
-    private final static String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL = "hbase.regionserver.kerberos.principal";
-
-    private static List<String> KEYS_KERBEROS_REQUIRED = Arrays.asList(
-            KEY_HBASE_SECURITY_AUTHENTICATION,
-            KEY_HBASE_MASTER_KERBEROS_PRINCIPAL,
-            KEY_HBASE_MASTER_KEYTAB_FILE,
-            KEY_HBASE_REGIONSERVER_KEYTAB_FILE,
-            KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL
-    );
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
@@ -85,39 +71,35 @@ public class HbaseHelper {
     }
 
     private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String,Object> hbaseConfigMap){
-        for (String key : KEYS_KERBEROS_REQUIRED) {
-            if(StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, key))){
-                throw new IllegalArgumentException(String.format("Must provide [%s] when authentication is Kerberos", key));
-            }
+        try {
+            UserGroupInformation ugi = getUgi(hbaseConfigMap);
+            return ugi.doAs(new PrivilegedAction<Connection>() {
+                @Override
+                public Connection run() {
+                    try {
+                        Configuration hConfiguration = getConfig(hbaseConfigMap);
+                        return ConnectionFactory.createConnection(hConfiguration);
+                    } catch (IOException e) {
+                        LOG.error("Get connection fail with config:{}", hbaseConfigMap);
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } catch (Exception e){
+            throw new RuntimeException("Login kerberos error", e);
         }
+    }
 
+    public static UserGroupInformation getUgi(Map<String,Object> hbaseConfigMap) throws IOException{
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
         keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
         KerberosUtil.loadKrb5Conf(hbaseConfigMap);
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
 
-        UserGroupInformation ugi;
-        try {
-            ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
-        } catch (Exception e){
-            throw new RuntimeException("Login kerberos error", e);
-        }
-
-        return ugi.doAs(new PrivilegedAction<Connection>() {
-            @Override
-            public Connection run() {
-                try {
-                    Configuration hConfiguration = getConfig(hbaseConfigMap);
-                    return ConnectionFactory.createConnection(hConfiguration);
-                } catch (IOException e) {
-                    LOG.error("Get connection fail with config:{}", hbaseConfigMap);
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
     }
 
     public static Configuration getConfig(Map<String,Object> hbaseConfigMap){
