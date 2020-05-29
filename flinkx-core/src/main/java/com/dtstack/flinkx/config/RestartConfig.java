@@ -49,7 +49,7 @@ public class RestartConfig extends AbstractConfig {
     }
 
     public static RestartConfig defaultConfig(){
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = new HashMap<>(16);
         return new RestartConfig(map);
     }
 
