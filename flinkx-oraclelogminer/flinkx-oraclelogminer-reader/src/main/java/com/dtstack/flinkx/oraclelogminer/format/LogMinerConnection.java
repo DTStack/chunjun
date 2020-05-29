@@ -209,11 +209,11 @@ public class LogMinerConnection {
             startScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
         } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的scn获取对应日志文件的起始位置
-            if(StringUtils.isEmpty(logMinerConfig.getStartSCN())){
+            if(StringUtils.isEmpty(logMinerConfig.getStartScn())){
                 throw new RuntimeException("读取模式为[scn]时必须指定[startSCN]");
             }
 
-            startScn = Long.parseLong(logMinerConfig.getStartSCN());
+            startScn = Long.parseLong(logMinerConfig.getStartScn());
         } else {
             throw new RuntimeException("不支持的读取模式:" + logMinerConfig.getReadPosition());
         }
