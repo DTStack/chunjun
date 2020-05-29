@@ -64,4 +64,15 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
             }
         }
     }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.getArity(); i++) {
+            if (i > 0) {
+                sb.append(writeDelimiter);
+            }
+            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+        }
+        return sb.toString();
+    }
 }
