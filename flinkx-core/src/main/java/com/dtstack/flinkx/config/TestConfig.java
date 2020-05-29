@@ -37,7 +37,7 @@ public class TestConfig extends AbstractConfig {
     }
 
     public static TestConfig defaultConfig(){
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = new HashMap<>(16);
         return new TestConfig(map);
     }
 
