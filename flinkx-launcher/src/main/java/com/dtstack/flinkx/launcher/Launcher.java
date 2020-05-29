@@ -20,7 +20,7 @@ package com.dtstack.flinkx.launcher;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
+import com.dtstack.flinkx.launcher.perjob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;
@@ -162,9 +162,8 @@ public class Launcher {
     }
 
     private static String readJob(String job) {
-        try {
-            File file = new File(job);
-            FileInputStream in = new FileInputStream(file);
+        File file = new File(job);
+        try (FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             in.close();

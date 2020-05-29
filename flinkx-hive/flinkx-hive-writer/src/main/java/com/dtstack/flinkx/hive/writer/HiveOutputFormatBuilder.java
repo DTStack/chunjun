@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.hive.writer;
 
 import com.dtstack.flinkx.hive.TableInfo;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import java.nio.charset.Charset;
@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * @author toutian
  */
-public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
+public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     protected HiveOutputFormat format;
 
@@ -100,8 +100,8 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         format.rowGroupSize = rowGroupSize;
     }
 
-    public void setDefaultFS(String defaultFS) {
-        format.defaultFS = defaultFS;
+    public void setDefaultFs(String defaultFs) {
+        format.defaultFs = defaultFs;
     }
 
     public void setWriteMode(String writeMode) {
@@ -131,9 +131,12 @@ public class HiveOutputFormatBuilder extends RichOutputFormatBuilder {
         if (this.format.tableBasePath == null || this.format.tableBasePath.length() == 0) {
             throw new IllegalArgumentException("No tableBasePath supplied.");
         }
+
         if (this.format.tableInfos.isEmpty()){
             throw new IllegalArgumentException("No tableInfos supplied.");
         }
+
+        notSupportBatchWrite("HiveWriter");
     }
 
 }

@@ -20,10 +20,10 @@ package com.dtstack.flinkx.rdb.outputformat;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
@@ -33,7 +33,12 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +50,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcOutputFormat extends RichOutputFormat {
+public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
@@ -57,7 +62,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected String driverName;
 
-    protected String dbURL;
+    protected String dbUrl;
 
     protected Connection dbConn;
 
@@ -94,7 +99,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected long rowsOfCurrentTransaction;
 
-    protected final static String GET_ORACLE_INDEX_SQL = "SELECT " +
+    protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
             "FROM " +
@@ -132,7 +137,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn = DbUtil.getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
@@ -176,7 +181,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -190,7 +195,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(rs, stmt,null, false);
+            DbUtil.closeDbResources(rs, stmt,null, false);
         }
 
         return ret;
@@ -336,7 +341,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
-        Map<String, List<String>> map = new HashMap<>();
+        Map<String, List<String>> map = new HashMap<>(16);
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
@@ -345,7 +350,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
             map.get(indexName).add(rs.getString("COLUMN_NAME"));
         }
-        Map<String,List<String>> retMap = new HashMap<>();
+        Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
         for(Map.Entry<String,List<String>> entry: map.entrySet()) {
             String k = entry.getKey();
             List<String> v = entry.getValue();
@@ -371,7 +376,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
+        DbUtil.closeDbResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
     }
 
@@ -383,7 +388,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     @Override
     protected void beforeWriteRecords()  {
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, preSql);
+            DbUtil.executeBatch(dbConn, preSql);
         }
     }
 
@@ -396,7 +401,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void beforeCloseInternal() {
         // 执行postsql
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, postSql);
+            DbUtil.executeBatch(dbConn, postSql);
         }
     }
 

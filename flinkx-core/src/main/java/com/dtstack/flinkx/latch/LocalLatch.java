@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class LocalLatch extends Latch {
+public class LocalLatch extends BaseLatch {
 
     private static Map<String, AtomicInteger> valMap = new ConcurrentHashMap<>();
     private AtomicInteger val;

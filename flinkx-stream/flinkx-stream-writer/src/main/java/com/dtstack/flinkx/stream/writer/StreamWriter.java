@@ -20,7 +20,7 @@ package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -33,7 +33,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamWriter extends DataWriter {
+public class StreamWriter extends BaseDataWriter {
 
     protected boolean print;
     protected String writeDelimiter;

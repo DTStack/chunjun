@@ -25,9 +25,11 @@ import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
 import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
 import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
+import com.dtstack.flinkx.dm.reader.DmReader;
+import com.dtstack.flinkx.dm.writer.DmWriter;
 import com.dtstack.flinkx.emqx.reader.EmqxReader;
 import com.dtstack.flinkx.emqx.writer.EmqxWriter;
 import com.dtstack.flinkx.es.reader.EsReader;
@@ -51,6 +53,7 @@ import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
+import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -67,27 +70,30 @@ import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
-import com.dtstack.flinkx.streaming.runtime.partitioner.DTRebalancePartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,23 +117,21 @@ public class LocalTest {
 
     private static final int DELAY_INTERVAL = 10;
 
-    public static final String TEST_RESOURCE_DIR = "flinkx-examples/examples/";
-
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        confProperties.put("flink.checkpoint.interval", "60000");
-//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
-//
-//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-//        conf.setString("metrics.reporter.promgateway.host","172.16.10.204");
-//        conf.setString("metrics.reporter.promgateway.port","9091");
-//        conf.setString("metrics.reporter.promgateway.jobName","108job");
-//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+        confProperties.put("flink.checkpoint.interval", "60000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 
-        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\logminer_stream2.json";
+        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
+        conf.setString("metrics.reporter.promgateway.port","9091");
+        conf.setString("metrics.reporter.promgateway.jobName","108job");
+        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+
+        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -140,21 +144,30 @@ public class LocalTest {
     public static JobExecutionResult runJob(String job, Properties confProperties, String savepointPath) throws Exception{
         DataTransferConfig config = DataTransferConfig.parse(job);
 
+        conf.setString("akka.ask.timeout", "180 s");
+        conf.setString("web.timeout", String.valueOf(100000));
+
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
 
         openCheckpointConf(env, confProperties);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
 
-        DataReader reader = buildDataReader(config, env);
+        if (needRestart(config)) {
+            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                    10,
+                    Time.of(10, TimeUnit.SECONDS)
+            ));
+        }
+
+        BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
 
         dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
                 new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+                        new CustomPartitioner<>()));
 
-        DataWriter writer = buildDataWriter(config);
+        BaseDataWriter writer = buildDataWriter(config);
         writer.writeData(dataStream);
 
         if(StringUtils.isNotEmpty(savepointPath)){
@@ -164,9 +177,12 @@ public class LocalTest {
         return env.execute();
     }
 
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isRestore();
+    }
+
     private static String readJob(File file) {
-        try {
-            FileInputStream in = new FileInputStream(file);
+        try(FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             return new String(fileContent, StandardCharsets.UTF_8);
@@ -175,9 +191,9 @@ public class LocalTest {
         }
     }
 
-    private static DataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
+    private static BaseDataReader buildDataReader(DataTransferConfig config, StreamExecutionEnvironment env){
         String readerName = config.getJob().getContent().get(0).getReader().getName();
-        DataReader reader ;
+        BaseDataReader reader ;
         switch (readerName){
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
@@ -206,15 +222,17 @@ public class LocalTest {
             case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
+            case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
+            case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
         return reader;
     }
 
-    private static DataWriter buildDataWriter(DataTransferConfig config){
+    private static BaseDataWriter buildDataWriter(DataTransferConfig config){
         String writerName = config.getJob().getContent().get(0).getWriter().getName();
-        DataWriter writer;
+        BaseDataWriter writer;
         switch (writerName){
             case PluginNameConstrant.STREAM_WRITER : writer = new StreamWriter(config); break;
             case PluginNameConstrant.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;
@@ -241,6 +259,8 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
             case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
+            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
+            case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
@@ -252,10 +272,10 @@ public class LocalTest {
             return;
         }
 
-        if(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
+        if(properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY) == null){
             return;
         }else{
-            long interval = Long.parseLong(properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
+            long interval = Long.parseLong(properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY).trim());
 
             //start checkpoint every ${interval}
             env.enableCheckpointing(interval);
@@ -263,7 +283,7 @@ public class LocalTest {
             LOG.info("Open checkpoint with interval:" + interval);
         }
 
-        String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+        String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
         if(checkpointTimeoutStr != null){
             long checkpointTimeout = Long.parseLong(checkpointTimeoutStr);
             //checkpoints have to complete within one min,or are discard
@@ -277,6 +297,7 @@ public class LocalTest {
         env.getCheckpointConfig().enableExternalizedCheckpoints(
                 CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
+        env.setStateBackend(new FsStateBackend(new Path("file:///tmp/flinkx_checkpoint")));
         env.setRestartStrategy(RestartStrategies.failureRateRestart(
                 FAILURE_RATE,
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),

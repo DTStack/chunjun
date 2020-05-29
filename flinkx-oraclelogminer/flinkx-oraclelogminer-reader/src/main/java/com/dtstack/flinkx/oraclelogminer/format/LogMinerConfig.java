@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -52,7 +54,8 @@ public class LogMinerConfig implements Serializable {
      */
     private long startTime = 0;
 
-    private String startSCN = "";
+    @JsonProperty("startSCN")
+    private String startScn = "";
 
     private boolean pavingData = false;
 
@@ -105,12 +108,12 @@ public class LogMinerConfig implements Serializable {
         this.startTime = startTime;
     }
 
-    public String getStartSCN() {
-        return startSCN;
+    public String getStartScn() {
+        return startScn;
     }
 
-    public void setStartSCN(String startSCN) {
-        this.startSCN = startSCN;
+    public void setStartScn(String startScn) {
+        this.startScn = startScn;
     }
 
     public boolean getPavingData() {

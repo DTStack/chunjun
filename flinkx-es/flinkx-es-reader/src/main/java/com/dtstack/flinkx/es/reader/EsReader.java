@@ -20,13 +20,16 @@ package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.es.EsUtil;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +42,9 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsReader extends DataReader {
+public class EsReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(EsReader.class);
 
     private String address;
     private String username;
@@ -86,8 +91,9 @@ public class EsReader extends DataReader {
                     columnValue.add((String) sm.get("value"));
                     columnName.add((String) sm.get("name"));
                 }
-                System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
+
+                LOG.info("init column finished");
+            } else if (!ConstantValue.STAR_SYMBOL.equals(columns.get(0)) || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }
         } else{
@@ -111,6 +117,7 @@ public class EsReader extends DataReader {
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());

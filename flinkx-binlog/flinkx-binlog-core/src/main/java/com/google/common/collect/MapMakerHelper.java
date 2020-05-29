@@ -23,6 +23,9 @@ import com.google.common.base.Function;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @author toutian
+ */
 public class MapMakerHelper {
 
     public static MapMaker softValues(MapMaker mapMaker) {

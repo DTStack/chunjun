@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,7 +22,7 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -38,19 +38,19 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsReader extends DataReader {
-    protected String defaultFS;
+public class HdfsReader extends BaseDataReader {
+    protected String defaultFs;
     protected String fileType;
     protected String path;
     protected String fieldDelimiter;
-    private List<MetaColumn> metaColumns;
+    protected List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
-    private String filterRegex;
+    protected String filterRegex;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        defaultFS = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_DEFAULT_FS);
+        defaultFs = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_DEFAULT_FS);
         path = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_PATH);
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
@@ -74,11 +74,12 @@ public class HdfsReader extends DataReader {
         builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);
         builder.setFilterRegex(filterRegex);
-        builder.setDefaultFs(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setDelimiter(fieldDelimiter);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setRestoreConfig(restoreConfig);
+        builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);
 
         return createInput(builder.finish());

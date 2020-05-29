@@ -19,7 +19,8 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.oraclelogminer.util.LogMinerUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -35,18 +36,13 @@ import java.util.Map;
  * 名词说明:
  * SCN 即系统改变号(System Change Number)
  */
-public class OracleLogMinerInputFormat extends RichInputFormat {
+public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     public LogMinerConfig logMinerConfig;
 
     private transient LogMinerListener logMinerListener;
 
     private transient PositionManager positionManager;
-
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
-    }
 
     @Override
     public void openInputFormat() throws IOException {
@@ -93,6 +89,11 @@ public class OracleLogMinerInputFormat extends RichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         return false;
+    }
+
+    @Override
+    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
+        return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
     @Override

@@ -18,19 +18,23 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
-import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,7 +49,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class DistributedJdbcInputFormat extends RichInputFormat {
+public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
@@ -65,7 +69,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected List<String> descColumnTypeList;
 
-    protected List<DataSource> sourceList;
+    protected ArrayList<DataSource> sourceList;
 
     protected transient int sourceIndex;
 
@@ -110,7 +114,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected void openNextSource() throws SQLException{
         DataSource currentSource = sourceList.get(sourceIndex);
-        currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn = DbUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
         String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
                 where, currentSource.isSplitByKey(), false, false).buildSql();
@@ -133,7 +137,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
         if(descColumnTypeList == null) {
-            descColumnTypeList = DBUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
+            descColumnTypeList = DbUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
                     currentSource.getPassword(),databaseInterface, currentSource.getTable(),metaColumns);
         }
 
@@ -149,7 +153,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             hasNext = currentResultSet.next();
             if (hasNext){
                 currentRecord = new Row(columnCount);
-                if(!"*".equals(metaColumns.get(0).getName())){
+                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         MetaColumn metaColumn = metaColumns.get(i);
                         Object val = currentResultSet.getObject(metaColumn.getName());
@@ -187,7 +191,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     protected void closeCurrentSource(){
         try {
-            DBUtil.closeDBResources(currentResultSet,currentStatement,currentConn, true);
+            DbUtil.closeDbResources(currentResultSet,currentStatement,currentConn, true);
             currentConn = null;
             currentStatement = null;
             currentResultSet = null;
@@ -198,7 +202,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-
+        closeCurrentSource();
     }
 
     @Override
@@ -206,10 +210,10 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         DistributedJdbcInputSplit[] inputSplits = new DistributedJdbcInputSplit[numPartitions];
 
         if(splitKey != null && splitKey.length()> 0){
-            Object[][] parmeter = DBUtil.getParameterValues(numPartitions);
+            Object[][] parmeter = DbUtil.getParameterValues(numPartitions);
             for (int j = 0; j < numPartitions; j++) {
                 DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(j,numPartitions);
-                List<DataSource> sourceCopy = deepCopyList(sourceList);
+                ArrayList<DataSource> sourceCopy = deepCopyList(sourceList);
                 for (int i = 0; i < sourceCopy.size(); i++) {
                     sourceCopy.get(i).setSplitByKey(true);
                     sourceCopy.get(i).setParameterValues(parmeter[j]);
@@ -222,7 +226,9 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
             if (partNum == 0){
                 for (int i = 0; i < sourceList.size(); i++) {
                     DistributedJdbcInputSplit split = new DistributedJdbcInputSplit(i,numPartitions);
-                    split.setSourceList(Arrays.asList(sourceList.get(i)));
+                    ArrayList<DataSource> arrayList = new ArrayList<>();
+                    arrayList.add(sourceList.get(i));
+                    split.setSourceList(arrayList);
                     inputSplits[i] = split;
                 }
             } else {
@@ -251,7 +257,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
         return readNextRecord();
     }
 
-    public <T> List<T> deepCopyList(List<T> src) throws IOException{
+    public <T> ArrayList<T> deepCopyList(ArrayList<T> src) throws IOException{
         try {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteOut);
@@ -259,7 +265,7 @@ public class DistributedJdbcInputFormat extends RichInputFormat {
 
             ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
             ObjectInputStream in = new ObjectInputStream(byteIn);
-            List<T> dest = (List<T>) in.readObject();
+            ArrayList<T> dest = (ArrayList<T>) in.readObject();
 
             return dest;
         } catch (Exception e){

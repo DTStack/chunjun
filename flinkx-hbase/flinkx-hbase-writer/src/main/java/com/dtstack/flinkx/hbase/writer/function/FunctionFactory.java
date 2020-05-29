@@ -35,7 +35,7 @@ public class FunctionFactory {
         IFunction function = null;
         switch (functionName.toUpperCase()) {
             case "MD5":
-                function = new MD5Function();
+                function = new Md5Function();
                 break;
             case "STRING":
                 function = new StringFunction();

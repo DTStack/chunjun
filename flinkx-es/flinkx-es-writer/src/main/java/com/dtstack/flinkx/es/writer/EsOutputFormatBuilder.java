@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.es.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +28,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
+public class EsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private EsOutputFormat format;
 

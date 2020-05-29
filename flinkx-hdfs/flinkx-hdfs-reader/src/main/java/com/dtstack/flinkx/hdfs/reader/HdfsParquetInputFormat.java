@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -42,6 +43,7 @@ import org.apache.parquet.schema.Type;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,7 +56,7 @@ import java.util.concurrent.TimeUnit;
  * Company: www.dtstack.com
  * @author jiangbo
  */
-public class HdfsParquetInputFormat extends HdfsInputFormat {
+public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
     private transient Group currentLine;
 
@@ -74,6 +76,8 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private static final long NANOS_PER_MILLISECOND = TimeUnit.MILLISECONDS.toNanos(1);
 
+    private static final int TIMESTAMP_BINARY_LENGTH = 12;
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         currentSplitFilePaths = ((HdfsParquetSplit)inputSplit).getPaths();
@@ -81,14 +85,33 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
 
     private boolean nextLine() throws IOException{
         if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
-            nextFile();
+            if (openKerberos) {
+                ugi.doAs(new PrivilegedAction<Object>() {
+                    @Override
+                    public Object run() {
+                        try {
+                            nextFile();
+                            return null;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            } else {
+                nextFile();
+            }
         }
 
         if (currentFileReader == null){
             return false;
         }
 
-        currentLine = currentFileReader.read();
+        if (openKerberos) {
+            currentLine = nextLineWithKerberos();
+        } else {
+            currentLine = currentFileReader.read();
+        }
+
         if (fullColNames == null && currentLine != null){
             fullColNames = new ArrayList<>();
             fullColTypes = new ArrayList<>();
@@ -116,17 +139,30 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return currentLine != null;
     }
 
-    private void nextFile() throws IOException{
-        String path = currentSplitFilePaths.get(currentFileIndex);
-        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), new Path(path)).withConf(conf);
-        currentFileReader = reader.build();
+    private Group nextLineWithKerberos() {
+        return ugi.doAs(new PrivilegedAction<Group>() {
+            @Override
+            public Group run() {
+                try {
+                    return currentFileReader.read();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
 
+    private void nextFile() throws IOException{
+        Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
+        findCurrentPartition(path);
+        ParquetReader.Builder<Group> reader = ParquetReader.builder(new GroupReadSupport(), path).withConf(conf);
+        currentFileReader = reader.build();
         currentFileIndex++;
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.size());
             for (int i = 0; i < fullColNames.size(); i++) {
                 Object val = getData(currentLine,fullColTypes.get(i),i);
@@ -138,7 +174,9 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if (metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     if(currentLine.getFieldRepetitionCount(metaColumn.getIndex()) > 0){
                         val = getData(currentLine,metaColumn.getType(),metaColumn.getIndex());
                     }
@@ -146,12 +184,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if (metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String){
-                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                    val = StringUtil.string2col(String.valueOf(val), metaColumn.getType(), metaColumn.getTimeFormat());
                 }
 
                 row.setField(i,val);
@@ -166,7 +202,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         return !nextLine();
     }
 
-    private Object getData(Group currentLine,String type,int index){
+    public Object getData(Group currentLine,String type,int index){
         Object data = null;
         ColumnType columnType = ColumnType.fromString(type);
 
@@ -196,10 +232,10 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
                 case "decimal" : {
                     DecimalMetadata dm = ((PrimitiveType) colSchemaType).getDecimalMetadata();
                     String primitiveTypeName = currentLine.getType().getType(index).asPrimitiveType().getPrimitiveTypeName().name();
-                    if ("INT32".equals(primitiveTypeName)){
+                    if (ColumnType.INT32.name().equals(primitiveTypeName)){
                         int intVal = currentLine.getInteger(index,0);
-                        data = longToDecimalStr((long)intVal,dm.getScale());
-                    } else if("INT64".equals(primitiveTypeName)){
+                        data = longToDecimalStr(intVal,dm.getScale());
+                    } else if(ColumnType.INT64.name().equals(primitiveTypeName)){
                         long longVal = currentLine.getLong(index,0);
                         data = longToDecimalStr(longVal,dm.getScale());
                     } else {
@@ -227,7 +263,7 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
         List<String> allFilePaths;
         HdfsPathFilter pathFilter = new HdfsPathFilter(filterRegex);
 
-        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS)) {
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs)) {
             allFilePaths = getAllPartitionPath(inputPath, fs, pathFilter);
         } catch (Exception e) {
             throw new IOException(e);
@@ -299,13 +335,12 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
     private String getTypeName(String method){
         String typeName;
         switch (method){
+            case "getBoolean":
             case "getInteger" : typeName = "int";break;
             case "getInt96" : typeName = "bigint";break;
             case "getFloat" : typeName = "float";break;
             case "getDouble" : typeName = "double";break;
             case "getBinary" : typeName = "binary";break;
-            case "getString" : typeName = "string";break;
-            case "getBoolean" : typeName = "int";break;
             default:typeName = "string";
         }
 
@@ -316,11 +351,11 @@ public class HdfsParquetInputFormat extends HdfsInputFormat {
      * @param timestampBinary
      * @return
      */
-    private long getTimestampMillis(Binary timestampBinary)
-    {
-        if (timestampBinary.length() != 12) {
+    private long getTimestampMillis(Binary timestampBinary) {
+        if (timestampBinary.length() != TIMESTAMP_BINARY_LENGTH) {
             return 0;
         }
+
         byte[] bytes = timestampBinary.getBytes();
 
         long timeOfDayNanos = Longs.fromBytes(bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]);

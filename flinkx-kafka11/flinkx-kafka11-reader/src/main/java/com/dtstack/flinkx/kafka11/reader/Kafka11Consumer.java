@@ -16,16 +16,16 @@
  */
 package com.dtstack.flinkx.kafka11.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseConsumer;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 
 import java.util.Arrays;
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka11Consumer extends KafkaBaseConsumer {
 

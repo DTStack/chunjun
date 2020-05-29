@@ -22,7 +22,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.mongodb.MongoClient;
@@ -42,7 +42,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbOutputFormat extends RichOutputFormat {
+public class MongodbOutputFormat extends BaseRichOutputFormat {
 
     protected List<MetaColumn> columns;
 

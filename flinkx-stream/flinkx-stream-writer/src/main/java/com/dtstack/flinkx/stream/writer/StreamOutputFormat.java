@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.stream.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
@@ -33,7 +33,7 @@ import java.util.List;
  * @author jiangbo
  * @Company: www.dtstack.com
  */
-public class StreamOutputFormat extends RichOutputFormat {
+public class StreamOutputFormat extends BaseRichOutputFormat {
 
     protected boolean print;
     protected String writeDelimiter;
@@ -48,8 +48,12 @@ public class StreamOutputFormat extends RichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            System.out.println(row);
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
+        }
+
+        if (restoreConfig.isRestore()) {
+            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
+            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
         }
     }
 
@@ -57,8 +61,7 @@ public class StreamOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-//                System.out.println(row);
-                LOG.info(String.valueOf(row));
+                LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
             }
         }
     }
