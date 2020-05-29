@@ -15,18 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package com.dtstack.flinkx.kafka11.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
-import org.apache.flink.configuration.Configuration;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 
 import java.io.IOException;
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka11InputFormat extends KafkaBaseInputFormat {
 

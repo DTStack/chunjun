@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.redis.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 
@@ -30,7 +30,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class RedisOutputFormatBuilder extends RichOutputFormatBuilder {
+public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private RedisOutputFormat format;
 
@@ -95,5 +95,7 @@ public class RedisOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        notSupportBatchWrite("RedisWriter");
     }
 }

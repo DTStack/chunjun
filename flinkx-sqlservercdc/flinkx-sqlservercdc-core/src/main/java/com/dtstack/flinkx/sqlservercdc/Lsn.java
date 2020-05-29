@@ -62,7 +62,12 @@ public class Lsn implements Comparable<Lsn> {
         if (binary == null) {
             return NULL_STRING;
         }
+
         final int[] unsigned = getUnsignedBinary();
+        if (null == unsigned) {
+            return NULL_STRING;
+        }
+
         for (int i = 0; i < unsigned.length; i++) {
             final String byteStr = Integer.toHexString(unsigned[i]);
             if (byteStr.length() == 1) {
@@ -116,23 +121,29 @@ public class Lsn implements Comparable<Lsn> {
         if (this == o) {
             return 0;
         }
+
         if (!this.isAvailable()) {
             if (!o.isAvailable()) {
                 return 0;
             }
             return -1;
         }
+
         if (!o.isAvailable()) {
             return 1;
         }
+
         final int[] thisU = getUnsignedBinary();
         final int[] thatU = o.getUnsignedBinary();
-        for (int i = 0; i < thisU.length; i++) {
-            final int diff = thisU[i] - thatU[i];
-            if (diff != 0) {
-                return diff;
+        if(null != thisU && null != thatU){
+            for (int i = 0; i < thisU.length; i++) {
+                final int diff = thisU[i] - thatU[i];
+                if (diff != 0) {
+                    return diff;
+                }
             }
         }
+
         return 0;
     }
 

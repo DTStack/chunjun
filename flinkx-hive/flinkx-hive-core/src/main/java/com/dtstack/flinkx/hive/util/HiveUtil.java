@@ -28,7 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.hive.EStoreType.*;
+import static com.dtstack.flinkx.hive.EStoreType.ORC;
+import static com.dtstack.flinkx.hive.EStoreType.TEXT;
 
 /**
  * @author toutian
@@ -42,7 +43,7 @@ public class HiveUtil {
     private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
     private static final String CREATE_DIRTY_DATA_TABLE_TEMPLATE = "CREATE TABLE IF NOT EXISTS dirty_%s (event STRING, error STRING, created STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\u0001' LINES TERMINATED BY '\\n' STORED AS TEXTFILE";
 
-    private static final String NoSuchTableException = "NoSuchTableException";
+    private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
 
     private final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
 
@@ -50,11 +51,53 @@ public class HiveUtil {
     public final static String TABLE_COLUMN_TYPE = "type";
     public final static String PARTITION_TEMPLATE = "%s=%s";
 
-    private String writeMode;
-    private DBUtil.ConnectionInfo connectionInfo;
+    private HiveDbUtil.ConnectionInfo connectionInfo;
 
     enum HiveReleaseVersion{
-        APACHE_1, APACHE_2, CDH_1, CDH_2
+        /**
+         * apache hive 1.x
+         */
+        APACHE_1("apache", "1"),
+
+        /**
+         * apache hive 2.x
+         */
+        APACHE_2("apache", "2"),
+
+        /**
+         * cdh hive 1.x
+         */
+        CDH_1("cdh", "1"),
+
+        /**
+         * cdh hive 2.x
+         */
+        CDH_2("cdh", "2");
+
+        private String name;
+
+        private String version;
+
+        HiveReleaseVersion(String name, String version) {
+            this.name = name;
+            this.version = version;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
     }
 
     public HiveUtil() {
@@ -63,22 +106,21 @@ public class HiveUtil {
     /**
      * 抛出异常,直接终止hive
      */
-    public HiveUtil(DBUtil.ConnectionInfo connectionInfo, String writeMode) {
+    public HiveUtil(HiveDbUtil.ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
-        this.writeMode = writeMode;
     }
 
     public void createHiveTableWithTableInfo(TableInfo tableInfo) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             createTable(connection, tableInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -88,14 +130,14 @@ public class HiveUtil {
     public void createPartition(TableInfo tableInfo, String partition) {
         Connection connection = null;
         try {
-            connection = DBUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
-            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
             throw e;
         } finally {
-            DBUtil.closeDBResources(null, null, connection);
+            HiveDbUtil.closeDbResources(null, null, connection);
         }
     }
 
@@ -108,7 +150,7 @@ public class HiveUtil {
     private void createTable(Connection connection, TableInfo tableInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
-            DBUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
+            HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             if (!isTableExistsException(e.getMessage())) {
                 logger.error("create table happens error:", e);
@@ -140,11 +182,11 @@ public class HiveUtil {
             HiveReleaseVersion hiveVersion = getHiveVersion(connection);
             AbstractHiveMetadataParser metadataParser = getMetadataParser(hiveVersion);
 
-            List<Map<String, Object>> result = DBUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
+            List<Map<String, Object>> result = HiveDbUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             logger.error("{}", e);
-            if (e.getMessage().contains(NoSuchTableException)) {
+            if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
                 throw new RuntimeException(String.format("表%s不存在", tableInfo.getTablePath()));
             } else {
                 throw e;
@@ -156,21 +198,20 @@ public class HiveUtil {
         if (HiveReleaseVersion.APACHE_2.equals(hiveVersion) || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
             return new Apache2MetadataParser();
         } else {
-            return new CDH2HiveMetadataParser();
+            return new Cdh2HiveMetadataParser();
         }
     }
 
     public HiveReleaseVersion getHiveVersion(Connection connection){
         HiveReleaseVersion version = HiveReleaseVersion.APACHE_2;
-        try {
-            ResultSet resultSet = connection.createStatement().executeQuery("select version()");
+        try (ResultSet resultSet = connection.createStatement().executeQuery("select version()")) {
             if (resultSet.next()) {
                 String versionMsg = resultSet.getString(1);
-                if (versionMsg.contains("cdh")){
+                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())){
                     // 结果示例：2.1.1-cdh6.3.1 re8d55f408b4f9aa2648bc9e34a8f802d53d6aab3
-                    if (versionMsg.startsWith("2")) {
+                    if (versionMsg.startsWith(HiveReleaseVersion.CDH_2.getVersion())) {
                         version = HiveReleaseVersion.CDH_2;
-                    } else if(versionMsg.startsWith("1")){
+                    } else if(versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())){
                         version = HiveReleaseVersion.CDH_1;
                     }
                 } else {

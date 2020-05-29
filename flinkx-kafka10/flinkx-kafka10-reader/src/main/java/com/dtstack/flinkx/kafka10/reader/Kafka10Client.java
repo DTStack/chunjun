@@ -17,9 +17,9 @@
  */
 package com.dtstack.flinkx.kafka10.reader;
 
-import com.dtstack.flinkx.kafkaBase.decoder.IDecode;
-import com.dtstack.flinkx.kafkaBase.reader.IClient;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.decoder.IDecode;
+import com.dtstack.flinkx.kafkabase.reader.IClient;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -63,9 +63,11 @@ public class Kafka10Client implements IClient {
             while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(pollTimeout);
                 for (ConsumerRecord<String, String> r : records) {
-                    if (r.value() == null || blankIgnore && StringUtils.isBlank(r.value())) {
+                    boolean isIgnoreCurrent = r.value() == null || blankIgnore && StringUtils.isBlank(r.value());
+                    if (isIgnoreCurrent) {
                         continue;
                     }
+
                     try {
                         processMessage(r.value());
                     } catch (Throwable e) {

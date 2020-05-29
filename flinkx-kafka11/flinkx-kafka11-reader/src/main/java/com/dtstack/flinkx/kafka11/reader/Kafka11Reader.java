@@ -18,15 +18,15 @@
 package com.dtstack.flinkx.kafka11.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseReader;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
 public class Kafka11Reader extends KafkaBaseReader {
 

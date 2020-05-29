@@ -17,28 +17,28 @@
  */
 package com.dtstack.flinkx.kafka09.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseConsumer;
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import kafka.consumer.KafkaStream;
 
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka09Consumer extends KafkaBaseConsumer {
-    private KafkaStream<byte[], byte[]> m_stream;
+    private KafkaStream<byte[], byte[]> mStream;
 
-    public Kafka09Consumer(KafkaStream<byte[], byte[]> a_stream) {
+    public Kafka09Consumer(KafkaStream<byte[], byte[]> aStream) {
         super(new Properties());
-        this.m_stream = a_stream;
+        this.mStream = aStream;
     }
 
     @Override
     public KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format) {
-        client = new Kafka09Client(m_stream, format);
+        client = new Kafka09Client(mStream, format);
         return this;
     }
 }

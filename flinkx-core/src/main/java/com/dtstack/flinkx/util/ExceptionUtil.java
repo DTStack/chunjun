@@ -33,30 +33,19 @@ public class ExceptionUtil {
     private static Logger logger = LoggerFactory.getLogger(ExceptionUtil.class);
 
     public static String getErrorMessage(Throwable e) {
-        StringWriter stringWriter = null;
-        PrintWriter writer = null;
-        try{
-                stringWriter= new StringWriter();
-                writer = new PrintWriter(stringWriter);
-                e.printStackTrace(writer);
-                writer.flush();
-                stringWriter.flush();
-                StringBuffer buffer= stringWriter.getBuffer();
-                return buffer.toString();
-        }catch(Throwable ee){
-                logger.error("",ee);
+        if (null == e) {
+            return null;
+        }
 
-        }finally {
-                if(writer!=null){
-                        writer.close();
-                }
-                if(stringWriter!=null){
-                        try{
-                                stringWriter.close();
-                        }catch (Throwable ee){
-                                logger.error("",ee);
-                        }
-                }
+        try (StringWriter stringWriter = new StringWriter();
+             PrintWriter writer = new PrintWriter(stringWriter)) {
+            e.printStackTrace(writer);
+            writer.flush();
+            stringWriter.flush();
+            StringBuffer buffer = stringWriter.getBuffer();
+            return buffer.toString();
+        } catch (Throwable ee) {
+            logger.error("", ee);
         }
         return null;
     }

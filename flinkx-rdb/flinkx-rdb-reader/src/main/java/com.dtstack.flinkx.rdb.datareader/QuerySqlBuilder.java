@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.rdb.datareader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
@@ -159,13 +160,20 @@ public class QuerySqlBuilder {
             querySql.append(" ").append(RESTORE_FILTER_PLACEHOLDER);
         }
 
+        if (customFilter != null){
+            customFilter = customFilter.trim();
+            if (customFilter.length() > 0){
+                querySql.append(" AND ").append(customFilter);
+            }
+        }
+
         return querySql.toString();
     }
 
     protected static List<String> buildSelectColumns(DatabaseInterface databaseInterface, List<MetaColumn> metaColumns){
         List<String> selectColumns = new ArrayList<>();
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
-            selectColumns.add("*");
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+            selectColumns.add(ConstantValue.STAR_SYMBOL);
         } else {
             for (MetaColumn metaColumn : metaColumns) {
                 if (metaColumn.getValue() != null){
@@ -180,11 +188,11 @@ public class QuerySqlBuilder {
     }
 
     protected static boolean addRowNumColumn(DatabaseInterface databaseInterface, List<String> selectColumns, boolean isSplitByKey,String splitKey){
-        if(!isSplitByKey || !splitKey.contains("(")){
+        if(!isSplitByKey || !splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
             return false;
         }
 
-        String orderBy = splitKey.substring(splitKey.indexOf("(")+1, splitKey.indexOf(")"));
+        String orderBy = splitKey.substring(splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL)+1, splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
         selectColumns.add(databaseInterface.getRowNumColumn(orderBy));
 
         return true;

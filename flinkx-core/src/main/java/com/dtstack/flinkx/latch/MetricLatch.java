@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.latch;
 
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -38,7 +39,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class MetricLatch extends Latch {
+public class MetricLatch extends BaseLatch {
 
     public static Logger LOG = LoggerFactory.getLogger(MetricLatch.class);
 
@@ -56,7 +57,7 @@ public class MetricLatch extends Latch {
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
             LOG.info("Monitor url:" + requestUrl);
-            try(InputStream inputStream = URLUtil.open(requestUrl, 10)) {
+            try(InputStream inputStream = UrlUtil.open(requestUrl, 10)) {
                 flag = true;
                 break;
             } catch (Exception e) {
@@ -72,7 +73,7 @@ public class MetricLatch extends Latch {
     }
 
     private int getIntMetricVal(String requestUrl) {
-        try(InputStream inputStream = URLUtil.open(requestUrl)) {
+        try(InputStream inputStream = UrlUtil.open(requestUrl)) {
             try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
@@ -96,7 +97,7 @@ public class MetricLatch extends Latch {
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         jobId = vars.get("<job_id>");
 
-        if(monitors.startsWith("http")) {
+        if(monitors.startsWith(ConstantValue.KEY_HTTP)) {
             monitorRoots = monitors.split(",");
         } else {
             String[] monitor = monitors.split(",");

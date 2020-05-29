@@ -16,6 +16,10 @@ package com.dtstack.flinkx.sqlservercdc;
  */
 public class TableId implements Comparable<TableId> {
 
+    public static final int FIRST_PART = 0;
+    public static final int SECOND_PART = 1;
+    public static final int THIRD_PART = 2;
+
     /**
      * Parse the supplied string, extracting up to the first 3 parts into a TableID.
      *
@@ -27,14 +31,16 @@ public class TableId implements Comparable<TableId> {
      * @return the table ID, or null if it could not be parsed
      */
     protected static TableId parse(String[] parts, int numParts, boolean useCatalogBeforeSchema) {
-        if (numParts == 0) {
+        if (numParts == FIRST_PART) {
             return null;
         }
-        if (numParts == 1) {
+
+        if (numParts == SECOND_PART) {
             // table only
             return new TableId(null, null, parts[0]);
         }
-        if (numParts == 2) {
+
+        if (numParts == THIRD_PART) {
             if (useCatalogBeforeSchema) {
                 // catalog & table only
                 return new TableId(parts[0], null, parts[1]);
@@ -42,6 +48,7 @@ public class TableId implements Comparable<TableId> {
             // schema & table only
             return new TableId(null, parts[0], parts[1]);
         }
+
         // catalog, schema & table
         return new TableId(parts[0], parts[1], parts[2]);
     }

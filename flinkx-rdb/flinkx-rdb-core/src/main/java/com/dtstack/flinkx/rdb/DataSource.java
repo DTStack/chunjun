@@ -19,6 +19,9 @@ package com.dtstack.flinkx.rdb;
 
 import java.io.Serializable;
 
+/**
+ * @author jiangbo
+ */
 public class DataSource implements Serializable {
 
     private String jdbcUrl;
