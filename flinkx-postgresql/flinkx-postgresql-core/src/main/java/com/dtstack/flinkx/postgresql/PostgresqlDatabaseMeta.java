@@ -78,6 +78,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSqlQuerySqlFields(String sql) {
+        return "SELECT * FROM (" + sql  + ") tmp" + " LIMIT 0";
+    }
+
+    @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
         throw new UnsupportedOperationException("PostgreSQL not support update mode");
     }

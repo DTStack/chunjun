@@ -51,6 +51,11 @@ public class ClickhouseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSqlQuerySqlFields(String sql) {
+        return "SELECT * FROM (" + sql  + ") tmp" + " LIMIT 1";
+    }
+
+    @Override
     public String getStartQuote() {
         return "`";
     }
