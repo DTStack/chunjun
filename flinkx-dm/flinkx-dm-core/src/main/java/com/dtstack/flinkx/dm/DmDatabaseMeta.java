@@ -76,6 +76,11 @@ public class DmDatabaseMeta  extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSqlQuerySqlFields(String sql) {
+        return "SELECT * FROM (" + sql  + ") tmp" + " LIMIT 1";
+    }
+
+    @Override
     public String quoteValue(String value, String column) {
         return String.format("'%s' as %s",value,column);
     }

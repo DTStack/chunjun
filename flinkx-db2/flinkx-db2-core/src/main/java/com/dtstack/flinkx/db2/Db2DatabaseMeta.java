@@ -61,6 +61,11 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
+    public String getSqlQuerySqlFields(String sql) {
+        return "SELECT * FROM (" + sql  + ") tmp" + " FETCH FIRST  1 ROWS ONLY";
+    }
+
+    @Override
     public String getSplitFilter(String columnName) {
         return String.format("mod(%s,${N}) = ${M}", getStartQuote() + columnName + getEndQuote());
     }
