@@ -283,40 +283,25 @@ public class DbUtil {
      * @param password          数据库密码
      * @param databaseInterface DatabaseInterface
      * @param table             表名
-     * @param metaColumns    MetaColumn列表
+     * @param sql               查询sql
      * @return 字段类型list列表
      */
-    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface, String table, List<MetaColumn> metaColumns) {
-        List<String> descColumnTypeList = new ArrayList<>(metaColumns.size());
+    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface, String table, String sql) {
+        List<String> descColumnTypeList = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
             dbConn = getConnection(dbUrl, username, password);
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQuerySqlFields(sql));
             ResultSetMetaData rd = rs.getMetaData();
 
-            boolean flag = ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName());
-            Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
             for (int i = 1; i <= rd.getColumnCount(); i++) {
-                if(flag){
-                    descColumnTypeList.add(rd.getColumnTypeName(i));
-                }else{
-                    nameTypeMap.put(rd.getColumnName(i), rd.getColumnTypeName(i));
-                }
-            }
-            if(!flag){
-                for (MetaColumn metaColumn : metaColumns) {
-                    if (metaColumn.getValue() != null) {
-                        descColumnTypeList.add("string");
-                    } else {
-                        descColumnTypeList.add(nameTypeMap.get(metaColumn.getName()));
-                    }
-                }
+                descColumnTypeList.add(rd.getColumnTypeName(i));
             }
         } catch (SQLException e) {
-            LOG.error("error to analyzeTable, dbUrl =  {}, table = {}, metaColumns = {}, e = {}", dbUrl, table, new Gson().toJson(metaColumns), ExceptionUtil.getErrorMessage(e));
+            LOG.error("error to analyzeTable, dbUrl =  {}, table = {}, metaColumns = {}, e = {}", dbUrl, table, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         } finally {
             closeDbResources(rs, stmt, dbConn, false);

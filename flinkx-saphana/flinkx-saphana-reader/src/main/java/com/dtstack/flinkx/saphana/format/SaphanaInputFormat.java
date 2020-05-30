@@ -81,14 +81,7 @@ public class SaphanaInputFormat extends JdbcInputFormat {
 
             hasNext = resultSet.next();
 
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,this.querySql);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
