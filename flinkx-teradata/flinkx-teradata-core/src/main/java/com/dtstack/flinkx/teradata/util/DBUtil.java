@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class DBUtil {
     /**
-     * 获取数据库连接，不使用DBUtil里的getConnection为了避免Telnet，因为jdbc4与jdbc3不同
+     * 获取数据库连接，不使用DbUtil里的getConnection为了避免Telnet，因为jdbc4与jdbc3不同
      * @param url 连接url
      * @param username 用户名
      * @param password 密码
@@ -45,32 +45,23 @@ public class DBUtil {
      * @param password          数据库密码
      * @param databaseInterface DatabaseInterface
      * @param table             表名
-     * @param metaColumns       MetaColumn列表
+     * @param sql       sql
      * @return
      */
     public static List<String> analyzeTable(String dbURL, String username, String password, DatabaseInterface databaseInterface,
-                                            String table, List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>(metaColumns.size());
+                                            String table, String sql) {
+        List<String> descColumnTypeList = new ArrayList<>();
         Connection dbConn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
             dbConn = getConnection(dbURL, username, password);
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQuerySqlFields(sql));
             ResultSetMetaData rd = rs.getMetaData();
 
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
-            }
-
-            for (MetaColumn metaColumn : metaColumns) {
-                if(metaColumn.getValue() != null){
-                    ret.add("string");
-                } else {
-                    ret.add(nameTypeMap.get(metaColumn.getName()));
-                }
+            for (int i = 1; i <= rd.getColumnCount(); i++) {
+                descColumnTypeList.add(rd.getColumnTypeName(i));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -78,6 +69,6 @@ public class DBUtil {
             DbUtil.closeDbResources(rs, stmt, dbConn, false);
         }
 
-        return ret;
+        return descColumnTypeList;
     }
 }
