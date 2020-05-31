@@ -83,8 +83,8 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         Map<String, String> tableProp = queryTableProp(tableName);
         List<Map<String, Object>> column = queryColumn(tableName);
         List<Map<String, String>> partition = queryPartition(tableName);
-        Map<String, String> healthy = queryHealthy(tableName);
-        Map<String, String> updateTime = queryUpdateTime(tableName);
+        Map<String, String> healthy = queryAddPartition(tableName, KEY_HEALTHY);
+        Map<String, String> updateTime = queryAddPartition(tableName, KEY_UPDATE_TIME);
         List<Map<String, Object>> partitionColumn = queryPartitionColumn(tableName);
         if(CollectionUtils.size(partition) == 1){
             Map<String, String> perPartition = partition.get(0);
@@ -117,7 +117,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
     }
 
     public Map<String, String> queryTableProp(String tableName) throws SQLException {
-        Map<String, String> tableProp = new HashMap<>(4);
+        Map<String, String> tableProp = new HashMap<>(16);
         String sql = String.format(SQL_QUERY_TABLEINFO, tableName);
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
@@ -140,7 +140,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
             ResultSet rs = st.executeQuery(sql)) {
             int pos = 1;
             while (rs.next()) {
-                Map<String, Object> perColumn = new HashMap<>(4);
+                Map<String, Object> perColumn = new HashMap<>(16);
                 perColumn.put(KEY_NAME, rs.getString(KEY_FIELD));
                 perColumn.put(KEY_TYPE, rs.getString(KEY_COLUMN_TYPE));
                 perColumn.put(KEY_NULL, rs.getString(KEY_COLUMN_NULL));
@@ -161,7 +161,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, String> perPartition = new HashMap<>(4);
+                Map<String, String> perPartition = new HashMap<>(16);
                 perPartition.put(KEY_NAME, rs.getString(KEY_PARTITION_NAME));
                 perPartition.put(KEY_CREATETIME, rs.getString(KEY_PARTITION_CREATE_TIME));
                 perPartition.put(KEY_ROWS, rs.getString(KEY_PARTITION_TABLE_ROWS));
@@ -174,52 +174,47 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return partition;
     }
 
-    Map<String, String> queryHealthy(String tableName) throws SQLException {
-        Map<String, String> healthy = new HashMap<>(4);
-        String sql = String.format(SQL_QUERY_HEALTHY, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) {
-                /* 考虑partitionName 为空的情况 */
-                String name = rs.getString(KEY_PARTITIONNAME);
-                if(StringUtils.isNotBlank(name)){
-                    healthy.put(name, rs.getString(KEY_HEALTHY_HEALTHY));
-                }else {
-                    healthy.put(KEY_HEALTHY, rs.getString(KEY_HEALTHY_HEALTHY));
-                }
-                }
-            } catch (SQLException e) {
-                throw new SQLException(e.getMessage());
-            }
-            return healthy;
-    }
 
-    Map<String, String> queryUpdateTime(String tableName) throws SQLException {
-        Map<String, String> updateTime = new HashMap<>(4);
-        String sql = String.format(SQL_QUERY_UPDATETIME, tableName);
+    Map<String, String> queryAddPartition(String tableName, String msg) throws SQLException {
+        Map<String, String> result = new HashMap<>(16);
+        String sql = "";
+        if(StringUtils.equals(msg, KEY_HEALTHY)){
+            sql = String.format(SQL_QUERY_HEALTHY, tableName);
+        }else if(StringUtils.equals(msg, KEY_UPDATE_TIME)){
+            sql = String.format(SQL_QUERY_UPDATETIME, tableName);
+        }
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 /* 考虑partitionName 为空的情况 */
                 String name = rs.getString(KEY_PARTITIONNAME);
-                if(StringUtils.isNotBlank(name)){
-                    updateTime.put(name, rs.getString(KEY_UPDATE_TIME));
-                }else {
-                    updateTime.put(KEY_UPDATE_TIME, rs.getString(KEY_UPDATE_TIME));
+                if (StringUtils.isNotBlank(name)) {
+                    if (StringUtils.equals(msg, KEY_HEALTHY)) {
+                        result.put(name, rs.getString(KEY_HEALTHY_HEALTHY));
+                    } else if (StringUtils.equals(msg, KEY_UPDATE_TIME)) {
+                        result.put(name, rs.getString(KEY_UPDATE_TIME));
+                    }
+                } else {
+                    if (StringUtils.equals(msg, KEY_HEALTHY)) {
+                        result.put(KEY_HEALTHY, rs.getString(KEY_HEALTHY_HEALTHY));
+                    } else if (StringUtils.equals(msg, KEY_UPDATE_TIME)) {
+                        result.put(KEY_UPDATE_TIME, rs.getString(KEY_UPDATE_TIME));
+                    }
                 }
             }
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
         }
-        return updateTime;
+        return result;
     }
+
     List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
         List<Map<String, Object> > partitionColumn = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITIONCOLUMN, tableName);
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, Object> perPartitionColumn = new HashMap<>(4);
+                Map<String, Object> perPartitionColumn = new HashMap<>(16);
                 String partitionExp = rs.getString(KEY_PARTITION_EXPRESSION);
                 if(StringUtils.isNotBlank(partitionExp)){
                     String columnName = partitionExp.substring(partitionExp.indexOf("`")+1, partitionExp.lastIndexOf("`"));
