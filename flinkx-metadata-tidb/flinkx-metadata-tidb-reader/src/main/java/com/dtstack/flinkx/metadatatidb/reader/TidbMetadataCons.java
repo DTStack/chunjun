@@ -17,22 +17,17 @@
  */
 package com.dtstack.flinkx.metadatatidb.reader;
 
+import com.dtstack.flinkx.metadata.MetaDataCons;
+
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class TidbMetadataCons {
+public class TidbMetadataCons extends MetaDataCons {
 
     public static final String DRIVERNAME = "com.mysql.jdbc.Driver";
-    public static final String KEY_TABLEPROPERTIES =  "tableProperties";
     public static final String KEY_TOTALSIZE = "totalSize";
     public static final String KEY_CREATETIME = "createTime";
-    public static final String KEY_COLUMN = "column";
-    public static final String KEY_NAME = "name";
-    public static final String KEY_TYPE = "type";
-    public static final String KEY_INDEX = "index";
-    public static final String KEY_COMMENT = "comment";
-    public static final String KEY_PARTITION = "partition";
     public static final String KEY_PARTITIONCOLUMN = "partitionColumn";
     public static final String KEY_ROWS = "rows";
     public static final String KEY_DEFAULT = "default";
@@ -47,7 +42,7 @@ public class TidbMetadataCons {
     public static final String KEY_UPDATE_TIME = "Update_time";
     public static final String KEY_COLUMN_COMMENT = "Comment";
     public static final String KEY_FIELD = "Field";
-    public static final String KEY_COLUMN_TYPE = "Type";
+    public static final String KEY_TYPE = "Type";
     public static final String KEY_COLUMN_NULL = "Null";
     public static final String KEY_COLUMN_DEFAULT = "Default";
     public static final String KEY_PARTITION_NAME = "PARTITION_NAME";
