@@ -19,20 +19,15 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author jiangbo
@@ -42,7 +37,7 @@ public class LogMinerListener implements Runnable {
 
     public static Logger LOG = LoggerFactory.getLogger(LogMinerListener.class);
 
-    private BlockingQueue<Pair<Long, Map<String, Object>>> queue;
+    private BlockingQueue<QueueData> queue;
 
     private ExecutorService executor;
 
@@ -98,15 +93,13 @@ public class LogMinerListener implements Runnable {
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
 
-                    System.out.println("Update log and continue read:" + positionManager.getPosition());
                     LOG.info("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
                 running = false;
 
-                Map<String, Object> map = new HashMap<>(1);
-                map.put("exception", e);
-                queue.add(Pair.of(0L, map));
+                Map<String, Object> map = Collections.singletonMap("exception", e);
+                queue.add(new QueueData(0L, map));
             }
         }
     }
@@ -128,13 +121,13 @@ public class LogMinerListener implements Runnable {
 
     public Map<String, Object> getData() {
         try {
-            Pair<Long, Map<String, Object>> pair = queue.take();
-            if (pair.getLeft() == 0L) {
-                throw new RuntimeException((Exception)pair.getRight().get("exception"));
+            QueueData data = queue.take();
+            if (data.getLsn() == 0L) {
+                throw new RuntimeException((Exception)data.getData().get("exception"));
             }
 
-            positionManager.updatePosition(pair.getLeft());
-            return pair.getRight();
+            positionManager.updatePosition(data.getLsn());
+            return data.getData();
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }
