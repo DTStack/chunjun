@@ -33,7 +33,6 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
@@ -51,15 +50,15 @@ public class LogParser {
         this.config = config;
     }
 
-    public QueueData parse(Pair<Long, Map<String, Object>> pair) throws JSQLParserException {
-        Map<String, Object> logData = pair.getRight();
+    public QueueData parse(QueueData pair) throws JSQLParserException {
+        Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
 
         Map<String,Object> message = new LinkedHashMap<>();
-        message.put("scn", pair.getLeft());
+        message.put("scn", pair.getScn());
         message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);
@@ -87,13 +86,13 @@ public class LogParser {
                 message.put("before_" + key, val);
             });
 
-            return new QueueData(pair.getLeft(), message);
+            return new QueueData(pair.getScn(), message);
         } else {
             message.put("before", beforeDataMap);
             message.put("after", afterDataMap);
             Map<String,Object> event = Collections.singletonMap("message", message);
 
-            return new QueueData(pair.getLeft(), event);
+            return new QueueData(pair.getScn(), event);
         }
     }
 

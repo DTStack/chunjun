@@ -19,28 +19,18 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -86,7 +76,7 @@ public class LogMinerConnection {
 
     private ResultSet logMinerData;
 
-    private Pair<Long, Map<String, Object>> result;
+    private QueueData result;
 
     private List<LogFile> addedLogFiles = new ArrayList<>();
 
@@ -415,7 +405,7 @@ public class LogMinerConnection {
 
         String sqlLog;
         while (logMinerData.next()) {
-            Long scn = logMinerData.getLong(KEY_SCN);
+            long scn = logMinerData.getLong(KEY_SCN);
 
             // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
             boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
@@ -442,7 +432,7 @@ public class LogMinerConnection {
             data.put("operation", operation);
             data.put("sqlLog", sqlLog);
 
-            result = Pair.of(scn, data);
+            result = new QueueData(scn, data);
             return true;
         }
 
@@ -515,7 +505,7 @@ public class LogMinerConnection {
         }
     }
 
-    public Pair<Long, Map<String, Object>> next() {
+    public QueueData next() {
         return result;
     }
 

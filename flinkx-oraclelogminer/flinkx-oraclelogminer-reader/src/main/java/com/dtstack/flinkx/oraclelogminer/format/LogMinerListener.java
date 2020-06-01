@@ -21,7 +21,6 @@ package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +86,7 @@ public class LogMinerListener implements Runnable {
         while (running) {
             try {
                 if (logMinerConnection.hasNext()) {
-                    Pair<Long, Map<String, Object>> log = logMinerConnection.next();
+                    QueueData log = logMinerConnection.next();
                     queue.add(logParser.parse(log));
                 } else {
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
@@ -122,11 +121,11 @@ public class LogMinerListener implements Runnable {
     public Map<String, Object> getData() {
         try {
             QueueData data = queue.take();
-            if (data.getLsn() == 0L) {
+            if (data.getScn() == 0L) {
                 throw new RuntimeException((Exception)data.getData().get("exception"));
             }
 
-            positionManager.updatePosition(data.getLsn());
+            positionManager.updatePosition(data.getScn());
             return data.getData();
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
