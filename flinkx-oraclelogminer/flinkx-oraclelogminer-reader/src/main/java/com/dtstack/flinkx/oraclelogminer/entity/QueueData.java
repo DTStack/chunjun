@@ -11,16 +11,16 @@ import java.util.Map;
  * @author tudou
  */
 public class QueueData {
-    private long lsn;
+    private long scn;
     private Map<String, Object> data;
 
     public QueueData(long lsn, Map<String, Object> data) {
-        this.lsn = lsn;
+        this.scn = lsn;
         this.data = data;
     }
 
-    public long getLsn() {
-        return lsn;
+    public long getScn() {
+        return scn;
     }
 
     public Map<String, Object> getData() {
@@ -30,7 +30,7 @@ public class QueueData {
     @Override
     public String toString() {
         return "QueueData{" +
-                "lsn=" + lsn +
+                "scn=" + scn +
                 ", data=" + new Gson().toJson(data) +
                 '}';
     }
