@@ -22,7 +22,7 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
 import org.apache.flink.types.Row;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraOutputFormat extends RichOutputFormat {
+public class CassandraOutputFormat extends BaseRichOutputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraOutputFormat.class);
 
     protected Long batchSize;

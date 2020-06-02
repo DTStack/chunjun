@@ -20,10 +20,9 @@ package com.dtstack.flinkx.cassandra.reader;
 
 import com.datastax.driver.core.*;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -42,7 +41,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author wuhui
  */
-public class CassandraInputFormat extends RichInputFormat {
+public class CassandraInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraInputFormat.class);
 
@@ -63,9 +62,6 @@ public class CassandraInputFormat extends RichInputFormat {
     protected transient Session session;
 
     protected transient Iterator<com.datastax.driver.core.Row> cursor;
-
-    @Override
-    public void configure(Configuration parameters) {}
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
@@ -110,7 +106,7 @@ public class CassandraInputFormat extends RichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplits(int minNumSplits) {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         ArrayList<CassandraInputSplit> splits = new ArrayList<>();
 
         try {
