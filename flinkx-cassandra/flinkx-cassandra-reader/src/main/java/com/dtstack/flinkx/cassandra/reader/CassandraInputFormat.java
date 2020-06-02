@@ -132,12 +132,12 @@ public class CassandraInputFormat extends RichInputFormat {
     private InputSplit[] splitJob(int minNumSplits, ArrayList<CassandraInputSplit> splits) {
         if(minNumSplits <= 1) {
             splits.add(new CassandraInputSplit());
-            return splits.toArray(new CassandraInputSplit[splits.size()]);
+            return splits.toArray(new CassandraInputSplit[0]);
         }
 
         if(whereString != null && whereString.toLowerCase().contains(CassandraConstants.TOKEN)) {
             splits.add(new CassandraInputSplit());
-            return splits.toArray(new CassandraInputSplit[splits.size()]);
+            return splits.toArray(new CassandraInputSplit[0]);
         }
         Session session = CassandraUtil.getSession(cassandraConfig, "");
         String partitioner = session.getCluster().getMetadata().getPartitioner();
@@ -154,8 +154,7 @@ public class CassandraInputFormat extends RichInputFormat {
                 }
                 splits.add(new CassandraInputSplit(l.toString(), r.toString()));
             }
-        }
-        else if(partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
+        }else if(partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
             BigDecimal minToken = BigDecimal.valueOf(Long.MIN_VALUE);
             BigDecimal maxToken = BigDecimal.valueOf(Long.MAX_VALUE);
             BigDecimal step = maxToken.subtract(minToken)
@@ -168,11 +167,10 @@ public class CassandraInputFormat extends RichInputFormat {
                 }
                 splits.add(new CassandraInputSplit(String.valueOf(l), String.valueOf(r)));
             }
-        }
-        else {
+        }else {
             splits.add(new CassandraInputSplit());
         }
-        return splits.toArray(new CassandraInputSplit[splits.size()]);
+        return splits.toArray(new CassandraInputSplit[0]);
     }
 
     /**
