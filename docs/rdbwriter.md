@@ -1,4 +1,4 @@
-# MySQL写入插件（*writer）
+# 关系数据库写入插件（*writer）
 
 ## 1. 配置样例
 
@@ -28,9 +28,9 @@
                     "updateKey": ""
                 }
             }
-        }]
-    },
-    "setting": {}
+        }],
+        "setting": {}
+    }
 }
 ```
 
@@ -38,7 +38,7 @@
 
 * **name**
   
-  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter，clickhousewriter, polardbwriter。
+  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter，clickhousewriter, polardbwriter, dmwriter。
   
   * 必选：是
     

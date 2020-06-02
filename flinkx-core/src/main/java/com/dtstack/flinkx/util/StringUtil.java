@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  */
 public class StringUtil {
 
+    public static final int STEP_SIZE = 2;
+
     /**
      * Handle the escaped escape charactor.
      *
@@ -218,5 +220,21 @@ public class StringUtil {
         }
 
         return sb.toString();
+    }
+
+    public static byte[] hexStringToByteArray(String hexString) {
+        if (hexString == null) {
+            return null;
+        }
+
+        int length = hexString.length();
+
+        byte[] bytes = new byte[length / 2];
+        for (int i = 0; i < length; i += STEP_SIZE) {
+            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i+1), 16));
+        }
+
+        return bytes;
     }
 }

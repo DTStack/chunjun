@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,27 +21,41 @@ package com.dtstack.flinkx.binlog.reader;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author toutian
+ */
 public class BinlogPositionManager extends AbstractLogPositionManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogPositionManager.class);
 
     private final BinlogInputFormat format;
 
+    private Cache<String, LogPosition> logPositionCache;
+
     public BinlogPositionManager(BinlogInputFormat format) {
         this.format = format;
+        logPositionCache = CacheBuilder.newBuilder().build();
     }
 
     @Override
     public LogPosition getLatestIndexBy(String destination) {
-        return null;
+        return logPositionCache.getIfPresent(destination);
     }
 
     @Override
     public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
         format.updateLastPos(logPosition.getPostion());
+        logPositionCache.put(destination, logPosition);
     }
 
+    @Override
+    public void stop() {
+        super.stop();
+        logPositionCache.cleanUp();
+    }
 }

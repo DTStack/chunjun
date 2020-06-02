@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -46,6 +46,8 @@ public class MetaColumn implements Serializable {
     private SimpleDateFormat timeFormat;
 
     private String splitter;
+
+    private Boolean isPart;
 
     public String getSplitter() {
         return splitter;
@@ -95,7 +97,15 @@ public class MetaColumn implements Serializable {
         this.timeFormat = timeFormat;
     }
 
-    public static List<MetaColumn> getMetaColumns(List columns){
+    public Boolean getPart() {
+        return isPart;
+    }
+
+    public void setPart(Boolean part) {
+        isPart = part;
+    }
+
+    public static List<MetaColumn> getMetaColumns(List columns, boolean generateIndex){
         List<MetaColumn> metaColumns = new ArrayList<>();
         if(columns != null && columns.size() > 0) {
             if (columns.get(0) instanceof Map) {
@@ -112,13 +122,18 @@ public class MetaColumn implements Serializable {
                             mc.setIndex(doubleColIndex.intValue());
                         }
                     } else {
-                        mc.setIndex(i);
+                        if (generateIndex) {
+                            mc.setIndex(i);
+                        } else {
+                            mc.setIndex(-1);
+                        }
                     }
 
                     mc.setName(sm.get("name") != null ? String.valueOf(sm.get("name")) : null);
                     mc.setType(sm.get("type") != null ? String.valueOf(sm.get("type")) : null);
                     mc.setValue(sm.get("value") != null ? String.valueOf(sm.get("value")) : null);
                     mc.setSplitter(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
+                    mc.setPart(sm.get("isPart") != null ? (Boolean) sm.get("isPart") : false);
 
                     if(sm.get("format") != null && String.valueOf(sm.get("format")).trim().length() > 0){
                         mc.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(sm.get("format"))));
@@ -127,9 +142,9 @@ public class MetaColumn implements Serializable {
                     metaColumns.add(mc);
                 }
             } else if (columns.get(0) instanceof String) {
-                if(columns.size() == 1 && columns.get(0).equals("*")){
+                if(columns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(columns.get(0))){
                     MetaColumn mc = new MetaColumn();
-                    mc.setName("*");
+                    mc.setName(ConstantValue.STAR_SYMBOL);
                     metaColumns.add(mc);
                 } else {
                     for (Object column : columns) {
@@ -144,6 +159,10 @@ public class MetaColumn implements Serializable {
         }
 
         return metaColumns;
+    }
+
+    public static List<MetaColumn> getMetaColumns(List columns){
+        return getMetaColumns(columns, true);
     }
 
     public static List<String> getColumnNames(List columns){

@@ -28,7 +28,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -46,15 +45,24 @@ public class CarbonFlinkInputSplit implements InputSplit {
     public CarbonFlinkInputSplit(List<CarbonInputSplit> carbonInputSplits, int splitNumber) throws IOException {
         this.splitNumber = splitNumber;
         rawSplits = new ArrayList<>();
-        rawSplits.addAll(carbonInputSplits.stream().map(this::carbonSplitToRawSplit).collect(Collectors.toList()));
+        List<byte[]> list = new ArrayList<>();
+        for (CarbonInputSplit carbonInputSplit : carbonInputSplits) {
+            byte[] bytes = carbonSplitToRawSplit(carbonInputSplit);
+            list.add(bytes);
+        }
+        rawSplits.addAll(list);
     }
 
     public List<CarbonInputSplit> getCarbonInputSplits() throws IOException {
-        List<CarbonInputSplit> carbonInputSplits = rawSplits.stream().map(this::rawSplitToCarbonSplit).collect(Collectors.toList());
+        List<CarbonInputSplit> carbonInputSplits = new ArrayList<>();
+        for (byte[] rawSplit : rawSplits) {
+            CarbonInputSplit carbonInputSplit = rawSplitToCarbonSplit(rawSplit);
+            carbonInputSplits.add(carbonInputSplit);
+        }
         return carbonInputSplits;
     }
 
-    private byte[] carbonSplitToRawSplit(CarbonInputSplit carbonInputSplit) {
+    private byte[] carbonSplitToRawSplit(CarbonInputSplit carbonInputSplit) throws IOException{
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         try {
@@ -62,17 +70,14 @@ public class CarbonFlinkInputSplit implements InputSplit {
         }  catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            try {
-                baos.close();
-                dos.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            baos.close();
+            dos.close();
         }
+
         return baos.toByteArray();
     }
 
-    private CarbonInputSplit rawSplitToCarbonSplit(byte[] rawSplit) {
+    private CarbonInputSplit rawSplitToCarbonSplit(byte[] rawSplit) throws IOException{
         ByteArrayInputStream bais = new ByteArrayInputStream(rawSplit);
         DataInputStream dis = new DataInputStream(bais);
         CarbonInputSplit carbonInputSplit = new CarbonInputSplit();
@@ -81,13 +86,10 @@ public class CarbonFlinkInputSplit implements InputSplit {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            try {
-                bais.close();
-                dis.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            bais.close();
+            dis.close();
         }
+
         return carbonInputSplit;
     }
 

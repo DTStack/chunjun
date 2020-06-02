@@ -20,9 +20,9 @@
 package com.dtstack.flinkx.classloader;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/10/14
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/10/14
  */
 public class ClassLoaderSupplierCallBack {
 

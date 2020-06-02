@@ -44,7 +44,6 @@
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>xerces:xercesImpl</exclude>
                                     <exclude>org.slf4j:slf4j-api</exclude>
-                                    <!--<exclude>org.slf4j:slf4j-log4j12</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
@@ -64,8 +63,12 @@
                                     <shadedPattern>shade.carbondatawriter.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.carbondatawriter.com.google</shadedPattern>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -1,74 +1,59 @@
 {
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "parameter": {
-            "sliceRecordCount": ["1000"],
-            "column": [
-              {
-                "name": "name",
-                "type": "string"
-              },
-              {
-                "name": "age",
-                "type": "int",
-                "value": "26"
-              },
-              {
-                "name": "father",
-                "type": "string"
-              },
-              {
-                "name": "adress",
-                "type": "string"
-              }
-            ]
-          },
-          "name": "streamreader"
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "1abc123",
+          "port" : 3306,
+          "cat" : "insert,update,delete",
+          "host" : "172.16.10.204",
+          "jdbcUrl" : "jdbc:mysql://172.16.10.204:3306/mqtest",
+          "start" : { },
+          "pavingData" : false,
+          "table" : [ "yc01" ],
+          "username" : "dtstack"
         },
-        "writer": {
-          "parameter": {
-            "print": true,
-            "column": [
-              {
-                "name": "cf:name",
-                "type": "string"
-              },
-              {
-                "name": "cf:age",
-                "type": "int"
-              },
-              {
-                "name": "cf:father",
-                "type": "string"
-              },
-              {
-                "name": "cf:adress",
-                "type": "string"
-              }
-            ],
-            "rowkeyColumn": "md5($(cf:name)_$(cf:father))",
-            "writeBufferSize": 0,
-            "table": "md5_test",
-            "sourceIds": [
-              371
-            ],
-            "hbaseConfig": {
-              "hbase.zookeeper.quorum": "172.16.8.193:2181"
-            }
-          },
-          "name": "streamwriter"
-        }
-      }
-    ],
-    "setting": {
-      "errorLimit": {
-        "record": 100
+        "name" : "binlogreader"
       },
-      "speed": {
-        "bytes": 1048576,
-        "channel": 1
+      "writer" : {
+        "parameter" : {
+          "fileName" : "pt",
+          "writeMode" : "append",
+          "fieldDelimiter" : "\u0001",
+          "partitionType" : "DAY",
+          "path" : "",
+          "analyticalRules" : "stream_${schema}_${table}",
+          "password" : "",
+          "tablesColumn" : "{\"yc01\":[{\"type\":\"INT\",\"key\":\"id\",\"comment\":\"\"},{\"type\":\"VARCHAR\",\"key\":\"address\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+          "partition" : "pt",
+          "hadoopConfig" : {
+            "fs.defaultFS" : "hdfs://tools:8020",
+            "fs.hdfs.impl.disable.cache" : "true",
+            "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
+          },
+          "jdbcUrl" : "jdbc:hive2://172.16.101.229:10000/yc_project_01",
+          "defaultFS" : "hdfs://tools:8020",
+          "fileType" : "orc",
+          "charsetName" : "utf-8",
+          "username" : "",
+          "bufferSize" : 10485760
+        },
+        "name" : "hivewriter",
+        "type" : 7
+      }
+    } ],
+    "setting" : {
+      "dirty" : {
+        "path" : "dirty_mysql2hive2_57"
+      },
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : { },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
       }
     }
   }

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -36,7 +36,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamReader extends DataReader {
+public class StreamReader extends BaseDataReader {
 
     private List<Long> sliceRecordCount;
 
@@ -51,7 +51,7 @@ public class StreamReader extends DataReader {
         List list = (List)readerConfig.getParameter().getVal("sliceRecordCount");
         if(CollectionUtils.isNotEmpty(list)){
             for (Object item : list) {
-                sliceRecordCount.add(Long.valueOf(item.toString()));
+                sliceRecordCount.add(Double.valueOf(item.toString()).longValue());
             }
         }
 
@@ -66,6 +66,9 @@ public class StreamReader extends DataReader {
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
         builder.setRestoreConfig(restoreConfig);
-        return createInput(builder.finish(),"streamreader");
+        builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
+
+        return createInput(builder.finish());
     }
 }

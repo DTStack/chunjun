@@ -14,30 +14,39 @@
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka-core</artifactId>
+            <artifactId>flinkx-kb-writer</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>
 
     <build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.1.0</version>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>shade</goal>
-                    </goals>
-                    <configuration>
-                        <createDependencyReducedPom>false</createDependencyReducedPom>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
-
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.2</version>
@@ -53,11 +62,11 @@
                             <tasks>
                                 <copy todir="${basedir}/../../plugins/kafkawriter">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar" />
+                                        <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/kafkawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafkawriter/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/kafkawriter/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

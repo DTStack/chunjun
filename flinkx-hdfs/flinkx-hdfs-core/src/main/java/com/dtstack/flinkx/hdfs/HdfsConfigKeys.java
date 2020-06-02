@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,6 +34,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
+    public static final String KEY_FILTER = "filterRegex";
+
     public static final String KEY_FILE_TYPE = "fileType";
 
     public static final String KEY_WRITE_MODE = "writeMode";
@@ -57,5 +59,7 @@ public class HdfsConfigKeys {
     public static final String KEY_MAX_FILE_SIZE = "maxFileSize";
 
     public static final String KEY_FLUSH_INTERVAL = "flushInterval";
+
+    public static final String KEY_ENABLE_DICTIONARY = "enableDictionary";
 
 }

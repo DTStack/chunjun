@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka11-core</artifactId>
+            <artifactId>flinkx-kb-reader</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>
@@ -33,40 +33,20 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
-                                    <exclude>log4j:log4j</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
-                                    <exclude>netty-all:io.netty</exclude>
-                                    <exclude>com.google.guava:guava</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.kafka11reader.io.netty</shadedPattern>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.kafka11reader.com.google</shadedPattern>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.2</version>

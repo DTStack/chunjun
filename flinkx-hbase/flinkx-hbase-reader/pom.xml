@@ -51,9 +51,7 @@
                                 <excludes>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <!--<exclude>io.netty:*</exclude>-->
                                     <exclude>org.slf4j:slf4j-api</exclude>
-                                    <!--<exclude>log4j:log4j</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
@@ -67,6 +65,16 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

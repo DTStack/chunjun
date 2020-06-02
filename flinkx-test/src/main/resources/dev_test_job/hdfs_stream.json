@@ -1,0 +1,64 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "groupId" : "default",
+          "topic" : "t_shier",
+          "consumerSettings" : {
+            "zookeeper.connect" : "172.16.8.107:2181/kafka",
+            "bootstrap.servers" : "172.16.8.107:9092",
+            "auto.commit.interval.ms" : "1000",
+            "auto.offset.reset" : "latest"
+          }
+        },
+        "name" : "kafka11reader",
+        "type" : 14
+      },
+      "writer" : {
+        "parameter" : {
+          "fileName" : "pt",
+          "writeMode" : "append",
+          "fieldDelimiter" : "\u0001",
+          "partitionType" : "DAY",
+          "path" : "",
+          "password" : "Wscabc123..@",
+          "tablesColumn" : "{\"tb_shier_text1\":[{\"type\":\"int\",\"key\":\"id\",\"comment\":\"\"},{\"type\":\"string\",\"key\":\"name\",\"comment\":\"\"}]}",
+          "partition" : "pt",
+          "hadoopConfig" : {
+            "dfs.ha.namenodes.ns1" : "nn1,nn2",
+            "fs.defaultFS" : "hdfs://ns1",
+            "hadoop.user.name" : "root",
+            "dfs.namenode.rpc-address.ns1.nn2" : "172.16.100.213:9000",
+            "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+            "dfs.namenode.rpc-address.ns1.nn1" : "172.16.101.196:9000",
+            "dfs.nameservices" : "ns1",
+            "fs.hdfs.impl.disable.cache" : "true",
+            "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
+          },
+          "jdbcUrl" : "jdbc:hive2://172.16.101.252:10000/hzfhbjzh_pub",
+          "defaultFS" : "hdfs://ns1",
+          "table" : "tb_shier_text1",
+          "fileType" : "text",
+          "charsetName" : "utf-8",
+          "username" : "root",
+          "bufferSize" : 10485760
+        },
+        "name" : "hivewriter",
+        "type" : 7
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "errorLimit" : {
+      },
+      "speed" : {
+        "bytes" : -1048576,
+        "channel" : 1
+      }
+    }
+  }
+}

@@ -23,7 +23,7 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.redis.DataMode;
 import com.dtstack.flinkx.redis.DataType;
 import com.dtstack.flinkx.redis.JedisUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -31,7 +31,18 @@ import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_BATCH_SIZE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DATE_FORMAT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_EXPIRE_TIME;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_KEY_INDEXES;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_MODE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TYPE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_VALUE_FIELD_DELIMITER;
 
 /**
  * The writer plugin for redis database
@@ -39,7 +50,7 @@ import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class RedisWriter extends DataWriter {
+public class RedisWriter extends BaseDataWriter {
 
     private String hostPort;
 
@@ -117,6 +128,6 @@ public class RedisWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchInterval(batchSize);
 
-        return createOutput(dataSet, builder.finish(), "rediswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

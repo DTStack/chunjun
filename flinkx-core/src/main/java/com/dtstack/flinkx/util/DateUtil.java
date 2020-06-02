@@ -21,7 +21,11 @@ package com.dtstack.flinkx.util;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Date Utilities
@@ -50,6 +54,11 @@ public class DateUtil {
     public final static String TIMESTAMP_REGEX = "(?i)timestamp";
 
     public final static String DATETIME_REGEX = "(?i)datetime";
+
+    public final static int LENGTH_SECOND = 10;
+    public final static int LENGTH_MILLISECOND = 13;
+    public final static int LENGTH_MICROSECOND = 16;
+    public final static int LENGTH_NANOSECOND = 19;
 
     public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
@@ -88,7 +97,12 @@ public class DateUtil {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Date(stringToDate((String)column,customTimeFormat).getTime());
+
+            Date date = stringToDate((String)column, customTimeFormat);
+            if (null == date) {
+                return null;
+            }
+            return new java.sql.Date(date.getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Date(getMillSecond(rawData.toString()));
@@ -115,7 +129,12 @@ public class DateUtil {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Timestamp(stringToDate((String)column,customTimeFormat).getTime());
+
+            Date date = stringToDate((String)column,customTimeFormat);
+            if (null == date) {
+                return null;
+            }
+            return new java.sql.Timestamp(date.getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Timestamp(getMillSecond(rawData.toString()));
@@ -135,18 +154,18 @@ public class DateUtil {
     }
 
     public static long getMillSecond(String data){
-        long time  = Long.valueOf(data);
-        if(data.length() == 10){
-            time = Long.valueOf(data) * 1000;
-        } else if(data.length() == 13){
-            time = Long.valueOf(data);
-        } else if(data.length() == 16){
-            time = Long.valueOf(data) / 1000;
-        } else if(data.length() == 19){
-            time = Long.valueOf(data) / 1000000 ;
-        } else if(data.length() < 10){
+        long time  = Long.parseLong(data);
+        if(data.length() == LENGTH_SECOND){
+            time = Long.parseLong(data) * 1000;
+        } else if(data.length() == LENGTH_MILLISECOND){
+            time = Long.parseLong(data);
+        } else if(data.length() == LENGTH_MICROSECOND){
+            time = Long.parseLong(data) / 1000;
+        } else if(data.length() == LENGTH_NANOSECOND){
+            time = Long.parseLong(data) / 1000000 ;
+        } else if(data.length() < LENGTH_SECOND){
             try {
-                long day = Long.valueOf(data);
+                long day = Long.parseLong(data);
                 Date date = datetimeFormatter.get().get(DATE_FORMAT).parse(START_TIME);
                 Calendar cal = Calendar.getInstance();
                 long addMill = date.getTime() + day * 24 * 3600 * 1000;
