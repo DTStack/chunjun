@@ -56,6 +56,9 @@ public class Hive2MetaDataCons extends MetaDataCons {
     public static final String KEY_TOTALSIZE = "totalSize";
     public static final String KEY_TRANSIENT_LASTDDLTIME = "transient_lastDdlTime";
 
+    public static final String KEY_NAME = "name";
+    public static final String KEY_VALUE = "value";
+
 
     public static final String SQL_SWITCH_DATABASE = "use %s";
     public static final String SQL_QUERY_DATA = "desc formatted %s";
