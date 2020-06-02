@@ -28,6 +28,7 @@
         <module>flinkx-dm</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
+        <module>flinkx-saphana</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
