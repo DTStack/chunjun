@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatahive2.constants.Hive2Version;
 import org.apache.commons.lang3.StringUtils;
@@ -225,11 +226,18 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         }
     }
 
-    private List<String> showPartitions (String table) throws SQLException{
-        List<String> partitions = new ArrayList<>();
+    private List<Map<String, String>> showPartitions (String table) throws SQLException{
+        List<Map<String, String>> partitions = new ArrayList<>();
         try (ResultSet rs = statement.get().executeQuery(String.format(SQL_SHOW_PARTITIONS, quote(table)))) {
             while (rs.next()) {
-                partitions.add(rs.getString(1));
+                String str = rs.getString(1);
+                String[] split = str.split(ConstantValue.EQUAL_SYMBOL);
+                if(split.length == 2){
+                    Map<String, String> map = new LinkedHashMap<>();
+                    map.put(KEY_NAME, split[0]);
+                    map.put(KEY_VALUE, split[1]);
+                    partitions.add(map);
+                }
             }
         }
 
