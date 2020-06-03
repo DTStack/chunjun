@@ -11,7 +11,7 @@
               }
             ],
             "password": "",
-            "jdbcUrl": "jdbc:mysql://172.16.100.181:4000",
+            "jdbcUrl": "jdbc:mysql://172.16.100.220:4000",
             "username": "root"
           },
           "name": "metadatatidbreader"

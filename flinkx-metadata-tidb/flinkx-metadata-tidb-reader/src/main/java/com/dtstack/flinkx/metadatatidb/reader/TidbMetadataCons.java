@@ -26,39 +26,39 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 public class TidbMetadataCons extends MetaDataCons {
 
     public static final String DRIVERNAME = "com.mysql.jdbc.Driver";
-    public static final String KEY_TOTALSIZE = "totalSize";
-    public static final String KEY_CREATETIME = "createTime";
-    public static final String KEY_PARTITIONCOLUMN = "partitionColumn";
+    public static final String KEY_TOTAL_SIZE = "totalSize";
+    public static final String KEY_CREATE_TIME = "createTime";
+    public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_ROWS = "rows";
     public static final String KEY_DEFAULT = "default";
     public static final String KEY_NULL = "null";
     public static final String KEY_HEALTHY = "healthy";
+    public static final String KEY_UPDATE_TIME = "updateTime";
 
-    public static final String KEY_TABLE_COMMENT = "Comment";
-    public static final String KEY_TABLE_ROWS = "Rows";
-
-    public static final String KEY_DATA_LENGTH = "Data_length";
-    public static final String KEY_COLUMN_CREATE_TIME = "Create_time";
-    public static final String KEY_UPDATE_TIME = "Update_time";
-    public static final String KEY_COLUMN_COMMENT = "Comment";
-    public static final String KEY_FIELD = "Field";
-    public static final String KEY_TYPE = "Type";
-    public static final String KEY_COLUMN_NULL = "Null";
-    public static final String KEY_COLUMN_DEFAULT = "Default";
-    public static final String KEY_PARTITION_NAME = "PARTITION_NAME";
-    public static final String KEY_PARTITION_CREATE_TIME = "CREATE_TIME";
-    public static final String KEY_PARTITION_TABLE_ROWS = "TABLE_ROWS";
-    public static final String KEY_PARTITION_DATA_LENGTH = "DATA_LENGTH";
-    public static final String KEY_PARTITIONNAME = "Partition_name";
-    public static final String KEY_HEALTHY_HEALTHY = "Healthy";
-    public static final String KEY_PARTITION_EXPRESSION = "PARTITION_EXPRESSION";
+    public static final String RESULT_ROWS = "Rows";
+    public static final String RESULT_DATA_LENGTH = "Data_length";
+    public static final String RESULT_FIELD = "Field";
+    public static final String RESULT_TYPE = "Type";
+    public static final String RESULT_COLUMN_NULL = "Null";
+    public static final String RESULT_COLUMN_DEFAULT = "Default";
+    public static final String RESULT_PARTITION_NAME = "PARTITION_NAME";
+    public static final String RESULT_PARTITION_CREATE_TIME = "CREATE_TIME";
+    public static final String RESULT_PARTITION_TABLE_ROWS = "TABLE_ROWS";
+    public static final String RESULT_PARTITION_DATA_LENGTH = "DATA_LENGTH";
+    public static final String RESULT_PARTITIONNAME = "Partition_name";
+    public static final String RESULT_HEALTHY = "Healthy";
+    public static final String RESULT_PARTITION_EXPRESSION = "PARTITION_EXPRESSION";
+    public static final String RESULT_CREATE_TIME = "Create_time";
+    public static final String RESULT_UPDATE_TIME = "Update_time";
+    public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
     public static final String SQL_SWITCH_DATABASE = "USE %s";
-    public static final String SQL_QUERY_TABLEINFO = "SHOW TABLE STATUS LIKE '%s'";
+    public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM %s";
     public static final String SQL_QUERY_HEALTHY = "SHOW STATS_HEALTHY WHERE Table_name='%s' AND Db_name = schema()";
-    public static final String SQL_QUERY_UPDATETIME = "SHOW STATS_META WHERE Table_name = '%s'";
+    public static final String SQL_QUERY_UPDATE_TIME = "SHOW STATS_META WHERE Table_name = '%s'";
     public static final String SQL_QUERY_PARTITION = "SELECT * FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";
-    public static final String SQL_QUERY_PARTITIONCOLUMN = "SELECT DISTINCT PARTITION_EXPRESSION FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";
+    public static final String SQL_QUERY_PARTITION_COLUMN = "SELECT DISTINCT PARTITION_EXPRESSION FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";
 }
+
