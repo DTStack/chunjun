@@ -265,6 +265,10 @@ public class LogMinerUtil {
     }
 
     private static String cleanString(String str) {
+        if("NULL".equalsIgnoreCase(str)){
+            return "";
+        }
+
         if (str.startsWith("TIMESTAMP")) {
             str = str.replace("TIMESTAMP ", "");
         }
