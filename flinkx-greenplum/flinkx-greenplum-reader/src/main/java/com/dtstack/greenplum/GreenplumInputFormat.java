@@ -16,43 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.greenplum;
 
-import org.apache.commons.net.ftp.FTP;
+import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 
-/**
- * Database type
+/**Simple inheritance of PostgresqlInputFormat
  *
- * Company: www.dtstack.com
- * @author jiangbo
+ * @Company: www.dtstack.com
+ * @author kunni@dtstack.com
  */
-public enum EDatabaseType {
 
-    /**
-     * database type
-     */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    Greenplum,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
-
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm,
-    SapHana
+public class GreenplumInputFormat extends PostgresqlInputFormat {
 }

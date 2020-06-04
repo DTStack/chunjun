@@ -16,43 +16,35 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.greenplum;
 
-import org.apache.commons.net.ftp.FTP;
+import com.dtstack.flinkx.enums.EDatabaseType;
+import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * Database type
+ * The class of Greenplum database prototype
  *
- * Company: www.dtstack.com
- * @author jiangbo
+ * @Company: www.dtstack.com
+ * @author kunni@dtstack.com
  */
-public enum EDatabaseType {
 
-    /**
-     * database type
-     */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    Greenplum,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
+public class GreenplumDatabaseMeta extends PostgresqlDatabaseMeta {
 
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm,
-    SapHana
+    @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String, List<String>> updateKey) {
+        throw new UnsupportedOperationException("Greenplum not support update mode");
+    }
+
+    @Override
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.Greenplum;
+    }
+
+    @Override
+    public String getDriverClass() {
+        return "com.pivotal.jdbc.GreenplumDriver";
+    }
 }

@@ -1,0 +1,55 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+
+        "parameter": {
+          "column": [
+            {
+              "name": "id0",
+              "type": "int"
+            },{
+              "name": "id10",
+              "type": "int"
+            }
+          ],
+          "sliceRecordCount": ["15000","15000","15000","15000"]
+        },
+        "name" : "streamreader"
+      },
+      "writer": {
+        "name": "postgresqlwriter",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:postgresql://172.16.10.90:5432/exampledb",
+            "table": ["performance"]
+          }],
+          "username": "gpadmin",
+          "password": "gpadmin",
+          "column": [
+            {
+              "name": "id0",
+              "type": "int"
+            },{
+              "name": "id10",
+              "type": "int"
+            }],
+          "writeMode": "insert",
+          "insertSqlMode": "copy",
+          "batchSize": 100,
+          "preSql": [],
+          "postSql": []
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 4,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

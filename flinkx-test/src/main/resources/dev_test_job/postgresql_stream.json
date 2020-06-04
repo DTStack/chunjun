@@ -1,0 +1,39 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {"name": "id"} ],
+          "username" : "postgres",
+          "password" : "779877abc",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:postgresql://localhost:5432/postgres" ],
+            "table" : [ "public.newtable" ]
+          } ],
+          "where": "id > 1",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "postgresqlreader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

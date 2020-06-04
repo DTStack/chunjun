@@ -459,6 +459,12 @@
             <artifactId>flinkx-dm-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-greenplum-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
     </dependencies>
 
 

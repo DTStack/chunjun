@@ -16,43 +16,23 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.greenplum;
 
-import org.apache.commons.net.ftp.FTP;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
+import com.pivotal.jdbc.greenplumbase.BaseConnection;
+import org.postgresql.copy.CopyManager;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
- * Database type
  *
+ * Date: 2020/6/4
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author kunni@dtstack.com
  */
-public enum EDatabaseType {
 
-    /**
-     * database type
-     */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    Greenplum,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
+public class GreenplumOutputFormat extends PostgresqlOutputFormat {
 
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm,
-    SapHana
 }

@@ -80,6 +80,7 @@ import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+import com.dtstack.greenplum.GreenplumReader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -124,14 +125,14 @@ public class LocalTest {
         confProperties.put("flink.checkpoint.interval", "60000");
         confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 
-        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
-        conf.setString("metrics.reporter.promgateway.port","9091");
-        conf.setString("metrics.reporter.promgateway.jobName","108job");
-        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
+//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+//        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
+//        conf.setString("metrics.reporter.promgateway.port","9091");
+//        conf.setString("metrics.reporter.promgateway.jobName","108job");
+//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\greenplum_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -224,6 +225,7 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
+            case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
