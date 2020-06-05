@@ -28,8 +28,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
-import java.util.regex.Pattern;
-
 /**
  * The writer plugin for Greenplum database
  *
@@ -39,15 +37,14 @@ import java.util.regex.Pattern;
 
 public class GreenplumWriter extends JdbcDataWriter {
 
-    public static final Pattern JDBC_PATTERN = Pattern.compile("//");
-    public static final Pattern DB_PATTERN = Pattern.compile(";DatabaseName=");
-
     public static final String INSERT_SQL_MODE_TYPE = "copy";
-    public static final String JDBC_POSTGRESQL_PREFIX = "jdbc:postgresql://";
+    public static final String DATABASE_NAME = ";DatabaseName=";
+    public static final String JDBC_POSTGRESQL_PREFIX = "jdbc:postgresql";
+    public static final String JDBC_GREENPLUM_PREFIX = "jdbc:pivotal:greenplum";
 
     public GreenplumWriter(DataTransferConfig config) {
         super(config);
-        //统一改为copy模式
+        //统一固定为copy模式
         insertSqlMode = INSERT_SQL_MODE_TYPE;
         dbUrl = changeToPostgresqlUrl();
         setDatabaseInterface(new GreenplumDatabaseMetaInsert());
@@ -55,16 +52,8 @@ public class GreenplumWriter extends JdbcDataWriter {
     }
 
     String changeToPostgresqlUrl(){
-        String[] splits = JDBC_PATTERN.split(dbUrl);
-        if(splits.length > 0){
-            splits[0] = JDBC_POSTGRESQL_PREFIX;
-            dbUrl = StringUtils.join(splits);
-        }
-        splits = DB_PATTERN.split(dbUrl);
-        if(splits.length>0){
-            splits[0] = splits[0] + "/";
-            dbUrl = StringUtils.join(splits);
-        }
+        dbUrl = StringUtils.replaceOnce(dbUrl, JDBC_GREENPLUM_PREFIX, JDBC_POSTGRESQL_PREFIX);
+        dbUrl = StringUtils.replaceOnce(dbUrl, DATABASE_NAME, "/");
         return dbUrl;
     }
 
