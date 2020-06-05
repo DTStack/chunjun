@@ -38,6 +38,7 @@ import com.dtstack.flinkx.ftp.reader.FtpReader;
 import com.dtstack.flinkx.ftp.writer.FtpWriter;
 import com.dtstack.flinkx.gbase.reader.GbaseReader;
 import com.dtstack.flinkx.gbase.writer.GbaseWriter;
+import com.dtstack.flinkx.greenplum.GreenplumWriter;
 import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
@@ -132,7 +133,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\greenplum_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_greenplum.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -263,6 +264,7 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
+            case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

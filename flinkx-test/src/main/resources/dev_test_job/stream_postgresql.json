@@ -15,14 +15,14 @@
         "name" : "streamreader"
       },
       "writer": {
-        "name": "greenplumwriter",
+        "name": "postgresqlwriter",
         "parameter": {
           "connection": [{
-            "jdbcUrl": "jdbc:pivotal:greenplum://172.16.10.90:5432;DatabaseName=exampledb",
-            "table": ["tbl_pay_log_copy"]
+            "jdbcUrl": "jdbc:postgresql://localhost:5432/postgres",
+            "table": ["newtable"]
           }],
-          "username": "gpadmin",
-          "password": "gpadmin",
+          "username": "postgres",
+          "password": "779877abc",
           "column": [
             {
               "name": "id",
@@ -31,7 +31,7 @@
           "writeMode": "insert",
           "insertSqlMode": "copy",
           "batchSize": 100,
-          "preSql": ["TRUNCATE tbl_pay_log_copy"],
+          "preSql": ["TRUNCATE newtable"],
           "postSql": []
         }
       }

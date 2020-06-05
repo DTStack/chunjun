@@ -20,58 +20,32 @@ package com.dtstack.flinkx.greenplum;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
-import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.greenplum.GreenplumDatabaseMetaInsert;
-import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.greenplum.GreenplumDatabaseMeta;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
-import java.util.regex.Pattern;
-
 /**
- * The writer plugin for Greenplum database
  *
  * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumWriter extends JdbcDataWriter {
-
-    public static final Pattern JDBC_PATTERN = Pattern.compile("//");
-    public static final Pattern DB_PATTERN = Pattern.compile(";DatabaseName=");
-
-    public static final String INSERT_SQL_MODE_TYPE = "copy";
-    public static final String JDBC_POSTGRESQL_PREFIX = "jdbc:postgresql://";
+public class GreenplumWriter extends PostgresqlWriter {
 
     public GreenplumWriter(DataTransferConfig config) {
         super(config);
-        //统一改为copy模式
-        insertSqlMode = INSERT_SQL_MODE_TYPE;
-        dbUrl = changeToPostgresqlUrl();
-        setDatabaseInterface(new GreenplumDatabaseMetaInsert());
+        setDatabaseInterface(new GreenplumDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
-    }
-
-    String changeToPostgresqlUrl(){
-        String[] splits = JDBC_PATTERN.split(dbUrl);
-        if(splits.length > 0){
-            splits[0] = JDBC_POSTGRESQL_PREFIX;
-            dbUrl = StringUtils.join(splits);
-        }
-        splits = DB_PATTERN.split(dbUrl);
-        if(splits.length>0){
-            splits[0] = splits[0] + "/";
-            dbUrl = StringUtils.join(splits);
-        }
-        return dbUrl;
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        GreenplumOutputFormat greenplumOutputFormat = new GreenplumOutputFormat();
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(greenplumOutputFormat);
+        GreenplumOutputFormat postgresqlOutputFormat = new GreenplumOutputFormat();
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(postgresqlOutputFormat);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
         builder.setUsername(username);
@@ -95,7 +69,8 @@ public class GreenplumWriter extends JdbcDataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
 
-        DataStreamSink<?> dataStreamSink = createOutput(dataSet, builder.finish());
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
         String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
         dataStreamSink.name(sinkName);
         return dataStreamSink;

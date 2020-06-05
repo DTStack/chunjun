@@ -3,30 +3,34 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-greenplum</artifactId>
+        <artifactId>flinkx-all</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-greenplum-core</artifactId>
+    <artifactId>flinkx-metadata-greenplum</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>flinkx-metadata-greenplum-core</module>
+        <module>flinkx-metadata-greenplum-reader</module>
+        <module>flinkx-metadata-greenplum-writer</module>
+    </modules>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-postgresql-core</artifactId>
+            <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
+            <scope>provided</scope>
         </dependency>
+
         <dependency>
-            <groupId>com.pivotal</groupId>
-            <artifactId>greenplum-jdbc</artifactId>
-            <version>5.1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.2.2</version>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-core</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
-
 
 </project>

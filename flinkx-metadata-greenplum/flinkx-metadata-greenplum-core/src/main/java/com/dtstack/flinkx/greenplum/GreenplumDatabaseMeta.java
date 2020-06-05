@@ -18,14 +18,33 @@
 
 package com.dtstack.flinkx.greenplum;
 
-import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
+import com.dtstack.flinkx.enums.EDatabaseType;
+import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 
-/**Simple inheritance of PostgresqlOutputFormat
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The class of GREENPLUM database prototype
  *
- * Date: 2020/6/4
- * Company: www.dtstack.com
+ * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
+public class GreenplumDatabaseMeta extends PostgresqlDatabaseMeta {
 
-public class GreenplumOutputFormat extends PostgresqlOutputFormat {
+    @Override
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.GREENPLUM;
+    }
+
+    @Override
+    public String getDriverClass() {
+        return "com.pivotal.jdbc.GreenplumDriver";
+    }
+
+
+    @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        throw new UnsupportedOperationException("Greenplum not support update mode");
+    }
 }

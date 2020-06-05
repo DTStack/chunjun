@@ -16,16 +16,18 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.greenplum;
+package com.dtstack.greenplum;
 
-import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
-
-/**Simple inheritance of PostgresqlOutputFormat
+/**
+ * when use insert mode, use org.postgresql.Driver
  *
- * Date: 2020/6/4
- * Company: www.dtstack.com
+ * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumOutputFormat extends PostgresqlOutputFormat {
+public class GreenplumDatabaseMetaInsert extends GreenplumDatabaseMeta{
+    @Override
+    public String getDriverClass() {
+        return "org.postgresql.Driver";
+    }
 }

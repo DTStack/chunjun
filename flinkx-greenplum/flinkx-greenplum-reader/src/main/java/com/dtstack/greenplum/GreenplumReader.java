@@ -21,7 +21,6 @@ package com.dtstack.greenplum;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
-import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlQuerySqlBuilder;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
