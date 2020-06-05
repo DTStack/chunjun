@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,10 +31,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author : tiezhu
@@ -66,47 +64,38 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         try {
             connection.set(getConnection());
         } catch (Exception e) {
-            throw new IOException(e);
+            LOG.error("获取连接失败, dbUrl = {}, username = {}, e = {}", dbUrl, username, ExceptionUtil.getErrorMessage(e));
+            throw new IOException("获取连接失败", e);
         }
     }
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
-
         try {
             statement.set(connection.get().createStatement());
-        } catch (SQLException e) {
-            throw new IOException("create statement error", e);
-        }
-
-        try {
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             switchDatabase(currentDb.get());
-        } catch (Exception e) {
-            throw new IOException("switch database error", e);
-        }
-
-        List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
-        if (CollectionUtils.isEmpty(tableList)) {
-            try {
+            List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
-            } catch (SQLException e) {
-                throw new IOException("show tables error", e);
             }
+            tableIterator = tableList.iterator();
+        } catch (SQLException e) {
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            throw new IOException("获取table列表异常", e);
         }
-
-        tableIterator = tableList.iterator();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected InputSplit[] createInputSplitsInternal(int splitNumber) throws Exception {
         if (CollectionUtils.isEmpty(dbTableList)) {
             try (Connection connection = getConnection()) {
                 List<String> dbList = showDatabases(connection);
                 InputSplit[] inputSplits = new MetadataInputSplit[dbList.size()];
                 for (int i = 0; i < dbList.size(); i++) {
-                    inputSplits[i] = new MetadataInputSplit(splitNumber, dbList.get(i), null);
+                    inputSplits[i] = new MetadataInputSplit(splitNumber, dbList.get(i), Collections.emptyList());
                 }
 
                 return inputSplits;
@@ -115,9 +104,9 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
             for (int index = 0; index < dbTableList.size(); index++) {
                 Map<String, Object> dbTables = dbTableList.get(index);
-                String dbName = MapUtils.getString(dbTables, "dbName");
+                String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
                 if(StringUtils.isNotEmpty(dbName)){
-                    List<String> tables = (List<String>)dbTables.get("tableList");
+                    List<String> tables = (List<String>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
                     inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
                 }
             }
@@ -126,38 +115,40 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
+    protected Row nextRecordInternal(Row row) {
         Map<String, Object> metaData = new HashMap<>(16);
-        metaData.put("operaType", "createTable");
+        metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
         String tableName = tableIterator.next();
-        metaData.put("schema", currentDb.get());
-        metaData.put("table", tableName);
+        metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
+        metaData.put(MetaDataCons.KEY_TABLE, tableName);
 
         try {
             metaData.putAll(queryMetaData(tableName));
-            metaData.put("querySuccess", true);
+            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
-            metaData.put("querySuccess", false);
-            metaData.put("errorMsg", ExceptionUtil.getErrorMessage(e));
+            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
+            metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
         }
 
         return Row.of(metaData);
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return !tableIterator.hasNext();
     }
 
     @Override
     protected void closeInternal() throws IOException {
-        if (null != statement.get()) {
+        Statement st = statement.get();
+        if (null != st) {
             try {
-                statement.get().close();
+                st.close();
                 statement.remove();
             } catch (SQLException e) {
-                throw new IOException("close statement error", e);
+                LOG.error("关闭statement对象异常, e = {}", ExceptionUtil.getErrorMessage(e));
+                throw new IOException("关闭statement对象异常", e);
             }
         }
 
@@ -167,62 +158,63 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     @Override
     public void closeInputFormat() throws IOException {
         super.closeInputFormat();
-
-        if (null != connection.get()) {
+        Connection conn = connection.get();
+        if (null != conn) {
             try {
-                connection.get().close();
+                conn.close();
                 connection.remove();
             } catch (SQLException e) {
-                throw new IOException("close connection error", e);
+                LOG.error("关闭数据库连接异常, e = {}", ExceptionUtil.getErrorMessage(e));
+                throw new IOException("关闭数据库连接异常", e);
             }
         }
     }
 
     /**
-     * 创建连接
+     * 创建数据库连接
      */
-    public Connection getConnection() throws Exception{
+    public Connection getConnection() throws SQLException, ClassNotFoundException {
         Class.forName(driverName);
         return ConnUtil.getConnection(dbUrl, username, password);
     }
 
     /**
-     * query all databases
+     * 查询所有database名称
      *
-     * @param connection jdbc connection
-     * @return db list
+     * @param connection JDBC连接
+     * @return database名称列表
      * @throws SQLException e
      */
     protected abstract List<String> showDatabases(Connection connection) throws SQLException;
 
     /**
-     * show tables
+     * 查询当前数据库下所有的表
      *
-     * @return
+     * @return  表名列表
      * @throws SQLException
      */
     protected abstract List<String> showTables() throws SQLException;
 
     /**
-     * switch db
+     * 切换当前database
      *
-     * @param database
+     * @param databaseName
      * @throws SQLException
      */
-    protected abstract void switchDatabase(String database) throws SQLException;
+    protected abstract void switchDatabase(String databaseName) throws SQLException;
 
     /**
-     * query metadata
-     * @param table
+     * 根据表名查询元数据信息
+     * @param tableName
      * @return
      * @throws SQLException
      */
-    protected abstract Map<String, Object> queryMetaData(String table) throws SQLException;
+    protected abstract Map<String, Object> queryMetaData(String tableName) throws SQLException;
 
     /**
-     * quote database,table,column
-     * @param value
-     * @return
+     * 将数据库名，表名，列名字符串转为对应的引用，如：testTable -> `testTable`
+     * @param name
+     * @return 返回数据库名，表名，列名的引用
      */
-    protected abstract String quote(String value);
+    protected abstract String quote(String name);
 }

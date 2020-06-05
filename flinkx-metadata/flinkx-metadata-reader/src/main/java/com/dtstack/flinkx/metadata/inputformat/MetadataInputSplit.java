@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
+import com.google.gson.Gson;
 import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
@@ -26,6 +27,8 @@ import java.util.List;
  * @date : 2020/3/20
  */
 public class MetadataInputSplit implements InputSplit {
+
+    private static final long serialVersionUID = -4483633039887822171L;
 
     private int splitNumber;
 
@@ -49,8 +52,10 @@ public class MetadataInputSplit implements InputSplit {
 
     @Override
     public String toString() {
-        return "MetadataInputSplitDb{" +
-                "dbName='" + dbName + '\'' +
+        return "MetadataInputSplit{" +
+                "splitNumber=" + splitNumber +
+                ", dbName='" + dbName + '\'' +
+                ", tableList=" + new Gson().toJson(tableList) +
                 '}';
     }
 
