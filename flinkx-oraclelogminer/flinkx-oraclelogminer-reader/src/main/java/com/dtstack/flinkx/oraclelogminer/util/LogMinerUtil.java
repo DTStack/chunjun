@@ -273,6 +273,10 @@ public class LogMinerUtil {
     }
 
     private static String cleanString(String str) {
+        if("NULL".equalsIgnoreCase(str)){
+            return "";
+        }
+
         if (str.startsWith(ColumnType.TIMESTAMP.name().toUpperCase())) {
             str = str.replace("TIMESTAMP ", "");
         }
