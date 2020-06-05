@@ -25,7 +25,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
  */
 public class TidbMetadataCons extends MetaDataCons {
 
-    public static final String DRIVERNAME = "com.mysql.jdbc.Driver";
+    public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     public static final String KEY_TOTAL_SIZE = "totalSize";
     public static final String KEY_CREATE_TIME = "createTime";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
@@ -53,7 +53,6 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
-    public static final String SQL_SWITCH_DATABASE = "USE %s";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM %s";
     public static final String SQL_QUERY_HEALTHY = "SHOW STATS_HEALTHY WHERE Table_name='%s' AND Db_name = schema()";

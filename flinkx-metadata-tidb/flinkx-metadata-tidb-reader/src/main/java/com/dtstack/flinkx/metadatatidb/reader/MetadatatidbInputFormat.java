@@ -44,7 +44,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
     protected List<String> showDatabases(Connection connection) throws SQLException {
         List<String> dbNameList = new ArrayList<>();
         try(Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery("show databases")) {
+            ResultSet rs = st.executeQuery(SQL_SHOW_DATABASES)) {
             while (rs.next()) {
                 dbNameList.add(rs.getString(1));
             }
@@ -57,7 +57,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
     @Override
     protected List<String> showTables() throws SQLException {
         List<String> tables = new ArrayList<>();
-        try (ResultSet rs = statement.get().executeQuery("show tables")) {
+        try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
             while (rs.next()) {
                 tables.add(rs.getString(1));
             }

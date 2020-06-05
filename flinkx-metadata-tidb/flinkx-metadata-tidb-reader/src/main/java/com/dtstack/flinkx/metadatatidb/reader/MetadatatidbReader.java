@@ -21,7 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
 
-import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.DRIVERNAME;
+import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.DRIVER_NAME;
 
 /**
  * @author : kunni@dtstack.com
@@ -31,7 +31,7 @@ public class MetadatatidbReader extends MetadataReader {
 
     public MetadatatidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
         super(config, env);
-        driverName = DRIVERNAME;
+        driverName = DRIVER_NAME;
     }
 
     @Override

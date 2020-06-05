@@ -60,9 +60,6 @@ public class Hive2MetaDataCons extends MetaDataCons {
     public static final String KEY_VALUE = "value";
 
 
-    public static final String SQL_SHOW_DATABASES = "show databases";
-    public static final String SQL_SHOW_TABLES = "show tables";
-    public static final String SQL_SWITCH_DATABASE = "use %s";
     public static final String SQL_QUERY_DATA = "desc formatted %s";
     public static final String SQL_SHOW_PARTITIONS = "show partitions %s";
 }
