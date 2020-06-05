@@ -25,13 +25,19 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/10/14
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/10/14
  */
 public class ClassLoaderManager {
 

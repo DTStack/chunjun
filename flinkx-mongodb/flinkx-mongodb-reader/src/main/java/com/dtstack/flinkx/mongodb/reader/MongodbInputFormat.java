@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.mongodb.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -39,7 +40,6 @@ import org.bson.conversions.Bson;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Read plugin for reading static data
@@ -47,7 +47,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbInputFormat extends RichInputFormat {
+public class MongodbInputFormat extends BaseRichInputFormat {
 
     protected List<MetaColumn> metaColumns;
 
@@ -90,7 +90,7 @@ public class MongodbInputFormat extends RichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         Document doc = cursor.next();
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(doc.size());
             String[] names = doc.keySet().toArray(new String[0]);
             for (int i = 0; i < names.length; i++) {
@@ -137,13 +137,13 @@ public class MongodbInputFormat extends RichInputFormat {
             MongoDatabase db = client.getDatabase(mongodbConfig.getDatabase());
             MongoCollection<Document> collection = db.getCollection(mongodbConfig.getCollectionName());
 
-            long docNum = filter == null ? collection.count() : collection.count(filter);
+            long docNum = filter == null ? collection.countDocuments() : collection.countDocuments(filter);
             if(docNum <= minNumSplits){
                 splits.add(new MongodbInputSplit(0,(int)docNum));
                 return splits.toArray(new MongodbInputSplit[splits.size()]);
             }
 
-            long size = Math.floorDiv(docNum,(long)minNumSplits);
+            long size = Math.floorDiv(docNum, minNumSplits);
             for (int i = 0; i < minNumSplits; i++) {
                 splits.add(new MongodbInputSplit((int)(i * size), (int)size));
             }

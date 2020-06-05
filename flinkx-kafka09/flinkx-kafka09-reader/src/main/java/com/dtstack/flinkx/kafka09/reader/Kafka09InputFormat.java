@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.kafka09.reader;
 
-import com.dtstack.flinkx.kafkaBase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/5
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
 public class Kafka09InputFormat extends KafkaBaseInputFormat {
 

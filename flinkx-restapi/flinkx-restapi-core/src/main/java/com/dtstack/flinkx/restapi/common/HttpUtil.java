@@ -87,12 +87,12 @@ public class HttpUtil {
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
-        }
-
-        if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
+        } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
             HttpPost post = new HttpPost(url);
             post.setEntity(getEntityData(requestBody));
             request = post;
+        } else {
+            throw new RuntimeException("Unsupported method:" + method);
         }
 
         for (Map.Entry<String, String> entry : header.entrySet()) {

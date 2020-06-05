@@ -19,13 +19,11 @@ package com.dtstack.flinkx.dm.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
 
 /**
  * Date: 2020/03/18
@@ -49,7 +47,7 @@ public class DmInputFormat  extends JdbcInputFormat {
                             || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
                         obj = resultSet.getTimestamp(pos + 1);
                     }
-                    obj = clobToString(obj);
+                    obj = DbUtil.clobToString(obj);
                 }
 
                 row.setField(pos, obj);
@@ -69,9 +67,9 @@ public class DmInputFormat  extends JdbcInputFormat {
     @Override
     protected String getTimeStr(Long location, String incrementColType){
         String timeStr;
-        Timestamp ts = new Timestamp(DBUtil.getMillis(location));
-        ts.setNanos(DBUtil.getNanos(location));
-        timeStr = DBUtil.getNanosTimeStr(ts.toString());
+        Timestamp ts = new Timestamp(DbUtil.getMillis(location));
+        ts.setNanos(DbUtil.getNanos(location));
+        timeStr = DbUtil.getNanosTimeStr(ts.toString());
 
         if(ColumnType.TIMESTAMP.name().equals(incrementColType)){
             timeStr = String.format("TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS:FF6')",timeStr);

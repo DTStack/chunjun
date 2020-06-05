@@ -17,6 +17,7 @@
 
 package com.dtstack.flinkx.streaming.api.functions.sink;
 
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -31,17 +32,16 @@ import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.InputTypeConfigurable;
 import org.apache.flink.configuration.Configuration;
-
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 /**
  * Simple implementation of the SinkFunction writing tuples in the specified
  * OutputFormat format.
@@ -49,6 +49,8 @@ import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
  * @param <IN> Input type
  *
  * @deprecated Please use the {@code BucketingSink} for writing to files from a streaming program.
+ *
+ * @author jiangbo
  */
 @PublicEvolving
 @Deprecated
@@ -77,8 +79,8 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         RuntimeContext context = getRuntimeContext();
         format.configure(parameters);
 
-        if (format instanceof com.dtstack.flinkx.outputformat.RichOutputFormat && formatStateMap != null){
-            ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+        if (format instanceof BaseRichOutputFormat && formatStateMap != null){
+            ((BaseRichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
         }
 
         int indexInSubtaskGroup = context.getIndexOfThisSubtask();
@@ -135,7 +137,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
-        FormatState formatState = ((com.dtstack.flinkx.outputformat.RichOutputFormat) format).getFormatState();
+        FormatState formatState = ((BaseRichOutputFormat) format).getFormatState();
         if (formatState != null){
             LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
@@ -154,7 +156,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
 
         LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()){
-            formatStateMap = new HashMap<>();
+            formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
                 LOG.info("Output format state into:{}" ,formatState.toString());

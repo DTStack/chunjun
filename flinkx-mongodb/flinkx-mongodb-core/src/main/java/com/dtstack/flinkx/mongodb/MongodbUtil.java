@@ -29,9 +29,11 @@ import org.bson.Document;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
-import static com.dtstack.flinkx.enums.ColumnType.*;
+import static com.dtstack.flinkx.enums.ColumnType.getType;
 
 /**
  * Utilities for mongodb database connection and data format conversion

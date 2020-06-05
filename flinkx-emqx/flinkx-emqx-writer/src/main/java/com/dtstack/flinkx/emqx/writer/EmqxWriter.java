@@ -20,12 +20,17 @@ package com.dtstack.flinkx.emqx.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.emqx.format.EmqxOutputFormatBuilder;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
-import static com.dtstack.flinkx.emqx.EmqxConfigKeys.*;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_BROKER;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_IS_CLEAN_SESSION;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_QOS;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_TOPIC;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_USERNAME;
 
 /**
  * Date: 2020/02/12
@@ -33,7 +38,7 @@ import static com.dtstack.flinkx.emqx.EmqxConfigKeys.*;
  *
  * @author tudou
  */
-public class EmqxWriter extends DataWriter {
+public class EmqxWriter extends BaseDataWriter {
     private String broker;
     private String topic;
     private String username;

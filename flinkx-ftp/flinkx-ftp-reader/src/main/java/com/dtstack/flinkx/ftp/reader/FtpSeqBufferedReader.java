@@ -20,8 +20,13 @@ package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 /**
@@ -31,6 +36,8 @@ import java.util.Iterator;
  * @date 2018/12/18
  */
 public class FtpSeqBufferedReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(FtpSeqBufferedReader.class);
 
     private IFtpHandler ftpHandler;
 
@@ -76,7 +83,8 @@ public class FtpSeqBufferedReader {
             br = new BufferedReader(new InputStreamReader(in, charsetName));
 
             for (int i = 0; i < fromLine; i++) {
-                br.readLine();
+                String skipLine = br.readLine();
+                LOG.info("Skip line:{}", skipLine);
             }
         } else {
             br = null;

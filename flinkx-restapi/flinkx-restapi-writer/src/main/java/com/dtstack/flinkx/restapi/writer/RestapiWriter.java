@@ -21,7 +21,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.restapi.common.RestapiKeys;
 import com.dtstack.flinkx.restapi.outputformat.RestapiOutputFormatBuilder;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -36,7 +36,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/12
  */
-public class RestapiWriter extends DataWriter {
+public class RestapiWriter extends BaseDataWriter {
 
     protected String url;
 

@@ -3,12 +3,18 @@ package com.dtstack.flinkx.emqx.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.emqx.format.EmqxInputFormatBuilder;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import static com.dtstack.flinkx.emqx.EmqxConfigKeys.*;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_BROKER;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_CODEC;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_IS_CLEAN_SESSION;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_QOS;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_TOPIC;
+import static com.dtstack.flinkx.emqx.EmqxConfigKeys.KEY_USERNAME;
 
 /**
  * Date: 2020/02/12
@@ -16,7 +22,7 @@ import static com.dtstack.flinkx.emqx.EmqxConfigKeys.*;
  *
  * @author tudou
  */
-public class EmqxReader extends DataReader{
+public class EmqxReader extends BaseDataReader {
 
     private String broker;
     private String topic;

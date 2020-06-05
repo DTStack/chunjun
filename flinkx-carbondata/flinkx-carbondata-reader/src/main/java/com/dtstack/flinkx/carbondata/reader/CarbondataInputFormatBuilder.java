@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.carbondata.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.flink.util.Preconditions;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
+public class CarbondataInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private CarbondataInputFormat format;
 
@@ -69,8 +69,8 @@ public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
         format.filter = filter;
     }
 
-    public void setDefaultFS(String defaultFS) {
-        format.defaultFS = defaultFS;
+    public void setDefaultFs(String defaultFs) {
+        format.defaultFs = defaultFs;
     }
 
     @Override

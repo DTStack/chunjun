@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.rdb.inputformat;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
@@ -34,7 +35,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
+public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected JdbcInputFormat format;
 
@@ -42,12 +43,12 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
         super.format = this.format = format;
     }
 
-    public void setDrivername(String drivername) {
-        format.drivername = drivername;
+    public void setDriverName(String driverName) {
+        format.driverName = driverName;
     }
 
-    public void setDBUrl(String dbURL) {
-        format.dbURL = dbURL;
+    public void setDbUrl(String dbUrl) {
+        format.dbUrl = dbUrl;
     }
 
     public void setQuery(String query) {
@@ -117,11 +118,11 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
             LOG.info("Password was not supplied separately.");
         }
 
-        if (format.dbURL == null) {
+        if (format.dbUrl == null) {
             throw new IllegalArgumentException("No database URL supplied");
         }
 
-        if (format.drivername == null) {
+        if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
         }
 
@@ -129,7 +130,7 @@ public class JdbcInputFormatBuilder extends RichInputFormatBuilder {
             throw new IllegalArgumentException("Must specify the split column when the channel is greater than 1");
         }
 
-        if (format.fetchSize > 200000) {
+        if (format.fetchSize > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
         }
     }

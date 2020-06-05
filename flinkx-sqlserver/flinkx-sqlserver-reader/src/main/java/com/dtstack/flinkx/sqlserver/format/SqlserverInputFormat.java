@@ -19,14 +19,14 @@ package com.dtstack.flinkx.sqlserver.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/19
@@ -48,7 +48,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
                     if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
+                        if("bit".equalsIgnoreCase(descColumnTypeList.get(pos))) {
                             if(obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
@@ -101,9 +101,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
     @Override
     protected String getTimeStr(Long location, String incrementColType){
         String timeStr;
-        Timestamp ts = new Timestamp(DBUtil.getMillis(location));
-        ts.setNanos(DBUtil.getNanos(location));
-        timeStr = DBUtil.getNanosTimeStr(ts.toString());
+        Timestamp ts = new Timestamp(DbUtil.getMillis(location));
+        ts.setNanos(DbUtil.getNanos(location));
+        timeStr = DbUtil.getNanosTimeStr(ts.toString());
         timeStr = timeStr.substring(0,23);
         timeStr = String.format("'%s'",timeStr);
 
