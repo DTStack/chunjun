@@ -57,11 +57,6 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSqlQuerySqlFields(String sql) {
-        return "SELECT TOP 1 * FROM " + "(" + sql +") tmp";
-    }
-
-    @Override
     public String quoteValue(String value, String column) {
         return String.format("'%s' as %s",value,column);
     }

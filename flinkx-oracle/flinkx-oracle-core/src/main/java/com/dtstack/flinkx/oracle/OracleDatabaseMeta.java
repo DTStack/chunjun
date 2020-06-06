@@ -65,11 +65,6 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSqlQuerySqlFields(String sql) {
-        return "SELECT /*+FIRST_ROWS*/ * FROM " + "("+ sql +") tmp" + " WHERE ROWNUM < 1";
-    }
-
-    @Override
     public String quoteValue(String value, String column) {
         return String.format("'%s' as %s",value,column);
     }
