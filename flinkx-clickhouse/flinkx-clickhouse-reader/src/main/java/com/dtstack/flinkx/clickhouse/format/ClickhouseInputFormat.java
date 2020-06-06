@@ -20,7 +20,6 @@ package com.dtstack.flinkx.clickhouse.format;
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +29,6 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -77,7 +75,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
 
             hasNext = resultSet.next();
 
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, this.querySql);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
         } catch (Exception e) {
             LOG.error("open failed,e = {}", ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);

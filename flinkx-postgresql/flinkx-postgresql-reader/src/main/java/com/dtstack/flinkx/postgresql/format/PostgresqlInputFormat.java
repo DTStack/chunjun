@@ -20,7 +20,6 @@ package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -66,13 +64,12 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
             querySql = buildQuerySql(inputSplit);
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
-
             boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
 
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,this.querySql);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);

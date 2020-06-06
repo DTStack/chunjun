@@ -83,7 +83,7 @@ public class TeradataInputFormat extends JdbcInputFormat {
 
             hasNext = resultSet.next();
 
-            descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,this.querySql);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);

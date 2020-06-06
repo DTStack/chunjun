@@ -19,7 +19,6 @@ package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -31,7 +30,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -70,13 +68,12 @@ public class MysqlInputFormat extends JdbcInputFormat {
             fetchSize = Integer.MIN_VALUE;
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
-
             boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
 
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,this.querySql);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
