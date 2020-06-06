@@ -54,11 +54,6 @@ public class PhoenixMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSqlQuerySqlFields(String sql) {
-        return "SELECT * FROM (" + sql  + ") tmp" + " LIMIT 0";
-    }
-
-    @Override
     public String getStartQuote() {
         // 对于字段名和表名的quote得用双引号，对于字段值为字符串的得用单引号表示常量
         return "";

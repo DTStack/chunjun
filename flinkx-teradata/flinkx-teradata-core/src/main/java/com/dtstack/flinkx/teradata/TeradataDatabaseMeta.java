@@ -57,11 +57,6 @@ public class TeradataDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSqlQuerySqlFields(String sql) {
-        return "SELECT * FROM " + "(" + sql + ") tmp" + " QUALIFY SUM(1) OVER (ROWS UNBOUNDED PRECEDING) BETWEEN 0 AND 0";
-    }
-
-    @Override
     public String getStartQuote() {
         return "\"";
     }

@@ -63,14 +63,6 @@ public interface DatabaseInterface {
     String getSqlQueryColumnFields(List<String> column, String table);
 
     /**
-     * 根据给定的Sql返回查询表结构的sql
-     *
-     * @param sql sql
-     * @return 查询表结构的sql
-     */
-    String getSqlQuerySqlFields(String sql);
-
-    /**
      * 获取左引号
      *
      * @return 引号

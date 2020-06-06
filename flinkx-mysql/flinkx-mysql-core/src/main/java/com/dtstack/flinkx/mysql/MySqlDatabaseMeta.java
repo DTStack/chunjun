@@ -54,11 +54,6 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSqlQuerySqlFields(String sql) {
-        return "SELECT * FROM (" + sql  + ") tmp" + " LIMIT 0";
-    }
-
-    @Override
     public String getStartQuote() {
         return "`";
     }
