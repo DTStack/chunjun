@@ -133,8 +133,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
         if(descColumnTypeList == null) {
-            descColumnTypeList = DbUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
-                    currentSource.getPassword(),databaseInterface, currentSource.getTable(),queryTemplate);
+            descColumnTypeList =DbUtil.analyzeColumnType(currentResultSet);
         }
 
         LOG.info("open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());

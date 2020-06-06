@@ -276,38 +276,23 @@ public class DbUtil {
     }
 
     /**
-     * 获取表列名类型列表
+     * 获取结果集的列类型信息
      *
-     * @param dbUrl             jdbc url
-     * @param username          数据库账号
-     * @param password          数据库密码
-     * @param databaseInterface DatabaseInterface
-     * @param table             表名
-     * @param sql               查询sql
+     * @param resultSet             查询结果集
      * @return 字段类型list列表
      */
-    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface, String table, String sql) {
-        List<String> descColumnTypeList = new ArrayList<>();
-        Connection dbConn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
+    public static List<String> analyzeColumnType(ResultSet resultSet){
+        List<String> columnTypeList = new ArrayList();
         try {
-            dbConn = getConnection(dbUrl, username, password);
-            stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSqlQuerySqlFields(sql));
-            ResultSetMetaData rd = rs.getMetaData();
-
+            ResultSetMetaData rd = resultSet.getMetaData();
             for (int i = 1; i <= rd.getColumnCount(); i++) {
-                descColumnTypeList.add(rd.getColumnTypeName(i));
+                columnTypeList.add(rd.getColumnTypeName(i));
             }
         } catch (SQLException e) {
-            LOG.error("error to analyzeTable, dbUrl =  {}, table = {}, metaColumns = {}, e = {}", dbUrl, table, ExceptionUtil.getErrorMessage(e));
+            LOG.error("error to analyzeSchema, resultSet =  {}, e = {}", resultSet, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
-        } finally {
-            closeDbResources(rs, stmt, dbConn, false);
         }
-
-        return descColumnTypeList;
+        return columnTypeList;
     }
 
     /**

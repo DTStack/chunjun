@@ -35,7 +35,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -188,7 +187,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 columnCount = columnCount - 1;
             }
 
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, this.querySql);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
