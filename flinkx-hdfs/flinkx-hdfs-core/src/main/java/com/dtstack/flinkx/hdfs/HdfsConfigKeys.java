@@ -60,4 +60,6 @@ public class HdfsConfigKeys {
 
     public static final String KEY_FLUSH_INTERVAL = "flushInterval";
 
+    public static final String KEY_ENABLE_DICTIONARY = "enableDictionary";
+
 }
