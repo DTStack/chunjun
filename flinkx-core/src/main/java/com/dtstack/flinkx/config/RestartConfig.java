@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,7 +49,7 @@ public class RestartConfig extends AbstractConfig {
     }
 
     public static RestartConfig defaultConfig(){
-        Map<String, Object> map = new HashMap<>(1);
+        Map<String, Object> map = new HashMap<>(16);
         return new RestartConfig(map);
     }
 

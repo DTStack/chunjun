@@ -55,6 +55,8 @@
 
         <module>flinkx-metadata</module>
         <module>flinkx-metadata-hive2</module>
+        <module>flinkx-metadata-tidb</module>
+
         <module>flinkx-restapi</module>
 
     </modules>

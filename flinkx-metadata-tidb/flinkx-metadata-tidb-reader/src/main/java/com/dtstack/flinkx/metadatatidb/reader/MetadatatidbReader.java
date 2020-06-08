@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,22 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatahive2.common;
+package com.dtstack.flinkx.metadatatidb.reader;
+
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
+import com.dtstack.flinkx.metadata.reader.MetadataReader;
+
+import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.DRIVER_NAME;
 
 /**
- * @author : tiezhu
- * @date : 2020/3/9
- * @description :
+ * @author : kunni@dtstack.com
+ * @date : 2020/5/26
  */
-public class Hive2MetaDataCons {
-    public static final String INPUT_FORMAT_TEXT = "TextInputFormat";
-    public static final String INPUT_FORMAT_PARQUET = "MapredParquetInputFormat";
-    public static final String INPUT_FORMAT_ORC = "OrcInputFormat";
+public class MetadatatidbReader extends MetadataReader {
 
-    public static final String TYPE_TEXT = "text";
-    public static final String TYPE_ORC = "orc";
-    public static final String TYPE_PARQUET = "parquet";
+    public MetadatatidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
+        super(config, env);
+        driverName = DRIVER_NAME;
+    }
 
-    public static final String KEY_INPUT_FORMAT = "inputFormat";
-
+    @Override
+    protected MetadataInputFormatBuilder getBuilder(){
+        return new MetadataInputFormatBuilder(new MetadatatidbInputFormat());
+    }
 }

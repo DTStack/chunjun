@@ -63,6 +63,19 @@ public class LogMinerConfig implements Serializable {
 
     private Long queryTimeout;
 
+    /**
+     * Oracle 12c第二个版本之后LogMiner不支持自动添加日志
+     */
+    private boolean supportAutoAddLog;
+
+    public boolean getSupportAutoAddLog() {
+        return supportAutoAddLog;
+    }
+
+    public void setSupportAutoAddLog(boolean supportAutoAddLog) {
+        this.supportAutoAddLog = supportAutoAddLog;
+    }
+
     public Long getQueryTimeout() {
         return queryTimeout;
     }

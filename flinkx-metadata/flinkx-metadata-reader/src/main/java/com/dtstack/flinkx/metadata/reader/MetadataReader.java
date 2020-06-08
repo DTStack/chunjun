@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,7 +33,6 @@ import java.util.Map;
 /**
  * @author : tiezhu
  * @date : 2020/3/8
- * @description :
  */
 public class MetadataReader extends BaseDataReader {
     protected String jdbcUrl;

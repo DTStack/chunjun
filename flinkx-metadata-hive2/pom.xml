@@ -12,7 +12,6 @@
     <artifactId>flinkx-metadata-hive2</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>flinkx-metadata-hive2-core</module>
         <module>flinkx-metadata-hive2-reader</module>
     </modules>
     <dependencies>

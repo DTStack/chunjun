@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,6 +44,16 @@ public class MetaDataCons {
     public static final String KEY_COLUMN_INDEX = "index";
     public static final String KEY_COLUMN_COMMENT = "comment";
     public static final String KEY_COLUMN_TYPE = "type";
+    public static final String KEY_COLUMN_DATA_TYPE = "data_type";
 
+    public static final String KEY_COL_NAME = "col_name";
 
+    public static final String KEY_QUERY_SUCCESS = "querySuccess";
+    public static final String KEY_ERROR_MSG = "errorMsg";
+
+    public static final String DEFAULT_OPERA_TYPE = "createTable";
+
+    public static final String SQL_SHOW_DATABASES = "SHOW DATABASES";
+    public static final String SQL_SHOW_TABLES = "SHOW TABLES";
+    public static final String SQL_SWITCH_DATABASE = "USE %s";
 }

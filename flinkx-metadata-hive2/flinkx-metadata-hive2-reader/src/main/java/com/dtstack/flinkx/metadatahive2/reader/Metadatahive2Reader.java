@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,23 +18,38 @@
 package com.dtstack.flinkx.metadatahive2.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatahive2.inputformat.Metadatahive2InputFormat;
+import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
+import com.dtstack.flinkx.metadatahive2.inputformat.Metadatahive2InputFormat;
+import com.dtstack.flinkx.metadatahive2.inputformat.Metadatehive2InputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.*;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2Version.Source.SPARK_THRIFT_SERVER;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2Version.Version.APACHE2;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/9
  */
 public class Metadatahive2Reader extends MetadataReader {
+
+    protected String source;
+    protected String version;
+
     public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        driverName = "org.apache.hive.jdbc.HiveDriver";
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        source = readerConfig.getParameter().getStringVal(KEY_SOURCE, SPARK_THRIFT_SERVER.getType());
+        version = readerConfig.getParameter().getStringVal(KEY_VERSION, APACHE2.getType());
+        driverName = DRIVER_NAME;
     }
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new Metadatahive2InputFormat());
+        Metadatehive2InputFormatBuilder Builder = new Metadatehive2InputFormatBuilder(new Metadatahive2InputFormat());
+        Builder.setHive2Server(version, source);
+        return Builder;
     }
 }

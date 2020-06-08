@@ -169,6 +169,7 @@
                                     <include>io.prometheus:*</include>
                                     <include>org.apache.avro:*</include>
                                     <include>org.codehaus.jackson:*</include>
+                                    <include>com.fasterxml.jackson.core:*</include>
                                     <include>commons-*:*</include>
                                 </includes>
                             </artifactSet>
