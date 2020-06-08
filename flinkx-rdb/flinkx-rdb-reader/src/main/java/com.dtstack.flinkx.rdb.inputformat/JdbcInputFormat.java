@@ -186,7 +186,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (splitWithRowCol) {
                 columnCount = columnCount - 1;
             }
-
+            checkSize(columnCount, metaColumns);
             descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
@@ -832,4 +832,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * 校验columnCount和metaColumns的长度是否相等
+     * @param columnCount
+     * @param metaColumns
+     */
+    protected void checkSize(int columnCount, List<MetaColumn> metaColumns) {
+        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName()) && columnCount != metaColumns.size()) {
+            LOG.error("error config: column size for reader is {},but columns size for query result is {}." +
+                            " And the query sql is '{}'.",
+                    metaColumns.size(), columnCount, querySql);
+            throw new RuntimeException("");
+        }
+    }
 }

@@ -68,7 +68,7 @@ public class GbaseInputFormat extends JdbcInputFormat {
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
+            checkSize(columnCount, metaColumns);
             descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {

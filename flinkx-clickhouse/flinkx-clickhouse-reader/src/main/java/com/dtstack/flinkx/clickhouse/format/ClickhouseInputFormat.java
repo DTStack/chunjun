@@ -72,7 +72,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
+            checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
             descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
