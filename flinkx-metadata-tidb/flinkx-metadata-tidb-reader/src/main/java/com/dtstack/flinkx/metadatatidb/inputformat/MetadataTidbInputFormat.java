@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatatidb.reader;
+package com.dtstack.flinkx.metadatatidb.inputformat;
 
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
@@ -31,14 +31,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.*;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.*;
 
 
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
+public class MetadataTidbInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected List<String> showDatabases(Connection connection) throws SQLException {
@@ -117,7 +117,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return result;
     }
 
-    public Map<String, String> queryTableProp(String tableName) throws SQLException {
+    protected Map<String, String> queryTableProp(String tableName) throws SQLException {
         Map<String, String> tableProp = new HashMap<>(16);
         String sql = String.format(SQL_QUERY_TABLE_INFO, tableName);
         try(Statement st = connection.get().createStatement();
@@ -134,7 +134,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return tableProp;
     }
 
-    List<Map<String, Object> > queryColumn(String tableName) throws SQLException {
+    protected List<Map<String, Object> > queryColumn(String tableName) throws SQLException {
         List<Map<String, Object> > column = new LinkedList<>();
         String sql = String.format(SQL_QUERY_COLUMN, tableName);
         try(Statement st = connection.get().createStatement();
@@ -156,7 +156,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return column;
     }
 
-    List<Map<String, Object>> queryPartition(String tableName) throws SQLException {
+    protected List<Map<String, Object>> queryPartition(String tableName) throws SQLException {
         List<Map<String, Object> > partition = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION, tableName);
         try(Statement st = connection.get().createStatement();
@@ -176,7 +176,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
     }
 
 
-    Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
+    protected Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
         String sql = "";
         if(StringUtils.equals(msg, KEY_HEALTHY)){
@@ -209,7 +209,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return result;
     }
 
-    List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
+    protected List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
         List<Map<String, Object> > partitionColumn = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION_COLUMN, tableName);
         try(Statement st = connection.get().createStatement();

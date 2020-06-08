@@ -15,27 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatatidb.reader;
+
+package com.dtstack.flinkx.metadatamysql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
-
-import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.DRIVER_NAME;
+import com.dtstack.flinkx.metadatamysql.inputformat.MetadataMysqlInputFormat;
+import com.dtstack.flinkx.metadatatidb.reader.MetadataTidbReader;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * @author : kunni@dtstack.com
- * @date : 2020/5/26
+ * @date : 2020/6/8
  */
-public class MetadatatidbReader extends MetadataReader {
 
-    public MetadatatidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
+public class MetadataMysqlReader extends MetadataTidbReader {
+
+    public MetadataMysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        driverName = DRIVER_NAME;
     }
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadatatidbInputFormat());
+        return new MetadataInputFormatBuilder(new MetadataMysqlInputFormat());
     }
 }

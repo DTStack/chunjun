@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatatidb.reader;
+package com.dtstack.flinkx.metadatatidb.constants;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
 
@@ -26,6 +26,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 public class TidbMetadataCons extends MetaDataCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
+
     public static final String KEY_TOTAL_SIZE = "totalSize";
     public static final String KEY_CREATE_TIME = "createTime";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";

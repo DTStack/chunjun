@@ -464,6 +464,11 @@
             <artifactId>flinkx-metadata-tidb-reader</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-mysql-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 
