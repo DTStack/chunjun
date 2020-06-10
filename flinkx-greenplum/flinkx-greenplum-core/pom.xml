@@ -28,5 +28,12 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>HandChina RDC</id>
+            <name>HandChina RDC</name>
+            <url>http://nexus.saas.hand-china.com/content/repositories/rdc/</url>
+        </repository>
+    </repositories>
 
 </project>
