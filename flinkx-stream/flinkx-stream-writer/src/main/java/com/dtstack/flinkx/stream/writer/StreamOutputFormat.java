@@ -30,8 +30,8 @@ import java.util.List;
 /**
  * OutputFormat for stream writer
  *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
@@ -62,8 +62,22 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         if (print) {
             for (Row row : rows) {
                 LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
+<<<<<<< HEAD
+=======
             }
         }
+    }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.getArity(); i++) {
+            if (i > 0) {
+                sb.append(writeDelimiter);
+>>>>>>> feat_1.8_greenplum
+            }
+            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+        }
+        return sb.toString();
     }
 
     public String rowToStringWithDelimiter(Row row, String writeDelimiter) {

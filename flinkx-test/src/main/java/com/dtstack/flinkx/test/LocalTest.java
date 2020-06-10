@@ -40,6 +40,7 @@ import com.dtstack.flinkx.ftp.reader.FtpReader;
 import com.dtstack.flinkx.ftp.writer.FtpWriter;
 import com.dtstack.flinkx.gbase.reader.GbaseReader;
 import com.dtstack.flinkx.gbase.writer.GbaseWriter;
+import com.dtstack.flinkx.greenplum.GreenplumWriter;
 import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
@@ -83,6 +84,7 @@ import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+import com.dtstack.greenplum.GreenplumReader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -124,8 +126,13 @@ public class LocalTest {
     public static void main(String[] args) throws Exception{
         setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
+<<<<<<< HEAD
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+=======
+        confProperties.put("flink.checkpoint.interval", "60000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+>>>>>>> feat_1.8_greenplum
 
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
@@ -134,7 +141,11 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
+<<<<<<< HEAD
         String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\tidbmetadata_stream.json";
+=======
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_greenplum.json";
+>>>>>>> feat_1.8_greenplum
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -227,7 +238,11 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
+<<<<<<< HEAD
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
+=======
+            case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
+>>>>>>> feat_1.8_greenplum
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -265,6 +280,7 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
+            case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

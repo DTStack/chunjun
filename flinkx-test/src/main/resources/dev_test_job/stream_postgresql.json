@@ -1,0 +1,49 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "sliceRecordCount": ["1"]
+        },
+        "name" : "streamreader"
+      },
+      "writer": {
+        "name": "postgresqlwriter",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:postgresql://localhost:5432/postgres",
+            "table": ["newtable"]
+          }],
+          "username": "postgres",
+          "password": "779877abc",
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            }],
+          "writeMode": "insert",
+          "insertSqlMode": "copy",
+          "batchSize": 100,
+          "preSql": ["TRUNCATE newtable"],
+          "postSql": []
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

@@ -52,7 +52,11 @@ public class PluginNameConstrant {
     public static final String SQLSERVER_CDC_READER = "sqlservercdcreader";
     public static final String METADATAHIVE2_READER = "metadatahive2reader";
     public static final String DM_READER = "dmreader";
+<<<<<<< HEAD
     public static final String METADATATIDB_READER = "metadatatidbreader";
+=======
+    public static final String GREENPLUM_READER = "greenplumreader";
+>>>>>>> feat_1.8_greenplum
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";
@@ -81,4 +85,5 @@ public class PluginNameConstrant {
     public static final String EMQX_WRITER = "emqxwriter";
     public static final String RESTAPI_WRITER = "restapiwriter";
     public static final String DM_WRITER = "dmwriter";
+    public static final String GREENPLUM_WRITER = "greenplumwriter";
 }
