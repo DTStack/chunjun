@@ -16,35 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.greenplum;
+package com.dtstack.flinkx.greenplum.inputformat;
 
-import com.dtstack.flinkx.enums.EDatabaseType;
-import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
+import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 
-import java.util.List;
-import java.util.Map;
-
-/**
- * The class of Greenplum database prototype
+/**Simple inheritance of PostgresqlInputFormat
  *
  * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumDatabaseMeta extends PostgresqlDatabaseMeta {
-
-    @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String, List<String>> updateKey) {
-        throw new UnsupportedOperationException("Greenplum not support update mode");
-    }
-
-    @Override
-    public EDatabaseType getDatabaseType() {
-        return EDatabaseType.Greenplum;
-    }
-
-    @Override
-    public String getDriverClass() {
-        return "com.pivotal.jdbc.GreenplumDriver";
-    }
+public class GreenplumInputFormat extends PostgresqlInputFormat {
 }

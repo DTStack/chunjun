@@ -16,18 +16,35 @@
  * limitations under the License.
  */
 
-package com.dtstack.greenplum;
+package com.dtstack.flinkx.greenplum;
+
+import com.dtstack.flinkx.enums.EDatabaseType;
+import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * when use insert mode, use org.postgresql.Driver
+ * The class of Greenplum database prototype
  *
  * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumDatabaseMetaInsert extends GreenplumDatabaseMeta{
+public class GreenplumDatabaseMeta extends PostgresqlDatabaseMeta {
+
+    @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String, List<String>> updateKey) {
+        throw new UnsupportedOperationException("Greenplum not support update mode");
+    }
+
+    @Override
+    public EDatabaseType getDatabaseType() {
+        return EDatabaseType.Greenplum;
+    }
+
     @Override
     public String getDriverClass() {
-        return "org.postgresql.Driver";
+        return "com.pivotal.jdbc.GreenplumDriver";
     }
 }

@@ -16,15 +16,18 @@
  * limitations under the License.
  */
 
-package com.dtstack.greenplum.inputformat;
+package com.dtstack.flinkx.greenplum;
 
-import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
-
-/**Simple inheritance of PostgresqlInputFormat
+/**
+ * when use insert mode, use org.postgresql.Driver
  *
  * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumInputFormat extends PostgresqlInputFormat {
+public class GreenplumDatabaseMetaInsert extends GreenplumDatabaseMeta{
+    @Override
+    public String getDriverClass() {
+        return "org.postgresql.Driver";
+    }
 }

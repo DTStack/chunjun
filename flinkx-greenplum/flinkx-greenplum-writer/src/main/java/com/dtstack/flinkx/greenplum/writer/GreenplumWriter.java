@@ -23,7 +23,7 @@ import com.dtstack.flinkx.greenplum.outputformat.GreenplumOutputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.greenplum.GreenplumDatabaseMetaInsert;
+import com.dtstack.flinkx.greenplum.GreenplumDatabaseMetaInsert;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
