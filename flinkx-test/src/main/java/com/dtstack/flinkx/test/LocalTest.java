@@ -126,13 +126,8 @@ public class LocalTest {
     public static void main(String[] args) throws Exception{
         setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
-<<<<<<< HEAD
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
-=======
-        confProperties.put("flink.checkpoint.interval", "60000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
->>>>>>> feat_1.8_greenplum
 
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
@@ -141,11 +136,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-<<<<<<< HEAD
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\tidbmetadata_stream.json";
-=======
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\stream_greenplum.json";
->>>>>>> feat_1.8_greenplum
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -238,11 +229,8 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
-<<<<<<< HEAD
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
-=======
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
->>>>>>> feat_1.8_greenplum
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
