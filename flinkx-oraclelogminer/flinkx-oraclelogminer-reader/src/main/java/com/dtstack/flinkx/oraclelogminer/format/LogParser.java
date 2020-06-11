@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -32,13 +33,8 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jiangbo
@@ -54,15 +50,15 @@ public class LogParser {
         this.config = config;
     }
 
-    public Pair<Long, Map<String, Object>> parse(Pair<Long, Map<String, Object>> pair) throws JSQLParserException {
-        Map<String, Object> logData = pair.getRight();
+    public QueueData parse(QueueData pair) throws JSQLParserException {
+        Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
 
         Map<String,Object> message = new LinkedHashMap<>();
-        message.put("scn", pair.getLeft());
+        message.put("scn", pair.getScn());
         message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);
@@ -90,14 +86,13 @@ public class LogParser {
                 message.put("before_" + key, val);
             });
 
-            return Pair.of(pair.getLeft(), message);
+            return new QueueData(pair.getScn(), message);
         } else {
             message.put("before", beforeDataMap);
             message.put("after", afterDataMap);
-            Map<String,Object> event = new HashMap<>(1);
-            event.put("message", message);
+            Map<String,Object> event = Collections.singletonMap("message", message);
 
-            return Pair.of(pair.getLeft(), event);
+            return new QueueData(pair.getScn(), event);
         }
     }
 
