@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +49,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         }
 
         if(doubleTypes.contains(typeName)){
+            if(StringUtils.startsWith((String)data, String.valueOf('$'))){
+                data = StringUtils.substring((String)data, 1);
+            }
             data = Double.parseDouble(String.valueOf(data));
         } else if(bitTypes.contains(typeName)){
             //
