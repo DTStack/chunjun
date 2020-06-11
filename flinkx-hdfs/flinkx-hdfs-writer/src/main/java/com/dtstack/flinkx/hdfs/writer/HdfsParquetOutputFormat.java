@@ -46,8 +46,8 @@ import org.apache.parquet.schema.Types;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * The subclass of HdfsOutputFormat writing parquet files
@@ -153,7 +153,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         try {
             for (; i < fullColumnNames.size(); i++) {
                 Object valObj = row.getField(colIndices[i]);
-                if(valObj == null){
+                if(valObj == null || valObj.toString().length() == 0){
                     continue;
                 }
 
@@ -260,6 +260,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     }
 
     private MessageType buildSchema(){
+        decimalColInfo = new HashMap<>(16);
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNames.size(); i++) {
             String name = fullColumnNames.get(i);
@@ -288,7 +289,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                                 .length(HdfsUtil.computeMinBytesForPrecision(decimalInfo.getPrecision()))
                                 .named(name);
 
-                        decimalColInfo = Collections.singletonMap(name, decimalInfo);
+                        decimalColInfo.put(name, decimalInfo);
                     } else {
                         typeBuilder.optional(PrimitiveType.PrimitiveTypeName.BINARY).named(name);
                     }
