@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.greenplum;
+package com.dtstack.greenplum.inputformat;
 
-import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
+import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 
-/**Simple inheritance of PostgresqlOutputFormat
+/**Simple inheritance of PostgresqlInputFormat
  *
- * Date: 2020/6/4
- * Company: www.dtstack.com
+ * @Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
 
-public class GreenplumOutputFormat extends PostgresqlOutputFormat {
+public class GreenplumInputFormat extends PostgresqlInputFormat {
 }

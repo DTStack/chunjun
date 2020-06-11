@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.greenplum;
+package com.dtstack.flinkx.greenplum.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.greenplum.outputformat.GreenplumOutputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;

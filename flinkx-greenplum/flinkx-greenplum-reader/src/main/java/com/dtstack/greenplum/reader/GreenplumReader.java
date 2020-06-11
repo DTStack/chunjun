@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.greenplum;
+package com.dtstack.greenplum.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
@@ -25,6 +25,8 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlQuerySqlBuilder;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+import com.dtstack.greenplum.GreenplumDatabaseMeta;
+import com.dtstack.greenplum.inputformat.GreenplumInputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
