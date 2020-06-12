@@ -20,8 +20,9 @@ package com.dtstack.flinkx.metadatatidb.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
+import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
 
-import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_NAME;
 
 /**
  * @author : kunni@dtstack.com
