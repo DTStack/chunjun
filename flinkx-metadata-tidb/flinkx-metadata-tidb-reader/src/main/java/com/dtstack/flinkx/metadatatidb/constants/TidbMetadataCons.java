@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatatidb.reader;
+package com.dtstack.flinkx.metadatatidb.constants;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
 
@@ -53,6 +53,7 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
+    public static final String SQL_SHOW_TABLES = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM %s";
     public static final String SQL_QUERY_HEALTHY = "SHOW STATS_HEALTHY WHERE Table_name='%s' AND Db_name = schema()";
