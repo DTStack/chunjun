@@ -22,6 +22,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,9 +37,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
 
     private List<String> byteTypes = Arrays.asList("bytea","bit varying");
 
-    private List<String> bitTypes = Arrays.asList("bit");
+    private List<String> bitTypes = Collections.singletonList("bit");
 
-    private List<String> doubleTypes = Arrays.asList("money");
+    private List<String> doubleTypes = Collections.singletonList("money");
 
     private List<String> intTypes = Arrays.asList("int","int2","int4","int8");
 
@@ -47,22 +48,24 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         if (data == null){
             return null;
         }
-
+        String dataValue = data.toString();
+        if(stringTypes.contains(typeName)){
+            return dataValue;
+        }
+        if(StringUtils.isBlank(dataValue)){
+            return null;
+        }
         if(doubleTypes.contains(typeName)){
-            if(StringUtils.startsWith((String)data, String.valueOf('$'))){
-                data = StringUtils.substring((String)data, 1);
+            if(StringUtils.startsWith(dataValue, "$")){
+                dataValue = StringUtils.substring(dataValue, 1);
             }
-            data = Double.parseDouble(String.valueOf(data));
+            data = Double.parseDouble(dataValue);
         } else if(bitTypes.contains(typeName)){
             //
-        } else if(stringTypes.contains(typeName)){
-            data = String.valueOf(data);
-        } else if(byteTypes.contains(typeName)){
-            data = Byte.valueOf(String.valueOf(data));
+        }else if(byteTypes.contains(typeName)){
+            data = Byte.valueOf(dataValue);
         } else if(intTypes.contains(typeName)){
-            if(data instanceof String){
-                data = Integer.parseInt(data.toString());
-            }
+            data = Integer.parseInt(dataValue);
         }
 
         return data;
