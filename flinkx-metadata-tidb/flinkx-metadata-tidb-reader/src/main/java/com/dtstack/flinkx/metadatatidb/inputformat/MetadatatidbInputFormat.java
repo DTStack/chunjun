@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metadatatidb.reader;
+package com.dtstack.flinkx.metadatatidb.inputformat;
 
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
@@ -31,7 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatatidb.reader.TidbMetadataCons.*;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.*;
 
 
 /**
