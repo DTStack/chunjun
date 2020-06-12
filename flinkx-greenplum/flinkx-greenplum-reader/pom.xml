@@ -12,13 +12,6 @@
     <artifactId>flinkx-greenplum-reader</artifactId>
 
     <dependencies>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb-reader</artifactId>
-            <version>1.6</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-greenplum-core</artifactId>
@@ -29,7 +22,12 @@
             <artifactId>flinkx-postgresql-reader</artifactId>
             <version>1.6</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-reader</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
