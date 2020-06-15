@@ -100,7 +100,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         column.removeIf((Map<String, Object> perColumn)->{
             for(Map<String, Object> perPartitionColumn : partitionColumn){
                 if(StringUtils.equals((String)perPartitionColumn.get(KEY_COLUMN_NAME), (String)perColumn.get(KEY_COLUMN_NAME))){
-                    perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(RESULT_TYPE));
+                    perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(KEY_COLUMN_TYPE));
                     perPartitionColumn.put(KEY_NULL, perColumn.get(KEY_NULL));
                     perPartitionColumn.put(KEY_DEFAULT, perColumn.get(KEY_DEFAULT));
                     perPartitionColumn.put(KEY_COLUMN_COMMENT, perColumn.get(KEY_COLUMN_COMMENT));
