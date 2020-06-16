@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.test;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -119,19 +121,21 @@ public class LocalTest {
 
     public static Configuration conf = new Configuration();
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
+        setLogLevel(Level.INFO.toString());
+
         Properties confProperties = new Properties();
         confProperties.put("flink.checkpoint.interval", "60000");
-        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+//
+//        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
+//        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
+//        conf.setString("metrics.reporter.promgateway.port","9091");
+//        conf.setString("metrics.reporter.promgateway.jobName","108job");
+//        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
+//        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
-        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
-        conf.setString("metrics.reporter.promgateway.port","9091");
-        conf.setString("metrics.reporter.promgateway.jobName","108job");
-        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
-        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
-
-        String jobPath = "D:\\project\\flinkx\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/logminer/oracle_hive_orc_1.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -303,5 +307,11 @@ public class LocalTest {
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
                 Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
         ));
+    }
+
+    private static void setLogLevel(String level) {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 }

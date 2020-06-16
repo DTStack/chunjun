@@ -76,9 +76,9 @@ public abstract class AbstractConfig implements Serializable {
         Object obj = internalMap.get(key);
         if (obj instanceof LinkedTreeMap) {
             LinkedTreeMap treeMap = (LinkedTreeMap) obj;
-            Map<String, Object> newMap = new HashMap<>(treeMap.size());
-            newMap.putAll(treeMap);
-            return newMap;
+            Map<String, Object> map = new HashMap<>(Math.max((int) (treeMap.size()/.75f) + 1, 16));
+            map.putAll(treeMap);
+            return map;
         }
         return obj;
     }
@@ -109,10 +109,10 @@ public abstract class AbstractConfig implements Serializable {
             return defaultValue;
         }
         if(ret instanceof Integer) {
-            return ((Integer)ret).intValue();
+            return (Integer) ret;
         }
         if(ret instanceof String) {
-            return Integer.valueOf((String)ret).intValue();
+            return Integer.parseInt((String) ret);
         }
         if(ret instanceof Long) {
             return ((Long)ret).intValue();
@@ -144,7 +144,7 @@ public abstract class AbstractConfig implements Serializable {
             return ((Integer)ret).longValue();
         }
         if(ret instanceof String) {
-            return Long.valueOf((String)ret);
+            return Long.parseLong((String)ret);
         }
         if(ret instanceof Float) {
             return ((Float)ret).longValue();
@@ -176,7 +176,7 @@ public abstract class AbstractConfig implements Serializable {
             return ((Integer) ret).doubleValue();
         }
         if (ret instanceof String) {
-            return Double.valueOf((String) ret);
+            return Double.parseDouble((String) ret);
         }
         if (ret instanceof Float) {
             return ((Float) ret).doubleValue();

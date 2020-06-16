@@ -175,12 +175,15 @@ public class LogMinerUtil {
         String tableName = logMinerData.getString(KEY_TABLE_NAME);
         String operation = logMinerData.getString(KEY_OPERATION);
         Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
+        Long scn = logMinerData.getLong(KEY_SCN);
 
         final Map<String,Object> message = new LinkedHashMap<>();
         message.put("type", operation);
         message.put("schema", schema);
         message.put("table", tableName);
         message.put("ts", idWorker.nextId());
+        message.put("opTime", timestamp);
+        message.put("scn", scn);
 
         String sqlRedo2=sqlRedo.replace("IS NULL", "= NULL");
         Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
