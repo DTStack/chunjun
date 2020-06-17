@@ -34,6 +34,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.collections.MapUtils;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -56,6 +57,7 @@ public class LogParser {
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
+        Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
 
         Map<String,Object> message = new LinkedHashMap<>();
         message.put("scn", pair.getScn());
@@ -63,6 +65,7 @@ public class LogParser {
         message.put("schema", schema);
         message.put("table", tableName);
         message.put("ts", idWorker.nextId());
+        message.put("opTime", timestamp);
 
         String sqlRedo2 = sqlLog.replace("IS NULL", "= NULL");
         Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
