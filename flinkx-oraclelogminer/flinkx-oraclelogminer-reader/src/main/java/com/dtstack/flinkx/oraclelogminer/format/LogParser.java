@@ -51,52 +51,24 @@ public class LogParser {
         this.config = config;
     }
 
-    public QueueData parse(QueueData pair) throws JSQLParserException {
-        Map<String, Object> logData = pair.getData();
-        String schema = MapUtils.getString(logData, "schema");
-        String tableName = MapUtils.getString(logData, "tableName");
-        String operation = MapUtils.getString(logData, "operation");
-        String sqlLog = MapUtils.getString(logData, "sqlLog");
-        Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
-
-        Map<String,Object> message = new LinkedHashMap<>();
-        message.put("scn", pair.getScn());
-        message.put("type", operation);
-        message.put("schema", schema);
-        message.put("table", tableName);
-        message.put("ts", idWorker.nextId());
-        message.put("opTime", timestamp);
-
-        String sqlRedo2 = sqlLog.replace("IS NULL", "= NULL");
-        Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
-        LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
-        LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
-
-        if (stmt instanceof Insert){
-            parseInsertStmt((Insert) stmt, beforeDataMap, afterDataMap);
-        }else if (stmt instanceof Update){
-            parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap);
-        }else if (stmt instanceof Delete){
-            parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
+    private static String cleanString(String str) {
+        if("NULL".equalsIgnoreCase(str)){
+            return "";
         }
 
-        if (config.getPavingData()) {
-            afterDataMap.forEach((key, val) -> {
-                message.put("after_" + key, val);
-            });
-
-            beforeDataMap.forEach((key, val) -> {
-                message.put("before_" + key, val);
-            });
-
-            return new QueueData(pair.getScn(), message);
-        } else {
-            message.put("before", beforeDataMap);
-            message.put("after", afterDataMap);
-            Map<String,Object> event = Collections.singletonMap("message", message);
-
-            return new QueueData(pair.getScn(), event);
+        if (str.startsWith("TIMESTAMP")) {
+            str = str.replace("TIMESTAMP ", "");
         }
+
+        if (str.startsWith("'") && str.endsWith("'")) {
+            str = str.substring(1, str.length() - 1);
+        }
+
+        if (str.startsWith("\"") && str.endsWith("\"")) {
+            str = str.substring(1, str.length() - 1);
+        }
+
+        return str.replace("IS NULL","= NULL").trim();
     }
 
     private static void parseInsertStmt(Insert insert, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
@@ -156,19 +128,47 @@ public class LogParser {
         });
     }
 
-    private static String cleanString(String str) {
-        if (str.startsWith("TIMESTAMP")) {
-            str = str.replace("TIMESTAMP ", "");
+    public QueueData parse(QueueData pair) throws JSQLParserException {
+        Map<String, Object> logData = pair.getData();
+        String schema = MapUtils.getString(logData, "schema");
+        String tableName = MapUtils.getString(logData, "tableName");
+        String operation = MapUtils.getString(logData, "operation");
+        String sqlLog = MapUtils.getString(logData, "sqlLog");
+        Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
+
+        Map<String,Object> message = new LinkedHashMap<>();
+        message.put("scn", pair.getScn());
+        message.put("type", operation);
+        message.put("schema", schema);
+        message.put("table", tableName);
+        message.put("ts", idWorker.nextId());
+        message.put("opTime", timestamp);
+
+        String sqlRedo2 = sqlLog.replace("IS NULL", "= NULL");
+        Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
+        LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
+        LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
+
+        if (stmt instanceof Insert){
+            parseInsertStmt((Insert) stmt, beforeDataMap, afterDataMap);
+        }else if (stmt instanceof Update){
+            parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap);
+        }else if (stmt instanceof Delete){
+            parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
         }
 
-        if (str.startsWith("'") && str.endsWith("'")) {
-            str = str.substring(1, str.length() - 1);
-        }
+        if (config.getPavingData()) {
+            afterDataMap.forEach((key, val) -> message.put("after_" + key, val));
 
-        if (str.startsWith("\"") && str.endsWith("\"")) {
-            str = str.substring(1, str.length() - 1);
-        }
+            beforeDataMap.forEach((key, val) -> message.put("before_" + key, val));
 
-        return str.replace("IS NULL","= NULL").trim();
+            return new QueueData(pair.getScn(), message);
+        } else {
+            message.put("before", beforeDataMap);
+            message.put("after", afterDataMap);
+            Map<String,Object> event = Collections.singletonMap("message", message);
+
+            return new QueueData(pair.getScn(), event);
+        }
     }
 }
