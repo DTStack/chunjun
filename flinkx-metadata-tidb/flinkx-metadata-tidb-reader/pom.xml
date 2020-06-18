@@ -87,13 +87,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/metadatatidbreader">
+                                <copy todir="${basedir}/../../syncplugins/metadatatidbreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/metadatatidbreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/metadatatidbreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/metadatatidbreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/metadatatidbreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

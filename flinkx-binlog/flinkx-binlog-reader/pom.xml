@@ -129,13 +129,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/binlogreader">
+                                <copy todir="${basedir}/../../syncplugins/binlogreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/binlogreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/binlogreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/binlogreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/binlogreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

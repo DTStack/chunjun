@@ -95,6 +95,7 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         setParallelism(1);
     }
 
+    @Override
     protected Configuration getConfiguration() {
         return configuration;
     }
@@ -115,7 +116,6 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
         JobGraph jobGraph = streamGraph.getJobGraph();
         jobGraph.setClasspaths(classpaths);
-        jobGraph.setAllowQueuedScheduling(true);
 
         if (settings != null){
             jobGraph.setSavepointRestoreSettings(settings);
@@ -123,8 +123,8 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
 
         Configuration configuration = new Configuration();
         configuration.addAll(jobGraph.getJobConfiguration());
-        configuration.setString(TaskManagerOptions.MANAGED_MEMORY_SIZE, "0");
-        configuration.setInteger(TaskManagerOptions.NUM_TASK_SLOTS.key(), jobGraph.getMaximumParallelism());
+        configuration.setString(TaskManagerOptions.MANAGED_MEMORY_SIZE.key(), "512M");
+        configuration.setInteger(TaskManagerOptions.NUM_TASK_SLOTS, jobGraph.getMaximumParallelism());
 
         // add (and override) the settings with what the user defined
         configuration.addAll(this.configuration);

@@ -28,12 +28,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.FileSystemUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.UrlUtil;
+import com.dtstack.flinkx.util.*;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongMaximum;
@@ -47,17 +42,9 @@ import org.apache.hadoop.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.sql.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -332,7 +319,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             startLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
         endLocationAccumulator = new LongMaximum();
         String endLocation = ((JdbcInputSplit) split).getEndLocation();
         if (endLocation != null && incrementConfig.isUseMaxFunc()) {
@@ -341,6 +328,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             endLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
 
     /**

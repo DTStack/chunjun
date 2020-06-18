@@ -21,6 +21,11 @@
 package com.dtstack.flinkx.constants;
 
 
+import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.ConfigOptions;
+
+import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
+
 /**
  *
  * @author sishu.yss
@@ -31,4 +36,17 @@ public class ConfigConstant {
     public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
 
     public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
+
+    public static final String YARN_RESOURCE_MANAGER_WEBAPP_ADDRESS_KEY = "yarn.resourcemanager.webapp.address";
+
+    public static final ConfigOption<String> FLINK_PLUGIN_LOAD_MODE_KEY = ConfigOptions
+            .key("pluginLoadMode")
+            .stringType()
+            .defaultValue(CLASS_PATH_PLUGIN_LOAD_MODE)
+            .withDescription("The config parameter defining YarnPer mode plugin loading method." +
+                    "classpath: The plugin package is not uploaded when the task is submitted. " +
+                    "The plugin package needs to be deployed in the pluginRoot directory of the yarn-node node, but the task starts faster" +
+                    "shipfile: When submitting a task, upload the plugin package under the pluginRoot directory to deploy the plug-in package. " +
+                    "The yarn-node node does not need to deploy the plugin package. " +
+                    "The task startup speed depends on the size of the plugin package and the network environment.");
 }

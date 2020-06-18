@@ -84,13 +84,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/phoenixreader">
+                                <copy todir="${basedir}/../../syncplugins/phoenixreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/phoenixreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/phoenixreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/phoenixreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/phoenixreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

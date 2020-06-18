@@ -88,13 +88,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/gbasewriter">
+                                <copy todir="${basedir}/../../syncplugins/gbasewriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/gbasewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/gbasewriter/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/gbasewriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/gbasewriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
