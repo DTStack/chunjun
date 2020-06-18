@@ -89,6 +89,7 @@ public class LogMinerListener implements Runnable {
                     QueueData log = logMinerConnection.next();
                     queue.add(logParser.parse(log));
                 } else {
+                    logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
 
@@ -96,9 +97,9 @@ public class LogMinerListener implements Runnable {
                 }
             } catch (Exception e) {
                 running = false;
-
                 Map<String, Object> map = Collections.singletonMap("exception", e);
                 queue.add(new QueueData(0L, map));
+                logMinerConnection.closeStmt();
             }
         }
     }
