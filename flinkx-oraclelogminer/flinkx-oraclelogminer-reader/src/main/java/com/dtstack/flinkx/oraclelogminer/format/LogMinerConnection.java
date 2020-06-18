@@ -512,6 +512,17 @@ public class LogMinerConnection {
         return result;
     }
 
+    public void closeStmt(){
+        try {
+            if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
+                logMinerSelectStmt.close();
+            }
+            logMinerSelectStmt = null;
+        }catch (SQLException e){
+            throw new RuntimeException("关闭logMinerStartStmt出错", e);
+        }
+    }
+
     enum ReadPosition{
         ALL, CURRENT, TIME, SCN
     }
