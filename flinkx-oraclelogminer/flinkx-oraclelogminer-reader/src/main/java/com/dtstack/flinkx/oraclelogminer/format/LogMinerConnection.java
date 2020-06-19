@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * @author jiangbo
@@ -95,12 +94,7 @@ public class LogMinerConnection {
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
-            connection = RetryUtil.executeWithRetry(new Callable<Connection>() {
-                @Override
-                public Connection call() throws Exception {
-                    return DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword());
-                }
-            }, RETRY_TIMES, SLEEP_TIME,false);
+            connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
 
             LOG.info("获取连接成功,url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
         } catch (Exception e){
@@ -171,7 +165,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.setLong(1, startScn);
             logMinerData = logMinerSelectStmt.executeQuery();
 
-            LOG.info("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, startScn);
+            LOG.debug("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, startScn);
         } catch (SQLException e) {
             LOG.error("查询Log miner数据出错,sql:{}", logMinerSelectSql);
             throw new RuntimeException(e);
