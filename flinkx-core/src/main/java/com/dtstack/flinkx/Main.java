@@ -80,6 +80,7 @@ public class Main {
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
         String savepointPath = options.getS();
+        String remotePluginPath = options.getRemotePluginPath();
         Properties confProperties = parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
@@ -92,6 +93,10 @@ public class Main {
 
         if(StringUtils.isNotEmpty(pluginRoot)) {
             config.setPluginRoot(pluginRoot);
+        }
+
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
         }
 
         Configuration flinkConf = new Configuration();

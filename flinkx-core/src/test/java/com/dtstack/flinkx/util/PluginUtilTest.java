@@ -18,29 +18,25 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.classloader.PluginUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.net.URL;
 import java.util.Set;
 
 /**
- * @author jiangbo
- * @date 2020/3/18
+ * @author tiezhu
+ * Date 2020/6/19 星期五
  */
-public class SnowflakeIdWorkerTest {
-
-    SnowflakeIdWorker snowflakeIdWorker = new SnowflakeIdWorker(1L, 1L);
+public class PluginUtilTest {
 
     @Test
-    public void testNextId() {
-        Set<Long> idSet = new HashSet<>();
-        int i = 0;
-        while (i++ < 100) {
-            long result = snowflakeIdWorker.nextId();
-            idSet.add(result);
-        }
+    public void testGetJarFileDirPath() {
+        String pluginName = "mysqlreader";
+        String pluginRoot = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
+        String remotePluginPath = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
 
-        Assert.assertEquals(idSet.size(), 100);
+        Assert.assertEquals(4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
     }
 }

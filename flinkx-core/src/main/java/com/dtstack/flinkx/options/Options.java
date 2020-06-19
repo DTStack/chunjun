@@ -79,6 +79,9 @@ public class Options {
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
 
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
@@ -222,6 +225,14 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
     @Override
     public String toString() {
         return "Options{" +
@@ -240,6 +251,8 @@ public class Options {
                 ", s='" + s + '\'' +
                 ", pluginLoadMode='" + pluginLoadMode + '\'' +
                 ", appId='" + appId + '\'' +
+                ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", flinkConfiguration=" + flinkConfiguration +
                 '}';
     }
 }
