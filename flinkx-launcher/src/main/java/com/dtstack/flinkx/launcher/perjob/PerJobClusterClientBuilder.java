@@ -97,10 +97,7 @@ public class PerJobClusterClientBuilder {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
 
-        Configuration conf = new Configuration();
-        confProp.forEach((key, value) -> conf.setString(key.toString(), value.toString()));
-
-        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(conf, yarnConf, options.getFlinkconf(), yarnClient, false);
+        AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(flinkConfig, yarnConf, options.getFlinkconf(), yarnClient, false);
         List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
         if (jars != null) {
