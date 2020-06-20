@@ -104,23 +104,33 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
-        ugi.doAs(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                try {
-                    HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
-                    org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
-                    findCurrentPartition(((FileSplit) fileSplit).getPath());
-                    recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
-                    key = new LongWritable();
-                    value = new Text();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
 
-                return null;
-            }
-        });
+        if(openKerberos){
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        openHdfsTextReader(inputSplit);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    return null;
+                }
+            });
+        }else{
+            openHdfsTextReader(inputSplit);
+        }
+
+    }
+
+    private void openHdfsTextReader(InputSplit inputSplit) throws IOException{
+        HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
+        org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
+        findCurrentPartition(((FileSplit) fileSplit).getPath());
+        recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
+        key = new LongWritable();
+        value = new Text();
     }
 
     @Override
