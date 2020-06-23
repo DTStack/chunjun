@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadatamysql.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadatamysql.inputformat.MetadataMysqlInputFormat;
+import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
