@@ -54,6 +54,7 @@
         <module>flinkx-kafka</module>
         <module>flinkx-emqx</module>
 
+
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
 
@@ -61,6 +62,7 @@
         <module>flinkx-metadata</module>
         <module>flinkx-metadata-hive2</module>
         <module>flinkx-metadata-tidb</module>
+        <module>flinkx-metadata-mysql</module>
 
         <module>flinkx-restapi</module>
     </modules>
