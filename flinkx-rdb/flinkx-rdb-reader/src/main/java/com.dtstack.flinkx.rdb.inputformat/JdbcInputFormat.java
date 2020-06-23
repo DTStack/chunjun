@@ -275,7 +275,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                             || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
                         incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName());
                     }
-                    incrementVal = DbUtil.clobToString(incrementVal);
                 }
                 String location;
                 if(incrementConfig.isPolling()){
