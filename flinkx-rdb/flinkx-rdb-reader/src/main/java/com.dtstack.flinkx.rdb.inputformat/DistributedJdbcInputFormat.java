@@ -202,7 +202,7 @@ public class DistributedJdbcInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-
+        closeCurrentSource();
     }
 
     @Override

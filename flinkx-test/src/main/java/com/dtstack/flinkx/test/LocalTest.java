@@ -40,6 +40,8 @@ import com.dtstack.flinkx.ftp.reader.FtpReader;
 import com.dtstack.flinkx.ftp.writer.FtpWriter;
 import com.dtstack.flinkx.gbase.reader.GbaseReader;
 import com.dtstack.flinkx.gbase.writer.GbaseWriter;
+import com.dtstack.flinkx.greenplum.reader.GreenplumReader;
+import com.dtstack.flinkx.greenplum.writer.GreenplumWriter;
 import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
@@ -56,7 +58,7 @@ import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadataMysqlReader;
-import com.dtstack.flinkx.metadatatidb.reader.MetadataTidbReader;
+import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
 import com.dtstack.flinkx.mysql.reader.MysqlReader;
@@ -112,14 +114,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class LocalTest {
 
-    public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
-
     private static final int FAILURE_RATE = 3;
-
     private static final int FAILURE_INTERVAL = 6;
-
     private static final int DELAY_INTERVAL = 10;
-
+    public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
@@ -135,7 +133,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatamysql_restapi.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -228,8 +226,9 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
-            case PluginNameConstrant.METADATATIDB_READER : reader = new MetadataTidbReader(config, env); break;
             case PluginNameConstrant.METADATAMYSQL_READER : reader = new MetadataMysqlReader(config, env); break;
+            case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
+            case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -267,6 +266,7 @@ public class LocalTest {
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
+            case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

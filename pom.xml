@@ -28,7 +28,8 @@
         <module>flinkx-dm</module>
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
-        <module>flinkx-oraclelogminer</module>
+        <module>flinkx-saphana</module>
+        <module>flinkx-greenplum</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -39,6 +40,7 @@
         <module>flinkx-phoenix</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
+        <module>flinkx-cassandra</module>
 
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
@@ -50,8 +52,11 @@
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
-        <module>flinkx-sqlservercdc</module>
         <module>flinkx-emqx</module>
+
+
+        <module>flinkx-sqlservercdc</module>
+        <module>flinkx-oraclelogminer</module>
 
         <!--******元数据******-->
         <module>flinkx-metadata</module>
@@ -60,7 +65,6 @@
         <module>flinkx-metadata-mysql</module>
 
         <module>flinkx-restapi</module>
-
     </modules>
 
     <properties>

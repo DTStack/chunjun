@@ -20,7 +20,6 @@ package com.dtstack.flinkx.restapi.outputformat;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
@@ -53,8 +52,6 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected Map<String, String> header;
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         // Nothing to do
@@ -78,7 +75,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+            LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
@@ -107,7 +104,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+            LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             LOG.warn("write record error !", e);
@@ -129,7 +126,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (; index < row.getArity(); index++) {
                 columnData.put(column.get(index), row.getField(index));
             }
-            return objectMapper.writeValueAsString(columnData);
+            return HttpUtil.gson.toJson(columnData);
         } else {
             return row.getField(index);
         }
@@ -141,7 +138,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
                              String method,
                              Map<String, String> header,
                              String url) throws IOException {
-        LOG.debug("当前发送的数据为:{}", objectMapper.writeValueAsString(requestBody));
+        LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
         // 重试之后返回状态码不为200

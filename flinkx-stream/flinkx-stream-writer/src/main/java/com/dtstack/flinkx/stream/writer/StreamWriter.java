@@ -46,7 +46,7 @@ public class StreamWriter extends BaseDataWriter {
         super(config);
         print = config.getJob().getContent().get(0).getWriter().getParameter().getBooleanVal("print",false);
         writeDelimiter = config.getJob().getContent().get(0).getWriter().getParameter().getStringVal("writeDelimiter", "|");
-        batchInterval = config.getJob().getContent().get(0).getWriter().getParameter().getIntVal("batchInterval", 20);
+        batchInterval = config.getJob().getContent().get(0).getWriter().getParameter().getIntVal("batchInterval", 1);
 
         List column = config.getJob().getContent().get(0).getWriter().getParameter().getColumn();
         metaColumns = MetaColumn.getMetaColumns(column);

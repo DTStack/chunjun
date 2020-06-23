@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.metadatamysql.inputformat;
 
-import com.dtstack.flinkx.metadatatidb.inputformat.MetadataTidbInputFormat;
+import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
 import java.sql.ResultSet;
@@ -35,7 +35,7 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.*;
  * @date : 2020/6/8
  */
 
-public class MetadataMysqlInputFormat extends MetadataTidbInputFormat {
+public class MetadataMysqlInputFormat extends MetadatatidbInputFormat {
 
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
@@ -73,7 +73,6 @@ public class MetadataMysqlInputFormat extends MetadataTidbInputFormat {
         return tableProp;
     }
 
-    @Override
     protected List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
         List<Map<String, Object>> column = new LinkedList<>();
         String sql = String.format(SQL_QUERY_COLUMN, tableName);

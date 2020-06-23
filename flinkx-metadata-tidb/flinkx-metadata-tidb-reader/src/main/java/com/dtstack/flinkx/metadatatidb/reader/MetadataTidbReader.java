@@ -20,7 +20,7 @@ package com.dtstack.flinkx.metadatatidb.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
-import com.dtstack.flinkx.metadatatidb.inputformat.MetadataTidbInputFormat;
+import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
 
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_NAME;
 
@@ -28,15 +28,15 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class MetadataTidbReader extends MetadataReader {
+public class MetadatatidbReader extends MetadataReader {
 
-    public MetadataTidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
+    public MetadatatidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
         super(config, env);
         driverName = DRIVER_NAME;
     }
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadataTidbInputFormat());
+        return new MetadataInputFormatBuilder(new MetadatatidbInputFormat());
     }
 }

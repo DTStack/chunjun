@@ -21,7 +21,6 @@ package com.dtstack.flinkx.metadatamysql.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadatamysql.inputformat.MetadataMysqlInputFormat;
-import com.dtstack.flinkx.metadatatidb.reader.MetadataTidbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -29,7 +28,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @date : 2020/6/8
  */
 
-public class MetadataMysqlReader extends MetadataTidbReader {
+public class MetadataMysqlReader extends MetadatatidbReader {
 
     public MetadataMysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
