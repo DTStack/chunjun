@@ -26,7 +26,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,19 +51,22 @@ public class PluginUtil {
 
     public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
         Set<URL> urlList = new HashSet<>();
+        List<File> pathDir = new ArrayList<>();
 
-        File commonDir = new File(pluginRoot + File.separator + COMMON_DIR + File.separator);
-        File pluginDir = new File(pluginRoot + File.separator + pluginName);
-        File remoteDir = null;
+        if (pluginRoot != null) {
+            pathDir.add(new File(pluginRoot + File.separator + pluginName));
+            pathDir.add(new File(pluginRoot + File.separator + COMMON_DIR + File.separator));
+        }
 
         if (remotePluginPath != null) {
-            remoteDir = new File(remotePluginPath + File.separator + pluginName);
+            pathDir.add(new File(remotePluginPath + File.separator + pluginName));
+            pathDir.add(new File(remotePluginPath + File.separator + COMMON_DIR + File.separator));
         }
 
         try {
-            urlList.addAll(SysUtil.findJarsInDir(commonDir));
-            urlList.addAll(SysUtil.findJarsInDir(pluginDir));
-            urlList.addAll(SysUtil.findJarsInDir(remoteDir));
+            for(File path : pathDir) {
+                urlList.addAll(SysUtil.findJarsInDir(path));
+            }
 
             return urlList;
         } catch (MalformedURLException e) {
