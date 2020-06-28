@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +88,9 @@ public class LogMinerListener implements Runnable {
             try {
                 if (logMinerConnection.hasNext()) {
                     QueueData log = logMinerConnection.next();
-                    queue.add(logParser.parse(log));
+                    queue.put(logParser.parse(log));
                 } else {
+                    logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
 
@@ -96,9 +98,14 @@ public class LogMinerListener implements Runnable {
                 }
             } catch (Exception e) {
                 running = false;
-
                 Map<String, Object> map = Collections.singletonMap("exception", e);
-                queue.add(new QueueData(0L, map));
+                try {
+                    queue.put(new QueueData(0L, map));
+                } catch (InterruptedException ex) {
+                    LOG.error("error to put exception message into queue, exception message = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(ex));
+                    throw new RuntimeException(ex);
+                }
+                logMinerConnection.closeStmt();
             }
         }
     }

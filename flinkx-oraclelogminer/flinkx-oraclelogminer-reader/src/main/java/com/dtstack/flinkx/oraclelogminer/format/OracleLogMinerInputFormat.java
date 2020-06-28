@@ -44,6 +44,11 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     private transient PositionManager positionManager;
 
     @Override
+    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
+        return new InputSplit[]{new GenericInputSplit(1,1)};
+    }
+
+    @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         positionManager = new PositionManager();
@@ -88,11 +93,6 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         return false;
-    }
-
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
     @Override

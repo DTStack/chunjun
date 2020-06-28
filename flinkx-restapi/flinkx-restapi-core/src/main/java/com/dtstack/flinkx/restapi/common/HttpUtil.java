@@ -17,8 +17,7 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -44,7 +44,7 @@ public class HttpUtil {
     private static final int TIME_OUT = 5000;
     private static final int EXECUTION_COUNT = 5;
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
+    public static Gson gson = new Gson();
 
     public static CloseableHttpClient getHttpClient() {
         // 设置自定义的重试策略
@@ -110,12 +110,8 @@ public class HttpUtil {
     }
 
     public static StringEntity getEntityData(Map<String, Object> body) {
-        try {
-            StringEntity stringEntity = new StringEntity(objectMapper.writeValueAsString(body), "utf-8");
-            stringEntity.setContentEncoding("UTF-8");
-            return stringEntity;
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("set entity error");
-        }
+        StringEntity stringEntity = new StringEntity(gson.toJson(body), StandardCharsets.UTF_8);
+        stringEntity.setContentEncoding(StandardCharsets.UTF_8.name());
+        return stringEntity;
     }
 }

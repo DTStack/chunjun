@@ -19,7 +19,6 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -50,8 +49,6 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     protected boolean getData;
 
-    private transient static ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -65,6 +62,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) throws IOException {
         HttpUriRequest request = HttpUtil.getRequest(method, header,null, url);
         try {
@@ -72,7 +70,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 String entityData = EntityUtils.toString(entity);
-                entityDataToMap = objectMapper.readValue(entityData, Map.class);
+                entityDataToMap = HttpUtil.gson.fromJson(entityData, Map.class);
                 getData = true;
             } else {
                 throw new RuntimeException("entity is null");

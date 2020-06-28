@@ -29,6 +29,7 @@
         <module>flinkx-gbase</module>
         <module>flinkx-clickhouse</module>
         <module>flinkx-saphana</module>
+        <module>flinkx-greenplum</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -61,6 +62,7 @@
         <module>flinkx-metadata-hive2</module>
         <module>flinkx-metadata-tidb</module>
         <module>flinkx-metadata-oracle</module>
+        <module>flinkx-metadata-mysql</module>
 
         <module>flinkx-restapi</module>
     </modules>
