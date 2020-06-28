@@ -20,7 +20,7 @@ package com.dtstack.flinkx.metadatamysql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadatamysql.inputformat.MetadataMysqlInputFormat;
+import com.dtstack.flinkx.metadatamysql.inputformat.MetadatamysqlInputFormat;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -29,14 +29,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @date : 2020/6/8
  */
 
-public class MetadataMysqlReader extends MetadatatidbReader {
+public class MetadatamysqlReader extends MetadatatidbReader {
 
-    public MetadataMysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public MetadatamysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
     }
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadataMysqlInputFormat());
+        return new MetadataInputFormatBuilder(new MetadatamysqlInputFormat());
     }
 }

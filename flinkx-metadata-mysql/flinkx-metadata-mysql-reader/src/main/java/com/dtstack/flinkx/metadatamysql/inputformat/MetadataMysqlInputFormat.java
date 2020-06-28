@@ -35,7 +35,7 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.*;
  * @date : 2020/6/8
  */
 
-public class MetadataMysqlInputFormat extends MetadatatidbInputFormat {
+public class MetadatamysqlInputFormat extends MetadatatidbInputFormat {
 
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
