@@ -119,7 +119,7 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public int getFetchSize(){
-        return 1000;
+        return Integer.MIN_VALUE;
     }
 
     @Override
