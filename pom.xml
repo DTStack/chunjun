@@ -38,6 +38,7 @@
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
         <module>flinkx-phoenix</module>
+        <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
         <module>flinkx-cassandra</module>
