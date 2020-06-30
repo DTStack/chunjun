@@ -3,33 +3,25 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-all</artifactId>
+        <artifactId>flinkx-phoenix5</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <packaging>pom</packaging>
 
-    <artifactId>flinkx-phoenix5</artifactId>
-
-    <modules>
-        <module>flinkx-phoenix5-reader</module>
-        <module>flinkx-phoenix5-writer</module>
-        <module>flinkx-phoenix5-core</module>
-    </modules>
+    <artifactId>flinkx-phoenix5-core</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
+            <artifactId>flinkx-phoenix-core</artifactId>
             <version>1.6</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb-core</artifactId>
-            <version>1.6</version>
-            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>*</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.phoenix</groupId>

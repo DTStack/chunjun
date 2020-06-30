@@ -3,7 +3,7 @@
     "content": [{
       "reader": {
         "parameter": {
-          "sliceRecordCount": ["100"],
+          "sliceRecordCount": ["100","100","100"],
           "column": [
             {
               "name": "id",
@@ -25,7 +25,7 @@
         "name": "phoenix5writer",
         "parameter": {
           "connection": [{
-            "jdbcUrl": "jdbc:phoenix:hdfs01,hdfs02,hdfs03:2181",
+            "jdbcUrl": "jdbc:phoenix:172.16.100.68,172.16.100.142,172.16.100.205:2181",
             "table": [
               "PERSON"
             ]
@@ -55,7 +55,7 @@
     }],
     "setting": {
       "speed": {
-        "channel": 1,
+        "channel": 3,
         "bytes": 0
       },
       "errorLimit": {

@@ -16,14 +16,14 @@
           "username" : "root",
           "password" : "abc123",
           "connection" : [ {
-            "jdbcUrl" : [ "jdbc:phoenix:hdfs01,hdfs02,hdfs03:2181" ],
+            "jdbcUrl" : [ "jdbc:phoenix:172.16.100.68,172.16.100.142,172.16.100.205:2181" ],
             "table" : [ "PERSON" ]
           } ],
           "where": "id > 0",
           "splitPk": "id",
           "fetchSize": 1000,
           "queryTimeOut": 1000,
-          "customSql": "",
+          "customSql": "select * from PERSON where id < 100",
           "requestAccumulatorInterval": 2
         },
         "name" : "phoenix5reader"
@@ -38,7 +38,7 @@
     ],
     "setting": {
       "speed": {
-        "channel": 1,
+        "channel": 3,
         "bytes": 0
       },
       "errorLimit": {
