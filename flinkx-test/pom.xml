@@ -148,11 +148,31 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-writer</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -390,6 +410,16 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-phoenix-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -434,12 +464,32 @@
             <artifactId>flinkx-metadata-hive2-reader</artifactId>
             <version>1.6</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-hive2-reader</artifactId>
             <version>1.6</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -477,6 +527,11 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-phoenix5-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix5-writer</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

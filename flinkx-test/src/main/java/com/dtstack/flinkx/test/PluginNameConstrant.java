@@ -84,4 +84,5 @@ public class PluginNameConstrant {
     public static final String RESTAPI_WRITER = "restapiwriter";
     public static final String DM_WRITER = "dmwriter";
     public static final String GREENPLUM_WRITER = "greenplumwriter";
+    public static final String PHOENIX5_WRITER = "phoenix5writer";
 }

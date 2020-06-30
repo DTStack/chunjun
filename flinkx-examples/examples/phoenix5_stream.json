@@ -26,7 +26,7 @@
           "customSql": "",
           "requestAccumulatorInterval": 2
         },
-        "name" : "phoenixreader"
+        "name" : "phoenix5reader"
       },
       "writer": {
         "name": "streamwriter",

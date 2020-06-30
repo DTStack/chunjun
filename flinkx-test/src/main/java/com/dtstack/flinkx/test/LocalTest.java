@@ -71,6 +71,7 @@ import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
 import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
+import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
@@ -267,6 +268,7 @@ public class LocalTest {
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
+            case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
