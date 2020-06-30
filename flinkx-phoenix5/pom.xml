@@ -15,7 +15,6 @@
     <modules>
         <module>flinkx-phoenix5-reader</module>
         <module>flinkx-phoenix5-writer</module>
-        <module>flinkx-phoenix5-core</module>
     </modules>
 
     <dependencies>
@@ -30,17 +29,6 @@
             <artifactId>flinkx-rdb-core</artifactId>
             <version>1.6</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.phoenix</groupId>
-            <artifactId>phoenix-core</artifactId>
-            <version>5.0.0-HBase-2.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 

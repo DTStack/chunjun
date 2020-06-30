@@ -134,7 +134,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-examples\\examples\\phoenix5_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-examples\\examples\\stream_phoenix5.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }

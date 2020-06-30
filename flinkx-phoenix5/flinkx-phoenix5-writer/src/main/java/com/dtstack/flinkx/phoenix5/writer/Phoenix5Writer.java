@@ -20,7 +20,6 @@ package com.dtstack.flinkx.phoenix5.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
-import com.dtstack.flinkx.phoenix5.Phoenix5Meta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5OutputFormat;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 
@@ -33,7 +32,6 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 public class Phoenix5Writer extends PhoenixWriter {
     public Phoenix5Writer(DataTransferConfig config) {
         super(config);
-        setDatabaseInterface(new Phoenix5Meta());
     }
 
     @Override
