@@ -53,6 +53,8 @@ public class PluginNameConstrant {
     public static final String METADATAHIVE2_READER = "metadatahive2reader";
     public static final String DM_READER = "dmreader";
     public static final String METADATATIDB_READER = "metadatatidbreader";
+    public static final String METADATAORACLE_READER = "metadataoraclereader";
+    public static final String METADATAMYSQL_READER = "metadatamysqlreader";
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
 
