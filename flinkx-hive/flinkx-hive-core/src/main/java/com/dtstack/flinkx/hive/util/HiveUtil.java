@@ -257,9 +257,20 @@ public class HiveUtil {
         originType = originType.trim();
         int indexOfBrackets = originType.indexOf(LEFT_BRACKETS);
         if (indexOfBrackets > -1) {
-            String type = originType.substring(0, indexOfBrackets);
             String params = originType.substring(indexOfBrackets);
-            return convertType(type) + params;
+            int index = params.indexOf(",");
+            int right = Integer.parseInt(params.substring(index+1, params.length()-1).trim());
+            if(right == 0){
+                int left = Integer.parseInt(params.substring(1, index).trim());
+                if(left <= 4){
+                    return "SMALLINT";
+                }else if(left <= 9){
+                    return "INT";
+                }else if(left <= 18){
+                    return "BIGINT";
+                }
+            }
+            return "DECIMAL" + params;
         } else {
             return convertType(originType);
         }
@@ -283,6 +294,8 @@ public class HiveUtil {
             case "INT8":
                 type = "INT";
                 break;
+            case "NUMERIC":
+            case "NUMBER":
             case "BIGINT":
                 type = "BIGINT";
                 break;
@@ -297,8 +310,6 @@ public class HiveUtil {
             case "BINARY_DOUBLE":
                 type = "DOUBLE";
                 break;
-            case "NUMERIC":
-            case "NUMBER":
             case "DECIMAL":
                 type = "DECIMAL";
                 break;
