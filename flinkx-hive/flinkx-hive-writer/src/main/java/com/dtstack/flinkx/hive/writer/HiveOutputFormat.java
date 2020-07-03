@@ -29,6 +29,7 @@ import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -182,6 +183,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void writeRecord(Row row) throws IOException {
         boolean fromLogData = false;
         String tablePath;
@@ -189,9 +191,13 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         if (row.getField(0) instanceof Map) {
             event = (Map) row.getField(0);
 
-            // FIXME 这块的逻辑有问题，从binlog过来的数据如果不是json平铺，会多一层结构，以后最好想办法优化掉，先临时这样改
             if (null != event && event.containsKey("message")) {
-                event = MapUtils.getMap(event, "message");
+                Object tempObj = event.get("message");
+                if (tempObj instanceof Map) {
+                    event = (Map) tempObj;
+                } else if (tempObj instanceof String) {
+                    event = MapUtil.jsonStrToObject((String) tempObj, Map.class);
+                }
             }
 
             tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
@@ -217,7 +223,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add((long)row.toString().length() - rowData.toString().length());
+                bytesWriteCounter.add((long) row.toString().length() - rowData.toString().length());
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
