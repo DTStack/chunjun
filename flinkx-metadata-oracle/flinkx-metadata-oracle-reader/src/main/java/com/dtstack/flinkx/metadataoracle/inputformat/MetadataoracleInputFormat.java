@@ -71,7 +71,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    protected void switchDatabase(String databaseName) throws SQLException {
+    protected void switchDatabase(String databaseName) {
         currentDb.set(databaseName);
     }
 
