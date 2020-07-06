@@ -26,16 +26,20 @@ import com.dtstack.flinkx.kudu.core.KuduUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ValueUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
+import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduSession;
 import org.apache.kudu.client.KuduTable;
 import org.apache.kudu.client.Operation;
+import org.apache.kudu.client.PartialRow;
 import org.apache.kudu.client.SessionConfiguration;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -98,14 +102,48 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    /**
+     * kudu内部采用(Long) val方式进行数据转换，这里先进行优雅转换
+     * @param row 传入数据
+     * @throws WriteRecordException 写入异常
+     */
     private void writeData(Row row) throws WriteRecordException {
         int index = 0;
         try {
             Operation operation = getOperation();
+            PartialRow partialRow = operation.getRow();
             for (int i = 0; i < columns.size(); i++) {
                 index = i;
                 MetaColumn column = columns.get(i);
-                operation.getRow().addObject(column.getName(), row.getField(i));
+                int columnIndex = partialRow.getSchema().getColumnIndex(column.getName());
+                ColumnSchema col = partialRow.getSchema().getColumnByIndex(columnIndex);
+                if (col == null) {
+                    throw new IllegalArgumentException("Column name isn't present in the table's schema");
+                }
+                Object var = null;
+                Object beforValue = row.getField(i);
+                switch (col.getType()) {
+                    case BOOL: var =  ValueUtil.getBoolean(beforValue); break;
+                    case INT8: var =  ValueUtil.getByte(beforValue); break;
+                    case INT16: var =  ValueUtil.getShort(beforValue); break;
+                    case INT32: var =  ValueUtil.getIntegerVal(beforValue); break;
+                    case INT64: var = ValueUtil.getLongVal(beforValue); break;
+                    case UNIXTIME_MICROS:
+                        if (beforValue instanceof Timestamp) {
+                            var =  ValueUtil.getTimestampVal(beforValue);
+                        } else {
+                            var =  ValueUtil.getLongVal(beforValue);
+                        }
+                        break;
+                    case FLOAT: var = ValueUtil.getFloatVal(beforValue); break;
+                    case DOUBLE: var =  ValueUtil.getDoubleVal(beforValue); break;
+                    case STRING: var =  ValueUtil.getString(beforValue); break;
+                    case BINARY: break;
+                    case DECIMAL: var =  ValueUtil.getBigDecimal(beforValue); break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported column type: " + col.getType());
+                }
+                partialRow.addObject(columnIndex, var);
             }
 
             session.apply(operation);
