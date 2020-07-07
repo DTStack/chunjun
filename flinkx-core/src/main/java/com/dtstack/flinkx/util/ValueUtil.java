@@ -158,7 +158,7 @@ public class ValueUtil {
     }
 
 
-    public static Boolean getBoolean(Object obj) {
+    public static Boolean getBooleanVal(Object obj) {
         if (obj == null) {
             return null;
         }
@@ -172,15 +172,15 @@ public class ValueUtil {
         throw new RuntimeException("not support type of " + obj.getClass() + " convert to Boolean.");
     }
 
-    public static Boolean getBoolean(Object obj, boolean defaultVal) {
+    public static Boolean getBooleanVal(Object obj, boolean defaultVal) {
         if (obj == null) {
             return defaultVal;
         }
 
-        return getBoolean(obj);
+        return getBooleanVal(obj);
     }
 
-    public static String getString(Object obj) {
+    public static String getStringVal(Object obj) {
         if (obj == null) {
             return null;
         }
@@ -192,7 +192,7 @@ public class ValueUtil {
         return obj.toString();
     }
 
-    public static Byte getByte(Object obj) {
+    public static Byte getByteVal(Object obj) {
         if (obj == null) {
             return null;
         }
@@ -206,7 +206,7 @@ public class ValueUtil {
         throw new RuntimeException("not support type of " + obj.getClass() + " convert to Byte.");
     }
 
-    public static Short getShort(Object obj) {
+    public static Short getShortVal(Object obj) {
         if (obj == null) {
             return null;
         }
@@ -220,7 +220,7 @@ public class ValueUtil {
         throw new RuntimeException("not support type of " + obj.getClass() + " convert to Short.");
     }
 
-    public static BigDecimal getBigDecimal(Object obj) {
+    public static BigDecimal getBigDecimalVal(Object obj) {
         if (obj == null) {
             return null;
         }
