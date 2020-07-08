@@ -19,19 +19,26 @@
 package com.dtstack.flinkx.phoenix5.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+import com.dtstack.flinkx.phoenix5.PhoenixMeta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5OutputFormat;
+import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DbUtil;
+
+import java.util.Collections;
 
 /**
- * Company: www.dtstack.com
+ * phoenix writer plugin
  *
- * @author kunni
+ * Company: www.dtstack.com
+ * @author wuhui
  */
+public class Phoenix5Writer extends JdbcDataWriter {
 
-public class Phoenix5Writer extends PhoenixWriter {
     public Phoenix5Writer(DataTransferConfig config) {
         super(config);
+        setDatabaseInterface(new PhoenixMeta());
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override

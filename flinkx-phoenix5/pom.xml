@@ -13,6 +13,7 @@
     <artifactId>flinkx-phoenix5</artifactId>
 
     <modules>
+        <module>flinkx-phoenix5-core</module>
         <module>flinkx-phoenix5-reader</module>
         <module>flinkx-phoenix5-writer</module>
     </modules>

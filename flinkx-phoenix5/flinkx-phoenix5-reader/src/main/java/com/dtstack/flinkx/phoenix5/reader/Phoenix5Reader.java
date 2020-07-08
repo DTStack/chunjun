@@ -19,25 +19,33 @@
 package com.dtstack.flinkx.phoenix5.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+import com.dtstack.flinkx.phoenix5.PhoenixMeta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5InputFormat;
+import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-/**
- * Company: www.dtstack.com
- *
- * @author kunni
- */
+import java.util.Collections;
 
-public class Phoenix5Reader extends PhoenixReader {
+/**
+ * phoenix reader plugin
+ *
+ * Company: www.dtstack.com
+ * @author wuhui
+ */
+public class Phoenix5Reader extends JdbcDataReader {
 
     public Phoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
+        setDatabaseInterface(new PhoenixMeta());
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new Phoenix5InputFormat());
     }
+
 }
+
