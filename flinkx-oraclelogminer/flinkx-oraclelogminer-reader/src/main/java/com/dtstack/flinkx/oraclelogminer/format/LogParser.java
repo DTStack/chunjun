@@ -33,6 +33,8 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.collections.MapUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -42,6 +44,8 @@ import java.util.*;
  * @date 2020/3/30
  */
 public class LogParser {
+
+    public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
@@ -87,7 +91,7 @@ public class LogParser {
         }
     }
 
-    private static void parseUpdateStmt(Update update, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
+    private static void parseUpdateStmt(Update update, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap, String sqlRedo){
         Iterator<Expression> iterator = update.getExpressions().iterator();
         for (Column c : update.getColumns()){
             afterDataMap.put(cleanString(c.getColumnName()), cleanString(iterator.next().toString()));
@@ -108,6 +112,8 @@ public class LogParser {
                     }
                 }
             });
+        }else{
+            LOG.error("where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}", sqlRedo, update.toString());
         }
     }
 
@@ -139,9 +145,9 @@ public class LogParser {
         message.put("table", tableName);
         message.put("ts", idWorker.nextId());
         message.put("opTime", timestamp);
-        message.put("sqlLog", sqlRedo);
 
 
+        LOG.debug("sqlRedo = {}", sqlRedo);
         Statement stmt = CCJSqlParserUtil.parse(sqlRedo);
         LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
         LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
@@ -149,7 +155,7 @@ public class LogParser {
         if (stmt instanceof Insert){
             parseInsertStmt((Insert) stmt, beforeDataMap, afterDataMap);
         }else if (stmt instanceof Update){
-            parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap);
+            parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap, sqlRedo);
         }else if (stmt instanceof Delete){
             parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
         }
