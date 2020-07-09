@@ -88,32 +88,27 @@ public class LogParser {
     }
 
     private static void parseUpdateStmt(Update update, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
-        for (Column c : update.getColumns()){
-            afterDataMap.put(cleanString(c.getColumnName()), null);
-        }
-
         Iterator<Expression> iterator = update.getExpressions().iterator();
-
-        for (String key : afterDataMap.keySet()){
-            Object o = iterator.next();
-            String value = cleanString(o.toString());
-            afterDataMap.put(key, value);
+        for (Column c : update.getColumns()){
+            afterDataMap.put(cleanString(c.getColumnName()), cleanString(iterator.next().toString()));
         }
 
-        update.getWhere().accept(new ExpressionVisitorAdapter() {
-            @Override
-            public void visit(final EqualsTo expr){
-                String col = cleanString(expr.getLeftExpression().toString());
-                if(afterDataMap.containsKey(col)){
-                    String value = cleanString(expr.getRightExpression().toString());
-                    beforeDataMap.put(col, value);
-                } else {
-                    String value = cleanString(expr.getRightExpression().toString());
-                    beforeDataMap.put(col, value);
-                    afterDataMap.put(col, value);
+        if(update.getWhere() != null){
+            update.getWhere().accept(new ExpressionVisitorAdapter() {
+                @Override
+                public void visit(final EqualsTo expr){
+                    String col = cleanString(expr.getLeftExpression().toString());
+                    if(afterDataMap.containsKey(col)){
+                        String value = cleanString(expr.getRightExpression().toString());
+                        beforeDataMap.put(col, value);
+                    } else {
+                        String value = cleanString(expr.getRightExpression().toString());
+                        beforeDataMap.put(col, value);
+                        afterDataMap.put(col, value);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private static void parseDeleteStmt(Delete delete, LinkedHashMap<String,String> beforeDataMap, LinkedHashMap<String,String> afterDataMap){
@@ -134,6 +129,7 @@ public class LogParser {
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
+        String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
         Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
 
         Map<String,Object> message = new LinkedHashMap<>();
@@ -143,9 +139,10 @@ public class LogParser {
         message.put("table", tableName);
         message.put("ts", idWorker.nextId());
         message.put("opTime", timestamp);
+        message.put("sqlLog", sqlRedo);
 
-        String sqlRedo2 = sqlLog.replace("IS NULL", "= NULL");
-        Statement stmt = CCJSqlParserUtil.parse(sqlRedo2);
+
+        Statement stmt = CCJSqlParserUtil.parse(sqlRedo);
         LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
         LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
 
