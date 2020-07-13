@@ -38,7 +38,7 @@ import java.sql.SQLException;
 
 public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
-    private static final String COPY_SQL_TEMPL = "copy %s(%s) from stdin DELIMITER '%s'";
+    private static final String COPY_SQL_TEMPL = "copy %s(%s) from stdin DELIMITER '%s' NULL as 'null'";
 
     private static final String DEFAULT_FIELD_DELIM = "\001";
 
