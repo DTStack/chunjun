@@ -20,7 +20,6 @@ package com.dtstack.flinkx.phoenix.format;
 import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,7 +29,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -79,17 +77,10 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
+            checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);

@@ -28,12 +28,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.FileSystemUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.UrlUtil;
+import com.dtstack.flinkx.util.*;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongMaximum;
@@ -47,13 +42,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.sql.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -197,15 +186,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (splitWithRowCol) {
                 columnCount = columnCount - 1;
             }
-
-            if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            checkSize(columnCount, metaColumns);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -856,4 +838,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * 校验columnCount和metaColumns的长度是否相等
+     * @param columnCount
+     * @param metaColumns
+     */
+    protected void checkSize(int columnCount, List<MetaColumn> metaColumns) {
+        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName()) && columnCount != metaColumns.size()) {
+            LOG.error("error config: column size for reader is {},but columns size for query result is {}." +
+                            " And the query sql is '{}'.",
+                    metaColumns.size(), columnCount, querySql);
+            throw new RuntimeException("");
+        }
+    }
 }
