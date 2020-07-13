@@ -54,6 +54,7 @@
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
         <module>flinkx-emqx</module>
+        <module>flinkx-pulsar</module>
         <module>flinkx-restapi</module>
     </modules>
 
