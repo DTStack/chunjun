@@ -18,12 +18,11 @@
 package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -53,7 +52,9 @@ public class MysqlInputFormat extends JdbcInputFormat {
 
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(Long.parseLong(startLocation));
+                if (StringUtils.isNotEmpty(startLocation)) {
+                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                }
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -66,8 +67,10 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
 
             querySql = buildQuerySql(inputSplit);
-            //MySQL流式读取
-            fetchSize = Integer.MIN_VALUE;
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 
@@ -122,7 +125,6 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
             return super.nextRecordInternal(row);
         }catch (Exception e) {
-            LOG.error("error to get next record, row = {}, descColumnTypeList = {}, e = {}", row, new Gson().toJson(descColumnTypeList), ExceptionUtil.getErrorMessage(e));
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }

@@ -294,11 +294,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
                     moveAllTemporaryDataFileToDirectory();
 
                     LOG.info("The task ran successfully,clear temporary data files");
+                    closeSource();
                     clearTemporaryDataFiles();
                 }
+            }else{
+                closeSource();
             }
-
-            closeSource();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -326,11 +327,6 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             LOG.info("Clean temporary data in method tryCleanupOnError");
             clearTemporaryDataFiles();
         }
-    }
-
-    @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
     }
 
     @Override

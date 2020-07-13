@@ -56,8 +56,12 @@
                                     <shadedPattern>shade.mongodbreader.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>shade.mongodbreader.com.google</shadedPattern>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.*;
+import static com.dtstack.flinkx.ftp.FtpConfigConstants.DEFAULT_FIELD_DELIMITER;
 
 /**
  * The Writer Plugin of Ftp

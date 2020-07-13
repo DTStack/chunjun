@@ -31,7 +31,18 @@ import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_BATCH_SIZE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DATE_FORMAT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_EXPIRE_TIME;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_KEY_INDEXES;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_MODE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TYPE;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_VALUE_FIELD_DELIMITER;
 
 /**
  * The writer plugin for redis database

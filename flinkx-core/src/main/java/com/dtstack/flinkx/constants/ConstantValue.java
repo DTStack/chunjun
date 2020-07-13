@@ -51,4 +51,15 @@ public class ConstantValue {
     public static final String SYSTEM_PROPERTIES_KEY_FILE_ENCODING = "file.encoding";
 
     public static final String OS_WINDOWS = "windows";
+
+    public static final String TIME_SECOND_SUFFIX = "sss";
+    public static final String TIME_MILLISECOND_SUFFIX = "SSS";
+
+    public static final String FILE_SUFFIX_XML = ".xml";
+
+    public static final int MAX_BATCH_SIZE = 200000;
+
+    public static final long STORE_SIZE_G = 1024L * 1024 * 1024;
+
+    public static final long STORE_SIZE_M = 1024L * 1024;
 }

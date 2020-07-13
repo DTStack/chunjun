@@ -89,23 +89,14 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void logoutFtpServer() {
+    public void logoutFtpServer() throws IOException{
         if (ftpClient.isConnected()) {
             try {
                 ftpClient.logout();
-            } catch (IOException e) {
-                LOG.error(DISCONNECT_FAIL_MESSAGE);
-                throw new RuntimeException(e);
-            }finally {
+            } finally {
                 if(ftpClient.isConnected()){
-                    try {
-                        ftpClient.disconnect();
-                    } catch (IOException e) {
-                        LOG.error(DISCONNECT_FAIL_MESSAGE);
-                        throw new RuntimeException(e);
-                    }
+                    ftpClient.disconnect();
                 }
-
             }
         }
     }

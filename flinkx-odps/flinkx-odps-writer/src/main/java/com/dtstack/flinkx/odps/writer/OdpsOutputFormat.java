@@ -116,7 +116,7 @@ public class OdpsOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        throw new UnsupportedOperationException();
+        notSupportBatchWrite("OdpsWriter");
     }
 
     private Record row2record(Row row, String[] columnTypes) throws WriteRecordException {

@@ -29,16 +29,24 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.RegionLocator;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.Maps;
+import org.apache.hadoop.security.UserGroupInformation;
 
 
 /**
@@ -87,7 +95,17 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HbaseHelper.getHbaseConnection(hbaseConfig)) {
-            return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            if(HbaseHelper.openKerberos(hbaseConfig)) {
+                UserGroupInformation ugi = HbaseHelper.getUgi(hbaseConfig);
+                return ugi.doAs(new PrivilegedAction<HbaseInputSplit[]>() {
+                    @Override
+                    public HbaseInputSplit[] run() {
+                        return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+                    }
+                });
+            } else {
+                return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+            }
         }
     }
 
@@ -132,9 +150,10 @@ public class HbaseInputFormat extends BaseRichInputFormat {
             // 当前的region为最后一个region
             // 如果最后一个region的start Key大于用户指定的userEndKey,则最后一个region，应该不包含在内
             // 注意如果用户指定userEndKey为"",则此判断应该不成立。userEndKey为""表示取得最大的region
-            if (Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
+            boolean isSkip = Bytes.compareTo(regionEndKey, HConstants.EMPTY_BYTE_ARRAY) == 0
                     && (endRowkeyByte.length != 0 && (Bytes.compareTo(
-                    regionStartKey, endRowkeyByte) > 0))) {
+                    regionStartKey, endRowkeyByte) > 0));
+            if (isSkip) {
                 continue;
             }
 

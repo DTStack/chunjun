@@ -25,8 +25,6 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.Timestamp;
 
-import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
-
 /**
  * Date: 2020/03/18
  * Company: www.dtstack.com
@@ -49,7 +47,7 @@ public class DmInputFormat  extends JdbcInputFormat {
                             || obj.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
                         obj = resultSet.getTimestamp(pos + 1);
                     }
-                    obj = clobToString(obj);
+                    obj = DbUtil.clobToString(obj);
                 }
 
                 row.setField(pos, obj);

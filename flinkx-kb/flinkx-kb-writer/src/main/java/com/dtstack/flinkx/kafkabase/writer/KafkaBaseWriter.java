@@ -27,7 +27,10 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.*;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_PRODUCER_SETTINGS;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TABLE_FIELDS;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TIMEZONE;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TOPIC;
 
 /**
  * Date: 2019/11/21

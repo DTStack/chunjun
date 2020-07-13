@@ -48,7 +48,12 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
         if (print) {
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, row);
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
+        }
+
+        if (restoreConfig.isRestore()) {
+            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
+            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
         }
     }
 
@@ -56,8 +61,19 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         if (print) {
             for (Row row : rows) {
-                LOG.info(String.valueOf(row));
+                LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
             }
         }
+    }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.getArity(); i++) {
+            if (i > 0) {
+                sb.append(writeDelimiter);
+            }
+            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+        }
+        return sb.toString();
     }
 }

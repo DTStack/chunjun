@@ -30,12 +30,19 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +114,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             "AND t.table_name = '%s'";
 
     protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
+    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR","TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
 
     protected PreparedStatement prepareTemplates() throws SQLException {
         if(CollectionUtils.isEmpty(fullColumn)) {
@@ -202,7 +210,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             for (; index < row.getArity(); index++) {
-                preparedStatement.setObject(index+1,getField(row,index));
+                Object object = row.getField(index);
+                if( object instanceof String && StringUtils.isBlank((String) object)){
+                    if(!STRING_TYPES.contains(columnType.get(index))){
+                        object = null;
+                    }
+                }
+                preparedStatement.setObject(index+1, object);
             }
 
             preparedStatement.execute();
@@ -233,8 +247,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (Row row : rows) {
-                for (int j = 0; j < row.getArity(); ++j) {
-                    preparedStatement.setObject(j + 1, getField(row, j));
+                for (int index = 0; index < row.getArity(); index++) {
+                    Object object = row.getField(index);
+                    if( object instanceof String && StringUtils.isBlank((String) object)){
+                        if(!STRING_TYPES.contains(columnType.get(index))){
+                            object = null;
+                        }
+                    }
+                    preparedStatement.setObject(index+1, object);
                 }
                 preparedStatement.addBatch();
 

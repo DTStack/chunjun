@@ -18,11 +18,16 @@
 package com.dtstack.flinkx.oracle.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.oracle.OracleDatabaseMeta;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +68,7 @@ public class OracleOutputFormat extends JdbcOutputFormat {
         String schema =null;
 
         String[] parts = table.split("\\.");
-        if(parts.length == 2) {
+        if(parts.length == OracleDatabaseMeta.DB_TABLE_PART_SIZE) {
             schema = parts[0].toUpperCase();
             table = parts[1];
         }
@@ -79,24 +84,26 @@ public class OracleOutputFormat extends JdbcOutputFormat {
     @Override
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
         Map<String, List<String>> map = new HashMap<>(16);
-        PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL,table));
-        ResultSet rs = ps.executeQuery();
 
-        while(rs.next()) {
-            String indexName = rs.getString("INDEX_NAME");
-            if(!map.containsKey(indexName)) {
-                map.put(indexName,new ArrayList<>());
+        try (PreparedStatement ps = dbConn.prepareStatement(String.format(GET_INDEX_SQL, table));
+             ResultSet rs = ps.executeQuery()) {
+            while(rs.next()) {
+                String indexName = rs.getString("INDEX_NAME");
+                if(!map.containsKey(indexName)) {
+                    map.put(indexName,new ArrayList<>());
+                }
+                map.get(indexName).add(rs.getString("COLUMN_NAME"));
             }
-            map.get(indexName).add(rs.getString("COLUMN_NAME"));
-        }
-        Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
-        for(Map.Entry<String,List<String>> entry: map.entrySet()) {
-            String k = entry.getKey();
-            List<String> v = entry.getValue();
-            if(v!=null && v.size() != 0 && v.get(0) != null) {
-                retMap.put(k, v);
+
+            Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
+            for(Map.Entry<String,List<String>> entry: map.entrySet()) {
+                String k = entry.getKey();
+                List<String> v = entry.getValue();
+                if(v!=null && v.size() != 0 && v.get(0) != null) {
+                    retMap.put(k, v);
+                }
             }
+            return retMap;
         }
-        return retMap;
     }
 }

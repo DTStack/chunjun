@@ -27,7 +27,13 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.metrics.*;
+import org.apache.flink.metrics.CharacterFilter;
+import org.apache.flink.metrics.Counter;
+import org.apache.flink.metrics.Gauge;
+import org.apache.flink.metrics.Histogram;
+import org.apache.flink.metrics.Meter;
+import org.apache.flink.metrics.Metric;
+import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.runtime.execution.Environment;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
@@ -39,7 +45,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -121,7 +134,6 @@ public class CustomPrometheusReporter {
 
         if (StringUtils.isNullOrWhitespaceOnly(host) || port < 1) {
             return;
-//            throw new IllegalArgumentException("Invalid host/port configuration. Host: " + host + " Port: " + port);
         }
 
         if (randomSuffix) {
@@ -190,6 +202,10 @@ public class CustomPrometheusReporter {
                 count = collectorWithCount.getValue();
             } else {
                 collector = createCollector(metric, dimensionKeys, dimensionValues, scopedMetricName, helpString);
+                if (null == collector) {
+                    return;
+                }
+
                 try {
                     collector.register(defaultRegistry);
                 } catch (Exception e) {

@@ -1,9 +1,11 @@
 package com.dtstack.flinkx.util;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author jiangbo
@@ -65,5 +67,53 @@ public class StringUtilTest {
 
         result = StringUtil.string2col("xxx", "xxx", null);
         Assert.assertEquals(result, "xxx");
+    }
+
+    @Test
+    public void testCol2string() {
+        String result = StringUtil.col2string(null, null);
+        Assert.assertEquals(result, "");
+
+        result = StringUtil.col2string("test", null);
+        Assert.assertEquals(result, "test");
+
+        result = StringUtil.col2string(Byte.valueOf("1"), "TINYINT");
+        Assert.assertEquals(result, "1");
+
+        result = StringUtil.col2string(Short.valueOf("1"), "SMALLINT");
+        Assert.assertEquals(result, "1");
+
+        result = StringUtil.col2string(123, "INTEGER");
+        Assert.assertEquals(result, "123");
+
+        result = StringUtil.col2string(123L, "LONG");
+        Assert.assertEquals(result, "123");
+
+        result = StringUtil.col2string(new Timestamp(1584510286187L), "LONG");
+        Assert.assertEquals(result, "1584510286187");
+
+        result = StringUtil.col2string(123.123, "FLOAT");
+        Assert.assertEquals(result, "123.123");
+
+        result = StringUtil.col2string(123.123, "DOUBLE");
+        Assert.assertEquals(result, "123.123");
+
+        result = StringUtil.col2string(123.123, "DECIMAL");
+        Assert.assertEquals(result, "123.123");
+
+        result = StringUtil.col2string("string", "STRING");
+        Assert.assertEquals(result, "string");
+
+        result = StringUtil.col2string(new Timestamp(1584510286187L), "STRING");
+        Assert.assertEquals(result, "2020-03-18 13:44:46");
+
+        result = StringUtil.col2string(true, "BOOLEAN");
+        Assert.assertEquals(result, "true");
+
+        result = StringUtil.col2string(new Date(1584510286187L), "DATE");
+        Assert.assertEquals(result, "2020-03-18");
+
+        result = StringUtil.col2string(new Date(1584510286187L), "DATETIME");
+        Assert.assertEquals(result, "2020-03-18 13:44:46");
     }
 }

@@ -51,7 +51,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
@@ -417,6 +419,10 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
      * @throws Exception
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
+
+    protected void notSupportBatchWrite(String writerName) {
+        throw new UnsupportedOperationException(writerName + "不支持批量写入");
+    }
 
     protected void writeRecordInternal() {
         try {

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.mongodb.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
@@ -54,6 +55,10 @@ public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
+
+        if (format.mongodbConfig.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {
+            throw new IllegalArgumentException("批量读取条数必须小于[200000]条");
         }
     }
 }

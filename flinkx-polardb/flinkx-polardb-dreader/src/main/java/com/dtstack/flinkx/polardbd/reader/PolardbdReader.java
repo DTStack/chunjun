@@ -21,7 +21,6 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.mysqld.reader.MysqldReader;
 import com.dtstack.flinkx.polardbd.PolardbDatabaseMeta;
 import com.dtstack.flinkx.polardbd.format.PolardbdInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 

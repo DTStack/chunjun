@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.hdfs;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 /**
  * @author jiangbo

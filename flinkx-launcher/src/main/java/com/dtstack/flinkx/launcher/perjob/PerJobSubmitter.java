@@ -21,7 +21,7 @@ package com.dtstack.flinkx.launcher.perjob;
 import com.dtstack.flinkx.launcher.ClassLoaderType;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.MapUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
@@ -64,7 +64,7 @@ public class PerJobSubmitter {
         Configuration flinkConfig = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         flinkConfig.setString("classloader.resolve-order", "child-first");
 
-        Properties conProp = MapUtil.jsonStrToObject(options.getConfProp(), Properties.class);
+        Properties conProp = GsonUtil.GSON.fromJson(options.getConfProp(), Properties.class);
         ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
         clusterSpecification.setCreateProgramDelay(true);
         clusterSpecification.setConfiguration(flinkConfig);
