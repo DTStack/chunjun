@@ -96,6 +96,7 @@ public class Launcher {
 
         String mode = launcherOptions.getMode();
         List<String> argList = optionParser.getProgramExeArgList();
+
         // 将argList转化为HashMap，方便通过参数名称来获取参数值
         HashMap<String, String> temp = new HashMap<>(16);
         for (int i = 0; i < argList.size(); i += 2) {
