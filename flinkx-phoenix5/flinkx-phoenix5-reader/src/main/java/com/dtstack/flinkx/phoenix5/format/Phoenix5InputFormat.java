@@ -23,14 +23,23 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ReflectionUtils;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
+import sun.misc.URLClassPath;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -41,12 +50,33 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  */
 public class Phoenix5InputFormat extends JdbcInputFormat {
 
+    private static final String PHOENIX5_READER_PREFIX = "flinkx-phoenix5-reader";
+
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info(inputSplit.toString());
 
-            ClassUtil.forName(driverName, getClass().getClassLoader());
+            Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
+            declaredField.setAccessible(true);
+            URLClassPath urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
+            declaredField.setAccessible(false);
+
+            List<URL> needJar = Lists.newArrayList();
+            for(URL url : urlClassPath.getURLs()){
+                String urlFileName = FilenameUtils.getName(url.getPath());
+                if(urlFileName.startsWith(PHOENIX5_READER_PREFIX)){
+                    needJar.add(url);
+                }
+            }
+
+            ClassLoader parentClassLoader = getClass().getClassLoader();
+            String[] alwaysParentFirstPatterns = new String[2];
+            alwaysParentFirstPatterns[0] = "org.apache.flink";
+            alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[needJar.size()]), parentClassLoader, alwaysParentFirstPatterns);
+
+            ClassUtil.forName(driverName, childFirstClassLoader);
 
             if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
                 getMaxValue(inputSplit);
@@ -61,7 +91,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 return;
             }
 
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, null);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);

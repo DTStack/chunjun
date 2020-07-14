@@ -45,7 +45,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(Phoenix5OutputFormat.class);
 
-    private static final String PHOENIX5_PREFIX = "flinkx-phoenix5-writer";
+    private static final String PHOENIX5_WRITER_PREFIX = "flinkx-phoenix5-writer";
 
     @Override
     protected void openInternal(int taskNumber, int numTasks){
@@ -58,7 +58,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             List<URL> needJar = Lists.newArrayList();
             for(URL url : urlClassPath.getURLs()){
                 String urlFileName = FilenameUtils.getName(url.getPath());
-                if(urlFileName.startsWith(PHOENIX5_PREFIX)){
+                if(urlFileName.startsWith(PHOENIX5_WRITER_PREFIX)){
                     needJar.add(url);
                 }
             }
