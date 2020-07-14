@@ -21,7 +21,11 @@ package com.dtstack.flinkx.util;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Date Utilities
@@ -93,7 +97,12 @@ public class DateUtil {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Date(stringToDate((String)column,customTimeFormat).getTime());
+
+            Date date = stringToDate((String)column, customTimeFormat);
+            if (null == date) {
+                return null;
+            }
+            return new java.sql.Date(date.getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Date(getMillSecond(rawData.toString()));
@@ -120,7 +129,12 @@ public class DateUtil {
             if (((String) column).length() == 0){
                 return null;
             }
-            return new java.sql.Timestamp(stringToDate((String)column,customTimeFormat).getTime());
+
+            Date date = stringToDate((String)column,customTimeFormat);
+            if (null == date) {
+                return null;
+            }
+            return new java.sql.Timestamp(date.getTime());
         } else if (column instanceof Integer) {
             Integer rawData = (Integer) column;
             return new java.sql.Timestamp(getMillSecond(rawData.toString()));

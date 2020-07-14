@@ -29,7 +29,8 @@ import org.apache.flink.util.Preconditions;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class ErrorLimiter {
+public class
+ErrorLimiter {
 
     private final Integer maxErrors;
     private final Double maxErrorRatio;

@@ -30,7 +30,7 @@ import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;

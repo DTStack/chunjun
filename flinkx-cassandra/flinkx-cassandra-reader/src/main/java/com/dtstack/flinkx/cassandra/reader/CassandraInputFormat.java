@@ -20,7 +20,6 @@ package com.dtstack.flinkx.cassandra.reader;
 
 import com.datastax.driver.core.*;
 import com.dtstack.flinkx.cassandra.CassandraUtil;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.google.common.base.Preconditions;
@@ -97,7 +96,6 @@ public class CassandraInputFormat extends BaseRichInputFormat {
             Object value = CassandraUtil.getData(cqlRow, definitions.get(i).getType(), definitions.get(i).getName());
             row.setField(i, value);
         }
-        LOG.info(row.toString());
 
         return row;
     }
@@ -108,7 +106,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplitsInternal(int minNumSplits) {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         ArrayList<CassandraInputSplit> splits = new ArrayList<>();
 
         try {
@@ -130,12 +128,12 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     private InputSplit[] splitJob(int minNumSplits, ArrayList<CassandraInputSplit> splits) {
         if(minNumSplits <= 1) {
             splits.add(new CassandraInputSplit());
-            return splits.toArray(new CassandraInputSplit[splits.size()]);
+            return splits.toArray(new CassandraInputSplit[0]);
         }
 
         if(whereString != null && whereString.toLowerCase().contains(CassandraConstants.TOKEN)) {
             splits.add(new CassandraInputSplit());
-            return splits.toArray(new CassandraInputSplit[splits.size()]);
+            return splits.toArray(new CassandraInputSplit[0]);
         }
         Session session = CassandraUtil.getSession(cassandraConfig, "");
         String partitioner = session.getCluster().getMetadata().getPartitioner();
@@ -152,8 +150,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
                 }
                 splits.add(new CassandraInputSplit(l.toString(), r.toString()));
             }
-        }
-        else if(partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
+        }else if(partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
             BigDecimal minToken = BigDecimal.valueOf(Long.MIN_VALUE);
             BigDecimal maxToken = BigDecimal.valueOf(Long.MAX_VALUE);
             BigDecimal step = maxToken.subtract(minToken)
@@ -166,11 +163,10 @@ public class CassandraInputFormat extends BaseRichInputFormat {
                 }
                 splits.add(new CassandraInputSplit(String.valueOf(l), String.valueOf(r)));
             }
-        }
-        else {
+        }else {
             splits.add(new CassandraInputSplit());
         }
-        return splits.toArray(new CassandraInputSplit[splits.size()]);
+        return splits.toArray(new CassandraInputSplit[0]);
     }
 
     /**
@@ -181,7 +177,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     private String getQueryString(CassandraInputSplit inputSplit) {
         StringBuilder columns = new StringBuilder();
         if (columnMeta == null) {
-            columns.append(ConstantValue.STAR_SYMBOL);
+            columns.append("*");
         } else {
             for(MetaColumn column : columnMeta) {
                 if(columns.length() > 0 ) {

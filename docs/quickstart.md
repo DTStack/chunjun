@@ -18,7 +18,7 @@ cd flink-1.8.5
 ## 编译插件
 
 ```bash
-mvn clean package -DskipTests
+mvn clean package -Dmaven.test.skip=true
 ```
 
 ## 运行任务
@@ -232,6 +232,7 @@ bin/flinkx -mode yarnPer \
 | **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点pluginRoot目录下部署插件包，但任务启动速度较快<br />2.**shipfile**：提交任务时上传pluginRoot目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境                                                                           | 否    | shipfile                |
 | **confProp**       | checkpoint配置                                           | **flink.checkpoint.interval**：快照生产频率<br />**flink.checkpoint.stateBackend**：快照存储路径                                                                                                                                                          | 否    | 无                       |
 | **s**              | checkpoint快照路径                                         |                                                                                                                                                                                                                                             | 否    | 无                       |
+| **p**              | 自定义入参，用于替换脚本中的占位符，如脚本中存在占位符${pt1},${pt2}，则该参数可配置为pt1=20200101,pt2=20200102|                                                                                                                                                                                                                                             | 否    | 无                       |
 
 ## 常见问题
 

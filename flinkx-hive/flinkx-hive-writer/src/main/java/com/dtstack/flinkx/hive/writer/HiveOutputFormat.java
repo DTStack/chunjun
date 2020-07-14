@@ -155,7 +155,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     private Map<String, FormatState> flushOutputFormat() {
-        Map<String, FormatState> formatStateMap = new HashMap<>();
+        Map<String, FormatState> formatStateMap = new HashMap<>(outputFormats.size());
         Iterator<Map.Entry<String, BaseHdfsOutputFormat>> entryIterator = outputFormats.entrySet().iterator();
         while (entryIterator.hasNext()) {
             Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
@@ -178,6 +178,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("HiveWriter");
     }
 
     @Override
@@ -187,6 +188,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         Map event = null;
         if (row.getField(0) instanceof Map) {
             event = (Map) row.getField(0);
+
+            if (null != event && event.containsKey("message")) {
+                event = MapUtils.getMap(event, "message");
+            }
+
             tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
             fromLogData = true;
         } else {
@@ -210,11 +216,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
+                bytesWriteCounter.add((long)row.toString().length() - rowData.toString().length());
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
-            if (numWriteCounter.getLocalValue() % 1000 == 0) {
+            if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
                 LOG.warn("写入hdfs异常:", e);
             }
         }

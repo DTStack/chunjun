@@ -19,13 +19,18 @@
 package com.dtstack.flinkx.redis;
 
 import com.dtstack.flinkx.util.TelnetUtil;
-import redis.clients.jedis.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
  * Utilities for redis database connection

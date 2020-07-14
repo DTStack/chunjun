@@ -1,15 +1,10 @@
 package com.dtstack.flinkx.teradata.util;
 
-import com.dtstack.flinkx.rdb.DatabaseInterface;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * @author wuhui
@@ -36,39 +31,5 @@ public class DBUtil {
         }
 
         return dbConn;
-    }
-
-    /**
-     * 获取表列名类型列表
-     * @param dbURL             jdbc url
-     * @param username          数据库账号
-     * @param password          数据库密码
-     * @param databaseInterface DatabaseInterface
-     * @param table             表名
-     * @param sql       sql
-     * @return
-     */
-    public static List<String> analyzeTable(String dbURL, String username, String password, DatabaseInterface databaseInterface,
-                                            String table, String sql) {
-        List<String> descColumnTypeList = new ArrayList<>();
-        Connection dbConn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            dbConn = getConnection(dbURL, username, password);
-            stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSqlQuerySqlFields(sql));
-            ResultSetMetaData rd = rs.getMetaData();
-
-            for (int i = 1; i <= rd.getColumnCount(); i++) {
-                descColumnTypeList.add(rd.getColumnTypeName(i));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            DbUtil.closeDbResources(rs, stmt, dbConn, false);
-        }
-
-        return descColumnTypeList;
     }
 }

@@ -25,6 +25,9 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +39,8 @@ import java.util.Map;
  * @author huyifan_zju@163.com
  */
 public class CarbondataReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(CarbondataReader.class);
 
     protected String table;
 
@@ -78,7 +83,7 @@ public class CarbondataReader extends BaseDataReader {
                     columnValue.add((String) sm.get("value"));
                     columnName.add((String) sm.get("name"));
                 }
-                System.out.println("init column finished");
+                LOG.info("init column finished");
             } else if (!ConstantValue.STAR_SYMBOL.equals(columns.get(0)) || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }

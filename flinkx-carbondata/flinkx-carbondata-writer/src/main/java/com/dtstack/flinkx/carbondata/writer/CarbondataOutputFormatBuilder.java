@@ -89,5 +89,7 @@ public class CarbondataOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        notSupportBatchWrite("CarbondataWriter");
     }
 }

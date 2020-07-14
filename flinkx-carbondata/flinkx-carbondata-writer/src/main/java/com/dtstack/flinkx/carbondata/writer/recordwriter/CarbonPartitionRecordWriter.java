@@ -21,10 +21,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.PartitionInfo;
 import org.apache.carbondata.core.metadata.schema.partition.PartitionType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;

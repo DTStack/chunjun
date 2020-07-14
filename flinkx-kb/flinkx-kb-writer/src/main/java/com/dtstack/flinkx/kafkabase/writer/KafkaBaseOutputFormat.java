@@ -18,8 +18,8 @@
 package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.kafkabase.decoder.JsonDecoder;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
@@ -29,7 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Date: 2019/11/21
@@ -100,7 +104,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        throw new UnsupportedOperationException();
+        notSupportBatchWrite("KafkaWriter");
     }
 
     @Override

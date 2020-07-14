@@ -100,19 +100,15 @@ public class OptionParser {
                 continue;
             }else if(OPTION_JOB.equalsIgnoreCase(key)){
                 File file = new File(value.toString());
-                FileInputStream in = new FileInputStream(file);
-                byte[] filecontent = new byte[(int) file.length()];
-                in.read(filecontent);
-                value = new String(filecontent, Charsets.UTF_8.name());
+                try (FileInputStream in = new FileInputStream(file)) {
+                    byte[] filecontent = new byte[(int) file.length()];
+                    in.read(filecontent);
+                    value = new String(filecontent, Charsets.UTF_8.name());
+                }
             }
             args.add("-" + key);
             args.add(value.toString());
         }
         return args;
     }
-
-    private void printUsage() {
-        System.out.print(options.toString());
-    }
-
 }

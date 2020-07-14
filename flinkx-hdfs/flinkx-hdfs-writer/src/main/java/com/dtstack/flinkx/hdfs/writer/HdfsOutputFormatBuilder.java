@@ -83,6 +83,10 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.defaultFs = defaultFs;
     }
 
+    public void setEnableDictionary(boolean enableDictionary) {
+        format.enableDictionary = enableDictionary;
+    }
+
     @Override
     protected void checkFormat() {
         super.checkFormat();

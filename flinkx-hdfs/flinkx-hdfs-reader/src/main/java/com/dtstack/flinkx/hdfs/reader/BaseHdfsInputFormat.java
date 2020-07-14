@@ -21,10 +21,15 @@ package com.dtstack.flinkx.hdfs.reader;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.security.UserGroupInformation;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +40,8 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
+
+    private static final String PARTITION_SPLIT_CHAR = "=";
 
     protected Map<String,Object> hadoopConfig;
 
@@ -61,14 +68,25 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected Object value;
 
-    protected boolean isFileEmpty = false;
-
     protected String filterRegex;
+
+    protected transient UserGroupInformation ugi;
+
+    protected boolean openKerberos;
+
+    protected String currentPartition;
+
+    protected transient FileSystem fs;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         conf = buildConfig();
+
+        openKerberos = FileSystemUtil.isOpenKerberos(hadoopConfig);
+        if (openKerberos) {
+            ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+        }
     }
 
     protected JobConf buildConfig() {
@@ -81,13 +99,36 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return isFileEmpty || !recordReader.next(key, value);
+        return !recordReader.next(key, value);
     }
 
     @Override
     public void closeInternal() throws IOException {
         if(recordReader != null) {
             recordReader.close();
+        }
+    }
+
+    /**
+     * 从hdfs路径中获取当前分区信息
+     * @param path hdfs路径
+     */
+    public void findCurrentPartition(Path path){
+        Map<String, String> map = new HashMap<>(16);
+        String pathStr = path.getParent().toString();
+        int index;
+        while((index = pathStr.lastIndexOf(PARTITION_SPLIT_CHAR)) > 0){
+            int i = pathStr.lastIndexOf(File.separator);
+            String name = pathStr.substring(i + 1, index);
+            String value = pathStr.substring(index + 1);
+            map.put(name, value);
+            pathStr = pathStr.substring(0, i);
+        }
+
+        for (MetaColumn column : metaColumns) {
+            if(column.getPart()){
+                column.setValue(map.get(column.getName()));
+            }
         }
     }
 

@@ -34,7 +34,7 @@ import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
@@ -51,7 +51,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
@@ -417,6 +419,10 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
      * @throws Exception
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
+
+    protected void notSupportBatchWrite(String writerName) {
+        throw new UnsupportedOperationException(writerName + "不支持批量写入");
+    }
 
     protected void writeRecordInternal() {
         try {

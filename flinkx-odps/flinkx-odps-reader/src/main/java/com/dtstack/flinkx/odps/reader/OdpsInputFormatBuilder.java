@@ -19,11 +19,11 @@
 package com.dtstack.flinkx.odps.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
 import java.util.Map;
-import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
 
 /**
  * The Builder of OdpsInputFormat
@@ -41,7 +41,7 @@ public class OdpsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setOdpsConfig(Map<String,String> odpsConfig) {
         format.odpsConfig = odpsConfig;
-        format.projectName = odpsConfig.get(KEY_PROJECT);
+        format.projectName = odpsConfig.get(OdpsConfigKeys.KEY_PROJECT);
     }
 
     public void setTableName(String tableName) {

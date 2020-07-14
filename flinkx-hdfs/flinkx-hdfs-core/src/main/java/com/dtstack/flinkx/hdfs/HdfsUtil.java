@@ -19,15 +19,20 @@
 package com.dtstack.flinkx.hdfs;
 
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.util.DateUtil;
+import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.ByteWritable;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.parquet.io.api.Binary;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 
 /**
  * Utilities for HdfsReader and HdfsWriter
@@ -39,62 +44,13 @@ public class HdfsUtil {
 
     public static final String NULL_VALUE = "\\N";
 
-    public static Object string2col(String str, String type, SimpleDateFormat customDateFormat) {
-        if (str == null || str.length() == 0){
-            return null;
-        }
+    private static final long NANO_SECONDS_PER_DAY = 86400_000_000_000L;
 
-        if(type == null){
-            return str;
-        }
+    private static final long JULIAN_EPOCH_OFFSET_DAYS = 2440588;
 
-        ColumnType columnType = ColumnType.fromString(type.toUpperCase());
-        Object ret;
-        switch(columnType) {
-            case TINYINT:
-                ret = Byte.valueOf(str.trim());
-                break;
-            case SMALLINT:
-                ret = Short.valueOf(str.trim());
-                break;
-            case INT:
-                ret = Integer.valueOf(str.trim());
-                break;
-            case BIGINT:
-                ret = Long.valueOf(str.trim());
-                break;
-            case FLOAT:
-                ret = Float.valueOf(str.trim());
-                break;
-            case DOUBLE:
-            case DECIMAL:
-                ret = Double.valueOf(str.trim());
-                break;
-            case STRING:
-            case VARCHAR:
-            case CHAR:
-                if(customDateFormat != null){
-                    ret = DateUtil.columnToDate(str,customDateFormat);
-                    ret = DateUtil.timestampToString((Date)ret);
-                } else {
-                    ret = str;
-                }
-                break;
-            case BOOLEAN:
-                ret = Boolean.valueOf(str.trim().toLowerCase());
-                break;
-            case DATE:
-                ret = DateUtil.columnToDate(str,customDateFormat);
-                break;
-            case TIMESTAMP:
-                ret = DateUtil.columnToTimestamp(str,customDateFormat);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported field type:" + type);
-        }
-
-        return ret;
-    }
+    private static final double SCALE_TWO = 2.0;
+    private static final double SCALE_TEN = 10.0;
+    private static final int BIT_SIZE = 8;
 
     public static Object getWritableValue(Object writable) {
         Class<?> clz = writable.getClass();
@@ -166,4 +122,78 @@ public class HdfsUtil {
         return objectInspector;
     }
 
+
+    public static Binary decimalToBinary(final HiveDecimal hiveDecimal, int prec, int scale) {
+        byte[] decimalBytes = hiveDecimal.setScale(scale).unscaledValue().toByteArray();
+
+        // Estimated number of bytes needed.
+        int precToBytes = ParquetHiveSerDe.PRECISION_TO_BYTE_COUNT[prec - 1];
+        if (precToBytes == decimalBytes.length) {
+            // No padding needed.
+            return Binary.fromReusedByteArray(decimalBytes);
+        }
+
+        byte[] tgt = new byte[precToBytes];
+        if (hiveDecimal.signum() == -1) {
+            // For negative number, initializing bits to 1
+            for (int i = 0; i < precToBytes; i++) {
+                tgt[i] |= 0xFF;
+            }
+        }
+
+        // Padding leading zeroes/ones.
+        System.arraycopy(decimalBytes, 0, tgt, precToBytes - decimalBytes.length, decimalBytes.length);
+        return Binary.fromReusedByteArray(tgt);
+    }
+
+    public static int computeMinBytesForPrecision(int precision){
+        int numBytes = 1;
+        while (Math.pow(SCALE_TWO, BIT_SIZE * numBytes - 1.0) < Math.pow(SCALE_TEN, precision)) {
+            numBytes += 1;
+        }
+        return numBytes;
+    }
+
+    public static byte[] longToByteArray(long data){
+        long nano = data * 1000_000;
+
+        int julianDays = (int) ((nano / NANO_SECONDS_PER_DAY) + JULIAN_EPOCH_OFFSET_DAYS);
+        byte[] julianDaysBytes = getBytes(julianDays);
+        flip(julianDaysBytes);
+
+        long lastDayNanos = nano % NANO_SECONDS_PER_DAY;
+        byte[] lastDayNanosBytes = getBytes(lastDayNanos);
+        flip(lastDayNanosBytes);
+
+        byte[] dst = new byte[12];
+
+        System.arraycopy(lastDayNanosBytes, 0, dst, 0, 8);
+        System.arraycopy(julianDaysBytes, 0, dst, 8, 4);
+
+        return dst;
+    }
+
+    private static byte[] getBytes(long i) {
+        byte[] bytes=new byte[8];
+        bytes[0]=(byte)((i >> 56) & 0xFF);
+        bytes[1]=(byte)((i >> 48) & 0xFF);
+        bytes[2]=(byte)((i >> 40) & 0xFF);
+        bytes[3]=(byte)((i >> 32) & 0xFF);
+        bytes[4]=(byte)((i >> 24) & 0xFF);
+        bytes[5]=(byte)((i >> 16) & 0xFF);
+        bytes[6]=(byte)((i >> 8) & 0xFF);
+        bytes[7]=(byte)(i & 0xFF);
+        return bytes;
+    }
+
+    /**
+     * @param bytes
+     */
+    private static void flip(byte[] bytes) {
+        for(int i=0,j=bytes.length-1;i<j;i++,j--) {
+            byte t=bytes[i];
+            bytes[i]=bytes[j];
+            bytes[j]=t;
+        }
+    }
 }

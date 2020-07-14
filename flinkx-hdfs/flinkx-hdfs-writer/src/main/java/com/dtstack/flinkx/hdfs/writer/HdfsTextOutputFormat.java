@@ -124,7 +124,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                     sb.append(delimiter);
                 }
 
-                appendDataToString(sb, i, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
+                appendDataToString(sb, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
             }
         } catch(Exception e) {
             if(i < row.getArity()) {
@@ -151,7 +151,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         }
     }
 
-    private void appendDataToString(StringBuilder sb, int ii, Object column, ColumnType columnType) {
+    private void appendDataToString(StringBuilder sb, Object column, ColumnType columnType) {
         if(column == null) {
             sb.append(HdfsUtil.NULL_VALUE);
             return;

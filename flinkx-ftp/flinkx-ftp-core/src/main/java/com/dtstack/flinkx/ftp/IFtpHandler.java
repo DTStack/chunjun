@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -40,8 +41,9 @@ public interface IFtpHandler {
 
     /**
      * 登出服务器
+     * @throws IOException logout error
      */
-    void logoutFtpServer();
+    void logoutFtpServer() throws IOException;
 
     /**
      * 判断给定的目录是否存在

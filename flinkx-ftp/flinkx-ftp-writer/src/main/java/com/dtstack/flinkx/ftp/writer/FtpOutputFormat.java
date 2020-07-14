@@ -19,21 +19,26 @@
 package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.ftp.*;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
 
 /**
  * The OutputFormat Implementation which reads data from ftp servers.
@@ -54,21 +59,18 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     private transient IFtpHandler ftpHandler;
 
-    private transient OutputStream os;
+    private static final int FILE_NAME_PART_SIZE = 3;
 
     private static final String DOT = ".";
 
     private static final String FILE_SUFFIX = ".csv";
 
     private static final String OVERWRITE_MODE = "overwrite";
+    private transient BufferedWriter writer;
 
     @Override
     protected void openSource() throws IOException {
-        if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SftpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -106,7 +108,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) <= fileIndex;
                 }
 
@@ -125,11 +127,16 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void nextBlock(){
         super.nextBlock();
 
-        if (os != null){
+        if (writer != null){
             return;
         }
-
-        os = ftpHandler.getOutputStream(tmpPath + SP + currentBlockFileName);
+        String path = tmpPath + SP + currentBlockFileName;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(ftpHandler.getOutputStream(path), ftpConfig.getEncoding()));
+        } catch (UnsupportedEncodingException e) {
+            LOG.error("exception when create BufferedWriter, path = {}, e = {}", path, ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
+        }
         blockIndex++;
     }
 
@@ -156,29 +163,42 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        if(os == null){
-            nextBlock();
-        }
-
-        String line = StringUtil.row2string(row, columnTypes, ftpConfig.getFieldDelimiter(), columnNames);
         try {
-            byte[] bytes = line.getBytes(ftpConfig.getEncoding());
-            this.os.write(bytes);
-            this.os.write(NEWLINE);
-            this.os.flush();
+            if(writer == null){
+                nextBlock();
+            }
+
+            String line = StringUtil.row2string(row, columnTypes, ftpConfig.getFieldDelimiter());
+            this.writer.write(line);
+            this.writer.write(NEWLINE);
 
             if(restoreConfig.isRestore()){
                 lastRow = row;
                 rowsOfCurrentBlock++;
             }
-        } catch(Exception ex) {
-            throw new WriteRecordException(ex.getMessage(), ex);
+        } catch(Exception e) {
+            LOG.error("error happened when write single record to file, row = {}, columnTypes = {}, e = {}", row, GsonUtil.GSON.toJson(columnTypes), ExceptionUtil.getErrorMessage(e));
+            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 
     @Override
-    protected void createFinishedTag() throws IOException {
-        LOG.info("Subtask [{}] finished, create dir {}", taskNumber, finishedPath);
+    protected void createFinishedTag() {
+        LOG.info("SubTask [{}] finished, create dir {}", taskNumber, finishedPath);
+        String path = outputFilePath + SP + FINISHED_SUBDIR;
+        if(taskNumber == 0){
+            ftpHandler.mkDirRecursive(path);
+        }
+        final int maxRetryTime = 15;
+        int i = 0;
+        try {
+            while(!(ftpHandler.isDirExist(path) || i > maxRetryTime)){
+                i++;
+                TimeUnit.MILLISECONDS.sleep(10);
+            }
+        }catch (Exception e){
+            LOG.error("exception when createFinishedTag, path = {}, e = {}", path, ExceptionUtil.getErrorMessage(e));
+        }
         ftpHandler.mkDirRecursive(finishedPath);
     }
 
@@ -238,7 +258,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
         if (i == maxRetryTime) {
             ftpHandler.deleteAllFilesInDir(finishedPath, null);
-            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+            throw new RuntimeException("timeout when gathering finish tags for each subTasks");
         }
     }
 
@@ -246,7 +266,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void coverageData(){
         boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(ftpConfig.getWriteMode()) && !SP.equals(ftpConfig.getPath());
         if(cleanPath){
-            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Arrays.asList(tmpPath));
+            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Collections.singletonList(tmpPath));
         }
     }
 
@@ -286,15 +306,15 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void closeSource() throws IOException {
-        if (os != null){
-            os.flush();
-            os.close();
-            os = null;
+        if (writer != null){
+            writer.flush();
+            writer.close();
+            writer = null;
         }
     }
 
     @Override
-    protected void clearTemporaryDataFiles() throws IOException {
+    protected void clearTemporaryDataFiles() {
         ftpHandler.deleteAllFilesInDir(tmpPath, null);
         LOG.info("Delete .data dir:{}", tmpPath);
 
@@ -308,6 +328,12 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
+    public void closeInternal() throws IOException {
+        closeSource();
+        super.closeInternal();
+    }
+
+    @Override
     public float getDeviation() {
         return 1.0F;
     }
@@ -315,5 +341,10 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     @Override
     protected String getExtension() {
         return ".csv";
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("FtpWriter");
     }
 }

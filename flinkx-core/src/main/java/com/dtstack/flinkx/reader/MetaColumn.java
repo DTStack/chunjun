@@ -20,7 +20,6 @@ package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -47,6 +46,8 @@ public class MetaColumn implements Serializable {
     private SimpleDateFormat timeFormat;
 
     private String splitter;
+
+    private Boolean isPart;
 
     public String getSplitter() {
         return splitter;
@@ -124,6 +125,7 @@ public class MetaColumn implements Serializable {
                     mc.setType(sm.get("type") != null ? String.valueOf(sm.get("type")) : null);
                     mc.setValue(sm.get("value") != null ? String.valueOf(sm.get("value")) : null);
                     mc.setSplitter(sm.get("splitter") != null ? String.valueOf(sm.get("splitter")) : null);
+                    mc.setPart(sm.get("isPart") != null ? (Boolean) sm.get("isPart") : false);
 
                     if(sm.get("format") != null && String.valueOf(sm.get("format")).trim().length() > 0){
                         mc.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(sm.get("format"))));
@@ -149,6 +151,14 @@ public class MetaColumn implements Serializable {
         }
 
         return metaColumns;
+    }
+
+    public Boolean getPart() {
+        return isPart;
+    }
+
+    public void setPart(Boolean part) {
+        isPart = part;
     }
 
     public static List<MetaColumn> getMetaColumns(List columns){

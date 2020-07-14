@@ -33,7 +33,7 @@ public class ClassUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassUtil.class);
 
-    public final static String LOCK_STR = "jdbc_lock_str";
+    public final static Object LOCK_STR = new Object();
 
     public static void forName(String clazz, ClassLoader classLoader)  {
         synchronized (LOCK_STR){

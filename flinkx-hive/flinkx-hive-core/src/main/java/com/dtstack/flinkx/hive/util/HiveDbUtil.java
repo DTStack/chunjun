@@ -21,6 +21,7 @@ package com.dtstack.flinkx.hive.util;
 import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
@@ -54,6 +55,8 @@ public final class HiveDbUtil {
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";
 
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
+
+    public static final int JDBC_PART_SIZE = 2;
 
     public static final String JDBC_REGEX = "[\\?|;|#]";
     public static final String KEY_VAL_DELIMITER = "=";
@@ -103,7 +106,7 @@ public final class HiveDbUtil {
         String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConf());
 
         keytabFileName = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytabFileName);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
+        String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
         KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf());
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
@@ -126,7 +129,7 @@ public final class HiveDbUtil {
 
     private static boolean openKerberos(final String jdbcUrl){
         String[] splits = jdbcUrl.split(JDBC_REGEX);
-        if (splits.length != 2) {
+        if (splits.length != JDBC_PART_SIZE) {
             return false;
         }
 
@@ -232,10 +235,10 @@ public final class HiveDbUtil {
             url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
             Connection connection = DriverManager.getConnection(url, prop);
             if (StringUtils.isNotEmpty(db)) {
-                try {
-                    connection.createStatement().execute("use " + db);
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute("use " + db);
                 } catch (SQLException e) {
-                    if (connection != null) {
+                    if (null != connection) {
                         connection.close();
                     }
 

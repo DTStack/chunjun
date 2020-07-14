@@ -40,8 +40,6 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -97,7 +95,7 @@ public class ClusterClientFactory {
                 ApplicationId applicationId;
 
                 if (StringUtils.isEmpty(launcherOptions.getAppId())) {
-                    applicationId = getAppIdFromYarn(yarnClient);
+                    applicationId = getAppIdFromYarn(yarnClient, launcherOptions);
                     if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {
                         throw new RuntimeException("No flink session found on yarn cluster.");
                     }
@@ -156,7 +154,7 @@ public class ClusterClientFactory {
         return yarnClusterDescriptor;
     }
 
-    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient) throws Exception{
+    private static ApplicationId getAppIdFromYarn(YarnClient yarnClient, Options launcherOptions) throws Exception{
         Set<String> set = new HashSet<>();
         set.add("Apache Flink");
         EnumSet<YarnApplicationState> enumSet = EnumSet.noneOf(YarnApplicationState.class);
@@ -172,6 +170,10 @@ public class ClusterClientFactory {
             }
 
             if(!report.getYarnApplicationState().equals(YarnApplicationState.RUNNING)) {
+                continue;
+            }
+
+            if(!report.getQueue().equals(launcherOptions.getQueue())) {
                 continue;
             }
 

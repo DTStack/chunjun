@@ -29,9 +29,9 @@ import java.util.Date;
 
 public class TimePartitionFormat {
 
-    private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2;
-    private static final long CONSTANT_TWO_HOUR_TIME = 1000 * 60 * 60 * 2;
-    private static final long CONSTANT_TWO_MINUTE_TIME = 1000 * 60 * 2;
+    private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2L;
+    private static final long CONSTANT_TWO_HOUR_TIME = 1000 * 60 * 60 * 2L;
+    private static final long CONSTANT_TWO_MINUTE_TIME = 1000 * 60 * 2L;
 
     private static PartitionEnum partitionEnum;
 

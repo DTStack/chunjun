@@ -29,7 +29,7 @@
         <module>flinkx-clickhouse</module>
         <module>flinkx-saphana</module>
         <module>flinkx-teradata</module>
-        <module>flinkx-cassandra</module>
+        <module>flinkx-greenplum</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -40,22 +40,22 @@
         <module>flinkx-phoenix</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
+        <module>flinkx-cassandra</module>
 
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
 
         <!--******实时******-->
         <module>flinkx-binlog</module>
+        <module>flinkx-pgwal</module>
         <module>flinkx-kb</module>
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
         <module>flinkx-kafka</module>
-
         <module>flinkx-emqx</module>
-        <module>flinkx-pgwal</module>
         <module>flinkx-pulsar</module>
-
+        <module>flinkx-restapi</module>
     </modules>
 
     <properties>
@@ -66,7 +66,7 @@
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <package.name>release_1.8.6</package.name>
+        <package.name>release_1.8.7</package.name>
     </properties>
 
     <dependencies>
@@ -125,9 +125,16 @@
         </dependency>
 
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.14.3</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -144,8 +151,23 @@
             </plugin>
 
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -167,5 +189,21 @@
         </plugins>
 
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>

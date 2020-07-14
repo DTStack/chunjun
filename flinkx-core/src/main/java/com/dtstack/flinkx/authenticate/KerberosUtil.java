@@ -46,6 +46,7 @@ public class KerberosUtil {
     private static final String SP = "/";
 
     private static final String KEY_SFTP_CONF = "sftpConf";
+    private static final String KEY_PRINCIPAL = "principal";
     private static final String KEY_REMOTE_DIR = "remoteDir";
     private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
     public static final String KEY_PRINCIPAL_FILE = "principalFile";
@@ -87,6 +88,15 @@ public class KerberosUtil {
 
         LOG.info("login user:{} with keytab:{}", principal, keytab);
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
+    }
+
+    public static String getPrincipal(Map<String,Object> configMap, String keytabPath) {
+        String principal = MapUtils.getString(configMap, KEY_PRINCIPAL);
+        if (StringUtils.isEmpty(principal)) {
+            principal = findPrincipalFromKeytab(keytabPath);
+        }
+
+        return principal;
     }
 
     private static void reloadKrb5Conf(Configuration conf){
@@ -188,7 +198,7 @@ public class KerberosUtil {
         }
     }
 
-    public static String findPrincipalFromKeytab(String keytabFile) {
+    private static String findPrincipalFromKeytab(String keytabFile) {
         KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
             String principal = entry.getService().getName();

@@ -25,7 +25,11 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.math.BigDecimal;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is user for speed control
@@ -80,11 +84,12 @@ public class ByteRateLimiter {
         long thisRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_READS);
         long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
 
-        double thisWriteRatio = (totalRecords == 0 ? 0 : thisRecords / (double)totalRecords);
+        BigDecimal thisWriteRatio = BigDecimal.valueOf(totalRecords == 0 ? 0 : thisRecords / (double) totalRecords);
 
-        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE && totalBytes != 0 && thisWriteRatio != 0) {
-            double bpr = totalBytes / totalRecords;
-            double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio;
+        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE && totalBytes != 0
+                && thisWriteRatio.compareTo(new BigDecimal(0)) == 0) {
+            double bpr = totalBytes / (double)totalRecords;
+            double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio.doubleValue();
             rateLimiter.setRate(permitsPerSecond);
         }
     }

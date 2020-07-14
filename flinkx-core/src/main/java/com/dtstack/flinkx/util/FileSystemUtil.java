@@ -29,6 +29,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class FileSystemUtil {
         }
     }
 
-    private static boolean isOpenKerberos(Map<String, Object> hadoopConfig){
+    public static boolean isOpenKerberos(Map<String, Object> hadoopConfig){
         if(!MapUtils.getBoolean(hadoopConfig, KEY_HADOOP_SECURITY_AUTHORIZATION, false)){
             return false;
         }
@@ -85,13 +86,7 @@ public class FileSystemUtil {
     }
 
     private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String defaultFs) throws Exception{
-        String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
-
-        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName);
-        String principal = KerberosUtil.findPrincipalFromKeytab(keytabFileName);
-        KerberosUtil.loadKrb5Conf(hadoopConfig);
-
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs);
         UserGroupInformation.setLoginUser(ugi);
 
         return ugi.doAs(new PrivilegedAction<FileSystem>() {
@@ -104,6 +99,19 @@ public class FileSystemUtil {
                 }
             }
         });
+    }
+
+    public static UserGroupInformation getUGI(Map<String, Object> hadoopConfig, String defaultFs) throws IOException {
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
+
+        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName);
+        String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
+        KerberosUtil.loadKrb5Conf(hadoopConfig);
+
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation.setLoginUser(ugi);
+
+        return ugi;
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
@@ -134,7 +142,7 @@ public class FileSystemUtil {
 
     private static Map<String, Object> fillConfig(Map<String, Object> confMap, String defaultFs) {
         if (confMap == null) {
-            confMap = new HashMap<>(8);
+            confMap = new HashMap<>();
         }
 
         if (isHaMode(confMap)) {

@@ -29,7 +29,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -65,7 +64,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
 
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
             statement.setFetchSize(0);
 

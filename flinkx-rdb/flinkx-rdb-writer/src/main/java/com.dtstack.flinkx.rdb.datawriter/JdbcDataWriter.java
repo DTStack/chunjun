@@ -32,7 +32,15 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_BATCH_SIZE;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_FULL_COLUMN;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_INSERT_SQL_MODE;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_POST_SQL;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_PRE_SQL;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_UPDATE_KEY;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_USERNAME;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_WRITE_MODE;
 
 /**
  * The Writer plugin for any database that can be connected via JDBC.

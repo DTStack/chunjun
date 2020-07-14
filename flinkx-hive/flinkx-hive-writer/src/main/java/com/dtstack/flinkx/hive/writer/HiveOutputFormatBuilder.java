@@ -131,9 +131,12 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         if (this.format.tableBasePath == null || this.format.tableBasePath.length() == 0) {
             throw new IllegalArgumentException("No tableBasePath supplied.");
         }
+
         if (this.format.tableInfos.isEmpty()){
             throw new IllegalArgumentException("No tableInfos supplied.");
         }
+
+        notSupportBatchWrite("HiveWriter");
     }
 
 }

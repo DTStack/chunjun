@@ -64,9 +64,9 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
-    /**
-     * savepoint
-     */
+    @OptionRequired(description = "json modify")
+    private String p = "";
+
     @OptionRequired(description = "savepoint path")
     private String s;
 
@@ -194,5 +194,13 @@ public class Options {
 
     public void setPluginLoadMode(String pluginLoadMode) {
         this.pluginLoadMode = pluginLoadMode;
+    }
+
+    public String getP() {
+        return p;
+    }
+
+    public void setP(String p) {
+        this.p = p;
     }
 }
