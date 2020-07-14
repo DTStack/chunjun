@@ -12,7 +12,7 @@
     <modules>
         <module>flinkx-core</module>
 
-<!--        <module>flinkx-launcher</module>-->
+        <module>flinkx-launcher</module>
 <!--        <module>flinkx-test</module>-->
         <module>flinkx-examples</module>
         <module>flinkx-stream</module>
@@ -37,7 +37,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-        <module>flinkx-phoenix</module>
+<!--        <module>flinkx-phoenix</module>-->
         <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>

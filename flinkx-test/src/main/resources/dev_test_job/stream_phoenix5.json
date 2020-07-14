@@ -1,0 +1,74 @@
+
+
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter": {
+          "sliceRecordCount": ["100","100","100"],
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            },
+            {
+              "name": "name",
+              "type": "varchar"
+            },
+            {
+              "name": "age",
+              "type": "int"
+            }
+          ]
+        },
+        "name": "streamreader"
+      },
+      "writer": {
+        "name": "phoenix5writer",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:phoenix:172.16.8.107,172.16.8.108,172.16.8.109:2181",
+            "table": [
+              "PERSON"
+            ]
+          }],
+          "username": "root",
+          "password": "flink123",
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            },
+            {
+              "name": "name",
+              "type": "varchar"
+            },
+            {
+              "name": "age",
+              "type": "int"
+            }],
+          "writeMode": "insert",
+          "batchSize": 1024,
+          "preSql": [],
+          "postSql": [],
+          "updateKey": {}
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+    }
+  }
+}
