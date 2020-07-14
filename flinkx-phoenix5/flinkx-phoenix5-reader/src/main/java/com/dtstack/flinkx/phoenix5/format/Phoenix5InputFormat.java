@@ -61,7 +61,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 return;
             }
 
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, null);
 
             // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
             dbConn.setAutoCommit(false);
@@ -91,7 +91,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 }
             }
 
-        } catch (SQLException se) {
+        } catch (Exception se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
         }
 
