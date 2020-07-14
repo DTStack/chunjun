@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
->>>>>>> 1.8_release_3.10.x
 package com.dtstack.flinkx.cassandra;
 
 import com.datastax.driver.core.*;
