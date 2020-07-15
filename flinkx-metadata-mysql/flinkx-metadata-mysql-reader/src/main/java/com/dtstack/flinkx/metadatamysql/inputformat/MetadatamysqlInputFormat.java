@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.*;
+
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/6/8
