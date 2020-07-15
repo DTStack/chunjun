@@ -20,7 +20,8 @@ package com.dtstack.flinkx.metadatamysql.constants;
 
 import com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons;
 
-/** 由于查询语句有变化，MysqlMetadataCons改写了一些常量定义
+/**
+ * 由于查询语句有变化，MysqlMetadataCons改写了一些常量定义
  * @author : kunni@dtstack.com
  * @date : 2020/6/8
  */
