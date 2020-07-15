@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.phoenix;
+package com.dtstack.flinkx.phoenix5;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;

@@ -72,6 +72,8 @@ import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
 import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
+import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
@@ -134,7 +136,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadataoracle_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-examples\\examples\\stream_phoenix5.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -231,6 +233,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
             case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
+            case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -269,6 +272,7 @@ public class LocalTest {
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
+            case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
