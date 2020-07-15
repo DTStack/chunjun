@@ -18,18 +18,21 @@
 package com.dtstack.flinkx.phoenix5.util;
 
 import com.dtstack.flinkx.rdb.DatabaseInterface;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ClassBodyEvaluator;
 
+import javax.ws.rs.NotSupportedException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Date: 2020/02/28
@@ -39,27 +42,34 @@ import java.util.List;
  */
 public class PhoenixUtil {
 
-    public interface IPhoenixConn{
-        Connection getConn(String url, String userName, String password)throws SQLException;
-        Connection getConn(String url)throws SQLException;
+    public interface IPhoenixConn {
+        default Connection getConn(String url, String userName, String password) throws SQLException {
+            throw new NotSupportedException("this method must be override");
+        }
+
+        default Connection getConn(String url) throws SQLException {
+            throw new NotSupportedException("this method must be override");
+        }
     }
 
-    public interface IPhoenixDbUtil{
-        List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                  String table, List<MetaColumn> metaColumns);
+    public interface IPhoenixDbUtil {
+        default List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
+                                          String table, List<MetaColumn> metaColumns) {
+            throw new NotSupportedException("this method must be override");
+        }
     }
 
 
     public static Connection getConnectionInternal(String url, String username, String password, ClassLoader parentClassLoader) throws SQLException, IOException, CompileException, IllegalAccessException, InstantiationException {
         Connection dbConn;
-        synchronized (ClassUtil.LOCK_STR){
+        synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
 
             // telnet
             TelnetUtil.telnet(url);
             ClassBodyEvaluator cbe = new ClassBodyEvaluator();
             cbe.setParentClassLoader(parentClassLoader);
-            cbe.setDefaultImports(new String[]{"java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException"});
+            cbe.setDefaultImports("java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException");
             cbe.setImplementedInterfaces(new Class[]{IPhoenixConn.class});
             if (username == null) {
                 StringReader sr = new StringReader("public Connection getConn(String url) throws SQLException { return DriverManager.getConnection(url); }");
@@ -76,49 +86,33 @@ public class PhoenixUtil {
     }
 
     public static List<String> getAnalyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                             String table, List<MetaColumn> metaColumns, ClassLoader parentClassLoader) throws IOException, CompileException {
+                                               String table, List<MetaColumn> metaColumns, ClassLoader parentClassLoader) throws IOException, CompileException {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
-        cbe.setDefaultImports(new String[]{"com.dtstack.flinkx.rdb.util.DbUtil"});
+        cbe.setDefaultImports("com.dtstack.flinkx.rdb.util.DbUtil", "com.dtstack.flinkx.phoenix5.util.PhoenixUtil");
         cbe.setImplementedInterfaces(new Class[]{IPhoenixDbUtil.class});
-        StringReader sr = new StringReader("    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,\n" +
-                "                                            String table, List<MetaColumn> metaColumns) {\n" +
-                "        List<String> ret = new ArrayList<>(metaColumns.size());\n" +
-                "        Connection dbConn = null;\n" +
-                "        Statement stmt = null;\n" +
-                "        ResultSet rs = null;\n" +
-                "        try {\n" +
-                "            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);\n" +
-                "            if (null == dbConn) {\n" +
-                "                throw new RuntimeException(\"Get hive connection error\");\n" +
-                "            }\n" +
-                "\n" +
-                "            stmt = dbConn.createStatement();\n" +
-                "            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));\n" +
-                "            ResultSetMetaData rd = rs.getMetaData();\n" +
-                "\n" +
-                "            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);\n" +
-                "            for(int i = 0; i < rd.getColumnCount(); ++i) {\n" +
-                "                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));\n" +
-                "            }\n" +
-                "\n" +
-                "            for (MetaColumn metaColumn : metaColumns) {\n" +
-                "                if(metaColumn.getValue() != null){\n" +
-                "                    ret.add(\"string\");\n" +
-                "                } else {\n" +
-                "                    ret.add(nameTypeMap.get(metaColumn.getName()));\n" +
-                "                }\n" +
-                "            }\n" +
-                "        } catch (SQLException e) {\n" +
-                "            throw new RuntimeException(e);\n" +
-                "        } finally {\n" +
-                "            closeDbResources(rs, stmt, dbConn, false);\n" +
-                "        }\n" +
-                "\n" +
-                "        return ret;\n" +
-                "    }");
+        StringReader sr = new StringReader(
+                "public List<String> analyzeTable" +
+                        "(String dbUrl, String username, String password, DatabaseInterface databaseInterface, String table, List<MetaColumn> metaColumns) " +
+                        "{ return PhoenixUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);}");
         IPhoenixDbUtil iPhoenixDbUtil = (IPhoenixDbUtil) cbe.createInstance(sr);
-        return iPhoenixDbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
+        return iPhoenixDbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
     }
 
+    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface
+            databaseInterface, String table, List<MetaColumn> metaColumns, ClassLoader childFirstClassLoader) {
+        Connection dbConn;
+
+        try {
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
+
+            if (dbConn == null) {
+                throw new RuntimeException("Phoenix get conn error");
+            }
+
+            return DbUtil.analyzeTableFromConn(dbConn, databaseInterface, table, metaColumns);
+        } catch (IOException | InstantiationException | CompileException | SQLException | IllegalAccessException e) {
+            throw new RuntimeException("Phoenix analyzeTable error ", e);
+        }
+    }
 }

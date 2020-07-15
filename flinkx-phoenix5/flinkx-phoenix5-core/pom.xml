@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
-            <version>3.0.11</version>
+            <version>3.1.1</version>
         </dependency>
     </dependencies>
 

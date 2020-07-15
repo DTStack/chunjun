@@ -61,9 +61,9 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
             declaredField.setAccessible(false);
 
             List<URL> needJar = Lists.newArrayList();
-            for(URL url : urlClassPath.getURLs()){
+            for (URL url : urlClassPath.getURLs()) {
                 String urlFileName = FilenameUtils.getName(url.getPath());
-                if(urlFileName.startsWith(PHOENIX5_READER_PREFIX)){
+                if (urlFileName.startsWith(PHOENIX5_READER_PREFIX)) {
                     needJar.add(url);
                 }
             }
@@ -72,17 +72,17 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
             String[] alwaysParentFirstPatterns = new String[2];
             alwaysParentFirstPatterns[0] = "org.apache.flink";
             alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
-            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[needJar.size()]), parentClassLoader, alwaysParentFirstPatterns);
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
 
-            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()){
+            if (incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc()) {
                 getMaxValue(inputSplit);
             }
 
             initMetric(inputSplit);
 
-            if(!canReadData(inputSplit)){
+            if (!canReadData(inputSplit)) {
                 LOG.warn("Not read data when the start location are equal to end location");
 
                 hasNext = false;
@@ -104,14 +104,14 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
             columnCount = resultSet.getMetaData().getColumnCount();
 
             boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
-            if(splitWithRowCol){
-                columnCount = columnCount-1;
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
             }
 
             hasNext = resultSet.next();
 
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = PhoenixUtil.getAnalyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns, childFirstClassLoader);
+            if (StringUtils.isEmpty(customSql)) {
+                descColumnTypeList = PhoenixUtil.getAnalyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns, childFirstClassLoader);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
@@ -136,15 +136,15 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(descColumnTypeList)) {
                         String columnType = descColumnTypeList.get(pos);
-                        if("year".equalsIgnoreCase(columnType)) {
+                        if ("year".equalsIgnoreCase(columnType)) {
                             java.util.Date date = (java.util.Date) obj;
                             obj = DateUtil.dateToYearString(date);
-                        } else if("tinyint".equalsIgnoreCase(columnType)
+                        } else if ("tinyint".equalsIgnoreCase(columnType)
                                 || "bit".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
+                            if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
                         }
@@ -155,7 +155,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }
