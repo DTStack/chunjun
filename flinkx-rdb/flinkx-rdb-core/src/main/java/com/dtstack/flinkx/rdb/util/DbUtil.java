@@ -143,7 +143,7 @@ public class DbUtil {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
                     try (Statement statement = dbConn.createStatement()){
-                        statement.execute("select 111");
+                        statement.execute("SELECT 1 FROM dual");
                         failed = false;
                     }
                 } catch (Exception e) {
