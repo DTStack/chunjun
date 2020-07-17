@@ -20,10 +20,7 @@ package org.apache.flink.client.deployment;
 
 import com.dtstack.flinkx.launcher.ClassLoaderType;
 import org.apache.flink.client.program.PackagedProgram;
-import org.apache.flink.configuration.ConfigConstants;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.JobManagerOptions;
-import org.apache.flink.configuration.TaskManagerOptions;
+import org.apache.flink.configuration.*;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -192,10 +189,10 @@ public final class ClusterSpecification {
     }
 
     public static ClusterSpecification fromConfiguration(Configuration configuration) {
-        int slots = configuration.getInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, 1);
+        int slots = configuration.getInteger(TaskManagerOptions.NUM_TASK_SLOTS, 1);
 
-        int jobManagerMemoryMb = configuration.getInteger(JobManagerOptions.JOB_MANAGER_HEAP_MEMORY_MB);
-        int taskManagerMemoryMb = configuration.getInteger(TaskManagerOptions.TASK_MANAGER_HEAP_MEMORY_MB);
+        int jobManagerMemoryMb = ConfigurationUtils.getJobManagerHeapMemory(configuration).getMebiBytes();
+        int taskManagerMemoryMb = ConfigurationUtils.getTaskManagerHeapMemory(configuration).getMebiBytes();
 
         return new ClusterSpecificationBuilder()
                 .setMasterMemoryMB(jobManagerMemoryMb)

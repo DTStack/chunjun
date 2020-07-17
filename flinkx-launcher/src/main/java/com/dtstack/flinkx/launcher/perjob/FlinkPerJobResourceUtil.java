@@ -19,6 +19,10 @@ package com.dtstack.flinkx.launcher.perjob;
 
 import com.dtstack.flinkx.util.ValueUtil;
 import org.apache.flink.client.deployment.ClusterSpecification;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.TaskManagerOptions;
 
 import java.util.Properties;
 
@@ -33,46 +37,42 @@ public class FlinkPerJobResourceUtil {
      * the minimum memory should be higher than the min heap cutoff
      */
     public final static int MIN_JM_MEMORY = 768;
-    public final static int MIN_TM_MEMORY = 768;
 
-    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
-    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
     public final static String NUMBER_TASK_MANAGERS = "taskmanager.num";
-    public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
 
     /**
      * the specification of this per-job mode cost
      * @param conProp taskParams
      * @return
      */
-    public static ClusterSpecification createClusterSpecification(Properties conProp){
-        int jobmanagerMemoryMb = 768;
-        int taskmanagerMemoryMb = 768;
-        int numberTaskManagers = 1;
-        int slotsPerTaskManager = 1;
+    public static ClusterSpecification createClusterSpecification(Properties conProp, Configuration flinkConfig){
+        int jobManagerMemoryMb = ConfigurationUtils.getJobManagerHeapMemory(flinkConfig).getMebiBytes();
+        int taskManagerMemoryMb = ConfigurationUtils.getTaskManagerHeapMemory(flinkConfig).getMebiBytes();
+        int numberTaskManagers = flinkConfig.getInteger(NUMBER_TASK_MANAGERS, 1);
+        int slots = flinkConfig.getInteger(TaskManagerOptions.NUM_TASK_SLOTS, 1);
 
         if(conProp != null){
-            if(conProp.containsKey(JOBMANAGER_MEMORY_MB)){
-                jobmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+            if(conProp.containsKey(JobManagerOptions.JOB_MANAGER_HEAP_MEMORY.key())){
+                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JobManagerOptions.JOB_MANAGER_HEAP_MEMORY.key())));
             }
-            if(conProp.containsKey(TASKMANAGER_MEMORY_MB)){
-                taskmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+            if(conProp.containsKey(TaskManagerOptions.TASK_MANAGER_HEAP_MEMORY.key())){
+                taskManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TaskManagerOptions.TASK_MANAGER_HEAP_MEMORY.key())));
             }
 
             if (conProp.containsKey(NUMBER_TASK_MANAGERS)){
                 numberTaskManagers = ValueUtil.getInt(conProp.get(NUMBER_TASK_MANAGERS));
             }
 
-            if (conProp.containsKey(SLOTS_PER_TASKMANAGER)){
-                slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
+            if (conProp.containsKey(TaskManagerOptions.NUM_TASK_SLOTS.key())){
+                slots = ValueUtil.getInt(conProp.get(TaskManagerOptions.NUM_TASK_SLOTS.key()));
             }
         }
 
         return new ClusterSpecification.ClusterSpecificationBuilder()
-                .setMasterMemoryMB(jobmanagerMemoryMb)
-                .setTaskManagerMemoryMB(taskmanagerMemoryMb)
+                .setMasterMemoryMB(jobManagerMemoryMb)
+                .setTaskManagerMemoryMB(taskManagerMemoryMb)
                 .setNumberTaskManagers(numberTaskManagers)
-                .setSlotsPerTaskManager(slotsPerTaskManager)
+                .setSlotsPerTaskManager(slots)
                 .createClusterSpecification();
     }
 }

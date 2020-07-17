@@ -65,7 +65,7 @@ public class PerJobSubmitter {
         flinkConfig.setString("classloader.resolve-order", "child-first");
 
         Properties conProp = GsonUtil.GSON.fromJson(options.getConfProp(), Properties.class);
-        ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
+        ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp, flinkConfig);
         clusterSpecification.setCreateProgramDelay(true);
         clusterSpecification.setConfiguration(flinkConfig);
         clusterSpecification.setClasspaths(new ArrayList<>());
