@@ -46,9 +46,16 @@ public class LogMinerConnection {
     public static final String DBA_ROLE = "DBA";
     public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
 
+    public static final int ORACLE_11_VERSION = 11;
+
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
             "LOGMINING",
+            "SELECT ANY TRANSACTION",
+            "SELECT ANY DICTIONARY");
+
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList(
+            "CREATE SESSION",
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
 
@@ -447,17 +454,27 @@ public class LogMinerConnection {
                 throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
             }
 
-            if (containsNeededPrivileges(statement)) {
+            int version = connection.getMetaData().getDatabaseMajorVersion();
+            LOG.info("Oracle版本为：{}", version);
+
+            if (containsNeededPrivileges(statement, version)) {
                 return;
             }
 
-            throw new IllegalArgumentException("权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;");
+            String message;
+            if(ORACLE_11_VERSION == version){
+                message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
+            }else{
+                message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
+            }
+
+            throw new IllegalArgumentException(message);
         } catch (SQLException e) {
             throw new RuntimeException("检查权限出错", e);
         }
     }
 
-    private boolean containsNeededPrivileges(Statement statement) {
+    private boolean containsNeededPrivileges(Statement statement, int version) {
         try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
             List<String> privileges = new ArrayList<>();
             while (rs.next()) {
@@ -468,13 +485,19 @@ public class LogMinerConnection {
             }
 
             int privilegeCount = 0;
-            for (String privilege : PRIVILEGES_NEEDED) {
+            List<String> privilegeList;
+            if (version == ORACLE_11_VERSION) {
+                privilegeList = ORACLE_11_PRIVILEGES_NEEDED;
+            } else {
+                privilegeList = PRIVILEGES_NEEDED;
+            }
+            for (String privilege : privilegeList) {
                 if (privileges.contains(privilege)) {
                     privilegeCount++;
                 }
             }
 
-            return privilegeCount == 4;
+            return privilegeCount == privilegeList.size();
         } catch (SQLException e) {
             throw new RuntimeException("检查用户权限出错", e);
         }
