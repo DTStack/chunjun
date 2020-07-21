@@ -25,6 +25,8 @@ import com.dtstack.flinkx.metadatahive2.inputformat.Metadatahive2InputFormat;
 import com.dtstack.flinkx.metadatahive2.inputformat.Metadatehive2InputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.util.Map;
+
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.*;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2Version.Source.SPARK_THRIFT_SERVER;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2Version.Version.APACHE2;
@@ -43,6 +45,7 @@ public class Metadatahive2Reader extends MetadataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         source = readerConfig.getParameter().getStringVal(KEY_SOURCE, SPARK_THRIFT_SERVER.getType());
         version = readerConfig.getParameter().getStringVal(KEY_VERSION, APACHE2.getType());
+        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
         driverName = DRIVER_NAME;
     }
 
@@ -50,6 +53,7 @@ public class Metadatahive2Reader extends MetadataReader {
     protected MetadataInputFormatBuilder getBuilder(){
         Metadatehive2InputFormatBuilder Builder = new Metadatehive2InputFormatBuilder(new Metadatahive2InputFormat());
         Builder.setHive2Server(version, source);
+        Builder.setHadoopConfig(hadoopConfig);
         return Builder;
     }
 }

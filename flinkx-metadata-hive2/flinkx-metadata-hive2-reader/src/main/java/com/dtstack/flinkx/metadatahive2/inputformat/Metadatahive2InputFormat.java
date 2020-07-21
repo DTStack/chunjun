@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadatahive2.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatahive2.constants.Hive2Version;
+import com.dtstack.flinkx.metadatahive2.constants.HiveDbUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.*;
@@ -34,6 +35,8 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.*;
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
     protected Hive2Version server;
+
+    protected Map<String, Object> hadoopConfig;
 
     @Override
     protected List<String> showDatabases(Connection connection) throws SQLException {
@@ -311,4 +314,14 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         return value.toString();
     }
 
+    @Override
+    public Connection getConnection() {
+        HiveDbUtil.ConnectionInfo connectionInfo = new HiveDbUtil.ConnectionInfo();
+        connectionInfo.setJdbcUrl(dbUrl);
+        connectionInfo.setUsername(username);
+        connectionInfo.setPassword(password);
+        connectionInfo.setHiveConf(hadoopConfig);
+        connectionInfo.setDriver(driverName);
+        return HiveDbUtil.getConnection(connectionInfo);
+    }
 }
