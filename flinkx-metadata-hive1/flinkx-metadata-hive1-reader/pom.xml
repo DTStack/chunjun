@@ -185,7 +185,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                                     <resource>META-INF/services</resource>
-                                    <file>java.sql.hive2.Driver</file>
+                                    <file>java.sql.hive1.Driver</file>
                                 </transformer>
                             </transformers>
                         </configuration>
