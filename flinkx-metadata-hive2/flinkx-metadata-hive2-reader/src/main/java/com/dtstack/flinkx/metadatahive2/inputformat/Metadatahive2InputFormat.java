@@ -19,14 +19,60 @@ package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadatahive2.constants.Hive2Version;
 import com.dtstack.flinkx.metadatahive2.constants.HiveDbUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.*;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.COL_NAME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_COMMENT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_DATA_TYPE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_INDEX;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_CREATETIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_CREATE_TIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_LASTACCESSTIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_LAST_ACCESS_TIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_LOCATION;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_NAME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_OUTPUTFORMAT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COL_TABLE_PARAMETERS;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_CREATETIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_LASTACCESSTIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_LOCATION;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_NAME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITIONS;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITION_COLUMNS;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_STORED_TYPE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TOTALSIZE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TRANSIENT_LASTDDLTIME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_VALUE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.ORC_FORMAT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARQUET_FORMAT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARTITION_INFORMATION;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_QUERY_DATA;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_DATABASES;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_PARTITIONS;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_TABLES;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SWITCH_DATABASE;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TABLE_INFORMATION;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TEXT_FORMAT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_ORC;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_PARQUET;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_TEXT;
 
 /**
  * @author : tiezhu
@@ -34,9 +80,10 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.*;
  */
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
-    protected Hive2Version server;
-
     protected Map<String, Object> hadoopConfig;
+
+    String paraFirst = KEY_COL_NAME;
+    String paraSecond = KEY_COLUMN_DATA_TYPE;
 
     @Override
     protected List<String> showDatabases(Connection connection) throws SQLException {
@@ -60,7 +107,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     protected List<String> showTables() throws SQLException {
         List<String> tables = new ArrayList<>();
         try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
-           int pos = server.tablePosition();
+           int pos = rs.getMetaData().getColumnCount()==1?1:2;
             while (rs.next()) {
                 tables.add(rs.getString(pos));
             }
@@ -97,6 +144,10 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                         break;
                     case TABLE_INFORMATION:
                         metaDataFlag = 2;
+                        break;
+                    case COL_NAME:
+                        paraFirst = KEY_COLUMN_DATA_TYPE;
+                        paraSecond = KEY_COLUMN_COMMENT;
                         break;
                     default:
                         break;
@@ -168,8 +219,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         }
 
         if (name.contains(KEY_COL_TABLE_PARAMETERS)) {
-            String paraFirst = server.tableParaFirstPos()[0];
-            String paraSecond = server.tableParaFirstPos()[1];
             while (it.hasNext()) {
                 lineDataInternal = it.next();
                 String nameInternal = lineDataInternal.get(paraFirst);
@@ -278,7 +327,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     mix = "";
                     if (hex.length() > 4) {
                         // 处理 Unicode 编码符号后面的普通字符串
-                        mix = hex.substring(4, hex.length());
+                        mix = hex.substring(4);
                     }
                     hex = hex.substring(0, 4);
 

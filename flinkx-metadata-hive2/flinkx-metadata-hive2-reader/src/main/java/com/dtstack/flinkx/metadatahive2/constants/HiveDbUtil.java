@@ -22,24 +22,19 @@ import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author toutian
@@ -59,14 +54,6 @@ public final class HiveDbUtil {
     public static final String KEY_VAL_DELIMITER = "=";
     public static final String PARAM_DELIMITER = "&";
     public static final String KEY_PRINCIPAL = "principal";
-
-    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[0-9a-zA-Z.]+):(?<port>\\d+)/(?<db>[0-9a-z_%]+)(?<param>[?;#].*)*");
-    public static final String HOST_KEY = "host";
-    public static final String PORT_KEY = "port";
-    public static final String DB_KEY = "db";
-    public static final String PARAM_KEY = "param";
-
-    private static final String ERROR_MSG_NO_DB = "NoSuchDatabaseException";
 
     private static ReentrantLock lock = new ReentrantLock();
 
@@ -132,40 +119,15 @@ public final class HiveDbUtil {
     }
 
     public static Connection connect(ConnectionInfo connectionInfo) {
-
-        String addr = parseIpAndPort(connectionInfo.getJdbcUrl());
-        String[] addrs = addr.split(":");
-        boolean check;
-        String ip = addrs[0].trim();
-        if (addrs.length == 1) {
-            check = AddressUtil.ping(ip);
-        } else {
-            String port = addrs[1].trim();
-            check = AddressUtil.telnet(ip, Integer.parseInt(port));
-        }
-
-        if (!check) {
-            throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 数据库服务器端口连接失败,请检查您的数据库配置或服务状态.");
-        }
-
-        Properties prop = new Properties();
-        if(connectionInfo.getUsername() != null){
-            prop.put("user", connectionInfo.getUsername());
-        }
-
-        if(connectionInfo.getPassword() != null){
-            prop.put("password", connectionInfo.getPassword());
-        }
-
-        return connect(connectionInfo, prop);
-    }
-
-    private static Connection connect(ConnectionInfo connectionInfo, Properties prop) {
         lock.lock();
         try {
             Class.forName(connectionInfo.getDriver());
             DriverManager.setLoginTimeout(connectionInfo.getTimeout());
-            return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
+            if(StringUtils.isNotBlank(connectionInfo.getUsername())){
+                return DriverManager.getConnection(connectionInfo.getJdbcUrl(), connectionInfo.getUsername(), connectionInfo.getPassword());
+            }else{
+                return DriverManager.getConnection(connectionInfo.getJdbcUrl());
+            }
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
                 throw new RuntimeException("用户名或密码错误.");
@@ -179,62 +141,6 @@ public final class HiveDbUtil {
         } finally {
             lock.unlock();
         }
-    }
-
-    /**
-     * 获取hive连接
-     *
-     * @param url jdbcUrl
-     * @param prop Properties
-     * @return Connection
-     * @throws Exception RuntimeException
-     */
-    private static Connection getHiveConnection(String url, Properties prop) throws Exception {
-        Matcher matcher = HIVE_JDBC_PATTERN.matcher(url);
-        String db = null;
-        String host = null;
-        String port = null;
-        String param = null;
-        if (matcher.find()) {
-            host = matcher.group(HOST_KEY);
-            port = matcher.group(PORT_KEY);
-            db = matcher.group(DB_KEY);
-            param = matcher.group(PARAM_KEY);
-        }
-
-        if (StringUtils.isNotEmpty(host) && StringUtils.isNotEmpty(db)) {
-            param = param == null ? "" : param;
-            url = String.format("jdbc:hive2://%s:%s/%s", host, port, param);
-            Connection connection = DriverManager.getConnection(url, prop);
-            if (StringUtils.isNotEmpty(db)) {
-                try (Statement statement = connection.createStatement()) {
-                    statement.execute("use " + db);
-                } catch (SQLException e) {
-                    connection.close();
-
-                    if (e.getMessage().contains(ERROR_MSG_NO_DB)) {
-                        throw new RuntimeException(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-
-            return connection;
-        }
-
-        throw new RuntimeException("jdbcUrl 不规范");
-    }
-
-    public static String parseIpAndPort(String url) {
-        String addr;
-        Matcher matcher = HIVE_JDBC_PATTERN.matcher(url);
-        if (matcher.find()) {
-            addr = matcher.group(HOST_KEY) + ":" + matcher.group(PORT_KEY);
-        } else {
-            addr = url.substring(url.indexOf("//") + 2, url.lastIndexOf("/"));
-        }
-        return addr;
     }
 
     public static class ConnectionInfo{
@@ -303,39 +209,6 @@ public final class HiveDbUtil {
                     ", driver='" + driver + '\'' +
                     ", hiveConf=" + hiveConf +
                     '}';
-        }
-    }
-
-    public static class AddressUtil {
-
-        private static Logger logger = LoggerFactory.getLogger(AddressUtil.class);
-
-        public static boolean telnet(String ip,int port){
-            TelnetClient client = null;
-            try{
-                client = new TelnetClient();
-                client.setConnectTimeout(3000);
-                client.connect(ip,port);
-                return true;
-            }catch(Exception e){
-                return false;
-            } finally {
-                try {
-                    if (client != null){
-                        client.disconnect();
-                    }
-                } catch (Exception e){
-                    logger.error(ExceptionUtil.getErrorMessage(e));
-                }
-            }
-        }
-
-        public static boolean ping(String ip){
-            try{
-                return InetAddress.getByName(ip).isReachable(3000);
-            }catch(Exception e){
-                return false;
-            }
         }
     }
 
