@@ -16,7 +16,8 @@
               },
               {
                 "name": "name",
-                "type": "string"
+                "type": "string",
+                "value": ""
               }
             ],
             "sliceRecordCount": ["100"]
@@ -28,13 +29,13 @@
             "jdbcUrl" : "jdbc:hive2://172.16.8.107:10000/dev",
             "username" : "admin",
             "password" : "admin123",
-            "fileType" : "text",
+            "fileType" : "parquet",
             "fieldDelimiter" : "\u0001",
             "writeMode" : "overwrite",
             "compress" : "",
             "charsetName" : "UTF-8",
             "maxFileSize" : 1073741824,
-            "tablesColumn" : "{\"kudu\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"user_id\",\"type\":\"int\"},{\"key\":\"name\",\"type\":\"string\"}]}",
+            "tablesColumn" : "{\"parquetTest\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"user_id\",\"type\":\"int\"},{\"key\":\"name\",\"type\":\"timestamp\"}]}",
             "partition" : "pt",
             "partitionType" : "DAY",
             "defaultFS" : "hdfs://ns1",

@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -201,7 +202,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
         ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
         String rowData = column.toString();
-        if(rowData == null || rowData.length() == 0){
+        if(rowData == null || (rowData.length() == 0 && !ColumnType.isStringType(columnType)) ){
             recordList.add(null);
             return;
         }
