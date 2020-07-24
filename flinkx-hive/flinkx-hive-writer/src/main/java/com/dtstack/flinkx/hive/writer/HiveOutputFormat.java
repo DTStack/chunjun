@@ -194,8 +194,8 @@ public class HiveOutputFormat extends RichOutputFormat {
         Row rowData = setChannelInformation(event, row.getField(1), formatPair.getSecond().getColumns());
         formatPair.getFirst().writeRecord(rowData);
         //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
-        if(bytesWriteCounter != null){
-            bytesWriteCounter.add(row.toString().length() - rowData.toString().length());
+        if (bytesWriteCounter != null) {
+            bytesWriteCounter.add(row.toString().getBytes().length - rowData.toString().getBytes().length);
         }
     }
 
