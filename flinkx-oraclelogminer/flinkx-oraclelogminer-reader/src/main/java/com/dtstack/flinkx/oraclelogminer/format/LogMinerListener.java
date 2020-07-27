@@ -21,6 +21,7 @@ package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +95,7 @@ public class LogMinerListener implements Runnable {
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
 
-                    LOG.info("Update log and continue read:{}", positionManager.getPosition());
+                    LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
                 running = false;
@@ -128,12 +129,12 @@ public class LogMinerListener implements Runnable {
     public Map<String, Object> getData() {
         try {
             QueueData data = queue.take();
-            if (data.getScn() == 0L) {
-                throw new RuntimeException((Exception)data.getData().get("exception"));
-            }
+            if (data.getScn() != 0L) {
+                positionManager.updatePosition(data.getScn());
+                return data.getData();
 
-            positionManager.updatePosition(data.getScn());
-            return data.getData();
+            }
+            LOG.error("LogMinerListener obtain an error data, data = {}", GsonUtil.GSON.toJson(data));
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }

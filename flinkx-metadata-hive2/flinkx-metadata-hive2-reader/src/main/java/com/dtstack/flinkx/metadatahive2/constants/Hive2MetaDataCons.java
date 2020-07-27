@@ -26,7 +26,8 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
  */
 @SuppressWarnings("all")
 public class Hive2MetaDataCons extends MetaDataCons {
-    public static final String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
+    public static final String DRIVER_NAME = "shade.hive2.HiveDriver";
+    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
     public static final String KEY_SOURCE = "source";
     public static final String KEY_VERSION = "version";
@@ -41,6 +42,7 @@ public class Hive2MetaDataCons extends MetaDataCons {
 
     public static final String PARTITION_INFORMATION = "# Partition Information";
     public static final String TABLE_INFORMATION = "# Detailed Table Information";
+    public static final String COL_NAME = "# col_name";
 
     public static final String KEY_COL_LOCATION = "Location:";
     public static final String KEY_COL_CREATETIME = "CreateTime:";

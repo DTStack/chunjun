@@ -226,6 +226,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
             waitWhile("#1");
         }
 
+
         openInternal(taskNumber, numTasks);
         if(needWaitBeforeWriteRecords()) {
             beforeWriteRecords();

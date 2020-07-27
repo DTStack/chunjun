@@ -89,12 +89,13 @@ public class PhoenixMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSplitFilter(String columnName) {
-        return String.format("%s mod ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
+        // phoenix不支持mod，只支持%取余
+        return String.format("%s %% ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
     public String getSplitFilterWithTmpTable(String tmpTable, String columnName){
-        return String.format("%s.%s mod ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
+        return String.format("%s.%s %% ${N} = ${M}", tmpTable, getStartQuote() + columnName + getEndQuote());
     }
 
     @Override
