@@ -37,7 +37,8 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-        <module>flinkx-phoenix</module>
+<!--        <module>flinkx-phoenix</module>-->
+        <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
         <module>flinkx-cassandra</module>
@@ -60,6 +61,7 @@
         <!--******元数据******-->
         <module>flinkx-metadata</module>
         <module>flinkx-metadata-hive2</module>
+        <module>flinkx-metadata-hive1</module>
         <module>flinkx-metadata-tidb</module>
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>

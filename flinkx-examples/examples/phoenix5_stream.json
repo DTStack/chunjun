@@ -1,0 +1,61 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "type" : "int"
+          }, {
+            "name" : "name",
+            "type" : "varchar"
+          }, {
+            "name" : "age",
+            "type" : "int"
+          } ],
+          "username" : "root",
+          "password" : "abc123",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:phoenix:172.16.100.68,172.16.100.142,172.16.100.205:2181" ],
+            "table" : [ "PERSON" ]
+          } ],
+          "where": "id > 0",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "select * from PERSON where id < 100",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "phoenix5reader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

@@ -277,22 +277,8 @@ public class DbUtil {
                 throw new RuntimeException("Get hive connection error");
             }
 
-            stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
-            ResultSetMetaData rd = rs.getMetaData();
+            ret = DbUtil.analyzeTableFromConn(dbConn, databaseInterface, table, metaColumns);
 
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
-            }
-
-            for (MetaColumn metaColumn : metaColumns) {
-                if(metaColumn.getValue() != null){
-                    ret.add("string");
-                } else {
-                    ret.add(nameTypeMap.get(metaColumn.getName()));
-                }
-            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -302,6 +288,30 @@ public class DbUtil {
         return ret;
     }
 
+    public static List<String> analyzeTableFromConn(Connection conn, DatabaseInterface databaseInterface,
+                                                    String table, List<MetaColumn> metaColumns) throws SQLException {
+        List<String> ret = new ArrayList<>(metaColumns.size());
+        Statement stmt;
+        ResultSet rs;
+
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
+        ResultSetMetaData rd = rs.getMetaData();
+
+        Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+        for(int i = 0; i < rd.getColumnCount(); ++i) {
+            nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+        }
+
+        for (MetaColumn metaColumn : metaColumns) {
+            if(metaColumn.getValue() != null){
+                ret.add("string");
+            } else {
+                ret.add(nameTypeMap.get(metaColumn.getName()));
+            }
+        }
+        return ret;
+    }
     /**
      * clob转string
      * @param obj   clob
