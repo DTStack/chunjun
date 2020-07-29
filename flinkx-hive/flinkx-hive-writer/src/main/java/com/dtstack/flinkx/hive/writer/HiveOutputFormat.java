@@ -35,19 +35,18 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author toutian
  */
 public class HiveOutputFormat extends BaseRichOutputFormat {
-
-    private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
     private static final String SP = "/";
 
@@ -165,7 +164,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 try {
                     entry.getValue().close();
                 } catch (Exception e) {
-                    logger.error(ExceptionUtil.getErrorMessage(e));
+                    LOG.error(ExceptionUtil.getErrorMessage(e));
                 } finally {
                     entryIterator.remove();
                 }
@@ -198,8 +197,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                         event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
                     }catch (JsonSyntaxException e){
                         // is not a json string
-                        logger.warn("bad json string:【{}", tempObj);
-                        event = Collections.singletonMap("message", tempObj);
+                        LOG.warn("bad json string:【{}】", tempObj);
                     }
                 }
             }
@@ -294,7 +292,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private TableInfo checkCreateTable(String tablePath, Map event) {
         TableInfo tableInfo = tableCache.get(tablePath);
         if (tableInfo == null) {
-            logger.info("tablePath:{} even:{}", tablePath, event);
+            LOG.info("tablePath:{} even:{}", tablePath, event);
 
             String tableName = tablePath;
             if (autoCreateTable && event != null) {
@@ -319,7 +317,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
-                logger.error("", e);
+                LOG.error("", e);
             }
         }
     }
