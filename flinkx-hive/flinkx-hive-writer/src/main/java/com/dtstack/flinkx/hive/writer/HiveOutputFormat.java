@@ -29,7 +29,8 @@ import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.MapUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -39,10 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author toutian
@@ -196,7 +194,13 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 if (tempObj instanceof Map) {
                     event = (Map) tempObj;
                 } else if (tempObj instanceof String) {
-                    event = MapUtil.jsonStrToObject((String) tempObj, Map.class);
+                    try {
+                        event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
+                    }catch (JsonSyntaxException e){
+                        // is not a json string
+                        logger.warn("bad json string:【{}", tempObj);
+                        event = Collections.singletonMap("message", tempObj);
+                    }
                 }
             }
 
