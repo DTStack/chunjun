@@ -138,6 +138,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                 continue;
             }
             if(colNameInternal.startsWith("#")){
+                colNameInternal = StringUtils.trim(colNameInternal);
                 switch (colNameInternal){
                     case PARTITION_INFORMATION:
                         metaDataFlag = 1;
