@@ -17,13 +17,23 @@
  */
 package com.dtstack.flinkx.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.internal.bind.ObjectTypeAdapter;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Date: 2020/06/12
@@ -34,24 +44,100 @@ import java.util.TreeMap;
  * @author tudou
  */
 public class GsonUtil {
-    public static Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(
-                    new TypeToken<TreeMap<String, Object>>(){}.getType(),
-                    (JsonDeserializer<TreeMap<String, Object>>) (json, typeOfT, context) -> {
+    private static final Logger LOG = LoggerFactory.getLogger(GsonUtil.class);
+    public static Gson GSON = getGson();
+    public static Type gsonMapTypeToken = new TypeToken<HashMap<String, Object>>(){}.getType();
 
-                        TreeMap<String, Object> treeMap = new TreeMap<>();
-                        JsonObject jsonObject = json.getAsJsonObject();
-                        Set<Map.Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-                        for (Map.Entry<String, JsonElement> entry : entrySet) {
-                            Object ot = entry.getValue();
-                            if(ot instanceof JsonPrimitive){
-                                treeMap.put(entry.getKey(), ((JsonPrimitive) ot).getAsString());
-                            }else{
-                                treeMap.put(entry.getKey(), ot);
+    @SuppressWarnings("unchecked")
+    private static Gson getGson() {
+        GSON = new GsonBuilder().create();
+        try {
+            Field factories = Gson.class.getDeclaredField("factories");
+            factories.setAccessible(true);
+            Object o = factories.get(GSON);
+            Class<?>[] declaredClasses = Collections.class.getDeclaredClasses();
+            for (Class c : declaredClasses) {
+                if ("java.util.Collections$UnmodifiableList".equals(c.getName())) {
+                    Field listField = c.getDeclaredField("list");
+                    listField.setAccessible(true);
+                    List<TypeAdapterFactory> list = (List<TypeAdapterFactory>) listField.get(o);
+                    int i = list.indexOf(ObjectTypeAdapter.FACTORY);
+                    list.set(i, new TypeAdapterFactory() {
+                        @Override
+                        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                            if (type.getRawType() == Object.class) {
+                                return new TypeAdapter() {
+                                    @Override
+                                    public Object read(JsonReader in) throws IOException {
+                                        JsonToken token = in.peek();
+                                        //判断字符串的实际类型
+                                        switch (token) {
+                                            case BEGIN_ARRAY:
+                                                List<Object> list = new ArrayList<>();
+                                                in.beginArray();
+                                                while (in.hasNext()) {
+                                                    list.add(read(in));
+                                                }
+                                                in.endArray();
+                                                return list;
+
+                                            case BEGIN_OBJECT:
+                                                Map<String, Object> map = new LinkedTreeMap<>();
+                                                in.beginObject();
+                                                while (in.hasNext()) {
+                                                    map.put(in.nextName(), read(in));
+                                                }
+                                                in.endObject();
+                                                return map;
+                                            case STRING:
+                                                return in.nextString();
+                                            case NUMBER:
+                                                String s = in.nextString();
+                                                if (s.contains(".")) {
+                                                    return Double.valueOf(s);
+                                                } else {
+                                                    try {
+                                                        return Integer.valueOf(s);
+                                                    } catch (Exception e) {
+                                                        return Long.valueOf(s);
+                                                    }
+                                                }
+                                            case BOOLEAN:
+                                                return in.nextBoolean();
+                                            case NULL:
+                                                in.nextNull();
+                                                return null;
+                                            default:
+                                                throw new IllegalStateException();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void write(JsonWriter out, Object value) throws IOException {
+                                        if (value == null) {
+                                            out.nullValue();
+                                            return;
+                                        }
+                                        //noinspection unchecked
+                                        TypeAdapter<Object> typeAdapter = gson.getAdapter((Class<Object>) value.getClass());
+                                        if (typeAdapter instanceof ObjectTypeAdapter) {
+                                            out.beginObject();
+                                            out.endObject();
+                                            return;
+                                        }
+                                        typeAdapter.write(out, value);
+                                    }
+                                };
                             }
+                            return null;
                         }
-                        return treeMap;
-                    }).create();
-
-    public static Type gsonMapTypeToken = new TypeToken<TreeMap<String, Object>>(){}.getType();
+                    });
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(ExceptionUtil.getErrorMessage(e));
+        }
+        return GSON;
+    }
 }

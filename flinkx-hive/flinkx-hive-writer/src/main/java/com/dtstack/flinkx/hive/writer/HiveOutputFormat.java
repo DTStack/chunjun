@@ -29,12 +29,12 @@ import com.dtstack.flinkx.hive.util.PathConverterUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -47,8 +47,6 @@ import java.util.Map;
  * @author toutian
  */
 public class HiveOutputFormat extends BaseRichOutputFormat {
-
-    private static final Logger logger = LoggerFactory.getLogger(HiveOutputFormat.class);
 
     private static final String SP = "/";
 
@@ -166,7 +164,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 try {
                     entry.getValue().close();
                 } catch (Exception e) {
-                    logger.error(ExceptionUtil.getErrorMessage(e));
+                    LOG.error(ExceptionUtil.getErrorMessage(e));
                 } finally {
                     entryIterator.remove();
                 }
@@ -182,6 +180,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void writeRecord(Row row) throws IOException {
         boolean fromLogData = false;
         String tablePath;
@@ -189,9 +188,18 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         if (row.getField(0) instanceof Map) {
             event = (Map) row.getField(0);
 
-            // FIXME 这块的逻辑有问题，从binlog过来的数据如果不是json平铺，会多一层结构，以后最好想办法优化掉，先临时这样改
             if (null != event && event.containsKey("message")) {
-                event = MapUtils.getMap(event, "message");
+                Object tempObj = event.get("message");
+                if (tempObj instanceof Map) {
+                    event = (Map) tempObj;
+                } else if (tempObj instanceof String) {
+                    try {
+                        event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
+                    }catch (JsonSyntaxException e){
+                        // is not a json string
+                        LOG.warn("bad json string:【{}】", tempObj);
+                    }
+                }
             }
 
             tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
@@ -217,7 +225,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add((long)row.toString().length() - rowData.toString().length());
+                bytesWriteCounter.add((long) row.toString().length() - rowData.toString().length());
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
@@ -284,7 +292,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private TableInfo checkCreateTable(String tablePath, Map event) {
         TableInfo tableInfo = tableCache.get(tablePath);
         if (tableInfo == null) {
-            logger.info("tablePath:{} even:{}", tablePath, event);
+            LOG.info("tablePath:{} even:{}", tablePath, event);
 
             String tableName = tablePath;
             if (autoCreateTable && event != null) {
@@ -309,7 +317,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
-                logger.error("", e);
+                LOG.error("", e);
             }
         }
     }
