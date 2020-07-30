@@ -24,6 +24,8 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.util.DbUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -35,10 +37,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Collectors;
 
 /**
  * @author toutian
@@ -53,10 +57,13 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private List<String> categories = new ArrayList<>();
 
+    private final String SCHEMA_SPLIT = ".";
+
+    private final String AUTHORITY_TEMPLATE_SQL = "select count(1) from %s";
+
     /**
      * internal fields
      */
-
     private transient MysqlEventParser controller;
 
     private transient BinlogEventSink binlogEventSink;
@@ -90,36 +97,44 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
          5.  多个规则组合使用：canal\\..*,mysql.test1,mysql.test2 (逗号分隔)
          */
-        List<String> table = binlogConfig.getTable();
+        List<String> tables = binlogConfig.getTable();
         String jdbcUrl = binlogConfig.getJdbcUrl();
-        if (table != null && table.size() != 0 && jdbcUrl != null) {
+        if (tables != null && tables.size() != 0 && jdbcUrl != null) {
             int idx = jdbcUrl.lastIndexOf('?');
-            String database = null;
+            String database;
             if (idx != -1) {
                 database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
             } else {
                 database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
             }
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < table.size(); i++) {
-                sb.append(database).append(".").append(table.get(i));
-                if (i != table.size() - 1) {
-                    sb.append(",");
-                }
-            }
-            binlogConfig.setFilter(sb.toString());
+            HashMap<String, String> checkedTable = new HashMap<>(tables.size());
+            //按照.切割字符串需要转义
+            String regexSchemaSplit = "\\" + SCHEMA_SPLIT;
+            String filter = tables.stream()
+                    .map(t -> formatTableName(database, t))
+                    //只需要每个schema下的一个表进行判断
+                    .peek(t -> checkedTable.putIfAbsent(t.split(regexSchemaSplit)[0], t))
+                    .collect(Collectors.joining(","));
+
+            binlogConfig.setFilter(filter);
+
+            //检验每个schema下的第一个表的权限
+            checkSourceAuthority(checkedTable.values());
+
+
         }
+
     }
 
     @Override
     public FormatState getFormatState() {
-        if (!restoreConfig.isRestore()){
+        if (!restoreConfig.isRestore()) {
             LOG.info("return null for formatState");
             return null;
         }
 
         super.getFormatState();
-        if (formatState != null){
+        if (formatState != null) {
             formatState.setState(entryPosition);
         }
         return formatState;
@@ -244,5 +259,38 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     public void setBinlogConfig(BinlogConfig binlogConfig) {
         this.binlogConfig = binlogConfig;
+    }
+
+    private String formatTableName(String schemaName, String tableName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (tableName.contains(SCHEMA_SPLIT)) {
+            return tableName;
+        } else {
+            return stringBuilder.append(schemaName).append(SCHEMA_SPLIT).append(tableName).toString();
+        }
+    }
+
+    private void checkSourceAuthority(Collection<String> tables) {
+        try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
+            try (Statement statement = connection.createStatement()) {
+                for (String tableName : tables) {
+                    try {
+                        statement.executeQuery(buildAuthorityTemplate(tableName));
+                    } catch (SQLException e) {
+                        String message = "user" + binlogConfig.getUsername() + "  is not granted table " + tableName + "read permission";
+                        LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
+                        throw new RuntimeException(message, e);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String message = "get 【" + binlogConfig.getJdbcUrl() + "】connection failed make sure that the database configuration and user 【" + binlogConfig.getUsername() + "】 permissions are correct";
+            LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(message, e);
+        }
+    }
+
+    private String buildAuthorityTemplate(String tableName) {
+        return String.format(AUTHORITY_TEMPLATE_SQL, tableName);
     }
 }
