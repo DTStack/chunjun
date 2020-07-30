@@ -122,8 +122,6 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
             //检验每个schema下的第一个表的权限
             checkSourceAuthority(checkedTable.values());
-
-
         }
 
     }
@@ -275,6 +273,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private void checkSourceAuthority(Collection<String> tables) {
         try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
             try (Statement statement = connection.createStatement()) {
+                //主要是判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
+                statement.execute(("show master status"));
                 List<String> failedTables = new ArrayList<>(tables.size());
                 for (String tableName : tables) {
                     try {
@@ -291,7 +291,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 }
             }
         } catch (SQLException e) {
-            String message = "get 【" + binlogConfig.getJdbcUrl() + "】connection failed make sure that the database configuration and user 【" + binlogConfig.getUsername() + "】 permissions are correct";
+            String message = " jdbcUrl【" + binlogConfig.getJdbcUrl() + "】 make sure that the database configuration and user 【" + binlogConfig.getUsername() + "】 permissions are correct";
             LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
         }
