@@ -295,7 +295,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 }
             }
         } catch (SQLException e) {
-            String message = " jdbcUrl【" + binlogConfig.getJdbcUrl() + "】 make sure that the database configuration and user 【" + binlogConfig.getUsername() + "】 permissions are correct";
+            String message = " jdbcUrl【" + binlogConfig.getJdbcUrl() + "】 make sure that the database configuration is  correct and user 【" + binlogConfig.getUsername() + "】 has right permissions example REPLICATION SLAVE,REPLICATION CLIENT.. ";
             LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
         }
