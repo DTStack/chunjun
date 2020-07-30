@@ -62,9 +62,9 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private final String SCHEMA_SPLIT = ".";
 
-    private final String AUTHORITY_TEMPLATE_SQL = "select count(1) from %s";
+    private final String AUTHORITY_TEMPLATE = "SELECT count(1) FROM %s LIMIT 1";
 
-    private final String QUERY_SCHEMA_TABLE = "select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA='test' limit 1";
+    private final String QUERY_SCHEMA_TABLE_TEMPLATE = "SELECT TABLE_NAME From information_schema.TABLES WHERE TABLE_SCHEMA='%s' LIMIT 1";
 
     /**
      * internal fields
@@ -288,7 +288,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 statement.execute(("show master status"));
                 //Schema不为空 就获取一张表判断权限
                 if (StringUtils.isNotBlank(schema)) {
-                    ResultSet resultSet = statement.executeQuery(QUERY_SCHEMA_TABLE);
+                    ResultSet resultSet = statement.executeQuery(buildQuerySchemaTableTemplate(schema));
                     if (resultSet.next()) {
                         String tableName = resultSet.getString(1);
                         if (CollectionUtils.isNotEmpty(tables)) {
@@ -327,6 +327,9 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     }
 
     private String buildAuthorityTemplate(String tableName) {
-        return String.format(AUTHORITY_TEMPLATE_SQL, tableName);
+        return String.format(AUTHORITY_TEMPLATE, tableName);
+    }
+    private String buildQuerySchemaTableTemplate(String schema) {
+        return String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema);
     }
 }
