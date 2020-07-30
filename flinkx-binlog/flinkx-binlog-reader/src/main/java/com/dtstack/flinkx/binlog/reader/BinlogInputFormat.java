@@ -128,6 +128,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 //检验每个schema下的第一个表的权限
                 checkSourceAuthority(null, checkedTable.values());
             } else {
+                //只消费此schema下的数据
+                binlogConfig.setFilter(database + "\\..*");
                 //检验schema下任意一张表的权限
                 checkSourceAuthority(database, null);
             }
