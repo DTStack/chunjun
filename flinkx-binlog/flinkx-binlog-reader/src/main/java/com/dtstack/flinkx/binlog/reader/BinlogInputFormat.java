@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -62,6 +63,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private final String SCHEMA_SPLIT = ".";
 
     private final String AUTHORITY_TEMPLATE_SQL = "select count(1) from %s";
+
+    private final String QUERY_SCHEMA_TABLE = "select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA='test' limit 1";
 
     /**
      * internal fields
@@ -101,7 +104,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
          */
         List<String> tables = binlogConfig.getTable();
         String jdbcUrl = binlogConfig.getJdbcUrl();
-        if (tables != null && tables.size() != 0 && jdbcUrl != null) {
+        if (jdbcUrl != null) {
             int idx = jdbcUrl.lastIndexOf('?');
             String database;
             if (idx != -1) {
@@ -109,21 +112,26 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             } else {
                 database = StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
             }
-            HashMap<String, String> checkedTable = new HashMap<>(tables.size());
-            //按照.切割字符串需要转义
-            String regexSchemaSplit = "\\" + SCHEMA_SPLIT;
-            String filter = tables.stream()
-                    .map(t -> formatTableName(database, t))
-                    //只需要每个schema下的一个表进行判断
-                    .peek(t -> checkedTable.putIfAbsent(t.split(regexSchemaSplit)[0], t))
-                    .collect(Collectors.joining(","));
 
-            binlogConfig.setFilter(filter);
+            if (CollectionUtils.isNotEmpty(tables)) {
+                HashMap<String, String> checkedTable = new HashMap<>(tables.size());
+                //按照.切割字符串需要转义
+                String regexSchemaSplit = "\\" + SCHEMA_SPLIT;
+                String filter = tables.stream()
+                        .map(t -> formatTableName(database, t))
+                        //只需要每个schema下的一个表进行判断
+                        .peek(t -> checkedTable.putIfAbsent(t.split(regexSchemaSplit)[0], t))
+                        .collect(Collectors.joining(","));
 
-            //检验每个schema下的第一个表的权限
-            checkSourceAuthority(checkedTable.values());
+                binlogConfig.setFilter(filter);
+
+                //检验每个schema下的第一个表的权限
+                checkSourceAuthority(null, checkedTable.values());
+            } else {
+                //检验schema下任意一张表的权限
+                checkSourceAuthority(database, null);
+            }
         }
-
     }
 
     @Override
@@ -270,12 +278,27 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private void checkSourceAuthority(Collection<String> tables) {
+    private void checkSourceAuthority(String schema, Collection<String> tables) {
         try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
             try (Statement statement = connection.createStatement()) {
 
                 //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
                 statement.execute(("show master status"));
+                //Schema不为空 就获取一张表判断权限
+                if (StringUtils.isNotBlank(schema)) {
+                    ResultSet resultSet = statement.executeQuery(QUERY_SCHEMA_TABLE);
+                    if (resultSet.next()) {
+                        String tableName = resultSet.getString(1);
+                        if (CollectionUtils.isNotEmpty(tables)) {
+                            tables.add(formatTableName(schema, tableName));
+                        } else {
+                            tables = Collections.singletonList(formatTableName(schema, tableName));
+                        }
+                    }
+                }
+                if (CollectionUtils.isEmpty(tables)) {
+                    return;
+                }
 
                 List<String> failedTables = new ArrayList<>(tables.size());
                 for (String tableName : tables) {
