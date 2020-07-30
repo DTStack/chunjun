@@ -273,16 +273,20 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private void checkSourceAuthority(Collection<String> tables) {
         try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
             try (Statement statement = connection.createStatement()) {
-                //主要是判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
+
+                //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
                 statement.execute(("show master status"));
+
                 List<String> failedTables = new ArrayList<>(tables.size());
                 for (String tableName : tables) {
                     try {
+                        //判断用户是否具备tableName下的读权限
                         statement.executeQuery(buildAuthorityTemplate(tableName));
                     } catch (SQLException e) {
                         failedTables.add(tableName);
                     }
                 }
+
                 if (CollectionUtils.isNotEmpty(failedTables)) {
                     String message = "user【" + binlogConfig.getUsername() + "】is not granted table 【" + Joiner.on(",").join(failedTables) + "】read permission";
                     RuntimeException e = new RuntimeException(message);
