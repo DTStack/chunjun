@@ -183,7 +183,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache.hive.jdbc</pattern>
-                                    <shadedPattern>shade.hive2</shadedPattern>
+                                    <shadedPattern>shade.hive2.jdbc</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.hive.service</pattern>
+                                    <shadedPattern>shade.hive2.service</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
