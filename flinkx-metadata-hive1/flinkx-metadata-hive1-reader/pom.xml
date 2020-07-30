@@ -15,6 +15,12 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hive</groupId>
+                    <artifactId>hive-jdbc</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>

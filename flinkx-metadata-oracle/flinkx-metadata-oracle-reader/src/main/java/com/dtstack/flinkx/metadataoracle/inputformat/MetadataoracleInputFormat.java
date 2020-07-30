@@ -40,23 +40,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.*;
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
-    /**
-     * @description Database 为Oracle 用户的映射
-     * @param connection JDBC 连接
-     * @return 用户名
-     * @throws SQLException sql 异常
-     */
-    @Override
-    protected List<String> showDatabases(Connection connection) throws SQLException {
-        List<String> databaseNameList = new LinkedList<>();
-        try(Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                databaseNameList.add(rs.getString(1));
-            }
-        }
-        return databaseNameList;
-    }
 
     @Override
     protected List<String> showTables() throws SQLException {
