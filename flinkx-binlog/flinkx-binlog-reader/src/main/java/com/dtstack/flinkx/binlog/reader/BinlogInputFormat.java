@@ -25,7 +25,9 @@ import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.common.base.Joiner;
 import com.util.DbUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -273,14 +275,19 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private void checkSourceAuthority(Collection<String> tables) {
         try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
             try (Statement statement = connection.createStatement()) {
+                List<String> failedTables = new ArrayList<>(tables.size());
                 for (String tableName : tables) {
                     try {
                         statement.executeQuery(buildAuthorityTemplate(tableName));
                     } catch (SQLException e) {
-                        String message = "user" + binlogConfig.getUsername() + "  is not granted table " + tableName + "read permission";
-                        LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
-                        throw new RuntimeException(message, e);
+                        failedTables.add(tableName);
                     }
+                }
+                if (CollectionUtils.isNotEmpty(failedTables)) {
+                    String message = "user【" + binlogConfig.getUsername() + "】is not granted table 【" + Joiner.on(",").join(failedTables) + "】read permission";
+                    RuntimeException e = new RuntimeException(message);
+                    LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
+                    throw e;
                 }
             }
         } catch (SQLException e) {
