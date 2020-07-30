@@ -281,6 +281,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     }
 
     private void checkSourceAuthority(String schema, Collection<String> tables) {
+
         try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
             try (Statement statement = connection.createStatement()) {
 
@@ -329,6 +330,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private String buildAuthorityTemplate(String tableName) {
         return String.format(AUTHORITY_TEMPLATE, tableName);
     }
+
     private String buildQuerySchemaTableTemplate(String schema) {
         return String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema);
     }

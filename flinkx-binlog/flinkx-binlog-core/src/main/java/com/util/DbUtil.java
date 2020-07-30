@@ -44,6 +44,7 @@ public class DbUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(DbUtil.class);
 
+    private static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     /**
      * 数据库连接的最大重试次数
      */
@@ -68,26 +69,11 @@ public class DbUtil {
 
     private static int FORMAT_TIME_NANOS_LENGTH = 29;
 
-    public static int NANOS_PART_LENGTH = 9;
-
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
      */
     public static final Pattern DB_PATTERN = Pattern.compile("\\?");
 
-    /**
-     * 增量任务过滤条件占位符
-     */
-    public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
-
-    /**
-     * 断点续传过滤条件占位符
-     */
-    public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
-
-    public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
-
-    public static final String NULL_STRING = "null";
 
     /**
      * 获取jdbc连接(超时10S)
@@ -126,6 +112,7 @@ public class DbUtil {
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
+        ClassUtil.forName(DRIVER_NAME, DbUtil.class.getClassLoader());
         if (!url.startsWith(ConstantValue.PROTOCOL_JDBC_MYSQL)) {
             return getConnectionInternal(url, username, password);
         } else {
