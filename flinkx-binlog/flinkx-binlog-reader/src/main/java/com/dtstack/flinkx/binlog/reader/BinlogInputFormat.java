@@ -25,8 +25,9 @@ import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.base.Joiner;
-import com.util.DbUtil;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,10 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
@@ -62,10 +60,15 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private final String SCHEMA_SPLIT = ".";
 
+    private final String AUTHORITY_REPLICATION_TEMPLATE = "show master status";
+
     private final String AUTHORITY_TEMPLATE = "SELECT count(1) FROM %s LIMIT 1";
 
     private final String QUERY_SCHEMA_TABLE_TEMPLATE = "SELECT TABLE_NAME From information_schema.TABLES WHERE TABLE_SCHEMA='%s' LIMIT 1";
 
+    private static final int RETRY_TIMES = 3;
+
+    private static final int SLEEP_TIME = 2000;
     /**
      * internal fields
      */
@@ -118,6 +121,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 //按照.切割字符串需要转义
                 String regexSchemaSplit = "\\" + SCHEMA_SPLIT;
                 String filter = tables.stream()
+                        //每一个表格式化为schema.tableName格式
                         .map(t -> formatTableName(database, t))
                         //只需要每个schema下的一个表进行判断
                         .peek(t -> checkedTable.putIfAbsent(t.split(regexSchemaSplit)[0], t))
@@ -280,22 +284,28 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * @param schema 需要校验权限的schemaName
+     * @param tables 需要校验权限的tableName
+     *               schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
+     */
     private void checkSourceAuthority(String schema, Collection<String> tables) {
 
-        try (Connection connection = DbUtil.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword())) {
+        try (Connection connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false)) {
             try (Statement statement = connection.createStatement()) {
 
                 //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
-                statement.execute(("show master status"));
+                statement.execute((AUTHORITY_REPLICATION_TEMPLATE));
                 //Schema不为空 就获取一张表判断权限
                 if (StringUtils.isNotBlank(schema)) {
-                    ResultSet resultSet = statement.executeQuery(buildQuerySchemaTableTemplate(schema));
-                    if (resultSet.next()) {
-                        String tableName = resultSet.getString(1);
-                        if (CollectionUtils.isNotEmpty(tables)) {
-                            tables.add(formatTableName(schema, tableName));
-                        } else {
-                            tables = Collections.singletonList(formatTableName(schema, tableName));
+                    try (ResultSet resultSet = statement.executeQuery(String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
+                        if (resultSet.next()) {
+                            String tableName = resultSet.getString(1);
+                            if (CollectionUtils.isNotEmpty(tables)) {
+                                tables.add(formatTableName(schema, tableName));
+                            } else {
+                                tables = Collections.singletonList(formatTableName(schema, tableName));
+                            }
                         }
                     }
                 }
@@ -304,34 +314,45 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 }
 
                 List<String> failedTables = new ArrayList<>(tables.size());
+                RuntimeException runtimeException = null;
                 for (String tableName : tables) {
                     try {
                         //判断用户是否具备tableName下的读权限
-                        statement.executeQuery(buildAuthorityTemplate(tableName));
+                        statement.executeQuery(String.format(AUTHORITY_TEMPLATE, tableName));
                     } catch (SQLException e) {
                         failedTables.add(tableName);
+                        if (Objects.isNull(runtimeException)) {
+                            runtimeException = new RuntimeException(e);
+                        }
                     }
                 }
 
                 if (CollectionUtils.isNotEmpty(failedTables)) {
-                    String message = "user【" + binlogConfig.getUsername() + "】is not granted table 【" + Joiner.on(",").join(failedTables) + "】read permission";
-                    RuntimeException e = new RuntimeException(message);
-                    LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
-                    throw e;
+                    String message = String.format("user【%s】is not granted table 【%s】select permission %s",
+                            binlogConfig.getUsername(),
+                            Joiner.on(",").join(failedTables),
+                            ExceptionUtil.getErrorMessage(runtimeException));
+
+                    LOG.error("{}", message);
+                    throw runtimeException;
                 }
             }
-        } catch (SQLException e) {
-            String message = " jdbcUrl【" + binlogConfig.getJdbcUrl() + "】 make sure that the database configuration is  correct and user 【" + binlogConfig.getUsername() + "】 has right permissions example REPLICATION SLAVE,REPLICATION CLIENT.. ";
-            LOG.error("{}", message, ExceptionUtil.getErrorMessage(e));
+        } catch (Exception e) {
+            String message;
+            if (e instanceof MySQLSyntaxErrorException) {
+                message = String.format(" jdbcUrl【%s】 make sure that the database configuration is  correct and user 【%s】 has right permissions example REPLICATION SLAVE,REPLICATION CLIENT..  %s",
+                        binlogConfig.getJdbcUrl(),
+                        binlogConfig.getUsername(),
+                        ExceptionUtil.getErrorMessage(e));
+            } else {
+                message = String.format("checkSourceAuthority error, url 【%s】 userName【%s】",
+                        binlogConfig.getJdbcUrl(),
+                        binlogConfig.getUsername());
+            }
+            LOG.error("{}", message);
             throw new RuntimeException(message, e);
+
         }
     }
 
-    private String buildAuthorityTemplate(String tableName) {
-        return String.format(AUTHORITY_TEMPLATE, tableName);
-    }
-
-    private String buildQuerySchemaTableTemplate(String schema) {
-        return String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema);
-    }
 }
