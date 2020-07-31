@@ -86,19 +86,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     String paraSecond = KEY_COLUMN_DATA_TYPE;
 
     @Override
-    protected List<String> showDatabases(Connection connection) throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                dbNameList.add(rs.getString(1));
-            }
-        }
-
-        return dbNameList;
-    }
-
-    @Override
     protected void switchDatabase(String databaseName) throws SQLException {
         statement.get().execute(String.format(SQL_SWITCH_DATABASE, quote(databaseName)));
     }
