@@ -293,17 +293,16 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         try {
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false);
         } catch (Exception e) {
-            if (Objects.nonNull(connection)) {
-                try {
-                    connection.close();
-                } catch (Exception exception) {
-                    String message = String.format(" closed connection error,params jdbcUrl【%s】user 【%s】, errorMessage %s",
-                            binlogConfig.getJdbcUrl(),
-                            binlogConfig.getUsername(),
-                            ExceptionUtil.getErrorMessage(e));
-                    LOG.error(message);
-                }
+            try {
+                connection.close();
+            } catch (Exception exception) {
+                String message = String.format(" closed connection error,params jdbcUrl【%s】user 【%s】, errorMessage %s",
+                        binlogConfig.getJdbcUrl(),
+                        binlogConfig.getUsername(),
+                        ExceptionUtil.getErrorMessage(e));
+                LOG.error(message);
             }
+
             String message = String.format(" get connection failed,params jdbcUrl【%s】user 【%s】  make sure that the database configuration is  correct , errorMessage %s",
                     binlogConfig.getJdbcUrl(),
                     binlogConfig.getUsername(),
@@ -311,6 +310,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             LOG.error("{}", message);
             throw new RuntimeException(message, e);
         }
+
         try (Statement statement = connection.createStatement()) {
 
             //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
@@ -367,5 +367,4 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             throw new RuntimeException(message, sqlException);
         }
     }
-
 }
