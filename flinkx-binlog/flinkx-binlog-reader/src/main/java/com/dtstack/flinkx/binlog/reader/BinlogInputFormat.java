@@ -333,15 +333,15 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             }
 
             List<String> failedTables = new ArrayList<>(tables.size());
-            RuntimeException runtimeException = null;
+            SQLException sqlException = null;
             for (String tableName : tables) {
                 try {
                     //判断用户是否具备tableName下的读权限
                     statement.executeQuery(String.format(AUTHORITY_TEMPLATE, tableName));
                 } catch (SQLException e) {
                     failedTables.add(tableName);
-                    if (Objects.isNull(runtimeException)) {
-                        runtimeException = new RuntimeException(e);
+                    if (Objects.isNull(sqlException)) {
+                        sqlException = e;
                     }
                 }
             }
@@ -350,10 +350,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 String message = String.format("user【%s】is not granted table 【%s】select permission %s",
                         binlogConfig.getUsername(),
                         Joiner.on(",").join(failedTables),
-                        ExceptionUtil.getErrorMessage(runtimeException));
+                        ExceptionUtil.getErrorMessage(sqlException));
 
                 LOG.error("{}", message);
-                throw runtimeException;
+                throw new RuntimeException(message, sqlException);
             }
 
         } catch (SQLException sqlException) {
