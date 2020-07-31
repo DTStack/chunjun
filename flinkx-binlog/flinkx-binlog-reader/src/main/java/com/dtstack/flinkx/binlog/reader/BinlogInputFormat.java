@@ -27,7 +27,6 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.base.Joiner;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -290,68 +289,82 @@ public class BinlogInputFormat extends BaseRichInputFormat {
      *               schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
      */
     private void checkSourceAuthority(String schema, Collection<String> tables) {
-
-        try (Connection connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false)) {
-            try (Statement statement = connection.createStatement()) {
-
-                //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
-                statement.execute((AUTHORITY_REPLICATION_TEMPLATE));
-                //Schema不为空 就获取一张表判断权限
-                if (StringUtils.isNotBlank(schema)) {
-                    try (ResultSet resultSet = statement.executeQuery(String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
-                        if (resultSet.next()) {
-                            String tableName = resultSet.getString(1);
-                            if (CollectionUtils.isNotEmpty(tables)) {
-                                tables.add(formatTableName(schema, tableName));
-                            } else {
-                                tables = Collections.singletonList(formatTableName(schema, tableName));
-                            }
-                        }
-                    }
-                }
-                if (CollectionUtils.isEmpty(tables)) {
-                    return;
-                }
-
-                List<String> failedTables = new ArrayList<>(tables.size());
-                RuntimeException runtimeException = null;
-                for (String tableName : tables) {
-                    try {
-                        //判断用户是否具备tableName下的读权限
-                        statement.executeQuery(String.format(AUTHORITY_TEMPLATE, tableName));
-                    } catch (SQLException e) {
-                        failedTables.add(tableName);
-                        if (Objects.isNull(runtimeException)) {
-                            runtimeException = new RuntimeException(e);
-                        }
-                    }
-                }
-
-                if (CollectionUtils.isNotEmpty(failedTables)) {
-                    String message = String.format("user【%s】is not granted table 【%s】select permission %s",
-                            binlogConfig.getUsername(),
-                            Joiner.on(",").join(failedTables),
-                            ExceptionUtil.getErrorMessage(runtimeException));
-
-                    LOG.error("{}", message);
-                    throw runtimeException;
-                }
-            }
+        Connection connection = null;
+        try {
+            connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false);
         } catch (Exception e) {
-            String message;
-            if (e instanceof MySQLSyntaxErrorException) {
-                message = String.format(" jdbcUrl【%s】 make sure that the database configuration is  correct and user 【%s】 has right permissions example REPLICATION SLAVE,REPLICATION CLIENT..  %s",
-                        binlogConfig.getJdbcUrl(),
-                        binlogConfig.getUsername(),
-                        ExceptionUtil.getErrorMessage(e));
-            } else {
-                message = String.format("checkSourceAuthority error, url 【%s】 userName【%s】",
-                        binlogConfig.getJdbcUrl(),
-                        binlogConfig.getUsername());
+            if (Objects.nonNull(connection)) {
+                try {
+                    connection.close();
+                } catch (Exception exception) {
+                    String message = String.format(" closed connection error,params jdbcUrl【%s】user 【%s】, errorMessage %s",
+                            binlogConfig.getJdbcUrl(),
+                            binlogConfig.getUsername(),
+                            ExceptionUtil.getErrorMessage(e));
+                    LOG.error(message);
+                }
             }
+            String message = String.format(" get connection failed,params jdbcUrl【%s】user 【%s】  make sure that the database configuration is  correct , errorMessage %s",
+                    binlogConfig.getJdbcUrl(),
+                    binlogConfig.getUsername(),
+                    ExceptionUtil.getErrorMessage(e));
             LOG.error("{}", message);
             throw new RuntimeException(message, e);
+        }
+        try (Statement statement = connection.createStatement()) {
 
+            //判断用户是否具有REPLICATION权限 没有的话会直接抛出异常MySQLSyntaxErrorException
+            statement.execute((AUTHORITY_REPLICATION_TEMPLATE));
+            //Schema不为空 就获取一张表判断权限
+            if (StringUtils.isNotBlank(schema)) {
+                try (ResultSet resultSet = statement.executeQuery(String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
+                    if (resultSet.next()) {
+                        String tableName = resultSet.getString(1);
+                        if (CollectionUtils.isNotEmpty(tables)) {
+                            tables.add(formatTableName(schema, tableName));
+                        } else {
+                            tables = Collections.singletonList(formatTableName(schema, tableName));
+                        }
+                    }
+                }
+            }
+            if (CollectionUtils.isEmpty(tables)) {
+                return;
+            }
+
+            List<String> failedTables = new ArrayList<>(tables.size());
+            RuntimeException runtimeException = null;
+            for (String tableName : tables) {
+                try {
+                    //判断用户是否具备tableName下的读权限
+                    statement.executeQuery(String.format(AUTHORITY_TEMPLATE, tableName));
+                } catch (SQLException e) {
+                    failedTables.add(tableName);
+                    if (Objects.isNull(runtimeException)) {
+                        runtimeException = new RuntimeException(e);
+                    }
+                }
+            }
+
+            if (CollectionUtils.isNotEmpty(failedTables)) {
+                String message = String.format("user【%s】is not granted table 【%s】select permission %s",
+                        binlogConfig.getUsername(),
+                        Joiner.on(",").join(failedTables),
+                        ExceptionUtil.getErrorMessage(runtimeException));
+
+                LOG.error("{}", message);
+                throw runtimeException;
+            }
+
+        } catch (SQLException sqlException) {
+            String message = String.format("params jdbcUrl【%s】user 【%s】 create statement  failed or user user 【%s】 has no REPLICATION permission  errorMessage %s",
+                    binlogConfig.getJdbcUrl(),
+                    binlogConfig.getUsername(),
+                    binlogConfig.getUsername(),
+                    ExceptionUtil.getErrorMessage(sqlException));
+
+            LOG.error("{}", message);
+            throw new RuntimeException(message, sqlException);
         }
     }
 
