@@ -6,7 +6,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 public class Metadatahive1Reader extends Metadatahive2Reader {
 
-    public static final String DRIVER_NAME = "shade.hive1.jdbc.HiveDriver";
+    public static final String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
 
     public Metadatahive1Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
