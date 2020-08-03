@@ -172,7 +172,7 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
             numReadCounter.add(1);
         }
         if(bytesReadCounter!=null){
-            bytesReadCounter.add(internalRow.toString().length());
+            bytesReadCounter.add(internalRow.toString().getBytes().length);
         }
         return internalRow;
     }
