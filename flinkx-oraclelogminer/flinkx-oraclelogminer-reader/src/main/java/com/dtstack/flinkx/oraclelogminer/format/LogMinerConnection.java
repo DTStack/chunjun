@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * @author jiangbo
@@ -60,6 +59,7 @@ public class LogMinerConnection {
     public final static String KEY_SEG_OWNER = "SEG_OWNER";
     public final static String KEY_TABLE_NAME = "TABLE_NAME";
     public final static String KEY_OPERATION = "OPERATION";
+    public final static String KEY_TIMESTAMP = "TIMESTAMP";
     public final static String KEY_SQL_REDO = "SQL_REDO";
     public final static String KEY_CSF = "CSF";
     public final static String KEY_SCN = "SCN";
@@ -94,12 +94,7 @@ public class LogMinerConnection {
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
-            connection = RetryUtil.executeWithRetry(new Callable<Connection>() {
-                @Override
-                public Connection call() throws Exception {
-                    return DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword());
-                }
-            }, RETRY_TIMES, SLEEP_TIME,false);
+            connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
 
             LOG.info("获取连接成功,url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
         } catch (Exception e){
@@ -170,7 +165,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.setLong(1, startScn);
             logMinerData = logMinerSelectStmt.executeQuery();
 
-            LOG.info("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, startScn);
+            LOG.debug("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, startScn);
         } catch (SQLException e) {
             LOG.error("查询Log miner数据出错,sql:{}", logMinerSelectSql);
             throw new RuntimeException(e);
@@ -425,12 +420,14 @@ public class LogMinerConnection {
             String schema = logMinerData.getString(KEY_SEG_OWNER);
             String tableName = logMinerData.getString(KEY_TABLE_NAME);
             String operation = logMinerData.getString(KEY_OPERATION);
+            Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
 
             Map<String, Object> data = new HashMap<>();
             data.put("schema", schema);
             data.put("tableName", tableName);
             data.put("operation", operation);
             data.put("sqlLog", sqlLog);
+            data.put("opTime", timestamp);
 
             result = new QueueData(scn, data);
             return true;
@@ -507,6 +504,17 @@ public class LogMinerConnection {
 
     public QueueData next() {
         return result;
+    }
+
+    public void closeStmt(){
+        try {
+            if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
+                logMinerSelectStmt.close();
+            }
+            logMinerSelectStmt = null;
+        }catch (SQLException e){
+            throw new RuntimeException("关闭logMinerStartStmt出错", e);
+        }
     }
 
     enum ReadPosition{

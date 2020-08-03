@@ -20,6 +20,8 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,18 +89,24 @@ public class LogMinerListener implements Runnable {
             try {
                 if (logMinerConnection.hasNext()) {
                     QueueData log = logMinerConnection.next();
-                    queue.add(logParser.parse(log));
+                    queue.put(logParser.parse(log));
                 } else {
+                    logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
 
-                    LOG.info("Update log and continue read:{}", positionManager.getPosition());
+                    LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
                 running = false;
-
                 Map<String, Object> map = Collections.singletonMap("exception", e);
-                queue.add(new QueueData(0L, map));
+                try {
+                    queue.put(new QueueData(0L, map));
+                } catch (InterruptedException ex) {
+                    LOG.error("error to put exception message into queue, exception message = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(ex));
+                    throw new RuntimeException(ex);
+                }
+                logMinerConnection.closeStmt();
             }
         }
     }
@@ -121,12 +129,12 @@ public class LogMinerListener implements Runnable {
     public Map<String, Object> getData() {
         try {
             QueueData data = queue.take();
-            if (data.getScn() == 0L) {
-                throw new RuntimeException((Exception)data.getData().get("exception"));
-            }
+            if (data.getScn() != 0L) {
+                positionManager.updatePosition(data.getScn());
+                return data.getData();
 
-            positionManager.updatePosition(data.getScn());
-            return data.getData();
+            }
+            LOG.error("LogMinerListener obtain an error data, data = {}", GsonUtil.GSON.toJson(data));
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }

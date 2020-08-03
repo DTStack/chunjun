@@ -57,6 +57,8 @@ import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
+import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
+import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
@@ -68,8 +70,10 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
-import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
-import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+//import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+//import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
+import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
@@ -132,7 +136,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\hive2metareader.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatahive1kbr_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -220,13 +224,16 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
             case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
-            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
+//            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
             case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
             case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
+            case PluginNameConstrant.METADATAMYSQL_READER : reader = new MetadatamysqlReader(config, env); break;
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
+            case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
+            case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -260,11 +267,12 @@ public class LocalTest {
             case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
-            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
+//            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
+            case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

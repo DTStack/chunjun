@@ -257,6 +257,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             boolean isUpdateLocation = incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc());
             if (isUpdateLocation) {
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
+                if(incrementVal != null) {
+                    if((incrementVal instanceof java.util.Date
+                            || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                        incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName());
+                    }
+                }
                 String location;
                 if(incrementConfig.isPolling()){
                     location = String.valueOf(incrementVal);

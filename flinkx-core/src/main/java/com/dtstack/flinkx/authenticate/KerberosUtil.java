@@ -236,10 +236,6 @@ public class KerberosUtil {
             throw new RuntimeException("[principalFile]必须指定");
         }
 
-        if (fileName.contains(SP)) {
-            fileName = fileName.substring(fileName.lastIndexOf(SP) + 1);
-        }
-
         return fileName;
     }
 }

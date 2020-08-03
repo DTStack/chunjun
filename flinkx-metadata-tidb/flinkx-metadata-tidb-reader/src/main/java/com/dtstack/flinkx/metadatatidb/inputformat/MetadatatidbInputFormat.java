@@ -86,21 +86,10 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> healthy = queryAddPartition(tableName, KEY_HEALTHY);
         Map<String, Object> updateTime = queryAddPartition(tableName, KEY_UPDATE_TIME);
         List<Map<String, Object>> partitionColumn = queryPartitionColumn(tableName);
-        if(CollectionUtils.size(partition) == 1){
-            Map<String, Object> perPartition = partition.get(0);
-            perPartition.put(KEY_HEALTHY, healthy.get(KEY_HEALTHY));
-            perPartition.put(KEY_UPDATE_TIME, updateTime.get(RESULT_UPDATE_TIME));
-        }else{
-            for(Map<String, Object> perPartition : partition){
-                String columnName = (String)perPartition.get(KEY_COLUMN_NAME);
-                perPartition.put(KEY_HEALTHY, healthy.get(columnName));
-                perPartition.put(KEY_UPDATE_TIME, updateTime.get(KEY_COLUMN_NAME));
-            }
-        }
         column.removeIf((Map<String, Object> perColumn)->{
             for(Map<String, Object> perPartitionColumn : partitionColumn){
                 if(StringUtils.equals((String)perPartitionColumn.get(KEY_COLUMN_NAME), (String)perColumn.get(KEY_COLUMN_NAME))){
-                    perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(RESULT_TYPE));
+                    perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(KEY_COLUMN_TYPE));
                     perPartitionColumn.put(KEY_NULL, perColumn.get(KEY_NULL));
                     perPartitionColumn.put(KEY_DEFAULT, perColumn.get(KEY_DEFAULT));
                     perPartitionColumn.put(KEY_COLUMN_COMMENT, perColumn.get(KEY_COLUMN_COMMENT));
@@ -112,7 +101,14 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         });
         result.put(KEY_TABLE_PROPERTIES, tableProp);
         result.put(KEY_COLUMN, column);
-        result.put(KEY_PARTITIONS, partition);
+        if(CollectionUtils.size(partition) > 1){
+            for(Map<String, Object> perPartition : partition){
+                String columnName = (String)perPartition.get(KEY_COLUMN_NAME);
+                perPartition.put(KEY_HEALTHY, healthy.get(columnName));
+                perPartition.put(KEY_UPDATE_TIME, updateTime.get(KEY_COLUMN_NAME));
+            }
+            result.put(KEY_PARTITIONS, partition);
+        }
         result.put(KEY_PARTITION_COLUMN, partitionColumn);
         return result;
     }

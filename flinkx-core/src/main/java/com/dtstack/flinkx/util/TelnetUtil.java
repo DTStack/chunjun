@@ -35,6 +35,8 @@ public class TelnetUtil {
     protected static final Logger LOG = LoggerFactory.getLogger(TelnetUtil.class);
 
     private static Pattern JDBC_PATTERN = Pattern.compile("(?<host>[^:@/]+):(?<port>\\d+).*");
+    public static final String PHOENIX_PREFIX = "jdbc:phoenix";
+    private static Pattern PHOENIX_PATTERN = Pattern.compile("jdbc:phoenix:(?<host>\\S+):(?<port>\\d+).*");
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
     private static final String SPLIT_KEY = ",";
@@ -74,8 +76,12 @@ public class TelnetUtil {
 
         String host = null;
         int port = 0;
-
-        Matcher matcher = JDBC_PATTERN.matcher(url);
+        Matcher matcher = null;
+        if(StringUtils.startsWith(url, PHOENIX_PREFIX)){
+            matcher = PHOENIX_PATTERN.matcher(url);
+        }else{
+            matcher = JDBC_PATTERN.matcher(url);
+        }
         if (matcher.find()){
             host = matcher.group(HOST_KEY);
             port = Integer.parseInt(matcher.group(PORT_KEY));
