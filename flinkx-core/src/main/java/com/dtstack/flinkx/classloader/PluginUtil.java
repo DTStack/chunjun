@@ -55,7 +55,9 @@ public class PluginUtil {
         try {
             urlList.addAll(SysUtil.findJarsInDir(commonDir));
             urlList.addAll(SysUtil.findJarsInDir(pluginDir));
-            urlList.addAll(SysUtil.findJarsInDir(remoteDir));
+            if(remoteDir!=null){
+                urlList.addAll(SysUtil.findJarsInDir(remoteDir));
+            }
 
             return urlList;
         } catch (MalformedURLException e) {
