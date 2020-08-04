@@ -215,6 +215,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../syncplugins/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../syncplugins/flinkx-${git.branch}.jar" />
                             </tasks>
