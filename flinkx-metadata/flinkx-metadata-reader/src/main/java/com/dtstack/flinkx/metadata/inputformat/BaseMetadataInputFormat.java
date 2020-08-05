@@ -35,6 +35,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : tiezhu
@@ -62,7 +65,9 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static int totalTable = 0;
 
-    protected static int resolvedTable = 0;
+    public static AtomicInteger resolvedTable = new AtomicInteger(0);
+
+    public Lock lock =  new ReentrantLock();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -76,7 +81,12 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
             }
-            totalTable += tableList.size();
+            lock.lock();
+            try{
+                totalTable += tableList.size();
+            }finally {
+                lock.unlock();
+            }
             tableIterator = tableList.iterator();
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
@@ -113,7 +123,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
         metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
-        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, ++resolvedTable);
+        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, resolvedTable.incrementAndGet());
 
         try {
             metaData.putAll(queryMetaData(tableName));
