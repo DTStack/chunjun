@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-metadata-hive2</artifactId>
+        <artifactId>flinkx-metadata-hive1</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-metadata-hive2-reader</artifactId>
+    <artifactId>flinkx-metadata-hive1-reader</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-jdbc</artifactId>
-            <version>2.1.0</version>
+            <version>1.1.1</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -124,27 +124,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>calcite-core</artifactId>
-                    <groupId>org.apache.calcite</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>calcite-avatica</artifactId>
-                    <groupId>org.apache.calcite</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>derby</artifactId>
-                    <groupId>org.apache.derby</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.xerial.snappy</groupId>
-                    <artifactId>snappy-java</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-hive2-reader</artifactId>
+            <version>1.6</version>
         </dependency>
     </dependencies>
 
@@ -182,8 +164,8 @@
                             </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>org.apache.hive.jdbc</pattern>
-                                    <shadedPattern>shade.hive2</shadedPattern>
+                                    <pattern>org.apache.hive</pattern>
+                                    <shadedPattern>shade.hive1</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -203,7 +185,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                                     <resource>META-INF/services</resource>
-                                    <file>java.sql.hive2.Driver</file>
+                                    <file>java.sql.hive1.Driver</file>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -224,13 +206,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/metadatahive2reader">
+                                <copy todir="${basedir}/../../plugins/metadatahive1reader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/metadatahive2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/metadatahive2reader/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../plugins/metadatahive1reader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../plugins/metadatahive1reader/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
@@ -238,5 +220,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

@@ -92,6 +92,18 @@ under the License.
                                     <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
+
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resource>META-INF/services/java.sql.Driver</resource>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                    <resource>META-INF/services</resource>
+                                    <file>java.sql.hive2.Driver</file>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
