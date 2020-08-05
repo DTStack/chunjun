@@ -88,11 +88,10 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             if (CollectionUtils.isEmpty(dbTableList)) {
                 List<String> dbList = showDatabases();
                 dbTableList = new ArrayList<>();
-                for(int index = 0; index < dbList.size(); index++){
+                for (String s : dbList) {
                     Map<String, Object> dbTables = new HashMap<>(4);
-                    String dbName = dbList.get(index);
-                    dbTables.put(MetaDataCons.KEY_DB_NAME, dbName);
-                    switchDatabase(dbName);
+                    dbTables.put(MetaDataCons.KEY_DB_NAME, s);
+                    switchDatabase(s);
                     List<String> tableList = showTables();
                     dbTables.put(MetaDataCons.KEY_TABLE_LIST, tableList);
                     dbTableList.add(dbTables);
@@ -138,8 +137,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected InputSplit[] createInputSplitsInternal(int splitNumber) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int splitNumber) {
         InputSplit[] inputSplits = new InputSplit[splitNumber];
         for (int i = 0; i < splitNumber; i++) {
             inputSplits[i] = new GenericInputSplit(i, splitNumber);
@@ -249,29 +247,29 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * 查询当前数据库下所有的表
      *
      * @return  表名列表
-     * @throws SQLException
+     * @throws SQLException SQL异常
      */
     protected abstract List<String> showTables() throws SQLException;
 
     /**
      * 切换当前database
      *
-     * @param databaseName
-     * @throws SQLException
+     * @param databaseName 数据库名
+     * @throws SQLException SQL异常
      */
     protected abstract void switchDatabase(String databaseName) throws SQLException;
 
     /**
      * 根据表名查询元数据信息
-     * @param tableName
-     * @return
-     * @throws SQLException
+     * @param tableName 表名
+     * @return 元数据信息
+     * @throws SQLException SQL异常
      */
     protected abstract Map<String, Object> queryMetaData(String tableName) throws SQLException;
 
     /**
      * 将数据库名，表名，列名字符串转为对应的引用，如：testTable -> `testTable`
-     * @param name
+     * @param name 入参
      * @return 返回数据库名，表名，列名的引用
      */
     protected abstract String quote(String name);
