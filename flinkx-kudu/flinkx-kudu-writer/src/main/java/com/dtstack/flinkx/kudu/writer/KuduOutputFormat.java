@@ -122,32 +122,36 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                     throw new IllegalArgumentException("Column name isn't present in the table's schema");
                 }
                 Object val = row.getField(i);
-                switch (col.getType()) {
-                    case BOOL: partialRow.addBoolean(columnIndex, ValueUtil.getBooleanVal(val)); break;
-                    case INT8: partialRow.addByte(columnIndex, ValueUtil.getByteVal(val)); break;
-                    case INT16: partialRow.addShort(columnIndex, ValueUtil.getShortVal(val)); break;
-                    case INT32: partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val)); break;
-                    case INT64: partialRow.addLong(columnIndex, ValueUtil.getLongVal(val)); break;
-                    case UNIXTIME_MICROS:
-                        if (val instanceof Timestamp) {
-                            partialRow.addTimestamp(columnIndex, ValueUtil.getTimestampVal(val));
-                        } else {
-                            partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
-                        }
-                        break;
-                    case FLOAT: partialRow.addFloat(columnIndex, ValueUtil.getFloatVal(val)); break;
-                    case DOUBLE: partialRow.addDouble(columnIndex, ValueUtil.getDoubleVal(val)); break;
-                    case STRING: partialRow.addString(columnIndex, ValueUtil.getStringVal(val)); break;
-                    case BINARY:
-                        if (val instanceof byte[]) {
-                            partialRow.addBinary(columnIndex, (byte[]) val);
-                        } else {
-                            partialRow.addBinary(columnIndex, (ByteBuffer) val);
-                        }
-                        break;
-                    case DECIMAL: partialRow.addDecimal(columnIndex, ValueUtil.getBigDecimalVal(val)); break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported column type: " + col.getType());
+                if(val==null){
+                    partialRow.setNull(i);
+                }else{
+                    switch (col.getType()) {
+                        case BOOL: partialRow.addBoolean(columnIndex, ValueUtil.getBooleanVal(val)); break;
+                        case INT8: partialRow.addByte(columnIndex, ValueUtil.getByteVal(val)); break;
+                        case INT16: partialRow.addShort(columnIndex, ValueUtil.getShortVal(val)); break;
+                        case INT32: partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val)); break;
+                        case INT64: partialRow.addLong(columnIndex, ValueUtil.getLongVal(val)); break;
+                        case UNIXTIME_MICROS:
+                            if (val instanceof Timestamp) {
+                                partialRow.addTimestamp(columnIndex, ValueUtil.getTimestampVal(val));
+                            } else {
+                                partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
+                            }
+                            break;
+                        case FLOAT: partialRow.addFloat(columnIndex, ValueUtil.getFloatVal(val)); break;
+                        case DOUBLE: partialRow.addDouble(columnIndex, ValueUtil.getDoubleVal(val)); break;
+                        case STRING: partialRow.addString(columnIndex, ValueUtil.getStringVal(val)); break;
+                        case BINARY:
+                            if (val instanceof byte[]) {
+                                partialRow.addBinary(columnIndex, (byte[]) val);
+                            } else {
+                                partialRow.addBinary(columnIndex, (ByteBuffer) val);
+                            }
+                            break;
+                        case DECIMAL: partialRow.addDecimal(columnIndex, ValueUtil.getBigDecimalVal(val)); break;
+                        default:
+                            throw new IllegalArgumentException("Unsupported column type: " + col.getType());
+                    }
                 }
             }
 
