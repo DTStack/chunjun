@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadataoracle.inputformat;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -53,18 +54,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
  */
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
-
-    @Override
-    protected List<String> showDatabases() throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(ResultSet rs = statement.get().executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                dbNameList.add(rs.getString(1));
-            }
-        }
-
-        return dbNameList;
-    }
 
     @Override
     protected List<String> showTables() throws SQLException {

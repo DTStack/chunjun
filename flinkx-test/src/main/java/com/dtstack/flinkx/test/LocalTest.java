@@ -124,7 +124,7 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        setLogLevel(Level.INFO.toString());
+        setLogLevel(Level.DEBUG.toString());
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
@@ -136,7 +136,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatahive1kbr_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatahive_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
