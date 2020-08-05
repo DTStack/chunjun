@@ -29,10 +29,12 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author : tiezhu
@@ -63,14 +65,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     protected static int resolvedTable = 0;
 
     @Override
-    public void openInputFormat() throws IOException {
-        System.out.println("调用openInputFormat +" + Thread.currentThread().getName());
-        super.openInputFormat();
-    }
-
-    @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        System.out.println("调用openInternal +" + Thread.currentThread().getName());
         LOG.info("inputSplit = {}", inputSplit);
         try {
             connection.set(getConnection());
@@ -81,6 +76,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
             }
+            totalTable += tableList.size();
             tableIterator = tableList.iterator();
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
@@ -96,7 +92,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     protected InputSplit[] createInputSplitsInternal(int splitNumber) {
-        System.out.println("调用split +" + Thread.currentThread().getName());
         InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
         for (int index = 0; index < dbTableList.size(); index++) {
             Map<String, Object> dbTables = dbTableList.get(index);
@@ -179,29 +174,29 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * 查询当前数据库下所有的表
      *
      * @return  表名列表
-     * @throws SQLException
+     * @throws SQLException 异常
      */
     protected abstract List<String> showTables() throws SQLException;
 
     /**
      * 切换当前database
      *
-     * @param databaseName
-     * @throws SQLException
+     * @param databaseName 数据库名
+     * @throws SQLException 异常
      */
     protected abstract void switchDatabase(String databaseName) throws SQLException;
 
     /**
      * 根据表名查询元数据信息
-     * @param tableName
-     * @return
-     * @throws SQLException
+     * @param tableName 表名
+     * @return 元数据信息
+     * @throws SQLException 异常
      */
     protected abstract Map<String, Object> queryMetaData(String tableName) throws SQLException;
 
     /**
      * 将数据库名，表名，列名字符串转为对应的引用，如：testTable -> `testTable`
-     * @param name
+     * @param name 入参
      * @return 返回数据库名，表名，列名的引用
      */
     protected abstract String quote(String name);

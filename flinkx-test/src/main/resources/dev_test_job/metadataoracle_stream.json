@@ -4,7 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "dbList":[],
+            "dbList": [{"dbName":"TUDOU"}],
             "jdbcUrl": "jdbc:oracle:thin:@kudu5:1521:helowin",
             "username": "tudou",
             "password": "abc123"
