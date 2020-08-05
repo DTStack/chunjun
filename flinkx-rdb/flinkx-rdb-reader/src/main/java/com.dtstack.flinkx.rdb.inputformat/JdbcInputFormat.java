@@ -150,7 +150,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if (restoreConfig == null || !restoreConfig.isRestore()){
+        if (restoreConfig == null || !restoreConfig.isRestore()) {
             return;
         }
 
@@ -232,7 +232,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
-                    if(!dbConn.getAutoCommit()){
+                    if (!dbConn.getAutoCommit()) {
                         dbConn.setAutoCommit(true);
                     }
                     DbUtil.closeDbResources(resultSet, null, null, false);
@@ -270,20 +270,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             boolean isUpdateLocation = incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc());
             if (isUpdateLocation) {
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
-                if(incrementVal != null) {
-                    if((incrementVal instanceof java.util.Date
-                            || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                if (incrementVal != null) {
+                    if ((incrementVal instanceof java.util.Date
+                            || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP"))) {
                         incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName());
                     }
                 }
                 String location;
-                if(incrementConfig.isPolling()){
+                if (incrementConfig.isPolling()) {
                     location = String.valueOf(incrementVal);
-                }else{
+                } else {
                     location = getLocation(incrementConfig.getColumnType(), incrementVal);
                 }
 
-                if(StringUtils.isNotEmpty(location)) {
+                if (StringUtils.isNotEmpty(location)) {
                     endLocationAccumulator.add(Long.parseLong(location));
                 }
 
@@ -361,7 +361,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 为了保证增量数据的准确性，指标输出失败时使任务失败
      */
     @Override
-    protected boolean makeTaskFailedWhenReportFailed(){
+    protected boolean makeTaskFailedWhenReportFailed() {
         return true;
     }
 
@@ -388,8 +388,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
-    public String getMaxValueFromApi(){
-        if(StringUtils.isEmpty(monitorUrls)){
+    public String getMaxValueFromApi() {
+        if (StringUtils.isEmpty(monitorUrls)) {
             return null;
         }
 
@@ -796,21 +796,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
-        if(StringUtils.isNotBlank(startLocation)){
-            if(isTimestamp){
+        if (StringUtils.isNotBlank(startLocation)) {
+            if (isTimestamp) {
                 ps.setTimestamp(1, Timestamp.valueOf(startLocation));
-            }else{
-                ps.setInt(1, Integer.parseInt(startLocation));
+            } else {
+                ps.setString(1, startLocation);
             }
             resultSet = ps.executeQuery();
             hasNext = resultSet.next();
-        }else{
+        } else {
             queryStartLocation();
         }
     }
 
     /**
      * 执行查询
+     *
      * @param startLocation
      * @throws SQLException
      */
@@ -819,10 +820,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
-            if(StringUtils.isBlank(startLocation)){
+            if (StringUtils.isBlank(startLocation)) {
                 LOG.info("startLocation = null, execute sql = {}", querySql);
                 queryStartLocation();
-            }else{
+            } else {
                 ps = dbConn.prepareStatement(querySql);
                 ps.setFetchSize(fetchSize);
                 ps.setQueryTimeout(queryTimeOut);
@@ -837,14 +838,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private void queryStartLocation() throws SQLException{
-        ps = dbConn.prepareStatement(querySql,ResultSet.TYPE_FORWARD_ONLY,ResultSet.CONCUR_READ_ONLY);
+    private void queryStartLocation() throws SQLException {
+        ps = dbConn.prepareStatement(querySql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setFetchSize(fetchSize);
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
         ps.setQueryTimeout(queryTimeOut);
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
-        if(hasNext){
+        if (hasNext) {
             querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
             ps = dbConn.prepareStatement(querySql);
             ps.setFetchSize(fetchSize);
