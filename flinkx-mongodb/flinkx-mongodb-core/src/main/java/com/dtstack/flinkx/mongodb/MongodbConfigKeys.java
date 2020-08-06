@@ -57,4 +57,6 @@ public class MongodbConfigKeys {
     public final static String KEY_MAX_WAIT_TIME = "maxWaitTime";
 
     public final static String KEY_SOCKET_TIMEOUT = "socketTimeout";
+
+    public final static String KEY_SERVER_SELECTION_TIMEOUT = "serverSelectionTimeout";
 }
