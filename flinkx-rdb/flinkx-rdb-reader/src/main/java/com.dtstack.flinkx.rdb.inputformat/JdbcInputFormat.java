@@ -36,7 +36,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -47,6 +46,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -121,9 +121,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected StringAccumulator maxValueAccumulator;
 
-    protected LongMaximum endLocationAccumulator;
+    protected BigIntegerMaximum endLocationAccumulator;
 
-    protected LongMaximum startLocationAccumulator;
+    protected BigIntegerMaximum startLocationAccumulator;
 
     protected MetaColumn restoreColumn;
 
@@ -150,7 +150,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if (restoreConfig == null || !restoreConfig.isRestore()) {
+        if (restoreConfig == null || !restoreConfig.isRestore()){
             return;
         }
 
@@ -171,7 +171,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
                 if (StringUtils.isNotEmpty(startLocation)) {
-                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                    endLocationAccumulator.add(new BigInteger(startLocation));
                 }
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
@@ -232,7 +232,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
-                    if (!dbConn.getAutoCommit()) {
+                    if(!dbConn.getAutoCommit()){
                         dbConn.setAutoCommit(true);
                     }
                     DbUtil.closeDbResources(resultSet, null, null, false);
@@ -277,14 +277,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     }
                 }
                 String location;
-                if (incrementConfig.isPolling()) {
+                if(incrementConfig.isPolling()){
                     location = String.valueOf(incrementVal);
-                } else {
+                }else{
                     location = getLocation(incrementConfig.getColumnType(), incrementVal);
                 }
 
-                if (StringUtils.isNotEmpty(location)) {
-                    endLocationAccumulator.add(Long.parseLong(location));
+                if(StringUtils.isNotEmpty(location)) {
+                    endLocationAccumulator.add(new BigInteger(location));
                 }
 
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
@@ -333,18 +333,18 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return;
         }
 
-        startLocationAccumulator = new LongMaximum();
+        startLocationAccumulator = new BigIntegerMaximum();
         if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            startLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
+            startLocationAccumulator.add(new BigInteger(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
 
-        endLocationAccumulator = new LongMaximum();
+        endLocationAccumulator = new BigIntegerMaximum();
         String endLocation = ((JdbcInputSplit) split).getEndLocation();
         if (endLocation != null && incrementConfig.isUseMaxFunc()) {
-            endLocationAccumulator.add(Long.parseLong(endLocation));
+            endLocationAccumulator.add(new BigInteger(endLocation));
         } else if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            endLocationAccumulator.add(Long.parseLong(incrementConfig.getStartLocation()));
+            endLocationAccumulator.add(new BigInteger(incrementConfig.getStartLocation()));
         }
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
     }
@@ -388,8 +388,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
 
-    public String getMaxValueFromApi() {
-        if (StringUtils.isEmpty(monitorUrls)) {
+    public String getMaxValueFromApi(){
+        if(StringUtils.isEmpty(monitorUrls)){
             return null;
         }
 
@@ -796,15 +796,15 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
-        if (StringUtils.isNotBlank(startLocation)) {
-            if (isTimestamp) {
+        if(StringUtils.isNotBlank(startLocation)){
+            if(isTimestamp){
                 ps.setTimestamp(1, Timestamp.valueOf(startLocation));
-            } else {
-                ps.setString(1, startLocation);
+            }else{
+                ps.setInt(1, Integer.parseInt(startLocation));
             }
             resultSet = ps.executeQuery();
             hasNext = resultSet.next();
-        } else {
+        }else{
             queryStartLocation();
         }
     }
@@ -820,10 +820,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
-            if (StringUtils.isBlank(startLocation)) {
+            if(StringUtils.isBlank(startLocation)){
                 LOG.info("startLocation = null, execute sql = {}", querySql);
                 queryStartLocation();
-            } else {
+            }else{
                 ps = dbConn.prepareStatement(querySql);
                 ps.setFetchSize(fetchSize);
                 ps.setQueryTimeout(queryTimeOut);
@@ -845,7 +845,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ps.setQueryTimeout(queryTimeOut);
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
-        if (hasNext) {
+        if(hasNext){
             querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
             ps = dbConn.prepareStatement(querySql);
             ps.setFetchSize(fetchSize);

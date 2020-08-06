@@ -29,6 +29,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -53,7 +54,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
                 if (StringUtils.isNotEmpty(startLocation)) {
-                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                    endLocationAccumulator.add(new BigInteger(startLocation));
                 }
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
