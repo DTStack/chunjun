@@ -18,6 +18,8 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.latch.BaseLatch;
+import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -61,13 +63,15 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
-    protected transient Iterator<String> tableIterator;
+    protected static transient ThreadLocal<Iterator<String>> tableIterator = new ThreadLocal<>();
+
+    protected static int numTasks;
 
     protected static int totalTable = 0;
 
     public static AtomicInteger resolvedTable = new AtomicInteger(0);
 
-    public Lock lock =  new ReentrantLock();
+    protected static Lock lock =  new ReentrantLock();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -87,11 +91,18 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             }finally {
                 lock.unlock();
             }
-            tableIterator = tableList.iterator();
+            tableIterator.set(tableList.iterator());
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             throw new IOException("获取table列表异常", e);
         }
+        waitWhile("#1");
+    }
+
+    protected void waitWhile(String latchName){
+        BaseLatch latch = new LocalLatch(jobId + latchName);
+        latch.addOne();
+        latch.waitUntil(numTasks);
     }
 
     /**
@@ -111,6 +122,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
             }
         }
+        numTasks = inputSplits.length;
         return inputSplits;
     }
 
@@ -119,7 +131,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.next();
+        String tableName = tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
         metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
@@ -138,11 +150,12 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() {
-        return !tableIterator.hasNext();
+        return !tableIterator.get().hasNext();
     }
 
     @Override
     protected void closeInternal() throws IOException {
+        tableIterator.remove();
         Statement st = statement.get();
         if (null != st) {
             try {
