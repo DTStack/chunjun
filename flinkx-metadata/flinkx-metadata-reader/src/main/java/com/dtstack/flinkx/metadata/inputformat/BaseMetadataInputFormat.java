@@ -18,26 +18,29 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.latch.BaseLatch;
+import com.dtstack.flinkx.latch.LocalLatch;
+import com.dtstack.flinkx.latch.MetricLatch;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : tiezhu
@@ -61,87 +64,67 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
-    protected transient Iterator<String> tableIterator;
+    protected static transient ThreadLocal<Iterator<String>> tableIterator = new ThreadLocal<>();
 
-    protected MetadataDbTableList metadataDbTableList;
+    protected static int numTasks;
 
-    protected int totalTable = 0;
+    protected static int totalTable = 0;
 
-    protected int resolvedTable = 0;
+    public static AtomicInteger resolvedTable = new AtomicInteger(0);
 
-    @Override
-    public void openInputFormat() throws IOException {
-        super.openInputFormat();
-        try {
-            connection.set(getConnection());
-            statement.set(connection.get().createStatement());
-        } catch (Exception e) {
-            LOG.error("获取连接失败, dbUrl = {}, username = {}, e = {}", dbUrl, username, ExceptionUtil.getErrorMessage(e));
-            throw new IOException("获取连接失败", e);
-        }
-        initDbList();
-    }
-
-    public void initDbList() throws IOException {
-        try{
-            //同步所有库的所有表
-            if (CollectionUtils.isEmpty(dbTableList)) {
-                List<String> dbList = showDatabases();
-                dbTableList = new ArrayList<>();
-                for (String s : dbList) {
-                    Map<String, Object> dbTables = new HashMap<>(4);
-                    dbTables.put(MetaDataCons.KEY_DB_NAME, s);
-                    switchDatabase(s);
-                    List<String> tableList = showTables();
-                    dbTables.put(MetaDataCons.KEY_TABLE_LIST, tableList);
-                    dbTableList.add(dbTables);
-                    totalTable += tableList.size();
-                }
-            } else {
-                for (int index = 0; index < dbTableList.size(); index++) {
-                    Map<String, Object> dbTables = dbTableList.get(index);
-                    String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
-                    List<String> tableList = (List<String>) dbTables.get(MetaDataCons.KEY_TABLE_LIST);
-                    //同步一个库里所有表
-                    if(CollectionUtils.isEmpty(tableList)){
-                        switchDatabase(dbName);
-                        tableList = showTables();
-                        dbTables.put(MetaDataCons.KEY_TABLE_LIST, tableList);
-                        dbTableList.set(index, dbTables);
-                    }
-                    totalTable += tableList.size();
-                }
-            }
-        }catch (SQLException e){
-            LOG.error(ExceptionUtils.getMessage(e));
-            throw new IOException(e.getCause());
-        }
-        metadataDbTableList = new MetadataDbTableList(dbTableList);
-    }
-
-    protected void initProperty() throws SQLException {
-        currentDb.set(metadataDbTableList.getDbName());
-        switchDatabase(currentDb.get());
-        List<String> tableList = metadataDbTableList.getTableList();
-        tableIterator = tableList.iterator();
-    }
+    public Lock lock =  new ReentrantLock();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
+        LOG.info("inputSplit = {}", inputSplit);
         try {
-            initProperty();
-        } catch (SQLException e) {
+            connection.set(getConnection());
+            statement.set(connection.get().createStatement());
+            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+            switchDatabase(currentDb.get());
+            List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            if (CollectionUtils.isEmpty(tableList)) {
+                tableList = showTables();
+            }
+            lock.lock();
+            try{
+                totalTable += tableList.size();
+            }finally {
+                lock.unlock();
+            }
+            tableIterator.set(tableList.iterator());
+            System.out.println(Thread.currentThread().getName());
+        } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             throw new IOException("获取table列表异常", e);
         }
+        waitWhile("#1");
     }
 
+    protected void waitWhile(String latchName){
+        BaseLatch latch = new LocalLatch(jobId + latchName);
+        latch.addOne();
+        latch.waitUntil(numTasks);
+    }
+
+    /**
+     * 按照database进行划分，可能与channel数不同
+     * @param splitNumber 最小分片数
+     * @return 分片
+     */
     @Override
+    @SuppressWarnings("unchecked")
     protected InputSplit[] createInputSplitsInternal(int splitNumber) {
-        InputSplit[] inputSplits = new InputSplit[splitNumber];
-        for (int i = 0; i < splitNumber; i++) {
-            inputSplits[i] = new GenericInputSplit(i, splitNumber);
+        InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
+        for (int index = 0; index < dbTableList.size(); index++) {
+            Map<String, Object> dbTables = dbTableList.get(index);
+            String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
+            if(StringUtils.isNotEmpty(dbName)){
+                List<String> tables = (List<String>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
+                inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
+            }
         }
+        numTasks = inputSplits.length;
         return inputSplits;
     }
 
@@ -150,11 +133,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.next();
+        String tableName = tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
         metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
-        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, ++resolvedTable);
+        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, resolvedTable.incrementAndGet());
 
         try {
             metaData.putAll(queryMetaData(tableName));
@@ -168,27 +151,13 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
-        if(!tableIterator.hasNext()){
-            metadataDbTableList.increPosition();
-            if(metadataDbTableList.reachEndPosition()){
-                return true;
-            }else {
-                try {
-                    initProperty();
-                }catch (SQLException e){
-                    LOG.error(ExceptionUtil.getErrorMessage(e));
-                    throw new IOException(e.getCause());
-                }
-                return false;
-            }
-        }else {
-            return false;
-        }
+    public boolean reachedEnd() {
+        return !tableIterator.get().hasNext();
     }
 
     @Override
     protected void closeInternal() throws IOException {
+        tableIterator.remove();
         Statement st = statement.get();
         if (null != st) {
             try {
@@ -227,27 +196,10 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * 查询所有database名称
-     *
-     * @return database名称列表
-     * @throws SQLException e
-     */
-    protected List<String> showDatabases() throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(ResultSet rs = statement.get().executeQuery(MetaDataCons.SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                dbNameList.add(rs.getString(1));
-            }
-        }
-
-        return dbNameList;
-    }
-
-    /**
      * 查询当前数据库下所有的表
      *
      * @return  表名列表
-     * @throws SQLException SQL异常
+     * @throws SQLException 异常
      */
     protected abstract List<String> showTables() throws SQLException;
 
@@ -255,7 +207,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * 切换当前database
      *
      * @param databaseName 数据库名
-     * @throws SQLException SQL异常
+     * @throws SQLException 异常
      */
     protected abstract void switchDatabase(String databaseName) throws SQLException;
 
@@ -263,7 +215,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * 根据表名查询元数据信息
      * @param tableName 表名
      * @return 元数据信息
-     * @throws SQLException SQL异常
+     * @throws SQLException 异常
      */
     protected abstract Map<String, Object> queryMetaData(String tableName) throws SQLException;
 

@@ -23,7 +23,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +42,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_DATABASES;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
 
 /**
@@ -53,18 +51,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
  */
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
-
-    @Override
-    protected List<String> showDatabases() throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(ResultSet rs = statement.get().executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                dbNameList.add(rs.getString(1));
-            }
-        }
-
-        return dbNameList;
-    }
 
     @Override
     protected List<String> showTables() throws SQLException {

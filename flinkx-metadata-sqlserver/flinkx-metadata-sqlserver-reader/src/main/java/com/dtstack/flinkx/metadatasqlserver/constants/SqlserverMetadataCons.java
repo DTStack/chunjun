@@ -27,7 +27,9 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 
 public class SqlserverMetadataCons extends MetaDataCons {
 
-    public static final String SQL_SHOW_DATABASES = "SELECT name FROM sys.databases";
+    public static final String KEY_DATABASE = "database";
 
     public static final String SQL_SWITCH_DATABASE = "USE %s";
+    //拼接成schema.table
+    public static final String SQL_SHOW_TABLES = "SELECT OBJECT_SCHEMA_NAME(object_id, DB_ID()) + '.' + name as name FROM sys.tables";
 }

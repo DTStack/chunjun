@@ -18,13 +18,16 @@
 
 package com.dtstack.flinkx.metadatasqlserver.inputformat;
 
+import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlserverMetadataCons;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.flink.types.Row;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,24 +39,42 @@ import java.util.Map;
 public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     @Override
-    protected List<String> showDatabases() throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(ResultSet rs = statement.get().executeQuery(SqlserverMetadataCons.SQL_SHOW_DATABASES)) {
+    protected List<String> showTables() throws SQLException {
+        List<String> tableNameList = new LinkedList<>();
+        try (ResultSet rs = statement.get().executeQuery(SqlserverMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
-                dbNameList.add(rs.getString(1));
+                tableNameList.add(rs.getString(1));
             }
         }
-        return dbNameList;
-    }
-
-    @Override
-    protected List<String> showTables() throws SQLException {
-        return null;
+        return tableNameList;
     }
 
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
         statement.get().execute(String.format(SqlserverMetadataCons.SQL_SWITCH_DATABASE, quote(databaseName)));
+    }
+
+    @Override
+    protected Row nextRecordInternal(Row row) {
+        Map<String, Object> metaData = new HashMap<>(16);
+        metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
+
+        String tableName = tableIterator.next();
+        metaData.put(SqlserverMetadataCons.KEY_DATABASE, currentDb.get());
+        metaData.put(MetaDataCons.KEY_SCHEMA, tableName);
+        metaData.put(MetaDataCons.KEY_TABLE, tableName);
+        metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
+        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, resolvedTable.incrementAndGet());
+
+        try {
+            metaData.putAll(queryMetaData(tableName));
+            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
+        } catch (Exception e) {
+            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
+            metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
+        }
+
+        return Row.of(metaData);
     }
 
     @Override
@@ -70,6 +91,6 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected String quote(String name) {
-        return name;
+        return "'" + name + "'";
     }
 }
