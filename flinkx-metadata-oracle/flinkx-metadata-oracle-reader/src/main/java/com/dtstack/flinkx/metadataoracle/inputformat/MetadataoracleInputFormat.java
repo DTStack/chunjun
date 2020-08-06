@@ -21,10 +21,8 @@ package com.dtstack.flinkx.metadataoracle.inputformat;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +42,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_DATABASES;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
 
 /**
