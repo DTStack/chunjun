@@ -174,28 +174,28 @@ public class KerberosUtil {
         String localDir = LOCAL_CACHE_DIR + SP + localDirName;
         localDir = createDir(localDir);
         String fileLocalPath = localDir + SP + fileName;
+        // 更新sftp文件对应的local文件
         if (fileExists(fileLocalPath)) {
-            return fileLocalPath;
-        } else {
-            SftpHandler handler = null;
-            try {
-                handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
-                if(handler.isFileExist(filePathOnSftp)){
-                    handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
-
-                    LOG.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
-                    return fileLocalPath;
-                }
-            } catch (Exception e){
-                throw new RuntimeException(e);
-            } finally {
-                if (handler != null){
-                    handler.close();
-                }
-            }
-
-            throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
+            delectFile(fileLocalPath);
         }
+        SftpHandler handler = null;
+        try {
+            handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
+            if(handler.isFileExist(filePathOnSftp)){
+                handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
+
+                LOG.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
+                return fileLocalPath;
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        } finally {
+            if (handler != null){
+                handler.close();
+            }
+        }
+
+        throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
     }
 
     private static String findPrincipalFromKeytab(String keytabFile) {
@@ -208,6 +208,17 @@ public class KerberosUtil {
         }
 
         return null;
+    }
+
+    private static void delectFile(String filePath){
+        if (fileExists(filePath)) {
+            File file = new File(filePath);
+            if(file.delete()){
+                LOG.info(file.getName() + " is delected！");
+            }else{
+                LOG.error("delected " + file.getName() + " failed！");
+            }
+        }
     }
 
     private static boolean fileExists(String filePath) {
