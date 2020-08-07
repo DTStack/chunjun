@@ -17,49 +17,54 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
+import org.apache.avro.data.Json;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.hadoop.hdfs.web.JsonUtil;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public class MetadataDbTableList {
+public class MetadataInputSplit implements InputSplit {
 
     private static final long serialVersionUID = -4483633039887822171L;
 
-    protected List<Map<String, Object>> dbTableList;
+    private int splitNumber;
 
-    protected int position = 0;
+    private String dbName;
 
-    public MetadataDbTableList(List<Map<String, Object>> dbTableList) {
-        this.dbTableList = dbTableList;
+    private List<String> tableList;
+
+    public MetadataInputSplit(int splitNumber, String dbName, List<String> tableList) {
+        this.splitNumber = splitNumber;
+        this.dbName = dbName;
+        this.tableList = tableList;
     }
 
     public String getDbName() {
-        return (String)dbTableList.get(position).get(MetaDataCons.KEY_DB_NAME);
+        return dbName;
     }
 
     public List<String> getTableList() {
-        return (List<String>) dbTableList.get(position).get(MetaDataCons.KEY_TABLE_LIST);
+        return tableList;
     }
-
-    public void increPosition(){
-        position++;
-    }
-
-    public boolean reachEndPosition(){
-        return position==dbTableList.size();
-    }
-
 
     @Override
     public String toString() {
-        return "tableList=" + new Gson().toJson(dbTableList) + ", position=" + position;
+        return "MetadataInputSplit{" +
+                "splitNumber=" + splitNumber +
+                ", dbName='" + dbName + '\'' +
+                ", tableList=" + GsonUtil.GSON.toJson(tableList) +
+                '}';
     }
 
+    @Override
+    public int getSplitNumber() {
+        return splitNumber;
+    }
 }
+
