@@ -21,13 +21,14 @@ package com.dtstack.flinkx.metadatasqlserver.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadatasqlserver.constants.SqlserverMetadataCons;
+import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,7 +48,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     @Override
     protected List<String> showTables() throws SQLException {
         List<String> tableNameList = new LinkedList<>();
-        try (ResultSet rs = statement.get().executeQuery(SqlserverMetadataCons.SQL_SHOW_TABLES)) {
+        try (ResultSet rs = statement.get().executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
                 tableNameList.add(rs.getString(1));
             }
@@ -57,8 +58,8 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
-        // use database 不需要加quote
-        statement.get().execute(String.format(SqlserverMetadataCons.SQL_SWITCH_DATABASE, databaseName));
+        // use database不可以加quote
+        statement.get().execute(String.format(SqlServerMetadataCons.SQL_SWITCH_DATABASE, databaseName));
     }
 
     @Override
@@ -70,9 +71,8 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         // sqlServer 的schema不允许带'.'
         schema = tableName.substring(0,tableName.indexOf(ConstantValue.POINT_SYMBOL));
         table = tableName.substring(tableName.indexOf(ConstantValue.POINT_SYMBOL)+1);
-        metaData.put(SqlserverMetadataCons.KEY_DATABASE, currentDb.get());
-        metaData.put(MetaDataCons.KEY_SCHEMA, schema);
-        metaData.put(MetaDataCons.KEY_TABLE, table);
+        metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
+        metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
@@ -87,21 +87,88 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
-        Map<String, Object> tableProperties = queryTableProp(tableName);
+        Map<String, Object> tableProperties = queryTableProp();
         result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableProperties);
+        List<Map<String, Object>> column = queryColumn();
+        result.put(MetaDataCons.KEY_COLUMN, column);
+        String partitionColumn = queryPartitionColumn();
+        
+        List<Map<String, String>> index = queryIndex();
+        result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
+        List<Map<String, String>> partition = queryPartition();
+        result.put(MetaDataCons.KEY_PARTITIONS, partition);
         return result;
     }
 
-    protected Map<String, Object> queryTableProp(String tableName) throws SQLException{
-        String sql = String.format(SqlserverMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql);){
-
-        } catch (SQLException e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e));
-            throw e;
+    protected List<Map<String, String>> queryPartition() throws SQLException{
+        List<Map<String, String>> index = new ArrayList<>();
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while (resultSet.next()){
+                Map<String, String> perIndex = new HashMap<>(16);
+                perIndex.put(MetaDataCons.KEY_COLUMN_NAME, resultSet.getString(1));
+                perIndex.put(SqlServerMetadataCons.KEY_ROWS,  resultSet.getString(2));
+                perIndex.put(SqlServerMetadataCons.KEY_CREATE_TIME, resultSet.getString(3));
+                perIndex.put(SqlServerMetadataCons.KEY_FILE_GROUP_NAME, resultSet.getString(4));
+                index.add(perIndex);
+            }
         }
+        return index;
+    }
 
-        return null;
+    protected List<Map<String, String>> queryIndex() throws SQLException{
+        List<Map<String, String>> index = new ArrayList<>();
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_INDEX, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while (resultSet.next()){
+                Map<String, String> perIndex = new HashMap<>(16);
+                perIndex.put(MetaDataCons.KEY_COLUMN_NAME, resultSet.getString(1));
+                perIndex.put(SqlServerMetadataCons.KEY_COLUMN_NAME,  resultSet.getString(2));
+                perIndex.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(3));
+                index.add(perIndex);
+            }
+        }
+        return index;
+    }
+
+    protected String queryPartitionColumn() throws SQLException{
+        String partitionColumn = null;
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION_COLUMN, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while (resultSet.next()){
+                partitionColumn = resultSet.getString(1);
+            }
+        }
+        return partitionColumn;
+    }
+
+    protected List<Map<String, Object>> queryColumn() throws SQLException {
+        List<Map<String, Object>> column = new ArrayList<>();
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_COLUMN, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while(resultSet.next()){
+                Map<String, Object> perColumn = new HashMap<>(16);
+                perColumn.put(MetaDataCons.KEY_COLUMN_NAME, resultSet.getString(1));
+                perColumn.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(2));
+                perColumn.put(MetaDataCons.KEY_COLUMN_COMMENT, resultSet.getString(3));
+                perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, column.size()+1);
+                column.add(perColumn);
+            }
+        }
+        return column;
+    }
+
+    protected Map<String, Object> queryTableProp() throws SQLException{
+        Map<String, Object> tableProperties = new HashMap<>(16);
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql);){
+            while(resultSet.next()){
+                tableProperties.put(SqlServerMetadataCons.KEY_CREATE_TIME, resultSet.getString(1));
+                tableProperties.put(SqlServerMetadataCons.KEY_ROWS, resultSet.getString(2));
+                tableProperties.put(SqlServerMetadataCons.KEY_TOTAL_SIZE, resultSet.getString(3));
+            }
+        }
+        return tableProperties;
     }
 
     @Override
