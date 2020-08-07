@@ -32,4 +32,8 @@ public class SqlserverMetadataCons extends MetaDataCons {
     public static final String SQL_SWITCH_DATABASE = "USE %s";
     //拼接成schema.table
     public static final String SQL_SHOW_TABLES = "SELECT OBJECT_SCHEMA_NAME(object_id, DB_ID()) + '.' + name as name FROM sys.tables";
+
+    public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.name, OBJECT_SCHEMA_NAME(a.id, DB_ID()) AS 'schema', a.crdate, a.refdate, b.rows, rtrim(8*dpages) used\n" +
+            "FROM sysobjects AS a INNER JOIN sysindexes AS b ON a.id = b.id\n" +
+            "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s and OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s";
 }

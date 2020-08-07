@@ -18,12 +18,14 @@
 
 package com.dtstack.flinkx.metadatasqlserver.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlserverMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.types.Row;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -38,6 +40,10 @@ import java.util.Map;
 
 public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
+    protected String schema;
+
+    protected String table;
+
     @Override
     protected List<String> showTables() throws SQLException {
         List<String> tableNameList = new LinkedList<>();
@@ -51,29 +57,30 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
-        statement.get().execute(String.format(SqlserverMetadataCons.SQL_SWITCH_DATABASE, quote(databaseName)));
+        // use database 不需要加quote
+        statement.get().execute(String.format(SqlserverMetadataCons.SQL_SWITCH_DATABASE, databaseName));
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) {
+    protected Row nextRecordInternal(Row row) throws IOException{
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.next();
+        String tableName = tableIterator.get().next();
+        // sqlServer 的schema不允许带'.'
+        schema = tableName.substring(0,tableName.indexOf(ConstantValue.POINT_SYMBOL));
+        table = tableName.substring(tableName.indexOf(ConstantValue.POINT_SYMBOL)+1);
         metaData.put(SqlserverMetadataCons.KEY_DATABASE, currentDb.get());
-        metaData.put(MetaDataCons.KEY_SCHEMA, tableName);
-        metaData.put(MetaDataCons.KEY_TABLE, tableName);
-        metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
-        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, resolvedTable.incrementAndGet());
-
+        metaData.put(MetaDataCons.KEY_SCHEMA, schema);
+        metaData.put(MetaDataCons.KEY_TABLE, table);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
         }
-
         return Row.of(metaData);
     }
 
@@ -81,11 +88,19 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
         Map<String, Object> tableProperties = queryTableProp(tableName);
-
+        result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableProperties);
         return result;
     }
 
-    protected Map<String, Object> queryTableProp(String tableName){
+    protected Map<String, Object> queryTableProp(String tableName) throws SQLException{
+        String sql = String.format(SqlserverMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
+        try(ResultSet resultSet = statement.get().executeQuery(sql);){
+
+        } catch (SQLException e) {
+            LOG.error(ExceptionUtil.getErrorMessage(e));
+            throw e;
+        }
+
         return null;
     }
 

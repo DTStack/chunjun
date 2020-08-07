@@ -17,8 +17,11 @@
  */
 package com.dtstack.flinkx.metadata.inputformat;
 
+import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
+import org.apache.avro.data.Json;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.hadoop.hdfs.web.JsonUtil;
 
 import java.util.List;
 
@@ -55,7 +58,7 @@ public class MetadataInputSplit implements InputSplit {
         return "MetadataInputSplit{" +
                 "splitNumber=" + splitNumber +
                 ", dbName='" + dbName + '\'' +
-                ", tableList=" + new Gson().toJson(tableList) +
+                ", tableList=" + GsonUtil.GSON.toJson(tableList) +
                 '}';
     }
 
