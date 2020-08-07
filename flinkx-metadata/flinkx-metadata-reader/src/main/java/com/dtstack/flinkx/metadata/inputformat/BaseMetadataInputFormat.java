@@ -18,8 +18,6 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.latch.BaseLatch;
-import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -37,9 +35,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : tiezhu
@@ -65,14 +60,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static transient ThreadLocal<Iterator<String>> tableIterator = new ThreadLocal<>();
 
-    protected static int numTasks;
-
-    protected static int totalTable = 0;
-
-    public static AtomicInteger resolvedTable = new AtomicInteger(0);
-
-    protected static Lock lock =  new ReentrantLock();
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
@@ -85,24 +72,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
             }
-            lock.lock();
-            try{
-                totalTable += tableList.size();
-            }finally {
-                lock.unlock();
-            }
             tableIterator.set(tableList.iterator());
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             throw new IOException("获取table列表异常", e);
         }
-        waitWhile("#1");
-    }
-
-    protected void waitWhile(String latchName){
-        BaseLatch latch = new LocalLatch(jobId + latchName);
-        latch.addOne();
-        latch.waitUntil(numTasks);
     }
 
     /**
@@ -122,7 +96,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
             }
         }
-        numTasks = inputSplits.length;
         return inputSplits;
     }
 
@@ -134,8 +107,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         String tableName = tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
-        metaData.put(MetaDataCons.KEY_TOTAL_TABLE, totalTable);
-        metaData.put(MetaDataCons.KEY_RESOLVED_TABLE, resolvedTable.incrementAndGet());
 
         try {
             metaData.putAll(queryMetaData(tableName));
