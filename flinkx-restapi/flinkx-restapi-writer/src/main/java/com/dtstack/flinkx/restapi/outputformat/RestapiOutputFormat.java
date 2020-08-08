@@ -23,6 +23,7 @@ import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -51,6 +52,8 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
     protected Map<String, Object> body;
 
     protected Map<String, String> header;
+
+    protected static final int DEFAULT_TIME_OUT = 300000;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -140,6 +143,11 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
                              String url) throws IOException {
         LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
+        //设置请求和传输超时时间
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(DEFAULT_TIME_OUT).setConnectionRequestTimeout(DEFAULT_TIME_OUT)
+                .setSocketTimeout(DEFAULT_TIME_OUT).build();
+        request.setConfig(requestConfig);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
         // 重试之后返回状态码不为200
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
