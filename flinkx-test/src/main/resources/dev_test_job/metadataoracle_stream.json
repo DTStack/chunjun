@@ -4,12 +4,7 @@
       {
         "reader": {
           "parameter": {
-            "dbList":[
-              {
-                "dbName": "TUDOU",
-                "tableList": []
-              }
-            ],
+            "dbList": [{"dbName":"TUDOU"}],
             "jdbcUrl": "jdbc:oracle:thin:@kudu5:1521:helowin",
             "username": "tudou",
             "password": "abc123"
@@ -41,7 +36,7 @@
       },
       "speed": {
         "bytes": 1048576,
-        "channel": 1
+        "channel": 2
       }
     }
   }
