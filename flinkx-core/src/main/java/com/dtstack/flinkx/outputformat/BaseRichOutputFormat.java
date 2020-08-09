@@ -350,9 +350,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
             if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
                 LOG.error(e.getMessage());
             }
-            if(DtLogger.isEnableTrace()){
-                LOG.trace("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
-            }
+            LOG.error("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
         }
     }
 
