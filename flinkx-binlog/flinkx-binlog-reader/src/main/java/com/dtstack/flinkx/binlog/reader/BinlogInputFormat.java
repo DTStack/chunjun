@@ -24,6 +24,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.base.Joiner;
@@ -50,6 +51,8 @@ import java.util.stream.Collectors;
 public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
+
+    private final String DRIVER_NAME ="com.mysql.jdbc.Driver";
 
     private BinlogConfig binlogConfig;
 
@@ -81,6 +84,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInputFormat() throws IOException {
+        ClassUtil.forName(DRIVER_NAME, getClass().getClassLoader());
         super.openInputFormat();
 
         LOG.info("binlog configure...");
