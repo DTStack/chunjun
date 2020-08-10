@@ -42,6 +42,8 @@ import java.util.Map;
  */
 public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected String dbUrl;
 
     protected String username;

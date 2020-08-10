@@ -32,6 +32,7 @@ public class SqlServerMetadataCons extends MetaDataCons {
     public static final String KEY_CREATE_TIME = "createTime";
     public static final String KEY_ROWS = "rows";
     public static final String KEY_TOTAL_SIZE = "totalSize";
+    public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_COLUMN_NAME = "columnName";
     public static final String KEY_FILE_GROUP_NAME = "fileGroupName";
 

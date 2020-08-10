@@ -23,6 +23,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -40,6 +41,8 @@ import java.util.Map;
  */
 
 public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
+
+    private static final long serialVersionUID = 1L;
 
     protected String schema;
 
@@ -90,9 +93,21 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> tableProperties = queryTableProp();
         result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableProperties);
         List<Map<String, Object>> column = queryColumn();
+        String partitionKey = queryPartitionColumn();
+        List<Map<String, Object>> partitionColumn = new ArrayList<>();
+        if(StringUtils.isEmpty(partitionKey)){
+            column.removeIf((Map<String, Object> perColumn)->
+            {
+                if(StringUtils.equals(partitionKey, (String) perColumn.get(MetaDataCons.KEY_COLUMN_NAME))){
+                    partitionColumn.add(perColumn);
+                    return true;
+                }else {
+                    return false;
+                }
+            });
+        }
+        result.put(SqlServerMetadataCons.KEY_PARTITION_COLUMN, partitionColumn);
         result.put(MetaDataCons.KEY_COLUMN, column);
-        String partitionColumn = queryPartitionColumn();
-        
         List<Map<String, String>> index = queryIndex();
         result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
         List<Map<String, String>> partition = queryPartition();
