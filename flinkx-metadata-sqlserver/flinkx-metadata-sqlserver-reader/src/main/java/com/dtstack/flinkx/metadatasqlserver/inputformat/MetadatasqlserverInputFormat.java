@@ -95,7 +95,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         List<Map<String, Object>> column = queryColumn();
         String partitionKey = queryPartitionColumn();
         List<Map<String, Object>> partitionColumn = new ArrayList<>();
-        if(StringUtils.isEmpty(partitionKey)){
+        if(StringUtils.isNotEmpty(partitionKey)){
             column.removeIf((Map<String, Object> perColumn)->
             {
                 if(StringUtils.equals(partitionKey, (String) perColumn.get(MetaDataCons.KEY_COLUMN_NAME))){
@@ -147,14 +147,14 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     }
 
     protected String queryPartitionColumn() throws SQLException{
-        String partitionColumn = null;
+        String partitionKey = null;
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION_COLUMN, quote(table), quote(schema));
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while (resultSet.next()){
-                partitionColumn = resultSet.getString(1);
+                partitionKey = resultSet.getString(1);
             }
         }
-        return partitionColumn;
+        return partitionKey;
     }
 
     protected List<Map<String, Object>> queryColumn() throws SQLException {
