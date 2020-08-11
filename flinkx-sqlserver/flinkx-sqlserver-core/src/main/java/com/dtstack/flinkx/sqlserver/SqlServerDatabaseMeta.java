@@ -76,7 +76,7 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
         return strings.stream().map(i -> {
             StringBuffer stringBuffer = new StringBuffer(64);
             return stringBuffer.append("\"").append(i).append("\"").toString();
-        }).collect(Collectors.joining("."));
+        }).collect(Collectors.joining(ConstantValue.POINT_SYMBOL));
 
     }
 
