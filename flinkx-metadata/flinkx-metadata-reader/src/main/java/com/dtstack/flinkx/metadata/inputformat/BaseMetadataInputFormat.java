@@ -42,6 +42,8 @@ import java.util.Map;
  */
 public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected String dbUrl;
 
     protected String username;
@@ -100,7 +102,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) {
+    protected Row nextRecordInternal(Row row) throws IOException{
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 

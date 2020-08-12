@@ -52,6 +52,8 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
     protected List<String> showTables() throws SQLException {
         List<String> tableNameList = new LinkedList<>();
