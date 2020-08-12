@@ -864,6 +864,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             ps.setQueryTimeout(queryTimeOut);
             LOG.info("update querySql, sql = {}", querySql);
         }else{
+            LOG.info("no record in database, execute query sql = {}", querySql);
             ps.close();
         }
     }
