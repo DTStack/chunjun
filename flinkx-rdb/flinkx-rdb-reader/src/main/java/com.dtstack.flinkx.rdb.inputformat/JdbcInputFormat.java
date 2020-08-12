@@ -99,6 +99,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected boolean hasNext;
 
+    protected boolean getData;
+
+    protected boolean firstQuery = true;
+
     protected int columnCount;
 
     protected String table;
@@ -173,7 +177,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 if (StringUtils.isNotEmpty(startLocation)) {
                     endLocationAccumulator.add(Long.parseLong(startLocation));
                 }
-                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
+                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType())
+                        || "date".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
             }
@@ -273,7 +278,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 if(incrementVal != null) {
                     if((incrementVal instanceof java.util.Date
                             || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
-                        incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName());
+                        incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName()).getTime();
                     }
                 }
                 String location;
@@ -796,17 +801,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
-        if(StringUtils.isNotBlank(startLocation)){
-            if(isTimestamp){
-                ps.setTimestamp(1, Timestamp.valueOf(startLocation));
-            }else{
-                ps.setInt(1, Integer.parseInt(startLocation));
-            }
-            resultSet = ps.executeQuery();
-            hasNext = resultSet.next();
+        if(isTimestamp){
+            ps.setTimestamp(1, new Timestamp(Long.parseLong(startLocation)));
         }else{
-            queryStartLocation();
+            ps.setLong(1, Long.parseLong(startLocation));
         }
+        resultSet = ps.executeQuery();
+        hasNext = resultSet.next();
     }
 
     /**
@@ -821,7 +822,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (incrementConfig.isPolling()) {
             if(StringUtils.isBlank(startLocation)){
                 LOG.info("startLocation = null, execute sql = {}", querySql);
-                queryStartLocation();
+                while(!getData){
+                    queryStartLocation();
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
+                    } catch (InterruptedException e) {
+                        LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
+                    }
+                }
             }else{
                 ps = dbConn.prepareStatement(querySql);
                 ps.setFetchSize(fetchSize);
@@ -840,16 +848,23 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     private void queryStartLocation() throws SQLException{
         ps = dbConn.prepareStatement(querySql,ResultSet.TYPE_FORWARD_ONLY,ResultSet.CONCUR_READ_ONLY);
         ps.setFetchSize(fetchSize);
-        ps.setFetchDirection(ResultSet.FETCH_REVERSE);
+        if(firstQuery){
+            ps.setFetchDirection(ResultSet.FETCH_REVERSE);
+            firstQuery = false;
+        }
         ps.setQueryTimeout(queryTimeOut);
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
         if(hasNext){
+            getData = true;
             querySql = querySql + "and " + databaseInterface.quoteColumn(incrementConfig.getColumnName()) + " > ?";
             ps = dbConn.prepareStatement(querySql);
+            ps.setFetchDirection(ResultSet.FETCH_REVERSE);
             ps.setFetchSize(fetchSize);
             ps.setQueryTimeout(queryTimeOut);
             LOG.info("update querySql, sql = {}", querySql);
+        }else{
+            ps.close();
         }
     }
 
