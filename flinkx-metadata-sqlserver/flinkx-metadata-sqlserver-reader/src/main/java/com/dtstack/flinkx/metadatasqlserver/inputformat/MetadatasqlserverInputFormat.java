@@ -23,6 +23,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
@@ -71,11 +72,11 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
         String tableName = tableIterator.get().next();
-        // sqlServer 的schema不允许带'.'
-        schema = tableName.substring(0,tableName.indexOf(ConstantValue.POINT_SYMBOL));
-        table = tableName.substring(tableName.indexOf(ConstantValue.POINT_SYMBOL)+1);
+        List<String> list = StringUtil.splitIgnoreQuota(tableName,SqlServerMetadataCons.DEFAULT_DELIMITER);
+        schema = list.get(0);
+        table = list.get(1);
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
-        metaData.put(MetaDataCons.KEY_TABLE, tableName);
+        metaData.put(MetaDataCons.KEY_TABLE, schema + ConstantValue.POINT_SYMBOL + table);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
@@ -183,6 +184,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
                 tableProperties.put(SqlServerMetadataCons.KEY_TOTAL_SIZE, resultSet.getString(3));
             }
         }
+        tableProperties.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
         return tableProperties;
     }
 

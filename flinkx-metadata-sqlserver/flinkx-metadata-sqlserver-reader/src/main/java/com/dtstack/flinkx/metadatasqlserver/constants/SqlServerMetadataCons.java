@@ -35,12 +35,14 @@ public class SqlServerMetadataCons extends MetaDataCons {
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_COLUMN_NAME = "columnName";
     public static final String KEY_FILE_GROUP_NAME = "fileGroupName";
+    public static final String KEY_TABLE_SCHEMA = "tableSchema";
+    public static final char DEFAULT_DELIMITER = '.';
 
     public static final String SQL_SWITCH_DATABASE = "USE %s";
     /**
      * 拼接成schema.table
      */
-    public static final String SQL_SHOW_TABLES = "SELECT OBJECT_SCHEMA_NAME(object_id, DB_ID()) + '.' + name as name FROM sys.tables";
+    public static final String SQL_SHOW_TABLES = "SELECT '[' + OBJECT_SCHEMA_NAME(object_id, DB_ID()) + ']' + '.' + '[' + name + ']' as name FROM sys.tables";
 
     public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.crdate, b.rows, rtrim(8*dpages) used \n" +
             "FROM sysobjects AS a INNER JOIN sysindexes AS b ON a.id = b.id \n" +
