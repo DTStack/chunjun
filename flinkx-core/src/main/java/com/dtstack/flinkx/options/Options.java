@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.options;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
@@ -25,6 +26,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
+
+import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
 
 /**
  * This class define commandline options for the Launcher program
@@ -96,11 +99,12 @@ public class Options {
             if(StringUtils.isNotBlank(yarnconf)){
                 flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
             }
-            if("classpath".equalsIgnoreCase(pluginLoadMode)){
+            if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
             }else{
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
+            flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
         }
         return flinkConfiguration;
     }
