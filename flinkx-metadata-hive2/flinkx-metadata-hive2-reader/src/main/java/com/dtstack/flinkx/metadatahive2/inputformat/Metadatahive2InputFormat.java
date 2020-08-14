@@ -80,6 +80,8 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_
  */
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected Map<String, Object> hadoopConfig;
 
     String paraFirst = KEY_COL_NAME;
