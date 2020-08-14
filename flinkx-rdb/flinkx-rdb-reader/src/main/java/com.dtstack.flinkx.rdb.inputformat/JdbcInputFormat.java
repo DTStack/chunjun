@@ -730,33 +730,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (columnVal == null) {
             return null;
         }
-
-        if (ColumnType.isTimeType(columnType)) {
-            if (columnVal instanceof Long) {
-                location = columnVal.toString();
-            } else if (columnVal instanceof Timestamp) {
-                long time = ((Timestamp) columnVal).getTime() / 1000;
-
-                String nanosStr = String.valueOf(((Timestamp) columnVal).getNanos());
-                if (nanosStr.length() == DbUtil.NANOS_PART_LENGTH) {
-                    location = time + nanosStr;
-                } else {
-                    String fillZeroStr = StringUtils.repeat("0", DbUtil.NANOS_PART_LENGTH - nanosStr.length());
-                    location = time + fillZeroStr + nanosStr;
-                }
-            } else {
-                Date date = DateUtil.stringToDate(columnVal.toString(), null);
-                String fillZeroStr = StringUtils.repeat("0", 6);
-                long time = date.getTime();
-                location = time + fillZeroStr;
-            }
-        } else if (ColumnType.isNumberType(columnType)) {
-            location = String.valueOf(columnVal);
-        } else {
-            location = String.valueOf(columnVal);
-        }
-
-        return location;
+        return columnVal.toString();
     }
 
     /**
@@ -849,7 +823,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     private void queryStartLocation() throws SQLException{
-        ps = dbConn.prepareStatement(querySql + " ORDER BY \"" + incrementConfig.getColumnName() +ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL, ResultSet.TYPE_FORWARD_ONLY,ResultSet.CONCUR_READ_ONLY);
+        StringBuilder stringBuilder = new StringBuilder();
+        ps = dbConn.prepareStatement(
+                stringBuilder.append(querySql).append("ORDER BY ").append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL).append(incrementConfig.getColumnName())
+                .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL).toString(), ResultSet.TYPE_FORWARD_ONLY,ResultSet.CONCUR_READ_ONLY);
         ps.setFetchSize(fetchSize);
         if(firstQuery){
             ps.setFetchDirection(ResultSet.FETCH_REVERSE);
