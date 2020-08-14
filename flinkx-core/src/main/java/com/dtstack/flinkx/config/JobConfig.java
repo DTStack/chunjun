@@ -19,13 +19,10 @@
 package com.dtstack.flinkx.config;
 
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.MapUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +47,7 @@ public class JobConfig extends AbstractConfig {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
 
+    @SuppressWarnings("unchecked")
     public JobConfig(Map<String, Object> map) {
         super(map);
         setting = new SettingConfig((Map<String, Object>) map.get(KEY_SETTING_CONFIG));
@@ -60,18 +58,14 @@ public class JobConfig extends AbstractConfig {
                 content.add(new ContentConfig(contentMap));
                 //隐藏密码信息
                 Map<String, Object> readerConfig = (Map<String, Object>)contentMap.get(KEY_READER_CONFIG);
-                if(CollectionUtils.isNotEmpty(Collections.singleton(readerConfig))){
-                    Map<String, Object> readerParameter = (Map<String, Object>)readerConfig.get(KEY_PARAMETERS);
-                    if(readerParameter.containsKey(KEY_PASSWORD)){
-                        readerParameter.put(KEY_PASSWORD, KEY_CONFUSE_PASSWORD);
-                    }
+                Map<String, Object> readerParameter = (Map<String, Object>)readerConfig.get(KEY_PARAMETERS);
+                if(readerParameter.containsKey(KEY_PASSWORD)){
+                    readerParameter.put(KEY_PASSWORD, KEY_CONFUSE_PASSWORD);
                 }
                 Map<String, Object> writerConfig = (Map<String, Object>)contentMap.get(KEY_WRITER_CONFIG);
-                if(CollectionUtils.isNotEmpty(Collections.singleton(writerConfig))){
-                    Map<String, Object> writerParameter = (Map<String, Object>)writerConfig.get(KEY_PARAMETERS);
-                    if(writerParameter.containsKey(KEY_PASSWORD)){
-                        writerParameter.put(KEY_PASSWORD, KEY_CONFUSE_PASSWORD);
-                    }
+                Map<String, Object> writerParameter = (Map<String, Object>)writerConfig.get(KEY_PARAMETERS);
+                if(writerParameter.containsKey(KEY_PASSWORD)){
+                    writerParameter.put(KEY_PASSWORD, KEY_CONFUSE_PASSWORD);
                 }
             }
         }
