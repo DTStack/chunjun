@@ -23,6 +23,7 @@ import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -103,10 +104,11 @@ public class LogMinerConnection {
 
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
 
-            LOG.info("获取连接成功,url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
+            LOG.info("get connection successfully, url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
         } catch (Exception e){
-            LOG.error("获取连接失败，url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
-            throw new RuntimeException(e);
+            String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message, e);
         }
     }
 
@@ -143,9 +145,15 @@ public class LogMinerConnection {
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
+                    LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
                     startSql = SqlUtil.SQL_START_LOG_MINER;
                 }
+            }
+
+            if(logMinerStartStmt != null && !logMinerStartStmt.isClosed()){
+                LOG.info("close resource logMinerStartStmt");
+                logMinerStartStmt.close();
             }
 
             logMinerStartStmt = connection.prepareCall(startSql);
@@ -155,10 +163,11 @@ public class LogMinerConnection {
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("启动Log miner成功,offset:{}， sql:{}", startScn, startSql);
+            LOG.info("start logMiner successfully, offset:{}, sql:{}", startScn, startSql);
         } catch (SQLException e){
-            LOG.error("启动Log miner失败,offset:{}， sql:{}", startScn, startSql);
-            throw new RuntimeException(e);
+            String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message, e);
         }
     }
 
@@ -172,10 +181,11 @@ public class LogMinerConnection {
             logMinerSelectStmt.setLong(1, startScn);
             logMinerData = logMinerSelectStmt.executeQuery();
 
-            LOG.debug("查询Log miner数据,sql:{}, offset:{}", logMinerSelectSql, startScn);
+            LOG.debug("query Log miner data, offset:{}", startScn);
         } catch (SQLException e) {
-            LOG.error("查询Log miner数据出错,sql:{}", logMinerSelectSql);
-            throw new RuntimeException(e);
+            String message = String.format("query logMiner data failed, sql:[%s], e: %s", logMinerSelectSql, ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message, e);
         }
     }
 
@@ -195,19 +205,19 @@ public class LogMinerConnection {
         } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的时间获取对应时间段的日志文件的起始位置
             if (logMinerConfig.getStartTime() == 0) {
-                throw new RuntimeException("读取模式为[time]时必须指定[startTime]");
+                throw new RuntimeException("[startTime] must not be null or empty when readMode is [time]");
             }
 
             startScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
         } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartScn())){
-                throw new RuntimeException("读取模式为[scn]时必须指定[startSCN]");
+                throw new RuntimeException("[startSCN] must not be null or empty when readMode is [scn]");
             }
 
             startScn = Long.parseLong(logMinerConfig.getStartScn());
         } else {
-            throw new RuntimeException("不支持的读取模式:" + logMinerConfig.getReadPosition());
+            throw new RuntimeException("unsupported readMode : " + logMinerConfig.getReadPosition());
         }
 
         return startScn;

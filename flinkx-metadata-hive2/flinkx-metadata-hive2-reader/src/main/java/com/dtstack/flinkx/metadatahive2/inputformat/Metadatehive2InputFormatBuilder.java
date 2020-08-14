@@ -1,7 +1,8 @@
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadatahive2.constants.Hive2Version;
+
+import java.util.Map;
 
 /**
  * Date: 2020/05/26
@@ -18,7 +19,8 @@ public class Metadatehive2InputFormatBuilder extends MetadataInputFormatBuilder 
         this.format = format;
     }
 
-    public void setHive2Server(String source, String version){
-        format.server = new Hive2Version(source, version);
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.hadoopConfig = hadoopConfig;
     }
+
 }

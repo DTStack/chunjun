@@ -111,7 +111,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = PhoenixUtil.getAnalyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns, childFirstClassLoader);
+                descColumnTypeList = PhoenixUtil.analyzeTable(resultSet, metaColumns);
             } else {
                 descColumnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
