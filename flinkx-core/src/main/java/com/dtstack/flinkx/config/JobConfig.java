@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class JobConfig extends AbstractConfig {
                 }
             }
         }
-        LOG.info("configInfo : {}", map.toString());
+        LOG.info("configInfo : {}", GsonUtil.GSON.toJson(map));
     }
 
     public SettingConfig getSetting() {
