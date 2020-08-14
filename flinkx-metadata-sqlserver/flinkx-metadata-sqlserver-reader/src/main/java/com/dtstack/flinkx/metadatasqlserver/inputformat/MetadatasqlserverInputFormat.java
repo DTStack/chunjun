@@ -177,11 +177,12 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     protected Map<String, Object> queryTableProp() throws SQLException{
         Map<String, Object> tableProperties = new HashMap<>(16);
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql);){
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while(resultSet.next()){
                 tableProperties.put(SqlServerMetadataCons.KEY_CREATE_TIME, resultSet.getString(1));
                 tableProperties.put(SqlServerMetadataCons.KEY_ROWS, resultSet.getString(2));
                 tableProperties.put(SqlServerMetadataCons.KEY_TOTAL_SIZE, resultSet.getString(3));
+                tableProperties.put(SqlServerMetadataCons.KEY_COLUMN_COMMENT, resultSet.getString(4));
             }
         }
         tableProperties.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);

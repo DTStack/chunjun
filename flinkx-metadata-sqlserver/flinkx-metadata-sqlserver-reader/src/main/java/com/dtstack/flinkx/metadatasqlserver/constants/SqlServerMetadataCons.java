@@ -44,9 +44,11 @@ public class SqlServerMetadataCons extends MetaDataCons {
      */
     public static final String SQL_SHOW_TABLES = "SELECT '[' + OBJECT_SCHEMA_NAME(object_id, DB_ID()) + ']' + '.' + '[' + name + ']' as name FROM sys.tables";
 
-    public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.crdate, b.rows, rtrim(8*dpages) used \n" +
+    public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.crdate, b.rows, rtrim(8*dpages) used, ep.value \n" +
             "FROM sysobjects AS a INNER JOIN sysindexes AS b ON a.id = b.id \n" +
-            "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s and OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s";
+            "JOIN sys.extended_properties AS ep ON a.id = ep.major_id \n" +
+            "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s and OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s \n" +
+            "AND ep.minor_id = 0 ";
 
     public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment \n" +
             "FROM sys.tables A INNER JOIN sys.columns B ON B.object_id = A.object_id \n" +
