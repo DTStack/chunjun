@@ -24,17 +24,21 @@ import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
+import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import org.apache.avro.data.Json;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+import org.apache.hadoop.hdfs.web.JsonUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.json.JsonWriterSettings;
 
 import java.io.IOException;
 import java.util.*;
@@ -51,11 +55,14 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     private Bson filter;
 
+
     protected MongodbConfig mongodbConfig;
 
     private transient MongoCursor<Document> cursor;
 
     private transient MongoClient client;
+
+    private static final JsonWriterSettings settings = MongodbInputFormatBuilder.getJsonWriterSettings();
 
     @Override
     public void openInputFormat() throws IOException {
@@ -88,12 +95,12 @@ public class MongodbInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         Document doc = cursor.next();
+        // 添加bson的反序列化参数设置
+        doc = Document.parse(doc.toJson(settings));
         if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
-            row = new Row(doc.size());
-            String[] names = doc.keySet().toArray(new String[0]);
-            for (int i = 0; i < names.length; i++) {
-                row.setField(i,doc.get(names[i]));
-            }
+            row = new Row(1);
+            row.setField(0,doc.toJson());
+
         } else {
             row = new Row(metaColumns.size());
             for (int i = 0; i < metaColumns.size(); i++) {
@@ -111,7 +118,22 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
                 if(value instanceof String){
                     value = StringUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                }else if(value instanceof Document){
+                   value= ((Document) value).toJson();
+                }else if(value instanceof List){
+                    ArrayList array = (ArrayList) value;
+                    ArrayList resultList = new ArrayList<String>(array.size());
+                    for (Object obj : array) {
+                        if (obj instanceof Document) {
+                            Document currentDoc = (Document) obj;
+                            resultList.add(doc.toJson());
+                        } else {
+                            resultList.add(obj);
+                        }
+                    }
+                    value=Json.toString(resultList);
                 }
+
 
                 row.setField(i,value);
             }
