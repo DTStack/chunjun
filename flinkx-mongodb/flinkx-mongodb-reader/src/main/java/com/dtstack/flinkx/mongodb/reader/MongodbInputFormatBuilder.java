@@ -21,6 +21,7 @@ package com.dtstack.flinkx.mongodb.reader;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.bson.json.JsonWriterSettings;
 
 import java.util.List;
 
@@ -56,4 +57,19 @@ public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
     }
+
+    // bson转json格式设置
+    public static JsonWriterSettings getJsonWriterSettings() {
+        JsonWriterSettings jsonWriterSettings = JsonWriterSettings.builder()
+                .dateTimeConverter((value, writer) -> writer.writeString(Long.toString(value)))
+                .decimal128Converter((value, writer) -> writer.writeNumber(value.toString()))
+                .objectIdConverter((value, writer) -> writer.writeString(value.toString()))
+                .int32Converter((value, writer) -> writer.writeNumber(value.toString()))
+                .int64Converter((value, writer) -> writer.writeString(Long.toString(value)))
+                .build();
+
+        return jsonWriterSettings;
+    }
+
+
 }
