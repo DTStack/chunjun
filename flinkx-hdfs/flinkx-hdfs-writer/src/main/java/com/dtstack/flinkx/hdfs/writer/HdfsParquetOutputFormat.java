@@ -155,7 +155,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 int colIndex = colIndices[i];
                 if(colIndex > -1){
                     Object valObj = row.getField(colIndex);
-                    if(valObj == null || valObj.toString().length() == 0){
+                    if(valObj == null || (valObj.toString().length() == 0 && !ColumnType.isStringType(fullColumnTypes.get(i)))){
                         continue;
                     }
 
