@@ -196,7 +196,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             while(!hasNext){
                 executeQuery(generalStartLocation);
                 try {
-                    LOG.info("no record matched condition in database, execute query sql = {}", querySql);
+                    //每隔五分钟可以打印
+                    if(System.currentTimeMillis() / 60000 % 60 % 5 == 0){
+                        LOG.info("no record matched condition in database, execute query sql = {}, startLocation = {}", querySql, generalStartLocation);
+                    }
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
@@ -803,7 +806,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
             if(StringUtils.isBlank(startLocation)){
-                LOG.info("startLocation = null, execute sql = {}", querySql);
                 //从数据库中获取起始位置
                 queryStartLocation();
             }else{
