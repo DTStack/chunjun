@@ -62,6 +62,10 @@ public enum ColumnType {
             INT,INTEGER,MEDIUMINT,TINYINT,SMALLINT, BIGINT,LONG,SHORT,DOUBLE, FLOAT,DECIMAL
     );
 
+    public static List<ColumnType> STRING_TYPE = Arrays.asList(
+            STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY
+    );
+
     public static ColumnType fromString(String type) {
         if(type == null) {
             throw new RuntimeException("null ColumnType!");
@@ -98,5 +102,13 @@ public enum ColumnType {
 
     public static boolean isNumberType(String type){
         return NUMBER_TYPE.contains(getType(type));
+    }
+
+    public static boolean isStringType(String type) {
+        return STRING_TYPE.contains(getType(type));
+    }
+
+    public static boolean isStringType(ColumnType type) {
+        return STRING_TYPE.contains(type);
     }
 }
