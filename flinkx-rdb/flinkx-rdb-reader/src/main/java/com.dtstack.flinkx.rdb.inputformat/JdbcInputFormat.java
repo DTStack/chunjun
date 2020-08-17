@@ -430,7 +430,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             @Override
             public void processError(Exception e) {
-                LOG.warn("", e);
+                LOG.warn(ExceptionUtil.getErrorMessage(e));
             }
         });
 
