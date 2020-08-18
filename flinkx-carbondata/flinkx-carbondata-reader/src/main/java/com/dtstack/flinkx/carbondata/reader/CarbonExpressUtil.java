@@ -19,7 +19,6 @@ package com.dtstack.flinkx.carbondata.reader;
 
 
 import org.apache.carbondata.core.metadata.datatype.DataType;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.scan.expression.ColumnExpression;
 import org.apache.carbondata.core.scan.expression.Expression;
 import org.apache.carbondata.core.scan.expression.LiteralExpression;
@@ -30,7 +29,6 @@ import org.apache.carbondata.core.scan.expression.conditional.LessThanEqualToExp
 import org.apache.carbondata.core.scan.expression.conditional.LessThanExpression;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

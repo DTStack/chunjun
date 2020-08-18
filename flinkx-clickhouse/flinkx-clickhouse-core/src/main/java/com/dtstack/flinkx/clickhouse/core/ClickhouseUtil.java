@@ -23,6 +23,7 @@ import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -43,8 +44,10 @@ public class ClickhouseUtil {
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
             try {
                 conn = new BalancedClickhouseDataSource(url, properties).getConnection();
-                conn.createStatement().execute("select 111");
-                failed = false;
+                try (Statement statement = conn.createStatement()) {
+                    statement.execute("select 111");
+                    failed = false;
+                }
             } catch (Exception e) {
                 if (conn != null) {
                     conn.close();

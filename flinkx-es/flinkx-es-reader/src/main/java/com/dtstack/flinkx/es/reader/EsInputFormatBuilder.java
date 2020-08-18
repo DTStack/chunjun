@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.es.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,10 @@ public class EsInputFormatBuilder extends BaseRichInputFormatBuilder {
     protected void checkFormat() {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
+
+        if (format.batchSize > ConstantValue.MAX_BATCH_SIZE) {
+            throw new IllegalArgumentException("批量读取数量不能大于[200000]条");
         }
     }
 }

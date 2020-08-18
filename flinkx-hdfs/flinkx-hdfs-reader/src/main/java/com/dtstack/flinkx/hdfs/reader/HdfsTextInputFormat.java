@@ -22,25 +22,25 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
-import jodd.util.StringUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.Map;
+import java.security.PrivilegedAction;
 
 /**
  * The subclass of HdfsInputFormat which handles text files
@@ -59,12 +59,25 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        try {
-            FileSystemUtil.getFileSystem(hadoopConfig, defaultFs);
-        } catch (Exception e) {
-            throw new IOException(e);
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+            LOG.info("user:{}, ", ugi.getShortUserName());
+            return ugi.doAs(new PrivilegedAction<InputSplit[]>() {
+                @Override
+                public InputSplit[] run() {
+                    try {
+                        return createTextSplit(minNumSplits);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            return createTextSplit(minNumSplits);
         }
+    }
 
+    private InputSplit[] createTextSplit(int minNumSplits) throws IOException{
         JobConf jobConf = buildConfig();
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(jobConf, HdfsPathFilter.class);
 
@@ -88,8 +101,30 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
+
+        if(openKerberos){
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        openHdfsTextReader(inputSplit);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    return null;
+                }
+            });
+        }else{
+            openHdfsTextReader(inputSplit);
+        }
+
+    }
+
+    private void openHdfsTextReader(InputSplit inputSplit) throws IOException{
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
         org.apache.hadoop.mapred.InputSplit fileSplit = hdfsTextInputSplit.getTextSplit();
+        findCurrentPartition(((FileSplit) fileSplit).getPath());
         recordReader = inputFormat.getRecordReader(fileSplit, conf, Reporter.NULL);
         key = new LongWritable();
         value = new Text();
@@ -98,7 +133,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), charsetName);
-        String[] fields = line.split(delimiter);
+        String[] fields = StringUtils.splitPreserveAllTokens(line, delimiter);
 
         if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fields.length);
@@ -121,7 +156,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
                 }
 
                 if(value != null){
-                    value = HdfsUtil.string2col(String.valueOf(value),metaColumn.getType(),metaColumn.getTimeFormat());
+                    value = StringUtil.string2col(String.valueOf(value), metaColumn.getType(),metaColumn.getTimeFormat());
                 }
 
                 row.setField(i, value);
@@ -135,69 +170,7 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
     public boolean reachedEnd() throws IOException {
         key = new LongWritable();
         value = new Text();
-        return isFileEmpty || !recordReader.next(key, value);
-    }
-
-
-    public static class HdfsTextInputFormatBuilder {
-
-        private HdfsTextInputFormat format;
-
-        private HdfsTextInputFormatBuilder() {
-            format = new HdfsTextInputFormat();
-        }
-
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
-            format.hadoopConfig = hadoopConfig;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setInputPaths(String inputPaths) {
-            format.inputPath = inputPaths;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setBytes(long bytes) {
-            format.bytes = bytes;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setMonitorUrls(String monitorUrls) {
-            format.monitorUrls = monitorUrls;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDelimiter(String delimiter) {
-            if(delimiter == null) {
-                delimiter = "\\001";
-            }
-            format.delimiter = delimiter;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setDefaultFs(String defaultFs) {
-            format.defaultFs = defaultFs;
-            return this;
-        }
-
-        public HdfsTextInputFormatBuilder setcharsetName (String charsetName) {
-            if(StringUtil.isNotEmpty(charsetName)) {
-                if(!Charset.isSupported(charsetName)) {
-                    throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-                }
-                this.format.charsetName = charsetName;
-            }
-
-            return this;
-        }
-
-        public HdfsTextInputFormat finish() {
-            return format;
-        }
-    }
-
-    public static HdfsTextInputFormatBuilder buildHdfsTextInputFormat() {
-        return new HdfsTextInputFormatBuilder();
+        return !recordReader.next(key, value);
     }
 
     static class HdfsTextInputSplit implements InputSplit {
@@ -229,5 +202,4 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
             return splitNumber;
         }
     }
-
 }

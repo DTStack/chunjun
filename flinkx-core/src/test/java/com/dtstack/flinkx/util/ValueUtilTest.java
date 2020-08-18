@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.util;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author jiangbo
@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
  */
 public class ValueUtilTest {
 
-    @Test(expectedExceptions = RuntimeException.class)
+    @Test
     public void testGetInt() {
         Integer result = ValueUtil.getInt(null);
         Assert.assertNull(result);
@@ -20,6 +20,10 @@ public class ValueUtilTest {
         result = ValueUtil.getInt(new Long(100));
         Assert.assertEquals(result, new Integer(100));
 
-        ValueUtil.getInt(new Object());
+        try {
+            ValueUtil.getInt(new Object());
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Unable to convert"));
+        }
     }
 }

@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
+    private static final int FILE_NAME_PART_SIZE = 3;
+
     protected int rowGroupSize;
 
     protected FileSystem fs;
@@ -66,12 +68,27 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     protected Configuration conf;
 
+    protected boolean enableDictionary;
+
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        // 这里休眠一段时间是为了避免reader和writer或者多个任务在同一个taskmanager里同时认证kerberos
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            sleepRandomTime();
+        }
+
         initColIndices();
         super.openInternal(taskNumber, numTasks);
+    }
+
+    private void sleepRandomTime() {
+        try {
+            Thread.sleep(5000L + (long)(10000 * Math.random()));
+        } catch (Exception exception) {
+            LOG.warn("", exception);
+        }
     }
 
     @Override
@@ -120,7 +137,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 n++;
             }
         } catch (Exception e){
-
+            LOG.warn("Call method waitForActionFinishedBeforeWrite error", e);
         }
     }
 
@@ -142,7 +159,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) > fileIndex;
                 }
 
@@ -308,4 +325,8 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
     }
 
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("HdfsWriter");
+    }
 }

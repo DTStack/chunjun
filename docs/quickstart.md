@@ -18,7 +18,7 @@ cd flink-1.8.5
 ## 编译插件
 
 ```bash
-mvn clean package -DskipTests
+mvn clean package -Dmaven.test.skip=true
 ```
 
 ## 运行任务
@@ -221,7 +221,7 @@ bin/flinkx -mode yarnPer \
 
 | 名称                 | 说明                                                     | 可选值                                                                                                                                                                                                                                         | 是否必填 | 默认值                     |
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------- |
-| **model**          | 执行模式，也就是flink集群的工作模式                                   | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn**: yarn模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarnPer**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster" | 否    | local                   |
+| **mode**           | 执行模式，也就是flink集群的工作模式                                   | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn**: yarn模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarnPer**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster" | 否    | local                   |
 | **job**            | 数据同步任务描述文件的存放路径；该描述文件中使用json字符串存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |
 | **jobid**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
 | **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/plugins    |
@@ -232,6 +232,7 @@ bin/flinkx -mode yarnPer \
 | **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点pluginRoot目录下部署插件包，但任务启动速度较快<br />2.**shipfile**：提交任务时上传pluginRoot目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境                                                                           | 否    | shipfile                |
 | **confProp**       | checkpoint配置                                           | **flink.checkpoint.interval**：快照生产频率<br />**flink.checkpoint.stateBackend**：快照存储路径                                                                                                                                                          | 否    | 无                       |
 | **s**              | checkpoint快照路径                                         |                                                                                                                                                                                                                                             | 否    | 无                       |
+| **p**              | 自定义入参，用于替换脚本中的占位符，如脚本中存在占位符${pt1},${pt2}，则该参数可配置为pt1=20200101,pt2=20200102|                                                                                                                                                                                                                                             | 否    | 无                       |
 
 ## 常见问题
 

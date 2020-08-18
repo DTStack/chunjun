@@ -30,9 +30,15 @@ import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
 
-import static com.dtstack.flinkx.redis.RedisConfigKeys.*;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_DB;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_HOST_PORT;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.redis.RedisConfigKeys.KEY_TIMEOUT;
 
 /**
  * OutputFormat for writing data to redis database.
@@ -69,6 +75,8 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
     private SimpleDateFormat sdf;
 
     private static final int CRITICAL_TIME = 60 * 60 * 24 * 30;
+
+    private static final int KEY_VALUE_SIZE = 2;
 
     @Override
     public void configure(Configuration parameters) {
@@ -138,7 +146,7 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
     }
 
     private List<Object> getFieldAndValue(Row row){
-        if(row.getArity() - keyIndexes.size() != 2){
+        if(row.getArity() - keyIndexes.size() != KEY_VALUE_SIZE){
             throw new IllegalArgumentException("Each row record can have only one pair of attributes and values except key");
         }
 
@@ -185,7 +193,7 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        // Still not supported
+        notSupportBatchWrite("RedisWriter");
     }
 
     @Override

@@ -32,7 +32,6 @@ import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.sql.Time;
 import java.util.Date;
@@ -222,7 +221,7 @@ public class CassandraUtil {
      * @param pos 位置
      * @param sqlType cql类型
      * @param value 值
-     * @throws RuntimeException 对于不支持的数据类型，抛出异常
+     * @throws Exception 对于不支持的数据类型，抛出异常
      */
     public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value) throws Exception {
         if (value != null) {

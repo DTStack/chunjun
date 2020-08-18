@@ -58,6 +58,24 @@ public class DateTimeUtils {
 
     public static final int TO_YEAR_ZERO = TO_2001 + 7304850;
 
+    public static final int TIMESTAMP_STRING_LENGTH = 19;
+
+    public static final String TIMESTAMP_ZERO_SUFFIX = ".0";
+
+    public static final int DAY_IN_YEAR_29 = 29;
+    public static final int DAY_IN_YEAR_31 = 31;
+    public static final int DAY_IN_YEAR_59 = 59;
+    public static final int DAY_IN_YEAR_60 = 60;
+    public static final int DAY_IN_YEAR_90 = 90;
+    public static final int DAY_IN_YEAR_120 = 120;
+    public static final int DAY_IN_YEAR_151 = 151;
+    public static final int DAY_IN_YEAR_181 = 181;
+    public static final int DAY_IN_YEAR_212 = 212;
+    public static final int DAY_IN_YEAR_243 = 243;
+    public static final int DAY_IN_YEAR_273 = 273;
+    public static final int DAY_IN_YEAR_304 = 304;
+    public static final int DAY_IN_YEAR_334 = 334;
+
     public static final ThreadLocal<TimeZone> THREAD_LOCAL_LOCAL_TIMEZONE = new ThreadLocal<TimeZone>() {
         @Override
         public TimeZone initialValue() {
@@ -91,8 +109,9 @@ public class DateTimeUtils {
         String timestampString = ts.toString();
         String formatted = THREAD_LOCAL_TIMESTAMP_FORMAT.get().format(ts);
 
-        if(timestampString.length() > 19 && !".0".equals(timestampString.substring(19))) {
-            formatted += timestampString.substring(19);
+        if(timestampString.length() > TIMESTAMP_STRING_LENGTH
+                && !TIMESTAMP_ZERO_SUFFIX.equals(timestampString.substring(TIMESTAMP_STRING_LENGTH))) {
+            formatted += timestampString.substring(TIMESTAMP_STRING_LENGTH);
         }
         return formatted;
     }
@@ -231,33 +250,33 @@ public class DateTimeUtils {
         int year = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
         if (isLeapYear(year)) {
-            if (dayInYear == 60) {
+            if (dayInYear == DAY_IN_YEAR_60) {
                 return 2;
-            } else if (dayInYear > 60) {
+            } else if (dayInYear > DAY_IN_YEAR_60) {
                 dayInYear = dayInYear - 1;
             }
         }
-        if (dayInYear <= 31) {
+        if (dayInYear <= DAY_IN_YEAR_31) {
             return 1;
-        } else if (dayInYear <= 59) {
+        } else if (dayInYear <= DAY_IN_YEAR_59) {
             return 2;
-        } else if (dayInYear <= 90) {
+        } else if (dayInYear <= DAY_IN_YEAR_90) {
             return 3;
-        } else if (dayInYear <= 120) {
+        } else if (dayInYear <= DAY_IN_YEAR_120) {
             return 4;
-        } else if (dayInYear <= 151) {
+        } else if (dayInYear <= DAY_IN_YEAR_151) {
             return 5;
-        } else if (dayInYear <= 181) {
+        } else if (dayInYear <= DAY_IN_YEAR_181) {
             return 6;
-        } else if (dayInYear <= 212) {
+        } else if (dayInYear <= DAY_IN_YEAR_212) {
             return 7;
-        } else if (dayInYear <= 243) {
+        } else if (dayInYear <= DAY_IN_YEAR_243) {
             return 8;
-        } else if (dayInYear <= 273) {
+        } else if (dayInYear <= DAY_IN_YEAR_273) {
             return 9;
-        } else if (dayInYear <= 304) {
+        } else if (dayInYear <= DAY_IN_YEAR_304) {
             return 10;
-        } else if (dayInYear <= 334) {
+        } else if (dayInYear <= DAY_IN_YEAR_334) {
             return 11;
         } else {
             return 12;
@@ -274,39 +293,38 @@ public class DateTimeUtils {
         int year = tuple2.getField(0);
         int dayInYear = tuple2.getField(1);
         if (isLeapYear(year)) {
-            if (dayInYear == 60) {
-                return 29;
-            } else if (dayInYear > 60) {
+            if (dayInYear == DAY_IN_YEAR_60) {
+                return DAY_IN_YEAR_29;
+            } else if (dayInYear > DAY_IN_YEAR_60) {
                 dayInYear = dayInYear - 1;
             }
         }
 
-        if (dayInYear <= 31) {
+        if (dayInYear <= DAY_IN_YEAR_31) {
             return dayInYear;
-        } else if (dayInYear <= 59) {
-            return dayInYear - 31;
-        } else if (dayInYear <= 90) {
-            return dayInYear - 59;
-        } else if (dayInYear <= 120) {
-            return dayInYear - 90;
-        } else if (dayInYear <= 151) {
-            return dayInYear - 120;
-        } else if (dayInYear <= 181) {
-            return dayInYear - 151;
-        } else if (dayInYear <= 212) {
-            return dayInYear - 181;
-        } else if (dayInYear <= 243) {
-            return dayInYear - 212;
-        } else if (dayInYear <= 273) {
-            return dayInYear - 243;
-        } else if (dayInYear <= 304) {
-            return dayInYear - 273;
-        } else if (dayInYear <= 334) {
-            return dayInYear - 304;
+        } else if (dayInYear <= DAY_IN_YEAR_59) {
+            return dayInYear - DAY_IN_YEAR_31;
+        } else if (dayInYear <= DAY_IN_YEAR_90) {
+            return dayInYear - DAY_IN_YEAR_59;
+        } else if (dayInYear <= DAY_IN_YEAR_120) {
+            return dayInYear - DAY_IN_YEAR_90;
+        } else if (dayInYear <= DAY_IN_YEAR_151) {
+            return dayInYear - DAY_IN_YEAR_120;
+        } else if (dayInYear <= DAY_IN_YEAR_181) {
+            return dayInYear - DAY_IN_YEAR_151;
+        } else if (dayInYear <= DAY_IN_YEAR_212) {
+            return dayInYear - DAY_IN_YEAR_181;
+        } else if (dayInYear <= DAY_IN_YEAR_243) {
+            return dayInYear - DAY_IN_YEAR_212;
+        } else if (dayInYear <= DAY_IN_YEAR_273) {
+            return dayInYear - DAY_IN_YEAR_243;
+        } else if (dayInYear <= DAY_IN_YEAR_304) {
+            return dayInYear - DAY_IN_YEAR_273;
+        } else if (dayInYear <= DAY_IN_YEAR_334) {
+            return dayInYear - DAY_IN_YEAR_304;
         } else {
-            return dayInYear - 334;
+            return dayInYear - DAY_IN_YEAR_334;
         }
-
     }
 
 

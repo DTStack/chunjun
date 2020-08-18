@@ -19,7 +19,11 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
-import com.dtstack.flinkx.config.*;
+import com.dtstack.flinkx.config.ContentConfig;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestartConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
@@ -29,7 +33,7 @@ import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
@@ -109,7 +113,6 @@ public class Main {
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
         env.setParallelism(speedConfig.getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
         if(speedConfig.getReaderChannel() > 0){
@@ -193,6 +196,8 @@ public class Main {
         } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
             ContentConfig contentConfig = config.getJob().getContent().get(0);
             contentConfig.getReader().setName(STREAM_READER);
+        }else {
+            return;
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);

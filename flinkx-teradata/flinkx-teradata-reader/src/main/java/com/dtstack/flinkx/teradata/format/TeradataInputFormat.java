@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.teradata.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.teradata.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -80,17 +80,10 @@ public class TeradataInputFormat extends JdbcInputFormat {
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
+            checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DBUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);

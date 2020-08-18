@@ -32,7 +32,19 @@ import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
 
-import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_ADMIN_OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_AUTHENTICATION;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_BATCH_SIZE_BYTES;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_BOSS_COUNT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_FILTER;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_KEYTABFILE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_MASTER_ADDRESSES;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_PRINCIPAL;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_READ_MODE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_TABLE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_WORKER_COUNT;
 
 /**
  * @author jiangbo

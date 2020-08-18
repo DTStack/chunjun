@@ -18,8 +18,8 @@
 package com.dtstack.flinkx.gbase.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -27,7 +27,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -49,7 +48,9 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(Long.parseLong(startLocation));
+                if (StringUtils.isNotEmpty(startLocation)) {
+                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                }
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -63,6 +64,10 @@ public class GbaseInputFormat extends JdbcInputFormat {
 
             fetchSize = Integer.MIN_VALUE;
             querySql = buildQuerySql(inputSplit);
+            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
+            if (null != jdbcInputSplit.getStartLocation()) {
+                startLocation = jdbcInputSplit.getStartLocation();
+            }
             executeQuery(startLocation);
             columnCount = resultSet.getMetaData().getColumnCount();
 
@@ -70,15 +75,8 @@ public class GbaseInputFormat extends JdbcInputFormat {
             if(splitWithRowCol){
                 columnCount = columnCount-1;
             }
-
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            checkSize(columnCount, metaColumns);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);

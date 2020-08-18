@@ -19,14 +19,13 @@ package com.dtstack.flinkx.teradata.format;
 
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.teradata.util.DBUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-
-import static com.dtstack.flinkx.teradata.util.DBUtil.getConnection;
 
 /**
  * Company: www.dtstack.com
@@ -39,7 +38,7 @@ public class TeradataOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = getConnection(dbUrl, username, password);
+            dbConn = DBUtil.getConnection(dbUrl, username, password);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);

@@ -11,11 +11,8 @@
 
     <artifactId>flinkx-pulsar-writer</artifactId>
 
-
-
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

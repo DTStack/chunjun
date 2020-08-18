@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  */
 public class StringUtil {
 
+    public static final int STEP_SIZE = 2;
+
     /**
      * Handle the escaped escape charactor.
      *
@@ -192,14 +194,14 @@ public class StringUtil {
     }
 
 
-    public static String row2string(Row row, List<String> columnTypes, String delimiter, List<String> columnNames) throws WriteRecordException {
+    public static String row2string(Row row, List<String> columnTypes, String delimiter) throws WriteRecordException {
         // convert row to string
-        int cnt = row.getArity();
-        StringBuilder sb = new StringBuilder();
+        int size = row.getArity();
+        StringBuilder sb = new StringBuilder(128);
 
         int i = 0;
         try {
-            for (; i < cnt; ++i) {
+            for (; i < size; ++i) {
                 if (i != 0) {
                     sb.append(delimiter);
                 }
@@ -212,9 +214,9 @@ public class StringUtil {
 
                 sb.append(col2string(column, columnTypes.get(i)));
             }
-        } catch(Exception ex) {
+        } catch(Exception e) {
             String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + row + ")";
-            throw new WriteRecordException(msg, ex, i, row);
+            throw new WriteRecordException(msg, e, i, row);
         }
 
         return sb.toString();
@@ -228,7 +230,7 @@ public class StringUtil {
         int length = hexString.length();
 
         byte[] bytes = new byte[length / 2];
-        for (int i = 0; i < length; i += 2) {
+        for (int i = 0; i < length; i += STEP_SIZE) {
             bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
                     + Character.digit(hexString.charAt(i+1), 16));
         }

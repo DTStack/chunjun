@@ -33,7 +33,7 @@ public final class RetryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(RetryUtil.class);
 
-    private static final long MAX_SLEEP_MILLISECOND = 256 * 1000;
+    private static final long MAX_SLEEP_MILLISECOND = 256 * 1000L;
 
     /**
      * 重试次数工具方法.

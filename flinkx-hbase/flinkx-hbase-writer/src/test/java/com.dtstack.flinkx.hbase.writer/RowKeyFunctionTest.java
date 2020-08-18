@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
-import com.dtstack.flinkx.hbase.writer.function.*;
+import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
+import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
+import com.dtstack.flinkx.hbase.writer.function.Md5Function;
+import com.dtstack.flinkx.hbase.writer.function.StringFunction;
 import org.junit.Assert;
 import org.junit.Test;
 

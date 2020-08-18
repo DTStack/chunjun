@@ -24,6 +24,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,7 +66,7 @@ public class DistributedJdbcInputFormatBuilder extends BaseRichInputFormatBuilde
         format.splitKey = splitKey;
     }
 
-    public void setSourceList(List<DataSource> sourceList){
+    public void setSourceList(ArrayList<DataSource> sourceList){
         format.sourceList = sourceList;
     }
 

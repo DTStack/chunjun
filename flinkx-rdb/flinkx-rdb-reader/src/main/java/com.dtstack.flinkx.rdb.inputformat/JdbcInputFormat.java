@@ -27,15 +27,10 @@ import com.dtstack.flinkx.rdb.datareader.IncrementConfig;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.*;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.UrlUtil;
+import com.dtstack.flinkx.util.*;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -49,7 +44,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Date;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -162,7 +159,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             initMetric(inputSplit);
             String startLocation = incrementConfig.getStartLocation();
             if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(Long.parseLong(startLocation));
+                if (StringUtils.isNotEmpty(startLocation)) {
+                    endLocationAccumulator.add(Long.parseLong(startLocation));
+                }
                 isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -187,15 +186,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (splitWithRowCol) {
                 columnCount = columnCount - 1;
             }
-
-            if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            checkSize(columnCount, metaColumns);
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
@@ -260,6 +252,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             boolean isUpdateLocation = incrementConfig.isPolling() || (incrementConfig.isIncrement() && !incrementConfig.isUseMaxFunc());
             if (isUpdateLocation) {
                 Object incrementVal = resultSet.getObject(incrementConfig.getColumnName());
+                if(incrementVal != null) {
+                    if((incrementVal instanceof java.util.Date
+                            || incrementVal.getClass().getSimpleName().toUpperCase().contains("TIMESTAMP")) ) {
+                        incrementVal = resultSet.getTimestamp(incrementConfig.getColumnName());
+                    }
+                }
                 String location;
                 if(incrementConfig.isPolling()){
                     location = String.valueOf(incrementVal);
@@ -379,7 +377,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         String url = monitorUrls;
-        if (monitorUrls.startsWith("http")) {
+        if (monitorUrls.startsWith(ConstantValue.PROTOCOL_HTTP)) {
             url = String.format("%s/jobs/%s/accumulators", monitorUrls, jobId);
         }
 
@@ -715,10 +713,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 long time = ((Timestamp) columnVal).getTime() / 1000;
 
                 String nanosStr = String.valueOf(((Timestamp) columnVal).getNanos());
-                if (nanosStr.length() == 9) {
+                if (nanosStr.length() == DbUtil.NANOS_PART_LENGTH) {
                     location = time + nanosStr;
                 } else {
-                    String fillZeroStr = StringUtils.repeat("0", 9 - nanosStr.length());
+                    String fillZeroStr = StringUtils.repeat("0", DbUtil.NANOS_PART_LENGTH - nanosStr.length());
                     location = time + fillZeroStr + nanosStr;
                 }
             } else {
@@ -816,7 +814,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 queryForPolling(startLocation);
             }
         } else {
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             resultSet = statement.executeQuery(querySql);
@@ -840,4 +838,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * 校验columnCount和metaColumns的长度是否相等
+     * @param columnCount
+     * @param metaColumns
+     */
+    protected void checkSize(int columnCount, List<MetaColumn> metaColumns) {
+        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName()) && columnCount != metaColumns.size()) {
+            LOG.error("error config: column size for reader is {},but columns size for query result is {}." +
+                            " And the query sql is '{}'.",
+                    metaColumns.size(), columnCount, querySql);
+            throw new RuntimeException("");
+        }
+    }
 }

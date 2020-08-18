@@ -26,7 +26,11 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.kudu.Type;
-import org.apache.kudu.client.*;
+import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduScanToken;
+import org.apache.kudu.client.KuduScanner;
+import org.apache.kudu.client.RowResult;
+import org.apache.kudu.client.RowResultIterator;
 
 import java.io.IOException;
 import java.util.List;

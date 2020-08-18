@@ -27,7 +27,10 @@ import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
 import static com.dtstack.flinkx.constants.ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY;
-import static com.dtstack.flinkx.constants.ConstantValue.*;
+import static com.dtstack.flinkx.constants.ConstantValue.CLASSLOADER_CHILD_FIRST;
+import static com.dtstack.flinkx.constants.ConstantValue.CLASSLOADER_PARENT_FIRST;
+import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
+import static com.dtstack.flinkx.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE;
 
 /**
  * This class define commandline options for the Launcher program
@@ -72,6 +75,9 @@ public class Options {
 
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
+
+    @OptionRequired(description = "json modify")
+    private String p = "";
 
     @OptionRequired(description = "savepoint path")
     private String s;
@@ -226,6 +232,14 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
+    public String getP() {
+        return p;
+    }
+
+    public void setP(String p) {
+        this.p = p;
+    }
+
     @Override
     public String toString() {
         return "Options{" +
@@ -241,9 +255,11 @@ public class Options {
                 ", queue='" + queue + '\'' +
                 ", flinkLibJar='" + flinkLibJar + '\'' +
                 ", confProp='" + confProp + '\'' +
+                ", p='" + p + '\'' +
                 ", s='" + s + '\'' +
                 ", pluginLoadMode='" + pluginLoadMode + '\'' +
                 ", appId='" + appId + '\'' +
+                ", flinkConfiguration=" + flinkConfiguration +
                 '}';
     }
 }

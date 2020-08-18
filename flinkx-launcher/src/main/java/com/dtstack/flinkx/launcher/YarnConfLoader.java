@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.launcher;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
@@ -42,7 +43,7 @@ public class YarnConfLoader {
             if(dir.exists() && dir.isDirectory()) {
 
                 File[] xmlFileList = new File(yarnConfDir).listFiles((dir1, name) -> {
-                    if(name.endsWith(".xml")){
+                    if(name.endsWith(ConstantValue.FILE_SUFFIX_XML)){
                         return true;
                     }
                     return false;

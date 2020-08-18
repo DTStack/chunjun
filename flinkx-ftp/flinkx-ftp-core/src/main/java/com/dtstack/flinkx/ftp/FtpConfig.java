@@ -59,7 +59,7 @@ public class FtpConfig implements Serializable {
 
     public int timeout = FtpConfigConstants.DEFAULT_TIMEOUT;
 
-    public long maxFileSize = 1024 * 1024 * 1024;
+    public long maxFileSize = 1024 * 1024 * 1024L;
 
     public String getUsername() {
         return username;

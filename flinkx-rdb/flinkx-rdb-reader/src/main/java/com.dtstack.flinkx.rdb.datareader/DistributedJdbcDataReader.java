@@ -107,8 +107,8 @@ public class DistributedJdbcDataReader extends BaseDataReader {
         throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 
-    protected List<DataSource> buildConnections(){
-        List<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
+    protected ArrayList<DataSource> buildConnections(){
+        ArrayList<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
         for (ReaderConfig.ParameterConfig.ConnectionConfig connectionConfig : connectionConfigs) {
             String curUsername = (StringUtils.isBlank(connectionConfig.getUsername())) ? username : connectionConfig.getUsername();
             String curPassword = (StringUtils.isBlank(connectionConfig.getPassword())) ? password : connectionConfig.getPassword();

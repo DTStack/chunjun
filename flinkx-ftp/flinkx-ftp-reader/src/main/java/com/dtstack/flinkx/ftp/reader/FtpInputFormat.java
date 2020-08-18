@@ -19,7 +19,12 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.ftp.*;
+import com.dtstack.flinkx.ftp.EProtocol;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.ftp.SftpHandler;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
@@ -54,13 +59,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
-        if(EProtocol.SFTP.name().equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SftpHandler();
-        } else if(EProtocol.FTP.name().equalsIgnoreCase(ftpConfig.getProtocol())){
-            ftpHandler = new FtpHandler();
-        } else {
-            throw new RuntimeException("协议名称错误:" + ftpConfig.getProtocol());
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -157,5 +156,4 @@ public class FtpInputFormat extends BaseRichInputFormat {
             ftpHandler.logoutFtpServer();
         }
     }
-
 }

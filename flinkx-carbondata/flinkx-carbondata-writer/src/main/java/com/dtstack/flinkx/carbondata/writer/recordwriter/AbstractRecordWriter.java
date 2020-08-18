@@ -39,11 +39,22 @@ import org.apache.carbondata.processing.util.CarbonLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.JobID;
+import org.apache.hadoop.mapreduce.TaskID;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
+import java.util.Map;
+import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Abstract record writer wrapper
