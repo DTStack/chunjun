@@ -104,6 +104,7 @@ public class EsReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         EsInputFormatBuilder builder = new EsInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);
