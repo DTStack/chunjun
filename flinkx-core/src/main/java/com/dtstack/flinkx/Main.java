@@ -110,7 +110,6 @@ public class Main {
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
         env.setParallelism(speedConfig.getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
         if(speedConfig.getReaderChannel() > 0){
