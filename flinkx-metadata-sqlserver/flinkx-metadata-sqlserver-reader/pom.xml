@@ -96,13 +96,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/metadatasqlserverreader">
+                                <copy todir="${basedir}/../../syncplugins/metadatasqlserverreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/metadatasqlserverreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/metadatasqlserverreader/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/metadatasqlserverreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/metadatasqlserverreader/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
