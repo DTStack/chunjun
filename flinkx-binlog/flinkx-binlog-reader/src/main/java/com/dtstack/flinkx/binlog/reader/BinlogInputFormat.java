@@ -98,6 +98,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         LOG.info("binlog configure...");
+        LOG.info("binlog FilterBefore:{},tableBefore: {}",binlogConfig.getFilter(),binlogConfig.getTable());
 
         if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
             LOG.info("{}", categories);
@@ -150,6 +151,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                 //检验schema下任意一张表的权限
                 checkSourceAuthority(database, null);
             }
+            LOG.info("binlog FilterAfter:{},tableAfter: {}",binlogConfig.getFilter(),binlogConfig.getTable());
         }
     }
 
@@ -210,6 +212,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
 
         if (StringUtils.isNotEmpty(binlogConfig.getFilter())) {
+            LOG.info("binlogFilter最终值：{}",binlogConfig.getFilter());
             controller.setEventFilter(new AviaterRegexFilter(binlogConfig.getFilter()));
         }
 
