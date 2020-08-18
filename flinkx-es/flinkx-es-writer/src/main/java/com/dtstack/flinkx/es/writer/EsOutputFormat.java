@@ -119,8 +119,8 @@ public class EsOutputFormat extends BaseRichOutputFormat {
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
-                if(numWriteCounter != null ){
-                    numWriteCounter.add(1);
+                if (errCounter != null) {
+                    errCounter.add(1);
                 }
             }
         }

@@ -40,8 +40,18 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -52,7 +62,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
 
-    private final String DRIVER_NAME ="com.mysql.jdbc.Driver";
+    private final String DRIVER_NAME = "com.mysql.jdbc.Driver";
 
     private BinlogConfig binlogConfig;
 
@@ -134,8 +144,8 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
                 //检验每个schema下的第一个表的权限
                 checkSourceAuthority(null, checkedTable.values());
-            } else {
-                //如果table未指定 只消费此schema下的数据
+            } else if (StringUtils.isBlank(binlogConfig.getFilter())) {
+                //如果table未指定  filter未指定 只消费此schema下的数据
                 binlogConfig.setFilter(database + "\\..*");
                 //检验schema下任意一张表的权限
                 checkSourceAuthority(database, null);

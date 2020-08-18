@@ -31,6 +31,8 @@ public class MetaDataCons {
     public static final String KEY_DB_NAME = "dbName";
     public static final String KEY_TABLE_LIST = "tableList";
 
+    public static final String KEY_TOTAL_TABLE = "totalTable";
+    public static final String KEY_RESOLVED_TABLE = "resolvedTable";
     public static final String KEY_SCHEMA = "schema";
     public static final String KEY_COLUMN = "column";
     public static final String KEY_STORED_TYPE = "storedType";

@@ -21,16 +21,28 @@ package com.dtstack.flinkx.metadataoracle.inputformat;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.*;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_COMMENT;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_INDEX;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_CREATE_TIME;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_INDEX_COLUMN_NAME;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_ROWS;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_TYPE;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TOTAL_SIZE;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
 
 /**
  * @author : kunni@dtstack.com
@@ -39,24 +51,6 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.*;
  */
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
-
-    /**
-     * @description Database 为Oracle 用户的映射
-     * @param connection JDBC 连接
-     * @return 用户名
-     * @throws SQLException sql 异常
-     */
-    @Override
-    protected List<String> showDatabases(Connection connection) throws SQLException {
-        List<String> databaseNameList = new LinkedList<>();
-        try(Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                databaseNameList.add(rs.getString(1));
-            }
-        }
-        return databaseNameList;
-    }
 
     @Override
     protected List<String> showTables() throws SQLException {
