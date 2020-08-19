@@ -61,7 +61,7 @@ public class LogMinerConfig implements Serializable {
 
     private List<String> table;
 
-    private Long queryTimeout;
+    private Long queryTimeout = 100L;
 
     /**
      * Oracle 12c第二个版本之后LogMiner不支持自动添加日志

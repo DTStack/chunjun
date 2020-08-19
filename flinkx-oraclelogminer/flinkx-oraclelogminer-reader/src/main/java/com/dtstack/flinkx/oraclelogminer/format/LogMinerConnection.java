@@ -30,8 +30,20 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * @author jiangbo
@@ -48,6 +60,7 @@ public class LogMinerConnection {
     public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
 
     public static final int ORACLE_11_VERSION = 11;
+    public int oracleVersion;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
@@ -139,7 +152,7 @@ public class LogMinerConnection {
         String startSql = null;
         try {
             if (logMinerConfig.getSupportAutoAddLog()) {
-                startSql = SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
+                startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 List<LogFile> newLogFiles = queryLogFiles(startScn);
                 if (addedLogFiles.equals(newLogFiles)) {
@@ -147,7 +160,7 @@ public class LogMinerConnection {
                 } else {
                     LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
-                    startSql = SqlUtil.SQL_START_LOG_MINER;
+                    startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
                 }
             }
 
@@ -378,7 +391,7 @@ public class LogMinerConnection {
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            statement = connection.prepareStatement(SqlUtil.SQL_QUERY_LOG_FILE);
+            statement = connection.prepareStatement(oracleVersion == 10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setLong(1, scn);
             statement.setLong(2, scn);
             rs = statement.executeQuery();
@@ -386,12 +399,15 @@ public class LogMinerConnection {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
-
-                String nextChangeString = rs.getString("next_change#");
-                if (nextChangeString.length() == 20) {
+                if(oracleVersion == 10){
                     logFile.setNextChange(Long.MAX_VALUE);
-                } else {
-                    logFile.setNextChange(Long.parseLong(nextChangeString));
+                }else{
+                    String nextChangeString = rs.getString("next_change#");
+                    if (nextChangeString.length() == 20) {
+                        logFile.setNextChange(Long.MAX_VALUE);
+                    } else {
+                        logFile.setNextChange(Long.parseLong(nextChangeString));
+                    }
                 }
 
                 logFiles.add(logFile);
@@ -455,6 +471,10 @@ public class LogMinerConnection {
 
     public void checkPrivileges() {
         try (Statement statement = connection.createStatement()) {
+
+            oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
+            LOG.info("Oracle版本为：{}", oracleVersion);
+
             List<String> roles = getUserRoles(statement);
             if (roles.contains(DBA_ROLE)) {
                 return;
@@ -464,15 +484,12 @@ public class LogMinerConnection {
                 throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
             }
 
-            int version = connection.getMetaData().getDatabaseMajorVersion();
-            LOG.info("Oracle版本为：{}", version);
-
-            if (containsNeededPrivileges(statement, version)) {
+            if (containsNeededPrivileges(statement)) {
                 return;
             }
 
             String message;
-            if(ORACLE_11_VERSION == version){
+            if(ORACLE_11_VERSION <= oracleVersion){
                 message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
             }else{
                 message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
@@ -484,7 +501,7 @@ public class LogMinerConnection {
         }
     }
 
-    private boolean containsNeededPrivileges(Statement statement, int version) {
+    private boolean containsNeededPrivileges(Statement statement) {
         try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
             List<String> privileges = new ArrayList<>();
             while (rs.next()) {
@@ -496,7 +513,7 @@ public class LogMinerConnection {
 
             int privilegeCount = 0;
             List<String> privilegeList;
-            if (version == ORACLE_11_VERSION) {
+            if (oracleVersion <= ORACLE_11_VERSION) {
                 privilegeList = ORACLE_11_PRIVILEGES_NEEDED;
             } else {
                 privilegeList = PRIVILEGES_NEEDED;
