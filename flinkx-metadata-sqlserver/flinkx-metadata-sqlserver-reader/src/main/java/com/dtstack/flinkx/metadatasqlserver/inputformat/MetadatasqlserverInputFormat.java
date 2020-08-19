@@ -24,6 +24,7 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 
@@ -50,11 +51,11 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     protected String table;
 
     @Override
-    protected List<String> showTables() throws SQLException {
-        List<String> tableNameList = new LinkedList<>();
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tableNameList = new LinkedList<>();
         try (ResultSet rs = statement.get().executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
-                tableNameList.add(rs.getString(1));
+                tableNameList.add(new Pair<>(rs.getString(1), rs.getString(2)));
             }
         }
         return tableNameList;
@@ -62,7 +63,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
-        // use database不可以加quote
+        // database 以数字开头时，需要双引号
         statement.get().execute(String.format(SqlServerMetadataCons.SQL_SWITCH_DATABASE, databaseName));
     }
 
@@ -71,19 +72,25 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.get().next();
-        List<String> list = StringUtil.splitIgnoreQuota(tableName,SqlServerMetadataCons.DEFAULT_DELIMITER);
-        schema = list.get(0);
-        table = list.get(1);
+        if(queryTable){
+            Pair<String, String> pair = (Pair) tableIterator.get().next();
+            schema = pair.getKey();
+            table = pair.getValue();
+        }else{
+            List<String> list = StringUtil.splitIgnoreQuota((String) tableIterator.get().next(), SqlServerMetadataCons.DEFAULT_DELIMITER);
+            schema = list.get(0);
+            table = list.get(1);
+        }
+        String tableName = schema + ConstantValue.POINT_SYMBOL + table;
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
-        metaData.put(MetaDataCons.KEY_TABLE, schema + ConstantValue.POINT_SYMBOL + table);
+        metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
-            throw new IOException(e);
+            LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         return Row.of(metaData);
     }
@@ -184,6 +191,9 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
                 tableProperties.put(SqlServerMetadataCons.KEY_TOTAL_SIZE, resultSet.getString(3));
                 tableProperties.put(SqlServerMetadataCons.KEY_COLUMN_COMMENT, resultSet.getString(4));
             }
+        }
+        if(tableProperties.size()==0){
+            throw new SQLException(String.format("no such table(schema=%s,table=%s) in database", schema, table));
         }
         tableProperties.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
         return tableProperties;
