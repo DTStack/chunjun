@@ -451,7 +451,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
         updateDuration();
         if(bytesWriteCounter!=null){
-            bytesWriteCounter.add(row.toString().length());
+            bytesWriteCounter.add(row.toString().getBytes().length);
         }
     }
 

@@ -216,7 +216,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add((long)row.toString().length() - rowData.toString().length());
+                bytesWriteCounter.add((long)row.toString().getBytes().length - rowData.toString().getBytes().length);
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
