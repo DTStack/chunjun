@@ -22,6 +22,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.sqlserver.SqlServerConstants;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
@@ -49,8 +50,6 @@ public class SqlserverInputFormat extends JdbcInputFormat {
 
     //是否在sql语句后面添加 with(nolock) ,默认是false
     private Boolean withNoLock;
-
-    private final String WITH_NO_LOCK = " with(nolock)";
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
@@ -147,7 +146,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
             //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
             if (getWithNoLock()) {
                 //databaseInterface.getSqlQueryFields 返回的结果就是from table  后面没有where等语句所以直接添加的
-                queryFieldsSql += WITH_NO_LOCK;
+                queryFieldsSql += SqlServerConstants.WITH_NO_LOCK;
             }
             rs = stmt.executeQuery(queryFieldsSql);
             ResultSetMetaData rd = rs.getMetaData();

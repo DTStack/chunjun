@@ -45,8 +45,7 @@ public class SqlserverWriter extends JdbcDataWriter {
     }
 
     @Override
-    protected JdbcOutputFormatBuilder getBuilder()
-    {
+    protected JdbcOutputFormatBuilder getBuilder() {
         SqlserverOutputFormat sqlserverOutputFormat = new SqlserverOutputFormat();
         sqlserverOutputFormat.setWithNoLock(withNoLock);
         return new JdbcOutputFormatBuilder(sqlserverOutputFormat);

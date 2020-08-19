@@ -19,6 +19,7 @@ package com.dtstack.flinkx.sqlserver.reader;
 
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
+import com.dtstack.flinkx.sqlserver.SqlServerConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -32,8 +33,6 @@ import java.util.List;
 public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
     //是否在sql语句后面添加 with(nolock) ,默认是false
     private Boolean withNoLock = false;
-
-    private final String WITH_NO_LOCK = " with(nolock)";
 
     public SqlserverQuerySqlBuilder(JdbcDataReader reader) {
         super(reader);
@@ -52,7 +51,7 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
         sb.append(databaseInterface.quoteTable(table));
         //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
         if (withNoLock) {
-            sb.append(WITH_NO_LOCK);
+            sb.append(SqlServerConstants.WITH_NO_LOCK);
         }
         sb.append(" WHERE 1=1 ");
 
@@ -92,7 +91,7 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
         if (withNoLock) {
-            querySql.append(WITH_NO_LOCK);
+            querySql.append(SqlServerConstants.WITH_NO_LOCK);
         }
         querySql.append(" WHERE 1=1 ");
 
