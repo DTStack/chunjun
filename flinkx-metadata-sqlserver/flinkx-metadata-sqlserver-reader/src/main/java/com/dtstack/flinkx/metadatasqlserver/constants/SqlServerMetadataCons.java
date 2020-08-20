@@ -38,17 +38,16 @@ public class SqlServerMetadataCons extends MetaDataCons {
     public static final String KEY_TABLE_SCHEMA = "tableSchema";
     public static final char DEFAULT_DELIMITER = '.';
 
-    public static final String SQL_SWITCH_DATABASE = "USE %s";
+    public static final String SQL_SWITCH_DATABASE = "USE \"%s\"";
     /**
      * 拼接成schema.table
      */
-    public static final String SQL_SHOW_TABLES = "SELECT '[' + OBJECT_SCHEMA_NAME(object_id, DB_ID()) + ']' + '.' + '[' + name + ']' as name FROM sys.tables";
+    public static final String SQL_SHOW_TABLES = "SELECT OBJECT_SCHEMA_NAME(object_id, DB_ID()) as SCHEMA_NAME, name FROM sys.tables";
 
     public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.crdate, b.rows, rtrim(8*dpages) used, ep.value \n" +
             "FROM sysobjects AS a INNER JOIN sysindexes AS b ON a.id = b.id \n" +
-            "JOIN sys.extended_properties AS ep ON a.id = ep.major_id \n" +
-            "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s and OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s \n" +
-            "AND ep.minor_id = 0 ";
+            "LEFT JOIN sys.extended_properties AS ep ON a.id = ep.major_id AND ep.minor_id = 0 \n" +
+            "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s AND OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s ";
 
     public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment \n" +
             "FROM sys.tables A INNER JOIN sys.columns B ON B.object_id = A.object_id \n" +
