@@ -59,7 +59,7 @@ public class OdpsReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         OdpsInputFormatBuilder builder = new OdpsInputFormatBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setMetaColumn(metaColumns);
         builder.setOdpsConfig(odpsConfig);
         builder.setTableName(tableName);
