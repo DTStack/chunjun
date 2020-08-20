@@ -83,6 +83,7 @@ public class KuduReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumns(columns);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);

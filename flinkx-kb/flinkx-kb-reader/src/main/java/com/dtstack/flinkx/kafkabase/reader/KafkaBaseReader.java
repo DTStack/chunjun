@@ -60,6 +60,7 @@ public class KafkaBaseReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         KafkaBaseInputFormat format = getFormat();
+        format.setDataTransferConfig(dataTransferConfig);
         format.setTopic(topic);
         format.setGroupId(groupId);
         format.setCodec(codec);

@@ -61,6 +61,7 @@ public class StreamReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumns(columns);
         builder.setSliceRecordCount(sliceRecordCount);
         builder.setMonitorUrls(monitorUrls);

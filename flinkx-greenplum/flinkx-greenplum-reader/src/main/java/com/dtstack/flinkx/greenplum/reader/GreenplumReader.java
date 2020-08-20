@@ -53,6 +53,7 @@ public class GreenplumReader extends JdbcDataReader {
     @Override
     public DataStream<Row> readData() {
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new GreenplumInputFormat());
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
         builder.setUsername(username);

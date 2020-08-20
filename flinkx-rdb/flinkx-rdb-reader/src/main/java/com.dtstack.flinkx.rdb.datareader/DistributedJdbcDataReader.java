@@ -83,6 +83,7 @@ public class DistributedJdbcDataReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         DistributedJdbcInputFormatBuilder builder = getBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setDrivername(databaseInterface.getDriverClass());
         builder.setUsername(username);
         builder.setPassword(password);
