@@ -63,6 +63,7 @@ public class OraclelogminerReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setLogMinerConfig(logMinerConfig);
         builder.setRestoreConfig(restoreConfig);
 

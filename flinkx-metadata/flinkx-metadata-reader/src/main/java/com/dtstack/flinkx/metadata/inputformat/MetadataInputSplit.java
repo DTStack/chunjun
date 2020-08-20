@@ -37,9 +37,9 @@ public class MetadataInputSplit implements InputSplit {
 
     private String dbName;
 
-    private List<String> tableList;
+    private List<Object> tableList;
 
-    public MetadataInputSplit(int splitNumber, String dbName, List<String> tableList) {
+    public MetadataInputSplit(int splitNumber, String dbName, List<Object> tableList) {
         this.splitNumber = splitNumber;
         this.dbName = dbName;
         this.tableList = tableList;
@@ -49,7 +49,7 @@ public class MetadataInputSplit implements InputSplit {
         return dbName;
     }
 
-    public List<String> getTableList() {
+    public List<Object> getTableList() {
         return tableList;
     }
 
