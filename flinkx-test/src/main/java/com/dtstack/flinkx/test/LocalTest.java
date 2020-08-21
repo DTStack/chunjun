@@ -72,6 +72,8 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
+//import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+//import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
