@@ -73,6 +73,15 @@ public class Options {
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
 
+    @OptionRequired(description = "kerberos krb5conf")
+    private String krb5conf ;
+
+    @OptionRequired(description = "kerberos keytabPath")
+    private String keytab ;
+
+    @OptionRequired(description = "kerberos principal")
+    private String principal ;
+
     public String getS() {
         return s;
     }
@@ -183,5 +192,29 @@ public class Options {
 
     public void setPluginLoadMode(String pluginLoadMode) {
         this.pluginLoadMode = pluginLoadMode;
+    }
+
+    public String getKrb5conf() {
+        return krb5conf;
+    }
+
+    public void setKrb5conf(String krb5conf) {
+        this.krb5conf = krb5conf;
+    }
+
+    public String getKeytab() {
+        return keytab;
+    }
+
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
+    }
+
+    public String getPrincipal() {
+        return principal;
+    }
+
+    public void setPrincipal(String principal) {
+        this.principal = principal;
     }
 }
