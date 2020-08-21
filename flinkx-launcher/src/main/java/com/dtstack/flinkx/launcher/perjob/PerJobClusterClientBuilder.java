@@ -73,6 +73,9 @@ public class PerJobClusterClientBuilder {
         }
         userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         this.flinkConfig = flinkConfig;
+        if(userConf.size()>0){
+            this.kerberosInfo = new KerberosInfo(kerberosInfo.getKrb5confPath(),kerberosInfo.getKeytab(),kerberosInfo.getPrincipal(),this.flinkConfig);
+        }
         kerberosInfo.verify();
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
