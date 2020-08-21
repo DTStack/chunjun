@@ -47,6 +47,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -132,9 +133,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected String querySql;
 
     /**
-     * 轮询增量标识字段类型，目前只有timestamp类型和数值类型
+     * 轮询增量标识字段类型
      */
-    protected boolean isTimestamp = false;
+    protected ColumnType type;
 
     /**
      * The hadoop config for metric
@@ -167,15 +168,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
-            isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType())
-                    || "date".equalsIgnoreCase(incrementConfig.getColumnType());
+            type = ColumnType.fromString(incrementConfig.getColumnType());
             ClassUtil.forName(driverName, getClass().getClassLoader());
             //从配置中获取起始位置
             generalStartLocation = incrementConfig.getStartLocation();
             initMetric(inputSplit);
             if (incrementConfig.isPolling()) {
                 if (StringUtils.isNotEmpty(generalStartLocation)) {
-                    endLocationAccumulator.add(isTimestamp ? Timestamp.valueOf(generalStartLocation).getTime() : Long.parseLong(generalStartLocation));
+                    endLocationAccumulator.add(getLocation());
                 }
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -300,7 +300,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
 
                 if(StringUtils.isNotEmpty(location)) {
-                    endLocationAccumulator.add(isTimestamp ? Timestamp.valueOf(generalStartLocation).getTime() : Long.parseLong(generalStartLocation));
+                    endLocationAccumulator.add(getLocation());
                 }
 
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
@@ -351,16 +351,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         startLocationAccumulator = new LongMaximum();
         if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            startLocationAccumulator.add(isTimestamp ? Timestamp.valueOf(generalStartLocation).getTime() : Long.parseLong(generalStartLocation));
+            startLocationAccumulator.add(getLocation());
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
         endLocationAccumulator = new LongMaximum();
         String endLocation = ((JdbcInputSplit) split).getEndLocation();
         if (endLocation != null && incrementConfig.isUseMaxFunc()) {
-            endLocationAccumulator.add(isTimestamp ? Timestamp.valueOf(generalStartLocation).getTime() : Long.parseLong(generalStartLocation));
+            endLocationAccumulator.add(getLocation());
         } else if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            endLocationAccumulator.add(isTimestamp ? Timestamp.valueOf(generalStartLocation).getTime() : Long.parseLong(generalStartLocation));
+            endLocationAccumulator.add(getLocation());
         }
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
@@ -787,10 +787,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void queryForPolling(String startLocation) throws SQLException {
         LOG.trace("polling startLocation = {}", startLocation);
-        if(isTimestamp){
-            ps.setTimestamp(1, Timestamp.valueOf(startLocation));
-        }else{
-            ps.setLong(1, Long.parseLong(startLocation));
+        switch (type) {
+            case TIMESTAMP: {
+                ps.setTimestamp(1, Timestamp.valueOf(startLocation));break;
+            }
+            case DATE: {
+                ps.setDate(1, Date.valueOf(startLocation));break;
+            }
+            default: {
+                ps.setLong(1, Long.parseLong(startLocation));break;
+            }
         }
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
@@ -858,4 +864,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
+    protected Long getLocation() {
+        switch (type) {
+            case TIMESTAMP: {
+                return Timestamp.valueOf(generalStartLocation).getTime();
+            }
+            case DATE: {
+                return Date.valueOf(generalStartLocation).getTime();
+            }
+            default: {
+                return Long.parseLong(generalStartLocation);
+            }
+        }
+    }
 }
