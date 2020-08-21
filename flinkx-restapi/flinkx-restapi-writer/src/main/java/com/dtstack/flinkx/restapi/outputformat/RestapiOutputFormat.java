@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author : tiezhu
@@ -57,7 +58,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        // Nothing to do
+        params.put("threadId", UUID.randomUUID().toString().substring(0, 8));
     }
 
     @Override
