@@ -137,8 +137,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected ColumnType type;
 
-    protected boolean isTimestamp = false;
-
     /**
      * The hadoop config for metric
      */
