@@ -41,16 +41,16 @@ public class KerberosInfo {
     private static final Logger LOG = LoggerFactory.getLogger(KerberosInfo.class);
 
 
-    private final String Krb5confPath;
+    private final String krb5confPath;
     private final String keytab;
     private final String principal;
     private final Configuration config;
     private final org.apache.hadoop.conf.Configuration hadoopConfiguration;
 
     public KerberosInfo(String krb5confPath, String keytab, String principal, Configuration config) {
-        Krb5confPath = krb5confPath;
+        this.krb5confPath = krb5confPath;
         this.config = config;
-        hadoopConfiguration = HadoopUtils.getHadoopConfiguration(this.config);
+        this.hadoopConfiguration = HadoopUtils.getHadoopConfiguration(this.config);
 
         //keytab, launcherOptions.getKeytab() 比flinkConfiguration里配置的优先级高
         if (StringUtils.isBlank(keytab)) {
@@ -133,7 +133,7 @@ public class KerberosInfo {
 
 
     public String getKrb5confPath() {
-        return Krb5confPath;
+        return krb5confPath;
     }
 
     public String getKeytab() {
