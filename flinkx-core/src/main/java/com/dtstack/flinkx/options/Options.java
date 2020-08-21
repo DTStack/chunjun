@@ -217,4 +217,27 @@ public class Options {
     public void setPrincipal(String principal) {
         this.principal = principal;
     }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", krb5conf='" + krb5conf + '\'' +
+                ", keytab='" + keytab + '\'' +
+                ", principal='" + principal + '\'' +
+                '}';
+    }
 }
