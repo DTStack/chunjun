@@ -24,8 +24,8 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
-import javafx.util.Pair;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         List<Object> tableNameList = new LinkedList<>();
         try (ResultSet rs = statement.get().executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
-                tableNameList.add(new Pair<>(rs.getString(1), rs.getString(2)));
+                tableNameList.add(Pair.of(rs.getString(1), rs.getString(2)));
             }
         }
         return tableNameList;
