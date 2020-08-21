@@ -61,11 +61,11 @@ public class SqlServerMetadataCons extends MetaDataCons {
             "WHERE c.name=%s and OBJECT_SCHEMA_NAME(A.object_id, DB_ID())=%s \n" +
             "AND  a.index_id  NOT IN(0,255)";
 
-    public static final String SQL_SHOW_PARTITION_COLUMN = "SELECT d.name as columnName \n" +
-            "FROM sys.indexes a JOIN sysindexkeys b ON a.object_id=b.id AND a.index_id=b.indid \n" +
-            "JOIN sysobjects c ON b.id=c.id JOIN syscolumns d ON b.id=d.id AND b.colid=d.colid \n" +
-            "WHERE c.name=%s and OBJECT_SCHEMA_NAME(A.object_id, DB_ID())=%s \n" +
-            "AND  a.type in (0, 1)";
+    public static final String SQL_SHOW_PARTITION_COLUMN = "SELECT b.name\n" +
+            "FROM sys.index_columns a JOIN sys.columns b ON a.object_id = b.object_id and a.column_id = b.column_id \n" +
+            "JOIN sys.objects c ON c.object_id = a.object_id \n" +
+            "WHERE a.partition_ordinal <> 0 AND c.name =%s \n" +
+            "AND OBJECT_SCHEMA_NAME(a.object_id , DB_ID())=%s ";
 
     public static final String SQL_SHOW_PARTITION = "select ps.name, p.rows, pf.create_date, ds2.name as filegroup \n" +
             "from sys.indexes i join sys.partition_schemes ps on i.data_space_id = ps.data_space_id \n" +
