@@ -62,7 +62,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogInputFormat.class);
 
-    private final String DRIVER_NAME ="com.mysql.jdbc.Driver";
+    private final String DRIVER_NAME = "com.mysql.jdbc.Driver";
 
     private BinlogConfig binlogConfig;
 
@@ -98,6 +98,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         LOG.info("binlog configure...");
+        LOG.info("binlog FilterBefore:{},tableBefore: {}",binlogConfig.getFilter(),binlogConfig.getTable());
 
         if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
             LOG.info("{}", categories);
@@ -144,12 +145,13 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
                 //检验每个schema下的第一个表的权限
                 checkSourceAuthority(null, checkedTable.values());
-            } else {
-                //如果table未指定 只消费此schema下的数据
+            } else if (StringUtils.isBlank(binlogConfig.getFilter())) {
+                //如果table未指定  filter未指定 只消费此schema下的数据
                 binlogConfig.setFilter(database + "\\..*");
                 //检验schema下任意一张表的权限
                 checkSourceAuthority(database, null);
             }
+            LOG.info("binlog FilterAfter:{},tableAfter: {}",binlogConfig.getFilter(),binlogConfig.getTable());
         }
     }
 
@@ -210,6 +212,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
 
         if (StringUtils.isNotEmpty(binlogConfig.getFilter())) {
+            LOG.info("binlogFilter最终值：{}",binlogConfig.getFilter());
             controller.setEventFilter(new AviaterRegexFilter(binlogConfig.getFilter()));
         }
 
