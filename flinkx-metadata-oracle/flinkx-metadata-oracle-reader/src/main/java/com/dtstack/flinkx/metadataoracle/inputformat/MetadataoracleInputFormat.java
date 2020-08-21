@@ -52,9 +52,11 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
 
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
-    protected List<String> showTables() throws SQLException {
-        List<String> tableNameList = new LinkedList<>();
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tableNameList = new LinkedList<>();
         String sql = String.format(SQL_SHOW_TABLES, quote(currentDb.get()));
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {

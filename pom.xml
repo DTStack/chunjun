@@ -64,6 +64,7 @@
         <module>flinkx-metadata-tidb</module>
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>
+        <module>flinkx-metadata-sqlserver</module>
 
         <module>flinkx-restapi</module>
     </modules>

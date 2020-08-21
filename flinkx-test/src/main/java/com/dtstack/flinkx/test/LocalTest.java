@@ -60,6 +60,7 @@ import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
+import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
@@ -137,7 +138,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadataoracle_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatasqlserver_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -233,6 +234,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATAMYSQL_READER : reader = new MetadatamysqlReader(config, env); break;
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
             case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
+            case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);

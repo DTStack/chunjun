@@ -38,6 +38,8 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.*;
 
 public class MetadatamysqlInputFormat extends MetadatatidbInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
