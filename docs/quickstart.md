@@ -106,7 +106,7 @@ rest.bind-port: 8888
 ```bash
 bin/flinkx -mode standalone \
            -job $FLINK_HOME/examples/stream_example.json \
-           -pluginRoot $FLINK_HOME/plugins \
+           -pluginRoot $FLINKX_HOME/plugins \
            -flinkconf $FLINK_HOME/conf \
            -confProp "{\"flink.checkpoint.interval\":60000}"
 ```
@@ -145,7 +145,7 @@ $FLINK_HOME/bin/start-cluster.sh
 ```bash
 bin/flinkx -mode yarn \
            -job $FLINK_HOME/examples/stream_example.json \
-           -pluginRoot $FLINK_HOME/plugins \
+           -pluginRoot $FLINKX_HOME/plugins \
            -flinkconf $FLINK_HOME/conf \
            -yarnconf $HADOOP_HOME/etc/hadoop \
            -confProp "{\"flink.checkpoint.interval\":60000}"
@@ -187,7 +187,7 @@ $FLINK_HOME/bin/yarn-session.sh -n 1 -s 2 -jm 1024 -tm 1024
 ```bash
 bin/flinkx -mode yarnPer \
            -job ${FLINK_HOME}/examples/stream_example.json \
-           -pluginRoot $FLINK_HOME/plugins \
+           -pluginRoot $FLINKX_HOME/plugins \
            -flinkconf $FLINK_HOME/conf \
            -yarnconf $HADOOP_HOME/etc/hadoop \
            -flinkLibJar $FLINK_HOME/lib \
