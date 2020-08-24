@@ -198,6 +198,9 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      */
     protected abstract String quote(String name);
 
+    /**
+     * 提供子类对新增成员变量初始化的接口
+     */
     protected void init() throws SQLException {}
 
 }

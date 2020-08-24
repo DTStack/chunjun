@@ -160,7 +160,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void init() throws SQLException {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder(2 * tableList.size());
         for(int index=0;index<tableList.size();index++){
             stringBuilder.append(quote(tableList.get(index)));
             if(index!=tableList.size()-1){
