@@ -168,7 +168,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
             LOG.info("inputSplit = {}", inputSplit);
-            type = ColumnType.fromString(incrementConfig.getColumnType());
+            if(StringUtils.isNotEmpty(incrementConfig.getColumnType())){
+                type = ColumnType.fromString(incrementConfig.getColumnType());
+            }
             ClassUtil.forName(driverName, getClass().getClassLoader());
             //从配置中获取起始位置
             generalStartLocation = incrementConfig.getStartLocation();
