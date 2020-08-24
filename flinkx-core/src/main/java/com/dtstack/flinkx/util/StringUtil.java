@@ -241,9 +241,14 @@ public class StringUtil {
 
     /**
      * Split the specified string delimiter --- ignored quotes delimiter
-     * @param str
-     * @param delimiter
-     * @return
+     * @param str 待解析字符串,不考虑分割结果需要带'[',']','\"','\''的情况
+     * @param delimiter 分隔符
+     * @return 分割后的字符串数组
+     * Example: "[dbo_test].[table]" => "[dbo_test, table]"
+     * Example: "[dbo.test].[table.test]" => "[dbo.test, table.test]"
+     * Example: "[dbo.test].[[[tab[l]e]]" => "[dbo.test, table]"
+     * Example："[\"dbo_test\"].[table]" => "[dbo_test, table]"
+     * Example:"['dbo_test'].[table]" => "[dbo_test, table]"
      */
     public static List<String> splitIgnoreQuota(String str, char delimiter){
         List<String> tokensList = new ArrayList<>();

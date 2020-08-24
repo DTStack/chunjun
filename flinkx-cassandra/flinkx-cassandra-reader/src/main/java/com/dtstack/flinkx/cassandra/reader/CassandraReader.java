@@ -106,6 +106,7 @@ public class CassandraReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         CassandraInputFormatBuilder builder = new CassandraInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setTable(table);
         builder.setWhere(where);
         builder.setConsistancyLevel(consistancyLevel);

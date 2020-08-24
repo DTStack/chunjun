@@ -68,6 +68,7 @@ public class FtpReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setFtpConfig(ftpConfig);
         builder.setMetaColumn(metaColumns);
         builder.setTestConfig(testConfig);

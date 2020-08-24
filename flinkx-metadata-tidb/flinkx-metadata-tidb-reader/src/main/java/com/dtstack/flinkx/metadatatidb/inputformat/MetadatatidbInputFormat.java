@@ -40,9 +40,11 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.*;
  */
 public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
-    protected List<String> showTables() throws SQLException {
-        List<String> tables = new ArrayList<>();
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tables = new ArrayList<>();
         try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
             while (rs.next()) {
                 tables.add(rs.getString(1));

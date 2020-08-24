@@ -42,6 +42,8 @@ import java.util.Map;
  */
 public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected String dbUrl;
 
     protected String username;
@@ -49,6 +51,8 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     protected String password;
 
     protected String driverName;
+
+    protected boolean queryTable;
 
     protected List<Map<String, Object>> dbTableList;
 
@@ -58,7 +62,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
-    protected static transient ThreadLocal<Iterator<String>> tableIterator = new ThreadLocal<>();
+    protected static transient ThreadLocal<Iterator<Object>> tableIterator = new ThreadLocal<>();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -68,9 +72,10 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             statement.set(connection.get().createStatement());
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             switchDatabase(currentDb.get());
-            List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            List<Object> tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
+                queryTable = true;
             }
             tableIterator.set(tableList.iterator());
         } catch (SQLException | ClassNotFoundException e) {
@@ -92,7 +97,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             Map<String, Object> dbTables = dbTableList.get(index);
             String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
             if(StringUtils.isNotEmpty(dbName)){
-                List<String> tables = (List<String>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
+                List<Object> tables = (List<Object>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
                 inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
             }
         }
@@ -100,11 +105,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) {
+    protected Row nextRecordInternal(Row row) throws IOException{
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.get().next();
+        String tableName = (String) tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
 
@@ -114,6 +119,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
+            LOG.error(ExceptionUtil.getErrorMessage(e));
         }
 
         return Row.of(metaData);
@@ -170,7 +176,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * @return  表名列表
      * @throws SQLException 异常
      */
-    protected abstract List<String> showTables() throws SQLException;
+    protected abstract List<Object> showTables() throws SQLException;
 
     /**
      * 切换当前database

@@ -70,6 +70,7 @@ public class HdfsReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(fileType);
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setInputPaths(path);
         builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);

@@ -80,6 +80,8 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_
  */
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected Map<String, Object> hadoopConfig;
 
     String paraFirst = KEY_COL_NAME;
@@ -91,8 +93,8 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    protected List<String> showTables() throws SQLException {
-        List<String> tables = new ArrayList<>();
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tables = new ArrayList<>();
         try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
            int pos = rs.getMetaData().getColumnCount()==1?1:2;
             while (rs.next()) {
