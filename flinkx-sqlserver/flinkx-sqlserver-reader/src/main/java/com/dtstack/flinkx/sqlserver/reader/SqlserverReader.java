@@ -70,6 +70,7 @@ public class SqlserverReader extends JdbcDataReader {
         builder.setDatabaseInterface(databaseInterface);
         builder.setTypeConverter(typeConverter);
         builder.setMetaColumn(metaColumns);
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
         builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
         builder.setIncrementConfig(incrementConfig);
