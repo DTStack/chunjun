@@ -18,10 +18,6 @@
 package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,8 +25,6 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -41,6 +35,15 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  * @author tudou
  */
 public class MysqlInputFormat extends JdbcInputFormat {
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        // 避免result.next阻塞
+        if(incrementConfig.isPolling() && StringUtils.isEmpty(incrementConfig.getStartLocation())){
+            fetchSize = 1000;
+        }
+        super.openInternal(inputSplit);
+    }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
