@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -185,11 +186,11 @@ public class SqlUtil {
 
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
-    public final static String SQL_QUERY_PRIVILEGES = "select * from session_privs";
+    public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
-    public static List<String> EXCLUDE_SCHEMAS = Arrays.asList("SYS");
+    public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
 
     public static String buildSelectSql(String listenerOptions, String listenerTables){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
