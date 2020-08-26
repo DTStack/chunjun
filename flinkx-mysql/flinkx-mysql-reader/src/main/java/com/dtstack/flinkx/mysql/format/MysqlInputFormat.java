@@ -39,7 +39,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         // 避免result.next阻塞
-        if(incrementConfig.isPolling() && StringUtils.isEmpty(incrementConfig.getStartLocation())){
+        if(incrementConfig.isPolling() && StringUtils.isEmpty(incrementConfig.getStartLocation()) && fetchSize==databaseInterface.getFetchSize()){
             fetchSize = 1000;
         }
         super.openInternal(inputSplit);
