@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_INDEX;
@@ -41,8 +42,11 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_TYPE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
 
 /**
@@ -60,6 +64,8 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     private Map<String, List<Map<String, String>>> indexListMap;
 
     private String allTable;
+
+    private String sql;
 
     @Override
     protected List<String> showTables() throws SQLException {
@@ -97,7 +103,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, Map<String, String> > queryTableProperties() throws SQLException {
         Map<String, Map<String, String>> tablePropertiesMap = new HashMap<>(16);
-        String sql = String.format(SQL_QUERY_TABLE_PROPERTIES, quote(currentDb.get()), allTable);
+        if(allTable==null){
+            sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
+        }else {
+            sql = String.format(SQL_QUERY_TABLE_PROPERTIES, quote(currentDb.get()), allTable);
+        }
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> map = new HashMap<>(16);
@@ -114,7 +124,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
         Map<String, List<Map<String, String>>> indexListMap = new HashMap<>(16);
-        String sql = String.format(SQL_QUERY_INDEX, quote(currentDb.get()), allTable);
+        if(allTable==null){
+            sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
+        }else {
+            sql = String.format(SQL_QUERY_INDEX, quote(currentDb.get()), allTable);
+        }
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> column = new HashMap<>(16);
@@ -136,7 +150,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, List<Map<String, Object>>> queryColumnList() throws SQLException {
         Map<String, List<Map<String, Object>>> columnListMap = new HashMap<>(16);
-        String sql = String.format(SQL_QUERY_COLUMN, quote(currentDb.get()), allTable);
+        if(allTable==null){
+            sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
+        }else {
+            sql = String.format(SQL_QUERY_COLUMN, quote(currentDb.get()), allTable);
+        }
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, Object> column = new HashMap<>(16);
@@ -161,13 +179,15 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     @Override
     protected void init() throws SQLException {
         StringBuilder stringBuilder = new StringBuilder(2 * tableList.size());
-        for(int index=0;index<tableList.size();index++){
-            stringBuilder.append(quote(tableList.get(index)));
-            if(index!=tableList.size()-1){
-                stringBuilder.append(ConstantValue.COMMA_SYMBOL);
+        if(tableList.size() <= MAX_TABLE_SIZE){
+            for(int index=0;index<tableList.size();index++){
+                stringBuilder.append(quote(tableList.get(index)));
+                if(index!=tableList.size()-1){
+                    stringBuilder.append(ConstantValue.COMMA_SYMBOL);
+                }
             }
+            allTable = stringBuilder.toString();
         }
-        allTable = stringBuilder.toString();
         tablePropertiesMap = queryTableProperties();
         columnListMap = queryColumnList();
         indexListMap = queryIndexList();

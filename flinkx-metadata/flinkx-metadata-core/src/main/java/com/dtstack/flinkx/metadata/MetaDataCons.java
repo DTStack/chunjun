@@ -58,4 +58,6 @@ public class MetaDataCons {
     public static final String SQL_SHOW_DATABASES = "SHOW DATABASES";
     public static final String SQL_SHOW_TABLES = "SHOW TABLES";
     public static final String SQL_SWITCH_DATABASE = "USE %s";
+
+    public static final int MAX_TABLE_SIZE = 20;
 }
