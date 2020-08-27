@@ -796,7 +796,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 ps.setDate(1, Date.valueOf(startLocation));break;
             }
             default: {
-                ps.setLong(1, Long.parseLong(startLocation));break;
+                ps.setString(1, startLocation);break;
             }
         }
         resultSet = ps.executeQuery();
@@ -874,6 +874,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 return Date.valueOf(generalStartLocation).getTime();
             }
             default: {
+                // 超长字符截取前十八位传值
+                if(generalStartLocation.length() > 18){
+                    return Long.parseLong(StringUtils.substring(generalStartLocation, 0, 18));
+                }
                 return Long.parseLong(generalStartLocation);
             }
         }
