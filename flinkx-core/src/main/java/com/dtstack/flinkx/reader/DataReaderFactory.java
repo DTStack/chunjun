@@ -41,7 +41,7 @@ public class DataReaderFactory {
         try {
             String pluginName = config.getJob().getContent().get(0).getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
-            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot());
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
