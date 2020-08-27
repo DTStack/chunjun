@@ -353,18 +353,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         startLocationAccumulator = new LongMaximum();
+        endLocationAccumulator = new LongMaximum();
         if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
             startLocationAccumulator.add(getLocation());
+            endLocationAccumulator.add(getLocation());
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-
-        endLocationAccumulator = new LongMaximum();
-        String endLocation = ((JdbcInputSplit) split).getEndLocation();
-        if (endLocation != null && incrementConfig.isUseMaxFunc()) {
-            endLocationAccumulator.add(getLocation());
-        } else if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            endLocationAccumulator.add(getLocation());
-        }
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
     }
 
@@ -405,6 +399,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
+        endLocationAccumulator.add(Long.parseLong(maxValue));
     }
 
     public String getMaxValueFromApi(){
