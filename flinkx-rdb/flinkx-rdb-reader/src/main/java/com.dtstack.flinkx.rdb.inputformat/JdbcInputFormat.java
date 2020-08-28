@@ -865,20 +865,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
-    protected Long getLocation() {
+    protected String getLocation() {
         switch (type) {
             case TIMESTAMP: {
-                return Timestamp.valueOf(generalStartLocation).getTime();
+                return String.valueOf(Timestamp.valueOf(generalStartLocation).getTime());
             }
             case DATE: {
-                return Date.valueOf(generalStartLocation).getTime();
+                return String.valueOf(Date.valueOf(generalStartLocation).getTime());
             }
             default: {
-                // 超长字符截取前十八位传值
-                if(generalStartLocation.length() > 18){
-                    return Long.parseLong(StringUtils.substring(generalStartLocation, 0, 18));
-                }
-                return Long.parseLong(generalStartLocation);
+                return generalStartLocation;
             }
         }
     }
