@@ -177,7 +177,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             initMetric(inputSplit);
             if (incrementConfig.isPolling()) {
                 if (StringUtils.isNotEmpty(generalStartLocation)) {
-                    endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
+                    endLocationAccumulator.add(new BigInteger(getLocation()));
                 }
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -303,7 +303,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
 
                 if(StringUtils.isNotEmpty(location)) {
-                    endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
+                    endLocationAccumulator.add(new BigInteger(getLocation()));
                 }
 
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
@@ -355,8 +355,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         startLocationAccumulator = new BigIntegerMaximum();
         endLocationAccumulator = new BigIntegerMaximum();
         if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            startLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
-            endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
+            startLocationAccumulator.add(new BigInteger(getLocation()));
+            endLocationAccumulator.add(new BigInteger(getLocation()));
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
@@ -866,20 +866,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
     }
 
-    protected Long getLocation() {
+    protected String getLocation() {
         switch (type) {
             case TIMESTAMP: {
-                return Timestamp.valueOf(generalStartLocation).getTime();
+                return String.valueOf(Timestamp.valueOf(generalStartLocation).getTime());
             }
             case DATE: {
-                return Date.valueOf(generalStartLocation).getTime();
+                return String.valueOf(Date.valueOf(generalStartLocation).getTime());
             }
             default: {
-                // 超长字符截取前十八位传值
-                if(generalStartLocation.length() > 18){
-                    return Long.parseLong(StringUtils.substring(generalStartLocation, 0, 18));
-                }
-                return Long.parseLong(generalStartLocation);
+                return generalStartLocation;
             }
         }
     }
