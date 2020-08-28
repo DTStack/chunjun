@@ -19,18 +19,10 @@
 package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
