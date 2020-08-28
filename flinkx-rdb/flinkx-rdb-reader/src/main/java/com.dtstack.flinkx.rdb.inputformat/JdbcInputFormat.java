@@ -374,7 +374,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 为了保证增量数据的准确性，指标输出失败时使任务失败
      */
     @Override
-    protected boolean makeTaskFailedWhenReportFailed(){
+    protected boolean makeTaskFailedWhenReportFailed() {
         return true;
     }
 
