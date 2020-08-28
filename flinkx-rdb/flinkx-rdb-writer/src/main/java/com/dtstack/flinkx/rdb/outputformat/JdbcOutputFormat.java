@@ -35,13 +35,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -217,15 +215,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                         object = null;
                     }
                 }
-                //redmine 29738 部分数据源读取传递的数据是string类型，而对应的插入字段是timestamp或者date类型，直接使用preparedStatement.setObject会报错
-                //针对这些情况 判断插入类型进行转换
-                if(columnType.get(index).equals("TIMESTAMP") && object instanceof  String && StringUtils.isNotBlank((String) object)){
-                    object = conventStringToDtaType((String)object, Timestamp.class);
-                }else if(columnType.get(index).equals("DATE") && object instanceof  String && StringUtils.isNotBlank((String) object)){
-                    object = conventStringToDtaType((String)object, Date.class);
-                }
                 preparedStatement.setObject(index+1, object);
             }
+
             preparedStatement.execute();
         } catch (Exception e) {
             processWriteException(e, index, row);
@@ -425,22 +417,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         // 执行postsql
         if(taskNumber == 0) {
             DbUtil.executeBatch(dbConn, postSql);
-        }
-    }
-
-    /**
-     * string类型转为日期类型
-     * @param data
-     * @param cs
-     * @return
-     */
-    protected Object conventStringToDtaType(String data,Class cs){
-        if(cs == Timestamp.class){
-            return Timestamp.valueOf(data);
-        }else if (cs == Date.class){
-            return Date.valueOf(data);
-        }else{
-            throw new UnsupportedOperationException("not support string convent "+cs.toString());
         }
     }
 
