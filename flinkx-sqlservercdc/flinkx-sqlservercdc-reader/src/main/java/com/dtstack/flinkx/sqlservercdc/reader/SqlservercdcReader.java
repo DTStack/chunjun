@@ -63,6 +63,7 @@ public class SqlservercdcReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         SqlserverCdcInputFormatBuilder builder = new SqlserverCdcInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setUrl(url);

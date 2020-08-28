@@ -46,6 +46,7 @@ import com.dtstack.flinkx.hbase.reader.HbaseReader;
 import com.dtstack.flinkx.hbase.writer.HbaseWriter;
 import com.dtstack.flinkx.hdfs.reader.HdfsReader;
 import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
+import com.dtstack.flinkx.hive.writer.HiveWriter;
 import com.dtstack.flinkx.kafka.reader.KafkaReader;
 import com.dtstack.flinkx.kafka.writer.KafkaWriter;
 import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
@@ -59,6 +60,7 @@ import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
+import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
 import com.dtstack.flinkx.mongodb.writer.MongodbWriter;
@@ -136,7 +138,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatahive1kbr_stream.json";
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatasqlserver_stream.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -232,6 +234,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATAMYSQL_READER : reader = new MetadatamysqlReader(config, env); break;
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
             case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
+            case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
@@ -259,7 +262,7 @@ public class LocalTest {
             case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
             case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
-//            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
+            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
             case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
             case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
             case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;

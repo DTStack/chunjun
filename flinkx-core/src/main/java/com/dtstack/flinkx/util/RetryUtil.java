@@ -74,7 +74,7 @@ public final class RetryUtil {
                 } catch (Exception e) {
                     saveException = e;
                     if (i == 0) {
-                        LOG.error(String.format("Exception when calling callable, 异常Msg:%s", saveException.getMessage()), saveException);
+                        LOG.error(String.format("Exception when calling callable, 异常Msg:%s", ExceptionUtil.getErrorMessage(saveException)), saveException);
                     }
 
                     if (null != retryExceptionClasss && !retryExceptionClasss.isEmpty()) {

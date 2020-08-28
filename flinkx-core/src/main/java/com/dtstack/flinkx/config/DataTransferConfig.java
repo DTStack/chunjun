@@ -69,6 +69,16 @@ public class DataTransferConfig extends AbstractConfig {
         this.pluginRoot = pluginRoot;
     }
 
+    String remotePluginPath;
+
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
     private static void checkConfig(DataTransferConfig config) {
         Preconditions.checkNotNull(config);
 
@@ -90,7 +100,7 @@ public class DataTransferConfig extends AbstractConfig {
         Preconditions.checkNotNull(readerParameter, "Must specify parameter for reader");
 
 
-        // 检查我writer配置
+        // 检查writer配置
         WriterConfig  writerConfig = content.getWriter();
         Preconditions.checkNotNull(writerConfig, "Must specify a writer element");
         Preconditions.checkNotNull(writerConfig.getName(), "Must specify the writer name");

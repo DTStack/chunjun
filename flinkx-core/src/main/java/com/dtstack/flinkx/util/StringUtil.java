@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -236,5 +237,63 @@ public class StringUtil {
         }
 
         return bytes;
+    }
+
+    /**
+     * Split the specified string delimiter --- ignored quotes delimiter
+     * @param str 待解析字符串,不考虑分割结果需要带'[',']','\"','\''的情况
+     * @param delimiter 分隔符
+     * @return 分割后的字符串数组
+     * Example: "[dbo_test].[table]" => "[dbo_test, table]"
+     * Example: "[dbo.test].[table.test]" => "[dbo.test, table.test]"
+     * Example: "[dbo.test].[[[tab[l]e]]" => "[dbo.test, table]"
+     * Example："[\"dbo_test\"].[table]" => "[dbo_test, table]"
+     * Example:"['dbo_test'].[table]" => "[dbo_test, table]"
+     */
+    public static List<String> splitIgnoreQuota(String str, char delimiter){
+        List<String> tokensList = new ArrayList<>();
+        boolean inQuotes = false;
+        boolean inSingleQuotes = false;
+        int bracketLeftNum = 0;
+        StringBuilder b = new StringBuilder(64);
+        char[] chars = str.toCharArray();
+        int idx = 0;
+        for (char c : chars) {
+            char flag = 0;
+            if (idx > 0) {
+                flag = chars[idx - 1];
+            }
+            if (c == delimiter) {
+                if (inQuotes) {
+                    b.append(c);
+                } else if (inSingleQuotes) {
+                    b.append(c);
+                } else if (bracketLeftNum > 0) {
+                    b.append(c);
+                } else {
+                    tokensList.add(b.toString());
+                    b = new StringBuilder();
+                }
+            } else if (c == '\"' && '\\' != flag && !inSingleQuotes) {
+                inQuotes = !inQuotes;
+                //b.append(c);
+            } else if (c == '\'' && '\\' != flag && !inQuotes) {
+                inSingleQuotes = !inSingleQuotes;
+                //b.append(c);
+            } else if (c == '[' && !inSingleQuotes && !inQuotes) {
+                bracketLeftNum++;
+                //b.append(c);
+            } else if (c == ']' && !inSingleQuotes && !inQuotes) {
+                bracketLeftNum--;
+                //b.append(c);
+            } else {
+                b.append(c);
+            }
+            idx++;
+        }
+
+        tokensList.add(b.toString());
+
+        return tokensList;
     }
 }
