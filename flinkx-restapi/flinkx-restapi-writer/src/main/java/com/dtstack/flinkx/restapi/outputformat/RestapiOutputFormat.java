@@ -20,6 +20,7 @@ package com.dtstack.flinkx.restapi.outputformat;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
@@ -83,6 +84,8 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
+            LOG.error(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
         } finally {
             // 最后不管发送是否成功，都要关闭client
             HttpUtil.closeClient(httpClient);
@@ -111,7 +114,8 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
-            LOG.warn("write record error !", e);
+            LOG.error(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
         }
     }
 
