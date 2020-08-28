@@ -56,6 +56,8 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected List<Map<String, Object>> dbTableList;
 
+    protected List<Object> tableList;
+
     protected static transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
     protected static transient ThreadLocal<Statement> statement = new ThreadLocal<>();
@@ -72,12 +74,13 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             statement.set(connection.get().createStatement());
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             switchDatabase(currentDb.get());
-            List<Object> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
                 queryTable = true;
             }
             tableIterator.set(tableList.iterator());
+            init();
         } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             throw new IOException("获取table列表异常", e);
@@ -200,4 +203,10 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * @return 返回数据库名，表名，列名的引用
      */
     protected abstract String quote(String name);
+
+    /**
+     * 提供子类对新增成员变量初始化的接口
+     */
+    protected void init() throws SQLException {}
+
 }
