@@ -35,7 +35,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.accumulators.LongMaximum;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -46,6 +45,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -122,9 +122,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected StringAccumulator maxValueAccumulator;
 
-    protected LongMaximum endLocationAccumulator;
+    protected BigIntegerMaximum endLocationAccumulator;
 
-    protected LongMaximum startLocationAccumulator;
+    protected BigIntegerMaximum startLocationAccumulator;
 
     protected MetaColumn restoreColumn;
 
@@ -177,7 +177,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             initMetric(inputSplit);
             if (incrementConfig.isPolling()) {
                 if (StringUtils.isNotEmpty(generalStartLocation)) {
-                    endLocationAccumulator.add(getLocation());
+                    endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
                 }
             } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
                 getMaxValue(inputSplit);
@@ -303,7 +303,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
 
                 if(StringUtils.isNotEmpty(location)) {
-                    endLocationAccumulator.add(getLocation());
+                    endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
                 }
 
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
@@ -352,11 +352,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return;
         }
 
-        startLocationAccumulator = new LongMaximum();
-        endLocationAccumulator = new LongMaximum();
+        startLocationAccumulator = new BigIntegerMaximum();
+        endLocationAccumulator = new BigIntegerMaximum();
         if (StringUtils.isNotEmpty(incrementConfig.getStartLocation())) {
-            startLocationAccumulator.add(getLocation());
-            endLocationAccumulator.add(getLocation());
+            startLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
+            endLocationAccumulator.add(new BigInteger(String.valueOf(getLocation())));
         }
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
@@ -399,7 +399,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
-        endLocationAccumulator.add(Long.parseLong(maxValue));
+        endLocationAccumulator.add(new BigInteger(maxValue));
     }
 
     public String getMaxValueFromApi(){
