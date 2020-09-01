@@ -14,7 +14,6 @@
 
         <module>flinkx-launcher</module>
 <!--        <module>flinkx-test</module>-->
-<!--        <module>flinkx-examples</module>-->
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -65,14 +64,14 @@
         <module>flinkx-metadata-tidb</module>
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>
+        <module>flinkx-metadata-sqlserver</module>
 
         <module>flinkx-restapi</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scala.binary.version>2.10</scala.binary.version>
-        <flink.version>1.8.1</flink.version>
+        <flink.version>1.10.0</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
@@ -218,7 +217,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
     </build>
 
     <reporting>

@@ -123,13 +123,14 @@ under the License.
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/hdfsreader">
+                                <copy todir="${basedir}/../../syncplugins/hdfsreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/hdfsreader/${project.name}-${project.version}.jar"
-                                        tofile="${basedir}/../../plugins/hdfsreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/hdfsreader/${project.name}-${project.version}.jar"
+                                        tofile="${basedir}/../../syncplugins/hdfsreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

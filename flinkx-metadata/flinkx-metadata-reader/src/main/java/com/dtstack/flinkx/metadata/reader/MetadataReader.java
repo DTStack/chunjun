@@ -57,7 +57,7 @@ public class MetadataReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         MetadataInputFormatBuilder builder = getBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setDbUrl(jdbcUrl);
         builder.setPassword(password);
         builder.setUsername(username);

@@ -55,7 +55,7 @@ public class HbaseHelper {
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
-        Validate.isTrue(MapUtils.isEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
+        Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
         if(openKerberos(hbaseConfigMap)){
             return getConnectionWithKerberos(hbaseConfigMap);

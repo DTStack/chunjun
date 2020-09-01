@@ -75,13 +75,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/kudureader">
+                                <copy todir="${basedir}/../../syncplugins/kudureader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/kudureader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kudureader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/kudureader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/kudureader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

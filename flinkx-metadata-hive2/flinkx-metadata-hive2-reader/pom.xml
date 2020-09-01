@@ -183,7 +183,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>org.apache.hive.jdbc</pattern>
-                                    <shadedPattern>shade.hive2</shadedPattern>
+                                    <shadedPattern>shade.hive2.jdbc</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.hive.service</pattern>
+                                    <shadedPattern>shade.hive2.service</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
@@ -224,13 +228,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/metadatahive2reader">
+                                <copy todir="${basedir}/../../syncplugins/metadatahive2reader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/metadatahive2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/metadatahive2reader/${project.name}-${git.branch}.jar"/>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/metadatahive2reader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/metadatahive2reader/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

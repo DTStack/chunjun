@@ -31,13 +31,18 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/20
  */
 public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
+
+    private static final long serialVersionUID = 1L;
 
     protected String dbUrl;
 
@@ -47,7 +52,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected String driverName;
 
+    protected boolean queryTable;
+
     protected List<Map<String, Object>> dbTableList;
+
+    protected List<Object> tableList;
 
     protected static transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
@@ -55,71 +64,55 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected static transient ThreadLocal<String> currentDb = new ThreadLocal<>();
 
-    protected transient Iterator<String> tableIterator;
-
-    @Override
-    public void openInputFormat() throws IOException {
-        super.openInputFormat();
-
-        try {
-            connection.set(getConnection());
-        } catch (Exception e) {
-            LOG.error("获取连接失败, dbUrl = {}, username = {}, e = {}", dbUrl, username, ExceptionUtil.getErrorMessage(e));
-            throw new IOException("获取连接失败", e);
-        }
-    }
+    protected static transient ThreadLocal<Iterator<Object>> tableIterator = new ThreadLocal<>();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
         try {
+            connection.set(getConnection());
             statement.set(connection.get().createStatement());
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             switchDatabase(currentDb.get());
-            List<String> tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
+                queryTable = true;
             }
-            tableIterator = tableList.iterator();
-        } catch (SQLException e) {
+            tableIterator.set(tableList.iterator());
+            init();
+        } catch (SQLException | ClassNotFoundException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             throw new IOException("获取table列表异常", e);
         }
     }
 
+    /**
+     * 按照database进行划分，可能与channel数不同
+     * @param splitNumber 最小分片数
+     * @return 分片
+     */
     @Override
     @SuppressWarnings("unchecked")
-    protected InputSplit[] createInputSplitsInternal(int splitNumber) throws Exception {
-        if (CollectionUtils.isEmpty(dbTableList)) {
-            try (Connection connection = getConnection()) {
-                List<String> dbList = showDatabases(connection);
-                InputSplit[] inputSplits = new MetadataInputSplit[dbList.size()];
-                for (int i = 0; i < dbList.size(); i++) {
-                    inputSplits[i] = new MetadataInputSplit(splitNumber, dbList.get(i), Collections.emptyList());
-                }
-
-                return inputSplits;
+    protected InputSplit[] createInputSplitsInternal(int splitNumber) {
+        InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
+        for (int index = 0; index < dbTableList.size(); index++) {
+            Map<String, Object> dbTables = dbTableList.get(index);
+            String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
+            if(StringUtils.isNotEmpty(dbName)){
+                List<Object> tables = (List<Object>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
+                inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
             }
-        } else {
-            InputSplit[] inputSplits = new MetadataInputSplit[dbTableList.size()];
-            for (int index = 0; index < dbTableList.size(); index++) {
-                Map<String, Object> dbTables = dbTableList.get(index);
-                String dbName = MapUtils.getString(dbTables, MetaDataCons.KEY_DB_NAME);
-                if(StringUtils.isNotEmpty(dbName)){
-                    List<String> tables = (List<String>)dbTables.get(MetaDataCons.KEY_TABLE_LIST);
-                    inputSplits[index] = new MetadataInputSplit(splitNumber, dbName, tables);
-                }
-            }
-            return inputSplits;
         }
+        return inputSplits;
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) {
+    protected Row nextRecordInternal(Row row) throws IOException{
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        String tableName = tableIterator.next();
+        String tableName = (String) tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
 
@@ -129,6 +122,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
+            LOG.error(ExceptionUtil.getErrorMessage(e));
         }
 
         return Row.of(metaData);
@@ -136,11 +130,12 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() {
-        return !tableIterator.hasNext();
+        return !tableIterator.get().hasNext();
     }
 
     @Override
     protected void closeInternal() throws IOException {
+        tableIterator.remove();
         Statement st = statement.get();
         if (null != st) {
             try {
@@ -179,42 +174,39 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * 查询所有database名称
-     *
-     * @param connection JDBC连接
-     * @return database名称列表
-     * @throws SQLException e
-     */
-    protected abstract List<String> showDatabases(Connection connection) throws SQLException;
-
-    /**
      * 查询当前数据库下所有的表
      *
      * @return  表名列表
-     * @throws SQLException
+     * @throws SQLException 异常
      */
-    protected abstract List<String> showTables() throws SQLException;
+    protected abstract List<Object> showTables() throws SQLException;
 
     /**
      * 切换当前database
      *
-     * @param databaseName
-     * @throws SQLException
+     * @param databaseName 数据库名
+     * @throws SQLException 异常
      */
     protected abstract void switchDatabase(String databaseName) throws SQLException;
 
     /**
      * 根据表名查询元数据信息
-     * @param tableName
-     * @return
-     * @throws SQLException
+     * @param tableName 表名
+     * @return 元数据信息
+     * @throws SQLException 异常
      */
     protected abstract Map<String, Object> queryMetaData(String tableName) throws SQLException;
 
     /**
      * 将数据库名，表名，列名字符串转为对应的引用，如：testTable -> `testTable`
-     * @param name
+     * @param name 入参
      * @return 返回数据库名，表名，列名的引用
      */
     protected abstract String quote(String name);
+
+    /**
+     * 提供子类对新增成员变量初始化的接口
+     */
+    protected void init() throws SQLException {}
+
 }

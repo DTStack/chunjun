@@ -40,16 +40,6 @@ import java.util.Map;
  */
 public class PhoenixUtil {
 
-    public interface IPhoenixConn {
-        default Connection getConn(String url, String userName, String password) throws SQLException {
-            throw new NotSupportedException("this method must be override");
-        }
-
-        default Connection getConn(String url) throws SQLException {
-            throw new NotSupportedException("this method must be override");
-        }
-    }
-
     public static Connection getConnectionInternal(String url, String username, String password, ClassLoader parentClassLoader) throws SQLException, IOException, CompileException, IllegalAccessException, InstantiationException {
         Connection dbConn;
         synchronized (ClassUtil.LOCK_STR) {
@@ -92,5 +82,15 @@ public class PhoenixUtil {
             }
         }
         return ret;
+    }
+
+    public interface IPhoenixConn {
+        default Connection getConn(String url, String userName, String password) throws SQLException {
+            throw new NotSupportedException("this method must be override");
+        }
+
+        default Connection getConn(String url) throws SQLException {
+            throw new NotSupportedException("this method must be override");
+        }
     }
 }

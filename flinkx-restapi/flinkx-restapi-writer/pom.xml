@@ -82,13 +82,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/restapiwriter">
+                                <copy todir="${basedir}/../../syncplugins/restapiwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/restapiwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/restapiwriter/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/restapiwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/restapiwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

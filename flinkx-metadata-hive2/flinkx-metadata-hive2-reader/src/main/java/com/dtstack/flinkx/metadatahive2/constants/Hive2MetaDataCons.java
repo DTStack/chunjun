@@ -26,7 +26,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
  */
 @SuppressWarnings("all")
 public class Hive2MetaDataCons extends MetaDataCons {
-    public static final String DRIVER_NAME = "shade.hive2.HiveDriver";
+    public static final String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
     public static final String KEY_SOURCE = "source";

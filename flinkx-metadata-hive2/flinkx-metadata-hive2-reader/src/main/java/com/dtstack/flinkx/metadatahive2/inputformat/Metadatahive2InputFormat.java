@@ -80,32 +80,93 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.TYPE_
  */
 public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected Map<String, Object> hadoopConfig;
 
     String paraFirst = KEY_COL_NAME;
     String paraSecond = KEY_COLUMN_DATA_TYPE;
 
     @Override
-    protected List<String> showDatabases(Connection connection) throws SQLException {
-        List<String> dbNameList = new ArrayList<>();
-        try(Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery(SQL_SHOW_DATABASES)) {
-            while (rs.next()) {
-                dbNameList.add(rs.getString(1));
-            }
-        }
-
-        return dbNameList;
-    }
-
-    @Override
     protected void switchDatabase(String databaseName) throws SQLException {
         statement.get().execute(String.format(SQL_SWITCH_DATABASE, quote(databaseName)));
     }
 
+    /**
+     * Unicode 编码转字符串
+     *
+     * @param string 支持 Unicode 编码和普通字符混合的字符串
+     * @return 解码后的字符串
+     */
+    public static String unicodeToStr(String string) {
+        String prefix = "\\u";
+        if (string == null || !string.contains(prefix)) {
+            // 传入字符串为空或不包含 Unicode 编码返回原内容
+            return string;
+        }
+
+        StringBuilder value = new StringBuilder(string.length() >> 2);
+        String[] strings = string.split("\\\\u");
+        String hex, mix;
+        char hexChar;
+        int ascii, n;
+
+        if (strings[0].length() > 0) {
+            // 处理开头的普通字符串
+            value.append(strings[0]);
+        }
+
+        try {
+            for (int i = 1; i < strings.length; i++) {
+                hex = strings[i];
+                if (hex.length() > 3) {
+                    mix = "";
+                    if (hex.length() > 4) {
+                        // 处理 Unicode 编码符号后面的普通字符串
+                        mix = hex.substring(4);
+                    }
+                    hex = hex.substring(0, 4);
+
+                    try {
+                        Integer.parseInt(hex, 16);
+                    } catch (Exception e) {
+                        // 不能将当前 16 进制字符串正常转换为 10 进制数字，拼接原内容后跳出
+                        value.append(prefix).append(strings[i]);
+                        continue;
+                    }
+
+                    ascii = 0;
+                    for (int j = 0; j < hex.length(); j++) {
+                        hexChar = hex.charAt(j);
+                        // 将 Unicode 编码中的 16 进制数字逐个转为 10 进制
+                        n = Integer.parseInt(String.valueOf(hexChar), 16);
+                        // 转换为 ASCII 码
+                        ascii += n * ((int) Math.pow(16, (hex.length() - j - 1)));
+                    }
+
+                    // 拼接解码内容
+                    value.append((char) ascii).append(mix);
+                } else {
+                    // 不转换特殊长度的 Unicode 编码
+                    value.append(prefix).append(hex);
+                }
+            }
+        } catch (Exception e) {
+            // Unicode 编码格式有误，解码失败
+            return null;
+        }
+
+        return value.toString();
+    }
+
     @Override
-    protected List<String> showTables() throws SQLException {
-        List<String> tables = new ArrayList<>();
+    protected String quote(String name) {
+        return String.format("`%s`", name);
+    }
+
+    @Override
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tables = new ArrayList<>();
         try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
            int pos = rs.getMetaData().getColumnCount()==1?1:2;
             while (rs.next()) {
@@ -114,11 +175,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         }
 
         return tables;
-    }
-
-    @Override
-    protected String quote(String name) {
-        return String.format("`%s`", name);
     }
 
     @Override
@@ -199,50 +255,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         return lineResult;
     }
 
-    void parseTableProperties(Map<String, String> lineDataInternal, Map<String, Object> tableProperties, Iterator<Map<String, String>> it){
-        String name = lineDataInternal.get(KEY_COL_NAME);
-
-        if (name.contains(KEY_COL_LOCATION)) {
-            tableProperties.put(KEY_LOCATION, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_CREATETIME) || name.contains(KEY_COL_CREATE_TIME)) {
-            tableProperties.put(KEY_CREATETIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_LASTACCESSTIME) || name.contains(KEY_COL_LAST_ACCESS_TIME)) {
-            tableProperties.put(KEY_LASTACCESSTIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_OUTPUTFORMAT)) {
-            String storedClass = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
-            tableProperties.put(KEY_STORED_TYPE, getStoredType(storedClass));
-        }
-
-        if (name.contains(KEY_COL_TABLE_PARAMETERS)) {
-            while (it.hasNext()) {
-                lineDataInternal = it.next();
-                String nameInternal = lineDataInternal.get(paraFirst);
-                if (null == nameInternal) {
-                    continue;
-                }
-
-                nameInternal = nameInternal.trim();
-                if (nameInternal.contains(KEY_COLUMN_COMMENT)) {
-                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
-                }
-
-                if (nameInternal.contains(KEY_TOTALSIZE)) {
-                    tableProperties.put(KEY_TOTALSIZE, StringUtils.trim(lineDataInternal.get(paraSecond)));
-                }
-
-                if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
-                    tableProperties.put(KEY_TRANSIENT_LASTDDLTIME, StringUtils.trim(lineDataInternal.get(paraSecond)));
-                }
-            }
-        }
-    }
-
     private String getStoredType(String storedClass) {
         if (storedClass.endsWith(TEXT_FORMAT)){
             return TYPE_TEXT;
@@ -297,71 +309,48 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         return partitions;
     }
 
-    /**
-     * Unicode 编码转字符串
-     *
-     * @param string 支持 Unicode 编码和普通字符混合的字符串
-     * @return 解码后的字符串
-     */
-    public static String unicodeToStr(String string) {
-        String prefix = "\\u";
-        if (string == null || !string.contains(prefix)) {
-            // 传入字符串为空或不包含 Unicode 编码返回原内容
-            return string;
+    void parseTableProperties(Map<String, String> lineDataInternal, Map<String, Object> tableProperties, Iterator<Map<String, String>> it){
+        String name = lineDataInternal.get(KEY_COL_NAME);
+
+        if (name.contains(KEY_COL_LOCATION)) {
+            tableProperties.put(KEY_LOCATION, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
         }
 
-        StringBuilder value = new StringBuilder(string.length() >> 2);
-        String[] strings = string.split("\\\\u");
-        String hex, mix;
-        char hexChar;
-        int ascii, n;
-
-        if (strings[0].length() > 0) {
-            // 处理开头的普通字符串
-            value.append(strings[0]);
+        if (name.contains(KEY_COL_CREATETIME) || name.contains(KEY_COL_CREATE_TIME)) {
+            tableProperties.put(KEY_CREATETIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
         }
 
-        try {
-            for (int i = 1; i < strings.length; i++) {
-                hex = strings[i];
-                if (hex.length() > 3) {
-                    mix = "";
-                    if (hex.length() > 4) {
-                        // 处理 Unicode 编码符号后面的普通字符串
-                        mix = hex.substring(4);
-                    }
-                    hex = hex.substring(0, 4);
+        if (name.contains(KEY_COL_LASTACCESSTIME) || name.contains(KEY_COL_LAST_ACCESS_TIME)) {
+            tableProperties.put(KEY_LASTACCESSTIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
+        }
 
-                    try {
-                        Integer.parseInt(hex, 16);
-                    } catch (Exception e) {
-                        // 不能将当前 16 进制字符串正常转换为 10 进制数字，拼接原内容后跳出
-                        value.append(prefix).append(strings[i]);
-                        continue;
-                    }
+        if (name.contains(KEY_COL_OUTPUTFORMAT)) {
+            String storedClass = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
+            tableProperties.put(KEY_STORED_TYPE, getStoredType(storedClass));
+        }
 
-                    ascii = 0;
-                    for (int j = 0; j < hex.length(); j++) {
-                        hexChar = hex.charAt(j);
-                        // 将 Unicode 编码中的 16 进制数字逐个转为 10 进制
-                        n = Integer.parseInt(String.valueOf(hexChar), 16);
-                        // 转换为 ASCII 码
-                        ascii += n * ((int) Math.pow(16, (hex.length() - j - 1)));
-                    }
+        if (name.contains(KEY_COL_TABLE_PARAMETERS)) {
+            while (it.hasNext()) {
+                lineDataInternal = it.next();
+                String nameInternal = lineDataInternal.get(paraFirst);
+                if (null == nameInternal) {
+                    continue;
+                }
 
-                    // 拼接解码内容
-                    value.append((char) ascii).append(mix);
-                } else {
-                    // 不转换特殊长度的 Unicode 编码
-                    value.append(prefix).append(hex);
+                nameInternal = nameInternal.trim();
+                if (nameInternal.contains(KEY_COLUMN_COMMENT)) {
+                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
+                }
+
+                if (nameInternal.contains(KEY_TOTALSIZE)) {
+                    tableProperties.put(KEY_TOTALSIZE, StringUtils.trim(lineDataInternal.get(paraSecond)));
+                }
+
+                if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
+                    tableProperties.put(KEY_TRANSIENT_LASTDDLTIME, StringUtils.trim(lineDataInternal.get(paraSecond)));
                 }
             }
-        } catch (Exception e) {
-            // Unicode 编码格式有误，解码失败
-            return null;
         }
-
-        return value.toString();
     }
 
     @Override
