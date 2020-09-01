@@ -28,9 +28,9 @@ import java.net.URI;
  * @author kunni
  */
 
-public class DtWebsocketClient extends WebSocketClient {
+public class DtWebSocketClient extends WebSocketClient {
 
-    public DtWebsocketClient(URI serverURI) {
+    public DtWebSocketClient(URI serverURI) {
         super(serverURI);
     }
 

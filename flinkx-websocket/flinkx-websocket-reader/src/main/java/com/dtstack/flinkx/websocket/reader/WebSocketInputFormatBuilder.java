@@ -16,44 +16,41 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.websocket.format;
+package com.dtstack.flinkx.websocket.reader;
 
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.types.Row;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
+import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
-
-/** 读取指定WebSocketUrl中的数据
+/** 构建 WebSocketInputFormat
  * @Company: www.dtstack.com
  * @author kunni
  */
 
-public class WebsocketInputFormat extends BaseRichInputFormat {
+public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
+    private WebSocketInputFormat format;
 
-    @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    private String serverUrl;
 
+    public static final String WEB_SOCKET_PREFIX = "ws";
+
+    public WebSocketInputFormatBuilder(){
+        super.format = format = new WebSocketInputFormat();
     }
 
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[0];
+
+    public void setServerUrl(String serverUrl){
+        this.serverUrl = serverUrl;
+        format.setServerUrl(serverUrl);
     }
 
-    @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        return null;
-    }
+
 
     @Override
-    protected void closeInternal() throws IOException {
-
-    }
-
-    @Override
-    public boolean reachedEnd() throws IOException {
-        return false;
+    protected void checkFormat() {
+        if(serverUrl==null || !StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
+            throw new IllegalArgumentException("please check serverUrl");
+        }
     }
 }

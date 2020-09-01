@@ -45,7 +45,9 @@ public class WebsocketReader extends BaseDataReader {
 
     @Override
     public DataStream<Row> readData() {
-        WebsocketInputFormatBuilder builder = new WebsocketInputFormatBuilder();
+        WebSocketInputFormatBuilder builder = new WebSocketInputFormatBuilder();
+        builder.setServerUrl(serverUrl);
+        builder.setDataTransferConfig(dataTransferConfig);
         return createInput(builder.finish());
     }
 }
