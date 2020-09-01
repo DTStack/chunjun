@@ -49,7 +49,8 @@ public class ResultPrintUtil {
         }
         maxLength += 5;
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(128);
+        builder.append("\n*********************************************\n");
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
             builder.append(name + StringUtils.repeat(" ", maxLength - name.length()));
@@ -59,9 +60,7 @@ public class ResultPrintUtil {
                 builder.append("\n");
             }
         }
-
-        LOG.info("---------------------------------");
+        builder.append("\n*********************************************\n");
         LOG.info(builder.toString());
-        LOG.info("---------------------------------");
     }
 }
