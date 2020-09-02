@@ -45,7 +45,9 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setServerUrl(serverUrl);
     }
 
-
+    public void setCodeC(String codeC){
+        format.setCodeC(codeC);
+    }
 
     @Override
     protected void checkFormat() {

@@ -27,4 +27,10 @@ public class WebSocketConfig {
 
     public static final String KEY_WEB_SOCKET_SERVER_URL = "serverUrl";
 
+    public static final String KEY_CODE_C = "codec";
+
+    public static final String KEY_TEXT = "text";
+
+    public static final String KEY_JSON = "json";
+
 }

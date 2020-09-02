@@ -26,7 +26,6 @@ import org.java_websocket.WebSocket;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.Callable;
 
 /** 读取指定WebSocketUrl中的数据
@@ -36,15 +35,20 @@ import java.util.concurrent.Callable;
 
 public class WebSocketInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     private String serverUrl;
 
     private DtWebSocketClient client;
+
+    private String codeC;
 
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try{
             client = new DtWebSocketClient(new URI(serverUrl));
+            client.setCodeC(codeC);
             // connect是异步操作
             client.connect();
             // 检测三次连接状态
@@ -54,7 +58,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
                 }else {
                     throw new IOException("connection not completed");
                 }
-            },3,1000, false);
+            }, 3, 1000, false);
         } catch (Exception e) {
             throw new IOException(e.getCause());
         }
@@ -73,7 +77,9 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-
+        if(client!=null){
+            client.close();
+        }
     }
 
     @Override
@@ -83,6 +89,10 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     public void setServerUrl(String serverUrl){
         this.serverUrl = serverUrl;
+    }
+
+    public void setCodeC(String codeC){
+        this.codeC = codeC;
     }
 
 }

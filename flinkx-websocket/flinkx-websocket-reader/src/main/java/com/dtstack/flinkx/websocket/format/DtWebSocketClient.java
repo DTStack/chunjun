@@ -18,12 +18,18 @@
 
 package com.dtstack.flinkx.websocket.format;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.hadoop.util.StringUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_JSON;
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_TEXT;
 
 /** 自定义的WebSocket Client
  * @Company: www.dtstack.com
@@ -32,20 +38,26 @@ import java.net.URI;
 
 public class DtWebSocketClient extends WebSocketClient {
 
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    private String codeC;
+
     public DtWebSocketClient(URI serverURI) {
         super(serverURI);
     }
 
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
-
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-
+        LOG.info("connected to URI : " + getURI());
     }
 
     @Override
     public void onMessage(String s) {
+        if(StringUtils.equalsIgnoreCase(codeC, KEY_TEXT)){
 
+        }else if(StringUtils.equalsIgnoreCase(codeC, KEY_JSON)){
+
+        }
     }
 
     @Override
@@ -55,6 +67,11 @@ public class DtWebSocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception e) {
-
+        LOG.error(ExceptionUtil.getErrorMessage(e));
     }
+
+    public void setCodeC(String codeC){
+        this.codeC = codeC;
+    }
+
 }
