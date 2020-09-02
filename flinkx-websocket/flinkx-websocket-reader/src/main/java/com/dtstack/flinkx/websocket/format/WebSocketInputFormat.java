@@ -19,12 +19,15 @@
 package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.java_websocket.WebSocket;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.Callable;
 
 /** 读取指定WebSocketUrl中的数据
  * @Company: www.dtstack.com
@@ -42,14 +45,18 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try{
             client = new DtWebSocketClient(new URI(serverUrl));
-            // connect 启动异步线程
+            // connect是异步操作
             client.connect();
-            while (!client.getReadyState().equals(WebSocket.READYSTATE.OPEN)) {
-                System.out.println("连接中···请稍后");
-                Thread.sleep(1000);
-            }
-        }catch (Exception ce){
-
+            // 检测三次连接状态
+            RetryUtil.executeWithRetry((Callable<Object>) () -> {
+                if(client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
+                    return true;
+                }else {
+                    throw new IOException("connection not completed");
+                }
+            },3,1000, false);
+        } catch (Exception e) {
+            throw new IOException(e.getCause());
         }
 
     }

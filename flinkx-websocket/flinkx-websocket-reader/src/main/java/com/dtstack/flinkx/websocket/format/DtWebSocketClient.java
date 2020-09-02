@@ -20,6 +20,8 @@ package com.dtstack.flinkx.websocket.format;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
@@ -33,6 +35,8 @@ public class DtWebSocketClient extends WebSocketClient {
     public DtWebSocketClient(URI serverURI) {
         super(serverURI);
     }
+
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
