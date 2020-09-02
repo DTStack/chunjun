@@ -64,7 +64,7 @@ public class SqlServerCdcUtil {
 
     public static void changeDatabase(Connection conn, String databaseName) throws SQLException {
         try (Statement statement = conn.createStatement()) {
-            statement.execute(" use " + databaseName);
+            statement.execute(" use " + "\""+databaseName+"\"");
         }
     }
 
