@@ -35,12 +35,12 @@ public enum ColumnType {
     /**
      * string type
      */
-    STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY,
+    STRING, VARCHAR, VARCHAR2, CHAR, NVARCHAR, TEXT, KEYWORD, BINARY,
 
     /**
      * number type
      */
-    INT, INT32, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT,LONG, INT64 ,SHORT,INTEGER,
+    INT, INT32, MEDIUMINT, TINYINT, DATETIME, SMALLINT, BIGINT, LONG, INT64 , SHORT, INTEGER, NUMBER,
 
     /**
      * double type
@@ -51,19 +51,19 @@ public enum ColumnType {
     /**
      * date type
      */
-    DATE, TIMESTAMP,TIME,
-    DECIMAL,YEAR,BIT;
+    DATE, TIMESTAMP, TIME,
+    DECIMAL, YEAR, BIT;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(
-            DATE,DATETIME,TIME,TIMESTAMP
+            DATE, DATETIME, TIME, TIMESTAMP
     );
 
     public static List<ColumnType> NUMBER_TYPE = Arrays.asList(
-            INT,INTEGER,MEDIUMINT,TINYINT,SMALLINT, BIGINT,LONG,SHORT,DOUBLE, FLOAT,DECIMAL
+            INT, INTEGER, MEDIUMINT, TINYINT, SMALLINT, BIGINT, LONG, SHORT, DOUBLE, FLOAT, DECIMAL, NUMBER
     );
 
     public static List<ColumnType> STRING_TYPE = Arrays.asList(
-            STRING, VARCHAR,VARCHAR2, CHAR,NVARCHAR,TEXT,KEYWORD,BINARY
+            STRING, VARCHAR, VARCHAR2, CHAR, NVARCHAR, TEXT, KEYWORD, BINARY
     );
 
     public static ColumnType fromString(String type) {
