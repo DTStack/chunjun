@@ -34,7 +34,7 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  * @author kunni@Dtstack.com
  */
 
-public class KingBaseInputFormat extends JdbcInputFormat {
+public class KingbaseInputFormat extends JdbcInputFormat {
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {

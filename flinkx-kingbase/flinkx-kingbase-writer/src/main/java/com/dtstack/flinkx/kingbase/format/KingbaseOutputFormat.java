@@ -37,7 +37,7 @@ import java.sql.SQLException;
  * @author kunni@dtstack.com
  */
 
-public class KingBaseOutputFormat extends JdbcOutputFormat {
+public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     private static final String COPY_SQL_TEMPL = "COPY %s(%s) FROM STDIN DELIMITER '%s' NULL AS '%s'";
 

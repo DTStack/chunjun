@@ -20,7 +20,7 @@ package com.dtstack.flinkx.kingbase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.kingbase.KingBaseDatabaseMeta;
-import com.dtstack.flinkx.kingbase.format.KingBaseInputFormat;
+import com.dtstack.flinkx.kingbase.format.KingbaseInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -41,6 +41,6 @@ public class KingbaseReader  extends JdbcDataReader {
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new KingBaseInputFormat());
+        return new JdbcInputFormatBuilder(new KingbaseInputFormat());
     }
 }

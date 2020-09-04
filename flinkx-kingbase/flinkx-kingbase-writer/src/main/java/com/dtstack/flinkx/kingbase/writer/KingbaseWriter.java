@@ -21,7 +21,7 @@ package com.dtstack.flinkx.kingbase.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.kingbase.KingBaseDatabaseMeta;
 import com.dtstack.flinkx.kingbase.KingBaseTypeConverter;
-import com.dtstack.flinkx.kingbase.format.KingBaseOutputFormat;
+import com.dtstack.flinkx.kingbase.format.KingbaseOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
@@ -46,7 +46,7 @@ public class KingbaseWriter extends JdbcDataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        KingBaseOutputFormat kingBaseOutputFormat = new KingBaseOutputFormat();
+        KingbaseOutputFormat kingBaseOutputFormat = new KingbaseOutputFormat();
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(kingBaseOutputFormat);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
