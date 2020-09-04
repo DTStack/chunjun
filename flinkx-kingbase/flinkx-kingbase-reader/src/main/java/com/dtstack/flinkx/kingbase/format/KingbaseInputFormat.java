@@ -21,9 +21,11 @@ package com.dtstack.flinkx.kingbase.format;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.sql.ResultSet;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -35,6 +37,14 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  */
 
 public class KingbaseInputFormat extends JdbcInputFormat {
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        if(incrementConfig.isPolling()){
+            resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
+        }
+        super.openInternal(inputSplit);
+    }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
