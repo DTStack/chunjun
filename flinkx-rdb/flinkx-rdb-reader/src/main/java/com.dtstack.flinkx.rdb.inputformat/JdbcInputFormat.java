@@ -183,14 +183,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             columnCount = columnCount - 1;
         }
 
-            if (StringUtils.isEmpty(customSql)) {
-                //获取表对应的所有字段类型抽取一个方法，而不是直接调用DbUtil#analyzeTable 以便子类更好扩展
-                descColumnTypeList = analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-                } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
+        if (StringUtils.isEmpty(customSql)) {
+            //获取表对应的所有字段类型抽取一个方法，而不是直接调用DbUtil#analyzeTable 以便子类更好扩展
+            descColumnTypeList = analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+            } else {
+            descColumnTypeList = new ArrayList<>();
+            for (MetaColumn metaColumn : metaColumns) {
+                descColumnTypeList.add(metaColumn.getName());
             }
         }
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
