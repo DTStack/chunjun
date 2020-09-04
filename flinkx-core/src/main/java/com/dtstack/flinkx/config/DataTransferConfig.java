@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.config;
 
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
-import com.google.gson.Gson;
 import org.apache.flink.util.Preconditions;
 
 import java.io.Reader;
@@ -110,8 +110,7 @@ public class DataTransferConfig extends AbstractConfig {
     }
 
     public static DataTransferConfig parse(String json) {
-        Gson gson = new Gson();
-        Map<String,Object> map = gson.fromJson(json, Map.class);
+        Map<String,Object> map = GsonUtil.GSON.fromJson(json, GsonUtil.gsonMapTypeToken);
         map = MapUtil.convertToHashMap(map);
         DataTransferConfig config = new DataTransferConfig(map);
         checkConfig(config);
@@ -119,8 +118,7 @@ public class DataTransferConfig extends AbstractConfig {
     }
 
     public static DataTransferConfig parse(Reader reader) {
-        Gson gson = new Gson();
-        DataTransferConfig config = gson.fromJson(reader, DataTransferConfig.class);
+        DataTransferConfig config = GsonUtil.GSON.fromJson(reader, DataTransferConfig.class);
         checkConfig(config);
         return config;
     }
