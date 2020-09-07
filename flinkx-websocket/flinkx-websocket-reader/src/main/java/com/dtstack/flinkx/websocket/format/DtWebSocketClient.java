@@ -19,17 +19,16 @@
 package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import org.apache.hadoop.util.StringUtils;
+import org.apache.flink.types.Row;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.net.URI;
-
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_JSON;
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_TEXT;
+import java.util.Map;
+import java.util.concurrent.SynchronousQueue;
 
 /** 自定义的WebSocket Client
  * @Company: www.dtstack.com
@@ -42,6 +41,8 @@ public class DtWebSocketClient extends WebSocketClient {
 
     private String codeC;
 
+    private SynchronousQueue<Row> queue;
+
     public DtWebSocketClient(URI serverURI) {
         super(serverURI);
     }
@@ -53,10 +54,18 @@ public class DtWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String s) {
-        if(StringUtils.equalsIgnoreCase(codeC, KEY_TEXT)){
-
-        }else if(StringUtils.equalsIgnoreCase(codeC, KEY_JSON)){
-
+        try{
+            Class<?> clazz = Class.forName(codeC);
+            Method method = clazz.getMethod("decode",String.class);
+            Map<String, Object> map = (Map<String, Object>) method.invoke(clazz.newInstance(), s);
+            Row row = new Row(map.size());
+            int count = 0;
+            for(Map.Entry<String, Object> entry : map.entrySet()){
+                row.setField(count++, entry.getValue());
+            }
+            queue.put(row);
+        }catch (Exception e){
+            LOG.error("Class no found");
         }
     }
 
@@ -72,6 +81,10 @@ public class DtWebSocketClient extends WebSocketClient {
 
     public void setCodeC(String codeC){
         this.codeC = codeC;
+    }
+
+    public void setQueue(SynchronousQueue<Row> queue){
+        this.queue = queue;
     }
 
 }

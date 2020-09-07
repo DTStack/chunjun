@@ -20,6 +20,7 @@ package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.RetryUtil;
+import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.java_websocket.WebSocket;
@@ -27,6 +28,7 @@ import org.java_websocket.WebSocket;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Callable;
+import java.util.concurrent.SynchronousQueue;
 
 /** 读取指定WebSocketUrl中的数据
  * @Company: www.dtstack.com
@@ -43,12 +45,15 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     private String codeC;
 
+    private SynchronousQueue<Row> queue = new SynchronousQueue<>();
+
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try{
             client = new DtWebSocketClient(new URI(serverUrl));
             client.setCodeC(codeC);
+            client.setQueue(queue);
             // connect是异步操作
             client.connect();
             // 检测三次连接状态
@@ -56,18 +61,22 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
                 if(client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
                     return true;
                 }else {
-                    throw new IOException("connection not completed");
+                    throw new RuntimeException("connection not completed");
                 }
             }, 3, 1000, false);
         } catch (Exception e) {
             throw new IOException(e.getCause());
         }
-
+        client.run();
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
-        return new InputSplit[0];
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+        InputSplit[] inputSplits = new InputSplit[minNumSplits];
+        for (int i = 0; i < minNumSplits; i++) {
+            inputSplits[i] = new GenericInputSplit(i,minNumSplits);
+        }
+        return inputSplits;
     }
 
     @Override

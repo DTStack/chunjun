@@ -40,7 +40,7 @@ public class WebsocketReader extends BaseDataReader {
 
     protected String codeC;
 
-    protected WebsocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public WebsocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         serverUrl = readerConfig.getParameter().getStringVal(KEY_WEB_SOCKET_SERVER_URL);
