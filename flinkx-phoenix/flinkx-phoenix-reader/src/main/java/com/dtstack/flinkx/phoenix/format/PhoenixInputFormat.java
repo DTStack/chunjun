@@ -68,7 +68,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
 
             statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
 
-            statement.setFetchSize(0);
+            statement.setFetchSize(databaseInterface.getFetchSize());
 
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
