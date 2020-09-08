@@ -52,7 +52,7 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
     @Override
     protected void checkFormat() {
         if(serverUrl==null || !StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
-            throw new IllegalArgumentException("please check serverUrl");
+            throw new IllegalArgumentException("illegal serverUrl");
         }
     }
 }

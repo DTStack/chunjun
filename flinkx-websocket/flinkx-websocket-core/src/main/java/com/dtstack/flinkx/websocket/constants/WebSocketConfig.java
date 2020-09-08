@@ -29,8 +29,6 @@ public class WebSocketConfig {
 
     public static final String KEY_CODE_C = "codec";
 
-    public static final String KEY_TEXT = "text";
-
-    public static final String KEY_JSON = "json";
+    public static final String DEFAULT_DECODE = "com.dtstack.flinkx.decoder.JsonDecoder";
 
 }

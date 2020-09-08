@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.websocket.format;
 
+import com.dtstack.flinkx.decoder.IDecode;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -32,7 +32,6 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
@@ -40,6 +39,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.apache.flink.types.Row;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
 
@@ -59,12 +59,9 @@ public class WebSocketClient {
 
     WebSocketClientHandler webSocketClientHandler;
 
-    private String codeC;
-
-    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl, String codeC){
-        webSocketClientHandler = new WebSocketClientHandler(queue, codeC);
+    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl, IDecode decoder) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        webSocketClientHandler = new WebSocketClientHandler(queue, decoder);
         this.serverUrl = serverUrl;
-        this.codeC = codeC;
     }
 
     public void start() throws Exception {

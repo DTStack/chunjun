@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.websocket.format;
 
+import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -28,7 +29,6 @@ import java.io.IOException;
 import java.util.concurrent.SynchronousQueue;
 
 /** 读取指定WebSocketUrl中的数据
- *
  * @Company: www.dtstack.com
  * @author kunni
  */
@@ -41,7 +41,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     private WebSocketClient client;
 
-    private String codeC;
+    private IDecode decoder;
 
     private SynchronousQueue<Row> queue = new SynchronousQueue<>();
 
@@ -49,7 +49,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            client = new WebSocketClient(queue, serverUrl, codeC);
+            client = new WebSocketClient(queue, serverUrl, decoder);
             client.start();
         }catch (Exception e){
             throw new IOException(e);
@@ -93,7 +93,12 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     }
 
     public void setCodeC(String codeC){
-        this.codeC = codeC;
+        try{
+            Class<?> clazz = Class.forName(codeC);
+            decoder = (IDecode) clazz.getConstructor().newInstance();
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
 }

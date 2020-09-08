@@ -17,10 +17,13 @@
  */
 package com.dtstack.flinkx.decoder;
 
+import io.netty.buffer.ByteBuf;
+import org.apache.commons.lang3.CharSet;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,7 +33,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class JsonDecoder implements IDecode {
+public class JsonDecoder implements IDecode, Serializable {
     private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -50,5 +53,10 @@ public class JsonDecoder implements IDecode {
             LOG.error(e.getMessage());
             return Collections.singletonMap(KEY_MESSAGE, message);
         }
+    }
+
+    @Override
+    public Map<String, Object> binaryDecode(final byte[] message) {
+        return decode(new String(message));
     }
 }

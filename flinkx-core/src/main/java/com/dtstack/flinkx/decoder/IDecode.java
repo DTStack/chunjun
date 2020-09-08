@@ -35,4 +35,11 @@ public interface IDecode {
      */
     Map<String, Object> decode(String message);
 
+    /**
+     * 解码给定的数据
+     *
+     * @param message 待解码的字节内容
+     * @return 解码后的数据
+     */
+    Map<String, Object> binaryDecode(final byte[] message);
 }

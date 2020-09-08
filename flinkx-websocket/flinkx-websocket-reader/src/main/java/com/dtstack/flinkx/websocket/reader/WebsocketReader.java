@@ -25,6 +25,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_DECODE;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_CODE_C;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_WEB_SOCKET_SERVER_URL;
 
@@ -44,7 +45,7 @@ public class WebsocketReader extends BaseDataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         serverUrl = readerConfig.getParameter().getStringVal(KEY_WEB_SOCKET_SERVER_URL);
-        codeC = readerConfig.getParameter().getStringVal(KEY_CODE_C);
+        codeC = readerConfig.getParameter().getStringVal(KEY_CODE_C, DEFAULT_DECODE);
     }
 
     @Override

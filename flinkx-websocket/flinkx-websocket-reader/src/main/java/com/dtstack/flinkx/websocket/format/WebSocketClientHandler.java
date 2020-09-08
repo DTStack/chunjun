@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.websocket.format;
 
+import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -32,11 +33,12 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.util.CharsetUtil;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Queue;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -56,16 +58,16 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private SynchronousQueue<Row> queue;
 
-    private String codeC;
+    private IDecode decoder;
 
-    public WebSocketClientHandler(SynchronousQueue<Row> queue, String codeC){
+    public WebSocketClientHandler(SynchronousQueue<Row> queue, IDecode decoder) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         this.queue = queue;
-        this.codeC = codeC;
+        this.decoder = decoder;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("当前握手的状态"+this.handShaker.isHandshakeComplete());
+        LOG.info("current connect state : " + this.handShaker.isHandshakeComplete());
         Channel ch = ctx.channel();
         FullHttpResponse response;
         //进行握手操作
@@ -76,35 +78,35 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 this.handShaker.finishHandshake(ch, response);
                 //设置成功
                 this.handshakeFuture.setSuccess();
-                System.out.println("服务端的消息"+response.headers());
+                LOG.info("message" + response.headers());
             } catch (WebSocketHandshakeException var7) {
                 FullHttpResponse res = (FullHttpResponse)msg;
-                //String errorMsg = String.format("握手失败,status:%s,reason:%s", res.status(), res.content().toString(CharsetUtil.UTF_8));
-                //this.handshakeFuture.setFailure(new Exception(errorMsg));
+                String errorMsg = String.format("connect failed, status:%s,reason:%s", res.status(), res.content().toString(CharsetUtil.UTF_8));
+                this.handshakeFuture.setFailure(new Exception(errorMsg));
             }
         } else if (msg instanceof FullHttpResponse) {
             response = (FullHttpResponse)msg;
-            //throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status() + ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
+            throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status() + ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
         } else {
             //接收服务端的消息
             WebSocketFrame frame = (WebSocketFrame)msg;
             //文本信息
             if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
-                System.out.println("客户端接收的消息是:"+textFrame.text());
+                queue.put(Row.of(decoder.decode(textFrame.text())));
             }
             //二进制信息
             if (frame instanceof BinaryWebSocketFrame) {
                 BinaryWebSocketFrame binFrame = (BinaryWebSocketFrame)frame;
-                System.out.println("BinaryWebSocketFrame");
+                queue.put(Row.of(decoder.binaryDecode(binFrame.content().array())));
             }
             //ping信息
             if (frame instanceof PongWebSocketFrame) {
-                System.out.println("WebSocket Client received pong");
+                LOG.info("WebSocket Client received pong");
             }
             //关闭消息
             if (frame instanceof CloseWebSocketFrame) {
-                System.out.println("receive close frame");
+                LOG.info("receive close frame");
                 ch.close();
             }
 
@@ -113,17 +115,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        LOG.info("与服务端连接成功");
+        LOG.info("connect success");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        LOG.info("主机关闭");
+        LOG.info("connection is closed by server");
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOG.error("连接异常："+ ExceptionUtil.getErrorMessage(cause));
+        LOG.error("connect exception ："+ ExceptionUtil.getErrorMessage(cause));
         ctx.close();
     }
 
@@ -132,20 +134,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         this.handshakeFuture = ctx.newPromise();
     }
 
-    public WebSocketClientHandshaker getHandShaker() {
-        return handShaker;
-    }
-
     public void setHandShaker(WebSocketClientHandshaker handShaker) {
         this.handShaker = handShaker;
-    }
-
-    public ChannelPromise getHandshakeFuture() {
-        return handshakeFuture;
-    }
-
-    public void setHandshakeFuture(ChannelPromise handshakeFuture) {
-        this.handshakeFuture = handshakeFuture;
     }
 
     public ChannelFuture handshakeFuture() {

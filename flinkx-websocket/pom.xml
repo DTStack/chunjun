@@ -14,7 +14,6 @@
     <modules>
         <module>flinkx-websocket-core</module>
         <module>flinkx-websocket-reader</module>
-        <module>flinkx-websocket-writer</module>
     </modules>
 
     <dependencies>
