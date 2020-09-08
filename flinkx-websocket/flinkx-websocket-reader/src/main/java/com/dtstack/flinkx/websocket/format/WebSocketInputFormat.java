@@ -19,18 +19,16 @@
 package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.java_websocket.WebSocket;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.Callable;
 import java.util.concurrent.SynchronousQueue;
 
 /** 读取指定WebSocketUrl中的数据
+ *
  * @Company: www.dtstack.com
  * @author kunni
  */
@@ -41,7 +39,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     private String serverUrl;
 
-    private DtWebSocketClient client;
+    private WebSocketClient client;
 
     private String codeC;
 
@@ -50,28 +48,16 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        try{
-            client = new DtWebSocketClient(new URI(serverUrl));
-            client.setCodeC(codeC);
-            client.setQueue(queue);
-            // connect是异步操作
-            client.connect();
-            // 检测三次连接状态
-            RetryUtil.executeWithRetry((Callable<Object>) () -> {
-                if(client.getReadyState().equals(WebSocket.READYSTATE.OPEN)){
-                    return true;
-                }else {
-                    throw new RuntimeException("connection not completed");
-                }
-            }, 3, 1000, false);
-        } catch (Exception e) {
-            throw new IOException(e.getCause());
+        try {
+            client = new WebSocketClient(queue, serverUrl, codeC);
+            client.start();
+        }catch (Exception e){
+            throw new IOException(e);
         }
-        client.run();
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             inputSplits[i] = new GenericInputSplit(i,minNumSplits);
@@ -81,18 +67,24 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        return null;
+        try {
+            row = queue.take();
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        }
+        return row;
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         if(client!=null){
             client.close();
         }
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return false;
     }
 
