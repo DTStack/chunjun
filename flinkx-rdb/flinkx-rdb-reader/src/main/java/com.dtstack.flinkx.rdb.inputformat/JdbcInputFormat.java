@@ -184,8 +184,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         if (StringUtils.isEmpty(customSql)) {
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-        } else {
+            //获取表对应的所有字段类型抽取一个方法，而不是直接调用DbUtil#analyzeTable 以便子类更好扩展
+            descColumnTypeList = analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+            } else {
             descColumnTypeList = new ArrayList<>();
             for (MetaColumn metaColumn : metaColumns) {
                 descColumnTypeList.add(metaColumn.getName());
@@ -345,6 +346,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         //将累加器信息添加至prometheus
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
 
     /**
@@ -876,5 +879,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     protected boolean makeTaskFailedWhenReportFailed() {
         return true;
+    }
+
+    protected List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
+                                        String table, List<MetaColumn> metaColumns) {
+        return DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
     }
 }
