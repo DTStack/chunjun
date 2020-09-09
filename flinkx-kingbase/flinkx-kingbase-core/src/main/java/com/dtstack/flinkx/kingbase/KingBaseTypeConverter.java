@@ -8,22 +8,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The type converter for KingBase database
- *
+ * 参考PostgresqlTypeConverter
  * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class KingBaseTypeConverter implements TypeConverterInterface {
 
-    private List<String> stringTypes = Arrays.asList("uuid","xml","cidr","inet","macaddr");
+    private List<String> stringTypes = Arrays.asList("uuid","xml","cidr","inet","macaddr","character","character varying");
 
     private List<String> byteTypes = Arrays.asList("bytea","bit varying");
 
     private List<String> bitTypes = Collections.singletonList("bit");
 
-    private List<String> doubleTypes = Collections.singletonList("money");
+    private List<String> doubleTypes = Arrays.asList("double precision","double","float8","money");
 
-    private List<String> intTypes = Arrays.asList("int","int2","int4","int8");
+    private List<String> intTypes = Arrays.asList("int","int2","int4","int8","integer","bigint","bigserial","smallint");
 
     @Override
     public Object convert(Object data,String typeName) {
