@@ -130,6 +130,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         connectionInfo.setHiveConf(hadoopConfig);
 
         hiveUtil = new HiveUtil(connectionInfo);
+        hiveUtil.createHiveTableWithTableInfo(tableInfos.get(tableBasePath));
+        tableCache.put(tableBasePath, tableInfos.get(tableBasePath));
     }
 
     @Override
