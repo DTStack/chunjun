@@ -20,8 +20,11 @@ package com.dtstack.flinkx.kingbase;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The class of KingBase database prototype
@@ -32,9 +35,20 @@ import java.util.List;
 
 public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
+    public static final String KEY_UPDATE_KEY = "key";
+
     @Override
     protected String makeValues(List<String> column) {
-        throw new UnsupportedOperationException();
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        for(int i = 0; i < column.size(); ++i) {
+            if(i != 0) {
+                sb.append(",");
+            }
+            sb.append(quoteColumn(column.get(i)));
+        }
+        sb.append(")");
+        return sb.toString();
     }
 
     @Override
@@ -57,6 +71,27 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
     }
 
+    @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") VALUES "
+                + makeValues(column.size())
+                + " ON CONFLICT " +makeValues(updateKey.get(KEY_UPDATE_KEY)) + " DO UPDATE SET "
+                + makeUpdatePart(column);
+    }
+
+    private String makeValues(int nCols) {
+        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
+    }
+
+    private String makeUpdatePart (List<String> column) {
+        List<String> updateList = new ArrayList<>();
+        for(String col : column) {
+            String quotedCol = quoteColumn(col);
+            updateList.add(quotedCol + "=EXCLUDED." + quotedCol);
+        }
+        return StringUtils.join(updateList, ",");
+    }
 
     @Override
     public String quoteValue(String value, String column) {
