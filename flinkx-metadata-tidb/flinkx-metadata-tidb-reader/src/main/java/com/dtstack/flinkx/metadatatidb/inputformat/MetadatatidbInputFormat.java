@@ -21,7 +21,6 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,7 +30,52 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.*;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PRIMARY;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_COMMENT;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_INDEX;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_TYPE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_CREATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_DEFAULT;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_HEALTHY;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_NULL;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITIONS;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITION_COLUMN;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PRI;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_ROWS;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_SCALE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TES;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TOTAL_SIZE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_UPDATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_DEFAULT;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_NULL;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COMMENT;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_CREATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_DATA_LENGTH;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_FIELD;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_HEALTHY;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_KEY;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITIONNAME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_CREATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_DATA_LENGTH;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_EXPRESSION;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_NAME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_TABLE_ROWS;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_ROWS;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_TYPE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_UPDATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_COLUMN;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_HEALTHY;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_PARTITION;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_PARTITION_COLUMN;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_TABLE_INFO;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_UPDATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_SHOW_TABLES;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_SWITCH_DATABASE;
 
 
 /**
@@ -118,7 +162,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return tableProp;
     }
 
-    List<Map<String, Object> > queryColumn(String tableName) throws SQLException {
+    protected List<Map<String, Object> > queryColumn(String tableName) throws SQLException {
         List<Map<String, Object> > column = new LinkedList<>();
         String sql = String.format(SQL_QUERY_COLUMN, tableName);
         try(Statement st = connection.get().createStatement();
@@ -127,9 +171,12 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
             while (rs.next()) {
                 Map<String, Object> perColumn = new HashMap<>(16);
                 perColumn.put(KEY_COLUMN_NAME, rs.getString(RESULT_FIELD));
-                perColumn.put(KEY_COLUMN_TYPE, rs.getString(KEY_COLUMN_TYPE));
-                perColumn.put(KEY_NULL, rs.getString(RESULT_COLUMN_NULL));
+                String type = rs.getString(RESULT_TYPE);
+                perColumn.put(KEY_COLUMN_TYPE, type);
+                perColumn.put(KEY_NULL, StringUtils.equals(rs.getString(RESULT_COLUMN_NULL), KEY_TES) ? KEY_TRUE : KEY_FALSE);
+                perColumn.put(KEY_PRIMARY, StringUtils.equals(rs.getString(RESULT_KEY), KEY_PRI) ? KEY_TRUE : KEY_FALSE);
                 perColumn.put(KEY_DEFAULT, rs.getString(RESULT_COLUMN_DEFAULT));
+                perColumn.put(KEY_SCALE, StringUtils.contains(type, '(') ? StringUtils.substring(type, type.indexOf("(")+1, type.indexOf(")")) : 0);
                 perColumn.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_COMMENT));
                 perColumn.put(KEY_COLUMN_INDEX, pos++);
                 column.add(perColumn);
@@ -140,7 +187,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return column;
     }
 
-    List<Map<String, Object>> queryPartition(String tableName) throws SQLException {
+    protected List<Map<String, Object>> queryPartition(String tableName) throws SQLException {
         List<Map<String, Object> > partition = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION, tableName);
         try(Statement st = connection.get().createStatement();
@@ -160,7 +207,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
     }
 
 
-    Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
+    protected Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
         String sql = "";
         if(StringUtils.equals(msg, KEY_HEALTHY)){
@@ -193,7 +240,7 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         return result;
     }
 
-    List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
+    protected List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
         List<Map<String, Object> > partitionColumn = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION_COLUMN, tableName);
         try(Statement st = connection.get().createStatement();

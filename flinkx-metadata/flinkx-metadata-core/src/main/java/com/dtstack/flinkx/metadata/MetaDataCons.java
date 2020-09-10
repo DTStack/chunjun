@@ -44,7 +44,14 @@ public class MetaDataCons {
     public static final String KEY_COLUMN_INDEX = "index";
     public static final String KEY_COLUMN_COMMENT = "comment";
     public static final String KEY_COLUMN_TYPE = "type";
+    public static final String KEY_DEFAULT = "default";
+    public static final String KEY_NULL = "null";
+    public static final String KEY_PRIMARY = "primary";
+    public static final String KEY_SCALE = "scale";
     public static final String KEY_COLUMN_DATA_TYPE = "data_type";
+    public static final String KEY_TRUE = "Y";
+    public static final String KEY_FALSE = "N";
+
 
     public static final String KEY_COL_NAME = "col_name";
 

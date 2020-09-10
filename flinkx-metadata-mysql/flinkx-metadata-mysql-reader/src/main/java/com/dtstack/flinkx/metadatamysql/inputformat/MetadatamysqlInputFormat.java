@@ -76,26 +76,6 @@ public class MetadatamysqlInputFormat extends MetadatatidbInputFormat {
         return tableProp;
     }
 
-    protected List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
-        List<Map<String, Object>> column = new LinkedList<>();
-        String sql = String.format(SQL_QUERY_COLUMN, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-            int pos = 1;
-            while (rs.next()) {
-                Map<String, Object> perColumn = new HashMap<>(16);
-                perColumn.put(KEY_COLUMN_NAME, rs.getString(RESULT_FIELD));
-                perColumn.put(KEY_COLUMN_TYPE, rs.getString(KEY_COLUMN_TYPE));
-                perColumn.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_COMMENT));
-                perColumn.put(KEY_COLUMN_INDEX, pos++);
-                column.add(perColumn);
-            }
-        } catch (SQLException e) {
-            throw new SQLException(ExceptionUtils.getMessage(e));
-        }
-        return column;
-    }
-
     protected List<Map<String, String>> queryIndex(String tableName) throws SQLException {
         List<Map<String, String>> index = new LinkedList<>();
         String sql = String.format(SQL_QUERY_INDEX, tableName);
