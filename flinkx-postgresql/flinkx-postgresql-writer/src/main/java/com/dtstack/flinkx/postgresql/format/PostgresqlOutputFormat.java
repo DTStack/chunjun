@@ -100,12 +100,14 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         int index = 0;
         try {
             StringBuilder sb = new StringBuilder();
+            int lastIndex = row.getArity() - 1;
             for (; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
-                sb.append(rowData)
-                        .append(DEFAULT_FIELD_DELIM);
+                sb.append(rowData==null ? DEFAULT_NULL_DELIM : rowData);
+                if(index != lastIndex){
+                    sb.append(DEFAULT_FIELD_DELIM);
+                }
             }
-
             String rowVal = sb.toString();
             ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
