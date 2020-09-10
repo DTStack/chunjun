@@ -157,6 +157,7 @@ public class KuduUtil {
             case "varchar":
             case "text":
             case "string" : return  Type.STRING;
+            case "unixtime_micros":
             case "timestamp" : return  Type.UNIXTIME_MICROS;
             default:
                 throw new IllegalArgumentException("Not support column type:" + columnType);
