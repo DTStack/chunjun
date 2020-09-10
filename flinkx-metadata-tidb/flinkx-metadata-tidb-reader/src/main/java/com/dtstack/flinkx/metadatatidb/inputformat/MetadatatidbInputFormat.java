@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PRIMARY;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_COMMENT;
@@ -39,14 +39,14 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COL
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_TYPE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_CREATE_TIME;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_DEFAULT;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_HEALTHY;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_NULL;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NULL;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITIONS;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITION_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PRI;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_ROWS;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_SCALE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TES;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TOTAL_SIZE;
@@ -122,8 +122,8 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
             for(Map<String, Object> perPartitionColumn : partitionColumn){
                 if(StringUtils.equals((String)perPartitionColumn.get(KEY_COLUMN_NAME), (String)perColumn.get(KEY_COLUMN_NAME))){
                     perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(KEY_COLUMN_TYPE));
-                    perPartitionColumn.put(KEY_NULL, perColumn.get(KEY_NULL));
-                    perPartitionColumn.put(KEY_DEFAULT, perColumn.get(KEY_DEFAULT));
+                    perPartitionColumn.put(KEY_COLUMN_NULL, perColumn.get(KEY_COLUMN_NULL));
+                    perPartitionColumn.put(KEY_COLUMN_DEFAULT, perColumn.get(KEY_COLUMN_DEFAULT));
                     perPartitionColumn.put(KEY_COLUMN_COMMENT, perColumn.get(KEY_COLUMN_COMMENT));
                     perPartitionColumn.put(KEY_COLUMN_INDEX, perColumn.get(KEY_COLUMN_INDEX));
                     return true;
@@ -173,10 +173,10 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
                 perColumn.put(KEY_COLUMN_NAME, rs.getString(RESULT_FIELD));
                 String type = rs.getString(RESULT_TYPE);
                 perColumn.put(KEY_COLUMN_TYPE, type);
-                perColumn.put(KEY_NULL, StringUtils.equals(rs.getString(RESULT_COLUMN_NULL), KEY_TES) ? KEY_TRUE : KEY_FALSE);
-                perColumn.put(KEY_PRIMARY, StringUtils.equals(rs.getString(RESULT_KEY), KEY_PRI) ? KEY_TRUE : KEY_FALSE);
-                perColumn.put(KEY_DEFAULT, rs.getString(RESULT_COLUMN_DEFAULT));
-                perColumn.put(KEY_SCALE, StringUtils.contains(type, '(') ? StringUtils.substring(type, type.indexOf("(")+1, type.indexOf(")")) : 0);
+                perColumn.put(KEY_COLUMN_NULL, StringUtils.equals(rs.getString(RESULT_COLUMN_NULL), KEY_TES) ? KEY_TRUE : KEY_FALSE);
+                perColumn.put(KEY_COLUMN_PRIMARY, StringUtils.equals(rs.getString(RESULT_KEY), KEY_PRI) ? KEY_TRUE : KEY_FALSE);
+                perColumn.put(KEY_COLUMN_DEFAULT, rs.getString(RESULT_COLUMN_DEFAULT));
+                perColumn.put(KEY_COLUMN_SCALE, StringUtils.contains(type, '(') ? StringUtils.substring(type, type.indexOf("(")+1, type.indexOf(")")) : 0);
                 perColumn.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_COMMENT));
                 perColumn.put(KEY_COLUMN_INDEX, pos++);
                 column.add(perColumn);

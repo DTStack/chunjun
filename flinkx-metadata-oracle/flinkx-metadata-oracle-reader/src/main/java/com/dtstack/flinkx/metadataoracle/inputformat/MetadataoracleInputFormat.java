@@ -29,6 +29,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_COMMENT;
@@ -164,6 +167,9 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
                 column.put(KEY_COLUMN_TYPE, rs.getString(2));
                 column.put(KEY_COLUMN_COMMENT, rs.getString(3));
                 String tableName = rs.getString(4);
+                column.put(KEY_COLUMN_DEFAULT, rs.getString(5));
+                column.put(KEY_COLUMN_NULL, rs.getString(6));
+                column.put(KEY_COLUMN_SCALE, rs.getString(7));
                 if(columnListMap.containsKey(tableName)){
                     column.put(KEY_COLUMN_INDEX, CollectionUtils.size(columnListMap.get(tableName))+1);
                     columnListMap.get(tableName).add(column);
