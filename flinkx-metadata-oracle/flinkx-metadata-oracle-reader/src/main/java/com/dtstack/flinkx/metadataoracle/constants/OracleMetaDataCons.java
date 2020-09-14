@@ -44,6 +44,10 @@ public class OracleMetaDataCons extends MetaDataCons {
             "FROM DBA_TAB_COLUMNS COLUMNS JOIN DBA_COL_COMMENTS COMMENTS \n" +
             "ON COLUMNS.OWNER = COMMENTS.OWNER AND COLUMNS.TABLE_NAME = COMMENTS.TABLE_NAME AND COLUMNS.COLUMN_NAME = COMMENTS.COLUMN_NAME\n" +
             "WHERE COLUMNS.OWNER = %s AND COLUMNS.TABLE_NAME IN (%s) ";
+    public static final String SQL_QUERY_PRIMARY_KEY = "SELECT a.table_name, a.column_name \n" +
+            "FROM user_cons_columns a, user_constraints b \n" +
+            "WHERE a.constraint_name = b.constraint_name \n" +
+            "AND a.OWNER = %s AND b.constraint_type = 'P' AND a.table_name IN (%s) ";
     public static final String SQL_QUERY_TABLE_PROPERTIES = "SELECT TABLES.NUM_ROWS*TABLES.AVG_ROW_LEN AS TOTALSIZE, COMMENTS.COMMENTS, COMMENTS.TABLE_TYPE, OBJS.CREATED, TABLES.NUM_ROWS, TABLES.TABLE_NAME \n" +
             "FROM DBA_TABLES TABLES JOIN DBA_OBJECTS OBJS ON TABLES.OWNER = OBJS.OWNER AND TABLES.TABLE_NAME = OBJS.OBJECT_NAME\n" +
             "JOIN DBA_TAB_COMMENTS COMMENTS ON TABLES.OWNER = COMMENTS.OWNER AND TABLES.TABLE_NAME = COMMENTS.TABLE_NAME\n" +
@@ -61,6 +65,10 @@ public class OracleMetaDataCons extends MetaDataCons {
             "FROM DBA_TABLES TABLES JOIN DBA_OBJECTS OBJS ON TABLES.OWNER = OBJS.OWNER AND TABLES.TABLE_NAME = OBJS.OBJECT_NAME\n" +
             "JOIN DBA_TAB_COMMENTS COMMENTS ON TABLES.OWNER = COMMENTS.OWNER AND TABLES.TABLE_NAME = COMMENTS.TABLE_NAME\n" +
             "WHERE TABLES.OWNER = %s ";
+    public static final String SQL_QUERY_PRIMARY_KEY_TOTAL = "SELECT a.table_name, a.column_name \n" +
+            "FROM user_cons_columns a, user_constraints b \n" +
+            "WHERE a.constraint_name = b.constraint_name \n" +
+            "AND b.constraint_type = 'P' AND a.OWNER = %s ";
 
     /**
      * 使用ALL_TABLES，降低权限要求

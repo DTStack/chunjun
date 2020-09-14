@@ -36,8 +36,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_ZERO;
 
 /**
  * @author : kunni@dtstack.com
@@ -177,6 +180,8 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
                 perColumn.put(MetaDataCons.KEY_COLUMN_NAME, resultSet.getString(1));
                 perColumn.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(2));
                 perColumn.put(MetaDataCons.KEY_COLUMN_COMMENT, resultSet.getString(3));
+                perColumn.put(MetaDataCons.KEY_COLUMN_NULL, StringUtils.equals(resultSet.getString(4), KEY_ZERO) ? KEY_FALSE : KEY_TRUE);
+                perColumn.put(MetaDataCons.KEY_COLUMN_SCALE, resultSet.getString(5));
                 perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, column.size()+1);
                 column.add(perColumn);
             }
