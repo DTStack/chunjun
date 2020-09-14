@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadataoracle.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -108,7 +109,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, Map<String, String> > queryTableProperties() throws SQLException {
         Map<String, Map<String, String>> tablePropertiesMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_TABLE_PROPERTIES, quote(currentDb.get()), allTable);
@@ -129,7 +130,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
         Map<String, List<Map<String, String>>> indexListMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_INDEX, quote(currentDb.get()), allTable);
@@ -155,7 +156,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     Map<String, List<Map<String, Object>>> queryColumnList() throws SQLException {
         Map<String, List<Map<String, Object>>> columnListMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_COLUMN, quote(currentDb.get()), allTable);
