@@ -32,6 +32,7 @@ public enum ECompressType {
      */
     TEXT_GZIP("GZIP", "text", ".gz", 0.331F),
     TEXT_BZIP2("BZIP2", "text", ".bz2", 0.259F),
+    TEXT_LZO("LZO", "text", ".lzo", 1.0F),
     TEXT_NONE("NONE", "text", "", 0.637F),
 
     /**
