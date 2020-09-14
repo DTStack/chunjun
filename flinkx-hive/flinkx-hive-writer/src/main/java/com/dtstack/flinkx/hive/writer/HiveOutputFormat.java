@@ -131,6 +131,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
         hiveUtil = new HiveUtil(connectionInfo);
         String tableName = tableInfos.entrySet().iterator().next().getValue().getTableName();
+        tableName = distributeTableMapping.getOrDefault(tableName, tableName);
         TableInfo tableInfo = tableInfos.get(tableName);
         tableInfo.setTablePath(tableName);
         hiveUtil.createHiveTableWithTableInfo(tableInfo);
