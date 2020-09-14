@@ -24,7 +24,6 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,15 +50,13 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
-    protected static ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void configure(Configuration parameters) {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-    }
+    protected void openInternal(int taskNumber, int numTasks) {}
 
     @Override
     @SuppressWarnings("unchecked")
@@ -103,7 +100,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
+    protected void writeMultipleRecordsInternal() {
         notSupportBatchWrite("KafkaWriter");
     }
 

@@ -87,7 +87,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     protected int indexOfSubTask;
 
-    private long startTime;
+    protected long startTime;
 
     protected AccumulatorCollector accumulatorCollector;
 
