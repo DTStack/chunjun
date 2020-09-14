@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.GsonUtil;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -61,11 +62,11 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     @Override
     protected void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
+        producer.send(new KeyedMessage<>(tp, event.toString(), GsonUtil.GSON.toJson(event).getBytes(encoding)));
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
         producer.close();
     }
