@@ -34,6 +34,24 @@ under the License.
     </properties>
 
     <dependencies>
+        <!--lzop-->
+        <dependency>
+            <groupId>org.anarres.lzo</groupId>
+            <artifactId>lzo-core</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.anarres.lzo</groupId>
+            <artifactId>lzo-hadoop</artifactId>
+            <version>1.0.5</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hadoop-core</artifactId>
+                    <groupId>org.apache.hadoop</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!--lzop-->
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-core</artifactId>
