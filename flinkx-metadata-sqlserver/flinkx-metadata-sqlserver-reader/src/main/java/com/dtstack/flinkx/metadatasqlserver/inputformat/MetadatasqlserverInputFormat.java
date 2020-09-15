@@ -182,6 +182,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
                 perColumn.put(MetaDataCons.KEY_COLUMN_COMMENT, resultSet.getString(3));
                 perColumn.put(MetaDataCons.KEY_COLUMN_NULL, StringUtils.equals(resultSet.getString(4), KEY_ZERO) ? KEY_FALSE : KEY_TRUE);
                 perColumn.put(MetaDataCons.KEY_COLUMN_SCALE, resultSet.getString(5));
+                perColumn.put(MetaDataCons.KEY_COLUMN_DEFAULT, resultSet.getString(6));
                 perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, column.size()+1);
                 column.add(perColumn);
             }
