@@ -19,13 +19,15 @@ package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @company: www.dtstack.com
@@ -36,32 +38,38 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     private String encoding;
     private String brokerList;
-    private transient Producer<String, byte[]> producer;
+    private transient KafkaProducer<String,String> producer;
 
     @Override
     public void configure(Configuration parameters) {
-        props.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        props.put("value.serializer.class", "kafka.serializer.StringEncoder");
+        props.put("key.serializer",org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put("value.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
         props.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         props.put("producer.type", "sync");
         props.put("compression.codec", "none");
         props.put("request.required.acks", "1");
         props.put("batch.num.messages", "1024");
+        props.put("partitioner.class", DefaultPartitioner.class.getName());
+
         props.put("client.id", "");
 
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
         props.put("metadata.broker.list", brokerList);
-
-        ProducerConfig producerConfig = new ProducerConfig(props);
-        producer = new Producer<>(producerConfig);
+        producer = new KafkaProducer<>(props);
     }
 
     @Override
     protected void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+            if(Objects.nonNull(exception)){
+                String errorMessage = ExceptionUtil.getErrorMessage(exception);
+                LOG.warn(errorMessage);
+                throw new RuntimeException(errorMessage);
+            }
+        });
     }
 
     @Override

@@ -52,6 +52,8 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
     protected static ObjectMapper objectMapper = new ObjectMapper();
+    //连续发送数据错误次数
+    protected  int failedTimes = 0;
 
     @Override
     public void configure(Configuration parameters) {
@@ -87,9 +89,15 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
                 }
             }
             emit(map);
+            //只要有正常的 重置为0
+            failedTimes =0;
 
         } catch (Throwable e) {
             LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
+            //连续发送3次数据错误，就直接认为数据源异常，退出任务 或者出现broker连接不上直接抛出异常
+            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")){
+                throw new RuntimeException(e.getMessage(), e);
+            }
             throw new WriteRecordException(e.getMessage(), e);
         }
     }

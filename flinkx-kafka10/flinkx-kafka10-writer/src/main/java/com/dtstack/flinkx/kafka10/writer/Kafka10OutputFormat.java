@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -27,6 +28,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @company: www.dtstack.com
@@ -53,7 +55,13 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
     @Override
     protected void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+            if(Objects.nonNull(exception)){
+                String errorMessage = ExceptionUtil.getErrorMessage(exception);
+                LOG.warn(errorMessage);
+                throw new RuntimeException(errorMessage);
+            }
+        });
     }
 
     @Override
