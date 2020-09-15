@@ -65,7 +65,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
             if(Objects.nonNull(exception)){
-                String errorMessage = ExceptionUtil.getErrorMessage(exception);
+                String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
                 LOG.warn(errorMessage);
                 throw new RuntimeException(errorMessage);
             }
