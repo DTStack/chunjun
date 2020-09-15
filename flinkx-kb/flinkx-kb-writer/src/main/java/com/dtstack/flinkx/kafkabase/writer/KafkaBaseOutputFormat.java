@@ -94,8 +94,8 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
         } catch (Throwable e) {
             LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
-            //连续发送3次数据错误，就直接认为数据源异常，退出任务 或者出现broker连接不上直接抛出异常
-            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")){
+            //连续发送3次数据错误 或者出现broker 连接异常，就直接认为数据源异常，退出任务 或者出现broker连接不上，超时直接抛出异常
+            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")||e.getMessage().contains("TimeoutException")){
                 throw new RuntimeException(e.getMessage(), e);
             }
             throw new WriteRecordException(e.getMessage(), e);
