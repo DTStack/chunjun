@@ -25,6 +25,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.security.krb5.Config;
@@ -33,6 +34,7 @@ import sun.security.krb5.internal.ktab.KeyTabEntry;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
@@ -122,6 +124,7 @@ public class KerberosUtil {
 
         krb5FilePath = loadFile(kerberosConfig, krb5FilePath);
         kerberosConfig.put(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
+        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
     }
 
     /**
@@ -248,5 +251,22 @@ public class KerberosUtil {
         }
 
         return fileName;
+    }
+
+    /**
+     * 刷新krb内容信息
+     */
+    public static void refreshConfig() {
+        try{
+            sun.security.krb5.Config.refresh();
+            Field defaultRealmField = KerberosName.class.getDeclaredField("defaultRealm");
+            defaultRealmField.setAccessible(true);
+            defaultRealmField.set(null, org.apache.hadoop.security.authentication.util.KerberosUtil.getDefaultRealm());
+            //reload java.security.auth.login.config
+            javax.security.auth.login.Configuration.setConfiguration(null);
+        }catch (Exception e){
+            LOG.warn("resetting default realm failed, current default realm will still be used.", e);
+        }
+
     }
 }

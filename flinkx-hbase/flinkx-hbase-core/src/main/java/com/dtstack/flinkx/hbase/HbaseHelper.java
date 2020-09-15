@@ -53,6 +53,7 @@ public class HbaseHelper {
     private final static String AUTHENTICATION_TYPE = "Kerberos";
     private final static String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
+    private final static String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
@@ -72,6 +73,7 @@ public class HbaseHelper {
 
     private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String,Object> hbaseConfigMap){
         try {
+            setKerberosConf(hbaseConfigMap);
             UserGroupInformation ugi = getUgi(hbaseConfigMap);
             return ugi.doAs(new PrivilegedAction<Connection>() {
                 @Override
@@ -118,11 +120,25 @@ public class HbaseHelper {
     }
 
     public static boolean openKerberos(Map<String,Object> hbaseConfigMap){
-        if(!MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION)){
-            return false;
+        if(AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
+                || AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION))
+                || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE)){
+            LOG.info("open kerberos for hbase.");
+            return true;
         }
 
-        return AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
+        return false;
+    }
+
+
+    /**
+     * 设置hbase 开启kerberos 连接必要的固定参数
+     * @param hbaseConfigMap
+     */
+    public static void setKerberosConf(Map<String,Object> hbaseConfigMap){
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, AUTHENTICATION_TYPE);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable){
