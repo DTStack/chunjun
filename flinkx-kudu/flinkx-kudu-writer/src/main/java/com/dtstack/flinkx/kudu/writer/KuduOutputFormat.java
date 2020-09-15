@@ -40,6 +40,7 @@ import org.apache.kudu.client.SessionConfiguration;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -132,7 +133,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
                         case INT32: partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val)); break;
                         case INT64: partialRow.addLong(columnIndex, ValueUtil.getLongVal(val)); break;
                         case UNIXTIME_MICROS:
-                            if (val instanceof Timestamp) {
+                            if (val instanceof Timestamp || val instanceof Date) {
                                 partialRow.addTimestamp(columnIndex, ValueUtil.getTimestampVal(val));
                             } else {
                                 partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
