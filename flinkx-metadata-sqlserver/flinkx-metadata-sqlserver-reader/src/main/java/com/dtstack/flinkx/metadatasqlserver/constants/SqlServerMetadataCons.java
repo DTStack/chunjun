@@ -81,4 +81,11 @@ public class SqlServerMetadataCons extends MetaDataCons {
             "WHERE i.object_id = object_id(%s) and OBJECT_SCHEMA_NAME(i.object_id, DB_ID())=%s \n" +
             "and i.index_id in (0, 1)";
 
+    public static final String SQL_QUERY_PRIMARY_KEY = "SELECT ku.COLUMN_NAME\n" +
+            "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc\n" +
+            "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS ku\n" +
+            "ON tc.CONSTRAINT_TYPE = 'PRIMARY KEY' \n" +
+            "AND tc.CONSTRAINT_NAME = ku.CONSTRAINT_NAME\n" +
+            "WHERE ku.TABLE_NAME = %s AND ku.TABLE_SCHEMA = %s";
+
 }
