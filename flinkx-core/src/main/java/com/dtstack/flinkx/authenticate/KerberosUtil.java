@@ -124,6 +124,7 @@ public class KerberosUtil {
 
         krb5FilePath = loadFile(kerberosConfig, krb5FilePath);
         kerberosConfig.put(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
+        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
     }
 
     /**

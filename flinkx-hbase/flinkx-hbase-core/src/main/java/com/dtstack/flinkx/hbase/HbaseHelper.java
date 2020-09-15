@@ -121,8 +121,8 @@ public class HbaseHelper {
     }
 
     public static boolean openKerberos(Map<String,Object> hbaseConfigMap){
-        if(MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION)
-                || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION)
+        if(AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
+                || AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION))
                 || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE)){
             LOG.info("open kerberos for hbase.");
             return true;
