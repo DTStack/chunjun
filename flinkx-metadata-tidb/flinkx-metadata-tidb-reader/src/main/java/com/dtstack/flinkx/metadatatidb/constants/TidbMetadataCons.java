@@ -26,10 +26,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 public class TidbMetadataCons extends MetaDataCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
-    public static final String KEY_TOTAL_SIZE = "totalSize";
-    public static final String KEY_CREATE_TIME = "createTime";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
-    public static final String KEY_ROWS = "rows";
     public static final String KEY_HEALTHY = "healthy";
     public static final String KEY_UPDATE_TIME = "updateTime";
     public static final String KEY_TES = "YES";

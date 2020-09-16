@@ -31,7 +31,6 @@ public class MysqlMetadataCons extends TidbMetadataCons {
     public static final String KEY_ENGINE = "engine";
     public static final String KEY_ROW_FORMAT = "rowFormat";
     public static final String KEY_TABLE_TYPE = "tableType";
-    public static final String KEY_KEY_NAME = "columnName";
 
     public static final String RESULT_TABLE_TYPE = "TABLE_TYPE";
     public static final String RESULT_ENGINE = "ENGINE";

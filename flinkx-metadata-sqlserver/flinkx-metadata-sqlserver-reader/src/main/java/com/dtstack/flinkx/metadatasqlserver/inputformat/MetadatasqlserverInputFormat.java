@@ -23,7 +23,6 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.types.Row;
@@ -39,8 +38,12 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
@@ -140,8 +143,8 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
             while (resultSet.next()){
                 Map<String, String> perIndex = new HashMap<>(16);
                 perIndex.put(KEY_COLUMN_NAME, resultSet.getString(1));
-                perIndex.put(SqlServerMetadataCons.KEY_ROWS,  resultSet.getString(2));
-                perIndex.put(SqlServerMetadataCons.KEY_CREATE_TIME, resultSet.getString(3));
+                perIndex.put(KEY_TABLE_ROWS,  resultSet.getString(2));
+                perIndex.put(KEY_TABLE_CREATE_TIME, resultSet.getString(3));
                 perIndex.put(SqlServerMetadataCons.KEY_FILE_GROUP_NAME, resultSet.getString(4));
                 index.add(perIndex);
             }
@@ -209,10 +212,10 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while(resultSet.next()){
-                tableProperties.put(SqlServerMetadataCons.KEY_CREATE_TIME, resultSet.getString(1));
-                tableProperties.put(SqlServerMetadataCons.KEY_ROWS, resultSet.getString(2));
-                tableProperties.put(SqlServerMetadataCons.KEY_TOTAL_SIZE, resultSet.getString(3));
-                tableProperties.put(SqlServerMetadataCons.KEY_COLUMN_COMMENT, resultSet.getString(4));
+                tableProperties.put(KEY_TABLE_CREATE_TIME, resultSet.getString(1));
+                tableProperties.put(KEY_TABLE_ROWS, resultSet.getString(2));
+                tableProperties.put(KEY_TABLE_TOTAL_SIZE, resultSet.getString(3));
+                tableProperties.put(KEY_TABLE_COMMENT, resultSet.getString(4));
             }
         }
         if(tableProperties.size()==0){
@@ -227,8 +230,4 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         return "'" + name + "'";
     }
 
-    @Override
-    protected void init() throws SQLException {
-
-    }
 }

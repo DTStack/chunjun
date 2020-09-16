@@ -36,6 +36,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
@@ -134,7 +135,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
             while (rs.next()) {
                 Map<String, String> map = new HashMap<>(16);
                 map.put(KEY_TOTAL_SIZE, rs.getString(1));
-                map.put(KEY_COLUMN_COMMENT, rs.getString(2));
+                map.put(KEY_TABLE_COMMENT, rs.getString(2));
                 map.put(KEY_TABLE_TYPE, rs.getString(3));
                 map.put(KEY_CREATE_TIME, rs.getString(4));
                 map.put(KEY_ROWS, rs.getString(5));

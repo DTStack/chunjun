@@ -32,24 +32,25 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_TYPE;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_CREATE_TIME;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_HEALTHY;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NULL;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITIONS;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITION_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PRI;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_ROWS;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TES;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TOTAL_SIZE;
+import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_UPDATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_NULL;
@@ -151,10 +152,10 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                tableProp.put(KEY_ROWS, rs.getString(RESULT_ROWS));
-                tableProp.put(KEY_TOTAL_SIZE, rs.getString(RESULT_DATA_LENGTH));
-                tableProp.put(KEY_CREATE_TIME, rs.getString(RESULT_CREATE_TIME));
-                tableProp.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_COMMENT));
+                tableProp.put(KEY_TABLE_ROWS, rs.getString(RESULT_ROWS));
+                tableProp.put(KEY_TABLE_TOTAL_SIZE, rs.getString(RESULT_DATA_LENGTH));
+                tableProp.put(KEY_TABLE_CREATE_TIME, rs.getString(RESULT_CREATE_TIME));
+                tableProp.put(KEY_TABLE_COMMENT, rs.getString(RESULT_COMMENT));
             }
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
@@ -195,9 +196,9 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
             while (rs.next()) {
                 Map<String, Object> perPartition = new HashMap<>(16);
                 perPartition.put(KEY_COLUMN_NAME, rs.getString(RESULT_PARTITION_NAME));
-                perPartition.put(KEY_CREATE_TIME, rs.getString(RESULT_PARTITION_CREATE_TIME));
-                perPartition.put(KEY_ROWS, rs.getInt(RESULT_PARTITION_TABLE_ROWS));
-                perPartition.put(KEY_TOTAL_SIZE, rs.getLong(RESULT_PARTITION_DATA_LENGTH));
+                perPartition.put(KEY_TABLE_CREATE_TIME, rs.getString(RESULT_PARTITION_CREATE_TIME));
+                perPartition.put(KEY_TABLE_ROWS, rs.getInt(RESULT_PARTITION_TABLE_ROWS));
+                perPartition.put(KEY_TABLE_TOTAL_SIZE, rs.getLong(RESULT_PARTITION_DATA_LENGTH));
                 partition.add(perPartition);
             }
         } catch (SQLException e) {

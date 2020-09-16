@@ -41,6 +41,14 @@ public class MetaDataCons {
     public static final String KEY_PARTITIONS = "partitions";
 
     /**
+     * 表技术属性
+     */
+    public static final String KEY_TABLE_COMMENT = "comment";
+    public static final String KEY_TABLE_TOTAL_SIZE = "totalSize";
+    public static final String KEY_TABLE_CREATE_TIME = "createTime";
+    public static final String KEY_TABLE_ROWS = "rows";
+
+    /**
      * 列的技术属性
      */
     public static final String KEY_COLUMN_NAME = "column_name";
