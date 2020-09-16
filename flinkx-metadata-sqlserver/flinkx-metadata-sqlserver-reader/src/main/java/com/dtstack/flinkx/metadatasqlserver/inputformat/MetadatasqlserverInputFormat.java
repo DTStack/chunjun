@@ -40,6 +40,7 @@ import java.util.Map;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
 import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
@@ -154,7 +155,7 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while (resultSet.next()){
                 Map<String, String> perIndex = new HashMap<>(16);
-                perIndex.put(KEY_COLUMN_NAME, resultSet.getString(1));
+                perIndex.put(KEY_INDEX_NAME, resultSet.getString(1));
                 perIndex.put(MetaDataCons.KEY_COLUMN_NAME,  resultSet.getString(2));
                 perIndex.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(3));
                 index.add(perIndex);

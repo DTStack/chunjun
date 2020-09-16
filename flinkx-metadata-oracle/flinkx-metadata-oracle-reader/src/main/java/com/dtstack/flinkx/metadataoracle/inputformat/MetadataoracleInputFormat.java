@@ -35,6 +35,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
@@ -153,8 +154,8 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> column = new HashMap<>(16);
-                column.put(KEY_COLUMN_NAME, rs.getString(1));
-                column.put(KEY_INDEX_COLUMN_NAME, rs.getString(2));
+                column.put(KEY_INDEX_NAME, rs.getString(1));
+                column.put(KEY_COLUMN_NAME, rs.getString(2));
                 column.put(KEY_COLUMN_TYPE, rs.getString(3));
                 String tableName = rs.getString(4);
                 if(indexListMap.containsKey(tableName)){

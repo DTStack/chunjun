@@ -84,9 +84,9 @@ public class MetadatamysqlInputFormat extends MetadatatidbInputFormat {
             while (rs.next()) {
                 Map<String, String> perIndex = new HashMap<>(16);
                 perIndex.put(KEY_COLUMN_NAME, rs.getString(RESULT_KEY_NAME));
-                perIndex.put(KEY_KEY_NAME, rs.getString(RESULT_COLUMN_NAME));
+                perIndex.put(KEY_INDEX_NAME, rs.getString(RESULT_COLUMN_NAME));
                 perIndex.put(KEY_COLUMN_TYPE, rs.getString(RESULT_INDEX_TYPE));
-                perIndex.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_INDEX_COMMENT));
+                perIndex.put(KEY_INDEX_COMMENT, rs.getString(RESULT_INDEX_COMMENT));
                 index.add(perIndex);
             }
         } catch (SQLException e) {

@@ -55,6 +55,12 @@ public class MetaDataCons {
     public static final String KEY_TRUE = "Y";
     public static final String KEY_FALSE = "N";
 
+    /**
+     * 索引属性
+     */
+    public static final String KEY_INDEX_NAME = "name";
+    public static final String KEY_INDEX_COMMENT = "comment";
+
 
     public static final String KEY_COL_NAME = "col_name";
 
