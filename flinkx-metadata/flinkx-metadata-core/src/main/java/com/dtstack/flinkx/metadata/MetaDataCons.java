@@ -40,11 +40,21 @@ public class MetaDataCons {
     public static final String KEY_PARTITION_COLUMNS = "partitionColumn";
     public static final String KEY_PARTITIONS = "partitions";
 
-    public static final String KEY_COLUMN_NAME = "name";
+    /**
+     * 列的技术属性
+     */
+    public static final String KEY_COLUMN_NAME = "column_name";
     public static final String KEY_COLUMN_INDEX = "index";
-    public static final String KEY_COLUMN_COMMENT = "comment";
-    public static final String KEY_COLUMN_TYPE = "type";
+    public static final String KEY_COLUMN_COMMENT = "column_comment";
+    public static final String KEY_COLUMN_TYPE = "data_type";
+    public static final String KEY_COLUMN_DEFAULT = "column_default";
+    public static final String KEY_COLUMN_NULL = "is_nullable";
+    public static final String KEY_COLUMN_PRIMARY = "column_key";
+    public static final String KEY_COLUMN_SCALE = "data_length";
     public static final String KEY_COLUMN_DATA_TYPE = "data_type";
+    public static final String KEY_TRUE = "Y";
+    public static final String KEY_FALSE = "N";
+
 
     public static final String KEY_COL_NAME = "col_name";
 

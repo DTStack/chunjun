@@ -30,16 +30,17 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String KEY_CREATE_TIME = "createTime";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_ROWS = "rows";
-    public static final String KEY_DEFAULT = "default";
-    public static final String KEY_NULL = "null";
     public static final String KEY_HEALTHY = "healthy";
     public static final String KEY_UPDATE_TIME = "updateTime";
+    public static final String KEY_TES = "YES";
+    public static final String KEY_PRI = "PRI";
 
     public static final String RESULT_ROWS = "Rows";
     public static final String RESULT_DATA_LENGTH = "Data_length";
     public static final String RESULT_FIELD = "Field";
     public static final String RESULT_TYPE = "Type";
     public static final String RESULT_COLUMN_NULL = "Null";
+    public static final String RESULT_KEY = "Key";
     public static final String RESULT_COLUMN_DEFAULT = "Default";
     public static final String RESULT_PARTITION_NAME = "PARTITION_NAME";
     public static final String RESULT_PARTITION_CREATE_TIME = "CREATE_TIME";

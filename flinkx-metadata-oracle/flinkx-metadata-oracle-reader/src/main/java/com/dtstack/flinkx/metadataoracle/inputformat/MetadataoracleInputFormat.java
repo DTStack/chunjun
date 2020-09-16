@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadataoracle.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +30,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_COMMENT;
@@ -45,6 +52,8 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX_TOTAL;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_PRIMARY_KEY;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_PRIMARY_KEY_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
@@ -64,6 +73,8 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     private Map<String, List<Map<String, Object>>> columnListMap;
 
     private Map<String, List<Map<String, String>>> indexListMap;
+
+    private Map<String, String> primaryKeyMap;
 
     private String allTable;
 
@@ -97,15 +108,23 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         Map<String, String> tableProperties = tablePropertiesMap.get(tableName);
         List<Map<String, Object>> columnList = columnListMap.get(tableName);
         List<Map<String, String>> indexList = indexListMap.get(tableName);
+        String primaryColumn = primaryKeyMap.get(tableName);
+        for(Map<String, Object> map : columnList){
+            if(StringUtils.equals((String) map.get(KEY_COLUMN_NAME), primaryColumn)){
+                map.put(KEY_COLUMN_PRIMARY, KEY_TRUE);
+            }else{
+                map.put(KEY_COLUMN_PRIMARY, KEY_FALSE);
+            }
+        }
         result.put(KEY_TABLE_PROPERTIES, tableProperties);
         result.put(KEY_COLUMN, columnList);
         result.put(KEY_COLUMN_INDEX, indexList);
         return result;
     }
 
-    Map<String, Map<String, String> > queryTableProperties() throws SQLException {
+    protected Map<String, Map<String, String> > queryTableProperties() throws SQLException {
         Map<String, Map<String, String>> tablePropertiesMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_TABLE_PROPERTIES, quote(currentDb.get()), allTable);
@@ -124,9 +143,9 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return tablePropertiesMap;
     }
 
-    Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
+    protected Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
         Map<String, List<Map<String, String>>> indexListMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_INDEX, quote(currentDb.get()), allTable);
@@ -150,9 +169,9 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return indexListMap;
     }
 
-    Map<String, List<Map<String, Object>>> queryColumnList() throws SQLException {
+    protected Map<String, List<Map<String, Object>>> queryColumnList() throws SQLException {
         Map<String, List<Map<String, Object>>> columnListMap = new HashMap<>(16);
-        if(allTable==null){
+        if(StringUtils.isBlank(allTable)){
             sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
         }else {
             sql = String.format(SQL_QUERY_COLUMN, quote(currentDb.get()), allTable);
@@ -164,6 +183,9 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
                 column.put(KEY_COLUMN_TYPE, rs.getString(2));
                 column.put(KEY_COLUMN_COMMENT, rs.getString(3));
                 String tableName = rs.getString(4);
+                column.put(KEY_COLUMN_DEFAULT, rs.getString(5));
+                column.put(KEY_COLUMN_NULL, rs.getString(6));
+                column.put(KEY_COLUMN_SCALE, rs.getString(7));
                 if(columnListMap.containsKey(tableName)){
                     column.put(KEY_COLUMN_INDEX, CollectionUtils.size(columnListMap.get(tableName))+1);
                     columnListMap.get(tableName).add(column);
@@ -176,6 +198,21 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
             }
         }
         return columnListMap;
+    }
+
+    protected Map<String, String> queryPrimaryKeyMap() throws SQLException {
+        Map<String, String> primaryKeyMap = new HashMap<>(16);
+        if (StringUtils.isBlank(allTable)){
+            sql = String.format(SQL_QUERY_PRIMARY_KEY_TOTAL, quote(currentDb.get()));
+        }else {
+            sql = String.format(SQL_QUERY_PRIMARY_KEY, quote(currentDb.get()), allTable);
+        }
+        try (ResultSet rs = statement.get().executeQuery(sql)){
+            while (rs.next()){
+                primaryKeyMap.put(rs.getString(1), rs.getString(2));
+            }
+        }
+        return primaryKeyMap;
     }
 
     @Override
@@ -193,5 +230,6 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         tablePropertiesMap = queryTableProperties();
         columnListMap = queryColumnList();
         indexListMap = queryIndexList();
+        primaryKeyMap = queryPrimaryKeyMap();
     }
 }
