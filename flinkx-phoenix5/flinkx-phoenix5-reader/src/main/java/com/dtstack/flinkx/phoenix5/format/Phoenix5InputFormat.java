@@ -90,8 +90,20 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
+
+            // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
+            dbConn.setAutoCommit(false);
+
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+
+            statement.setFetchSize(fetchSize);
+
+            statement.setQueryTimeout(queryTimeOut);
+            String querySql = buildQuerySql(inputSplit);
+            resultSet = statement.executeQuery(querySql);
             columnCount = resultSet.getMetaData().getColumnCount();
-        } catch (SQLException se) {
+        } catch (Exception se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
 
