@@ -67,6 +67,7 @@
         <module>flinkx-metadata-sqlserver</module>
 
         <module>flinkx-restapi</module>
+        <module>flinkx-socket</module>
     </modules>
 
     <properties>
