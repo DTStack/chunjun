@@ -89,13 +89,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/sqlserverwriter">
+                                <copy todir="${basedir}/../../syncplugins/sqlserverwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/sqlserverwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/sqlserverwriter/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/sqlserverwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/sqlserverwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

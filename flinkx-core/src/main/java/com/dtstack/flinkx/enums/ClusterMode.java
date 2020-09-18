@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.enums;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * This class defines three running mode of FlinkX
  *
@@ -29,27 +31,42 @@ public enum ClusterMode {
     /**
      * 本地模式运行
      */
-    local(0),
+    local(0 , "local"),
 
     /**
      * flink集群 standalone模式
      */
-    standalone(1),
+    standalone(1, "standalone"),
 
     /**
      * 在已经启动在yarn上的flink session里上运行
      */
-    yarn(2),
+    yarn(2, "yarn"),
 
     /**
      * 在yarn上单独启动flink session运行
      */
-    yarnPer(3);
+    yarnPer(3, "yarnPer");
 
     private int type;
 
-    ClusterMode(int type){
+    private String name;
+
+    ClusterMode(int type, String name){
         this.type = type;
+        this.name = name;
+    }
+
+    public static ClusterMode getByName(String name){
+        if(StringUtils.isBlank(name)){
+            throw new IllegalArgumentException("ClusterMode name cannot be null or empty");
+        }
+        switch (name){
+            case "standalone": return standalone;
+            case "yarn": return yarn;
+            case "yarnPer": return yarnPer;
+            default: return local;
+        }
     }
 
 }

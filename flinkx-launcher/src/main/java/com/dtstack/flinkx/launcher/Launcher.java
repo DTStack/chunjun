@@ -17,22 +17,25 @@
  */
 package com.dtstack.flinkx.launcher;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.launcher.perjob.PerJobSubmitter;
+import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.SysUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.client.ClientUtils;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,10 +55,69 @@ import java.util.List;
  */
 public class Launcher {
 
+    public static final String KEY_FLINKX_HOME = "FLINKX_HOME";
+    public static final String KEY_FLINK_HOME = "FLINK_HOME";
+    public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
+
+    public static final String PLUGINS_DIR_NAME = "plugins";
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
+    public static final String MAIN_CLASS = "com.dtstack.flinkx.Main";
 
-    private static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
+    public static void main(String[] args) throws Exception {
+        setLogLevel(Level.DEBUG.toString());
+        OptionParser optionParser = new OptionParser(args);
+        Options launcherOptions = optionParser.getOptions();
+        findDefaultConfigDir(launcherOptions);
 
+        List<String> argList = optionParser.getProgramExeArgList();
+        switch (ClusterMode.getByName(launcherOptions.getMode())) {
+            case local:
+                com.dtstack.flinkx.Main.main(argList.toArray(new String[0]));
+                break;
+            case standalone:
+            case yarn:
+                ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
+                argList.add("-monitor");
+                argList.add(clusterClient.getWebInterfaceURL());
+                ClientUtils.submitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                break;
+            case yarnPer:
+                String confProp = launcherOptions.getConfProp();
+                if (StringUtils.isBlank(confProp)) {
+                    throw new IllegalArgumentException("per-job mode must have confProp!");
+                }
+                String libJar = launcherOptions.getFlinkLibJar();
+                if (StringUtils.isBlank(libJar)) {
+                    throw new IllegalArgumentException("per-job mode must have flink lib path!");
+                }
+                argList.add("-monitor");
+                argList.add("");
+                PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+        }
+    }
+
+    private static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
+        String pluginRoot = launcherOptions.getPluginRoot();
+        String content = launcherOptions.getJob();
+        String coreJarName = getCoreJarFileName(pluginRoot);
+        File jarFile = new File(pluginRoot + File.separator + coreJarName);
+        List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
+        SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
+        if (StringUtils.isNotEmpty(launcherOptions.getS())) {
+            savepointRestoreSettings = SavepointRestoreSettings.forPath(launcherOptions.getS());
+        }
+        PackagedProgram program = PackagedProgram.newBuilder()
+                .setJarFile(jarFile)
+                .setUserClassPaths(urlList)
+                .setEntryPointClassName(MAIN_CLASS)
+                .setConfiguration(launcherOptions.loadFlinkConfiguration())
+                .setSavepointRestoreSettings(savepointRestoreSettings)
+                .setArguments(remoteArgs)
+                .build();
+        return PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+    }
+
+    public static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
         List<URL> urlList = new ArrayList<>();
 
         String jobJson = readJob(content);
@@ -81,67 +143,81 @@ public class Launcher {
         return urlList;
     }
 
-    public static void main(String[] args) throws Exception {
-        OptionParser optionParser = new OptionParser(args);
-        Options launcherOptions = optionParser.getOptions();
-        String mode = launcherOptions.getMode();
-        List<String> argList = optionParser.getProgramExeArgList();
-        if(mode.equals(ClusterMode.local.name())) {
-            String[] localArgs = argList.toArray(new String[argList.size()]);
-            com.dtstack.flinkx.Main.main(localArgs);
-        } else {
-            String pluginRoot = launcherOptions.getPluginRoot();
-            String content = launcherOptions.getJob();
-            String coreJarName = getCoreJarFileName(pluginRoot);
-            File jarFile = new File(pluginRoot + File.separator + coreJarName);
-            List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
-            if(!ClusterMode.yarnPer.name().equals(mode)){
-                ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
-                String monitor = clusterClient.getWebInterfaceURL();
-                argList.add("-monitor");
-                argList.add(monitor);
+    private static void findDefaultConfigDir(Options launcherOptions) {
+        findDefaultPluginRoot(launcherOptions);
 
-                String[] remoteArgs = argList.toArray(new String[0]);
-                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
+        if (ClusterMode.local.name().equalsIgnoreCase(launcherOptions.getMode())) {
+            return;
+        }
 
-                if (StringUtils.isNotEmpty(launcherOptions.getS())){
-                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
-                }
+        findDefaultFlinkConf(launcherOptions);
+        findDefaultHadoopConf(launcherOptions);
+    }
 
-                clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
-                clusterClient.shutdown();
-            }else{
-                String confProp = launcherOptions.getConfProp();
-                if (StringUtils.isBlank(confProp)){
-                    throw new IllegalArgumentException("per-job mode must have confProp!");
-                }
+    private static void findDefaultHadoopConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getYarnconf())) {
+            return;
+        }
 
-                String libJar = launcherOptions.getFlinkLibJar();
-                if (StringUtils.isBlank(libJar)){
-                    throw new IllegalArgumentException("per-job mode must have flink lib path!");
-                }
-
-                argList.add("-monitor");
-                argList.add("application_default");
-
-                //jdk内在优化，使用空数组效率更高
-                String[] remoteArgs = argList.toArray(new String[0]);
-                PackagedProgram program = new PackagedProgram(jarFile, urlList, remoteArgs);
-                if (StringUtils.isNotEmpty(launcherOptions.getS())){
-                    program.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(launcherOptions.getS()));
-                }
-                String flinkConfDir = launcherOptions.getFlinkconf();
-                Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
-                JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, Integer.parseInt(launcherOptions.getParallelism()));
-                PerJobSubmitter.submit(launcherOptions, jobGraph);
+        String hadoopHome = getSystemProperty(KEY_HADOOP_HOME);
+        if (StringUtils.isNotEmpty(hadoopHome)) {
+            hadoopHome = hadoopHome.trim();
+            if (hadoopHome.endsWith(File.separator)) {
+                hadoopHome = hadoopHome.substring(0, hadoopHome.lastIndexOf(File.separator));
             }
+
+            launcherOptions.setYarnconf(hadoopHome + "/etc/hadoop");
         }
     }
 
-    private static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{
+    private static void findDefaultFlinkConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getFlinkconf()) && StringUtils.isNotEmpty(launcherOptions.getFlinkLibJar())) {
+            return;
+        }
+
+        String flinkHome = getSystemProperty(KEY_FLINK_HOME);
+        if (StringUtils.isNotEmpty(flinkHome)) {
+            flinkHome = flinkHome.trim();
+            if (flinkHome.endsWith(File.separator)) {
+                flinkHome = flinkHome.substring(0, flinkHome.lastIndexOf(File.separator));
+            }
+
+            launcherOptions.setFlinkconf(flinkHome + "/conf");
+            launcherOptions.setFlinkLibJar(flinkHome + "/lib");
+        }
+    }
+
+    private static void findDefaultPluginRoot(Options launcherOptions) {
+        String pluginRoot = launcherOptions.getPluginRoot();
+        if (StringUtils.isEmpty(pluginRoot)) {
+            String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
+            if (StringUtils.isNotEmpty(flinkxHome)) {
+                flinkxHome = flinkxHome.trim();
+                if (flinkxHome.endsWith(File.separator)) {
+                    pluginRoot = flinkxHome + PLUGINS_DIR_NAME;
+                } else {
+                    pluginRoot = flinkxHome + File.separator + PLUGINS_DIR_NAME;
+                }
+
+                launcherOptions.setPluginRoot(pluginRoot);
+            }
+        }
+        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, pluginRoot);
+    }
+
+    private static String getSystemProperty(String name) {
+        String property = System.getenv(name);
+        if (StringUtils.isEmpty(property)) {
+            property = System.getProperty(name);
+        }
+
+        return property;
+    }
+
+    public static String getCoreJarFileName(String pluginRoot) throws FileNotFoundException {
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
-        if (pluginDir.exists() && pluginDir.isDirectory()){
+        if (pluginDir.exists() && pluginDir.isDirectory()) {
             File[] jarFiles = pluginDir.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -149,12 +225,12 @@ public class Launcher {
                 }
             });
 
-            if (jarFiles != null && jarFiles.length > 0){
+            if (jarFiles != null && jarFiles.length > 0) {
                 coreJarFileName = jarFiles[0].getName();
             }
         }
 
-        if (StringUtils.isEmpty(coreJarFileName)){
+        if (StringUtils.isEmpty(coreJarFileName)) {
             throw new FileNotFoundException("Can not find core jar file in path:" + pluginRoot);
         }
 
@@ -168,8 +244,15 @@ public class Launcher {
             in.read(fileContent);
             in.close();
             return new String(fileContent, StandardCharsets.UTF_8);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void setLogLevel(String level) {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        //设置全局日志级别
+        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
+        logger.setLevel(Level.toLevel(level));
     }
 }

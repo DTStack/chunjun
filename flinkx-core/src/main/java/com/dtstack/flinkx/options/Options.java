@@ -18,7 +18,16 @@
 
 package com.dtstack.flinkx.options;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
+import org.apache.commons.lang.StringUtils;
+import org.apache.flink.configuration.ConfigConstants;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.CoreOptions;
+import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.yarn.configuration.YarnConfigOptions;
+
+import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
 
 /**
  * This class define commandline options for the Launcher program
@@ -43,11 +52,8 @@ public class Options {
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
 
-    @OptionRequired(required = true, description = "env properties")
+    @OptionRequired(description = "env properties")
     private String pluginRoot;
-
-    @OptionRequired(description = "Sync remote plugin root path")
-    private String remotePluginPath;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
@@ -67,14 +73,49 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
-    /**
-     * savepoint
-     */
     @OptionRequired(description = "savepoint path")
     private String s;
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
+
+    @OptionRequired(description = "applicationId on yarn cluster")
+    private String appId;
+
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
+    private Configuration flinkConfiguration = null;
+
+    public Configuration loadFlinkConfiguration() {
+        if(flinkConfiguration == null){
+            flinkConfiguration = StringUtils.isEmpty(flinkconf) ? new Configuration() : GlobalConfiguration.loadConfiguration(flinkconf);
+            if (StringUtils.isNotBlank(queue)) {
+                flinkConfiguration.setString(YarnConfigOptions.APPLICATION_QUEUE, queue);
+            }
+            if (StringUtils.isNotBlank(jobid)) {
+                flinkConfiguration.setString(YarnConfigOptions.APPLICATION_NAME, jobid);
+            }
+            if(StringUtils.isNotBlank(yarnconf)){
+                flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
+            }
+            if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
+            }else{
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
+            }
+            flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
+        }
+        return flinkConfiguration;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
 
     public String getS() {
         return s;
@@ -148,14 +189,6 @@ public class Options {
         this.pluginRoot = pluginRoot;
     }
 
-    public String getRemotePluginPath() {
-        return remotePluginPath;
-    }
-
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
-    }
-
     public String getYarnconf() {
         return yarnconf;
     }
@@ -194,5 +227,36 @@ public class Options {
 
     public void setPluginLoadMode(String pluginLoadMode) {
         this.pluginLoadMode = pluginLoadMode;
+    }
+
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", appId='" + appId + '\'' +
+                ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", flinkConfiguration=" + flinkConfiguration +
+                '}';
     }
 }

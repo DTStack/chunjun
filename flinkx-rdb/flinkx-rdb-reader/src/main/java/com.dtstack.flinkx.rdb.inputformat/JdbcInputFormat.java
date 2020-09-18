@@ -33,6 +33,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -42,7 +43,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -347,6 +347,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         //将累加器信息添加至prometheus
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
 
     /**
