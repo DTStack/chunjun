@@ -130,27 +130,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         connectionInfo.setHiveConf(hadoopConfig);
 
         hiveUtil = new HiveUtil(connectionInfo);
-        if (MapUtils.isNotEmpty(distributeTableMapping)){
-            for(Map.Entry<String, String> entry : distributeTableMapping.entrySet()){
-                Map<String, String> event = new HashMap<>(4);
-                // todo 确定获取额外参数方法
-                event.put("schema", "");
-                event.put("table", entry.getKey());
-                String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
-                TableInfo tableInfo = tableInfos.get(entry.getValue());
-                if(MapUtils.isEmpty(tableCache)){
-                    tableInfo.setTablePath(tablePath);
-                    hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                    tableCache.put(tablePath, tableInfo);
-                }
-            }
-        }else {
-            String tablePath = tableInfos.entrySet().iterator().next().getValue().getTableName();
-            TableInfo tableInfo = tableInfos.get(tablePath);
-            tableInfo.setTablePath(tablePath);
-            hiveUtil.createHiveTableWithTableInfo(tableInfo);
-            tableCache.put(tablePath, tableInfo);
-        }
+        primaryCreateTable();
     }
 
     @Override
@@ -357,6 +337,30 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         builder.setInitAccumulatorAndDirty(false);
 
         return builder;
+    }
+
+    private void primaryCreateTable(){
+        if (MapUtils.isNotEmpty(distributeTableMapping)){
+            for(Map.Entry<String, String> entry : distributeTableMapping.entrySet()){
+                Map<String, String> event = new HashMap<>(4);
+                // todo 确定获取额外参数方法
+                event.put("schema", "");
+                event.put("table", entry.getKey());
+                String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+                TableInfo tableInfo = tableInfos.get(entry.getValue());
+                if(MapUtils.isEmpty(tableCache)){
+                    tableInfo.setTablePath(tablePath);
+                    hiveUtil.createHiveTableWithTableInfo(tableInfo);
+                    tableCache.put(tablePath, tableInfo);
+                }
+            }
+        }else {
+            String tablePath = tableInfos.entrySet().iterator().next().getValue().getTableName();
+            TableInfo tableInfo = tableInfos.get(tablePath);
+            tableInfo.setTablePath(tablePath);
+            hiveUtil.createHiveTableWithTableInfo(tableInfo);
+            tableCache.put(tablePath, tableInfo);
+        }
     }
 
     static class HiveFormatState implements Serializable {
