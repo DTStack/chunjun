@@ -74,4 +74,8 @@ public class HiveConfigKeys {
 
     public static final String KEY_MAX_FILE_SIZE = "maxFileSize";
 
+    public static final String KEY_SCHEMA = "schema";
+
+    public static final String KEY_TABLE = "table";
+
 }

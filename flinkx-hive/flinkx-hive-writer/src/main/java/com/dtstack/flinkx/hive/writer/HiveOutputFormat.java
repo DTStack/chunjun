@@ -43,6 +43,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_SCHEMA;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE;
+
 /**
  * @author toutian
  */
@@ -91,6 +94,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     protected String password;
     protected String tableBasePath;
     protected boolean autoCreateTable;
+    protected String schema;
 
     private transient HiveUtil hiveUtil;
     private transient TimePartitionFormat partitionFormat;
@@ -343,9 +347,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         if (MapUtils.isNotEmpty(distributeTableMapping)){
             for(Map.Entry<String, String> entry : distributeTableMapping.entrySet()){
                 Map<String, String> event = new HashMap<>(4);
-                // todo 确定获取额外参数方法
-                event.put("schema", "");
-                event.put("table", entry.getKey());
+                event.put(KEY_SCHEMA, schema);
+                event.put(KEY_TABLE, entry.getKey());
                 String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
                 TableInfo tableInfo = tableInfos.get(entry.getValue());
                 if(MapUtils.isEmpty(tableCache)){
