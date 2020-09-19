@@ -242,8 +242,14 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
         Row rowData = new Row(columns.size() + 1);
+        //防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
+        HashMap<Object, Object> newEvent = new HashMap<>(event.size() * 2);
+        event.entrySet().forEach(data->{
+            newEvent.put(data.getKey().toLowerCase(),data.getValue());
+        });
+
         for (int i = 0; i < columns.size(); i++) {
-            rowData.setField(i, event.get(columns.get(i)));
+            rowData.setField(i, newEvent.get(columns.get(i).toLowerCase()));
         }
         rowData.setField(rowData.getArity() - 1, channel);
         return rowData;
