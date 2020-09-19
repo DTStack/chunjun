@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.kingbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.kingbase.KingBaseDatabaseMeta;
 import com.dtstack.flinkx.kingbase.KingBaseTypeConverter;
 import com.dtstack.flinkx.kingbase.format.KingbaseOutputFormat;
@@ -40,6 +41,8 @@ public class KingbaseWriter extends JdbcDataWriter {
 
     public KingbaseWriter(DataTransferConfig config) {
         super(config);
+        String schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
+        table = schema + ConstantValue.POINT_SYMBOL + table;
         setDatabaseInterface(new KingBaseDatabaseMeta());
         setTypeConverterInterface(new KingBaseTypeConverter());
     }

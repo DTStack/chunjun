@@ -96,9 +96,11 @@ public class WriterConfig extends AbstractConfig {
         public class ConnectionConfig extends AbstractConfig {
             private static final String KEY_JDBC_URL = "jdbcUrl";
             private static final String KEY_TABLE_LIST = "table";
+            public static final String KEY_SCHEMA = "schema";
 
             private String jdbcUrl;
             private List<String> table;
+            private String schema;
 
             public ConnectionConfig(Map<String, Object> map) {
                 super(map);
@@ -109,6 +111,7 @@ public class WriterConfig extends AbstractConfig {
                     jdbcUrl = ((List) jdbcUrlObj).get(0).toString();
                 }
                 table = (List<String>) getVal(KEY_TABLE_LIST);
+                schema = (String) getVal(KEY_SCHEMA);
             }
 
             public String getJdbcUrl() {
@@ -126,6 +129,10 @@ public class WriterConfig extends AbstractConfig {
             public void setTable(List<String> table) {
                 this.table = table;
             }
+
+            public String getSchema(){return schema;}
+
+            public void setSchema(String schema){this.schema = schema;}
         }
 
     }
