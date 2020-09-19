@@ -31,7 +31,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * 特殊类型转换
+ * 参考postgresql
  * Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
