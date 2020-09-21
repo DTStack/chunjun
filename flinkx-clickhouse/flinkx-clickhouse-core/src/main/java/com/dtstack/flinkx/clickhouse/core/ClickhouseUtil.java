@@ -43,7 +43,10 @@ public class ClickhouseUtil {
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
             try {
-                conn = new BalancedClickhouseDataSource(url, properties).getConnection();
+//                conn = new BalancedClickhouseDataSource(url, properties).getConnection();
+
+//              #Issues:276    Desc:fixsbug    Date:2020-09-21     Author:https://github.com/wowiscrazy
+                conn = new BalancedClickhouseDataSource(url).getConnection(username, password);
                 try (Statement statement = conn.createStatement()) {
                     statement.execute("select 111");
                     failed = false;
