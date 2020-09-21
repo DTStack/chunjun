@@ -39,7 +39,9 @@ public class MysqlInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         // 避免result.next阻塞
-        if(incrementConfig.isPolling() && StringUtils.isEmpty(incrementConfig.getStartLocation()) && fetchSize==databaseInterface.getFetchSize()){
+        if(incrementConfig.isPolling()
+                && StringUtils.isEmpty(incrementConfig.getStartLocation())
+                && fetchSize == databaseInterface.getFetchSize()){
             fetchSize = 1000;
         }
         super.openInternal(inputSplit);
@@ -56,8 +58,8 @@ public class MysqlInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
+                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                        String columnType = columnTypeList.get(pos);
                         if("year".equalsIgnoreCase(columnType)) {
                             java.util.Date date = (java.util.Date) obj;
                             obj = DateUtil.dateToYearString(date);

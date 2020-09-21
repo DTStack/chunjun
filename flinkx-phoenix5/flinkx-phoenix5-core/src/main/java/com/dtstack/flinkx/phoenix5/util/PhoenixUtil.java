@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.phoenix5.util;
 
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.codehaus.commons.compiler.CompileException;
@@ -26,11 +25,9 @@ import org.codehaus.janino.ClassBodyEvaluator;
 import javax.ws.rs.NotSupportedException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * Date: 2020/02/28
@@ -40,7 +37,7 @@ import java.util.Map;
  */
 public class PhoenixUtil {
 
-    public static Connection getConnectionInternal(String url, String username, String password, ClassLoader parentClassLoader) throws SQLException, IOException, CompileException, IllegalAccessException, InstantiationException {
+    public static Connection getConnectionInternal(String url, String username, String password, ClassLoader parentClassLoader) throws SQLException, IOException, CompileException {
         Connection dbConn;
         synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
@@ -63,25 +60,6 @@ public class PhoenixUtil {
         }
 
         return dbConn;
-    }
-
-    public static List<String> analyzeTable(ResultSet rs, List<MetaColumn> metaColumns) throws SQLException {
-        List<String> ret = new ArrayList<>(metaColumns.size());
-        ResultSetMetaData rd = rs.getMetaData();
-
-        Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-        for(int i = 0; i < rd.getColumnCount(); ++i) {
-            nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
-        }
-
-        for (MetaColumn metaColumn : metaColumns) {
-            if(metaColumn.getValue() != null){
-                ret.add("string");
-            } else {
-                ret.add(nameTypeMap.get(metaColumn.getName()));
-            }
-        }
-        return ret;
     }
 
     public interface IPhoenixConn {

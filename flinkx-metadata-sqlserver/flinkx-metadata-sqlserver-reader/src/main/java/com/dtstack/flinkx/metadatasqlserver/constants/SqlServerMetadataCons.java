@@ -29,15 +29,13 @@ public class SqlServerMetadataCons extends MetaDataCons {
 
     public static final String DRIVER_NAME = "net.sourceforge.jtds.jdbc.Driver";
 
-    public static final String KEY_CREATE_TIME = "createTime";
-    public static final String KEY_ROWS = "rows";
-    public static final String KEY_TOTAL_SIZE = "totalSize";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
-    public static final String KEY_COLUMN_NAME = "columnName";
     public static final String KEY_FILE_GROUP_NAME = "fileGroupName";
     public static final String KEY_TABLE_SCHEMA = "tableSchema";
     public static final String KEY_SCHEMA_NAME = "schemaName";
     public static final String KEY_TABLE_NAME = "tableName";
+
+    public static final String KEY_ZERO = "0";
 
     public static final String SQL_SWITCH_DATABASE = "USE \"%s\"";
     /**
@@ -50,10 +48,11 @@ public class SqlServerMetadataCons extends MetaDataCons {
             "LEFT JOIN sys.extended_properties AS ep ON a.id = ep.major_id AND ep.minor_id = 0 \n" +
             "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s AND OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s ";
 
-    public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment \n" +
+    public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment, B.is_nullable as nullable, COLUMNPROPERTY(B.object_id ,B.name,'PRECISION') as presice, D.text \n" +
             "FROM sys.tables A INNER JOIN sys.columns B ON B.object_id = A.object_id \n" +
             "INNER JOIN sys.types TY ON B.system_type_id = TY.system_type_id \n" +
             "LEFT JOIN sys.extended_properties C ON C.major_id = B.object_id AND C.minor_id = B.column_id \n" +
+            "left join syscomments D on A.object_id=D.id " +
             "WHERE A.name = %s and OBJECT_SCHEMA_NAME(A.object_id, DB_ID())=%s";
 
     public static final String SQL_SHOW_TABLE_INDEX = "SELECT a.name, d.name as columnName, type_desc as type \n" +
@@ -77,5 +76,12 @@ public class SqlServerMetadataCons extends MetaDataCons {
             "join sys.partition_functions pf on ps.function_id = pf.function_id \n" +
             "WHERE i.object_id = object_id(%s) and OBJECT_SCHEMA_NAME(i.object_id, DB_ID())=%s \n" +
             "and i.index_id in (0, 1)";
+
+    public static final String SQL_QUERY_PRIMARY_KEY = "SELECT ku.COLUMN_NAME\n" +
+            "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc\n" +
+            "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS ku\n" +
+            "ON tc.CONSTRAINT_TYPE = 'PRIMARY KEY' \n" +
+            "AND tc.CONSTRAINT_NAME = ku.CONSTRAINT_NAME\n" +
+            "WHERE ku.TABLE_NAME = %s AND ku.TABLE_SCHEMA = %s";
 
 }
