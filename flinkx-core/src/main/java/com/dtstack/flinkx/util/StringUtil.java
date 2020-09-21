@@ -20,11 +20,14 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.types.Row;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -295,5 +298,27 @@ public class StringUtil {
         tokensList.add(b.toString());
 
         return tokensList;
+    }
+
+    /**
+     * 字符串转换成对应时间戳字符串
+     * @param location
+     * @return
+     */
+    public static String stringToTimestampStr(String location, ColumnType type){
+        //若为空字符串或本身就是时间戳则不需要转换
+        if(StringUtils.isBlank(location) || StringUtils.isNumeric(location)){
+            return location;
+        }
+        try {
+            switch (type) {
+                case TIMESTAMP: return String.valueOf(Timestamp.valueOf(location).getTime());
+                case DATE: return String.valueOf(DateUtils.parseDate(location, DateUtil.getDateFormat(location)).getTime());
+                default: return location;
+            }
+        }catch (ParseException e){
+            String message = String.format("cannot transform 【%s】to 【%s】, e = %s", location, type, ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(message);
+        }
     }
 }

@@ -50,7 +50,9 @@ public class GsonUtil {
 
     @SuppressWarnings("unchecked")
     private static Gson getGson() {
-        GSON = new GsonBuilder().create();
+        GSON = new GsonBuilder()
+                .setPrettyPrinting()
+                .create();
         try {
             Field factories = Gson.class.getDeclaredField("factories");
             factories.setAccessible(true);
