@@ -131,6 +131,7 @@ public class HbaseHelper {
         return false;
     }
 
+
     /**
      * 设置hbase 开启kerberos 连接必要的固定参数
      * @param hbaseConfigMap

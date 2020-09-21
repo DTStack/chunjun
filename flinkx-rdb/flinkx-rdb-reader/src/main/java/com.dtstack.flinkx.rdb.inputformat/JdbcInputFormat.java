@@ -177,16 +177,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
+                    //sqlserver、DB2驱动包不支持isValid()，这里先注释掉，后续更换驱动包
                     //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if(!dbConn.isValid(3)){
-                        dbConn = dbConn = getConnection();
-                        //重新连接后还是不可用则认为数据库异常，任务失败
-                        if(!dbConn.isValid(3)){
-                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
-                            LOG.error(message);
-                            throw new RuntimeException(message);
-                        }
-                    }
+//                    if(!dbConn.isValid(3)){
+//                        dbConn = DbUtil.getConnection(dbUrl, username, password);
+//                        //重新连接后还是不可用则认为数据库异常，任务失败
+//                        if(!dbConn.isValid(3)){
+//                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
+//                            LOG.error(message);
+//                            throw new RuntimeException(message);
+//                        }
+//                    }
                     if(!dbConn.getAutoCommit()){
                         dbConn.setAutoCommit(true);
                     }
