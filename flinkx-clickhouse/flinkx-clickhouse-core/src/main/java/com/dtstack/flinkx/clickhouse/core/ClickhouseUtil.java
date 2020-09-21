@@ -45,7 +45,7 @@ public class ClickhouseUtil {
             try {
 //                conn = new BalancedClickhouseDataSource(url, properties).getConnection();
 
-//              #Issues:276    Desc:fixsbug    Date:2020-09-21     Author:https://github.com/wowiscrazy
+//              #Issues:276    Desc:更换clickhouse数据库获取连接的方式    Date:2020-09-21     Author:wowiscrazy
                 conn = new BalancedClickhouseDataSource(url).getConnection(username, password);
                 try (Statement statement = conn.createStatement()) {
                     statement.execute("select 111");
