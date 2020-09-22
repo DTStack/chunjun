@@ -19,10 +19,18 @@
 package com.dtstack.flinkx.socket.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
+import java.util.Map;
+
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_BINARY_ARRAY_DECODER;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_BYTE_BUF_DECODER;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_PROPERTIES;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_SERVER;
 
 /**
  *
@@ -32,13 +40,30 @@ import org.apache.flink.types.Row;
 
 public class SocketReader extends BaseDataReader {
 
+    protected String server;
+
+    protected String byteBufDecoder;
+
+    protected String binaryArrayDecoder;
+
+    protected Map<String, String> properties;
+
     protected SocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        server = readerConfig.getParameter().getStringVal(KEY_SERVER);
+        byteBufDecoder = readerConfig.getParameter().getStringVal(KEY_BYTE_BUF_DECODER);
+        binaryArrayDecoder = readerConfig.getParameter().getStringVal(KEY_BINARY_ARRAY_DECODER);
+        properties = (Map<String, String>) readerConfig.getParameter().getVal(KEY_PROPERTIES);
     }
 
     @Override
     public DataStream<Row> readData() {
-        return null;
+        SocketBuilder socketBuilder = new SocketBuilder();
+        socketBuilder.setServer(server);
+        socketBuilder.setByteBufDecoder(byteBufDecoder);
+        socketBuilder.setBinaryArrayDecoder(binaryArrayDecoder);
+        socketBuilder.setProperties(properties);
+        return createInput(socketBuilder.finish());
     }
 }

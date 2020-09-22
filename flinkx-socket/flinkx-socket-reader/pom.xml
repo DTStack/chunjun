@@ -11,6 +11,14 @@
 
     <artifactId>flinkx-socket-reader</artifactId>
 
+    <dependencies>
+        <dependency>
+            <artifactId>flinkx-socket-core</artifactId>
+            <groupId>com.dtstack.flinkx</groupId>
+            <version>1.6</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
