@@ -32,7 +32,7 @@ import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_BYTE_BUF_DECODE
 import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_PROPERTIES;
 import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_SERVER;
 
-/**
+/** 读取用户传入参数
  *
  * @author by kunni@dtstack.com
  * @Date 2020/09/18
@@ -46,7 +46,7 @@ public class SocketReader extends BaseDataReader {
 
     protected String binaryArrayDecoder;
 
-    protected Map<String, String> properties;
+    protected Map<String, Object> properties;
 
     protected SocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -54,7 +54,7 @@ public class SocketReader extends BaseDataReader {
         server = readerConfig.getParameter().getStringVal(KEY_SERVER);
         byteBufDecoder = readerConfig.getParameter().getStringVal(KEY_BYTE_BUF_DECODER);
         binaryArrayDecoder = readerConfig.getParameter().getStringVal(KEY_BINARY_ARRAY_DECODER);
-        properties = (Map<String, String>) readerConfig.getParameter().getVal(KEY_PROPERTIES);
+        properties = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_PROPERTIES);
     }
 
     @Override

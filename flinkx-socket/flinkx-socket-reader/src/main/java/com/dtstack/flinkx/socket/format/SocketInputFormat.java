@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-/** 读取socket
+/** 读取socket传入的数据
  *
  * Date: 2019/09/20
  * Company: www.dtstack.com
@@ -45,15 +45,21 @@ public class SocketInputFormat  extends BaseRichInputFormat {
     protected String port;
     protected String byteBufDecoder;
     protected String binaryArrayDecoder;
-    protected Map<String, String> properties;
+    protected Map<String, Object> properties;
 
     protected DtSocketClient client;
-    protected transient BlockingQueue<Row> queue = new SynchronousQueue<>();
+    protected transient SynchronousQueue<Row> queue = new SynchronousQueue<>();
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        client = new DtSocketClient(host, port, queue);
-        client.setInitializer(new DtChannelInitializer());
+        client = new DtSocketClient(host, port);
+        DtChannelInitializer initializer = new DtChannelInitializer();
+        initializer.setByteBufDecoder(byteBufDecoder);
+        initializer.setBinaryArrayDecoder(binaryArrayDecoder);
+        initializer.setProperties(properties);
+        initializer.setQueue(queue);
+        client.setInitializer(initializer);
+        client.start();
     }
 
     @Override
@@ -98,7 +104,7 @@ public class SocketInputFormat  extends BaseRichInputFormat {
         this.binaryArrayDecoder = binaryArrayDecoder;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
     }
 }

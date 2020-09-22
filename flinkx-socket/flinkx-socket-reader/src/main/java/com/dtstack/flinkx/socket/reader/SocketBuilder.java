@@ -23,7 +23,7 @@ import com.dtstack.flinkx.socket.format.SocketInputFormat;
 
 import java.util.Map;
 
-/**
+/** 构建InputFormat
  *
  * @author by kunni@dtstack.com
  * @Date 2020/09/18
@@ -49,7 +49,7 @@ public class SocketBuilder extends BaseRichInputFormatBuilder {
         format.setBinaryArrayDecoder(binaryArrayDecoder);
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, Object> properties) {
         format.setProperties(properties);
     }
 

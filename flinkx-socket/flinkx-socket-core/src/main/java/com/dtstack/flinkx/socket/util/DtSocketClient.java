@@ -45,23 +45,13 @@ public class DtSocketClient implements Closeable, Serializable {
     protected String host;
     protected String port;
 
-    protected transient BlockingQueue<Row> queue;
-
     protected EventLoopGroup group;
-    protected ChannelInitializer<SocketChannel> initializer;
+    protected DtChannelInitializer initializer = new DtChannelInitializer();
 
     public DtSocketClient(String host, String port){
         this.host = host;
         this.port = port;
     }
-
-    public DtSocketClient(String host, String port, BlockingQueue<Row> queue){
-        this.host = host;
-        this.port = port;
-        this.queue = queue;
-    }
-
-
 
     //开启监听
     public void start() throws IOException {
@@ -71,7 +61,7 @@ public class DtSocketClient implements Closeable, Serializable {
             bootstrap.group(group)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
-                    .handler(new DtChannelInitializer());
+                    .handler(initializer);
             bootstrap.connect(host, Integer.parseInt(port)).sync();
         }catch (Exception e){
             throw new IOException(e);
@@ -83,11 +73,7 @@ public class DtSocketClient implements Closeable, Serializable {
         group.shutdownGracefully();
     }
 
-    public void setQueue(SynchronousQueue<Row> queue) {
-        this.queue = queue;
-    }
-
-    public void setInitializer(ChannelInitializer<SocketChannel> initializer) {
+    public void setInitializer(DtChannelInitializer initializer) {
         this.initializer = initializer;
     }
 
