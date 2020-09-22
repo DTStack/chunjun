@@ -63,7 +63,7 @@ public final class HiveDbUtil {
     public static final String PARAM_DELIMITER = "&";
     public static final String KEY_PRINCIPAL = "principal";
 
-    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[0-9a-zA-Z\\.]+):(?<port>\\d+)/(?<db>[0-9a-z_%]+)(?<param>[\\?;#].*)*");
+    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
     public static final String HOST_KEY = "host";
     public static final String PORT_KEY = "port";
     public static final String DB_KEY = "db";
@@ -264,7 +264,8 @@ public final class HiveDbUtil {
         if (matcher.find()) {
             addr = matcher.group(HOST_KEY) + ":" + matcher.group(PORT_KEY);
         } else {
-            addr = url.substring(url.indexOf("//") + 2, url.lastIndexOf("/"));
+            addr = url.substring(url.indexOf("//") + 2);
+            addr=  addr.substring(0,addr.indexOf("/"));
         }
         return addr;
     }
