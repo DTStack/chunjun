@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.kingbase;
+package com.dtstack.flinkx.kingbase.util;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
@@ -25,6 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
+import static com.dtstack.flinkx.constants.ConstantValue.LEFT_PARENTHESIS_SYMBOL;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.DRIVER;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.KEY_UPDATE_KEY;
 
 /**
  * The class of KingBase database prototype
@@ -35,15 +40,13 @@ import java.util.Map;
 
 public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
-    public static final String KEY_UPDATE_KEY = "key";
-
     @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder();
-        sb.append("(");
+        sb.append(LEFT_PARENTHESIS_SYMBOL);
         for(int i = 0; i < column.size(); ++i) {
             if(i != 0) {
-                sb.append(",");
+                sb.append(COMMA_SYMBOL);
             }
             sb.append(quoteColumn(column.get(i)));
         }
@@ -58,7 +61,7 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getDriverClass() {
-        return "com.kingbase8.Driver";
+        return DRIVER;
     }
 
     @Override
@@ -90,7 +93,7 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
             String quotedCol = quoteColumn(col);
             updateList.add(quotedCol + "=EXCLUDED." + quotedCol);
         }
-        return StringUtils.join(updateList, ",");
+        return StringUtils.join(updateList, COMMA_SYMBOL);
     }
 
     @Override

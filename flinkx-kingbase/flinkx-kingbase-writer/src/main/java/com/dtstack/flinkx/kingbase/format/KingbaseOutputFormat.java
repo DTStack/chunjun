@@ -23,6 +23,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.kingbase8.copy.CopyManager;
 import com.kingbase8.core.BaseConnection;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
 import java.io.ByteArrayInputStream;
@@ -30,8 +31,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
+
 /**
- * 参考postgresql
+ * 写入数据到kingbase
  * Company: www.dtstack.com
  * @author kunni@dtstack.com
  */
@@ -58,14 +61,14 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     @Override
     protected PreparedStatement prepareTemplates() throws SQLException {
-        if(fullColumn == null || fullColumn.size() == 0) {
+        if(CollectionUtils.isEmpty(fullColumn)) {
             fullColumn = column;
         }
 
         //check is use copy mode for insert
         if (EWriteMode.INSERT.name().equalsIgnoreCase(mode) && checkIsCopyMode(insertSqlMode)) {
             copyManager = new CopyManager((BaseConnection) dbConn);
-            copySql = String.format(COPY_SQL_TEMPL, table, String.join(",", column), DEFAULT_FIELD_DELIM, DEFAULT_NULL_DELIM);
+            copySql = String.format(COPY_SQL_TEMPL, table, String.join(COMMA_SYMBOL, column), DEFAULT_FIELD_DELIM, DEFAULT_NULL_DELIM);
             return null;
         }
 

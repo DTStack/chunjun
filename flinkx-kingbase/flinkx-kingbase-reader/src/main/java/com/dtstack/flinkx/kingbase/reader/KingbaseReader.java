@@ -20,7 +20,7 @@ package com.dtstack.flinkx.kingbase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.kingbase.KingBaseDatabaseMeta;
+import com.dtstack.flinkx.kingbase.util.KingBaseDatabaseMeta;
 import com.dtstack.flinkx.kingbase.format.KingbaseInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;

@@ -20,8 +20,8 @@ package com.dtstack.flinkx.kingbase.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.kingbase.KingBaseDatabaseMeta;
-import com.dtstack.flinkx.kingbase.KingBaseTypeConverter;
+import com.dtstack.flinkx.kingbase.util.KingBaseDatabaseMeta;
+import com.dtstack.flinkx.kingbase.util.KingBaseTypeConverter;
 import com.dtstack.flinkx.kingbase.format.KingbaseOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;

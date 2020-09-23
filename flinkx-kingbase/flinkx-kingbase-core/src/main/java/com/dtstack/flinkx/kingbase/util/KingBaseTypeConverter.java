@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.kingbase;
+package com.dtstack.flinkx.kingbase.util;
 
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import org.apache.commons.lang3.StringUtils;
@@ -8,13 +8,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 参考PostgresqlTypeConverter
+ * 类型转换
  * @Company: www.dtstack.com
  * @author jiangbo
  */
 public class KingBaseTypeConverter implements TypeConverterInterface {
 
-    private List<String> stringTypes = Arrays.asList("uuid","xml","cidr","inet","macaddr","character","character varying");
+    private List<String> stringTypes = Arrays.asList("uuid", "xml", "cidr", "inet", "macaddr", "text", "character", "character varying");
 
     private List<String> byteTypes = Arrays.asList("bytea","bit varying");
 

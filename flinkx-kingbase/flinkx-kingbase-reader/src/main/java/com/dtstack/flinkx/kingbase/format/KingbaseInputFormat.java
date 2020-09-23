@@ -20,6 +20,7 @@ package com.dtstack.flinkx.kingbase.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -76,7 +77,7 @@ public class KingbaseInputFormat extends JdbcInputFormat {
             }
             return super.nextRecordInternal(row);
         }catch (Exception e) {
-            throw new IOException("Couldn't read data - " + e.getMessage(), e);
+            throw new IOException("Couldn't read data - " + ExceptionUtil.getErrorMessage(e), e);
         }
     }
 
