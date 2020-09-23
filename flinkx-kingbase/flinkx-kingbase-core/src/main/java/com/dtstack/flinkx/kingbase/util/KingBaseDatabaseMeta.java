@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
 import static com.dtstack.flinkx.constants.ConstantValue.LEFT_PARENTHESIS_SYMBOL;
+import static com.dtstack.flinkx.constants.ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
 import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.DRIVER;
 import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.KEY_UPDATE_KEY;
 
@@ -50,7 +51,7 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
             }
             sb.append(quoteColumn(column.get(i)));
         }
-        sb.append(")");
+        sb.append(RIGHT_PARENTHESIS_SYMBOL);
         return sb.toString();
     }
 
@@ -84,7 +85,7 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
     }
 
     private String makeValues(int nCols) {
-        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
+        return LEFT_PARENTHESIS_SYMBOL + StringUtils.repeat("?", ",", nCols) + RIGHT_PARENTHESIS_SYMBOL;
     }
 
     private String makeUpdatePart (List<String> column) {
