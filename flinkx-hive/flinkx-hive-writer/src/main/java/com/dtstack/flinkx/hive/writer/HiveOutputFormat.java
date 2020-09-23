@@ -343,6 +343,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return builder;
     }
 
+    /**
+     * 预先建表，分库分表时只针对已存在的表建hive表
+     * 只适用于analyticalRules参数为schema和table的情况
+     */
     private void primaryCreateTable(){
         if (MapUtils.isNotEmpty(distributeTableMapping)){
             for(Map.Entry<String, String> entry : distributeTableMapping.entrySet()){
@@ -358,11 +362,17 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 }
             }
         }else {
-            String tablePath = tableInfos.entrySet().iterator().next().getValue().getTableName();
-            TableInfo tableInfo = tableInfos.get(tablePath);
-            tableInfo.setTablePath(tablePath);
-            hiveUtil.createHiveTableWithTableInfo(tableInfo);
-            tableCache.put(tablePath, tableInfo);
+            for(Map.Entry<String, TableInfo> entry : tableInfos.entrySet()){
+                String tablePath = entry.getValue().getTableName();
+                Map<String, String> event = new HashMap<>(4);
+                event.put(KEY_SCHEMA, schema);
+                event.put(KEY_TABLE, tablePath);
+                TableInfo tableInfo = tableInfos.get(tablePath);
+                tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+                tableInfo.setTablePath(tablePath);
+                hiveUtil.createHiveTableWithTableInfo(tableInfo);
+                tableCache.put(tablePath, tableInfo);
+            }
         }
     }
 
