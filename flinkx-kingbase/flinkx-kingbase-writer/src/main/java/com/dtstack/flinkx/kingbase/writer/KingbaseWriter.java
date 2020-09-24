@@ -30,6 +30,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
+
 /**
  * KingBase writer plugin
  *
@@ -76,7 +78,7 @@ public class KingbaseWriter extends JdbcDataWriter {
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-        String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
+        String sinkName = (databaseInterface.getDatabaseType() + KEY_WRITER).toLowerCase();
         dataStreamSink.name(sinkName);
         return dataStreamSink;
     }

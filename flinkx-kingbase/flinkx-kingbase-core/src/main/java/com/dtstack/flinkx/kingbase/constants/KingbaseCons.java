@@ -29,4 +29,13 @@ public class KingbaseCons {
 
     public static final String DRIVER = "com.kingbase8.Driver";
     public static final String KEY_UPDATE_KEY = "key";
+    public static final String INSERT_SQL_MODE_TYPE = "copy";
+
+    /**
+     * copy语法分隔符
+     */
+    public static final String DEFAULT_FIELD_DELIM = "\001";
+    public static final String DEFAULT_NULL_DELIM = "\002";
+    public static final String LINE_DELIMITER = "\n";
+
 }

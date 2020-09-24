@@ -32,6 +32,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.DEFAULT_FIELD_DELIM;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.DEFAULT_NULL_DELIM;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.INSERT_SQL_MODE_TYPE;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.LINE_DELIMITER;
 
 /**
  * 写入数据到kingbase
@@ -42,17 +46,6 @@ import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
 public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     private static final String COPY_SQL_TEMPL = "COPY %s(%s) FROM STDIN DELIMITER '%s' NULL AS '%s'";
-
-    private static final String DEFAULT_FIELD_DELIM = "\001";
-
-    private static final String DEFAULT_NULL_DELIM = "\002";
-
-    private static final String LINE_DELIMITER = "\n";
-
-    /**
-     * now just add ext insert mode:copy
-     */
-    private static final String INSERT_SQL_MODE_TYPE = "copy";
 
     private String copySql = "";
 

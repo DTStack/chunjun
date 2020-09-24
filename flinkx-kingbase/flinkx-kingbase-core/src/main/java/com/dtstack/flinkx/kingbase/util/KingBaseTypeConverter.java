@@ -8,9 +8,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 类型转换
+ * kingbase中不常用类型转换为java类型
  * @Company: www.dtstack.com
- * @author jiangbo
+ * @author kunni@dtstack.com
  */
 public class KingBaseTypeConverter implements TypeConverterInterface {
 
