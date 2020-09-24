@@ -289,7 +289,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             return outputFormat;
         } catch (Exception e) {
-            LOG.error("create [HdfsOutputFormat] failed:", e);
+            LOG.error("create [HdfsOutputFormat] exception:", e);
             throw new RuntimeException(e);
         }
     }
@@ -322,7 +322,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
-                LOG.error("", e);
+                LOG.error(ExceptionUtil.getErrorMessage(e));
             }
         }
     }
