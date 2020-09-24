@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.dtstack.flinkx.oraclelogminer.util;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,15 +43,27 @@ public class SqlUtil {
      *                                       例如NLS_DATE_FORMAT，NLS_NUMERIC_CHARACTERS等）。使用此选项，将使用ANSI / ISO字符串文字格式对重构的SQL语句进行格式化。
      */
     public final static String SQL_START_LOG_MINER_AUTO_ADD_LOG = "" +
-            "BEGIN DBMS_LOGMNR.START_LOGMNR(" +
+            "BEGIN SYS.DBMS_LOGMNR.START_LOGMNR(" +
             "   STARTSCN => ?," +
-            "   OPTIONS => DBMS_LOGMNR.SKIP_CORRUPTION " +
-            "       + DBMS_LOGMNR.NO_SQL_DELIMITER " +
-            "       + DBMS_LOGMNR.NO_ROWID_IN_STMT " +
-            "       + DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
-            "       + DBMS_LOGMNR.CONTINUOUS_MINE " +
-            "       + DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
-            "       + DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
+            "   OPTIONS => SYS.DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "       + SYS.DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "       + SYS.DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "       + SYS.DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "       + SYS.DBMS_LOGMNR.CONTINUOUS_MINE " +
+            "       + SYS.DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
+            "       + SYS.DBMS_LOGMNR.STRING_LITERALS_IN_STMT" +
+            ");" +
+            "END;";
+
+    public final static String SQL_START_LOG_MINER_AUTO_ADD_LOG_10 = "" +
+            "BEGIN SYS.DBMS_LOGMNR.START_LOGMNR(" +
+            "   STARTSCN => ?," +
+            "   OPTIONS => SYS.DBMS_LOGMNR.SKIP_CORRUPTION " +
+            "       + SYS.DBMS_LOGMNR.NO_SQL_DELIMITER " +
+            "       + SYS.DBMS_LOGMNR.NO_ROWID_IN_STMT " +
+            "       + SYS.DBMS_LOGMNR.DICT_FROM_ONLINE_CATALOG " +
+            "       + SYS.DBMS_LOGMNR.CONTINUOUS_MINE " +
+            "       + SYS.DBMS_LOGMNR.COMMITTED_DATA_ONLY " +
             ");" +
             "END;";
 
@@ -105,20 +115,75 @@ public class SqlUtil {
             "        ORDER BY\n" +
             "            first_change#\n" +
             "    ) LOOP IF st THEN\n" +
-            "        dbms_logmnr.add_logfile(l_log_rec.name, dbms_logmnr.new);\n" +
+            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
             "        st := false;\n" +
             "    ELSE\n" +
-            "        dbms_logmnr.add_logfile(l_log_rec.name);\n" +
+            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
             "    END IF;\n" +
             "    END LOOP;\n" +
             "\n" +
-            "    dbms_logmnr.start_logmnr(" +
+            "    SYS.DBMS_LOGMNR.start_logmnr(" +
             "       options => " +
-            "         dbms_logmnr.skip_corruption " +
-            "       + dbms_logmnr.no_sql_delimiter " +
-            "       + dbms_logmnr.no_rowid_in_stmt\n" +
-            "       + dbms_logmnr.dict_from_online_catalog " +
-            "       + dbms_logmnr.string_literals_in_stmt" +
+            "         SYS.DBMS_LOGMNR.skip_corruption " +
+            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
+            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
+            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
+            "       + SYS.DBMS_LOGMNR.string_literals_in_stmt" +
+            "   );\n" +
+            "END;";
+
+    public final static String SQL_START_LOG_MINER_10 = "" +
+            "DECLARE\n" +
+            "    st          BOOLEAN := true;\n" +
+            "    start_scn   NUMBER := ?;\n" +
+            "BEGIN\n" +
+            "    FOR l_log_rec IN (\n" +
+            "        SELECT\n" +
+            "            MIN(name) name,\n" +
+            "            first_change#\n" +
+            "        FROM\n" +
+            "            (\n" +
+            "                SELECT\n" +
+            "                    MIN(member) AS name,\n" +
+            "                    first_change#,\n" +
+            "                    281474976710655 AS next_change#\n" +
+            "                FROM\n" +
+            "                    v$log       l\n" +
+            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "                WHERE l.STATUS != 'UNUSED'\n" +
+            "                GROUP BY\n" +
+            "                    first_change#\n" +
+            "                UNION\n" +
+            "                SELECT\n" +
+            "                    name,\n" +
+            "                    first_change#,\n" +
+            "                    next_change#\n" +
+            "                FROM\n" +
+            "                    v$archived_log\n" +
+            "                WHERE\n" +
+            "                    name IS NOT NULL\n" +
+            "            )\n" +
+            "        WHERE\n" +
+            "            first_change# >= start_scn\n" +
+            "            OR start_scn < next_change#\n" +
+            "        GROUP BY\n" +
+            "            first_change#\n" +
+            "        ORDER BY\n" +
+            "            first_change#\n" +
+            "    ) LOOP IF st THEN\n" +
+            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
+            "        st := false;\n" +
+            "    ELSE\n" +
+            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
+            "    END IF;\n" +
+            "    END LOOP;\n" +
+            "\n" +
+            "    SYS.DBMS_LOGMNR.start_logmnr(" +
+            "       options => " +
+            "         SYS.DBMS_LOGMNR.skip_corruption " +
+            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
+            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
+            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
             "   );\n" +
             "END;";
 
@@ -158,10 +223,45 @@ public class SqlUtil {
             "ORDER BY\n" +
             "    first_change#";
 
+    public final static String SQL_QUERY_LOG_FILE_10 =
+            "SELECT\n" +
+            "    MIN(name) name,\n" +
+            "    first_change#\n" +
+            "FROM\n" +
+            "    (\n" +
+            "        SELECT\n" +
+            "            MIN(member) AS name,\n" +
+            "            first_change#,\n" +
+            "            281474976710655 AS next_change#\n" +
+            "        FROM\n" +
+            "            v$log       l\n" +
+            "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "                WHERE l.STATUS != 'UNUSED'\n" +
+            "        GROUP BY\n" +
+            "            first_change#\n" +
+            "        UNION\n" +
+            "        SELECT\n" +
+            "            name,\n" +
+            "            first_change#,\n" +
+            "            next_change#\n" +
+            "        FROM\n" +
+            "            v$archived_log\n" +
+            "        WHERE\n" +
+            "            name IS NOT NULL\n" +
+            "    )\n" +
+            "WHERE\n" +
+            "    first_change# >= ?\n" +
+            "    OR ? < next_change#\n" +
+            "GROUP BY\n" +
+            "    first_change#\n" +
+            "ORDER BY\n" +
+            "    first_change#";
+
     public final static String SQL_SELECT_DATA = "" +
             "SELECT\n" +
             "    scn,\n" +
-            "    commit_scn,\n" +
+            //oracle 10 没有该字段
+//            "    commit_scn,\n" +
             "    timestamp,\n" +
             "    operation,\n" +
             "    seg_owner,\n" +
@@ -174,7 +274,7 @@ public class SqlUtil {
             "WHERE\n" +
             "    scn > ?";
 
-    public final static String SQL_STOP_LOG_MINER = "BEGIN DBMS_LOGMNR.END_LOGMNR; end;";
+    public final static String SQL_STOP_LOG_MINER = "BEGIN SYS.DBMS_LOGMNR.END_LOGMNR; end;";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 

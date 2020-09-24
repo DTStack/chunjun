@@ -31,6 +31,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
@@ -53,7 +54,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,80 +70,52 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
+    protected static final int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
+    protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+
     protected DatabaseInterface databaseInterface;
 
-    protected String username;
-
-    protected String password;
-
-    protected String driverName;
-
-    protected String dbUrl;
-
-    protected String queryTemplate;
-
-    protected int resultSetType;
-
-    protected int resultSetConcurrency;
-
-    protected List<String> descColumnTypeList;
-
-    protected transient Connection dbConn;
-
-    protected transient Statement statement;
-
-    protected transient PreparedStatement ps;
-
-    protected transient ResultSet resultSet;
-
-    protected boolean hasNext;
-
-    protected int columnCount;
-
     protected String table;
-
-    protected TypeConverterInterface typeConverter;
-
-    protected List<MetaColumn> metaColumns;
+    protected String queryTemplate;
+    protected String customSql;
+    protected String querySql;
 
     protected String splitKey;
-
     protected int fetchSize;
-
     protected int queryTimeOut;
+    protected IncrementConfig incrementConfig;
+
+    protected String username;
+    protected String password;
+    protected String driverName;
+    protected String dbUrl;
+    protected transient Connection dbConn;
+    protected transient Statement statement;
+    protected transient PreparedStatement ps;
+    protected transient ResultSet resultSet;
+    protected boolean hasNext;
+
+
+    protected List<MetaColumn> metaColumns;
+    protected List<String> columnTypeList;
+    protected int columnCount;
+    protected MetaColumn restoreColumn;
+    protected Row lastRow = null;
+
+    //for postgre
+    protected TypeConverterInterface typeConverter;
 
     protected int numPartitions;
 
-    protected String customSql;
-
-    protected IncrementConfig incrementConfig;
-
     protected StringAccumulator maxValueAccumulator;
-
     protected BigIntegerMaximum endLocationAccumulator;
-
     protected BigIntegerMaximum startLocationAccumulator;
 
-    protected MetaColumn restoreColumn;
-
-    protected Row lastRow = null;
-
-    protected String querySql;
-
-    /**
-     * 轮询增量标识字段类型
-     */
+    //轮询增量标识字段类型
     protected ColumnType type;
 
-    /**
-     * The hadoop config for metric
-     */
+    //The hadoop config for metric
     protected Map<String, Object> hadoopConfig;
-
-    public JdbcInputFormat() {
-        resultSetType = ResultSet.TYPE_FORWARD_ONLY;
-        resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
-    }
 
     @Override
     public void openInputFormat() throws IOException {
@@ -182,16 +154,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (splitWithRowCol) {
             columnCount = columnCount - 1;
         }
-
-        if (StringUtils.isEmpty(customSql)) {
-            //获取表对应的所有字段类型抽取一个方法，而不是直接调用DbUtil#analyzeTable 以便子类更好扩展
-            descColumnTypeList = analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-            } else {
-            descColumnTypeList = new ArrayList<>();
-            for (MetaColumn metaColumn : metaColumns) {
-                descColumnTypeList.add(metaColumn.getName());
-            }
-        }
+        checkSize(columnCount, metaColumns);
+        columnTypeList = DbUtil.analyzeColumnType(resultSet, metaColumns);
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
@@ -213,16 +177,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
+                    //sqlserver、DB2驱动包不支持isValid()，这里先注释掉，后续更换驱动包
                     //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if(!dbConn.isValid(3)){
-                        dbConn = DbUtil.getConnection(dbUrl, username, password);
-                        //重新连接后还是不可用则认为数据库异常，任务失败
-                        if(!dbConn.isValid(3)){
-                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
-                            LOG.error(message);
-                            throw new RuntimeException(message);
-                        }
-                    }
+//                    if(!dbConn.isValid(3)){
+//                        dbConn = DbUtil.getConnection(dbUrl, username, password);
+//                        //重新连接后还是不可用则认为数据库异常，任务失败
+//                        if(!dbConn.isValid(3)){
+//                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
+//                            LOG.error(message);
+//                            throw new RuntimeException(message);
+//                        }
+//                    }
                     if(!dbConn.getAutoCommit()){
                         dbConn.setAutoCommit(true);
                     }
@@ -276,7 +241,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
             }
 
-            //update hasNext after we've read the record
             hasNext = resultSet.next();
 
             if (restoreConfig.isRestore()) {
@@ -790,7 +754,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {
-        dbConn = DbUtil.getConnection(dbUrl, username, password);
+        dbConn = getConnection();
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
@@ -840,8 +804,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 resultSet.close();
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
-                //每隔五分钟打印一次
-                if(System.currentTimeMillis() / 60000 % 60 % 60 % 5 == 0){
+                //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
+                if((System.currentTimeMillis() - startTime) % 300000 <= incrementConfig.getPollingInterval()){
                     LOG.info("no record matched condition in database, execute query sql = {}, startLocation = {}", querySql, endLocationAccumulator.getLocalValue());
                 }
             }
@@ -866,6 +830,15 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
+     * 获取数据库连接，用于子类覆盖
+     * @return connection
+     * @throws SQLException
+     */
+    protected Connection getConnection() throws SQLException {
+        return DbUtil.getConnection(dbUrl, username, password);
+    }
+
+    /**
      * 使用自定义的指标输出器把增量指标打到普罗米修斯
      */
     @Override
@@ -881,8 +854,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-    protected List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                        String table, List<MetaColumn> metaColumns) {
-        return DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+    /**
+     * 校验columnCount和metaColumns的长度是否相等
+     * @param columnCount
+     * @param metaColumns
+     */
+    protected void checkSize(int columnCount, List<MetaColumn> metaColumns) {
+        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName()) && columnCount != metaColumns.size()) {
+            String message = String.format("error config: column = %s, column size = %s, but columns size for query result is %s. And the query sql is %s.",
+                    GsonUtil.GSON.toJson(metaColumns),
+                    metaColumns.size(),
+                    columnCount,
+                    querySql);
+            LOG.error(message);
+            throw new RuntimeException(message);
+        }
     }
 }

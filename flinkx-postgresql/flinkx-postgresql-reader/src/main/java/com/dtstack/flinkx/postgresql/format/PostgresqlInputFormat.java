@@ -45,8 +45,8 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        obj = typeConverter.convert(obj,descColumnTypeList.get(pos));
+                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                        obj = typeConverter.convert(obj, columnTypeList.get(pos));
                     }
                     obj = clobToString(obj);
                 }
