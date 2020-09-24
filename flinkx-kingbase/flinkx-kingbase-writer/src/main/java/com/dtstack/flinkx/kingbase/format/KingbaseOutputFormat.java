@@ -21,9 +21,12 @@ package com.dtstack.flinkx.kingbase.format;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.kingbase8.copy.CopyManager;
 import com.kingbase8.core.BaseConnection;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 
 import java.io.ByteArrayInputStream;
@@ -76,7 +79,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
                 dbConn.setAutoCommit(false);
             }
         } catch (Exception e) {
-            LOG.warn("", e);
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -141,7 +144,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         StringBuilder sb = new StringBuilder(128);
         for (Row row : rows) {
             int lastIndex = row.getArity() - 1;
-            for (int index =0; index < row.getArity(); index++) {
+            for (int index = 0; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
                 sb.append(rowData==null ? DEFAULT_NULL_DELIM : rowData);
                 if(index != lastIndex){
@@ -181,7 +184,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
     }
 
     private boolean checkIsCopyMode(String insertMode){
-        if(insertMode == null || insertMode.length() == 0){
+        if(StringUtils.isEmpty(insertMode)){
             return false;
         }
 
