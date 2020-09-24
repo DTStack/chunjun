@@ -217,7 +217,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         try {
             formatPair = getHdfsOutputFormat(tablePath, event);
         } catch (Exception e) {
-            throw new RuntimeException("获取HDFSOutputFormat失败", e);
+            throw new RuntimeException("get HDFSOutputFormat failed", e);
         }
 
         Row rowData = row;
@@ -235,7 +235,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-                LOG.warn("写入hdfs异常:", e);
+                LOG.warn("write hdfs exception:", e);
             }
         }
     }
@@ -289,7 +289,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             return outputFormat;
         } catch (Exception e) {
-            LOG.error("构建[HdfsOutputFormat]出错:", e);
+            LOG.error("create [HdfsOutputFormat] failed:", e);
             throw new RuntimeException(e);
         }
     }
@@ -344,35 +344,18 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     /**
-     * 预先建表，分库分表时只针对已存在的表建hive表
+     * 预先建表
      * 只适用于analyticalRules参数为schema和table的情况
      */
     private void primaryCreateTable(){
-        if (MapUtils.isNotEmpty(distributeTableMapping)){
-            for(Map.Entry<String, String> entry : distributeTableMapping.entrySet()){
-                Map<String, String> event = new HashMap<>(4);
-                event.put(KEY_SCHEMA, schema);
-                event.put(KEY_TABLE, entry.getKey());
-                String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
-                TableInfo tableInfo = tableInfos.get(entry.getValue());
-                if(MapUtils.isEmpty(tableCache)){
-                    tableInfo.setTablePath(tablePath);
-                    hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                    tableCache.put(tablePath, tableInfo);
-                }
-            }
-        }else {
-            for(Map.Entry<String, TableInfo> entry : tableInfos.entrySet()){
-                String tablePath = entry.getValue().getTableName();
-                Map<String, String> event = new HashMap<>(4);
-                event.put(KEY_SCHEMA, schema);
-                event.put(KEY_TABLE, tablePath);
-                TableInfo tableInfo = tableInfos.get(tablePath);
-                tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
-                tableInfo.setTablePath(tablePath);
-                hiveUtil.createHiveTableWithTableInfo(tableInfo);
-                tableCache.put(tablePath, tableInfo);
-            }
+        for(Map.Entry<String, TableInfo> entry : tableInfos.entrySet()){
+            Map<String, String> event = new HashMap<>(4);
+            event.put(KEY_SCHEMA, schema);
+            event.put(KEY_TABLE, entry.getKey());
+            TableInfo tableInfo = entry.getValue();
+            String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            tableInfo.setTablePath(tablePath);
+            checkCreateTable(tablePath, event);
         }
     }
 
