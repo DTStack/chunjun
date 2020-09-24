@@ -39,6 +39,11 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 public class KingbaseInputFormat extends JdbcInputFormat {
 
+    /**
+     * 避免Operation requires a scrollable ResultSet问题
+     * @param inputSplit 分片
+     * @throws IOException IO异常
+     */
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         if(incrementConfig.isPolling()){
@@ -58,8 +63,8 @@ public class KingbaseInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
+                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                        String columnType = columnTypeList.get(pos);
                         if("year".equalsIgnoreCase(columnType)) {
                             java.util.Date date = (java.util.Date) obj;
                             obj = DateUtil.dateToYearString(date);

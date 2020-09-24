@@ -70,7 +70,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    protected static final int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
+    protected static  int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
 
     protected DatabaseInterface databaseInterface;
