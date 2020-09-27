@@ -69,8 +69,7 @@ public class FileSystemUtil {
         }
 
         try {
-            String ticketCachePath = conf.get("hadoop.security.kerberos.ticket.cache.path");
-            UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, hadoopUserName);
+            UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hadoopUserName);
             UserGroupInformation.setLoginUser(ugi);
         } catch (Exception e) {
             LOG.warn("Set hadoop user name error:", e);
@@ -87,7 +86,6 @@ public class FileSystemUtil {
 
     private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String defaultFs) throws Exception{
         UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs);
-        UserGroupInformation.setLoginUser(ugi);
 
         return ugi.doAs(new PrivilegedAction<FileSystem>() {
             @Override
@@ -110,7 +108,6 @@ public class FileSystemUtil {
         KerberosUtil.refreshConfig();
 
         UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
-        UserGroupInformation.setLoginUser(ugi);
 
         return ugi;
     }
