@@ -16,44 +16,26 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.enums;
-
-import org.apache.commons.net.ftp.FTP;
+package com.dtstack.flinkx.kingbase.constants;
 
 /**
- * Database type
+ * kingbase常量
  *
  * Company: www.dtstack.com
- * @author jiangbo
+ * @author kunni@dtstack.com
  */
-public enum EDatabaseType {
+
+public class KingbaseCons {
+
+    public static final String DRIVER = "com.kingbase8.Driver";
+    public static final String KEY_UPDATE_KEY = "key";
+    public static final String INSERT_SQL_MODE_TYPE = "copy";
 
     /**
-     * database type
+     * copy语法分隔符
      */
-    MySQL,
-    SQLServer,
-    Oracle,
-    PostgreSQL,
-    Greenplum,
-    DB2,
-    MongoDB,
-    Redis,
-    ES,
+    public static final String DEFAULT_FIELD_DELIM = "\001";
+    public static final String DEFAULT_NULL_DELIM = "\002";
+    public static final String LINE_DELIMITER = "\n";
 
-    /**
-     * contains ftp and sftp
-     */
-    FTP,
-    Hbase,
-    ODPS,
-    STREAM,
-    Carbondata,
-    GBase,
-    clickhouse,
-    polarDB,
-    Phoenix,
-    dm,
-    SapHana,
-    KingBase
 }
