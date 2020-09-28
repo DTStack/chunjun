@@ -27,7 +27,6 @@ public class TidbMetadataCons extends MetaDataCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
-    public static final String KEY_HEALTHY = "healthy";
     public static final String KEY_UPDATE_TIME = "updateTime";
     public static final String KEY_TES = "YES";
     public static final String KEY_PRI = "PRI";
@@ -44,7 +43,6 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String RESULT_PARTITION_TABLE_ROWS = "TABLE_ROWS";
     public static final String RESULT_PARTITION_DATA_LENGTH = "DATA_LENGTH";
     public static final String RESULT_PARTITIONNAME = "Partition_name";
-    public static final String RESULT_HEALTHY = "Healthy";
     public static final String RESULT_PARTITION_EXPRESSION = "PARTITION_EXPRESSION";
     public static final String RESULT_CREATE_TIME = "Create_time";
     public static final String RESULT_UPDATE_TIME = "Update_time";
@@ -54,7 +52,6 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String SQL_SHOW_TABLES = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM %s";
-    public static final String SQL_QUERY_HEALTHY = "SHOW STATS_HEALTHY WHERE Table_name='%s' AND Db_name = schema()";
     public static final String SQL_QUERY_UPDATE_TIME = "SHOW STATS_META WHERE Table_name = '%s'";
     public static final String SQL_QUERY_PARTITION = "SELECT * FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";
     public static final String SQL_QUERY_PARTITION_COLUMN = "SELECT DISTINCT PARTITION_EXPRESSION FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";

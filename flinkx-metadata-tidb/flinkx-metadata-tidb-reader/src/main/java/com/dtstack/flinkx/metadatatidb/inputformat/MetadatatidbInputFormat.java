@@ -42,7 +42,6 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COL
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_TYPE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_DEFAULT;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_HEALTHY;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NULL;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITIONS;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITION_COLUMN;
@@ -58,7 +57,6 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_CREATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_DATA_LENGTH;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_FIELD;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_HEALTHY;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_KEY;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITIONNAME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_PARTITION_CREATE_TIME;
@@ -70,7 +68,6 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_TYPE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_UPDATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_COLUMN;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_HEALTHY;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_PARTITION;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_PARTITION_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_TABLE_INFO;
@@ -116,7 +113,6 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         Map<String, String> tableProp = queryTableProp(tableName);
         List<Map<String, Object>> column = queryColumn(tableName);
         List<Map<String, Object>> partition = queryPartition(tableName);
-        Map<String, Object> healthy = queryAddPartition(tableName, KEY_HEALTHY);
         Map<String, Object> updateTime = queryAddPartition(tableName, KEY_UPDATE_TIME);
         List<Map<String, Object>> partitionColumn = queryPartitionColumn(tableName);
         column.removeIf((Map<String, Object> perColumn)->{
@@ -137,7 +133,6 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
         if(CollectionUtils.size(partition) > 1){
             for(Map<String, Object> perPartition : partition){
                 String columnName = (String)perPartition.get(KEY_COLUMN_NAME);
-                perPartition.put(KEY_HEALTHY, healthy.get(columnName));
                 perPartition.put(KEY_UPDATE_TIME, updateTime.get(KEY_COLUMN_NAME));
             }
             result.put(KEY_PARTITIONS, partition);
@@ -210,29 +205,16 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
-        String sql = "";
-        if(StringUtils.equals(msg, KEY_HEALTHY)){
-            sql = String.format(SQL_QUERY_HEALTHY, tableName);
-        }else if(StringUtils.equals(msg, KEY_UPDATE_TIME)){
-            sql = String.format(SQL_QUERY_UPDATE_TIME, tableName);
-        }
+        String sql = String.format(SQL_QUERY_UPDATE_TIME, tableName);
         try(Statement st = connection.get().createStatement();
             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 /* 考虑partitionName 为空的情况 */
                 String name = rs.getString(RESULT_PARTITIONNAME);
                 if (StringUtils.isNotBlank(name)) {
-                    if (StringUtils.equals(msg, KEY_HEALTHY)) {
-                        result.put(name, rs.getInt(RESULT_HEALTHY));
-                    } else if (StringUtils.equals(msg, KEY_UPDATE_TIME)) {
-                        result.put(name, rs.getString(RESULT_UPDATE_TIME));
-                    }
+                    result.put(name, rs.getString(RESULT_UPDATE_TIME));
                 } else {
-                    if (StringUtils.equals(msg, KEY_HEALTHY)) {
-                        result.put(KEY_HEALTHY, rs.getInt(RESULT_HEALTHY));
-                    } else if (StringUtils.equals(msg, KEY_UPDATE_TIME)) {
-                        result.put(KEY_UPDATE_TIME, rs.getString(RESULT_UPDATE_TIME));
-                    }
+                    result.put(KEY_UPDATE_TIME, rs.getString(RESULT_UPDATE_TIME));
                 }
             }
         } catch (SQLException e) {
