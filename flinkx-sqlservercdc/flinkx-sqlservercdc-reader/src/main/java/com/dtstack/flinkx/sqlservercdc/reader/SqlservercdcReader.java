@@ -19,7 +19,6 @@ package com.dtstack.flinkx.sqlservercdc.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcConfigKeys;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormatBuilder;
@@ -63,9 +62,7 @@ public class SqlservercdcReader extends BaseDataReader {
         List<String> tables = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
         if (CollectionUtils.isNotEmpty(tables)) {
             tableList = new ArrayList<>(tables.size());
-            tables.forEach(item -> {
-                tableList.add(convent(item));
-            });
+            tables.forEach(item -> tableList.add(StringUtil.splitIgnoreQuotaAndJoinByPoint(item)));
         } else {
             tableList = Collections.emptyList();
         }
@@ -92,15 +89,4 @@ public class SqlservercdcReader extends BaseDataReader {
         return createInput(builder.finish(), "sqlserverdcreader");
     }
 
-    public String convent(String table) {
-        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
-        StringBuffer stringBuffer = new StringBuffer(64);
-        for(int i =0 ;i<strings.size();i++){
-            stringBuffer.append(strings.get(i));
-            if(i !=strings.size()-1){
-                stringBuffer.append(ConstantValue.POINT_SYMBOL);
-            }
-        }
-        return stringBuffer.toString();
-    }
 }

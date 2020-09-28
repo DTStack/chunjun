@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
@@ -300,6 +301,20 @@ public class StringUtil {
         return tokensList;
     }
 
+    /**
+     * 调用{@linkplain com.dtstack.flinkx.util.StringUtil}的splitIgnoreQuota处理 并对返回结果按照.拼接
+     */
+    public static String splitIgnoreQuotaAndJoinByPoint(String table) {
+        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+        StringBuffer stringBuffer = new StringBuffer(64);
+        for(int i =0 ;i<strings.size();i++){
+            stringBuffer.append(strings.get(i));
+            if(i !=strings.size()-1){
+                stringBuffer.append(ConstantValue.POINT_SYMBOL);
+            }
+        }
+        return stringBuffer.toString();
+    }
     /**
      * 字符串转换成对应时间戳字符串
      * @param location
