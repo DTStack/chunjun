@@ -69,6 +69,8 @@ public class FileSystemUtil {
         }
 
         try {
+            String previousUserName = UserGroupInformation.getLoginUser().getUserName();
+            LOG.info("Hadoop user from '{}' switch to '{}' with SIMPLE auth", previousUserName, hadoopUserName);
             UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hadoopUserName);
             UserGroupInformation.setLoginUser(ugi);
         } catch (Exception e) {
