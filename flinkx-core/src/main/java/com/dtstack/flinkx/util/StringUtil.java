@@ -303,6 +303,8 @@ public class StringUtil {
 
     /**
      * 调用{@linkplain com.dtstack.flinkx.util.StringUtil}的splitIgnoreQuota处理 并对返回结果按照.拼接
+     * @param table [dbo.schema1].[table]
+     * @return dbo.schema1.table
      */
     public static String splitIgnoreQuotaAndJoinByPoint(String table) {
         List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
