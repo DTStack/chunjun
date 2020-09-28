@@ -62,6 +62,7 @@ public class SqlservercdcReader extends BaseDataReader {
         List<String> tables = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
         if (CollectionUtils.isNotEmpty(tables)) {
             tableList = new ArrayList<>(tables.size());
+            //兼容[].[]
             tables.forEach(item -> tableList.add(StringUtil.splitIgnoreQuotaAndJoinByPoint(item)));
         } else {
             tableList = Collections.emptyList();
