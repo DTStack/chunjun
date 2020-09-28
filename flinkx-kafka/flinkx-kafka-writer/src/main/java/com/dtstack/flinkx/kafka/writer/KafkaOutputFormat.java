@@ -20,13 +20,13 @@ package com.dtstack.flinkx.kafka.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -52,13 +52,13 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
     }
 
     @Override
-    protected void emit(Map event) throws IOException {
+    protected void emit(Map event) {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), GsonUtil.GSON.toJson(event)));
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
         producer.close();
     }

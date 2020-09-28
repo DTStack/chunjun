@@ -53,7 +53,6 @@ public class SqlserverReader extends JdbcDataReader {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         SqlserverInputFormat sqlserverInputFormat = new SqlserverInputFormat();
-        sqlserverInputFormat.setWithNoLock(withNoLock);
         return new JdbcInputFormatBuilder(sqlserverInputFormat);
     }
 
