@@ -17,29 +17,47 @@
  */
 package com.dtstack.flinkx.restapi.inputformat;
 
+import com.dtstack.flinkx.restapi.common.RestContext;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.BlockingQueue;
+
 /**
- * paramObject
+ * httpClient
  *
  * @author by dujie@dtstack.com
  * @Date 2020/9/25
  */
-public class paramObject {
-    private  String key;
-    private Object value;
+public class HttpClient {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpClient.class);
 
-    public String getKey() {
-        return key;
+    private Thread workThread;
+    private BlockingQueue<Row> queue;
+    private RestContext restContext;
+
+    public HttpClient() {
+
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void start() {
+        this.workThread = new Thread(() -> {
+
+        });
+
+        workThread.start();
     }
 
-    public Object getValue() {
-        return value;
+    public Row takeEvent() {
+        Row row = null;
+        try {
+            row = queue.take();
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+        }
+        return row;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
-    }
 }

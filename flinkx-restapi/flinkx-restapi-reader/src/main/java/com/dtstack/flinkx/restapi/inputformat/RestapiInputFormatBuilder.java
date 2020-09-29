@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 
 import java.util.Map;
 
@@ -33,14 +34,17 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
     public void setUrl(String url){this.format.url = url;}
     public void setHeader(Map<String, Object> header){ this.format.header = header;}
     public void setMethod(String method){ this.format.method = method;}
+    public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
+        this.format.setHttpRestConfig(httpRestConfig);
+    }
 
     @Override
     protected void checkFormat() {
-        if(format.url.isEmpty()){
-            throw new IllegalArgumentException("缺少url");
-        }
-        if (format.method.isEmpty()) {
-            throw new IllegalArgumentException("缺少method");
-        }
+//        if(format.url.isEmpty()){
+//            throw new IllegalArgumentException("缺少url");
+//        }
+//        if (format.method.isEmpty()) {
+//            throw new IllegalArgumentException("缺少method");
+//        }
     }
 }

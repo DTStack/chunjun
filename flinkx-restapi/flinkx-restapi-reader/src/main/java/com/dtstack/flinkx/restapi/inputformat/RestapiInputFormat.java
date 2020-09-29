@@ -19,6 +19,10 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
+import com.dtstack.flinkx.restapi.common.ParamType;
+import com.dtstack.flinkx.restapi.common.RestContext;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -49,6 +53,8 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     protected boolean getData;
 
+    private HttpRestConfig httpRestConfig;
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -64,6 +70,10 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     @Override
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) throws IOException {
+
+        RestContext restContext = new RestContext();
+        restContext.parseAndInt(httpRestConfig.getBody(),ParamType.BODY);
+
         HttpUriRequest request = HttpUtil.getRequest(method, header,null, url);
         try {
             CloseableHttpResponse httpResponse = httpClient.execute(request);
@@ -104,5 +114,9 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     @Override
     public boolean reachedEnd() throws IOException {
         return !getData;
+    }
+
+    public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
+        this.httpRestConfig = httpRestConfig;
     }
 }

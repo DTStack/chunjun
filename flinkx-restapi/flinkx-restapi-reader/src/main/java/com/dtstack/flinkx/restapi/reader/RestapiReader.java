@@ -43,28 +43,37 @@ public class RestapiReader extends BaseDataReader {
 
     private ArrayList<Map<String, String>> temp;
 
+    private HttpRestConfig httpRestConfig;
+
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
-        url = readerConfig.getParameter().getStringVal("url");
-        method = readerConfig.getParameter().getStringVal("method");
-        temp = (ArrayList<Map<String, String>>) readerConfig.getParameter().getVal("header");
-        if (temp != null) {
-            for (Map<String, String> map : temp) {
-                header.putAll(map);
-            }
+        try {
+            httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
+        } catch (Exception e) {
+            throw new RuntimeException("解析httpRest Config配置出错:", e);
         }
+
+//        url = readerConfig.getParameter().getStringVal("url");
+//        method = readerConfig.getParameter().getStringVal("method");
+//        temp = (ArrayList<Map<String, String>>) readerConfig.getParameter().getVal("header");
+//        if (temp != null) {
+//            for (Map<String, String> map : temp) {
+//                header.putAll(map);
+//            }
+//        }
     }
 
     @Override
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setHeader(header);
-        builder.setMethod(method);
-        builder.setUrl(url);
+//        builder.setHeader(header);
+//        builder.setMethod(method);
+//        builder.setUrl(url);
+        builder. setHttpRestConfig(httpRestConfig);
 
         return createInput(builder.finish());
     }

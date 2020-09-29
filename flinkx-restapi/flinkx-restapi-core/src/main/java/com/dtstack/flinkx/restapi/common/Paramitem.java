@@ -15,28 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.common;
 
 /**
- * httpClient
+ * Paramitem
  *
  * @author by dujie@dtstack.com
- * @Date 2020/9/25
+ * @Date 2020/9/26
  */
-public class httpClient {
-
-    private  Thread workThread;
-
-    public httpClient() {
-
-    }
-
-    public  void start(){
-        this.workThread = new Thread(()->{
-        });
-
-        workThread.start();
-    }
-
-
+public interface Paramitem {
+     Object getValue();
+//
+//     ParamDefinition getParamDefinition();
 }
