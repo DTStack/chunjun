@@ -73,5 +73,5 @@ public class OracleMetaDataCons extends MetaDataCons {
     /**
      * 使用ALL_TABLES，降低权限要求
      */
-    public static final String SQL_SHOW_TABLES = "SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = %s";
+    public static final String SQL_SHOW_TABLES = "SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = %s AND NESTED = 'NO' AND IOT_NAME IS NULL ";
 }
