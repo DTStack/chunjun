@@ -152,7 +152,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         Row row = null;
         try {
             Map<String, Object> map = queue.take();
-            if(map.size() == 1){
+            //@see com.dtstack.flinkx.binlog.reader.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
+            if(map.size() == 1 && map.containsKey("e")){
                 throw new RuntimeException((String) map.get("e"));
             }else{
                 row = Row.of(map);
