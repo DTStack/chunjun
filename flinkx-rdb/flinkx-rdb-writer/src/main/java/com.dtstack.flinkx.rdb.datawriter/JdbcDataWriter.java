@@ -31,6 +31,7 @@ import org.apache.flink.types.Row;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_BATCH_SIZE;
 import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_FULL_COLUMN;
@@ -63,6 +64,7 @@ public class JdbcDataWriter extends BaseDataWriter {
     protected Map<String, List<String>> updateKey;
     protected List<String> fullColumn;
     protected TypeConverterInterface typeConverter;
+    protected Properties properties;
 
     /**
      * just for postgresql,use copy replace insert
@@ -100,6 +102,7 @@ public class JdbcDataWriter extends BaseDataWriter {
         fullColumn = (List<String>) writerConfig.getParameter().getVal(KEY_FULL_COLUMN);
 
         insertSqlMode = writerConfig.getParameter().getStringVal(KEY_INSERT_SQL_MODE);
+        properties = writerConfig.getParameter().getProperties(JdbcConfigKeys.KEY_PROPERTIES, null);
     }
 
     @Override
@@ -127,6 +130,7 @@ public class JdbcDataWriter extends BaseDataWriter {
         builder.setTypeConverter(typeConverter);
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
+        builder.setProperties(properties);
 
         return createOutput(dataSet, builder.finish());
     }

@@ -31,6 +31,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -57,6 +59,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,82 +71,53 @@ import java.util.concurrent.TimeUnit;
  */
 public class JdbcInputFormat extends BaseRichInputFormat {
 
-    protected static final long serialVersionUID = 1L;
+    public static final long serialVersionUID = 1L;
+    public static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+    public static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
+    public DatabaseInterface databaseInterface;
 
-    protected DatabaseInterface databaseInterface;
+    public String table;
+    public String queryTemplate;
+    public String customSql;
+    public String querySql;
 
-    protected String username;
+    public String splitKey;
+    public int fetchSize;
+    public int queryTimeOut;
+    public IncrementConfig incrementConfig;
 
-    protected String password;
+    public String username;
+    public String password;
+    public String driverName;
+    public String dbUrl;
+    public Properties properties;
+    public transient Connection dbConn;
+    public transient Statement statement;
+    public transient PreparedStatement ps;
+    public transient ResultSet resultSet;
+    public boolean hasNext;
 
-    protected String driverName;
 
-    protected String dbUrl;
+    public List<MetaColumn> metaColumns;
+    public List<String> columnTypeList;
+    public int columnCount;
+    public MetaColumn restoreColumn;
+    public Row lastRow = null;
 
-    protected String queryTemplate;
+    //for postgre
+    public TypeConverterInterface typeConverter;
 
-    protected int resultSetType;
+    public int numPartitions;
 
-    protected int resultSetConcurrency;
+    public StringAccumulator maxValueAccumulator;
+    public BigIntegerMaximum endLocationAccumulator;
+    public BigIntegerMaximum startLocationAccumulator;
 
-    protected List<String> descColumnTypeList;
+    //轮询增量标识字段类型
+    public ColumnType type;
 
-    protected transient Connection dbConn;
-
-    protected transient Statement statement;
-
-    protected transient PreparedStatement ps;
-
-    protected transient ResultSet resultSet;
-
-    protected boolean hasNext;
-
-    protected int columnCount;
-
-    protected String table;
-
-    protected TypeConverterInterface typeConverter;
-
-    protected List<MetaColumn> metaColumns;
-
-    protected String splitKey;
-
-    protected int fetchSize;
-
-    protected int queryTimeOut;
-
-    protected int numPartitions;
-
-    protected String customSql;
-
-    protected IncrementConfig incrementConfig;
-
-    protected StringAccumulator maxValueAccumulator;
-
-    protected BigIntegerMaximum endLocationAccumulator;
-
-    protected BigIntegerMaximum startLocationAccumulator;
-
-    protected MetaColumn restoreColumn;
-
-    protected Row lastRow = null;
-
-    protected String querySql;
-
-    /**
-     * 轮询增量标识字段类型
-     */
-    protected ColumnType type;
-
-    /**
-     * The hadoop config for metric
-     */
-    protected Map<String, Object> hadoopConfig;
-
-    public JdbcInputFormat() {
-        resultSetType = ResultSet.TYPE_FORWARD_ONLY;
-        resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
-    }
+    //The hadoop config for metric
+    public Map<String, Object> hadoopConfig;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -184,11 +158,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         if (StringUtils.isEmpty(customSql)) {
-            descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+            columnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
         } else {
-            descColumnTypeList = new ArrayList<>();
+            columnTypeList = new ArrayList<>();
             for (MetaColumn metaColumn : metaColumns) {
-                descColumnTypeList.add(metaColumn.getName());
+                columnTypeList.add(metaColumn.getName());
             }
         }
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
@@ -205,7 +179,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() {
+    public boolean reachedEnd() throws IOException{
         if (hasNext) {
             return false;
         } else {
@@ -214,7 +188,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
                     //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
                     if(!dbConn.isValid(3)){
-                        dbConn = DbUtil.getConnection(dbUrl, username, password);
+                        dbConn = getConnection();
                         //重新连接后还是不可用则认为数据库异常，任务失败
                         if(!dbConn.isValid(3)){
                             String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
@@ -275,7 +249,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 LOG.trace("update endLocationAccumulator, current Location = {}", location);
             }
 
-            //update hasNext after we've read the record
             hasNext = resultSet.next();
 
             if (restoreConfig.isRestore()) {
@@ -403,7 +376,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
 
-            conn = DbUtil.getConnection(dbUrl, username, password);
+            conn = getConnection();
             st = conn.createStatement();
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
@@ -787,7 +760,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {
-        dbConn = DbUtil.getConnection(dbUrl, username, password);
+        dbConn = getConnection();
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (incrementConfig.isPolling()) {
@@ -837,8 +810,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 resultSet.close();
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
-                //每隔五分钟打印一次
-                if(System.currentTimeMillis() / 60000 % 60 % 60 % 5 == 0){
+                //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
+                if((System.currentTimeMillis() - startTime) % 300000 <= incrementConfig.getPollingInterval()){
                     LOG.info("no record matched condition in database, execute query sql = {}, startLocation = {}", querySql, endLocationAccumulator.getLocalValue());
                 }
             }
@@ -860,6 +833,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ps.setFetchSize(fetchSize);
         ps.setQueryTimeout(queryTimeOut);
         LOG.info("update querySql, sql = {}", querySql);
+    }
+
+    /**
+     * 获取数据库连接，用于子类覆盖
+     * @return connection
+     */
+    protected Connection getConnection() throws SQLException {
+        return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(dbUrl, username, password), 3, 2000,false);
     }
 
     /**

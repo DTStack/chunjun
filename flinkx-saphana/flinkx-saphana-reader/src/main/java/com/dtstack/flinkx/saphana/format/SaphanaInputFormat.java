@@ -82,11 +82,11 @@ public class SaphanaInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
+                columnTypeList = DbUtil.analyzeTable(dbUrl, username, password,databaseInterface,table,metaColumns);
             } else {
-                descColumnTypeList = new ArrayList<>();
+                columnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
+                    columnTypeList.add(metaColumn.getName());
                 }
             }
 
@@ -108,8 +108,8 @@ public class SaphanaInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
+                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                        String columnType = columnTypeList.get(pos);
                         if("tinyint".equalsIgnoreCase(columnType)) {
                             if(obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);

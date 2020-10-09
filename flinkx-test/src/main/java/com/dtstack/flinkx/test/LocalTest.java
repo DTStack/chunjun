@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -72,8 +70,6 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
-//import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
-//import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -82,7 +78,6 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
-import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -114,6 +109,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+//import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+//import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+
 /**
  * @author jiangbo
  */
@@ -126,7 +124,6 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
@@ -138,7 +135,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatasqlserver_stream.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/phoniex/phoenix5_stream_hbase.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
@@ -272,7 +269,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
 //            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
-            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
+//            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
@@ -318,11 +315,5 @@ public class LocalTest {
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
                 Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
         ));
-    }
-
-    private static void setLogLevel(String level) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 }

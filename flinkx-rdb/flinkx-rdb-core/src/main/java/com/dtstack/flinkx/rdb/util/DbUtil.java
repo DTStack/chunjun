@@ -431,4 +431,27 @@ public class DbUtil {
 
         return sb.toString();
     }
+
+    /**
+     * 构造select字段list
+     * @param databaseInterface
+     * @param metaColumns
+     * @return
+     */
+    public static List<String> buildSelectColumns(DatabaseInterface databaseInterface, List<MetaColumn> metaColumns){
+        List<String> selectColumns = new ArrayList<>();
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+            selectColumns.add(ConstantValue.STAR_SYMBOL);
+        } else {
+            for (MetaColumn metaColumn : metaColumns) {
+                if (metaColumn.getValue() != null){
+                    selectColumns.add(databaseInterface.quoteValue(metaColumn.getValue(),metaColumn.getName()));
+                } else {
+                    selectColumns.add(databaseInterface.quoteColumn(metaColumn.getName()));
+                }
+            }
+        }
+
+        return selectColumns;
+    }
 }

@@ -62,11 +62,11 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+                columnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
             } else {
-                descColumnTypeList = new ArrayList<>();
+                columnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
+                    columnTypeList.add(metaColumn.getName());
                 }
             }
         } catch (Exception e) {

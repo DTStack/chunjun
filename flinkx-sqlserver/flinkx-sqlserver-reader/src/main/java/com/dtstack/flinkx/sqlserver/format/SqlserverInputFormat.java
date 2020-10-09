@@ -47,8 +47,8 @@ public class SqlserverInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        if("bit".equalsIgnoreCase(descColumnTypeList.get(pos))) {
+                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
+                        if("bit".equalsIgnoreCase(columnTypeList.get(pos))) {
                             if(obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }

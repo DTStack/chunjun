@@ -33,7 +33,6 @@ import sun.misc.URLClassPath;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -70,7 +69,9 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
+            properties.setProperty("user", username);
+            properties.setProperty("password", password);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, properties, childFirstClassLoader);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);

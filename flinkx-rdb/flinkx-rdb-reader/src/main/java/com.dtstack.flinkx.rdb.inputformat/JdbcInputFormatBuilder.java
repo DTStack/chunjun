@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The builder of JdbcInputFormat
@@ -97,6 +98,10 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setCustomSql(String customSql){
         format.customSql = customSql;
+    }
+
+    public void setProperties(Properties properties){
+        format.properties = properties;
     }
 
     public void setHadoopConfig(Map<String,Object> dirtyHadoopConfig) {

@@ -18,8 +18,11 @@
 
 package com.dtstack.flinkx.phoenix5;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import com.dtstack.flinkx.rdb.util.DbUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -31,7 +34,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author wuhui
  */
-public class PhoenixMeta extends BaseDatabaseMeta {
+public class Phoenix5DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public EDatabaseType getDatabaseType() {
@@ -51,6 +54,29 @@ public class PhoenixMeta extends BaseDatabaseMeta {
     @Override
     public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
+    }
+
+    /**
+     * phoenix查询表结构SQL
+     * @param metaColumns 字段信息
+     * @param table schema.table
+     * @return
+     */
+    public String getSqlWithLimit1(List<MetaColumn> metaColumns, String table) {
+        String columnStr;
+        List<String> column = DbUtil.buildSelectColumns(this, metaColumns);
+        if(column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0))){
+            columnStr = ConstantValue.STAR_SYMBOL;
+        }else{
+            columnStr = quoteColumns(column);
+        }
+        return new StringBuilder(256)
+                .append("SELECT ")
+                .append(columnStr)
+                .append(" FROM ")
+                .append(quoteTable(table))
+                .append(" LIMIT 1")
+                .toString();
     }
 
     @Override
