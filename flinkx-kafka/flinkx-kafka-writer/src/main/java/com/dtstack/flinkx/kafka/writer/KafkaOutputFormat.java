@@ -42,6 +42,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     public void configure(Configuration parameters) {
+        super.configure(parameters);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
