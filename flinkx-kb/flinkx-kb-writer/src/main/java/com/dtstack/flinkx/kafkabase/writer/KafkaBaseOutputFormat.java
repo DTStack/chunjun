@@ -57,6 +57,16 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void configure(Configuration parameters) {
+        if(producerSettings != null && producerSettings.get("bootstrap.servers") != null){
+            String brokerList = producerSettings.get("bootstrap.servers");
+            LOG.info("brokerList->{}",brokerList);
+            String broker = brokerList.split(",")[0];
+            String[] split = broker.split(":");
+
+            if( split.length !=2 ||!AddressUtil.telnet(split[0], Integer.parseInt(split[1]))){
+                throw new RuntimeException("telnet error,brokerList"+brokerList+" please check dataSource is running");
+            }
+        }
     }
 
     @Override
