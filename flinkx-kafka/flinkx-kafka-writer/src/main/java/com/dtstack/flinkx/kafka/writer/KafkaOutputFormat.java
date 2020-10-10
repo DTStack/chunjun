@@ -20,6 +20,7 @@ package com.dtstack.flinkx.kafka.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -28,6 +29,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Date: 2019/11/21
@@ -54,7 +56,13 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
     @Override
     protected void emit(Map event) throws IOException {
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+        if(Objects.nonNull(exception)){
+            String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
+            LOG.warn(errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+        });
     }
 
     @Override
