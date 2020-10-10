@@ -39,12 +39,12 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     private String encoding;
     private String brokerList;
     private transient KafkaProducer<String,String> producer;
+    private HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
         props.put("key.serializer",org.apache.kafka.common.serialization.StringSerializer.class.getName());
         props.put("value.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
-        props.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         props.put("producer.type", "sync");
         props.put("compression.codec", "none");
         props.put("request.required.acks", "1");
@@ -63,12 +63,14 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     protected void emit(Map event) throws IOException {
+        heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
             if(Objects.nonNull(exception)){
-                String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
-                LOG.warn(errorMessage);
-                throw new RuntimeException(errorMessage);
+                LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(),exception);
+                heartBeatController.onFailed(exception);
+            }else{
+                heartBeatController.onSuccess();
             }
         });
     }
@@ -85,5 +87,9 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     public void setBrokerList(String brokerList) {
         this.brokerList = brokerList;
+    }
+
+    public void setHeartBeatController(HeartBeatController heartBeatController) {
+        this.heartBeatController = heartBeatController;
     }
 }
