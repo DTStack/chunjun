@@ -52,6 +52,11 @@ public class LogMinerListener implements Runnable {
 
     private boolean running = false;
 
+    /**
+     * 连续接收到错误数据的次数
+     */
+    private int failedTimes;
+
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
         this.positionManager = positionManager;
         this.logMinerConfig = logMinerConfig;
@@ -131,10 +136,15 @@ public class LogMinerListener implements Runnable {
             QueueData data = queue.take();
             if (data.getScn() != 0L) {
                 positionManager.updatePosition(data.getScn());
+                failedTimes =0;
                 return data.getData();
 
             }
-            LOG.error("LogMinerListener obtain an error data, data = {}", GsonUtil.GSON.toJson(data));
+           String message = String.format( "LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
+            LOG.error(message);
+            if(++failedTimes > 5){
+                throw new RuntimeException("Error data is received 5 times continuously,error info->"+message);
+            }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }
