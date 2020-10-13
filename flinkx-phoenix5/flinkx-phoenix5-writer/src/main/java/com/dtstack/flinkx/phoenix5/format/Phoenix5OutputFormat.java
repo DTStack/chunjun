@@ -71,7 +71,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             ClassUtil.forName(driverName, childFirstClassLoader);
             properties.setProperty("user", username);
             properties.setProperty("password", password);
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, properties, childFirstClassLoader);
+            dbConn = PhoenixUtil.getHelper(childFirstClassLoader).getConn(dbUrl, properties);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
