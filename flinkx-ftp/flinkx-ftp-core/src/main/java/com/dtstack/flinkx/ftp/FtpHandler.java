@@ -126,6 +126,7 @@ public class FtpHandler implements IFtpHandler {
     public boolean isFileExist(String filePath) {
         boolean isExitFlag = false;
         try {
+            ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if (ftpFiles.length == 1 && ftpFiles[0].isFile()) {
                 isExitFlag = true;
@@ -147,6 +148,7 @@ public class FtpHandler implements IFtpHandler {
                 path = path + SP;
             }
             try {
+                ftpClient.enterLocalPassiveMode();
                 FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
@@ -280,6 +282,7 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public InputStream getInputStream(String filePath) {
         try {
+            ftpClient.enterLocalPassiveMode();
             InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             return is;
         } catch (IOException e) {
