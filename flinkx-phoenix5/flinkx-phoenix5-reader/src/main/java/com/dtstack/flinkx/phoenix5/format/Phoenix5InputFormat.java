@@ -19,6 +19,7 @@ package com.dtstack.flinkx.phoenix5.format;
 
 import com.dtstack.flinkx.phoenix5.Phoenix5DatabaseMeta;
 import com.dtstack.flinkx.phoenix5.Phoenix5InputSplit;
+import com.dtstack.flinkx.phoenix5.util.IPhoenix5Helper;
 import com.dtstack.flinkx.phoenix5.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
@@ -29,30 +30,20 @@ import com.dtstack.flinkx.util.RangeSplitUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.NoTagsKeyValue;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.phoenix.compile.RowProjector;
-import org.apache.phoenix.compile.StatementContext;
-import org.apache.phoenix.execute.ScanPlan;
-import org.apache.phoenix.jdbc.PhoenixEmbeddedDriver;
-import org.apache.phoenix.jdbc.PhoenixResultSet;
-import org.apache.phoenix.query.KeyRange;
 import org.apache.phoenix.query.QueryConstants;
-import org.apache.phoenix.schema.tuple.ResultTuple;
-import org.apache.phoenix.schema.types.PDataType;
 import org.codehaus.commons.compiler.CompileException;
 import sun.misc.URLClassPath;
 
@@ -64,9 +55,10 @@ import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
@@ -87,14 +79,13 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
     public int scanBatchSize;
 
     public String sql;
-    private List<PDataType> instanceList;
-    private transient RowProjector rowProjector;
     private transient Scan scan;
     private transient Table hTable;
     private transient Iterator<Pair<byte[], byte[]>> keyRangeIterator;
     private transient Iterator<Result> resultIterator;
 
     private transient URLClassLoader childFirstClassLoader;
+    private transient IPhoenix5Helper helper;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -102,45 +93,32 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
         if(readFromHbase){
             LOG.warn("phoenix5reader config [readFromHbase] is true, FlinkX will read data from HBase directly!");
             Phoenix5DatabaseMeta metaData = (Phoenix5DatabaseMeta) this.databaseInterface;
             sql = metaData.getSqlWithLimit1(metaColumns, table);
-            List<KeyRange> rangeList;
+            List<Pair<byte[], byte[]>> rangeList;
             try {
                 dbConn = getConnection();
                 ps = dbConn.prepareStatement(sql);
                 resultSet = ps.executeQuery();
-                //类加载器不同，不能强转，不能反射调方法，只能反射拿私有字段
-                Class<?> aClass = Class.forName("org.apache.phoenix.jdbc.PhoenixStatement", false, childFirstClassLoader);
-                Field lastQueryPlan = aClass.getDeclaredField("lastQueryPlan");
-                lastQueryPlan.setAccessible(true);
-
-                Object queryPlan = lastQueryPlan.get(ps);
-                lastQueryPlan.setAccessible(false);
-                Field splits = ScanPlan.class.getDeclaredField("splits");
-                splits.setAccessible(true);
-                rangeList = (List<KeyRange>)splits.get(queryPlan);
-                splits.setAccessible(false);
-                LOG.info("region count = {}", rangeList.size());
+                rangeList = helper.getRangeList(ps);
+                LOG.info("region's count = {}", rangeList.size());
             } catch (Exception e) {
-                String message = String.format("failed to query rangeList, sl = %s dbUrl = %s, properties = %s, e = %s", sql, dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
+                String message = String.format("failed to query rangeList, sql = %s, dbUrl = %s, properties = %s, e = %s", sql, dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
                 throw new RuntimeException(message, e);
             }finally {
                 DbUtil.closeDbResources(resultSet, ps, dbConn, false);
             }
-
-            List<List<KeyRange>> list = RangeSplitUtil.subListBySegment(rangeList, minNumSplits);
+            if(rangeList.size() < minNumSplits){
+                String message = String.format("region's count [%s] must be less than or equal to channel number [%s], please reduce [channel] in FlinkX config!", rangeList.size(), minNumSplits);
+                throw new IllegalArgumentException(message);
+            }
+            List<List<Pair<byte[], byte[]>>> list = RangeSplitUtil.subListBySegment(rangeList, minNumSplits);
             InputSplit[] splits = new InputSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
-                List<KeyRange> keyRangeList = list.get(i);
-                Vector<Pair<byte[], byte[]>> vector = new Vector<>(keyRangeList.size());
-                for (KeyRange keyRange : keyRangeList) {
-                    vector.add(Pair.of(keyRange.getLowerRange(), keyRange.getUpperRange()));
-                }
-                splits[i] = new Phoenix5InputSplit(i, minNumSplits, vector);
+                splits[i] = new Phoenix5InputSplit(i, minNumSplits, new Vector<>(list.get(i)));
             }
             return splits;
         }else{
@@ -159,43 +137,43 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 resultSet = ps.executeQuery();
                 ResultSetMetaData meta = ps.getMetaData();
                 columnCount = meta.getColumnCount();
-                instanceList = new ArrayList<>(columnCount);
+                List<String> typeList = new ArrayList<>(columnCount);
                 for (int i = 1; i <= columnCount; i++) {
                     String name = meta.getColumnName(i);
                     String type = meta.getColumnTypeName(i);
-                    instanceList.add(PhoenixUtil.getPDataType(type));
+                    typeList.add(type);
                     LOG.info("field count = {}, name = {}, type = {}", i, name, type);
                 }
-
-                Field field = PhoenixResultSet.class.getDeclaredField("rowProjector");
-                field.setAccessible(true);
-                rowProjector = (RowProjector) field.get(resultSet);
-                field.setAccessible(false);
-
-                StatementContext context = ((PhoenixResultSet)resultSet).getContext();
-
+                helper.initInstanceList(typeList);
                 Vector<Pair<byte[], byte[]>> keyRangeList = ((Phoenix5InputSplit) inputSplit).getSplits();
 
                 scan = new Scan();
                 keyRangeIterator = keyRangeList.iterator();
                 Pair<byte[], byte[]> pair = keyRangeIterator.next();
-                scan.withStartRow(pair.getLeft());
-                scan.withStopRow(pair.getRight());
-                scan.setFamilyMap(context.getScan().getFamilyMap());
+                //for yarn session mode
+                scan.setStartRow(pair.getLeft());
+                scan.setStopRow(pair.getRight());
+                scan.setFamilyMap(helper.getFamilyMap(resultSet));
                 scan.setLoadColumnFamiliesOnDemand(true);
-                scan.setAttribute("scanProjector", context.getScan().getAttribute("scanProjector"));
+                scan.setAttribute("scanProjector", helper.getScanProjector(resultSet));
                 scan.setAttribute("_NonAggregateQuery", QueryConstants.TRUE);
                 scan.setCaching(scanCacheSize);
                 scan.setBatch(scanBatchSize);
 
-                PhoenixEmbeddedDriver.ConnectionInfo connectionInfo = PhoenixEmbeddedDriver.ConnectionInfo.create(dbUrl);
+                Map<String, Object> map = helper.analyzePhoenixUrl(dbUrl);
                 Configuration hConfiguration = HBaseConfiguration.create();
-                hConfiguration.set(HConstants.ZOOKEEPER_QUORUM, connectionInfo.getZookeeperQuorum());
-                hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, connectionInfo.getPort());
-                if(StringUtils.isBlank(connectionInfo.getRootNode())){
+                hConfiguration.set(HConstants.ZOOKEEPER_QUORUM, (String) map.get("quorum"));
+                Object port = map.get("port");
+                if(port == null){
+                    hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, HConstants.DEFAULT_ZOOKEEPER_CLIENT_PORT);
+                }else{
+                    hConfiguration.setInt(HConstants.CLIENT_ZOOKEEPER_CLIENT_PORT, (int)port);
+                }
+                Object rootNode = map.get("rootNode");
+                if(rootNode == null){
                     hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, HConstants.DEFAULT_ZOOKEEPER_ZNODE_PARENT);
                 }else{
-                    hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, connectionInfo.getRootNode());
+                    hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, (String) rootNode);
                 }
                 hConfiguration.setBoolean(HConstants.CLUSTER_DISTRIBUTED, true);
                 org.apache.hadoop.hbase.client.Connection hConn = ConnectionFactory.createConnection(hConfiguration);
@@ -217,13 +195,8 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         try {
             row = new Row(columnCount);
             if(readFromHbase){
-                List<Cell> cells = resultIterator.next().listCells();
-                ResultTuple resultTuple = new ResultTuple(Result.create(Collections.singletonList(cells.get(0))));
-                ImmutableBytesWritable ptr = new ImmutableBytesWritable();
-                for (int pos = 0; pos < columnCount; pos++) {
-                    row.setField(pos, rowProjector.getColumnProjector(pos).getValue(resultTuple, instanceList.get(pos), ptr));
-                }
-                return row;
+                NoTagsKeyValue cell = (NoTagsKeyValue)resultIterator.next().listCells().get(0);
+                return helper.getRow(cell.getBuffer(), cell.getOffset(), cell.getLength());
             }else{
                 if (!hasNext) {
                     return null;
@@ -245,10 +218,11 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                 return false;
             }else{
                 if(keyRangeIterator.hasNext()){
-                    LOG.warn("switch regions...");
                     Pair<byte[], byte[]> pair = keyRangeIterator.next();
-                    scan.withStartRow(pair.getLeft());
-                    scan.withStopRow(pair.getRight());
+                    LOG.info("switch regions, current region is [{}}] to [{}]", GsonUtil.GSON.toJson(pair.getLeft()), GsonUtil.GSON.toJson(pair.getRight()));
+                    //for yarn session mode
+                    scan.setStartRow(pair.getLeft());
+                    scan.setStopRow(pair.getRight());
                     resultIterator = hTable.getScanner(scan).iterator();
                     return reachedEnd();
                 }else{
@@ -287,16 +261,19 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         }
 
         ClassLoader parentClassLoader = getClass().getClassLoader();
-        String[] alwaysParentFirstPatterns = new String[2];
-        alwaysParentFirstPatterns[0] = "org.apache.flink";
-        alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
-        childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
+        List<String> list = new LinkedList<>();
+        list.add("org.apache.flink");
+        list.add("com.dtstack.flinkx");
+
+        childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
 
         ClassUtil.forName(driverName, childFirstClassLoader);
         properties.setProperty("user", username);
         properties.setProperty("password", password);
+
         try {
-            return PhoenixUtil.getConnectionInternal(dbUrl, properties, childFirstClassLoader);
+            helper = PhoenixUtil.getHelper(childFirstClassLoader);
+            return helper.getConn(dbUrl, properties);
         } catch (IOException | CompileException e) {
             String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
