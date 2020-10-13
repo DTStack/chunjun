@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
