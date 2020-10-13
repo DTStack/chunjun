@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
  */
 public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
     public EDatabaseType getDatabaseType() {
         return EDatabaseType.SQLServer;

@@ -88,13 +88,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/mysqlreader">
+                                <copy todir="${basedir}/../../syncplugins/mysqlreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/mysqlreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/mysqlreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/mysqlreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/mysqlreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

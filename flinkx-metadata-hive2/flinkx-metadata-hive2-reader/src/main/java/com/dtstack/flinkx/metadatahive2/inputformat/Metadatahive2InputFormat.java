@@ -26,7 +26,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.COL_NAME;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_DATA_TYPE;
@@ -55,6 +53,9 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_L
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_NAME;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITIONS;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITION_COLUMNS;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_COL_NAME;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_COMMENT;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_DATA_TYPE;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_STORED_TYPE;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TOTALSIZE;
@@ -64,7 +65,6 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.ORC_F
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARQUET_FORMAT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARTITION_INFORMATION;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_QUERY_DATA;
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_DATABASES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_PARTITIONS;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_TABLES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SWITCH_DATABASE;
@@ -90,200 +90,6 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
         statement.get().execute(String.format(SQL_SWITCH_DATABASE, quote(databaseName)));
-    }
-
-    @Override
-    protected List<Object> showTables() throws SQLException {
-        List<Object> tables = new ArrayList<>();
-        try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
-           int pos = rs.getMetaData().getColumnCount()==1?1:2;
-            while (rs.next()) {
-                tables.add(rs.getString(pos));
-            }
-        }
-
-        return tables;
-    }
-
-    @Override
-    protected String quote(String name) {
-        return String.format("`%s`", name);
-    }
-
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
-        List<Map<String, Object>> columnList = new ArrayList<>();
-        List<Map<String, Object>> partitionColumnList = new ArrayList<>();
-        Map<String, Object> tableProperties = new HashMap<>(16);
-
-        List<Map<String, String>> metaData = queryData(tableName);
-        Iterator<Map<String, String>> it = metaData.iterator();
-        int metaDataFlag = 0;
-        while(it.hasNext()){
-            Map<String, String> lineDataInternal = it.next();
-            String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
-            if (StringUtils.isBlank(colNameInternal)) {
-                continue;
-            }
-            if(colNameInternal.startsWith("#")){
-                colNameInternal = StringUtils.trim(colNameInternal);
-                switch (colNameInternal){
-                    case PARTITION_INFORMATION:
-                        metaDataFlag = 1;
-                        break;
-                    case TABLE_INFORMATION:
-                        metaDataFlag = 2;
-                        break;
-                    case COL_NAME:
-                        paraFirst = KEY_COLUMN_DATA_TYPE;
-                        paraSecond = KEY_COLUMN_COMMENT;
-                        break;
-                    default:
-                        break;
-                }
-                continue;
-            }
-            switch (metaDataFlag){
-                case 0:
-                    columnList.add(parseColumn(lineDataInternal, result.size()));
-                    break;
-                case 1:
-                    partitionColumnList.add(parseColumn(lineDataInternal, result.size()));
-                    break;
-                case 2:
-                    parseTableProperties(lineDataInternal, tableProperties, it);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (partitionColumnList.size() > 0) {
-            List<String> partitionColumnNames = new ArrayList<>();
-            for (Map<String, Object> partitionColumn : partitionColumnList) {
-                partitionColumnNames.add(partitionColumn.get(KEY_COLUMN_NAME).toString());
-            }
-
-            columnList.removeIf(column -> partitionColumnNames.contains(column.get(KEY_COLUMN_NAME).toString()));
-            result.put(KEY_PARTITIONS, showPartitions(tableName));
-        }
-        result.put(KEY_TABLE_PROPERTIES, tableProperties);
-        result.put(KEY_PARTITION_COLUMNS, partitionColumnList);
-        result.put(KEY_COLUMN, columnList);
-
-        return result;
-    }
-
-    private Map<String, Object> parseColumn(Map<String, String> lineDataInternal, int index){
-        String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
-        String commentInternal = lineDataInternal.get(KEY_COLUMN_COMMENT);
-        String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
-
-        Map<String, Object> lineResult = new HashMap<>(16);
-        lineResult.put(KEY_COLUMN_NAME, colNameInternal);
-        lineResult.put(KEY_COLUMN_TYPE, dataTypeInternal);
-        lineResult.put(KEY_COLUMN_COMMENT, unicodeToStr(commentInternal));
-        lineResult.put(KEY_COLUMN_INDEX, index);
-        return lineResult;
-    }
-
-    void parseTableProperties(Map<String, String> lineDataInternal, Map<String, Object> tableProperties, Iterator<Map<String, String>> it){
-        String name = lineDataInternal.get(KEY_COL_NAME);
-
-        if (name.contains(KEY_COL_LOCATION)) {
-            tableProperties.put(KEY_LOCATION, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_CREATETIME) || name.contains(KEY_COL_CREATE_TIME)) {
-            tableProperties.put(KEY_CREATETIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_LASTACCESSTIME) || name.contains(KEY_COL_LAST_ACCESS_TIME)) {
-            tableProperties.put(KEY_LASTACCESSTIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
-        }
-
-        if (name.contains(KEY_COL_OUTPUTFORMAT)) {
-            String storedClass = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
-            tableProperties.put(KEY_STORED_TYPE, getStoredType(storedClass));
-        }
-
-        if (name.contains(KEY_COL_TABLE_PARAMETERS)) {
-            while (it.hasNext()) {
-                lineDataInternal = it.next();
-                String nameInternal = lineDataInternal.get(paraFirst);
-                if (null == nameInternal) {
-                    continue;
-                }
-
-                nameInternal = nameInternal.trim();
-                if (nameInternal.contains(KEY_COLUMN_COMMENT)) {
-                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
-                }
-
-                if (nameInternal.contains(KEY_TOTALSIZE)) {
-                    tableProperties.put(KEY_TOTALSIZE, StringUtils.trim(lineDataInternal.get(paraSecond)));
-                }
-
-                if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
-                    tableProperties.put(KEY_TRANSIENT_LASTDDLTIME, StringUtils.trim(lineDataInternal.get(paraSecond)));
-                }
-            }
-        }
-    }
-
-    private String getStoredType(String storedClass) {
-        if (storedClass.endsWith(TEXT_FORMAT)){
-            return TYPE_TEXT;
-        } else if (storedClass.endsWith(ORC_FORMAT)){
-            return TYPE_ORC;
-        } else if (storedClass.endsWith(PARQUET_FORMAT)){
-            return TYPE_PARQUET;
-        } else {
-            return storedClass;
-        }
-    }
-
-
-    private List<Map<String, String>> queryData(String table) throws SQLException{
-        try (ResultSet rs = statement.get().executeQuery(String.format(SQL_QUERY_DATA, quote(table)))) {
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            List<String> columnNames = new ArrayList<>(columnCount);
-            for (int i = 0; i < columnCount; i++) {
-                columnNames.add(metaData.getColumnName(i+1));
-            }
-
-            List<Map<String, String>> data = new ArrayList<>();
-            while (rs.next()) {
-                Map<String, String> lineData = new HashMap<>(Math.max((int) (columnCount/.75f) + 1, 16));
-                for (String columnName : columnNames) {
-                    lineData.put(columnName, rs.getString(columnName));
-                }
-
-                data.add(lineData);
-            }
-
-            return data;
-        }
-    }
-
-    private List<Map<String, String>> showPartitions (String table) throws SQLException{
-        List<Map<String, String>> partitions = new ArrayList<>();
-        try (ResultSet rs = statement.get().executeQuery(String.format(SQL_SHOW_PARTITIONS, quote(table)))) {
-            while (rs.next()) {
-                String str = rs.getString(1);
-                String[] split = str.split(ConstantValue.EQUAL_SYMBOL);
-                if(split.length == 2){
-                    Map<String, String> map = new LinkedHashMap<>();
-                    map.put(KEY_NAME, split[0]);
-                    map.put(KEY_VALUE, split[1]);
-                    partitions.add(map);
-                }
-            }
-        }
-
-        return partitions;
     }
 
     /**
@@ -351,6 +157,200 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
         }
 
         return value.toString();
+    }
+
+    @Override
+    protected String quote(String name) {
+        return String.format("`%s`", name);
+    }
+
+    @Override
+    protected List<Object> showTables() throws SQLException {
+        List<Object> tables = new ArrayList<>();
+        try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
+           int pos = rs.getMetaData().getColumnCount()==1?1:2;
+            while (rs.next()) {
+                tables.add(rs.getString(pos));
+            }
+        }
+
+        return tables;
+    }
+
+    @Override
+    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
+        Map<String, Object> result = new HashMap<>(16);
+        List<Map<String, Object>> columnList = new ArrayList<>();
+        List<Map<String, Object>> partitionColumnList = new ArrayList<>();
+        Map<String, Object> tableProperties = new HashMap<>(16);
+
+        List<Map<String, String>> metaData = queryData(tableName);
+        Iterator<Map<String, String>> it = metaData.iterator();
+        int metaDataFlag = 0;
+        while(it.hasNext()){
+            Map<String, String> lineDataInternal = it.next();
+            String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
+            if (StringUtils.isBlank(colNameInternal)) {
+                continue;
+            }
+            if(colNameInternal.startsWith("#")){
+                colNameInternal = StringUtils.trim(colNameInternal);
+                switch (colNameInternal){
+                    case PARTITION_INFORMATION:
+                        metaDataFlag = 1;
+                        break;
+                    case TABLE_INFORMATION:
+                        metaDataFlag = 2;
+                        break;
+                    case KEY_RESULTSET_COL_NAME:
+                        paraFirst = KEY_RESULTSET_DATA_TYPE;
+                        paraSecond = KEY_RESULTSET_COMMENT;
+                        break;
+                    default:
+                        break;
+                }
+                continue;
+            }
+            switch (metaDataFlag){
+                case 0:
+                    columnList.add(parseColumn(lineDataInternal, result.size()));
+                    break;
+                case 1:
+                    partitionColumnList.add(parseColumn(lineDataInternal, result.size()));
+                    break;
+                case 2:
+                    parseTableProperties(lineDataInternal, tableProperties, it);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (partitionColumnList.size() > 0) {
+            List<String> partitionColumnNames = new ArrayList<>();
+            for (Map<String, Object> partitionColumn : partitionColumnList) {
+                partitionColumnNames.add(partitionColumn.get(KEY_COLUMN_NAME).toString());
+            }
+
+            columnList.removeIf(column -> partitionColumnNames.contains(column.get(KEY_COLUMN_NAME).toString()));
+            result.put(KEY_PARTITIONS, showPartitions(tableName));
+        }
+        result.put(KEY_TABLE_PROPERTIES, tableProperties);
+        result.put(KEY_PARTITION_COLUMNS, partitionColumnList);
+        result.put(KEY_COLUMN, columnList);
+
+        return result;
+    }
+
+    private Map<String, Object> parseColumn(Map<String, String> lineDataInternal, int index){
+        String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
+        String commentInternal = lineDataInternal.get(KEY_COLUMN_COMMENT);
+        String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
+
+        Map<String, Object> lineResult = new HashMap<>(16);
+        lineResult.put(KEY_COLUMN_NAME, colNameInternal);
+        lineResult.put(KEY_COLUMN_TYPE, dataTypeInternal);
+        lineResult.put(KEY_COLUMN_COMMENT, unicodeToStr(commentInternal));
+        lineResult.put(KEY_COLUMN_INDEX, index);
+        return lineResult;
+    }
+
+    private String getStoredType(String storedClass) {
+        if (storedClass.endsWith(TEXT_FORMAT)){
+            return TYPE_TEXT;
+        } else if (storedClass.endsWith(ORC_FORMAT)){
+            return TYPE_ORC;
+        } else if (storedClass.endsWith(PARQUET_FORMAT)){
+            return TYPE_PARQUET;
+        } else {
+            return storedClass;
+        }
+    }
+
+
+    private List<Map<String, String>> queryData(String table) throws SQLException{
+        try (ResultSet rs = statement.get().executeQuery(String.format(SQL_QUERY_DATA, quote(table)))) {
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            List<String> columnNames = new ArrayList<>(columnCount);
+            for (int i = 0; i < columnCount; i++) {
+                columnNames.add(metaData.getColumnName(i+1));
+            }
+
+            List<Map<String, String>> data = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, String> lineData = new HashMap<>(Math.max((int) (columnCount/.75f) + 1, 16));
+                for (String columnName : columnNames) {
+                    lineData.put(columnName, rs.getString(columnName));
+                }
+
+                data.add(lineData);
+            }
+
+            return data;
+        }
+    }
+
+    private List<Map<String, String>> showPartitions (String table) throws SQLException{
+        List<Map<String, String>> partitions = new ArrayList<>();
+        try (ResultSet rs = statement.get().executeQuery(String.format(SQL_SHOW_PARTITIONS, quote(table)))) {
+            while (rs.next()) {
+                String str = rs.getString(1);
+                String[] split = str.split(ConstantValue.EQUAL_SYMBOL);
+                if(split.length == 2){
+                    Map<String, String> map = new LinkedHashMap<>();
+                    map.put(KEY_NAME, split[0]);
+                    map.put(KEY_VALUE, split[1]);
+                    partitions.add(map);
+                }
+            }
+        }
+
+        return partitions;
+    }
+
+    void parseTableProperties(Map<String, String> lineDataInternal, Map<String, Object> tableProperties, Iterator<Map<String, String>> it){
+        String name = lineDataInternal.get(KEY_COL_NAME);
+
+        if (name.contains(KEY_COL_LOCATION)) {
+            tableProperties.put(KEY_LOCATION, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
+        }
+
+        if (name.contains(KEY_COL_CREATETIME) || name.contains(KEY_COL_CREATE_TIME)) {
+            tableProperties.put(KEY_CREATETIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
+        }
+
+        if (name.contains(KEY_COL_LASTACCESSTIME) || name.contains(KEY_COL_LAST_ACCESS_TIME)) {
+            tableProperties.put(KEY_LASTACCESSTIME, StringUtils.trim(lineDataInternal.get(KEY_COLUMN_DATA_TYPE)));
+        }
+
+        if (name.contains(KEY_COL_OUTPUTFORMAT)) {
+            String storedClass = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
+            tableProperties.put(KEY_STORED_TYPE, getStoredType(storedClass));
+        }
+
+        if (name.contains(KEY_COL_TABLE_PARAMETERS)) {
+            while (it.hasNext()) {
+                lineDataInternal = it.next();
+                String nameInternal = lineDataInternal.get(paraFirst);
+                if (null == nameInternal) {
+                    continue;
+                }
+
+                nameInternal = nameInternal.trim();
+                if (nameInternal.contains(KEY_COLUMN_COMMENT)) {
+                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
+                }
+
+                if (nameInternal.contains(KEY_TOTALSIZE)) {
+                    tableProperties.put(KEY_TOTALSIZE, StringUtils.trim(lineDataInternal.get(paraSecond)));
+                }
+
+                if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
+                    tableProperties.put(KEY_TRANSIENT_LASTDDLTIME, StringUtils.trim(lineDataInternal.get(paraSecond)));
+                }
+            }
+        }
     }
 
     @Override

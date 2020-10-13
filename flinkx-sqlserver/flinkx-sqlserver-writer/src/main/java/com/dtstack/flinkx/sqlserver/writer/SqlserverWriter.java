@@ -19,8 +19,10 @@
 package com.dtstack.flinkx.sqlserver.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.sqlserver.SqlServerConfigKeys;
 import com.dtstack.flinkx.sqlserver.SqlServerDatabaseMeta;
 import com.dtstack.flinkx.sqlserver.format.SqlserverOutputFormat;
 
@@ -32,13 +34,22 @@ import com.dtstack.flinkx.sqlserver.format.SqlserverOutputFormat;
  */
 public class SqlserverWriter extends JdbcDataWriter {
 
+    //是否在sql语句后面添加 with(nolock) ,默认是false
+    private Boolean withNoLock;
+
     public SqlserverWriter(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new SqlServerDatabaseMeta());
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        withNoLock = readerConfig.getParameter().getBooleanVal(SqlServerConfigKeys.WITH_NO_LOCK,false);
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new SqlserverOutputFormat());
+        SqlserverOutputFormat sqlserverOutputFormat = new SqlserverOutputFormat();
+        sqlserverOutputFormat.setWithNoLock(withNoLock);
+        return new JdbcOutputFormatBuilder(sqlserverOutputFormat);
     }
+
+
 }

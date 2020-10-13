@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>flinkx-metadata-oracle</artifactId>
@@ -91,13 +91,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/metadataoraclereader">
+                                <copy todir="${basedir}/../../syncplugins/metadataoraclereader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/metadataoraclereader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/metadataoraclereader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/metadataoraclereader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/metadataoraclereader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

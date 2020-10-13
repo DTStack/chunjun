@@ -42,19 +42,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public final class HiveDbUtil {
 
-    private static Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
-
     public static final String SQLSTATE_USERNAME_PWD_ERROR = "28000";
-
     public static final String SQLSTATE_CANNOT_ACQUIRE_CONNECT = "08004";
-
     public static final int JDBC_PART_SIZE = 2;
-
     public static final String JDBC_REGEX = "[?|;|#]";
     public static final String KEY_VAL_DELIMITER = "=";
     public static final String PARAM_DELIMITER = "&";
     public static final String KEY_PRINCIPAL = "principal";
-
+    private static Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
     private static ReentrantLock lock = new ReentrantLock();
 
     private HiveDbUtil() {
@@ -191,12 +186,12 @@ public final class HiveDbUtil {
             this.timeout = timeout;
         }
 
-        public void setDriver(String driver){
-            this.driver = driver;
-        }
-
         public String getDriver(){
             return driver;
+        }
+
+        public void setDriver(String driver){
+            this.driver = driver;
         }
 
         @Override

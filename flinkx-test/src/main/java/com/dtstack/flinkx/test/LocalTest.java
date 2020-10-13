@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.test;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
@@ -138,6 +137,7 @@ public class LocalTest {
         String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/phoniex/phoenix5_stream_hbase.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
+        System.exit(0);
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{

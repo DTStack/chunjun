@@ -31,9 +31,11 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -43,7 +45,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -55,7 +56,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,15 +156,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (splitWithRowCol) {
             columnCount = columnCount - 1;
         }
-
-        if (StringUtils.isEmpty(customSql)) {
-            columnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-        } else {
-            columnTypeList = new ArrayList<>();
-            for (MetaColumn metaColumn : metaColumns) {
-                columnTypeList.add(metaColumn.getName());
-            }
-        }
+        checkSize(columnCount, metaColumns);
+        columnTypeList = DbUtil.analyzeColumnType(resultSet, metaColumns);
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
@@ -186,16 +179,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
+                    //sqlserver、DB2驱动包不支持isValid()，这里先注释掉，后续更换驱动包
                     //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if(!dbConn.isValid(3)){
-                        dbConn = getConnection();
-                        //重新连接后还是不可用则认为数据库异常，任务失败
-                        if(!dbConn.isValid(3)){
-                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
-                            LOG.error(message);
-                            throw new RuntimeException(message);
-                        }
-                    }
+//                    if(!dbConn.isValid(3)){
+//                        dbConn = DbUtil.getConnection(dbUrl, username, password);
+//                        //重新连接后还是不可用则认为数据库异常，任务失败
+//                        if(!dbConn.isValid(3)){
+//                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
+//                            LOG.error(message);
+//                            throw new RuntimeException(message);
+//                        }
+//                    }
                     if(!dbConn.getAutoCommit()){
                         dbConn.setAutoCommit(true);
                     }
@@ -318,6 +312,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         //将累加器信息添加至prometheus
         customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
 
     /**
@@ -857,5 +853,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     protected boolean makeTaskFailedWhenReportFailed() {
         return true;
+    }
+
+    /**
+     * 校验columnCount和metaColumns的长度是否相等
+     * @param columnCount
+     * @param metaColumns
+     */
+    protected void checkSize(int columnCount, List<MetaColumn> metaColumns) {
+        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName()) && columnCount != metaColumns.size()) {
+            String message = String.format("error config: column = %s, column size = %s, but columns size for query result is %s. And the query sql is %s.",
+                    GsonUtil.GSON.toJson(metaColumns),
+                    metaColumns.size(),
+                    columnCount,
+                    querySql);
+            LOG.error(message);
+            throw new RuntimeException(message);
+        }
     }
 }

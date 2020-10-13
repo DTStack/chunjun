@@ -18,11 +18,11 @@
 package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
@@ -256,62 +256,39 @@ public class DbUtil {
     }
 
     /**
-     * 获取表列名类型列表
-     * @param dbUrl             jdbc url
-     * @param username          数据库账号
-     * @param password          数据库密码
-     * @param databaseInterface DatabaseInterface
-     * @param table             表名
-     * @param metaColumns       MetaColumn列表
-     * @return
+     * 获取结果集的列类型信息
+     *
+     * @param resultSet  查询结果集
+     * @return 字段类型list列表
      */
-    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                            String table, List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>(metaColumns.size());
-        Connection dbConn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
+    public static List<String> analyzeColumnType(ResultSet resultSet, List<MetaColumn> metaColumns){
+        List<String> columnTypeList = new ArrayList<>();
+
         try {
-            dbConn = getConnection(dbUrl, username, password);
-            if (null == dbConn) {
-                throw new RuntimeException("Get hive connection error");
+            ResultSetMetaData rd = resultSet.getMetaData();
+            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            for(int i = 0; i < rd.getColumnCount(); ++i) {
+                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
 
-            ret = DbUtil.analyzeTableFromConn(dbConn, databaseInterface, table, metaColumns);
-
+            for (MetaColumn metaColumn : metaColumns) {
+                if(metaColumn.getValue() != null){
+                    columnTypeList.add("VARCHAR");
+                } else {
+                    columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
+                }
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            closeDbResources(rs, stmt, dbConn, false);
+            String message = String.format("error to analyzeSchema, resultSet = %s, columnTypeList = %s, e = %s",
+                    resultSet,
+                    GsonUtil.GSON.toJson(columnTypeList),
+                    ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message);
         }
-
-        return ret;
+        return columnTypeList;
     }
 
-    public static List<String> analyzeTableFromConn(Connection conn, DatabaseInterface databaseInterface,
-                                                    String table, List<MetaColumn> metaColumns) throws SQLException {
-        List<String> ret = new ArrayList<>(metaColumns.size());
-        Statement stmt;
-        ResultSet rs;
-
-        stmt = conn.createStatement();
-        rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
-        ResultSetMetaData rd = rs.getMetaData();
-
-        Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-        for(int i = 0; i < rd.getColumnCount(); ++i) {
-            nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
-        }
-
-        for (MetaColumn metaColumn : metaColumns) {
-            if(metaColumn.getValue() != null){
-                ret.add("string");
-            } else {
-                ret.add(nameTypeMap.get(metaColumn.getName()));
-            }
-        }
-        return ret;
-    }
     /**
      * clob转string
      * @param obj   clob

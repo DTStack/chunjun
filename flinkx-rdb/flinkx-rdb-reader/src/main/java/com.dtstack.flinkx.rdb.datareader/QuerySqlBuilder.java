@@ -143,7 +143,7 @@ public class QuerySqlBuilder {
         return StringUtils.isEmpty(column) ? "" : String.format(" order by %s", column);
     }
 
-    private String buildQuerySqlWithCustomSql(){
+    protected String buildQuerySqlWithCustomSql(){
         StringBuilder querySql = new StringBuilder();
         querySql.append(String.format(CUSTOM_SQL_TEMPLATE, customSql, TEMPORARY_TABLE_NAME));
         querySql.append(" WHERE 1=1 ");

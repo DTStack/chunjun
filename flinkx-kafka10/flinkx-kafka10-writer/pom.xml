@@ -17,12 +17,6 @@
             <artifactId>flinkx-kb-writer</artifactId>
             <version>1.6</version>
         </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kb-writer</artifactId>
-            <version>1.6</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -66,13 +60,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/kafka10writer">
+                                <copy todir="${basedir}/../../syncplugins/kafka10writer">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/kafka10writer/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafka10writer/${project.name}-${git.branch}.jar"/>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/kafka10writer/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/kafka10writer/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

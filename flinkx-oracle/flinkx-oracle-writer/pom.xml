@@ -89,13 +89,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/oraclewriter">
+                                <copy todir="${basedir}/../../syncplugins/oraclewriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/oraclewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/oraclewriter/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/oraclewriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/oraclewriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

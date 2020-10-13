@@ -93,13 +93,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/greenplumreader">
+                                <copy todir="${basedir}/../../syncplugins/greenplumreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/greenplumreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/greenplumreader/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/greenplumreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/greenplumreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

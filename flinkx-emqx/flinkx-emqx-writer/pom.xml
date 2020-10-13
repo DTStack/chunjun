@@ -81,13 +81,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/emqxwriter">
+                                <copy todir="${basedir}/../../syncplugins/emqxwriter">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/emqxwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/emqxwriter/${project.name}-${git.branch}.jar" />
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/emqxwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/emqxwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

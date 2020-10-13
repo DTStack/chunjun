@@ -61,13 +61,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../plugins/kafka11writer">
+                                <copy todir="${basedir}/../../syncplugins/kafka11writer">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <move file="${basedir}/../../plugins/kafka11writer/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/kafka11writer/${project.name}-${git.branch}.jar"/>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/kafka11writer/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/kafka11writer/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
