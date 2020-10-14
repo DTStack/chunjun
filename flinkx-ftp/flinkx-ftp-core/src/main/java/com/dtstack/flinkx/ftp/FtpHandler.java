@@ -143,28 +143,24 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public List<String> getFiles(String path) {
         List<String> sources = new ArrayList<>();
-        if(isDirExist(path)) {
-            if(!path.endsWith(SP)) {
-                path = path + SP;
-            }
-            try {
-                ftpClient.enterLocalPassiveMode();
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
-                if(ftpFiles != null) {
-                    for(FTPFile ftpFile : ftpFiles) {
-                        sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
-                    }
-                }
-            } catch (IOException e) {
-                LOG.error("", e);
-                throw new RuntimeException(e);
-            }
-
-        } else if(isFileExist(path)) {
+        if(isFileExist(path)) {
             sources.add(path);
             return sources;
+        }else{
+            path = path + SP;
         }
-
+        try {
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            if(ftpFiles != null) {
+                for(FTPFile ftpFile : ftpFiles) {
+                    sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
+                }
+            }
+        } catch (IOException e) {
+            LOG.error("", e);
+            throw new RuntimeException(e);
+        }
         return sources;
     }
 
