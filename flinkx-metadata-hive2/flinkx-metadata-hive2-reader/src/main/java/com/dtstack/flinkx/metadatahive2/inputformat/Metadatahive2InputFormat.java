@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_COMMENT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_DATA_TYPE;
@@ -340,7 +341,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
                 nameInternal = nameInternal.trim();
                 if (nameInternal.contains(KEY_INDEX_COMMENT)) {
-                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
+                    tableProperties.put(KEY_TABLE_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
                 }
 
                 if (nameInternal.contains(KEY_TOTALSIZE)) {
