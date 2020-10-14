@@ -12,7 +12,7 @@
     <artifactId>flinkx-test</artifactId>
 
     <properties>
-        <flink.version>1.8.1</flink.version>
+        <flink.version>1.8.3</flink.version>
         <prometheus.version>0.3.0</prometheus.version>
     </properties>
 
