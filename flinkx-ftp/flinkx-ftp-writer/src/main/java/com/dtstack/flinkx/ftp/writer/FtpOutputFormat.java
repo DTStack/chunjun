@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp.writer;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.FtpConfig;
 import com.dtstack.flinkx.ftp.FtpHandlerFactory;
@@ -31,7 +32,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -55,8 +56,6 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     private transient IFtpHandler ftpHandler;
 
     private transient OutputStream os;
-
-    private static final String DOT = ".";
 
     private static final String FILE_SUFFIX = ".csv";
 
@@ -133,7 +132,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     public void moveTemporaryDataBlockFileToDirectory(){
-        if (currentBlockFileName == null || !currentBlockFileName.startsWith(DOT)){
+        if (currentBlockFileName == null || !currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)){
             return;
         }
 
@@ -242,9 +241,9 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void coverageData(){
-        boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(ftpConfig.getWriteMode()) && !SP.equals(ftpConfig.getPath());
+        boolean cleanPath = OVERWRITE_MODE.equalsIgnoreCase(ftpConfig.getWriteMode()) && !SP.equals(ftpConfig.getPath());
         if(cleanPath){
-            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Arrays.asList(tmpPath));
+            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Collections.singletonList(tmpPath));
         }
     }
 
@@ -271,7 +270,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
-                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(ConstantValue.POINT_SYMBOL)){
                     String newPath = ftpConfig.getPath() + SP + fileName;
                     LOG.info("Move file {} to path {}", file, newPath);
                     ftpHandler.rename(file, newPath);
