@@ -205,7 +205,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         controller.setEventSink(sink);
 
         controller.setLogPositionManager(new BinlogPositionManager(this));
-
+        //添加connection心跳回调处理器
+        HeartBeatController heartBeatController =new HeartBeatController();
+        heartBeatController.setBinlogEventSink(binlogEventSink);
+        controller.setHaController( heartBeatController);
         EntryPosition startPosition = findStartPosition();
         if (startPosition != null) {
             controller.setMasterPosition(startPosition);

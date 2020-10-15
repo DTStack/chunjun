@@ -33,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_COMMENT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_DATA_TYPE;
@@ -244,7 +246,7 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
 
     private Map<String, Object> parseColumn(Map<String, String> lineDataInternal, int index){
         String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
-        String commentInternal = lineDataInternal.get(KEY_COLUMN_COMMENT);
+        String commentInternal = lineDataInternal.get(KEY_INDEX_COMMENT);
         String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
 
         Map<String, Object> lineResult = new HashMap<>(16);
@@ -338,8 +340,8 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                 }
 
                 nameInternal = nameInternal.trim();
-                if (nameInternal.contains(KEY_COLUMN_COMMENT)) {
-                    tableProperties.put(KEY_COLUMN_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
+                if (nameInternal.contains(KEY_INDEX_COMMENT)) {
+                    tableProperties.put(KEY_TABLE_COMMENT, StringUtils.trim(unicodeToStr(lineDataInternal.get(paraSecond))));
                 }
 
                 if (nameInternal.contains(KEY_TOTALSIZE)) {
