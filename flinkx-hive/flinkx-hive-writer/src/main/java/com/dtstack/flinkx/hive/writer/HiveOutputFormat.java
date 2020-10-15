@@ -30,9 +30,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.google.common.collect.Maps;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.flink.types.Row;
@@ -40,7 +38,10 @@ import org.apache.hadoop.conf.Configuration;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author toutian
@@ -193,25 +194,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     event = (Map) tempObj;
                 } else if (tempObj instanceof String) {
                     try {
-                        List<String>  columns = tableInfos.entrySet().iterator().next().getValue().getColumns();
-                        //如果写入的hive表字段包含column message，并且tempObj不符合简单json定义【以{开头 以}结尾】,同时不以message开头 则直接将tempObj作为value
-                        if(CollectionUtils.isNotEmpty(columns) && columns.size()==1 && columns.get(0).equals("message")){
-                            String data = (String) tempObj;
-                            if(!data.startsWith("{") || !data.endsWith("}") || !data.substring(1,data.length()-1).trim().startsWith("\"message\":")){
-                                event = Collections.singletonMap("message",data);
-                           }
-                        }else{
-                            event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
-                        }
+                        event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
                     }catch (JsonSyntaxException e){
-
-                        List<String>  columns = tableInfos.entrySet().iterator().next().getValue().getColumns();
-                        //如果hive没有message column，那么认为是脏数据 打印日志
-                        if(CollectionUtils.isNotEmpty(columns) && !columns.contains("message")){
-                            LOG.warn("bad json string:【{}】", tempObj);
-                        }
                         // is not a json string
-                        event = Collections.singletonMap("message",tempObj);
+                        //tempObj 不是map类型 则event直接往下传递
+                       // LOG.warn("bad json string:【{}】", tempObj);
                     }
                 }
             }
