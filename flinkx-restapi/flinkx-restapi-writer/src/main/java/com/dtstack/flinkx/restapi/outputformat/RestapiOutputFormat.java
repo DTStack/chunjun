@@ -22,6 +22,8 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
@@ -57,9 +59,12 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected static final int DEFAULT_TIME_OUT = 300000;
 
+    protected Gson gson;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         params.put("threadId", UUID.randomUUID().toString().substring(0, 8));
+        gson = new GsonBuilder().serializeNulls().create();
     }
 
     @Override
@@ -80,7 +85,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
+            LOG.info("send data:{}", gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
@@ -111,7 +116,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
+            LOG.info("this batch size = {}, send data:{}", rows.size(), gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
@@ -134,7 +139,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (; index < row.getArity(); index++) {
                 columnData.put(column.get(index), row.getField(index));
             }
-            return HttpUtil.gson.toJson(columnData);
+            return gson.toJson(columnData);
         } else {
             return row.getField(index);
         }
@@ -146,7 +151,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
                              String method,
                              Map<String, String> header,
                              String url) throws IOException {
-        LOG.debug("当前发送的数据为:{}", HttpUtil.gson.toJson(requestBody));
+        LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
         //设置请求和传输超时时间
         RequestConfig requestConfig = RequestConfig.custom()
