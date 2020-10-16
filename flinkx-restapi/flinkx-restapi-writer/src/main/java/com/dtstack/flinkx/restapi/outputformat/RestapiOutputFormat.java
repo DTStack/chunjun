@@ -85,7 +85,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+            LOG.debug("send data:{}", gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
@@ -116,7 +116,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+            LOG.info("this batch size = {}, send data:{}", rows.size(), gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
