@@ -68,9 +68,9 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> requestBody = Maps.newHashMap();
-        Object dataRow;
+        List<Object> dataRow = new ArrayList<>();
         try {
-            dataRow = getDataFromRow(row, column);
+            dataRow.add(getDataFromRow(row, column));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
