@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.websocket.format;
 
-import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.core.io.GenericInputSplit;
@@ -41,15 +40,13 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     private WebSocketClient client;
 
-    private IDecode decoder;
-
-    private SynchronousQueue<Row> queue = new SynchronousQueue<>();
+    private final SynchronousQueue<Row> queue = new SynchronousQueue<>();
 
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            client = new WebSocketClient(queue, serverUrl, decoder);
+            client = new WebSocketClient(queue, serverUrl);
             client.start();
         }catch (Exception e){
             throw new IOException(e);
@@ -70,7 +67,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
         try {
             row = queue.take();
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            LOG.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
             throw new IOException(e);
         }
         return row;
@@ -90,15 +87,6 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     public void setServerUrl(String serverUrl){
         this.serverUrl = serverUrl;
-    }
-
-    public void setCodeC(String codeC){
-        try{
-            Class<?> clazz = Class.forName(codeC);
-            decoder = (IDecode) clazz.getConstructor().newInstance();
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
     }
 
 }

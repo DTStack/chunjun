@@ -39,20 +39,16 @@ public class WebsocketReader extends BaseDataReader {
 
     protected String serverUrl;
 
-    protected String codeC;
-
     public WebsocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         serverUrl = readerConfig.getParameter().getStringVal(KEY_WEB_SOCKET_SERVER_URL);
-        codeC = readerConfig.getParameter().getStringVal(KEY_CODE_C, DEFAULT_DECODE);
     }
 
     @Override
     public DataStream<Row> readData() {
         WebSocketInputFormatBuilder builder = new WebSocketInputFormatBuilder();
         builder.setServerUrl(serverUrl);
-        builder.setCodeC(codeC);
         builder.setDataTransferConfig(dataTransferConfig);
         return createInput(builder.finish());
     }

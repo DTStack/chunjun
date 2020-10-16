@@ -58,11 +58,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private SynchronousQueue<Row> queue;
 
-    private IDecode decoder;
-
-    public WebSocketClientHandler(SynchronousQueue<Row> queue, IDecode decoder) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public WebSocketClientHandler(SynchronousQueue<Row> queue) {
         this.queue = queue;
-        this.decoder = decoder;
     }
 
     @Override
@@ -93,12 +90,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             //文本信息
             if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
-                queue.put(Row.of(decoder.decode(textFrame.text())));
+                queue.put(Row.of(textFrame.text()));
             }
             //二进制信息
             if (frame instanceof BinaryWebSocketFrame) {
                 BinaryWebSocketFrame binFrame = (BinaryWebSocketFrame)frame;
-                queue.put(Row.of(decoder.binaryDecode(binFrame.content().array())));
+                queue.put(Row.of(binFrame.content().array()));
             }
             //ping信息
             if (frame instanceof PongWebSocketFrame) {

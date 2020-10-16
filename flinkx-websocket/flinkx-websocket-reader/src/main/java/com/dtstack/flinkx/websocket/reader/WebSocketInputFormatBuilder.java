@@ -19,8 +19,12 @@
 package com.dtstack.flinkx.websocket.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
 import org.apache.commons.lang.StringUtils;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /** 构建 WebSocketInputFormat
  * @Company: www.dtstack.com
@@ -45,14 +49,19 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setServerUrl(serverUrl);
     }
 
-    public void setCodeC(String codeC){
-        format.setCodeC(codeC);
-    }
-
     @Override
     protected void checkFormat() {
-        if(serverUrl==null || !StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
-            throw new IllegalArgumentException("illegal serverUrl");
+        if(serverUrl==null){
+            throw new IllegalArgumentException("empty serverUrl");
+        }
+        try{
+            URI uri = new URI(serverUrl);
+            if(!StringUtils.equals(uri.getScheme(), WEB_SOCKET_PREFIX)){
+                throw new IllegalArgumentException("illegal serverUrl");
+            }
+            TelnetUtil.telnet(uri.getHost(), uri.getPort());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("could not connect to serverUrl");
         }
     }
 }

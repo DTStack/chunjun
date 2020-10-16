@@ -59,8 +59,8 @@ public class WebSocketClient {
 
     WebSocketClientHandler webSocketClientHandler;
 
-    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl, IDecode decoder) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        webSocketClientHandler = new WebSocketClientHandler(queue, decoder);
+    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        webSocketClientHandler = new WebSocketClientHandler(queue);
         this.serverUrl = serverUrl;
     }
 

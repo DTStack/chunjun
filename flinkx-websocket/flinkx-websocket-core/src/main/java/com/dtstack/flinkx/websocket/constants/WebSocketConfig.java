@@ -25,7 +25,7 @@ package com.dtstack.flinkx.websocket.constants;
 
 public class WebSocketConfig {
 
-    public static final String KEY_WEB_SOCKET_SERVER_URL = "serverUrl";
+    public static final String KEY_WEB_SOCKET_SERVER_URL = "url";
 
     public static final String KEY_CODE_C = "codec";
 
