@@ -85,7 +85,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("send data:{}", gson.toJson(requestBody));
+            LOG.info("send data:{}", gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
@@ -151,7 +151,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
                              String method,
                              Map<String, String> header,
                              String url) throws IOException {
-        LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+        LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
         //设置请求和传输超时时间
         RequestConfig requestConfig = RequestConfig.custom()

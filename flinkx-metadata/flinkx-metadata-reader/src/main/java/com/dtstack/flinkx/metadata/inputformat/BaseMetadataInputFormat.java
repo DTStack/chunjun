@@ -126,7 +126,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
-
+        LOG.info("query metadata: {}", metaData);
         return Row.of(metaData);
     }
 
