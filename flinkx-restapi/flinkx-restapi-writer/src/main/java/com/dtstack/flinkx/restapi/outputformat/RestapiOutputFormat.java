@@ -37,7 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.dtstack.flinkx.restapi.common.RestapiKeys.KEY_BATCH;
 
@@ -64,8 +63,6 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected Gson gson;
 
-    protected AtomicInteger batchID = new AtomicInteger(0);
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         params.put("threadId", UUID.randomUUID().toString().substring(0, 8));
@@ -81,7 +78,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         Object dataRow;
         try {
             dataRow = getDataFromRow(row, column);
-            params.put(KEY_BATCH, batchID.incrementAndGet());
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -113,7 +110,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (Row row : rows) {
                 dataRow.add(getDataFromRow(row, column));
             }
-            params.put(KEY_BATCH, batchID.incrementAndGet());
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
