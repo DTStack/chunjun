@@ -17,16 +17,27 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
+import java.util.Date;
+
 /**
  * CurrentTimeVarible
  *
  * @author by dujie@dtstack.com
  * @Date 2020/9/28
  */
-public class CurrentTimeVarible implements Paramitem {
+public class CurrentTimeVarible implements Paramitem<Date> {
+
+    public CurrentTimeVarible() {
+
+    }
 
     @Override
-    public Object getValue() {
-        return System.currentTimeMillis();
+    public Date getValue(RestContext restContext) {
+        return new Date();
+    }
+
+    @Override
+    public String getName() {
+        return "currenttime";
     }
 }

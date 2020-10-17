@@ -23,8 +23,9 @@ package com.dtstack.flinkx.restapi.common;
  * @author by dujie@dtstack.com
  * @Date 2020/9/26
  */
-public interface Paramitem {
-     Object getValue();
-//
-//     ParamDefinition getParamDefinition();
+public interface Paramitem<T> {
+     T getValue(RestContext restContext);
+
+     String getName();
+
 }

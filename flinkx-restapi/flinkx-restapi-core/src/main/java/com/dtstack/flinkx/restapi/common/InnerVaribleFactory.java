@@ -33,7 +33,6 @@ public class InnerVaribleFactory {
     static {
         InnerVaribles = new HashMap<>(18);
         InnerVaribles.put("uuid", new UuidVarible());
-        InnerVaribles.put("currentTime", new UuidVarible());
         InnerVaribles.put("currenttime", new CurrentTimeVarible());
 
     }
@@ -42,7 +41,13 @@ public class InnerVaribleFactory {
         return InnerVaribles.get(name);
     }
 
-    public static boolean isInnerVariable(String name){
+    public static boolean isInnerVariable(String name) {
         return InnerVaribles.containsKey(name);
     }
+
+
+    public static void addVarible(String name,Paramitem paramitem) {
+        InnerVaribles.put(name,paramitem);
+    }
+
 }

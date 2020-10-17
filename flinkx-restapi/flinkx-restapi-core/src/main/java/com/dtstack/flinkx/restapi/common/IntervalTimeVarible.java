@@ -18,28 +18,26 @@
 package com.dtstack.flinkx.restapi.common;
 
 /**
- * paramObject
+ * CurrentTimeVarible
  *
  * @author by dujie@dtstack.com
- * @Date 2020/9/25
+ * @Date 2020/9/28
  */
-public class paramObject {
-    private  String key;
-    private Object value;
+public class IntervalTimeVarible implements Paramitem<Long> {
 
-    public String getKey() {
-        return key;
+    private final Long intervalTime;
+
+    public IntervalTimeVarible(Long intervalTime) {
+        this.intervalTime = intervalTime;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    @Override
+    public Long getValue(RestContext restContext) {
+        return intervalTime;
     }
 
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
+    @Override
+    public String getName() {
+        return "intervalTime";
     }
 }

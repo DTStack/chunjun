@@ -43,7 +43,7 @@ public class ConstantParam<T> implements ParamDefinition {
 
     private final String description;
 
-    private  String formatDescription;
+    private String formatDescription;
 
     private final DateTimeFormatter format;
 
@@ -51,9 +51,9 @@ public class ConstantParam<T> implements ParamDefinition {
         this.name = name;
         this.paramType = paramType;
         this.valueClass = valueClass;
-        this.value = objectConvent(valueClass, value);
         this.description = description;
-        this.formatDescription=format;
+        this.value = value;
+        this.formatDescription = format;
         if (StringUtils.isNotBlank(format)) {
             this.format = DateTimeFormatter.ofPattern(format);
         } else {
@@ -78,8 +78,8 @@ public class ConstantParam<T> implements ParamDefinition {
     }
 
     @Override
-    public Class getValueType() {
-        return valueClass;
+    public String getValueType() {
+        return "valueClass";
     }
 
 
@@ -107,12 +107,6 @@ public class ConstantParam<T> implements ParamDefinition {
         }
         return null;
     }
-
-    @Override
-    public <T> T objectConvent(Class<T> tClass, Object data) {
-        return (T)data;
-    }
-
 
 
 }

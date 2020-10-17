@@ -2,9 +2,8 @@ package com.dtstack.flinkx.restapi.common;
 
 import java.util.UUID;
 
-public class UuidVarible implements Paramitem {
+public class UuidVarible implements Paramitem<String> {
 
-//    private ParamDefinition paramDefinition;
 
     public UuidVarible() {
     }
@@ -14,8 +13,13 @@ public class UuidVarible implements Paramitem {
 //    }
 
     @Override
-    public Object getValue() {
-        return UUID.randomUUID();
+    public String getValue(RestContext restContext) {
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String getName() {
+        return "currentTime";
     }
 
 //    @Override

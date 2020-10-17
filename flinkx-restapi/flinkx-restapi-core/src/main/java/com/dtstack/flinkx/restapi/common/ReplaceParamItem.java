@@ -27,32 +27,22 @@ import java.util.Optional;
  * @author by dujie@dtstack.com
  * @Date 2020/9/26
  */
-public class ReplaceParamItem implements Paramitem {
-    private String key;
-    private ParamType paramType;
-//    private ParamDefinition paramDefinition;
-    private RestContext restContext;
+public class ReplaceParamItem implements Paramitem<Object> {
+    private final String name;
 
-    public ReplaceParamItem(String key,  RestContext restContext) {
-        int i = key.indexOf(".");
-        this.paramType = ParamType.valueOf(key.substring(0, i).toUpperCase(Locale.ENGLISH));
-        this.key = key.substring(i+1);
-//        this.paramDefinition = paramDefinition;
-        this.restContext = restContext;
+    public ReplaceParamItem(String name) {
+     this.name=name;
     }
 
     @Override
-    public Object getValue() {
-        return restContext.getValue(paramType, key);
+    public Object getValue(RestContext restContext) {
+        return restContext.getValue(name);
     }
 
-//    @Override
-//    public ParamDefinition getParamDefinition() {
-//        return paramDefinition;
-//    }
-
-    public ParamDefinition getReplaceParamDefinition(RestContext restContext) {
-        return Optional.ofNullable(restContext.getParamDefinitions().get(paramType)).orElse(Collections.emptyMap()).get(key);
+    @Override
+    public String getName() {
+        return name;
     }
+
 
 }

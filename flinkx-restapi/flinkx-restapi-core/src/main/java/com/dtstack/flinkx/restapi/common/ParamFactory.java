@@ -20,11 +20,7 @@ package com.dtstack.flinkx.restapi.common;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,13 +33,13 @@ import java.util.regex.Pattern;
 public class ParamFactory {
 
     public static Pattern valueExpression =
-            Pattern.compile("(?<constant>(.*?))(?<varible>(\\$\\{(.*?)\\}))");
+            Pattern.compile("(?<varible>(\\$\\{(.*?)\\}))");
 
     public static List<ParamDefinition> createDefinition(ParamType paramType, Map<String, Map<String, String>> variableDescriptions, RestContext context) {
 
         //2 如果是动态变量 还需要解析为后缀表达式
         //先用一个正则 将动态变量拿出来 参数拿出来
-        if (variableDescriptions.isEmpty()) {
+        if (variableDescriptions == null || variableDescriptions.isEmpty()) {
             return Collections.emptyList();
         }
         List<ParamDefinition> data = new ArrayList<>(variableDescriptions.size());
@@ -63,11 +59,7 @@ public class ParamFactory {
             //valueItems
             //nextItems 如果不是空 或者 直接返回动态的
             if (isDymatic(value) || StringUtils.isNotBlank(next)) {
-                DymaticParam dymaticParam = new DymaticParam(name, paramType, null, variableDescriptions.toString(), format, context);
-                List<Paramitem> valueItems = parse(value, dymaticParam, context);
-                List<Paramitem> nextItems = parse(next, dymaticParam, context);
-                dymaticParam.setNextvalueDymaticParam(new ParamItemContext(nextItems, dymaticParam, context));
-                dymaticParam.setValueDymaticParam(new ParamItemContext(valueItems, dymaticParam, context));
+                DymaticParam dymaticParam = new DymaticParam(name, paramType, null, value, next, variableDescriptions.toString(), format, context);
                 data.add(dymaticParam);
             } else {
                 data.add(new ConstantParam(name, paramType, null, value, variableDescriptions.toString(), format));
@@ -82,20 +74,24 @@ public class ParamFactory {
         Matcher matcher = valueExpression.matcher(text);
         String lastVarible = "";
         while (matcher.find()) {
-            String constant = matcher.group("constant");
-            //todo
-            if (!constant.equals("")) {
-                valueItems.add(new ConstantVarible(constant));
-            }
+
             String varible = matcher.group("varible");
-            valueItems.add(ParamParse.parsr(varible, context, paramDefinition));
+            valueItems.add(ParamParse.parsr(varible));
             lastVarible = varible;
         }
-        //匹配到的最后一个varible的后面是匹配不到的
-        if (CollectionUtils.isNotEmpty(valueItems)) {
-            if (text.lastIndexOf(lastVarible) + lastVarible.length() < text.length()) {
-                valueItems.add(new ConstantVarible(text.substring(text.lastIndexOf(lastVarible) + lastVarible.length())));
-            }
+        return valueItems;
+    }
+
+
+    public static List<Paramitem> getVarible(String text) {
+        List<Paramitem> valueItems = new ArrayList<>(16);
+        Matcher matcher = valueExpression.matcher(text);
+        while (matcher.find()) {
+            String varible = matcher.group("varible");
+            valueItems.add( ParamParse.parsr(varible));
+        }
+        if(CollectionUtils.isEmpty(valueItems)){
+            return Collections.emptyList();
         }
         return valueItems;
     }
@@ -103,5 +99,6 @@ public class ParamFactory {
     public static boolean isDymatic(String text) {
         return valueExpression.matcher(text).find();
     }
+
 
 }

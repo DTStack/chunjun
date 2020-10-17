@@ -25,19 +25,19 @@ package com.dtstack.flinkx.restapi.common;
  */
 public class ParamParse {
 
-    public static Paramitem parsr(String value,RestContext context,ParamDefinition paramDefinition) {
+    public static Paramitem parsr(String value) {
 
         if (value.startsWith("${") && value.endsWith("}")) {
             String substring = value.substring(2, value.length() - 1);
-            if (substring.startsWith("body") || substring.startsWith("param") || substring.startsWith("header") || substring.startsWith("response")) {
-                return new ReplaceParamItem(substring,context);
+            if (substring.startsWith("body.") || substring.startsWith("param.") || substring.startsWith("header.") || substring.startsWith("response.")) {
+                return new ReplaceParamItem(substring);
             } else if (InnerVaribleFactory.isInnerVariable(substring)) {
                 return InnerVaribleFactory.createInnerVarible(substring);
             } else {
-                return new ConstantVarible(value);
+                return new ConstantVarible(value,value);
             }
         } else {
-            return new ConstantVarible(value);
+            return new ConstantVarible(value,value);
         }
     }
 

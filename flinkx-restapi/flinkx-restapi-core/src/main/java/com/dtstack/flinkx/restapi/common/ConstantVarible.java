@@ -1,17 +1,24 @@
 package com.dtstack.flinkx.restapi.common;
 
-public class ConstantVarible implements Paramitem {
-    private final Object object;
+public class ConstantVarible<T> implements Paramitem {
+    private final T object;
+    private final String name;
 //    private ParamDefinition paramDefinition;
 
-    public ConstantVarible(Object object ) {
+    public ConstantVarible(T object, String name) {
         this.object = object;
+        this.name = name;
 //        this.paramDefinition = paramDefinition;
     }
 
     @Override
-    public Object getValue() {
+    public T getValue(RestContext restContext) {
         return object;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
 //    @Override

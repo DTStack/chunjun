@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,34 +32,45 @@ public abstract class httprequestApi<R> {
 
     abstract void getHttpRequest();
 
-    static  class Httprequest {
+    public static class Httprequest {
         private Map<String, Object> body;
         private Map<String, Object> param;
-        private Map<String, Object> header;
+        private Map<String, String> header;
 
-        public Httprequest buildBody(List<paramObject> bodyObjects) {
-            body = new HashMap<>(bodyObjects.size() * 2);
-            bodyObjects.forEach(i -> {
-                body.put(i.getKey(), i.getValue());
-            });
+        public Httprequest buildBody(Map<String, Object> body) {
+            this.body = body;
             return this;
         }
 
-        public Httprequest buildParam(List<paramObject> paramObjects) {
-            param = new HashMap<>(paramObjects.size() * 2);
-            paramObjects.forEach(i -> {
-                param.put(i.getKey(), i.getValue());
-            });
+        public Httprequest buildParam(Map<String, Object> param) {
+            this.param = param;
             return this;
         }
 
-        public Httprequest buildHeader(List<paramObject> headerObjects) {
-            header = new HashMap<>(headerObjects.size() * 2);
-            headerObjects.forEach(i -> {
-                header.put(i.getKey(), i.getValue());
-            });
+        public Httprequest buildHeader(Map<String, String> header) {
+            this.header = header;
             return this;
         }
 
+        @Override
+        public String toString() {
+            return "Httprequest{" +
+                    "body:" + body +
+                    ", param:" + param +
+                    ", header:" + header +
+                    '}';
+        }
+
+        public Map<String, Object> getBody() {
+            return body;
+        }
+
+        public Map<String, Object> getParam() {
+            return param;
+        }
+
+        public Map<String, String> getHeader() {
+            return header;
+        }
     }
 }

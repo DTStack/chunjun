@@ -23,7 +23,7 @@ package com.dtstack.flinkx.restapi.common;
  * @author by dujie@dtstack.com
  * @Date 2020/9/26
  */
-public interface ParamDefinition extends  lifecycle {
+public interface ParamDefinition {
 
     /**
      * key
@@ -36,7 +36,7 @@ public interface ParamDefinition extends  lifecycle {
 
     Object getValue();
 
-    Class getValueType();
+    String getValueType();
 
     /**
      * 用户定义的json
@@ -49,7 +49,6 @@ public interface ParamDefinition extends  lifecycle {
 
     Object format(Object data);
 
-    <T> T objectConvent(Class<T> tClass, Object data);
 
     default void init(){
 

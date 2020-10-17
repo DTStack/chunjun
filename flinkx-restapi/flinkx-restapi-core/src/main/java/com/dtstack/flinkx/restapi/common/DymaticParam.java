@@ -17,8 +17,15 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
-import java.util.List;
-import java.util.Objects;
+import com.github.pfmiles.dropincc.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * DymaticParam
@@ -26,27 +33,40 @@ import java.util.Objects;
  * @author by dujie@dtstack.com
  * @Date 2020/9/26
  */
-public class DymaticParam extends ConstantParam implements ParamDefinitionNextAble ,lifecycle {
+public class DymaticParam extends ConstantParam implements ParamDefinitionNextAble {
 
     private RestContext restContext;
-    private ParamItemContext valueDymaticParam;
-    private ParamItemContext nextvalueDymaticParam;
 
-    public DymaticParam(String name, ParamType paramType, Class valueClass, String description, String format, RestContext context) {
+    private final List<Paramitem> dymaticNowString;
+    private final List<Paramitem> dymaticNextString;
+
+
+    private final String initValueExpression;
+    private final String nextValueExpression;
+
+    private Exe exe = getExe();
+
+
+    public DymaticParam(String name, ParamType paramType, Class valueClass, String nowValue, String nextValue, String description, String format, RestContext context) {
         super(name, paramType, valueClass, null, description, format);
+        // nowvalue一定是存在的
+        initValueExpression = nowValue;
+
+        dymaticNowString = ParamFactory.getVarible(nowValue);
+
+        if (StringUtils.isBlank(nextValue)) {
+            dymaticNextString = dymaticNowString;
+            nextValueExpression = initValueExpression;
+        } else {
+            dymaticNextString = ParamFactory.getVarible(nextValue);
+            nextValueExpression = nextValue;
+        }
         this.restContext = context;
     }
 
     @Override
     public Object getValue() {
-        Object data;
-        if (restContext.getTime() > 0 && Objects.nonNull(nextvalueDymaticParam)) {
-            data = nextvalueDymaticParam.getValue();
-        } else {
-            data = nextvalueDymaticParam.getValue();
-        }
-        data = format(data);
-        return objectConvent(getValueType(), data);
+        return getDymaticValue(dymaticNowString, initValueExpression);
     }
 
     /**
@@ -59,8 +79,7 @@ public class DymaticParam extends ConstantParam implements ParamDefinitionNextAb
      */
     @Override
     public Object getNextValue() {
-        // restContext.calcute();
-        return getValue();
+        return getDymaticValue(dymaticNextString, nextValueExpression);
     }
 
     //判断是否是运算符
@@ -103,20 +122,134 @@ public class DymaticParam extends ConstantParam implements ParamDefinitionNextAb
 
     @Override
     public void init() {
-      if(Objects.nonNull(valueDymaticParam)){
-          valueDymaticParam.init();
-      }
 
-        if(Objects.nonNull(nextvalueDymaticParam)){
-            nextvalueDymaticParam.init();
+    }
+
+    public Exe getExe() {
+        Lang c = new Lang("Calculator");
+        Grule expr = c.newGrule();
+        c.defineGrule(expr, CC.EOF).action(new Action() {
+            public BigDecimal act(Object matched) {
+                return new BigDecimal(((Object[]) matched)[0].toString());
+            }
+        });
+        TokenDef a = c.newToken("\\+");
+        Grule addend = c.newGrule();
+        expr.define(addend, CC.ks(a.or("\\-"), addend)).action(new Action() {
+            public BigDecimal act(Object matched) {
+                Object[] ms = (Object[]) matched;
+                BigDecimal a0 = (BigDecimal) ms[0];
+                Object[] aPairs = (Object[]) ms[1];
+                for (Object p : aPairs) {
+                    String op = (String) ((Object[]) p)[0];
+                    BigDecimal a = (BigDecimal) ((Object[]) p)[1];
+                    if ("+".equals(op)) {
+                        a0 = a.add(a0);
+                    } else {
+                        a0 = a0.subtract(a);
+                    }
+                }
+                return a0;
+            }
+        });
+        TokenDef m = c.newToken("\\*");
+        Grule factor = c.newGrule();
+        addend.define(factor, CC.ks(m.or("/"), factor)).action(new Action() {
+            public BigDecimal act(Object matched) {
+                Object[] ms = (Object[]) matched;
+                BigDecimal f0 = (BigDecimal) ms[0];
+                Object[] fPairs = (Object[]) ms[1];
+                for (Object p : fPairs) {
+                    String op = (String) ((Object[]) p)[0];
+                    BigDecimal f = (BigDecimal) ((Object[]) p)[1];
+                    if ("*".equals(op)) {
+                        f0 = f0.multiply(f);
+                    } else {
+                        f0 = f0.divide(f, BigDecimal.ROUND_HALF_UP, 3);
+                    }
+                }
+                return f0;
+            }
+        });
+        factor.define("\\(", expr, "\\)").action(new Action() {
+            public BigDecimal act(Object matched) {
+                return (BigDecimal) ((Object[]) matched)[1];
+            }
+        }).alt("\\-\\d+(\\.\\d+)?|\\d+(\\.\\d+)?").action(new Action() {
+            public BigDecimal act(Object matched) {
+                return new BigDecimal(matched.toString());
+            }
+        });
+        Exe exe = c.compile();
+        return exe;
+    }
+
+    private Object getDymaticValue(List<Paramitem> dymaticString, String expression) {
+        if (CollectionUtils.isEmpty(dymaticString)) {
+            return expression;
         }
-    }
+        Map<String, Object> tempReplaceValue = new HashMap<>(16);
+        AtomicReference<String> tempExpression = new AtomicReference<>(expression);
+        Object tempValue;
+            dymaticString.forEach(k -> {
+                Object value = k.getValue(restContext);
+                tempReplaceValue.put(escapeExprSpecialWord("${" + k.getName() + "}"), value);
+            });
+            tempReplaceValue.forEach((k, v) -> {
+                if(Objects.isNull(v)){
+                    tempExpression.set(tempExpression.get().replaceFirst(k, 0+""));
+                }else if (NumberUtils.isNumber(v.toString())) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, v.toString()));
+                } else if (v instanceof Date) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((Date) v).getTime() + ""));
+                }
+                if (v instanceof java.sql.Date) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((java.sql.Date) v).getTime() + ""));
+                }
+                if (v instanceof Timestamp) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((Timestamp) v).getTime() + ""));
+                }
+            });
 
-    public void setValueDymaticParam(ParamItemContext valueDymaticParam) {
-        this.valueDymaticParam = valueDymaticParam;
-    }
 
-    public void setNextvalueDymaticParam(ParamItemContext nextvalueDymaticParam) {
-        this.nextvalueDymaticParam = nextvalueDymaticParam;
+        try {
+            tempValue = exe.eval(tempExpression.get());
+        } catch (Exception e) {
+            tempReplaceValue.forEach((k, v) -> {
+                if(Objects.isNull(v)){
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ""));
+                }else if (NumberUtils.isNumber(v.toString())) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, v.toString()));
+                } else if (v instanceof Date) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((Date) v).toString() + ""));
+                }
+                if (v instanceof java.sql.Date) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((java.sql.Date) v).toString() + ""));
+                }
+                if (v instanceof Timestamp) {
+                    tempExpression.set(tempExpression.get().replaceFirst(k, ((Timestamp) v).toString() + ""));
+                }
+            });
+            tempValue = initValueExpression;
+        }
+        restContext.updateValue(getType().name().toLowerCase(Locale.ENGLISH) + "." + getName(), tempValue);
+        return tempValue;
+    }
+    /**
+     * 转义正则特殊字符 （$()*+.[]?\^{},|）
+     *
+     * @param keyword
+     * @return
+     */
+    public static String escapeExprSpecialWord(String keyword) {
+        if (StringUtils.isNotBlank(keyword)) {
+            String[] fbsArr = { "\\", "$", "(", ")", "*", "+", ".", "[", "]", "?", "^", "{", "}", "|" };
+            for (String key : fbsArr) {
+                if (keyword.contains(key)) {
+                    keyword = keyword.replace(key, "\\" + key);
+                }
+            }
+        }
+        return keyword;
     }
 }
