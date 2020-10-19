@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.dtstack.flinkx.restapi.common.RestapiKeys.KEY_BATCH;
+
 /**
  * @author : tiezhu
  * @date : 2020/3/12
@@ -57,7 +59,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected Map<String, String> header;
 
-    protected static final int DEFAULT_TIME_OUT = 300000;
+    protected static final int DEFAULT_TIME_OUT = 1800000;
 
     protected Gson gson;
 
@@ -76,6 +78,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         Object dataRow;
         try {
             dataRow = getDataFromRow(row, column);
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -107,6 +110,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (Row row : rows) {
                 dataRow.add(getDataFromRow(row, column));
             }
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
