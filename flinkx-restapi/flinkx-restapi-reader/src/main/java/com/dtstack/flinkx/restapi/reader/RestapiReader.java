@@ -20,6 +20,9 @@ package com.dtstack.flinkx.restapi.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.InnerVaribleFactory;
+import com.dtstack.flinkx.restapi.common.IntervalTimeVarible;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
 import com.google.common.collect.Maps;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -27,6 +30,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,17 +49,23 @@ public class RestapiReader extends BaseDataReader {
 
     private HttpRestConfig httpRestConfig;
 
+    private List<MetaColumn> metaColumns;
+
+    protected Long intervalTime;
+
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
         try {
-            httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
+            this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
+            metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         } catch (Exception e) {
             throw new RuntimeException("解析httpRest Config配置出错:", e);
         }
-
+        InnerVaribleFactory.addVarible("intervalTime", new IntervalTimeVarible(httpRestConfig.getIntervalTime()));
+        intervalTime = httpRestConfig.getIntervalTime();
 //        url = readerConfig.getParameter().getStringVal("url");
 //        method = readerConfig.getParameter().getStringVal("method");
 //        temp = (ArrayList<Map<String, String>>) readerConfig.getParameter().getVal("header");
@@ -73,7 +83,9 @@ public class RestapiReader extends BaseDataReader {
 //        builder.setHeader(header);
 //        builder.setMethod(method);
 //        builder.setUrl(url);
-        builder. setHttpRestConfig(httpRestConfig);
+        builder.setIntervalTime(intervalTime);
+        builder.setMetaColumns(metaColumns);
+        builder.setHttpRestConfig(httpRestConfig);
 
         return createInput(builder.finish());
     }

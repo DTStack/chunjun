@@ -32,7 +32,10 @@ import java.util.Map;
 public class HttpRestConfig implements Serializable {
     private String type;
     private List columns;
-    private List<Map<String, Map<String,String>>> header;
+    private Long intervalTime;
+    private String format;
+    private String url;
+    private Map<String, Map<String,String>> header;
     private Map<String, Map<String,String>> body;
     private Map<String, Map<String,String>> param;
 
@@ -53,11 +56,11 @@ public class HttpRestConfig implements Serializable {
         this.columns = columns;
     }
 
-    public List<Map<String, Map<String, String>>> getHeader() {
+    public Map<String, Map<String, String>> getHeader() {
         return header;
     }
 
-    public void setHeader(List<Map<String, Map<String, String>>> header) {
+    public void setHeader(Map<String, Map<String, String>> header) {
         this.header = header;
     }
 
@@ -75,5 +78,29 @@ public class HttpRestConfig implements Serializable {
 
     public void setParam(Map<String, Map<String, String>> param) {
         this.param = param;
+    }
+
+    public Long getIntervalTime() {
+        return intervalTime;
+    }
+
+    public void setIntervalTime(Long intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

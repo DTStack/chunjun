@@ -69,28 +69,14 @@ public class ParamFactory {
     }
 
 
-    private static List<Paramitem> parse(String text, ParamDefinition paramDefinition, RestContext context) {
-        List<Paramitem> valueItems = new ArrayList<>(12);
-        Matcher matcher = valueExpression.matcher(text);
-        String lastVarible = "";
-        while (matcher.find()) {
-
-            String varible = matcher.group("varible");
-            valueItems.add(ParamParse.parsr(varible));
-            lastVarible = varible;
-        }
-        return valueItems;
-    }
-
-
     public static List<Paramitem> getVarible(String text) {
         List<Paramitem> valueItems = new ArrayList<>(16);
         Matcher matcher = valueExpression.matcher(text);
         while (matcher.find()) {
             String varible = matcher.group("varible");
-            valueItems.add( ParamParse.parsr(varible));
+            valueItems.add(parsr(varible));
         }
-        if(CollectionUtils.isEmpty(valueItems)){
+        if (CollectionUtils.isEmpty(valueItems)) {
             return Collections.emptyList();
         }
         return valueItems;
@@ -101,4 +87,19 @@ public class ParamFactory {
     }
 
 
+    public static Paramitem parsr(String value) {
+
+        if (value.startsWith("${") && value.endsWith("}")) {
+            String substring = value.substring(2, value.length() - 1);
+            if (substring.startsWith("body.") || substring.startsWith("param.") || substring.startsWith("header.") || substring.startsWith("response.")) {
+                return new ReplaceParamItem(substring);
+            } else if (InnerVaribleFactory.isInnerVariable(substring)) {
+                return InnerVaribleFactory.createInnerVarible(substring);
+            } else {
+                return new ConstantVarible(value, value);
+            }
+        } else {
+            return new ConstantVarible(value, value);
+        }
+    }
 }
