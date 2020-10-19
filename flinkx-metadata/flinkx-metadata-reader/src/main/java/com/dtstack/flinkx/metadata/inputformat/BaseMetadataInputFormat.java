@@ -82,9 +82,8 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             tableIterator.set(tableList.iterator());
             init();
         } catch (SQLException | ClassNotFoundException e) {
-            String message = String.format("获取table列表异常, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new IOException(message, e);
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            throw new IOException("获取table列表异常", e);
         }
     }
 

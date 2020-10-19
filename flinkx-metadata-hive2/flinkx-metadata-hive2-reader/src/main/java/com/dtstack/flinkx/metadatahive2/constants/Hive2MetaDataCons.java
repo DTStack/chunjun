@@ -42,11 +42,7 @@ public class Hive2MetaDataCons extends MetaDataCons {
 
     public static final String PARTITION_INFORMATION = "# Partition Information";
     public static final String TABLE_INFORMATION = "# Detailed Table Information";
-
-    // desc formatted后的列名
-    public static final String KEY_RESULTSET_COL_NAME = "# col_name";
-    public static final String KEY_RESULTSET_DATA_TYPE = "data_type";
-    public static final String KEY_RESULTSET_COMMENT = "comment";
+    public static final String COL_NAME = "# col_name";
 
     public static final String KEY_COL_LOCATION = "Location:";
     public static final String KEY_COL_CREATETIME = "CreateTime:";

@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.COL_NAME;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_COLUMN_DATA_TYPE;
@@ -53,9 +55,6 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_L
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_NAME;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITIONS;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_PARTITION_COLUMNS;
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_COL_NAME;
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_COMMENT;
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_RESULTSET_DATA_TYPE;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_STORED_TYPE;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_TOTALSIZE;
@@ -65,6 +64,7 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.ORC_F
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARQUET_FORMAT;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.PARTITION_INFORMATION;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_QUERY_DATA;
+import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_DATABASES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_PARTITIONS;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SHOW_TABLES;
 import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.SQL_SWITCH_DATABASE;
@@ -202,9 +202,9 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
                     case TABLE_INFORMATION:
                         metaDataFlag = 2;
                         break;
-                    case KEY_RESULTSET_COL_NAME:
-                        paraFirst = KEY_RESULTSET_DATA_TYPE;
-                        paraSecond = KEY_RESULTSET_COMMENT;
+                    case COL_NAME:
+                        paraFirst = KEY_COLUMN_DATA_TYPE;
+                        paraSecond = KEY_COLUMN_COMMENT;
                         break;
                     default:
                         break;
