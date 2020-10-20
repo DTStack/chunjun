@@ -97,17 +97,17 @@ public class RestContext {
 
             paramDefinitions.get(ParamType.HEADER).forEach((k, v) -> {
                 if (v instanceof ParamDefinitionNextAble) {
-                    body.put(k, ((ParamDefinitionNextAble) v).getNextValue());
+                    header.put(k, ((ParamDefinitionNextAble) v).getNextValue().toString());
                 } else {
-                    body.put(k, v.getValue());
+                    header.put(k, v.getValue().toString());
                 }
             });
 
             paramDefinitions.get(ParamType.PARAM).forEach((k, v) -> {
                 if (v instanceof ParamDefinitionNextAble) {
-                    body.put(k, ((ParamDefinitionNextAble) v).getNextValue());
+                    param.put(k, ((ParamDefinitionNextAble) v).getNextValue());
                 } else {
-                    body.put(k, v.getValue());
+                    param.put(k, v.getValue());
                 }
             });
         }

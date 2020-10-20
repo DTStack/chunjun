@@ -171,13 +171,18 @@ public class DymaticParam extends ConstantParam implements ParamDefinitionNextAb
                 return f0;
             }
         });
-        factor.define("\\(", expr, "\\)").action(new Action() {
+        factor.define("\\(^[\\-]", expr, "\\)").action(new Action() {
             public BigDecimal act(Object matched) {
                 return (BigDecimal) ((Object[]) matched)[1];
             }
-        }).alt("\\-\\d+(\\.\\d+)?|\\d+(\\.\\d+)?").action(new Action() {
+        }).alt("\\(\\-\\d+(\\.\\d+)?\\)|\\d+(\\.\\d+)?").action(new Action() {
             public BigDecimal act(Object matched) {
-                return new BigDecimal(matched.toString());
+               if( matched.toString().startsWith("(") && matched.toString().endsWith(")")){
+                   return new BigDecimal(matched.toString().substring(1,matched.toString().length()-1));
+               }else{
+                   return new BigDecimal(matched.toString());
+               }
+
             }
         });
         Exe exe = c.compile();

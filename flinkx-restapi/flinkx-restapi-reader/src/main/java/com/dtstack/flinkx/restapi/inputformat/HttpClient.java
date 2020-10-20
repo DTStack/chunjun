@@ -26,6 +26,7 @@ import com.dtstack.flinkx.restapi.common.handler.ReadRecordException;
 import com.dtstack.flinkx.restapi.common.handler.ResponseRetryException;
 import com.dtstack.flinkx.restapi.common.httprequestApi;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpEntity;
@@ -36,9 +37,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +58,7 @@ public class HttpClient {
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     private static final String THREAD_NAME = "restApiReader-thread";
     private List<MetaColumn> metaColumns;
-    private List<Handler> handlers;
+    private List<Handler> handlers = new ArrayList<>(2);
 
 
     public HttpClient(RestContext restContext, Long intervalTime, List<MetaColumn> metaColumns) {
@@ -122,13 +121,15 @@ public class HttpClient {
                     }
                     if (CollectionUtils.isEmpty(metaColumns) || (metaColumns.size() == 1 && metaColumns.get(0).getName().equals(ConstantValue.STAR_SYMBOL))) {
                         queue.put(Row.of(map));
-                    }else{
+                    } else {
                         HashMap<String, Object> stringObjectHashMap = new HashMap<>();
                         for (MetaColumn metaColumn : metaColumns) {
                             String[] names = metaColumn.getName().split("\\.");
                             Map<String, Object> keyToMap = initData(stringObjectHashMap, names);
-                            Object data = getData(map, names);
-                            keyToMap.put(names[names.length - 1], data);
+                            if (Objects.nonNull(keyToMap)) {
+                                Object data = getData(map, names);
+                                keyToMap.put(names[names.length - 1], data);
+                            }
                         }
                         queue.put(Row.of(stringObjectHashMap));
                     }
@@ -156,26 +157,46 @@ public class HttpClient {
     }
 
     public Map<String, Object> initData(HashMap<String, Object> data, String[] names) {
-        HashMap<String, Object> tempHashMap = data;
+        Map<String, Object> tempHashMap = data;
         for (int i = 0; i < names.length; i++) {
             if (i != names.length - 1) {
                 HashMap<String, Object> objectObjectHashMap = new HashMap<String, Object>(4);
-                tempHashMap.putIfAbsent(names[i], objectObjectHashMap);
-                tempHashMap = objectObjectHashMap;
+                Object value = tempHashMap.putIfAbsent(names[i], objectObjectHashMap);
+                if (value instanceof String) {
+                    try {
+                        Map o = GsonUtil.GSON.fromJson((String) value, GsonUtil.gsonMapTypeToken);
+                        tempHashMap.put(names[i], o);
+                        tempHashMap = o;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                } else if (value instanceof Map) {
+                    tempHashMap = (Map) value;
+                } else {
+                    return null;
+                }
             } else {
-                tempHashMap.putIfAbsent(names[i], null);
+                tempHashMap.put(names[i], null);
             }
         }
         return tempHashMap;
     }
 
     public Object getData(Map<String, Object> data, String[] names) {
-        //metaColumns有可能为空 或者 有可能为*
         Map<String, Object> tempHashMap = data;
         for (int i = 0; i < names.length; i++) {
             if (tempHashMap.containsKey(names[i]) && i != names.length - 1) {
+                if (Objects.isNull(tempHashMap.get(names[i]))) {
+                    return null;
+                }
                 if (tempHashMap.get(names[i]) instanceof Map) {
                     tempHashMap = (Map<String, Object>) tempHashMap.get(names[i]);
+                } else if (tempHashMap.get(names[i]) instanceof String) {
+                    try {
+                        tempHashMap = GsonUtil.GSON.fromJson((String) tempHashMap.get(names[i]), GsonUtil.gsonMapTypeToken);
+                    } catch (Exception e) {
+                        return null;
+                    }
                 } else {
                     return null;
                 }
