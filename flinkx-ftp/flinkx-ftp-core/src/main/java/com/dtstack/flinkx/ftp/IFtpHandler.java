@@ -117,5 +117,9 @@ public interface IFtpHandler {
      */
     void rename(String oldPath, String newPath) throws Exception;
 
+    /**
+     * 关闭ftp输入流
+     * @throws IOException 文件句柄操作异常
+     */
     void completePendingCommand() throws IOException;
 }

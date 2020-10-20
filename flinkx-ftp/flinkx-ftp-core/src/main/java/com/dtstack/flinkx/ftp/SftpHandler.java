@@ -381,8 +381,11 @@ public class SftpHandler implements IFtpHandler {
         channelSftp.rename(oldPath, newPath);
     }
 
+    /**
+     * 仅ftp输入流需要显示关闭
+     */
     @Override
-    public void completePendingCommand() throws IOException {
+    public void completePendingCommand() {
 
     }
 }
