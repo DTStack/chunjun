@@ -24,6 +24,7 @@ import com.dtstack.flinkx.ftp.FtpConfig;
 import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -163,10 +164,9 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             this.os.write(bytes);
             this.os.write(NEWLINE);
             this.os.flush();
-
+            rowsOfCurrentBlock++;
             if(restoreConfig.isRestore()){
                 lastRow = row;
-                rowsOfCurrentBlock++;
             }
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
@@ -287,6 +287,12 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             os.flush();
             os.close();
             os = null;
+            try {
+                //avoid Failure of FtpClient operating
+                this.ftpHandler.completePendingCommand();
+            }catch (Exception e) {
+                throw new IOException(ExceptionUtil.getErrorMessage(e));
+            }
         }
     }
 

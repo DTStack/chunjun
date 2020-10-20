@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.ftp;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -236,7 +237,7 @@ public class FtpHandler implements IFtpHandler {
         try {
             this.printWorkingDirectory();
             String parentDir = filePath.substring(0,
-                    StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR));
+                    StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR_UNIX));
             this.ftpClient.changeWorkingDirectory(parentDir);
             this.printWorkingDirectory();
             OutputStream writeOutputStream = this.ftpClient
@@ -343,5 +344,18 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public void rename(String oldPath, String newPath) throws IOException {
         ftpClient.rename(oldPath, newPath);
+    }
+
+    @Override
+    public void completePendingCommand() throws IOException {
+        try {
+            // throw exception when return false
+            if(!ftpClient.completePendingCommand()){
+                throw new IOException("I/O error occurs while sending or receiving data");
+            };
+        } catch (IOException e) {
+            LOG.error("I/O error occurs while sending or receiving data");
+            throw new IOException(ExceptionUtil.getErrorMessage(e));
+        }
     }
 }

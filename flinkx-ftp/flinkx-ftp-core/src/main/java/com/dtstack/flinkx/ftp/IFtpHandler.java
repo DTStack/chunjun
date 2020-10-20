@@ -116,4 +116,6 @@ public interface IFtpHandler {
      * @throws Exception 可能会出现文件不存在，连接异常等
      */
     void rename(String oldPath, String newPath) throws Exception;
+
+    void completePendingCommand() throws IOException;
 }
