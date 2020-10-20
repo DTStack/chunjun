@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.restapi.reader;
 
-import com.dtstack.flinkx.reader.MetaColumn;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +28,15 @@ import java.util.Map;
  * @Date 2020/9/28
  */
 public class HttpRestConfig implements Serializable {
-    private String type;
-    private List columns;
-    private Long intervalTime;
-    private String format;
     private String url;
+    private String type;
+    private Long intervalTime;
+    private List columns;
+    private String format;
     private Map<String, Map<String,String>> header;
     private Map<String, Map<String,String>> body;
     private Map<String, Map<String,String>> param;
+    protected List handlers;
 
 
     public String getType() {
@@ -102,5 +101,13 @@ public class HttpRestConfig implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public List getHandlers() {
+        return handlers;
+    }
+
+    public void setHandlers(List handlers) {
+        this.handlers = handlers;
     }
 }

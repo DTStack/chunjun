@@ -21,6 +21,8 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.common.RestContext;
+import com.dtstack.flinkx.restapi.common.handler.DataHandler;
+import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -53,6 +55,8 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     private List<MetaColumn> metaColumns ;
 
+    private List<DataHandler> handlers;
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
@@ -64,7 +68,9 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) throws IOException {
         restContext = new RestContext(httpRestConfig.getType(),httpRestConfig.getUrl(),httpRestConfig.getFormat());
-        myHttpClient = new HttpClient(restContext, intervalTime,metaColumns);
+        myHttpClient = new HttpClient(restContext, intervalTime);
+        myHttpClient.setMetaColumns(metaColumns);
+        myHttpClient.setHandlers(handlers);
         restContext.parseAndInt(httpRestConfig.getBody(), ParamType.BODY);
         restContext.parseAndInt(httpRestConfig.getHeader(), ParamType.HEADER);
         restContext.parseAndInt(httpRestConfig.getParam(), ParamType.PARAM);
@@ -107,5 +113,13 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     public void setMetaColumns(List<MetaColumn> metaColumns) {
         this.metaColumns = metaColumns;
+    }
+
+    public List<DataHandler> getHandlers() {
+        return handlers;
+    }
+
+    public void setHandlers(List<DataHandler> handlers) {
+        this.handlers = handlers;
     }
 }

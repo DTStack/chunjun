@@ -20,10 +20,11 @@ package com.dtstack.flinkx.restapi.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
+import com.dtstack.flinkx.restapi.common.MapUtils;
 import com.dtstack.flinkx.restapi.common.RestContext;
-import com.dtstack.flinkx.restapi.common.handler.Handler;
-import com.dtstack.flinkx.restapi.common.handler.ReadRecordException;
-import com.dtstack.flinkx.restapi.common.handler.ResponseRetryException;
+import com.dtstack.flinkx.restapi.common.exception.ReadRecordException;
+import com.dtstack.flinkx.restapi.common.exception.ResponseRetryException;
+import com.dtstack.flinkx.restapi.common.handler.DataHandler;
 import com.dtstack.flinkx.restapi.common.httprequestApi;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -58,10 +59,10 @@ public class HttpClient {
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     private static final String THREAD_NAME = "restApiReader-thread";
     private List<MetaColumn> metaColumns;
-    private List<Handler> handlers = new ArrayList<>(2);
+    private List<DataHandler> handlers;
 
 
-    public HttpClient(RestContext restContext, Long intervalTime, List<MetaColumn> metaColumns) {
+    public HttpClient(RestContext restContext, Long intervalTime) {
         this.restContext = restContext;
         this.intervalTime = intervalTime;
         queue = new SynchronousQueue<>(false);
@@ -72,7 +73,6 @@ public class HttpClient {
             }
         });
         this.httpClient = HttpUtil.getHttpClient();
-        this.metaColumns = metaColumns;
     }
 
     public void start() {
@@ -113,12 +113,15 @@ public class HttpClient {
                 String entityData = EntityUtils.toString(entity);
                 if (restContext.getFormat().equals("json")) {
                     Map<String, Object> map = HttpUtil.gson.fromJson(entityData, Map.class);
-                    //todo
-                    for (Handler handler : handlers) {
-                        if (handler.isPipei(map)) {
-                            handler.execute(map);
+
+                    if(CollectionUtils.isNotEmpty(handlers)){
+                        for (DataHandler handler : handlers) {
+                            if (handler.isPipei(map)) {
+                                handler.execute(map);
+                            }
                         }
                     }
+
                     if (CollectionUtils.isEmpty(metaColumns) || (metaColumns.size() == 1 && metaColumns.get(0).getName().equals(ConstantValue.STAR_SYMBOL))) {
                         queue.put(Row.of(map));
                     } else {
@@ -127,7 +130,7 @@ public class HttpClient {
                             String[] names = metaColumn.getName().split("\\.");
                             Map<String, Object> keyToMap = initData(stringObjectHashMap, names);
                             if (Objects.nonNull(keyToMap)) {
-                                Object data = getData(map, names);
+                                Object data = MapUtils.getData(map, names);
                                 keyToMap.put(names[names.length - 1], data);
                             }
                         }
@@ -182,30 +185,11 @@ public class HttpClient {
         return tempHashMap;
     }
 
-    public Object getData(Map<String, Object> data, String[] names) {
-        Map<String, Object> tempHashMap = data;
-        for (int i = 0; i < names.length; i++) {
-            if (tempHashMap.containsKey(names[i]) && i != names.length - 1) {
-                if (Objects.isNull(tempHashMap.get(names[i]))) {
-                    return null;
-                }
-                if (tempHashMap.get(names[i]) instanceof Map) {
-                    tempHashMap = (Map<String, Object>) tempHashMap.get(names[i]);
-                } else if (tempHashMap.get(names[i]) instanceof String) {
-                    try {
-                        tempHashMap = GsonUtil.GSON.fromJson((String) tempHashMap.get(names[i]), GsonUtil.gsonMapTypeToken);
-                    } catch (Exception e) {
-                        return null;
-                    }
-                } else {
-                    return null;
-                }
-            } else if (i == names.length - 1) {
-                return tempHashMap.get(names[i]);
-            } else {
-                return null;
-            }
-        }
-        return null;
+    public void setMetaColumns(List<MetaColumn> metaColumns) {
+        this.metaColumns = metaColumns;
+    }
+
+    public void setHandlers(List<DataHandler> handlers) {
+        this.handlers = handlers;
     }
 }

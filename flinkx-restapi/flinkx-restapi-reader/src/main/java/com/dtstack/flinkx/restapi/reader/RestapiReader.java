@@ -23,8 +23,9 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.InnerVaribleFactory;
 import com.dtstack.flinkx.restapi.common.IntervalTimeVarible;
+import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
-import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -39,19 +40,13 @@ import java.util.Map;
  */
 public class RestapiReader extends BaseDataReader {
 
-    private String url;
-
-    private String method;
-
-    private Map<String, Object> header = Maps.newHashMap();
-
-    private ArrayList<Map<String, String>> temp;
-
     private HttpRestConfig httpRestConfig;
 
     private List<MetaColumn> metaColumns;
 
     protected Long intervalTime;
+
+    protected List handlers;
 
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -60,32 +55,37 @@ public class RestapiReader extends BaseDataReader {
 
         try {
             this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
-            metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         } catch (Exception e) {
             throw new RuntimeException("解析httpRest Config配置出错:", e);
         }
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
+        List handlers = httpRestConfig.getHandlers();
+        if (CollectionUtils.isNotEmpty(handlers)) {
+            handlers = new ArrayList(handlers.size() * 2);
+            for (Object handlerParam : handlers) {
+                try {
+                    handlers.add(DataHandlerFactory.getDataHandler((Map) handlerParam));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("dataHandler param error" + httpRestConfig.getHandlers());
+                }
+            }
+            DataHandlerFactory.destroy();
+        }
+
         InnerVaribleFactory.addVarible("intervalTime", new IntervalTimeVarible(httpRestConfig.getIntervalTime()));
         intervalTime = httpRestConfig.getIntervalTime();
-//        url = readerConfig.getParameter().getStringVal("url");
-//        method = readerConfig.getParameter().getStringVal("method");
-//        temp = (ArrayList<Map<String, String>>) readerConfig.getParameter().getVal("header");
-//        if (temp != null) {
-//            for (Map<String, String> map : temp) {
-//                header.putAll(map);
-//            }
-//        }
+
     }
 
     @Override
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
-//        builder.setHeader(header);
-//        builder.setMethod(method);
-//        builder.setUrl(url);
         builder.setIntervalTime(intervalTime);
         builder.setMetaColumns(metaColumns);
+        builder.setHandlers(handlers);
         builder.setHttpRestConfig(httpRestConfig);
+
 
         return createInput(builder.finish());
     }

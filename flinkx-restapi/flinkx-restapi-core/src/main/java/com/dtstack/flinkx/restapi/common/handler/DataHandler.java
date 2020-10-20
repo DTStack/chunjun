@@ -3,13 +3,13 @@ package com.dtstack.flinkx.restapi.common.handler;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class Handler {
+public abstract class DataHandler {
 
-    private String key;
+    protected String key;
 
-    private Set<String> value;
+    protected Set<String> value;
 
-    public Handler(String key, Set<String> value) {
+    public DataHandler(String key, Set<String> value) {
         this.key = key;
         this.value = value;
     }
@@ -19,4 +19,5 @@ public abstract class Handler {
     }
 
     public abstract void execute(Map<String, Object> responseData);
+
 }

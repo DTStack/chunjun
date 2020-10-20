@@ -19,6 +19,7 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.handler.DataHandler;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 
 import java.util.List;
@@ -58,7 +59,10 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setMetaColumns(List<MetaColumn> metaColumns) {
         this.format.setMetaColumns(metaColumns);
-        ;
+    }
+
+    public void setHandlers(List<DataHandler> handlers) {
+        this.format.setHandlers(handlers);
     }
 
     @Override
