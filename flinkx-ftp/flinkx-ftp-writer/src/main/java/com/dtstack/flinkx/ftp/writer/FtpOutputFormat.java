@@ -25,6 +25,7 @@ import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -173,10 +174,20 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         }
     }
 
+    /**
+     * 直接创建目录会失败，增加等待和重试
+     * @throws IOException 创建目录异常
+     */
     @Override
     protected void createFinishedTag() throws IOException {
         LOG.info("Subtask [{}] finished, create dir {}", taskNumber, finishedPath);
-        ftpHandler.mkDirRecursive(finishedPath);
+        try{
+            RetryUtil.executeWithRetry(() -> {ftpHandler.mkDirRecursive(finishedPath);
+                return null;
+            }, 3, 5000, false);
+        }catch (Exception e){
+          throw new IOException(e);
+        };
     }
 
     @Override
