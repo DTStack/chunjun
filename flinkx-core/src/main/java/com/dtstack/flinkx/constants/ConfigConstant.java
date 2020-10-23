@@ -24,7 +24,7 @@ package com.dtstack.flinkx.constants;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
+import static com.dtstack.flinkx.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE;
 
 /**
  *
@@ -56,7 +56,7 @@ public class ConfigConstant {
     public static final ConfigOption<String> FLINK_PLUGIN_LOAD_MODE_KEY = ConfigOptions
             .key("pluginLoadMode")
             .stringType()
-            .defaultValue(CLASS_PATH_PLUGIN_LOAD_MODE)
+            .defaultValue(SHIP_FILE_PLUGIN_LOAD_MODE)
             .withDescription("The config parameter defining YarnPer mode plugin loading method." +
                     "classpath: The plugin package is not uploaded when the task is submitted. " +
                     "The plugin package needs to be deployed in the pluginRoot directory of the yarn-node node, but the task starts faster" +

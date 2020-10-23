@@ -20,14 +20,10 @@ package com.dtstack.flinkx.clickhouse.format;
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.sql.Statement;
@@ -43,42 +39,6 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 public class ClickhouseInputFormat extends JdbcInputFormat {
 
     @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
-        try {
-            LOG.info("inputSplit = {}", inputSplit);
-            ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
-            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
-            statement.setFetchSize(fetchSize);
-            statement.setQueryTimeout(queryTimeOut);
-            String querySql = buildQuerySql(inputSplit);
-            resultSet = statement.executeQuery(querySql);
-            columnCount = resultSet.getMetaData().getColumnCount();
-
-            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
-            if(splitWithRowCol){
-                columnCount = columnCount-1;
-            }
-            checkSize(columnCount, metaColumns);
-            hasNext = resultSet.next();
-
-            if (StringUtils.isEmpty(customSql)){
-                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
-        } catch (Exception e) {
-            LOG.error("open failed,e = {}", ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(e);
-        }
-
-        LOG.info("JdbcInputFormat[{}]open: end", jobName);
-    }
-
-    @Override
     public Row nextRecordInternal(Row row) throws IOException {
         if (!hasNext) {
             return null;
@@ -88,7 +48,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if(obj != null) {
-                    obj = clobToString(obj);
+                    obj = DbUtil.clobToString(obj);
                 }
                 row.setField(pos, obj);
             }
@@ -98,5 +58,15 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         } catch (Exception npe) {
             throw new IOException("Couldn't access resultSet", npe);
         }
+    }
+
+    /**
+     * 获取数据库连接，用于子类覆盖
+     * @return connection
+     * @throws SQLException
+     */
+    @Override
+    protected Connection getConnection() throws SQLException {
+        return ClickhouseUtil.getConnection(dbUrl, username, password);
     }
 }

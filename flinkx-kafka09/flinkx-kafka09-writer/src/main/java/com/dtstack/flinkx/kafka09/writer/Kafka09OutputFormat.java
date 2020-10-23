@@ -20,6 +20,10 @@ package com.dtstack.flinkx.kafka09.writer;
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.GsonUtil;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
+import kafka.producer.ProducerConfig;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -84,7 +88,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
         producer.close();
     }

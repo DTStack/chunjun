@@ -70,8 +70,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-    }
+    protected void openInternal(int taskNumber, int numTasks) {}
 
     @Override
     @SuppressWarnings("unchecked")
@@ -122,7 +121,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
+    protected void writeMultipleRecordsInternal() {
         notSupportBatchWrite("KafkaWriter");
     }
 

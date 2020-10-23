@@ -26,6 +26,7 @@ import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -33,6 +34,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The Reader plugin for any database that can be connected via JDBC.
@@ -42,41 +44,23 @@ import java.util.List;
  */
 public class JdbcDataReader extends BaseDataReader {
 
-    protected DatabaseInterface databaseInterface;
-
-    protected TypeConverterInterface typeConverter;
-
+    protected String username;
+    protected String password;
     protected String dbUrl;
 
-    protected String username;
-
-    protected String password;
-
-    protected List<MetaColumn> metaColumns;
-
     protected String table;
-
     protected String where;
-
-    protected String splitKey;
-
-    protected int fetchSize;
-
-    protected int queryTimeOut;
-
     protected String customSql;
-
     protected String orderByColumn;
 
+    protected String splitKey;
+    protected int fetchSize;
+    protected int queryTimeOut;
+
     protected IncrementConfig incrementConfig;
-
-    public void setDatabaseInterface(DatabaseInterface databaseInterface) {
-        this.databaseInterface = databaseInterface;
-    }
-
-    public void setTypeConverterInterface(TypeConverterInterface typeConverter) {
-        this.typeConverter = typeConverter;
-    }
+    protected DatabaseInterface databaseInterface;
+    protected TypeConverterInterface typeConverter;
+    protected List<MetaColumn> metaColumns;
 
     public JdbcDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -126,43 +110,57 @@ public class JdbcDataReader extends BaseDataReader {
         builder.setQuery(sqlBuilder.buildSql());
 
         BaseRichInputFormat format =  builder.finish();
-//        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
         return createInput(format);
     }
 
     protected JdbcInputFormatBuilder getBuilder() {
-        throw new RuntimeException("子类必须覆盖getBuilder方法");
+        throw new RuntimeException("code error : com.dtstack.flinkx.rdb.datareader.JdbcDataReader.getBuilder must be overwrite by subclass.");
     }
 
     private void buildIncrementConfig(ReaderConfig readerConfig){
         boolean polling = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
-        Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
+        String increColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
         long pollingInterval = readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
 
         incrementConfig = new IncrementConfig();
-        if (incrementColumn != null && StringUtils.isNotEmpty(incrementColumn.toString())){
+        //增量字段不为空，表示任务为增量或间隔轮询任务
+        if (StringUtils.isNotBlank(increColumn)){
             String type = null;
             String name = null;
             int index = -1;
 
-            String incrementColStr = String.valueOf(incrementColumn);
-            if(NumberUtils.isNumber(incrementColStr)){
-                MetaColumn metaColumn = metaColumns.get(Integer.parseInt(incrementColStr));
+            //纯数字则表示增量字段在column中的顺序位置
+            if(NumberUtils.isNumber(increColumn)){
+                int idx = Integer.parseInt(increColumn);
+                if(idx > metaColumns.size() - 1){
+                    throw new RuntimeException(
+                            String.format("config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
+                                    GsonUtil.GSON.toJson(metaColumns),
+                                    metaColumns.size(),
+                                    increColumn));
+                }
+                MetaColumn metaColumn = metaColumns.get(idx);
                 type = metaColumn.getType();
                 name = metaColumn.getName();
                 index = metaColumn.getIndex();
             } else {
                 for (MetaColumn metaColumn : metaColumns) {
-                    if(metaColumn.getName().equals(incrementColStr)){
+                    if(Objects.equals(increColumn, metaColumn.getName())){
                         type = metaColumn.getType();
                         name = metaColumn.getName();
                         index = metaColumn.getIndex();
                         break;
                     }
                 }
+            }
+            if (type == null || name == null){
+                throw new IllegalArgumentException(
+                        String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s",
+                                GsonUtil.GSON.toJson(metaColumns),
+                                increColumn));
             }
 
             incrementConfig.setIncrement(true);
@@ -174,11 +172,14 @@ public class JdbcDataReader extends BaseDataReader {
             incrementConfig.setColumnIndex(index);
             incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
             incrementConfig.setPollingInterval(pollingInterval);
-
-            if (type == null || name == null){
-                throw new IllegalArgumentException("There is no " + incrementColStr +" field in the columns");
-            }
         }
     }
 
+    public void setDatabaseInterface(DatabaseInterface databaseInterface) {
+        this.databaseInterface = databaseInterface;
+    }
+
+    public void setTypeConverterInterface(TypeConverterInterface typeConverter) {
+        this.typeConverter = typeConverter;
+    }
 }

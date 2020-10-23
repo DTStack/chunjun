@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.options;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
@@ -26,11 +27,7 @@ import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
-import static com.dtstack.flinkx.constants.ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY;
-import static com.dtstack.flinkx.constants.ConstantValue.CLASSLOADER_CHILD_FIRST;
-import static com.dtstack.flinkx.constants.ConstantValue.CLASSLOADER_PARENT_FIRST;
 import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
-import static com.dtstack.flinkx.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE;
 
 /**
  * This class define commandline options for the Launcher program
@@ -57,9 +54,6 @@ public class Options {
 
     @OptionRequired(description = "env properties")
     private String pluginRoot;
-
-    @OptionRequired(description = "Sync remote plugin root path")
-    private String remotePluginPath;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
@@ -91,6 +85,9 @@ public class Options {
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
 
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
@@ -106,11 +103,11 @@ public class Options {
                 flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
             }
             if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
-                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, CLASSLOADER_CHILD_FIRST);
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
             }else{
-                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, CLASSLOADER_PARENT_FIRST);
+                flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
-            flinkConfiguration.setString(FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
+            flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
         }
         return flinkConfiguration;
     }
@@ -195,14 +192,6 @@ public class Options {
         this.pluginRoot = pluginRoot;
     }
 
-    public String getRemotePluginPath() {
-        return remotePluginPath;
-    }
-
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
-    }
-
     public String getYarnconf() {
         return yarnconf;
     }
@@ -243,34 +232,19 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
     public String getP() {
         return p;
     }
 
     public void setP(String p) {
         this.p = p;
-    }
-
-    @Override
-    public String toString() {
-        return "Options{" +
-                "mode='" + mode + '\'' +
-                ", job='" + job + '\'' +
-                ", monitor='" + monitor + '\'' +
-                ", jobid='" + jobid + '\'' +
-                ", flinkconf='" + flinkconf + '\'' +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", yarnconf='" + yarnconf + '\'' +
-                ", parallelism='" + parallelism + '\'' +
-                ", priority='" + priority + '\'' +
-                ", queue='" + queue + '\'' +
-                ", flinkLibJar='" + flinkLibJar + '\'' +
-                ", confProp='" + confProp + '\'' +
-                ", p='" + p + '\'' +
-                ", s='" + s + '\'' +
-                ", pluginLoadMode='" + pluginLoadMode + '\'' +
-                ", appId='" + appId + '\'' +
-                ", flinkConfiguration=" + flinkConfiguration +
-                '}';
     }
 }

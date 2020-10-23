@@ -63,7 +63,7 @@ public final class HiveDbUtil {
     public static final String PARAM_DELIMITER = "&";
     public static final String KEY_PRINCIPAL = "principal";
 
-    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[0-9a-zA-Z\\.]+):(?<port>\\d+)/(?<db>[0-9a-z_%]+)(?<param>[\\?;#].*)*");
+    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
     public static final String HOST_KEY = "host";
     public static final String PORT_KEY = "port";
     public static final String DB_KEY = "db";
@@ -94,7 +94,7 @@ public final class HiveDbUtil {
                 }
             }, 1, 1000L, false);
         } catch (Exception e1) {
-            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
+            throw new RuntimeException(String.format("connect：%s failed ：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
         }
     }
 
@@ -174,7 +174,7 @@ public final class HiveDbUtil {
         }
 
         if (!check) {
-            throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 数据库服务器端口连接失败,请检查您的数据库配置或服务状态.");
+            throw new RuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " connection failed, check your configuration or service status.");
         }
 
         Properties prop = new Properties();
@@ -197,14 +197,14 @@ public final class HiveDbUtil {
             return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
-                throw new RuntimeException("用户名或密码错误.");
+                throw new RuntimeException("user name or password wrong.");
             } else if (SQLSTATE_CANNOT_ACQUIRE_CONNECT.equals(e.getSQLState())) {
-                throw new RuntimeException("应用程序服务器拒绝建立连接.");
+                throw new RuntimeException("server refused connection.");
             } else {
-                throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 错误信息：" + ExceptionUtil.getErrorMessage(e));
+                throw new RuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " error message ：" + ExceptionUtil.getErrorMessage(e));
             }
         } catch (Exception e1) {
-            throw new RuntimeException("连接信息：" + connectionInfo.getJdbcUrl() + " 错误信息：" + ExceptionUtil.getErrorMessage(e1));
+            throw new RuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " error message ：" + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
         }
@@ -254,7 +254,7 @@ public final class HiveDbUtil {
             return connection;
         }
 
-        throw new RuntimeException("jdbcUrl 不规范");
+        throw new RuntimeException("jdbcUrl is irregular");
     }
 
 
@@ -264,7 +264,8 @@ public final class HiveDbUtil {
         if (matcher.find()) {
             addr = matcher.group(HOST_KEY) + ":" + matcher.group(PORT_KEY);
         } else {
-            addr = url.substring(url.indexOf("//") + 2, url.lastIndexOf("/"));
+            addr = url.substring(url.indexOf("//") + 2);
+            addr=  addr.substring(0,addr.indexOf("/"));
         }
         return addr;
     }
@@ -290,7 +291,7 @@ public final class HiveDbUtil {
                 result.add(row);
             }
         } catch (Exception e) {
-            throw new RuntimeException("SQL 执行异常");
+            throw new RuntimeException("execute SQL failed");
         } finally {
             HiveDbUtil.closeDbResources(res, statement, null);
         }

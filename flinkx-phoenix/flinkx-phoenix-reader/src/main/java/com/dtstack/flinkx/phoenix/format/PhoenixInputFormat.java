@@ -111,11 +111,11 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = PhoenixUtil.analyzeTable(resultSet, metaColumns);
+                columnTypeList = PhoenixUtil.analyzeTable(resultSet, metaColumns);
             } else {
-                descColumnTypeList = new ArrayList<>();
+                columnTypeList = new ArrayList<>();
                 for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
+                    columnTypeList.add(metaColumn.getName());
                 }
             }
 
@@ -137,8 +137,8 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if (obj != null) {
-                    if (CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        String columnType = descColumnTypeList.get(pos);
+                    if (CollectionUtils.isNotEmpty(columnTypeList)) {
+                        String columnType = columnTypeList.get(pos);
                         if ("year".equalsIgnoreCase(columnType)) {
                             java.util.Date date = (java.util.Date) obj;
                             obj = DateUtil.dateToYearString(date);

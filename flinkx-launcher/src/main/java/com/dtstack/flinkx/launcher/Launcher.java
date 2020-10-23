@@ -73,7 +73,55 @@ public class Launcher {
         findDefaultConfigDir(launcherOptions);
 
         List<String> argList = optionParser.getProgramExeArgList();
+        switch (ClusterMode.getByName(launcherOptions.getMode())) {
+            case local:
+                com.dtstack.flinkx.Main.main(argList.toArray(new String[0]));
+                break;
+            case standalone:
+            case yarn:
+                ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
+                argList.add("-monitor");
+                argList.add(clusterClient.getWebInterfaceURL());
+                ClientUtils.submitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                break;
+            case yarnPer:
+                String confProp = launcherOptions.getConfProp();
+                if (StringUtils.isBlank(confProp)) {
+                    throw new IllegalArgumentException("per-job mode must have confProp!");
+                }
+                String libJar = launcherOptions.getFlinkLibJar();
+                if (StringUtils.isBlank(libJar)) {
+                    throw new IllegalArgumentException("per-job mode must have flink lib path!");
+                }
+                argList.add("-monitor");
+                argList.add("");
+                PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+        }
+    }
+        List<String> argList = optionParser.getProgramExeArgList();
 
+    private static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
+        String pluginRoot = launcherOptions.getPluginRoot();
+        String content = launcherOptions.getJob();
+        String coreJarName = getCoreJarFileName(pluginRoot);
+        File jarFile = new File(pluginRoot + File.separator + coreJarName);
+        List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
+        SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
+        if (StringUtils.isNotEmpty(launcherOptions.getS())) {
+            savepointRestoreSettings = SavepointRestoreSettings.forPath(launcherOptions.getS());
+        }
+        PackagedProgram program = PackagedProgram.newBuilder()
+                .setJarFile(jarFile)
+                .setUserClassPaths(urlList)
+                .setEntryPointClassName(MAIN_CLASS)
+                .setConfiguration(launcherOptions.loadFlinkConfiguration())
+                .setSavepointRestoreSettings(savepointRestoreSettings)
+                .setArguments(remoteArgs)
+                .build();
+        return PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+    }
+
+    public static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
         // 将argList转化为HashMap，方便通过参数名称来获取参数值
         HashMap<String, String> temp = new HashMap<>(16);
         for (int i = 0; i < argList.size(); i += 2) {
@@ -234,7 +282,7 @@ public class Launcher {
         return property;
     }
 
-    public static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{
+    public static String getCoreJarFileName(String pluginRoot) throws FileNotFoundException {
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {

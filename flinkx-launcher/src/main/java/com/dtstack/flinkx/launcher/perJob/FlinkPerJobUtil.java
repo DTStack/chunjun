@@ -45,10 +45,10 @@ public class FlinkPerJobUtil {
      */
     public final static int MIN_JM_MEMORY = 768;
     public final static int MIN_TM_MEMORY = 768;
-
     public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
     public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
     public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
 
     /**
      * the specification of this per-job mode cost

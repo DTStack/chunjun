@@ -66,7 +66,7 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
         producer.close();
     }
