@@ -64,13 +64,13 @@ public class KafkaBaseReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         KafkaBaseInputFormat format = getFormat();
+        format.setDataTransferConfig(dataTransferConfig);
         format.setTopic(topic);
         format.setGroupId(groupId);
         format.setCodec(codec);
         format.setBlankIgnore(blankIgnore);
         format.setConsumerSettings(consumerSettings);
         format.setRestoreConfig(restoreConfig);
-        format.setMetaColumns(metaColumns);
         return createInput(format);
     }
 

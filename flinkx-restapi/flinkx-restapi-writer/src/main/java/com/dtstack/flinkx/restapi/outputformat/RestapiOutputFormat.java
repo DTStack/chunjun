@@ -24,6 +24,13 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.collect.Maps;
 import org.apache.flink.types.Row;
 import org.apache.http.HttpStatus;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.flink.types.Row;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -33,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author : tiezhu

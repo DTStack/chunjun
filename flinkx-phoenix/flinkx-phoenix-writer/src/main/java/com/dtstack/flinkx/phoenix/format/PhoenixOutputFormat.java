@@ -21,11 +21,19 @@ import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.ReflectionUtils;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.URLClassPath;
 
-import java.sql.SQLException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.List;
 
 /**
  * Company: www.dtstack.com
@@ -33,13 +41,35 @@ import java.sql.SQLException;
  * @author wuhui
  */
 public class PhoenixOutputFormat extends JdbcOutputFormat {
+
     private static final Logger LOG = LoggerFactory.getLogger(PhoenixOutputFormat.class);
+
+    private static final String PHOENIX_WRITER_PREFIX = "flinkx-phoenix-writer";
 
     @Override
     protected void openInternal(int taskNumber, int numTasks){
         try {
-            ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password);
+            Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
+            declaredField.setAccessible(true);
+            URLClassPath urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
+            declaredField.setAccessible(false);
+
+            List<URL> needJar = Lists.newArrayList();
+            for(URL url : urlClassPath.getURLs()){
+                String urlFileName = FilenameUtils.getName(url.getPath());
+                if(urlFileName.startsWith(PHOENIX_WRITER_PREFIX)){
+                    needJar.add(url);
+                }
+            }
+
+            ClassLoader parentClassLoader = getClass().getClassLoader();
+            String[] alwaysParentFirstPatterns = new String[2];
+            alwaysParentFirstPatterns[0] = "org.apache.flink";
+            alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
+
+            ClassUtil.forName(driverName, childFirstClassLoader);
+            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
@@ -66,9 +96,8 @@ public class PhoenixOutputFormat extends JdbcOutputFormat {
             readyCheckpoint = false;
 
             LOG.info("subTask[{}}] wait finished", taskNumber);
-        } catch (SQLException sqe) {
+        } catch (Exception sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         }
     }
-
 }

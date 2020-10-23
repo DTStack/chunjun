@@ -61,7 +61,7 @@ public class RestapiReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setHeader(header);
         builder.setMethod(method);
         builder.setUrl(url);

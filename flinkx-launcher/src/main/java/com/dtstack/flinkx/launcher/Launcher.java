@@ -234,7 +234,7 @@ public class Launcher {
         return property;
     }
 
-    public static String getCoreJarFileName(String pluginRoot) throws FileNotFoundException {
+    public static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {

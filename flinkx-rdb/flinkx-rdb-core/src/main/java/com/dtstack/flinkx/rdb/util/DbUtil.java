@@ -18,7 +18,9 @@
 package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.SysUtil;
@@ -29,7 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +76,9 @@ public class DbUtil {
      */
     private static int NANOS_LENGTH = 19;
 
-    public static int NANOS_PART_LENGTH = 9;
     private static int FORMAT_TIME_NANOS_LENGTH = 29;
+
+    public static int NANOS_PART_LENGTH = 9;
 
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
@@ -134,7 +143,7 @@ public class DbUtil {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
                     try (Statement statement = dbConn.createStatement()){
-                        statement.execute("select 111");
+                        statement.execute("SELECT 1 FROM dual");
                         failed = false;
                     }
                 } catch (Exception e) {
@@ -266,6 +275,63 @@ public class DbUtil {
         return columnTypeList;
     }
 
+    /**
+     * 获取表列名类型列表
+     * @param dbUrl             jdbc url
+     * @param username          数据库账号
+     * @param password          数据库密码
+     * @param databaseInterface DatabaseInterface
+     * @param table             表名
+     * @param metaColumns       MetaColumn列表
+     * @return
+     */
+    public static List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
+                                            String table, List<MetaColumn> metaColumns) {
+        List<String> ret = new ArrayList<>(metaColumns.size());
+        Connection dbConn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            dbConn = getConnection(dbUrl, username, password);
+            if (null == dbConn) {
+                throw new RuntimeException("Get hive connection error");
+            }
+
+            ret = DbUtil.analyzeTableFromConn(dbConn, databaseInterface, table, metaColumns);
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            closeDbResources(rs, stmt, dbConn, false);
+        }
+
+        return ret;
+    }
+
+    public static List<String> analyzeTableFromConn(Connection conn, DatabaseInterface databaseInterface,
+                                                    String table, List<MetaColumn> metaColumns) throws SQLException {
+        List<String> ret = new ArrayList<>(metaColumns.size());
+        Statement stmt;
+        ResultSet rs;
+
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
+        ResultSetMetaData rd = rs.getMetaData();
+
+        Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+        for(int i = 0; i < rd.getColumnCount(); ++i) {
+            nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+        }
+
+        for (MetaColumn metaColumn : metaColumns) {
+            if(metaColumn.getValue() != null){
+                ret.add("string");
+            } else {
+                ret.add(nameTypeMap.get(metaColumn.getName()));
+            }
+        }
+        return ret;
+    }
     /**
      * clob转string
      * @param obj   clob

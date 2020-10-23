@@ -19,7 +19,7 @@
 package org.apache.flink.client.deployment;
 
 import org.apache.flink.client.program.PackagedProgram;
-import org.apache.flink.configuration.*;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;

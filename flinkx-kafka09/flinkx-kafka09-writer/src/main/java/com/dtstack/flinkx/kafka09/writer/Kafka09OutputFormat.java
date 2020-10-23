@@ -18,14 +18,16 @@
 package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
 import org.apache.flink.configuration.Configuration;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @company: www.dtstack.com
@@ -36,32 +38,49 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     private String encoding;
     private String brokerList;
-    private transient Producer<String, byte[]> producer;
+    private transient KafkaProducer<String, String> producer;
+    private HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
-        props.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        props.put("value.serializer.class", "kafka.serializer.StringEncoder");
-        props.put("partitioner.class", "kafka.producer.DefaultPartitioner");
+        props.put("key.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put("value.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
         props.put("producer.type", "sync");
         props.put("compression.codec", "none");
         props.put("request.required.acks", "1");
         props.put("batch.num.messages", "1024");
+        props.put("partitioner.class", DefaultPartitioner.class.getName());
+
         props.put("client.id", "");
 
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
         props.put("metadata.broker.list", brokerList);
+        props.put("bootstrap.servers", brokerList);
+        producer = new KafkaProducer<>(props);
 
-        ProducerConfig producerConfig = new ProducerConfig(props);
-        producer = new Producer<>(producerConfig);
+        LOG.info("brokerList {}", brokerList);
+        String broker = brokerList.split(",")[0];
+        String[] split = broker.split(":");
+
+        if (split.length != 2 || !AddressUtil.telnet(split[0], Integer.parseInt(split[1]))) {
+            throw new RuntimeException("telnet error,brokerList" + brokerList);
+        }
     }
 
     @Override
     protected void emit(Map event) throws IOException {
+        heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new KeyedMessage<>(tp, event.toString(), objectMapper.writeValueAsString(event).getBytes(encoding)));
+        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+            if (Objects.nonNull(exception)) {
+                LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(), exception);
+                heartBeatController.onFailed(exception);
+            } else {
+                heartBeatController.onSuccess();
+            }
+        });
     }
 
     @Override
@@ -76,5 +95,9 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     public void setBrokerList(String brokerList) {
         this.brokerList = brokerList;
+    }
+
+    public void setHeartBeatController(HeartBeatController heartBeatController) {
+        this.heartBeatController = heartBeatController;
     }
 }

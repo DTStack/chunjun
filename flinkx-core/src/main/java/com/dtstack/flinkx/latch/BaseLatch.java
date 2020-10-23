@@ -28,7 +28,7 @@ import com.dtstack.flinkx.util.SysUtil;
  */
 public abstract class BaseLatch {
 
-    protected static int MAX_RETRY_TIMES = 100;
+    protected static int MAX_RETRY_TIMES = 30;
 
     /**
      * 从Flink REST API获取累加器里的值
@@ -52,7 +52,7 @@ public abstract class BaseLatch {
     }
 
     protected void sleep() {
-        SysUtil.sleep(300);
+        SysUtil.sleep(1000);
     }
 
     /**

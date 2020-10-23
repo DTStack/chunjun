@@ -38,16 +38,6 @@ under the License.
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hive-core</artifactId>
             <version>1.6</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>httpcore</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>httpclient</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

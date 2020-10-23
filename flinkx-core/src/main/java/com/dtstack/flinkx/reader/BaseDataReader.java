@@ -28,8 +28,8 @@ import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,6 +64,8 @@ public abstract class BaseDataReader {
 
     protected long exceptionIndex;
 
+    protected DataTransferConfig dataTransferConfig;
+
     /**
      * reuse hadoopConfig for metric
      */
@@ -89,6 +91,8 @@ public abstract class BaseDataReader {
 
     protected BaseDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
+        this.dataTransferConfig = config;
+        this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.numPartitions = Math.max(config.getJob().getSetting().getSpeed().getChannel(),
                 config.getJob().getSetting().getSpeed().getReaderChannel());
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();

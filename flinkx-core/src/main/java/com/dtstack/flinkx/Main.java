@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.client.program.ContextEnvironment;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -45,14 +46,17 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
+import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -83,6 +87,7 @@ public class Main {
         String jobIdString = options.getJobid();
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
+        String remotePluginPath = options.getRemotePluginPath();
         String savepointPath = options.getS();
         Properties confProperties = parseConf(options.getConfProp());
 
@@ -103,6 +108,10 @@ public class Main {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         }
 
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
+        }
+
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment(flinkConf);
@@ -113,6 +122,8 @@ public class Main {
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
         env.setParallelism(speedConfig.getChannel());
+        env.setRestartStrategy(RestartStrategies.noRestart());
+
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
         if(speedConfig.getReaderChannel() > 0){
@@ -125,10 +136,10 @@ public class Main {
 
         BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
+
         if(speedConfig.getWriterChannel() > 0){
             dataStreamSink.setParallelism(speedConfig.getWriterChannel());
         }
-
         if(env instanceof MyLocalStreamEnvironment) {
             if(StringUtils.isNotEmpty(savepointPath)){
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));

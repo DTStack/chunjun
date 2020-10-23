@@ -58,6 +58,9 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String pluginRoot;
 
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
 
@@ -83,7 +86,7 @@ public class Options {
     private String s;
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
-    private String pluginLoadMode = SHIP_FILE_PLUGIN_LOAD_MODE;
+    private String pluginLoadMode = "shipfile";
 
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
@@ -190,6 +193,14 @@ public class Options {
 
     public void setPluginRoot(String pluginRoot) {
         this.pluginRoot = pluginRoot;
+    }
+
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
     }
 
     public String getYarnconf() {

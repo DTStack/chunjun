@@ -27,14 +27,13 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Date: 2020/06/12
@@ -45,13 +44,15 @@ import java.util.Map;
  * @author tudou
  */
 public class GsonUtil {
-
+    private static final Logger LOG = LoggerFactory.getLogger(GsonUtil.class);
     public static Gson GSON = getGson();
-    public static Type gsonMapTypeToken = new TypeToken<Map<String, Object>>(){}.getType();
+    public static Type gsonMapTypeToken = new TypeToken<HashMap<String, Object>>(){}.getType();
 
     @SuppressWarnings("unchecked")
     private static Gson getGson() {
-        GSON = new GsonBuilder().create();
+        GSON = new GsonBuilder()
+                .setPrettyPrinting()
+                .create();
         try {
             Field factories = Gson.class.getDeclaredField("factories");
             factories.setAccessible(true);
@@ -137,7 +138,7 @@ public class GsonUtil {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         return GSON;
     }

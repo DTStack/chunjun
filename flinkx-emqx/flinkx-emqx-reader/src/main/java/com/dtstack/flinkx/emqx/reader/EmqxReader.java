@@ -47,6 +47,7 @@ public class EmqxReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setBroker(broker);
         builder.setTopic(topic);
         builder.setUsername(username);
