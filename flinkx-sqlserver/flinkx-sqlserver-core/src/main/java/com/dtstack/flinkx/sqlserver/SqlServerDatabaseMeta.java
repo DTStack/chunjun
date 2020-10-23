@@ -18,14 +18,17 @@
 
 package com.dtstack.flinkx.sqlserver;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -35,6 +38,8 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
+
+    private static final long serialVersionUID = 1L;
 
     @Override
     public EDatabaseType getDatabaseType() {
@@ -64,6 +69,17 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public String getSplitFilter(String columnName) {
         return String.format("%s %% ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
+    }
+
+
+    @Override
+    public String quoteTable(String table) {
+        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+        return strings.stream().map(i -> {
+            StringBuffer stringBuffer = new StringBuffer(64);
+            return stringBuffer.append("\"").append(i).append("\"").toString();
+        }).collect(Collectors.joining(ConstantValue.POINT_SYMBOL));
+
     }
 
     @Override

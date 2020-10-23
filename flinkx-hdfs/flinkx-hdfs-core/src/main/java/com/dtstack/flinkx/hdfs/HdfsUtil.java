@@ -23,11 +23,14 @@ import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
+import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.ByteWritable;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -59,7 +62,7 @@ public class HdfsUtil {
         if(clz == IntWritable.class) {
             ret = ((IntWritable) writable).get();
         } else if(clz == Text.class) {
-            ret = writable.toString();
+            ret = ((Text) writable).toString();
         } else if(clz == LongWritable.class) {
             ret = ((LongWritable) writable).get();
         } else if(clz == ByteWritable.class) {
@@ -68,15 +71,22 @@ public class HdfsUtil {
             ret = ((DateWritable) writable).get();
         } else if(writable instanceof DoubleWritable){
             ret = ((DoubleWritable) writable).get();
-        } else {
+        } else if(writable instanceof TimestampWritable){
+            ret = ((TimestampWritable) writable).getTimestamp();
+        }else if (writable instanceof DateWritable){
+            ret = ((DateWritable) writable).get();
+        }else if (writable instanceof FloatWritable){
+            ret = ((FloatWritable) writable).get();
+        }else if (writable instanceof BooleanWritable){
+            ret = ((BooleanWritable) writable).get();
+        }else  {
             ret = writable.toString();
         }
-
         return ret;
     }
 
     public static ObjectInspector columnTypeToObjectInspetor(ColumnType columnType) {
-        ObjectInspector objectInspector;
+        ObjectInspector objectInspector = null;
         switch(columnType) {
             case TINYINT:
                 objectInspector = ObjectInspectorFactory.getReflectionObjectInspector(Byte.class, ObjectInspectorFactory.ObjectInspectorOptions.JAVA);

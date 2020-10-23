@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.enums;
 
+import org.apache.commons.net.ftp.FTP;
+
 /**
  * Database type
  *
@@ -53,5 +55,5 @@ public enum EDatabaseType {
     clickhouse,
     polarDB,
     Phoenix,
-    dm
+    dm,
 }

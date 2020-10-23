@@ -54,6 +54,7 @@ public class PostgresqlReader extends JdbcDataReader {
     @Override
     public DataStream<Row> readData() {
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new PostgresqlInputFormat());
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
         builder.setUsername(username);

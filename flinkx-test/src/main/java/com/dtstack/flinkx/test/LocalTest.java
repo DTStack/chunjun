@@ -27,7 +27,6 @@ import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
 import com.dtstack.flinkx.clickhouse.reader.ClickhouseReader;
 import com.dtstack.flinkx.clickhouse.writer.ClickhouseWriter;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.db2.reader.Db2Reader;
 import com.dtstack.flinkx.db2.writer.Db2Writer;
@@ -80,6 +79,7 @@ import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
@@ -96,6 +96,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.transformations.PartitionTransformation;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +119,7 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        setLogLevel(Level.DEBUG.toString());
+        setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
@@ -130,9 +131,8 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-examples\\examples\\clickhouse_stream.json";
-        String savePointPath = "";
-        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, savePointPath);
+        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatasqlserver_stream.json";
+        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
     }
 
@@ -162,20 +162,13 @@ public class LocalTest {
 
         BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
-        SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
-        if (speedConfig.getReaderChannel() > 0) {
-            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
-        }
 
-        if (speedConfig.isRebalance()) {
-            dataStream = dataStream.rebalance();
-        }
+        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
+                new PartitionTransformation<>(dataStream.getTransformation(),
+                        new CustomPartitioner<>()));
 
-        BaseDataWriter dataWriter = buildDataWriter(config);
-        DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
-        if (speedConfig.getWriterChannel() > 0) {
-            dataStreamSink.setParallelism(speedConfig.getWriterChannel());
-        }
+        BaseDataWriter writer = buildDataWriter(config);
+        writer.writeData(dataStream);
 
         if(StringUtils.isNotEmpty(savepointPath)){
             env.setSettings(SavepointRestoreSettings.forPath(savepointPath));

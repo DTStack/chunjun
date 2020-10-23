@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.restapi.common;
 
-/**
- * @author : tiezhu
- * @date : 2020/3/13
- */
 public enum  HttpMethod {
     // http 请求方式
     GET,

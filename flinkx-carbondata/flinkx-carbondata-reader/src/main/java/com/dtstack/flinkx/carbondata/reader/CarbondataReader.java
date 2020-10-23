@@ -95,6 +95,7 @@ public class CarbondataReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         CarbondataInputFormatBuilder builder = new CarbondataInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);

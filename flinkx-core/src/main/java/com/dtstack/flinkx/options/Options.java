@@ -46,6 +46,9 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String pluginRoot;
 
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
 
@@ -154,6 +157,14 @@ public class Options {
 
     public void setPluginRoot(String pluginRoot) {
         this.pluginRoot = pluginRoot;
+    }
+
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
     }
 
     public String getYarnconf() {

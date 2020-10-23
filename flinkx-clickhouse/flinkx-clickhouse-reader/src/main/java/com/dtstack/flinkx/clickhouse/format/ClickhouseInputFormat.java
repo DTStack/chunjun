@@ -20,6 +20,7 @@ package com.dtstack.flinkx.clickhouse.format;
 import com.dtstack.flinkx.clickhouse.core.ClickhouseUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.sql.Statement;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
@@ -46,22 +48,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             LOG.info("inputSplit = {}", inputSplit);
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = ClickhouseUtil.getConnection(dbUrl, username, password);
-            initMetric(inputSplit);
-            String startLocation = incrementConfig.getStartLocation();
-            if (incrementConfig.isPolling()) {
-                endLocationAccumulator.add(Long.parseLong(startLocation));
-                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
-            } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
-                getMaxValue(inputSplit);
-            }
-
-            if(!canReadData(inputSplit)){
-                LOG.warn("Not read data when the start location are equal to end location");
-                hasNext = false;
-                return;
-            }
-
-            Statement statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
             statement.setFetchSize(fetchSize);
             statement.setQueryTimeout(queryTimeOut);
             String querySql = buildQuerySql(inputSplit);
@@ -75,7 +62,14 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
+            if (StringUtils.isEmpty(customSql)){
+                descColumnTypeList = DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+            } else {
+                descColumnTypeList = new ArrayList<>();
+                for (MetaColumn metaColumn : metaColumns) {
+                    descColumnTypeList.add(metaColumn.getName());
+                }
+            }
         } catch (Exception e) {
             LOG.error("open failed,e = {}", ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);

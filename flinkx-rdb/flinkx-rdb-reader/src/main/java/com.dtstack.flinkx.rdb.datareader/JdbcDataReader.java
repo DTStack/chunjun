@@ -100,6 +100,7 @@ public class JdbcDataReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         JdbcInputFormatBuilder builder = getBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
         builder.setUsername(username);
