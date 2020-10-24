@@ -59,8 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.dtstack.flinkx.rdb.util.DbUtil.analyzeTable;
-
 /**
  * InputFormat for reading data from a database and generate Rows.
  * <p>

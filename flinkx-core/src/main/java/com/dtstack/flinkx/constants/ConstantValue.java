@@ -66,9 +66,4 @@ public class ConstantValue {
 
     public static final long STORE_SIZE_M = 1024L * 1024;
 
-    public static final String SHIP_FILE_PLUGIN_LOAD_MODE = "shipfile";
-    public static final String CLASS_PATH_PLUGIN_LOAD_MODE = "classpath";
-
-    public static final String CLASSLOADER_CHILD_FIRST = "child-first";
-    public static final String CLASSLOADER_PARENT_FIRST = "parent-first";
 }

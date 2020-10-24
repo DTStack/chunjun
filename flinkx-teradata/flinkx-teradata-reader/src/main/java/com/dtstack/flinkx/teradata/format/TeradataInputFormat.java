@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -42,6 +43,7 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 public class TeradataInputFormat extends JdbcInputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(TeradataInputFormat.class);
 
+    protected List<String> descColumnTypeList;
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         try {
@@ -83,7 +85,10 @@ public class TeradataInputFormat extends JdbcInputFormat {
             checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
+            if(descColumnTypeList == null) {
+                descColumnTypeList = DbUtil.analyzeColumnType(resultSet,metaColumns);
+            }
+
 
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);
