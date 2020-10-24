@@ -214,4 +214,27 @@ public class Options {
     public void setP(String p) {
         this.p = p;
     }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", p='" + p + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", appId='" + appId + '\'' +
+                '}';
+    }
 }
