@@ -102,6 +102,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         numReadCounter = getRuntimeContext().getLongCounter("numRead");
         HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
+        findCurrentPartition(orcSplit.getPath());
         recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
         key = recordReader.createKey();
         value = recordReader.createValue();

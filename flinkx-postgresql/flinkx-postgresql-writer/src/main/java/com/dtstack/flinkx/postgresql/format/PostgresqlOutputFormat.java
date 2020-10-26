@@ -100,12 +100,22 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         int index = 0;
         try {
             StringBuilder sb = new StringBuilder();
+            int lastIndex = row.getArity() - 1;
             for (; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
-                sb.append(rowData)
-                        .append(DEFAULT_FIELD_DELIM);
+                if(rowData==null){
+                    sb.append(DEFAULT_NULL_DELIM);
+                }else{
+                    String data = String.valueOf(rowData);
+                    if(data.contains("\\")){
+                        data=  data.replaceAll("\\\\","\\\\\\\\");
+                    }
+                    sb.append(data);
+                }
+                if(index != lastIndex){
+                    sb.append(DEFAULT_FIELD_DELIM);
+                }
             }
-
             String rowVal = sb.toString();
             ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
@@ -147,7 +157,15 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
             int lastIndex = row.getArity() - 1;
             for (int index =0; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
-                sb.append(rowData==null ? DEFAULT_NULL_DELIM : rowData);
+                if(rowData==null){
+                    sb.append(DEFAULT_NULL_DELIM);
+                }else{
+                    String data = String.valueOf(rowData);
+                    if(data.contains("\\")){
+                        data=  data.replaceAll("\\\\","\\\\\\\\");
+                    }
+                    sb.append(data);
+                }
                 if(index != lastIndex){
                     sb.append(DEFAULT_FIELD_DELIM);
                 }

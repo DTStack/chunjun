@@ -43,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -58,6 +59,8 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     private transient KuduClient client;
 
+    protected Map<String,Object> hadoopConfig;
+
     private transient KuduSession session;
 
     private transient KuduTable kuduTable;
@@ -65,7 +68,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try{
-            client = KuduUtil.getKuduClient(kuduConfig);
+            client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
         } catch (Exception e){
             throw new RuntimeException("Get KuduClient error", e);
         }
@@ -196,5 +199,13 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         if(client != null){
             client.close();
         }
+    }
+
+    public Map<String, Object> getHadoopConfig() {
+        return hadoopConfig;
+    }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
+        this.hadoopConfig = hadoopConfig;
     }
 }
