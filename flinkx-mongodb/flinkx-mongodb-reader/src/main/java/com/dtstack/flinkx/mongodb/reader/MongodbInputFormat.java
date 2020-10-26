@@ -182,7 +182,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     private Object conventDocument(Object object){
         if (object instanceof Document){
-            return ((Document) object).toJson();
+            return GsonUtil.GSON.toJson(object);
         } else if( object instanceof  List || object instanceof Map){
             return GsonUtil.GSON.toJson(object);
         }
