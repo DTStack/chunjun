@@ -60,7 +60,7 @@ public class KuduUtil {
     public final static String AUTHENTICATION_TYPE = "Kerberos";
 
     /**
-     * 获取kdu的客户端
+     * 获取kudu的客户端
      * @param config  kudu的配置信息
      * @param hadoopConfig hadoop相关信息 主要需要kerberos相关验证信息
      * @return
