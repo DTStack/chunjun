@@ -34,6 +34,7 @@ import org.apache.kudu.client.RowResultIterator;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -44,6 +45,8 @@ public class KuduInputFormat extends BaseRichInputFormat {
     protected List<MetaColumn> columns;
 
     protected KuduConfig kuduConfig;
+
+    protected Map<String,Object> hadoopConfig;
 
     private transient KuduClient client;
 
@@ -57,7 +60,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         try {
-            client = KuduUtil.getKuduClient(kuduConfig);
+            client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Get KuduClient error", e);
         }
@@ -122,7 +125,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
-        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString());
+        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString(), hadoopConfig);
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);
@@ -167,5 +170,13 @@ public class KuduInputFormat extends BaseRichInputFormat {
             client.close();
             client = null;
         }
+    }
+
+    public Map<String, Object> getHadoopConfig() {
+        return hadoopConfig;
+    }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
+        this.hadoopConfig = hadoopConfig;
     }
 }
