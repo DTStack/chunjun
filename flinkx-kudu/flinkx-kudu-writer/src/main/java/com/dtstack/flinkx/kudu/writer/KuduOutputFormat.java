@@ -68,7 +68,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try{
-            client = KuduUtil.getKuduClient(kuduConfig,hadoopConfig);
+            client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
         } catch (Exception e){
             throw new RuntimeException("Get KuduClient error", e);
         }

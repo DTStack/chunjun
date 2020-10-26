@@ -59,8 +59,8 @@ public class KuduUtil {
 
     public final static String AUTHENTICATION_TYPE = "Kerberos";
 
-    public static KuduClient getKuduClient(KuduConfig config,Map<String,Object> hadoopConfig) throws IOException,InterruptedException {
-        if(AUTHENTICATION_TYPE.equals(config.getAuthentication()) || FileSystemUtil.isOpenKerberos(hadoopConfig)){
+    public static KuduClient getKuduClient(KuduConfig config, Map<String,Object> hadoopConfig) throws IOException,InterruptedException {
+        if(AUTHENTICATION_TYPE.equals(config.getAuthentication()) && FileSystemUtil.isOpenKerberos(hadoopConfig)){
             UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig,null);
             return ugi.doAs(new PrivilegedExceptionAction<KuduClient>() {
                 @Override
@@ -83,9 +83,9 @@ public class KuduUtil {
                 .syncClient();
     }
 
-    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString,Map<String,Object> hadoopConfig) throws IOException{
+    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString, Map<String,Object> hadoopConfig) throws IOException{
         try (
-                KuduClient client = getKuduClient(config,hadoopConfig)
+                KuduClient client = getKuduClient(config, hadoopConfig)
         ) {
             KuduTable kuduTable = client.openTable(config.getTable());
 

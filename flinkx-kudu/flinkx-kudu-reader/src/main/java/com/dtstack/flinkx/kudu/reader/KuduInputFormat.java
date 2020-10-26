@@ -60,7 +60,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
 
         try {
-            client = KuduUtil.getKuduClient(kuduConfig,hadoopConfig);
+            client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Get KuduClient error", e);
         }
@@ -125,7 +125,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
-        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString(),hadoopConfig);
+        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(kuduConfig, columns, kuduConfig.getFilterString(), hadoopConfig);
         KuduTableSplit[] inputSplits = new KuduTableSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduTableSplit(scanTokens.get(i).serialize(), i);
