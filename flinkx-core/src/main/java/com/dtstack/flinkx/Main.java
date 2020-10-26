@@ -84,6 +84,7 @@ public class Main {
         String jobIdString = options.getJobid();
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
+        String remotePluginPath = options.getRemotePluginPath();
         String savepointPath = options.getS();
         Properties confProperties = parseConf(options.getConfProp());
 
@@ -97,6 +98,10 @@ public class Main {
 
         if(StringUtils.isNotEmpty(pluginRoot)) {
             config.setPluginRoot(pluginRoot);
+        }
+
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
         }
 
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?

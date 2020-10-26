@@ -188,7 +188,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
                 writerParameter.put(KEY_PASSWORD, KEY_CONFUSED_PASSWORD);
             }
         }
-    LOG.info("configInfo : {}", GsonUtil.GSON.toJson(map));
+        LOG.info("configInfo : \n{}", GsonUtil.GSON.toJson(map));
     }
 
     private void checkIfCreateSplitFailed(InputSplit inputSplit){
