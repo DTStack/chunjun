@@ -38,7 +38,11 @@ import org.apache.hadoop.conf.Configuration;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_SCHEMA;
 import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE;
