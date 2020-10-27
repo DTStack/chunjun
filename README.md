@@ -70,8 +70,6 @@ The following databases are currently supported:
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-|                        | Oracle Logminer| Coming Soon                                      |                                                |
-|                        | SqlServer CDC  | Coming Soon                                      |                                                |
 
 # Quick Start
 
