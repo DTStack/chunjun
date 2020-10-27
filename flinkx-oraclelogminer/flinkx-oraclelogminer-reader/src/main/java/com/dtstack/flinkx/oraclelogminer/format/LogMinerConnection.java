@@ -103,7 +103,7 @@ public class LogMinerConnection {
 
     private long lastQueryTime;
 
-    private static final long QUERY_LOG_INTERVAL = 1000;
+    private static final long QUERY_LOG_INTERVAL = 10000;
 
     private boolean logMinerStarted = false;
 
@@ -151,6 +151,19 @@ public class LogMinerConnection {
     public void startOrUpdateLogMiner(Long startScn) {
         String startSql = null;
         try {
+            // 防止没有数据更新的时候频繁查询数据库，限定查询的最小时间间隔 QUERY_LOG_INTERVAL
+            if (lastQueryTime > 0) {
+                long time = System.currentTimeMillis() - lastQueryTime;
+                if (time < QUERY_LOG_INTERVAL) {
+                    try {
+                        Thread.sleep(QUERY_LOG_INTERVAL-time);
+                    } catch (InterruptedException e) {
+                        LOG.warn("", e);
+                    }
+                }
+            }
+            lastQueryTime = System.currentTimeMillis();
+
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
