@@ -117,6 +117,10 @@ public class ClusterClientFactory {
                         continue;
                     }
 
+                    if(!report.getQueue().equals(launcherOptions.getQueue())) {
+                        continue;
+                    }
+
                     int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
                     int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
 
