@@ -1,0 +1,11 @@
+build:
+  stage: test
+  script:
+    - sh ci/install_jars.sh
+    - mvn clean org.jacoco:jacoco-maven-plugin:0.7.8:prepare-agent package -Dmaven.test.failure.ignore=true -q
+    - mvn sonar:sonar -Dsonar.projectKey="dt-insight-engine/flinkx" -Dsonar.host.url=http://172.16.100.198:9000 -Dsonar.jdbc.url=jdbc:postgresql://172.16.100.198:5432/sonar -Dsonar.java.binaries=target/sonar -Dsonar.login=11974c5e9a29625efa09fdc3c3fdc031efb1aab1
+    - sh ci/sonar_notify.sh
+  only:
+    - 1.8_dev
+  tags:
+    - dt-insight-engine

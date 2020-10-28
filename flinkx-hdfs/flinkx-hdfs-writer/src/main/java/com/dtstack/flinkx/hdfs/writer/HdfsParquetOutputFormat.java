@@ -152,12 +152,15 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         int i = 0;
         try {
             for (; i < fullColumnNames.size(); i++) {
-                Object valObj = row.getField(colIndices[i]);
-                if(valObj == null || valObj.toString().length() == 0){
-                    continue;
-                }
+                int colIndex = colIndices[i];
+                if(colIndex > -1){
+                    Object valObj = row.getField(colIndex);
+                    if(valObj == null || (valObj.toString().length() == 0 && !ColumnType.isStringType(fullColumnTypes.get(i)))){
+                        continue;
+                    }
 
-                addDataToGroup(group, valObj, i);
+                    addDataToGroup(group, valObj, i);
+                }
             }
         } catch (Exception e){
             if(e instanceof WriteRecordException){

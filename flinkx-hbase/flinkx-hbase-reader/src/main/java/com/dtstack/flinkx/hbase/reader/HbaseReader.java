@@ -96,7 +96,7 @@ public class HbaseReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         HbaseInputFormatBuilder builder = new HbaseInputFormatBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnFormats(columnFormat);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);

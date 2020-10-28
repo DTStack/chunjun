@@ -26,6 +26,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileStatus;
@@ -122,11 +123,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             }
 
             for (MetaColumn metaColumn : metaColumns) {
-                String name = metaColumn.getName().toUpperCase();
-                if(fullColNames.contains(name)){
-                    metaColumn.setIndex(fullColNames.indexOf(name));
-                } else {
-                    metaColumn.setIndex(-1);
+                String name = metaColumn.getName();
+                if(StringUtils.isNotBlank(name)){
+                    name = name.toUpperCase();
+                    if(fullColNames.contains(name)){
+                        metaColumn.setIndex(fullColNames.indexOf(name));
+                    } else {
+                        metaColumn.setIndex(-1);
+                    }
                 }
             }
         }

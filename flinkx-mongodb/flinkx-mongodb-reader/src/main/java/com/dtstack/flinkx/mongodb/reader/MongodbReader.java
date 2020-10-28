@@ -57,6 +57,7 @@ public class MongodbReader extends BaseDataReader {
     @Override
     public DataStream<Row> readData() {
         MongodbInputFormatBuilder builder = new MongodbInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setMetaColumns(metaColumns);
         builder.setMongodbConfig(mongodbConfig);
 

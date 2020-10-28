@@ -18,25 +18,19 @@
 
 package com.dtstack.flinkx.launcher.perjob;
 
-import com.dtstack.flinkx.launcher.ClassLoaderType;
-import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
-import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -50,45 +44,23 @@ public class PerJobSubmitter {
     /**
      * submit per-job task
      * @param options LauncherOptions
+     * @param jobGraph JobGraph
      * @return
      * @throws Exception
      */
-    public static String submit(Options options, File jarFile, String[] programArgs) throws Exception{
+    public static String submit(Options options, JobGraph jobGraph) throws Exception{
         LOG.info("start to submit per-job task, LauncherOptions = {}", options.toString());
-
-        if (StringUtils.isEmpty(options.getYarnconf())) {
-            throw new RuntimeException("parameters of yarn is required");
-        }
-
-        YarnConfiguration yarnConf = StringUtils.isEmpty(options.getYarnconf()) ? new YarnConfiguration() : YarnConfLoader.getYarnConf(options.getYarnconf());
-        Configuration flinkConfig = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
-        flinkConfig.setString("classloader.resolve-order", "child-first");
-
-        Properties conProp = GsonUtil.GSON.fromJson(options.getConfProp(), Properties.class);
-        ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp, flinkConfig);
-        clusterSpecification.setCreateProgramDelay(true);
-        clusterSpecification.setConfiguration(flinkConfig);
-        clusterSpecification.setClasspaths(new ArrayList<>());
-        clusterSpecification.setEntryPointClass("com.dtstack.flinkx.Main");
-        clusterSpecification.setJarFile(jarFile);
-
-        if (StringUtils.isNotEmpty(options.getS())) {
-            clusterSpecification.setSpSetting(SavepointRestoreSettings.forPath(options.getS()));
-        }
-
-        clusterSpecification.setProgramArgs(programArgs);
-        clusterSpecification.setCreateProgramDelay(true);
-        clusterSpecification.setYarnConfiguration(yarnConf);
-
-        clusterSpecification.setClassLoaderType(ClassLoaderType.PARENT_FIRST_CACHE);
-
+        Properties conProp = MapUtil.jsonStrToObject(options.getConfProp(), Properties.class);
+        ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
-        perJobClusterClientBuilder.init(yarnConf, flinkConfig, conProp);
+        Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        perJobClusterClientBuilder.init(options.getYarnconf(), config, conProp);
 
-        AbstractYarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(options);
-        ClusterClient<ApplicationId> clusterClient = descriptor.deployJobCluster(clusterSpecification, new JobGraph(), true);
+        AbstractYarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(conProp, options, jobGraph);
+        ClusterClient<ApplicationId> clusterClient = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);
         String applicationId = clusterClient.getClusterId().toString();
-        LOG.info("deploy per_job with appId: {}", applicationId);
+        String flinkJobId = jobGraph.getJobID().toString();
+        LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
         return applicationId;
     }
 }

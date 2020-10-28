@@ -64,6 +64,8 @@ public abstract class BaseDataReader {
 
     protected long exceptionIndex;
 
+    protected DataTransferConfig dataTransferConfig;
+
     /**
      * reuse hadoopConfig for metric
      */
@@ -89,6 +91,8 @@ public abstract class BaseDataReader {
 
     protected BaseDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
+        this.dataTransferConfig = config;
+        this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.numPartitions = Math.max(config.getJob().getSetting().getSpeed().getChannel(),
                 config.getJob().getSetting().getSpeed().getReaderChannel());
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();

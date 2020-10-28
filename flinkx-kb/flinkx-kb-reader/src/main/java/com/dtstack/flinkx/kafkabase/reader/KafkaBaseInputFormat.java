@@ -17,16 +17,12 @@
  */
 package com.dtstack.flinkx.kafkabase.reader;
 
-import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.PlainDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -34,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -56,7 +51,6 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected boolean blankIgnore;
     protected String encoding;
     protected Map<String, String> consumerSettings;
-    protected List<MetaColumn> metaColumns;
     protected volatile boolean running = false;
     protected transient BlockingQueue<Row> queue;
     protected transient KafkaBaseConsumer consumer;
@@ -101,19 +95,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
 
     public void processEvent(Map<String, Object> event) {
         try {
-            Row row;
-            if(CollectionUtils.isEmpty(metaColumns)){
-                row = Row.of(event);
-            }else{
-                row = new Row(metaColumns.size());
-                for (int i = 0; i < metaColumns.size(); i++) {
-                    MetaColumn metaColumn = metaColumns.get(i);
-                    Object value = event.get(metaColumn.getName());
-                    Object obj = StringUtil.string2col(String.valueOf(value), metaColumn.getType(), metaColumn.getTimeFormat());
-                    row.setField(i , obj);
-                }
-            }
-            queue.put(row);
+            queue.put(Row.of(event));
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted event:{} error:{}", event, e);
         }
@@ -166,15 +148,6 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
 
     public void setConsumerSettings(Map<String, String> consumerSettings) {
         this.consumerSettings = consumerSettings;
-    }
-
-    public void setMetaColumns(List<MetaColumn> metaColumns) {
-        this.metaColumns = metaColumns;
-    }
-
-    @Override
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
     }
 
     public String getEncoding() {

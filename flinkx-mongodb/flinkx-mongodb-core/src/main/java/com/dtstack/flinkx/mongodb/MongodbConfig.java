@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.mongodb;
 
+import com.mongodb.AuthenticationMechanism;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -36,7 +38,7 @@ public class MongodbConfig implements Serializable {
 
     private String password;
 
-    private String authenticationMechanism;
+    private String authenticationMechanism = AuthenticationMechanism.SCRAM_SHA_1.getMechanismName();
 
     private String database;
 

@@ -46,6 +46,9 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String pluginRoot;
 
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
+
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
 
@@ -156,6 +159,14 @@ public class Options {
         this.pluginRoot = pluginRoot;
     }
 
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
     public String getYarnconf() {
         return yarnconf;
     }
@@ -202,5 +213,28 @@ public class Options {
 
     public void setP(String p) {
         this.p = p;
+    }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", p='" + p + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", appId='" + appId + '\'' +
+                '}';
     }
 }

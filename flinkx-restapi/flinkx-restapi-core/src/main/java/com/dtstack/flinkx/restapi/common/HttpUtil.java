@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
-import com.dtstack.flinkx.util.GsonUtil;
+import com.google.gson.Gson;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -43,6 +43,8 @@ public class HttpUtil {
     private static final int TOTAL_COUNT = 1000;
     private static final int TIME_OUT = 5000;
     private static final int EXECUTION_COUNT = 5;
+
+    public static Gson gson = new Gson();
 
     public static CloseableHttpClient getHttpClient() {
         // 设置自定义的重试策略
@@ -108,7 +110,7 @@ public class HttpUtil {
     }
 
     public static StringEntity getEntityData(Map<String, Object> body) {
-        StringEntity stringEntity = new StringEntity(GsonUtil.GSON.toJson(body), StandardCharsets.UTF_8);
+        StringEntity stringEntity = new StringEntity(gson.toJson(body), StandardCharsets.UTF_8);
         stringEntity.setContentEncoding(StandardCharsets.UTF_8.name());
         return stringEntity;
     }

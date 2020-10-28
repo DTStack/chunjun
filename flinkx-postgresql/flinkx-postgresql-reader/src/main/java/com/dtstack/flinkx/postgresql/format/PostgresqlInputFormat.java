@@ -19,16 +19,10 @@
 package com.dtstack.flinkx.postgresql.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.util.ClassUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -39,51 +33,6 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  * @author tudou
  */
 public class PostgresqlInputFormat extends JdbcInputFormat {
-
-    @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
-        try {
-            LOG.info(inputSplit.toString());
-
-            ClassUtil.forName(driverName, getClass().getClassLoader());
-            initMetric(inputSplit);
-
-            String startLocation = incrementConfig.getStartLocation();
-            if (incrementConfig.isPolling()) {
-                if (StringUtils.isNotEmpty(startLocation)) {
-                    endLocationAccumulator.add(Long.parseLong(startLocation));
-                }
-                isTimestamp = "timestamp".equalsIgnoreCase(incrementConfig.getColumnType());
-            } else if ((incrementConfig.isIncrement() && incrementConfig.isUseMaxFunc())) {
-                getMaxValue(inputSplit);
-            }
-
-            if(!canReadData(inputSplit)){
-                LOG.warn("Not read data when the start location are equal to end location");
-                hasNext = false;
-                return;
-            }
-
-            querySql = buildQuerySql(inputSplit);
-            JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
-            if (null != jdbcInputSplit.getStartLocation()) {
-                startLocation = jdbcInputSplit.getStartLocation();
-            }
-            executeQuery(startLocation);
-            columnCount = resultSet.getMetaData().getColumnCount();
-            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
-            if(splitWithRowCol){
-                columnCount = columnCount-1;
-            }
-            checkSize(columnCount, metaColumns);
-            descColumnTypeList = DbUtil.analyzeColumnType(resultSet);
-
-        } catch (SQLException se) {
-            throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
-        }
-
-        LOG.info("JdbcInputFormat[{}]open: end", jobName);
-    }
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {

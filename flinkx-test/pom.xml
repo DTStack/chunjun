@@ -12,6 +12,7 @@
     <artifactId>flinkx-test</artifactId>
 
     <properties>
+        <flink.version>1.8.3</flink.version>
         <prometheus.version>0.3.0</prometheus.version>
     </properties>
 
@@ -147,11 +148,31 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-writer</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hbase-client</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>hbase-common</artifactId>
+                    <groupId>org.apache.hbase</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

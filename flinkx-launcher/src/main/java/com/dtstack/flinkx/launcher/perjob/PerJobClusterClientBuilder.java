@@ -17,9 +17,13 @@
  */
 package com.dtstack.flinkx.launcher.perjob;
 
+import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
@@ -35,6 +39,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -43,8 +48,9 @@ import java.util.Properties;
  * @author tudou
  */
 public class PerJobClusterClientBuilder {
-
     private static final Logger LOG = LoggerFactory.getLogger(PerJobClusterClientBuilder.class);
+
+    private static final String CLASS_LOAD_MODE_SHIP_FILE = "shipfile";
 
     private YarnClient yarnClient;
 
@@ -54,13 +60,18 @@ public class PerJobClusterClientBuilder {
 
     /**
      * init yarnClient
+     * @param yarnConfDir the path of yarnconf
      */
-    public void init(YarnConfiguration yarnConf, Configuration flinkConfig, Properties conProp) throws Exception {
-        conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+    public void init(String yarnConfDir, Configuration flinkConfig, Properties userConf) throws Exception {
+
+        if(Strings.isNullOrEmpty(yarnConfDir)) {
+            throw new RuntimeException("parameters of yarn is required");
+        }
+        userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+        this.flinkConfig = flinkConfig;
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
-        this.yarnConf = yarnConf;
-        this.flinkConfig = flinkConfig;
+        yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConf);
         yarnClient.start();
@@ -70,11 +81,13 @@ public class PerJobClusterClientBuilder {
 
     /**
      * create a yarn cluster descriptor which is used to start the application master
+     * @param confProp taskParams
      * @param options LauncherOptions
+     * @param jobGraph JobGraph
      * @return
      * @throws MalformedURLException
      */
-    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Options options) throws MalformedURLException {
+    public AbstractYarnClusterDescriptor createPerJobClusterDescriptor(Properties confProp, Options options, JobGraph jobGraph) throws MalformedURLException {
         String flinkJarPath = options.getFlinkLibJar();
         if (StringUtils.isNotBlank(flinkJarPath)) {
             if (!new File(flinkJarPath).exists()) {
@@ -85,8 +98,6 @@ public class PerJobClusterClientBuilder {
         }
 
         AbstractYarnClusterDescriptor descriptor = new YarnClusterDescriptor(flinkConfig, yarnConf, options.getFlinkconf(), yarnClient, false);
-        descriptor.setName(options.getJobid());
-
         List<File> shipFiles = new ArrayList<>();
         File[] jars = new File(flinkJarPath).listFiles();
         if (jars != null) {
@@ -95,6 +106,15 @@ public class PerJobClusterClientBuilder {
                     descriptor.setLocalJarPath(new Path(jar.toURI().toURL().toString()));
                 } else {
                     shipFiles.add(jar);
+                }
+            }
+        }
+
+        if (StringUtils.equalsIgnoreCase(options.getPluginLoadMode(), CLASS_LOAD_MODE_SHIP_FILE)) {
+            Map<String, DistributedCache.DistributedCacheEntry> jobCacheFileConfig = jobGraph.getUserArtifacts();
+            for(Map.Entry<String,  DistributedCache.DistributedCacheEntry> tmp : jobCacheFileConfig.entrySet()){
+                if(tmp.getKey().startsWith("class_path")){
+                    shipFiles.add(new File(tmp.getValue().filePath));
                 }
             }
         }

@@ -19,7 +19,6 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -71,7 +70,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 String entityData = EntityUtils.toString(entity);
-                entityDataToMap = GsonUtil.GSON.fromJson(entityData, Map.class);
+                entityDataToMap = HttpUtil.gson.fromJson(entityData, Map.class);
                 getData = true;
             } else {
                 throw new RuntimeException("entity is null");

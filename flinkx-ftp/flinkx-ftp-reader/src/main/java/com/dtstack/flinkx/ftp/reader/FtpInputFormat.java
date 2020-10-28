@@ -19,18 +19,17 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.ftp.EProtocol;
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
-import com.dtstack.flinkx.ftp.SftpHandler;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,12 +72,12 @@ public class FtpInputFormat extends BaseRichInputFormat {
         String path = ftpConfig.getPath();
         if(path != null && path.length() > 0){
             path = path.replace("\n","").replace("\r","");
-            String[] pathArray = StringUtils.split(path, ",");
+            String[] pathArray = path.split(",");
             for (String p : pathArray) {
                 files.addAll(ftpHandler.getFiles(p.trim()));
             }
         }
-
+        LOG.info("FTP files = {}", GsonUtil.GSON.toJson(files));
         int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
         for(int index = 0; index < numSplits; ++index) {
