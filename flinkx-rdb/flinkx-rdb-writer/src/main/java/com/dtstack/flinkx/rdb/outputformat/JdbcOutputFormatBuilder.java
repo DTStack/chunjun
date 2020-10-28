@@ -17,9 +17,11 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import org.apache.commons.collections.MapUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +107,9 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         }
         if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
+        }
+        if(format.mode.equalsIgnoreCase(EWriteMode.UPDATE.name()) && MapUtils.isEmpty(format.updateKey)){
+            throw new IllegalArgumentException("updateKey is not null or null when mode is on duplicate key update");
         }
 
         if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){
