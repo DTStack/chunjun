@@ -65,7 +65,7 @@
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <package.name>release_1.8.7</package.name>
+        <package.name>release_1.8.8</package.name>
     </properties>
 
     <dependencies>
