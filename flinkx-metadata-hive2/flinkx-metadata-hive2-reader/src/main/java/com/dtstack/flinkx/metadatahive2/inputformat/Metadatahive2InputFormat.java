@@ -213,10 +213,10 @@ public class Metadatahive2InputFormat extends BaseMetadataInputFormat {
             }
             switch (metaDataFlag){
                 case 0:
-                    columnList.add(parseColumn(lineDataInternal, result.size()));
+                    columnList.add(parseColumn(lineDataInternal, columnList.size()+1));
                     break;
                 case 1:
-                    partitionColumnList.add(parseColumn(lineDataInternal, result.size()));
+                    partitionColumnList.add(parseColumn(lineDataInternal, partitionColumnList.size()+1));
                     break;
                 case 2:
                     parseTableProperties(lineDataInternal, tableProperties, it);
