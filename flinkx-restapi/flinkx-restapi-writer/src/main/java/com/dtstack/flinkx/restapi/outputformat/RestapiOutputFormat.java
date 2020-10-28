@@ -59,7 +59,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected Map<String, String> header;
 
-    protected static final int DEFAULT_TIME_OUT = 1800000;
+    protected static final int DEFAULT_TIME_OUT = 300000;
 
     protected Gson gson;
 
@@ -75,9 +75,9 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> requestBody = Maps.newHashMap();
-        Object dataRow;
+        List<Object> dataRow = new ArrayList<>();
         try {
-            dataRow = getDataFromRow(row, column);
+            dataRow.add(getDataFromRow(row, column));
             params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
