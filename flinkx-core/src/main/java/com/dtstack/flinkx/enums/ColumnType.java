@@ -67,6 +67,12 @@ public enum ColumnType {
             STRING, VARCHAR, VARCHAR2, CHAR, NVARCHAR, TEXT, KEYWORD, BINARY
     );
 
+    /**
+     * 根据字段类型的字符串找出对应的枚举
+     * 找不到直接报错 IllegalArgumentException
+     * @param type
+     * @return
+     */
     public static ColumnType fromString(String type) {
         if(type == null) {
             throw new RuntimeException("null ColumnType!");
@@ -83,9 +89,19 @@ public enum ColumnType {
         return valueOf(type.toUpperCase());
     }
 
+    /**
+     * 根据字段类型的字符串找到对应的枚举 找不到就直接返回ColumnType.STRING;
+     * @param type
+     * @return
+     */
     public static ColumnType getType(String type){
         if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
             type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
+        }
+
+        //为了支持无符号类型  如 int unsigned
+        if(StringUtils.containsIgnoreCase(type,ConstantValue.DATA_TYPE_UNSIGNED)){
+            type = type.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED,"").trim();
         }
 
         if(type.toLowerCase().contains(ColumnType.TIMESTAMP.name().toLowerCase())){
