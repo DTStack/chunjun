@@ -21,6 +21,7 @@ package com.dtstack.flinkx.postgresql;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +66,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
         }else if(byteTypes.contains(typeName)){
             data = Byte.valueOf(dataValue);
         } else if(intTypes.contains(typeName)){
+            if(dataValue.contains(".")){
+                dataValue =  new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
+            }
             data = Integer.parseInt(dataValue);
         }
 

@@ -28,6 +28,7 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
     private BinlogInputFormat format;
 
-    private BlockingQueue<Row> queue;
+    private BlockingQueue<Map<String,Object>> queue;
 
     private boolean pavingData;
 
@@ -123,7 +124,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             }
 
             try {
-                queue.put(Row.of(message));
+                queue.put(message);
             } catch (InterruptedException e) {
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
@@ -147,14 +148,28 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         this.pavingData = pavingData;
     }
 
-    public Row takeEvent() {
+    public Row takeEvent() throws IOException {
         Row row = null;
         try {
-            row = queue.take();
+            Map<String, Object> map = queue.take();
+            //@see com.dtstack.flinkx.binlog.reader.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
+            if(map.size() == 1 && map.containsKey("e")){
+                throw new RuntimeException((String) map.get("e"));
+            }else{
+                row = Row.of(map);
+            }
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return row;
+    }
+
+    public void processEvent(Map<String, Object> event) {
+        try {
+            queue.put(event);
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted event:{} error:{}", event, ExceptionUtil.getErrorMessage(e));
+        }
     }
 
     @Override

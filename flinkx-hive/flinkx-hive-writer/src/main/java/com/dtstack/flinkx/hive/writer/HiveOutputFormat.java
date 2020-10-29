@@ -203,7 +203,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                         event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
                     }catch (JsonSyntaxException e){
                         // is not a json string
-                        LOG.warn("bad json string:【{}】", tempObj);
+                        //tempObj 不是map类型 则event直接往下传递
+                       // LOG.warn("bad json string:【{}】", tempObj);
                     }
                 }
             }

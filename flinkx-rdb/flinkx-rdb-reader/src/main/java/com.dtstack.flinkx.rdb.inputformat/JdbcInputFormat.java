@@ -742,7 +742,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 ps.setDate(1, date);
                 break;
             default:
-                ps.setString(1, startLocation);
+                if(isNumber){
+                    ps.setLong(1, Long.parseLong(startLocation));
+                }else {
+                    ps.setString(1, startLocation);
+                }
         }
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
