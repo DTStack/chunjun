@@ -144,12 +144,8 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public List<String> getFiles(String path) {
         List<String> sources = new ArrayList<>();
-        if(isFileExist(path)) {
-            sources.add(path);
-            return sources;
-        }else{
-            path = path + SP;
-        }
+        ftpClient.enterLocalPassiveMode();
+        path = path + SP;
         try {
             ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));

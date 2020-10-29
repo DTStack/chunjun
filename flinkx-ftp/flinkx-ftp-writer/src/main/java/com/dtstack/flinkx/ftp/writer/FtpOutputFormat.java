@@ -30,10 +30,14 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.flink.types.Row;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -56,6 +60,8 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected List<String> columnNames;
 
     private transient IFtpHandler ftpHandler;
+
+    private transient BufferedWriter writer;
 
     private transient OutputStream os;
 
@@ -125,11 +131,17 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void nextBlock(){
         super.nextBlock();
 
-        if (os != null){
+        if (writer != null){
             return;
         }
 
         os = ftpHandler.getOutputStream(tmpPath + SP + currentBlockFileName);
+        try{
+            writer = new BufferedWriter(new OutputStreamWriter(os, ftpConfig.getEncoding()));
+        }catch (UnsupportedEncodingException e){
+            LOG.error(ExceptionUtils.getMessage(e));
+        }
+
         blockIndex++;
     }
 
@@ -156,16 +168,14 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-        if(os == null){
-            nextBlock();
-        }
-
-        String line = StringUtil.row2string(row, columnTypes, ftpConfig.getFieldDelimiter(), columnNames);
         try {
-            byte[] bytes = line.getBytes(ftpConfig.getEncoding());
-            this.os.write(bytes);
-            this.os.write(NEWLINE);
-            this.os.flush();
+            if(writer == null){
+                nextBlock();
+            }
+
+            String line = StringUtil.row2string(row, columnTypes, ftpConfig.getFieldDelimiter());
+            this.writer.write(line);
+            this.writer.write(NEWLINE);
             rowsOfCurrentBlock++;
             if(restoreConfig.isRestore()){
                 lastRow = row;
@@ -295,8 +305,10 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void closeSource() throws IOException {
-        if (os != null){
-            os.flush();
+        if (writer != null){
+            writer.flush();
+            writer.close();
+            writer = null;
             os.close();
             os = null;
             try {
