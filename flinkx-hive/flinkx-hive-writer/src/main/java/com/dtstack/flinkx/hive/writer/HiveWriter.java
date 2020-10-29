@@ -83,6 +83,8 @@ public class HiveWriter extends BaseDataWriter {
 
     private boolean autoCreateTable;
 
+    private String schema;
+
     public HiveWriter(DataTransferConfig config) {
         super(config);
         readerName = config.getJob().getContent().get(0).getReader().getName();
@@ -106,6 +108,7 @@ public class HiveWriter extends BaseDataWriter {
         jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
         username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
         password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
+        schema = writerConfig.getParameter().getStringVal(KEY_SCHEMA);
 
         String distributeTable = writerConfig.getParameter().getStringVal(KEY_DISTRIBUTE_TABLE);
         formatHiveDistributeInfo(distributeTable);
@@ -205,6 +208,7 @@ public class HiveWriter extends BaseDataWriter {
         builder.setFileType(fileType);
         builder.setDelimiter(delimiter);
 
+        builder.setSchema(schema);
         builder.setPartition(partition);
         builder.setPartitionType(partitionType);
         builder.setBufferSize(bufferSize);

@@ -54,5 +54,6 @@ public enum EDatabaseType {
     polarDB,
     Phoenix,
     dm,
-    SapHana
+    SapHana,
+    KingBase
 }

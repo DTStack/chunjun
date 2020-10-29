@@ -29,4 +29,5 @@ public class RestapiKeys {
     public static final String KEY_COLUMN = "column";
     public static final String KEY_URL = "url";
     public static final String KEY_BATCH_INTERVAL = "batchInterval";
+    public static final String KEY_BATCH = "batchId";
 }

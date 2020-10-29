@@ -373,7 +373,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
 
             conn = getConnection();
-            st = conn.createStatement();
+            st = conn.createStatement(resultSetType, resultSetConcurrency);
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
                 switch (type) {
@@ -744,7 +744,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 ps.setDate(1, date);
                 break;
             default:
-                ps.setString(1, startLocation);
+                if(isNumber){
+                    ps.setLong(1, Long.parseLong(startLocation));
+                }else {
+                    ps.setString(1, startLocation);
+                }
         }
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
@@ -764,7 +768,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //从数据库中获取起始位置
                 queryStartLocation();
             }else{
-                ps = dbConn.prepareStatement(querySql);
+                ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
                 ps.setFetchSize(fetchSize);
                 ps.setQueryTimeout(queryTimeOut);
                 queryForPolling(startLocation);
@@ -789,7 +793,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)
                 .append(incrementConfig.getColumnName())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
-        ps = dbConn.prepareStatement(builder.toString(), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        ps = dbConn.prepareStatement(builder.toString(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(fetchSize);
         //第一次查询数据库中增量字段的最大值
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
@@ -824,7 +828,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 .append(incrementConfig.getColumnName())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
         querySql = builder.toString();
-        ps = dbConn.prepareStatement(querySql);
+        ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
         ps.setFetchSize(fetchSize);
         ps.setQueryTimeout(queryTimeOut);

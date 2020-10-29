@@ -12,7 +12,7 @@
     <artifactId>flinkx-test</artifactId>
 
     <properties>
-        <flink.version>1.10.1</flink.version>
+        <flink.version>1.10.0</flink.version>
         <prometheus.version>0.3.0</prometheus.version>
     </properties>
 
@@ -524,6 +524,16 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-sqlserver-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-writer</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

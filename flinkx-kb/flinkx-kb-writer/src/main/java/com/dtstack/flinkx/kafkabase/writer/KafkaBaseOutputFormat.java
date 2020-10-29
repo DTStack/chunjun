@@ -24,6 +24,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +51,22 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
+    protected static ObjectMapper objectMapper = new ObjectMapper();
+    //连续发送数据错误次数
+    protected  int failedTimes = 0;
 
     @Override
     public void configure(Configuration parameters) {
+        if(producerSettings != null && producerSettings.get("bootstrap.servers") != null){
+            String brokerList = producerSettings.get("bootstrap.servers");
+            LOG.info("brokerList->{}",brokerList);
+            String broker = brokerList.split(",")[0];
+            String[] split = broker.split(":");
+
+            if( split.length !=2 ||!AddressUtil.telnet(split[0], Integer.parseInt(split[1]))){
+                throw new RuntimeException("telnet error,brokerList"+brokerList+" please check dataSource is running");
+            }
+        }
     }
 
     @Override
@@ -84,10 +98,17 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
                 }
             }
             emit(map);
+            //只要有正常的 重置为0
+            failedTimes =0;
 
         } catch (Throwable e) {
-            LOG.error("kafka writeSingleRecordInternal error:{}", ExceptionUtil.getErrorMessage(e));
-            throw new WriteRecordException(e.getMessage(), e);
+            String errorMessage = ExceptionUtil.getErrorMessage(e);
+            LOG.error("kafka writeSingleRecordInternal error:{}", errorMessage);
+            //连续发送3次数据错误 或者出现broker 连接异常，就直接认为数据源异常，退出任务 或者出现broker连接不上，超时直接抛出异常
+            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")||e.getMessage().contains("TimeoutException")){
+                throw new RuntimeException("Error data is received 3 times continuously or datasource has error"+errorMessage, e);
+            }
+            throw new WriteRecordException(errorMessage, e);
         }
     }
 

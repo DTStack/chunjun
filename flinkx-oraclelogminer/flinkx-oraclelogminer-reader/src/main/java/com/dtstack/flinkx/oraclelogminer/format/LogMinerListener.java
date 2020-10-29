@@ -28,7 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jiangbo
@@ -51,6 +57,11 @@ public class LogMinerListener implements Runnable {
     private LogParser logParser;
 
     private boolean running = false;
+
+    /**
+     * 连续接收到错误数据的次数
+     */
+    private int failedTimes;
 
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
         this.positionManager = positionManager;
@@ -94,7 +105,6 @@ public class LogMinerListener implements Runnable {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
-
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
@@ -131,10 +141,15 @@ public class LogMinerListener implements Runnable {
             QueueData data = queue.take();
             if (data.getScn() != 0L) {
                 positionManager.updatePosition(data.getScn());
+                failedTimes =0;
                 return data.getData();
 
             }
-            LOG.error("LogMinerListener obtain an error data, data = {}", GsonUtil.GSON.toJson(data));
+           String message = String.format( "LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
+            LOG.error(message);
+            if(++failedTimes > 5){
+                throw new RuntimeException("Error data is received 5 times continuously,error info->"+message);
+            }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }
