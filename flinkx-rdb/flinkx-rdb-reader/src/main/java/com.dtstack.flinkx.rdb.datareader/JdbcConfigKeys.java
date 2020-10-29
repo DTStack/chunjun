@@ -53,4 +53,6 @@ public class JdbcConfigKeys {
     public static final String KEY_POLLING = "polling";
 
     public static final String KEY_POLLING_INTERVAL = "pollingInterval";
+
+    public static final String KEY_PROPERTIES = "properties";
 }

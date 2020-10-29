@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -100,6 +101,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected boolean readyCheckpoint;
 
     protected long rowsOfCurrentTransaction;
+
+    public Properties properties;
 
     protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +

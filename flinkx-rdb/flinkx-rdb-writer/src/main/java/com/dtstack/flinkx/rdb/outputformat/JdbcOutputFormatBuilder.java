@@ -23,6 +23,7 @@ import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @Company: www.dtstack.com
@@ -66,6 +67,10 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     public void setDatabaseInterface(DatabaseInterface databaseInterface) {
         format.databaseInterface = databaseInterface;
+    }
+
+    public void setProperties(Properties properties){
+        format.properties = properties;
     }
 
     public void setMode(String mode) {
