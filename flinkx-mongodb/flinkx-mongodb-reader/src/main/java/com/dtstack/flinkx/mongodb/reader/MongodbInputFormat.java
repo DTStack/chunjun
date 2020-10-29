@@ -180,10 +180,13 @@ public class MongodbInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * 如果是 map  或者 list 数据结构 使用gson转为json格式
+     * @param object
+     * @return
+     */
     private Object conventDocument(Object object){
-        if (object instanceof Document){
-            return GsonUtil.GSON.toJson(object);
-        } else if( object instanceof  List || object instanceof Map){
+         if( object instanceof  List || object instanceof Map){
             return GsonUtil.GSON.toJson(object);
         }
         return object;
