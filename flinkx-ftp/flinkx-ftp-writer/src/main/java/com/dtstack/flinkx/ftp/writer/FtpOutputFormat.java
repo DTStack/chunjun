@@ -67,6 +67,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() throws IOException {
+        writeMode = ftpConfig.writeMode;
         ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
