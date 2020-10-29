@@ -182,6 +182,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     /**
      * 如果是 map  或者 list 数据结构 使用gson转为json格式
+     * 主要针对 mongodb的 Document(继承Map) 类型 ，其原有document.tostring 格式不符合正常json格式
      * @param object
      * @return
      */
