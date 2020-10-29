@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Define standard column type for all the readers or writers that do not
@@ -82,11 +83,12 @@ public enum ColumnType {
             type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
+        type =  type.toUpperCase(Locale.ENGLISH);
         //为了支持无符号类型  如 int unsigned
-        if(StringUtils.containsIgnoreCase(type,ConstantValue.DATA_TYPE_UNSIGNED)){
-            type = type.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED,"").trim();
+        if(StringUtils.contains(type,ConstantValue.DATA_TYPE_UNSIGNED)){
+            type = type.replace(ConstantValue.DATA_TYPE_UNSIGNED,"").trim();
         }
-        return valueOf(type.toUpperCase());
+        return valueOf(type);
     }
 
     /**
@@ -95,16 +97,17 @@ public enum ColumnType {
      * @return
      */
     public static ColumnType getType(String type){
+        type = type.toUpperCase(Locale.ENGLISH);
         if(type.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL)){
             type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
         //为了支持无符号类型  如 int unsigned
-        if(StringUtils.containsIgnoreCase(type,ConstantValue.DATA_TYPE_UNSIGNED)){
+        if(StringUtils.contains(type,ConstantValue.DATA_TYPE_UNSIGNED)){
             type = type.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED,"").trim();
         }
 
-        if(type.toLowerCase().contains(ColumnType.TIMESTAMP.name().toLowerCase())){
+        if(type.contains(ColumnType.TIMESTAMP.name())){
             return TIMESTAMP;
         }
 

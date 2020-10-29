@@ -39,7 +39,7 @@ public class ConstantValue {
     public static final String RIGHT_PARENTHESIS_SYMBOL = ")";
 
 
-    public static final String DATA_TYPE_UNSIGNED = "unsigned";
+    public static final String DATA_TYPE_UNSIGNED = "UNSIGNED";
 
 
     public static final String KEY_HTTP = "http";
