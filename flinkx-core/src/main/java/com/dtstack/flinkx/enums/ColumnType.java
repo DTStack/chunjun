@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.enums;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,6 +76,10 @@ public enum ColumnType {
             type = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
         }
 
+        //为了支持无符号类型  如 int unsigned
+        if(StringUtils.containsIgnoreCase(type,ConstantValue.DATA_TYPE_UNSIGNED)){
+            type = type.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED,"").trim();
+        }
         return valueOf(type.toUpperCase());
     }
 
