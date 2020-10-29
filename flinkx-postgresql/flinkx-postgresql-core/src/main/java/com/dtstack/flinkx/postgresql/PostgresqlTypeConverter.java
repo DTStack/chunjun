@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The type converter for PostgreSQL database
@@ -43,6 +44,9 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
 
     private List<String> intTypes = Arrays.asList("int","int2","int4","int8");
 
+    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR","TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
+
+
     @Override
     public Object convert(Object data,String typeName) {
         if (data == null){
@@ -53,6 +57,10 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
             return dataValue;
         }
         if(StringUtils.isBlank(dataValue)){
+            //如果是string类型 还应该返回空字符串而不是null
+            if(STRING_TYPES.contains(typeName.toUpperCase(Locale.ENGLISH))){
+                return dataValue;
+            }
             return null;
         }
         if(doubleTypes.contains(typeName)){
