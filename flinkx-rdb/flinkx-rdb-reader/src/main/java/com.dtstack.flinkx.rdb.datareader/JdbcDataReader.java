@@ -34,6 +34,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.Objects;
 
 /**
@@ -47,6 +48,8 @@ public class JdbcDataReader extends BaseDataReader {
     protected String username;
     protected String password;
     protected String dbUrl;
+    protected Properties properties;
+
 
     protected String table;
     protected String where;
@@ -77,6 +80,7 @@ public class JdbcDataReader extends BaseDataReader {
         splitKey = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_SPLIK_KEY);
         customSql = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_CUSTOM_SQL,null);
         orderByColumn = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_ORDER_BY_COLUMN,null);
+        properties = readerConfig.getParameter().getProperties(JdbcConfigKeys.KEY_PROPERTIES, null);
 
         buildIncrementConfig(readerConfig);
     }
@@ -101,6 +105,7 @@ public class JdbcDataReader extends BaseDataReader {
         builder.setSplitKey(splitKey);
         builder.setNumPartitions(numPartitions);
         builder.setCustomSql(customSql);
+        builder.setProperties(properties);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
         builder.setTestConfig(testConfig);

@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.phoenix5.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.phoenix5.PhoenixMeta;
+import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.phoenix5.Phoenix5ConfigKeys;
+import com.dtstack.flinkx.phoenix5.Phoenix5DatabaseMeta;
 import com.dtstack.flinkx.phoenix5.format.Phoenix5InputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.util.Collections;
+import org.apache.hadoop.hbase.HConstants;
 
 /**
  * phoenix reader plugin
@@ -35,16 +35,29 @@ import java.util.Collections;
  * @author wuhui
  */
 public class Phoenix5Reader extends JdbcDataReader {
+    private boolean readFromHbase;
+    private int scanCacheSize;
+    private int scanBatchSize;
 
     public Phoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        setDatabaseInterface(new PhoenixMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
+        readFromHbase = readerConfig.getParameter().getBooleanVal(Phoenix5ConfigKeys.KEY_READ_FROM_HBASE, false);
+        scanCacheSize = readerConfig.getParameter().getIntVal(Phoenix5ConfigKeys.KEY_SCAN_CACHE_SIZE, HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING);
+        scanBatchSize = readerConfig.getParameter().getIntVal(Phoenix5ConfigKeys.KEY_SCAN_BATCH_SIZE, -1);
+        setDatabaseInterface(new Phoenix5DatabaseMeta());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new Phoenix5InputFormat());
+        Phoenix5InputFormatBuilder builder = new Phoenix5InputFormatBuilder(new Phoenix5InputFormat());
+        builder.setReadFromHbase(readFromHbase);
+        builder.setScanCacheSize(scanCacheSize);
+        builder.setScanBatchSize(scanBatchSize);
+        builder.setWhere(where);
+        builder.setCustomSql(customSql);
+        builder.setOrderByColumn(orderByColumn);
+        return builder;
     }
 
 }

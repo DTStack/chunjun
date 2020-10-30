@@ -48,15 +48,14 @@ public final class RetryUtil {
     public static <T> T executeWithRetry(Callable<T> callable,
                                          int retryTimes,
                                          long sleepTimeInMilliSecond,
-                                         boolean exponential) throws Exception {
+                                         boolean exponential){
         Retry retry = new Retry();
         return retry.doRetry(callable, retryTimes, sleepTimeInMilliSecond, exponential, null);
     }
 
     private static class Retry {
 
-        public <T> T doRetry(Callable<T> callable, int retryTimes, long sleepTimeInMilliSecond, boolean exponential, List<Class<?>> retryExceptionClasss)
-                throws Exception {
+        public <T> T doRetry(Callable<T> callable, int retryTimes, long sleepTimeInMilliSecond, boolean exponential, List<Class<?>> retryExceptionClasss){
 
             if (null == callable) {
                 throw new IllegalArgumentException("系统编程错误, 入参callable不能为空 ! ");
@@ -86,7 +85,7 @@ public final class RetryUtil {
                             }
                         }
                         if (!needRetry) {
-                            throw saveException;
+                            throw new RuntimeException(saveException);
                         }
                     }
 
@@ -114,12 +113,12 @@ public final class RetryUtil {
                         long realTimeSleep = System.currentTimeMillis()-startTime;
 
                         LOG.error(String.format("Exception when calling callable, 即将尝试执行第%s次重试.本次重试计划等待[%s]ms,实际等待[%s]ms, 异常Msg:[%s]",
-                                i+1, timeToSleep,realTimeSleep, e.getMessage()));
+                                i+1, timeToSleep,realTimeSleep, ExceptionUtil.getErrorMessage(e)));
 
                     }
                 }
             }
-            throw saveException;
+            throw new RuntimeException(saveException);
         }
 
         protected <T> T call(Callable<T> callable) throws Exception {
