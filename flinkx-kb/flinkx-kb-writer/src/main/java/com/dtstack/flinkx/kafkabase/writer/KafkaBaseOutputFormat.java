@@ -44,6 +44,8 @@ import java.util.Properties;
 public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(KafkaBaseOutputFormat.class);
+    //producer.close最长等待时间
+    protected static final long CLOSE_TIME = 20000L;
 
     protected Properties props = new Properties();
     protected String timezone;
