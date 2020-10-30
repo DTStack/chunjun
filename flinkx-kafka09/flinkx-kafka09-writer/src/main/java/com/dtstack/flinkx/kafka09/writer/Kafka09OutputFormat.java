@@ -28,6 +28,7 @@ import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @company: www.dtstack.com
@@ -86,7 +87,8 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     @Override
     public void closeInternal() throws IOException {
         LOG.warn("kafka output closeInternal.");
-        producer.close();
+        //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
+        producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
     }
 
     public void setEncoding(String encoding) {
