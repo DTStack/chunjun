@@ -341,6 +341,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             //endLocation设置为数据库中查询的最大值
             String endLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
             endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
+        }else{
+            //增量任务，且useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
+            if (StringUtils.isNotEmpty(startLocation)) {
+                endLocationAccumulator.add(new BigInteger(startLocation));
+            }
         }
 
         //将累加器信息添加至prometheus
