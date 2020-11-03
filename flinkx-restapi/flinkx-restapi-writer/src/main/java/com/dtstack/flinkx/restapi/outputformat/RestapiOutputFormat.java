@@ -59,7 +59,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
 
     protected Map<String, String> header;
 
-    protected static final int DEFAULT_TIME_OUT = 1800000;
+    protected static final int DEFAULT_TIME_OUT = 300000;
 
     protected Gson gson;
 
