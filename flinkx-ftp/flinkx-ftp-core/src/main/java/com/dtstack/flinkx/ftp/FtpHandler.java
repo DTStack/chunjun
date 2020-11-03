@@ -83,6 +83,7 @@ public class FtpHandler implements IFtpHandler {
             //设置命令传输编码
             String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
+            ftpClient.setListHiddenFiles(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -154,6 +155,10 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    // .和..是特殊文件
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -182,6 +187,9 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -282,6 +290,9 @@ public class FtpHandler implements IFtpHandler {
                         if(CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())){
                             continue;
                         }
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                            continue;
+                        }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
                     }
                 }
@@ -328,6 +339,9 @@ public class FtpHandler implements IFtpHandler {
                 FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                            continue;
+                        }
                         sources.add(path + ftpFile.getName());
                     }
                 }
