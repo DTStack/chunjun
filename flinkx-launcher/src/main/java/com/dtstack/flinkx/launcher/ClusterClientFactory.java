@@ -91,6 +91,10 @@ public class ClusterClientFactory {
             config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
             FileSystem.initialize(config);
 
+            //进行kerberos验证 如果需要的话
+            KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(), launcherOptions.getKeytab(), launcherOptions.getPrincipal(), config);
+            kerberosInfo.verify();
+
             YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
 
             try (YarnClient yarnClient = YarnClient.createYarnClient()) {
