@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.launcher.perjob;
 
+import com.dtstack.flinkx.launcher.KerberosInfo;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import com.google.common.base.Strings;
@@ -58,6 +59,9 @@ public class PerJobClusterClientBuilder {
 
     private Configuration flinkConfig;
 
+    //kerberos验证信息
+    private KerberosInfo kerberosInfo;
+
     /**
      * init yarnClient
      * @param yarnConfDir the path of yarnconf
@@ -69,6 +73,10 @@ public class PerJobClusterClientBuilder {
         }
         userConf.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
         this.flinkConfig = flinkConfig;
+        if(userConf.size()>0){
+            this.kerberosInfo = new KerberosInfo(kerberosInfo.getKrb5confPath(),kerberosInfo.getKeytab(),kerberosInfo.getPrincipal(),this.flinkConfig);
+        }
+        kerberosInfo.verify();
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
@@ -134,5 +142,14 @@ public class PerJobClusterClientBuilder {
         }
         descriptor.addShipFiles(shipFiles);
         return descriptor;
+    }
+
+
+    public KerberosInfo getKerberosInfo() {
+        return kerberosInfo;
+    }
+
+    public void setKerberosInfo(KerberosInfo kerberosInfo) {
+        this.kerberosInfo = kerberosInfo;
     }
 }
