@@ -30,6 +30,7 @@ import com.dtstack.flinkx.util.RangeSplitUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
@@ -268,8 +269,12 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
 
         ClassUtil.forName(driverName, childFirstClassLoader);
-        properties.setProperty("user", username);
-        properties.setProperty("password", password);
+        if(StringUtils.isNotEmpty(username)){
+            properties.setProperty("user", username);
+        }
+        if(StringUtils.isNotEmpty(password)){
+            properties.setProperty("password", password);
+        }
 
         try {
             helper = PhoenixUtil.getHelper(childFirstClassLoader);
