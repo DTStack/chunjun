@@ -24,6 +24,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -49,6 +50,9 @@ public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.writeMode = writeMode;
     }
 
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.setHadoopConfig(hadoopConfig);
+    }
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){

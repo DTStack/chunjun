@@ -126,6 +126,10 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         this.format.maxFileSize = maxFileSize;
     }
 
+    public void setSchema(String schema){
+        format.schema = schema;
+    }
+
     @Override
     protected void checkFormat() {
         if (this.format.tableBasePath == null || this.format.tableBasePath.length() == 0) {

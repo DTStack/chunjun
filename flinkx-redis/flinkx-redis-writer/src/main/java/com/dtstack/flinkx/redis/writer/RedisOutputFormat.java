@@ -84,7 +84,9 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
 
         Properties properties = new Properties();
         properties.put(KEY_HOST_PORT,hostPort);
-        properties.put(KEY_PASSWORD,password);
+        if(StringUtils.isNotBlank(password)){
+            properties.put(KEY_PASSWORD,password);
+        }
         properties.put(KEY_TIMEOUT,timeout);
         properties.put(KEY_DB,database);
 
