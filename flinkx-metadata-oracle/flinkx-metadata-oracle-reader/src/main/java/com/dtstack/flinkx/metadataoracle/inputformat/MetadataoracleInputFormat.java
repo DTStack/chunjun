@@ -121,9 +121,19 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return String.format("'%s'",name);
     }
 
+    /**
+     * 从预先查询好的map中取出信息
+     * @param tableName 表名
+     * @return 表的元数据信息
+     * @throws SQLException 异常
+     */
     @Override
-    protected Map<String, Object> queryMetaData(String tableName) {
+    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
+        // 如果当前map中没有，说明要重新取值
+        if(!tablePropertiesMap.containsKey(tableName)){
+            init();
+        }
         Map<String, String> tableProperties = tablePropertiesMap.get(tableName);
         tableProperties.put(KEY_TABLE_CREATE_TIME, createdTimeMap.get(tableName));
         List<Map<String, Object>> columnList = columnListMap.get(tableName);
@@ -148,6 +158,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if(StringUtils.isNotBlank(allTable)){
             sql += String.format(SQL_QUERY_TABLE_PROPERTIES, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> map = new HashMap<>(16);
@@ -167,6 +178,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if(StringUtils.isNotBlank(allTable)){
             sql += String.format(SQL_QUERY_INDEX, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> column = new HashMap<>(16);
@@ -192,6 +204,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if(StringUtils.isNotBlank(allTable)){
             sql += String.format(SQL_QUERY_COLUMN, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, Object> column = new HashMap<>(16);
@@ -222,20 +235,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if (StringUtils.isNotBlank(allTable)){
             sql += String.format(SQL_QUERY_PRIMARY_KEY, allTable);
         }
-        try (ResultSet rs = statement.get().executeQuery(sql)){
-            while (rs.next()){
-                primaryKeyMap.put(rs.getString(1), rs.getString(2));
-            }
-        }
-        return primaryKeyMap;
-    }
-
-    protected Map<String, String> queryCreatedTimeMap() throws SQLException {
-        Map<String, String> primaryKeyMap = new HashMap<>(16);
-        sql = String.format(SQL_QUERY_TABLE_CREATE_TIME_TOTAL, quote(currentDb.get()));
-        if (StringUtils.isNotBlank(allTable)){
-            sql += String.format(SQL_QUERY_TABLE_CREATE_TIME, allTable);
-        }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)){
             while (rs.next()){
                 primaryKeyMap.put(rs.getString(1), rs.getString(2));
@@ -245,30 +245,51 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     }
 
     /**
-     * 小于20张表时采用in语法
+     * 为了避免多表join，表的创建时间单独查询
+     * @return 表和表的创建时间映射的map
+     * @throws SQLException sql异常
+     */
+    protected Map<String, String> queryCreatedTimeMap() throws SQLException {
+        Map<String, String> primaryKeyMap = new HashMap<>(16);
+        sql = String.format(SQL_QUERY_TABLE_CREATE_TIME_TOTAL, quote(currentDb.get()));
+        if (StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_TABLE_CREATE_TIME, allTable);
+        }
+        LOG.info("querySQL: {}", sql);
+        try (ResultSet rs = statement.get().executeQuery(sql)){
+            while (rs.next()){
+                primaryKeyMap.put(rs.getString(1), rs.getString(2));
+            }
+        }
+        return primaryKeyMap;
+    }
+
+    /**
+     * 每隔20张表进行一次查询
      * @throws SQLException 执行sql出现的异常
      */
     @Override
     protected void init() throws SQLException {
-        if(tableList.size() <= MAX_TABLE_SIZE){
-            StringBuilder stringBuilder = new StringBuilder(2 * tableList.size());
-            for(int index=0;index<tableList.size();index++){
-                stringBuilder.append(quote((String) tableList.get(index)));
-                if(index!=tableList.size()-1){
+        // 没有表则退出
+        if(tableList.size()==0){
+            return;
+        }
+        if (start < tableList.size()){
+            // 取出子数组，注意避免越界
+            List<Object> splitTableList = tableList.subList(start, Math.min(start+MAX_TABLE_SIZE, tableList.size()));
+            StringBuilder stringBuilder = new StringBuilder(2 * splitTableList.size());
+            for(int index=0;index<splitTableList.size();index++){
+                stringBuilder.append(quote((String) splitTableList.get(index)));
+                if(index!=splitTableList.size()-1){
                     stringBuilder.append(ConstantValue.COMMA_SYMBOL);
                 }
             }
             allTable = stringBuilder.toString();
+            tablePropertiesMap = queryTableProperties();
+            columnListMap = queryColumnList();
+            indexListMap = queryIndexList();
+            primaryKeyMap = queryPrimaryKeyMap();
+            createdTimeMap = queryCreatedTimeMap();
         }
-        tablePropertiesMap = queryTableProperties();
-        LOG.info("tablePropertiesMap = {}", tablePropertiesMap);
-        columnListMap = queryColumnList();
-        LOG.info("columnListMap = {}", columnListMap);
-        indexListMap = queryIndexList();
-        LOG.info("indexListMap = {}", indexListMap);
-        primaryKeyMap = queryPrimaryKeyMap();
-        LOG.info("primaryKeyMap = {}", primaryKeyMap);
-        createdTimeMap = queryCreatedTimeMap();
-        LOG.info("createdTimeMap = {}", createdTimeMap);
     }
 }

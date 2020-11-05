@@ -54,9 +54,20 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     protected boolean queryTable;
 
+    /**
+     * 记录任务参数传入的database和表名
+     */
     protected List<Map<String, Object>> dbTableList;
 
+    /**
+     * 存放所有需要查询的表的名字
+     */
     protected List<Object> tableList;
+
+    /**
+     * 记录当前查询的表所在list中的位置
+     */
+    protected int start;
 
     protected static transient ThreadLocal<Connection> connection = new ThreadLocal<>();
 
@@ -81,6 +92,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             }
             LOG.info("current database = {}, tableSize = {}, tableList = {}",currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
+            start = 0;
             init();
         } catch (SQLException | ClassNotFoundException e) {
             String message = String.format("query table list failed, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
@@ -117,7 +129,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         String tableName = (String) tableIterator.get().next();
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
-
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
@@ -126,6 +137,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
+        start++;
         LOG.info("query metadata: {}", metaData);
         return Row.of(metaData);
     }
