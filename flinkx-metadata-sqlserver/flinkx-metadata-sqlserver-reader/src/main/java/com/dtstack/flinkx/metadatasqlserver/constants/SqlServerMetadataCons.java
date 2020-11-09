@@ -35,6 +35,8 @@ public class SqlServerMetadataCons extends MetaDataCons {
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_COLUMN_NAME = "columnName";
     public static final String KEY_FILE_GROUP_NAME = "fileGroupName";
+    public static final String KEY_SCHEMA_NAME = "schemaName";
+    public static final String KEY_TABLE_NAME = "tableName";
     public static final String KEY_TABLE_SCHEMA = "tableSchema";
     public static final char DEFAULT_DELIMITER = '.';
 

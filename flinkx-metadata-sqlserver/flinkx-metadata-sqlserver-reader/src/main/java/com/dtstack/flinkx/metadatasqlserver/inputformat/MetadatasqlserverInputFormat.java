@@ -40,6 +40,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
+
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/08/06
@@ -108,13 +111,14 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
             schema = pair.getKey();
             table = pair.getValue();
         }else{
-            List<String> list = StringUtil.splitIgnoreQuota((String) tableIterator.get().next(), SqlServerMetadataCons.DEFAULT_DELIMITER);
-            schema = list.get(0);
-            table = list.get(1);
+            Map<String, String> map = (Map<String, String>)tableIterator.get().next();
+            schema = map.get(KEY_SCHEMA_NAME);
+            table = map.get(KEY_TABLE_NAME);
         }
         String tableName = schema + ConstantValue.POINT_SYMBOL + table;
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
-        metaData.put(MetaDataCons.KEY_TABLE, tableName);
+        metaData.put(MetaDataCons.KEY_TABLE, table);
+        metaData.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
