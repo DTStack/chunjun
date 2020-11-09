@@ -113,13 +113,13 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> result = new HashMap<>(16);
         Map<String, Object> tableProperties = queryTableProp();
         result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableProperties);
-        List<Map<String, Object>> column = queryColumn();
+        List<Map<String, String>> column = queryColumn();
         String partitionKey = queryPartitionColumn();
-        List<Map<String, Object>> partitionColumn = new ArrayList<>();
+        List<Map<String, String>> partitionColumn = new ArrayList<>();
         if(StringUtils.isNotEmpty(partitionKey)){
-            column.removeIf((Map<String, Object> perColumn)->
+            column.removeIf((Map<String, String> perColumn)->
             {
-                if(StringUtils.equals(partitionKey, (String) perColumn.get(KEY_COLUMN_NAME))){
+                if(StringUtils.equals(partitionKey, perColumn.get(KEY_COLUMN_NAME))){
                     partitionColumn.add(perColumn);
                     return true;
                 }else {
@@ -178,19 +178,19 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
         return partitionKey;
     }
 
-    protected List<Map<String, Object>> queryColumn() throws SQLException {
-        List<Map<String, Object>> column = new ArrayList<>();
+    protected List<Map<String, String>> queryColumn() throws SQLException {
+        List<Map<String, String>> column = new ArrayList<>();
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_COLUMN, quote(table), quote(schema));
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while(resultSet.next()){
-                Map<String, Object> perColumn = new HashMap<>(16);
+                Map<String, String> perColumn = new HashMap<>(16);
                 perColumn.put(KEY_COLUMN_NAME, resultSet.getString(1));
                 perColumn.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(2));
                 perColumn.put(MetaDataCons.KEY_COLUMN_COMMENT, resultSet.getString(3));
                 perColumn.put(MetaDataCons.KEY_COLUMN_NULL, StringUtils.equals(resultSet.getString(4), KEY_ZERO) ? KEY_FALSE : KEY_TRUE);
                 perColumn.put(MetaDataCons.KEY_COLUMN_SCALE, resultSet.getString(5));
                 perColumn.put(MetaDataCons.KEY_COLUMN_DEFAULT, resultSet.getString(6));
-                perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, column.size()+1);
+                perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, resultSet.getString(7));
                 column.add(perColumn);
             }
         }
@@ -201,8 +201,8 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
                 primaryKey = resultSet.getString(1);
             }
         }
-        for(Map<String, Object> perColumn : column){
-            perColumn.put(KEY_COLUMN_PRIMARY, StringUtils.equals((String) perColumn.get(KEY_COLUMN_NAME), primaryKey) ? KEY_TRUE : KEY_FALSE);
+        for(Map<String, String> perColumn : column){
+            perColumn.put(KEY_COLUMN_PRIMARY, StringUtils.equals(perColumn.get(KEY_COLUMN_NAME), primaryKey) ? KEY_TRUE : KEY_FALSE);
         }
         return column;
     }

@@ -48,7 +48,7 @@ public class SqlServerMetadataCons extends MetaDataCons {
             "LEFT JOIN sys.extended_properties AS ep ON a.id = ep.major_id AND ep.minor_id = 0 \n" +
             "WHERE (a.type = 'u') AND (b.indid IN (0, 1)) and a.name = %s AND OBJECT_SCHEMA_NAME(a.id, DB_ID()) = %s ";
 
-    public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment, B.is_nullable as nullable, COLUMNPROPERTY(B.object_id ,B.name,'PRECISION') as presice, D.text \n" +
+    public static final String SQL_SHOW_TABLE_COLUMN = "SELECT B.name AS name, TY.name as type, C.value AS comment, B.is_nullable as nullable, COLUMNPROPERTY(B.object_id ,B.name,'PRECISION') as presice, D.text, B.column_id \n" +
             "FROM sys.tables A INNER JOIN sys.columns B ON B.object_id = A.object_id \n" +
             "INNER JOIN sys.types TY ON B.system_type_id = TY.system_type_id \n" +
             "LEFT JOIN sys.extended_properties C ON C.major_id = B.object_id AND C.minor_id = B.column_id \n" +

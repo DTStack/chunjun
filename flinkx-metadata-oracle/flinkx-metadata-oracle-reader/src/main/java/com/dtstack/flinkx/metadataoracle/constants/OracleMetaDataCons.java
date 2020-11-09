@@ -32,6 +32,18 @@ public class OracleMetaDataCons extends MetaDataCons {
 
     public static final String KEY_TABLE_TYPE = "tableType";
 
+    public static final String KEY_NUMBER = "NUMBER";
+
+    public static final String NUMBER_PRECISION = "NUMBER(%s,%s)";
+
+    public static final String KEY_MAX_NUMBER = "127";
+
+    public static final String KEY_PRIMARY_KEY = "primaryKey";
+
+    public static final String KEY_CREATE_TIME = "createTime";
+
+    public static final String KEY_PARTITION_KEY = "partitionKey";
+
     /**
      * 通过in语法，减少内存占用
      */
@@ -40,6 +52,7 @@ public class OracleMetaDataCons extends MetaDataCons {
     public static final String SQL_QUERY_PRIMARY_KEY = "AND COLUMNS.TABLE_NAME IN (%s) ";
     public static final String SQL_QUERY_TABLE_PROPERTIES = "AND TABLES.TABLE_NAME IN (%s) ";
     public static final String SQL_QUERY_TABLE_CREATE_TIME = "AND TABLES.TABLE_NAME IN (%s) ";
+    public static final String SQL_QUERY_TABLE_PARTITION_KEY = "AND NAME IN (%s) ";
 
     /**
      * 查询索引信息
@@ -54,10 +67,12 @@ public class OracleMetaDataCons extends MetaDataCons {
             "WHERE COLUMNS.TABLE_OWNER = %s ";
     /**
      * 查询列的基本信息
+     * DATA_LENGTH列的长度、DATA_PRECISION小数精度、DATA_SCALE小数点右边数字
      */
     public static final String SQL_QUERY_COLUMN_TOTAL =
             "SELECT COLUMNS.COLUMN_NAME, COLUMNS.DATA_TYPE, COMMENTS.COMMENTS, COLUMNS.TABLE_NAME, " +
-            "DATA_DEFAULT, NULLABLE, DATA_LENGTH  " +
+            "DATA_DEFAULT, NULLABLE, DATA_LENGTH,  " +
+            "COLUMNS.COLUMN_ID, COLUMNS.DATA_PRECISION, COLUMNS.DATA_SCALE "+
             "FROM ALL_TAB_COLUMNS COLUMNS  " +
             "LEFT JOIN ALL_COL_COMMENTS COMMENTS  " +
             "ON COLUMNS.OWNER = COMMENTS.OWNER  " +
@@ -94,6 +109,13 @@ public class OracleMetaDataCons extends MetaDataCons {
             "ON TABLES.OWNER = OBJS.OWNER " +
             "AND TABLES.TABLE_NAME = OBJS.OBJECT_NAME " +
             "WHERE TABLES.OWNER = %s ";
+
+    /**
+     * 查询分区列信息
+     */
+    public static final String SQL_PARTITION_KEY =
+            "SELECT NAME, COLUMN_NAME FROM ALL_PART_KEY_COLUMNS " +
+            "WHERE OBJECT_TYPE = 'TABLE' AND  OWNER=%s ";
 
     /**
      * 查询特定schema下的所有表
