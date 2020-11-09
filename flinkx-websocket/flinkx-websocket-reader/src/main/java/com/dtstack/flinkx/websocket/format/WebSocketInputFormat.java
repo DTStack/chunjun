@@ -36,7 +36,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     private static final long serialVersionUID = 1L;
 
-    private String serverUrl;
+    public String serverUrl;
 
     private WebSocketClient client;
 
@@ -75,7 +75,7 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() {
-        if(client!=null){
+        if(client != null){
             client.close();
         }
     }
@@ -84,9 +84,4 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     public boolean reachedEnd() {
         return false;
     }
-
-    public void setServerUrl(String serverUrl){
-        this.serverUrl = serverUrl;
-    }
-
 }

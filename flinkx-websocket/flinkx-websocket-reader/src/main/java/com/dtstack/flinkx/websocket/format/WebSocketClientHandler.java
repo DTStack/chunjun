@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.websocket.format;
 
-import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,7 +38,6 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -48,7 +47,6 @@ import java.util.concurrent.SynchronousQueue;
  */
 
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
-
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -87,15 +85,16 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         } else {
             //接收服务端的消息
             WebSocketFrame frame = (WebSocketFrame)msg;
+            Row row = null;
             //文本信息
             if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
-                queue.put(Row.of(textFrame.text()));
+                row = Row.of(textFrame.text());
             }
             //二进制信息
             if (frame instanceof BinaryWebSocketFrame) {
                 BinaryWebSocketFrame binFrame = (BinaryWebSocketFrame)frame;
-                queue.put(Row.of(binFrame.content().array()));
+                row = Row.of(binFrame.content().array());
             }
             //ping信息
             if (frame instanceof PongWebSocketFrame) {
@@ -106,7 +105,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 LOG.info("receive close frame");
                 ch.close();
             }
-
+            if(row != null){
+                LOG.debug("row = {}", GsonUtil.GSON.toJson(row));
+                queue.put(row);
+            }
         }
     }
 
@@ -121,8 +123,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOG.error("connect exception ："+ ExceptionUtil.getErrorMessage(cause));
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        LOG.error("connect exception ：{}", ExceptionUtil.getErrorMessage(cause));
         ctx.close();
     }
 

@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.websocket.format;
 
-import com.dtstack.flinkx.decoder.IDecode;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -39,7 +38,6 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.apache.flink.types.Row;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
 
@@ -59,7 +57,7 @@ public class WebSocketClient {
 
     WebSocketClientHandler webSocketClientHandler;
 
-    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public WebSocketClient(SynchronousQueue<Row> queue, String serverUrl) {
         webSocketClientHandler = new WebSocketClientHandler(queue);
         this.serverUrl = serverUrl;
     }

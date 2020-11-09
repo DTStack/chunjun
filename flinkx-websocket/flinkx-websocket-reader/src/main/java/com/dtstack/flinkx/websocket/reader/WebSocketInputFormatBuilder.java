@@ -19,9 +19,10 @@
 package com.dtstack.flinkx.websocket.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,23 +46,22 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
 
     public void setServerUrl(String serverUrl){
-        this.serverUrl = serverUrl;
-        format.setServerUrl(serverUrl);
+        this.serverUrl = format.serverUrl = serverUrl;
     }
 
     @Override
     protected void checkFormat() {
-        if(serverUrl==null){
-            throw new IllegalArgumentException("empty serverUrl");
+        if(StringUtils.isBlank(serverUrl)){
+            throw new IllegalArgumentException("config error:[serverUrl] cannot be blank");
         }
         try{
             URI uri = new URI(serverUrl);
             if(!StringUtils.equals(uri.getScheme(), WEB_SOCKET_PREFIX)){
-                throw new IllegalArgumentException("illegal serverUrl");
+                throw new IllegalArgumentException("config error:[serverUrl] must start with [ws], current serverUrl is " + serverUrl);
             }
             TelnetUtil.telnet(uri.getHost(), uri.getPort());
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("could not connect to serverUrl");
+            throw new IllegalArgumentException(String.format("could not connect to serverUrl, serverUrl = %s, e = %s", serverUrl, ExceptionUtil.getErrorMessage(e)));
         }
     }
 }
