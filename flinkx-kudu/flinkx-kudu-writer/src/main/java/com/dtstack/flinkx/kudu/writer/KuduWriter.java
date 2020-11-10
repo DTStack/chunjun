@@ -89,6 +89,9 @@ public class KuduWriter extends BaseDataWriter {
         builder.setBatchInterval(batchInterval);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
         return createOutput(dataSet,builder.finish());
     }
 }
