@@ -106,17 +106,23 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 if(rowData==null){
                     sb.append(DEFAULT_NULL_DELIM);
                 }else{
-                    String data = String.valueOf(rowData);
-                    if(data.contains("\\")){
-                        data=  data.replaceAll("\\\\","\\\\\\\\");
-                    }
-                    sb.append(data);
+                    sb.append(rowData);
                 }
                 if(index != lastIndex){
                     sb.append(DEFAULT_FIELD_DELIM);
                 }
             }
             String rowVal = sb.toString();
+            if(rowVal.contains("\\")){
+                rowVal=  rowVal.replaceAll("\\\\","\\\\\\\\");
+            }
+            if(rowVal.contains("\r")){
+                rowVal=  rowVal.replaceAll("\r","\\\\r");
+            }
+
+            if(rowVal.contains("\n")){
+                rowVal=  rowVal.replaceAll("\n","\\\\n");
+            }
             ByteArrayInputStream bi = new ByteArrayInputStream(rowVal.getBytes(StandardCharsets.UTF_8));
             copyManager.copyIn(copySql, bi);
         } catch (Exception e) {
@@ -155,23 +161,31 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         StringBuilder sb = new StringBuilder(128);
         for (Row row : rows) {
             int lastIndex = row.getArity() - 1;
+            StringBuilder tempBuilder = new StringBuilder(128);
             for (int index =0; index < row.getArity(); index++) {
                 Object rowData = getField(row, index);
                 if(rowData==null){
-                    sb.append(DEFAULT_NULL_DELIM);
+                    tempBuilder.append(DEFAULT_NULL_DELIM);
                 }else{
-                    String data = String.valueOf(rowData);
-                    if(data.contains("\\")){
-                        data=  data.replaceAll("\\\\","\\\\\\\\");
-                    }
-                    sb.append(data);
+                    tempBuilder.append(rowData);
                 }
                 if(index != lastIndex){
-                    sb.append(DEFAULT_FIELD_DELIM);
+                    tempBuilder.append(DEFAULT_FIELD_DELIM);
                 }
             }
+            // \r \n \ 等特殊字符串需要转义
+            String tempData = tempBuilder.toString();
+            if(tempData.contains("\\")){
+                tempData=  tempData.replaceAll("\\\\","\\\\\\\\");
+            }
+            if(tempData.contains("\r")){
+                tempData=  tempData.replaceAll("\r","\\\\r");
+            }
 
-            sb.append(LINE_DELIMITER);
+            if(tempData.contains("\n")){
+                tempData=  tempData.replaceAll("\n","\\\\n");
+            }
+            sb.append(tempData).append(LINE_DELIMITER);
         }
 
         String rowVal = sb.toString();
