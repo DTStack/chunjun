@@ -209,13 +209,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             for (; index < row.getArity(); index++) {
-                Object object = row.getField(index);
-                if( object instanceof String && StringUtils.isBlank((String) object)){
-                    if(!STRING_TYPES.contains(columnType.get(index))){
-                        object = null;
-                    }
-                }
-                preparedStatement.setObject(index+1, object);
+                preparedStatement.setObject(index+1, getField(row, index));
             }
 
             preparedStatement.execute();
@@ -247,13 +241,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             for (Row row : rows) {
                 for (int index = 0; index < row.getArity(); index++) {
-                    Object object = row.getField(index);
-                    if( object instanceof String && StringUtils.isBlank((String) object)){
-                        if(!STRING_TYPES.contains(columnType.get(index))){
-                            object = null;
-                        }
-                    }
-                    preparedStatement.setObject(index+1, object);
+                    preparedStatement.setObject(index+1, getField(row, index));
                 }
                 preparedStatement.addBatch();
 
@@ -330,9 +318,23 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    /**
+     * 获取转换后的字段value
+     * @param row
+     * @param index
+     * @return
+     */
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
         String type = columnType.get(index);
+
+        //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
+        if(field instanceof String
+                && StringUtils.isBlank((String) field)
+                &&!STRING_TYPES.contains(type)){
+            return null;
+        }
+
         if(type.matches(DateUtil.DATE_REGEX)) {
             field = DateUtil.columnToDate(field,null);
         } else if(type.matches(DateUtil.DATETIME_REGEX) || type.matches(DateUtil.TIMESTAMP_REGEX)){
