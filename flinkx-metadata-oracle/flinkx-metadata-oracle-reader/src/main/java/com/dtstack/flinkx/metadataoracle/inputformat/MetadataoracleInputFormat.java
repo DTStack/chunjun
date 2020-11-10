@@ -37,6 +37,9 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
@@ -44,18 +47,16 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_TYPE;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_CREATE_TIME;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_INDEX_COLUMN_NAME;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_ROWS;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_TYPE;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_INDEX_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_PRIMARY_KEY;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_PRIMARY_KEY_TOTAL;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_CREATE_TIME;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_CREATE_TIME_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_TABLE_PROPERTIES_TOTAL;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_SHOW_TABLES;
@@ -69,14 +70,30 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
 public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     private static final long serialVersionUID = 1L;
-
+    /**
+     * 表基本属性
+     */
     private Map<String, Map<String, String>> tablePropertiesMap;
 
+    /**
+     * 列基本属性
+     */
     private Map<String, List<Map<String, Object>>> columnListMap;
 
+    /**
+     * 索引基本属性
+     */
     private Map<String, List<Map<String, String>>> indexListMap;
 
+    /**
+     * 主键信息
+     */
     private Map<String, String> primaryKeyMap;
+
+    /**
+     * 表创建时间
+     */
+    private Map<String, String> createdTimeMap;
 
     private String allTable;
 
@@ -85,7 +102,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     @Override
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
-        String sql = String.format(SQL_SHOW_TABLES, quote(currentDb.get()));
+        sql = String.format(SQL_SHOW_TABLES, quote(currentDb.get()));
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 tableNameList.add(rs.getString(1));
@@ -104,10 +121,21 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return String.format("'%s'",name);
     }
 
+    /**
+     * 从预先查询好的map中取出信息
+     * @param tableName 表名
+     * @return 表的元数据信息
+     * @throws SQLException 异常
+     */
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
+        // 如果当前map中没有，说明要重新取值
+        if(!tablePropertiesMap.containsKey(tableName)){
+            init();
+        }
         Map<String, String> tableProperties = tablePropertiesMap.get(tableName);
+        tableProperties.put(KEY_TABLE_CREATE_TIME, createdTimeMap.get(tableName));
         List<Map<String, Object>> columnList = columnListMap.get(tableName);
         List<Map<String, String>> indexList = indexListMap.get(tableName);
         String primaryColumn = primaryKeyMap.get(tableName);
@@ -126,20 +154,19 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, Map<String, String> > queryTableProperties() throws SQLException {
         Map<String, Map<String, String>> tablePropertiesMap = new HashMap<>(16);
-        if(StringUtils.isBlank(allTable)){
-            sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
-        }else {
-            sql = String.format(SQL_QUERY_TABLE_PROPERTIES, quote(currentDb.get()), allTable);
+        sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
+        if(StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_TABLE_PROPERTIES, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> map = new HashMap<>(16);
-                map.put(KEY_TOTAL_SIZE, rs.getString(1));
+                map.put(KEY_TABLE_TOTAL_SIZE, rs.getString(1));
                 map.put(KEY_TABLE_COMMENT, rs.getString(2));
                 map.put(KEY_TABLE_TYPE, rs.getString(3));
-                map.put(KEY_CREATE_TIME, rs.getString(4));
-                map.put(KEY_ROWS, rs.getString(5));
-                tablePropertiesMap.put(rs.getString(6), map);
+                map.put(KEY_TABLE_ROWS, rs.getString(4));
+                tablePropertiesMap.put(rs.getString(5), map);
             }
         }
         return tablePropertiesMap;
@@ -147,11 +174,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
         Map<String, List<Map<String, String>>> indexListMap = new HashMap<>(16);
-        if(StringUtils.isBlank(allTable)){
-            sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
-        }else {
-            sql = String.format(SQL_QUERY_INDEX, quote(currentDb.get()), allTable);
+        sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
+        if(StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_INDEX, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> column = new HashMap<>(16);
@@ -173,11 +200,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, List<Map<String, Object>>> queryColumnList() throws SQLException {
         Map<String, List<Map<String, Object>>> columnListMap = new HashMap<>(16);
-        if(StringUtils.isBlank(allTable)){
-            sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
-        }else {
-            sql = String.format(SQL_QUERY_COLUMN, quote(currentDb.get()), allTable);
+        sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
+        if(StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_COLUMN, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, Object> column = new HashMap<>(16);
@@ -204,11 +231,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, String> queryPrimaryKeyMap() throws SQLException {
         Map<String, String> primaryKeyMap = new HashMap<>(16);
-        if (StringUtils.isBlank(allTable)){
-            sql = String.format(SQL_QUERY_PRIMARY_KEY_TOTAL, quote(currentDb.get()));
-        }else {
-            sql = String.format(SQL_QUERY_PRIMARY_KEY, quote(currentDb.get()), allTable);
+        sql = String.format(SQL_QUERY_PRIMARY_KEY_TOTAL, quote(currentDb.get()));
+        if (StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_PRIMARY_KEY, allTable);
         }
+        LOG.info("querySQL: {}", sql);
         try (ResultSet rs = statement.get().executeQuery(sql)){
             while (rs.next()){
                 primaryKeyMap.put(rs.getString(1), rs.getString(2));
@@ -217,21 +244,52 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return primaryKeyMap;
     }
 
+    /**
+     * 为了避免多表join，表的创建时间单独查询
+     * @return 表和表的创建时间映射的map
+     * @throws SQLException sql异常
+     */
+    protected Map<String, String> queryCreatedTimeMap() throws SQLException {
+        Map<String, String> primaryKeyMap = new HashMap<>(16);
+        sql = String.format(SQL_QUERY_TABLE_CREATE_TIME_TOTAL, quote(currentDb.get()));
+        if (StringUtils.isNotBlank(allTable)){
+            sql += String.format(SQL_QUERY_TABLE_CREATE_TIME, allTable);
+        }
+        LOG.info("querySQL: {}", sql);
+        try (ResultSet rs = statement.get().executeQuery(sql)){
+            while (rs.next()){
+                primaryKeyMap.put(rs.getString(1), rs.getString(2));
+            }
+        }
+        return primaryKeyMap;
+    }
+
+    /**
+     * 每隔20张表进行一次查询
+     * @throws SQLException 执行sql出现的异常
+     */
     @Override
     protected void init() throws SQLException {
-        StringBuilder stringBuilder = new StringBuilder(2 * tableList.size());
-        if(tableList.size() <= MAX_TABLE_SIZE){
-            for(int index=0;index<tableList.size();index++){
-                stringBuilder.append(quote((String) tableList.get(index)));
-                if(index!=tableList.size()-1){
+        // 没有表则退出
+        if(tableList.size()==0){
+            return;
+        }
+        if (start < tableList.size()){
+            // 取出子数组，注意避免越界
+            List<Object> splitTableList = tableList.subList(start, Math.min(start+MAX_TABLE_SIZE, tableList.size()));
+            StringBuilder stringBuilder = new StringBuilder(2 * splitTableList.size());
+            for(int index=0;index<splitTableList.size();index++){
+                stringBuilder.append(quote((String) splitTableList.get(index)));
+                if(index!=splitTableList.size()-1){
                     stringBuilder.append(ConstantValue.COMMA_SYMBOL);
                 }
             }
             allTable = stringBuilder.toString();
+            tablePropertiesMap = queryTableProperties();
+            columnListMap = queryColumnList();
+            indexListMap = queryIndexList();
+            primaryKeyMap = queryPrimaryKeyMap();
+            createdTimeMap = queryCreatedTimeMap();
         }
-        tablePropertiesMap = queryTableProperties();
-        columnListMap = queryColumnList();
-        indexListMap = queryIndexList();
-        primaryKeyMap = queryPrimaryKeyMap();
     }
 }
