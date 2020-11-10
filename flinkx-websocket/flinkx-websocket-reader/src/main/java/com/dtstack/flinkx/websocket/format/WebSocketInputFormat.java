@@ -20,12 +20,15 @@ package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.util.concurrent.SynchronousQueue;
+
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_EXIT0;
 
 /** 读取指定WebSocketUrl中的数据
  * @Company: www.dtstack.com
@@ -38,16 +41,31 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     public String serverUrl;
 
-    private WebSocketClient client;
+    protected WebSocketClient client;
 
+    /**
+     * 重试次数
+     */
+    protected int retryTime;
+
+    /**
+     * 重试间隔
+     */
+    protected int retryInterval;
+
+    /**
+     * 存放数据的队列
+     */
     private final SynchronousQueue<Row> queue = new SynchronousQueue<>();
 
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            client = new WebSocketClient(queue, serverUrl);
-            client.start();
+            client = new WebSocketClient(queue, serverUrl)
+                    .setRetryInterval(retryInterval)
+                    .setRetryTime(retryTime);
+            client.run();
         }catch (Exception e){
             throw new IOException(e);
         }
@@ -66,6 +84,10 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     protected Row nextRecordInternal(Row row) throws IOException {
         try {
             row = queue.take();
+            // 设置特殊字符串，作为失败标志
+            if(StringUtils.equals((CharSequence) row.getField(0), KEY_EXIT0)){
+                throw new RuntimeException("webSocket client lost connection completely, job failed.");
+            }
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
             throw new IOException(e);
@@ -83,5 +105,17 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     @Override
     public boolean reachedEnd() {
         return false;
+    }
+
+    public void setServerUrl(String serverUrl){
+        this.serverUrl = serverUrl;
+    }
+
+    public void setRetryTime(int retryTime){
+        this.retryTime = retryTime;
+    }
+
+    public void setRetryInterval(int retryInterval){
+        this.retryInterval = retryInterval;
     }
 }

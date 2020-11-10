@@ -20,15 +20,21 @@ package com.dtstack.flinkx.websocket.constants;
 
 /** 定义常量
  * @Company: www.dtstack.com
- * @author kunni
+ * @author kunni@dtstack.com
  */
 
 public class WebSocketConfig {
 
+    public static final int DEFAULT_RETRY_TIME = 5;
+
+    public static final int DEFAULT_RETRY_INTERVAL = 5;
+
     public static final String KEY_WEB_SOCKET_SERVER_URL = "url";
 
-    public static final String KEY_CODE_C = "codec";
+    public static final String KEY_RETRY_TIME = "retry";
 
-    public static final String DEFAULT_DECODE = "com.dtstack.flinkx.decoder.JsonDecoder";
+    public static final String KEY_RETRY_INTERVAL = "interval";
+
+    public static final String KEY_EXIT0 = "exit0";
 
 }

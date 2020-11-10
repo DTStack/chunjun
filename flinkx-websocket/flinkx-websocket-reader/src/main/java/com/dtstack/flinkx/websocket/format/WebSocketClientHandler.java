@@ -19,33 +19,39 @@
 package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.util.CharsetUtil;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
+
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_EXIT0;
 
 /**
  * webSocket消息处理
  * @Company: www.dtstack.com
- * @author kunni
+ * @author kunni@dtstack.com
  */
 
+@ChannelHandler.Sharable
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -56,89 +62,94 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private SynchronousQueue<Row> queue;
 
-    public WebSocketClientHandler(SynchronousQueue<Row> queue) {
+    /**
+     * 用于重连
+     */
+    private WebSocketClient client;
+
+    public WebSocketClientHandler(SynchronousQueue<Row> queue, URI uri, WebSocketClient client) {
         this.queue = queue;
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        LOG.info("current connect state : " + this.handShaker.isHandshakeComplete());
-        Channel ch = ctx.channel();
-        FullHttpResponse response;
-        //进行握手操作
-        if (!this.handShaker.isHandshakeComplete()) {
-            try {
-                response = (FullHttpResponse)msg;
-                //握手协议返回，设置结束握手
-                this.handShaker.finishHandshake(ch, response);
-                //设置成功
-                this.handshakeFuture.setSuccess();
-                LOG.info("message" + response.headers());
-            } catch (WebSocketHandshakeException var7) {
-                FullHttpResponse res = (FullHttpResponse)msg;
-                String errorMsg = String.format("connect failed, status:%s,reason:%s", res.status(), res.content().toString(CharsetUtil.UTF_8));
-                this.handshakeFuture.setFailure(new Exception(errorMsg));
-            }
-        } else if (msg instanceof FullHttpResponse) {
-            response = (FullHttpResponse)msg;
-            throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status() + ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
-        } else {
-            //接收服务端的消息
-            WebSocketFrame frame = (WebSocketFrame)msg;
-            Row row = null;
-            //文本信息
-            if (frame instanceof TextWebSocketFrame) {
-                TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
-                row = Row.of(textFrame.text());
-            }
-            //二进制信息
-            if (frame instanceof BinaryWebSocketFrame) {
-                BinaryWebSocketFrame binFrame = (BinaryWebSocketFrame)frame;
-                row = Row.of(binFrame.content().array());
-            }
-            //ping信息
-            if (frame instanceof PongWebSocketFrame) {
-                LOG.info("WebSocket Client received pong");
-            }
-            //关闭消息
-            if (frame instanceof CloseWebSocketFrame) {
-                LOG.info("receive close frame");
-                ch.close();
-            }
-            if(row != null){
-                LOG.debug("row = {}", GsonUtil.GSON.toJson(row));
-                queue.put(row);
-            }
-        }
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        LOG.info("connect success");
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        LOG.info("connection is closed by server");
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        LOG.error("connect exception ：{}", ExceptionUtil.getErrorMessage(cause));
-        ctx.close();
+        this.client = client;
+        handShaker = WebSocketClientHandshakerFactory.newHandshaker(
+                uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
     }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
         this.handshakeFuture = ctx.newPromise();
+        handshakeFuture.addListener((future)-> {
+            if(future.isSuccess()){
+                LOG.info("handshake success!");
+            }else {
+                LOG.info("handShake failed");
+            }
+        });
     }
 
-    public void setHandShaker(WebSocketClientHandshaker handShaker) {
-        this.handShaker = handShaker;
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        handShaker.handshake(ctx.channel());
     }
 
-    public ChannelFuture handshakeFuture() {
-        return this.handshakeFuture;
+    /**
+     * 关闭channel，设置异常失败标志
+     * @param ctx channel上下文
+     * @param cause 异常
+     * @throws InterruptedException 中断异常
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws InterruptedException {
+        LOG.error("connect exception ：{}", ExceptionUtil.getErrorMessage(cause));
+        if (!handshakeFuture.isDone()) {
+            handshakeFuture.setFailure(cause);
+        }
+        ctx.close();
+        LOG.info("connection is closed by server");
+        LOG.info("reconnecting .......");
+        client.retryTime--;
+        client.start();
+    }
+
+    /**
+     * 处理读取事件
+     * @param ctx channel上下文
+     * @param msg 消息体
+     * @throws Exception 异常
+     */
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+        Channel ch = ctx.channel();
+        if (!handShaker.isHandshakeComplete()) {
+            try {
+                handShaker.finishHandshake(ch, (FullHttpResponse) msg);
+                System.out.println("WebSocket Client connected!");
+                handshakeFuture.setSuccess();
+            } catch (WebSocketHandshakeException e) {
+                System.out.println("WebSocket Client failed to connect");
+                handshakeFuture.setFailure(e);
+            }
+            return;
+        }
+        if (msg instanceof FullHttpResponse) {
+            FullHttpResponse response = (FullHttpResponse) msg;
+            throw new IllegalStateException("Unexpected FullHttpResponse (content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
+        }
+        //接收服务端的消息
+        WebSocketFrame frame = (WebSocketFrame)msg;
+        //文本信息
+        if (frame instanceof TextWebSocketFrame) {
+            TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
+            queue.put(Row.of(textFrame.text()));
+        }
+        //ping信息
+        if (frame instanceof PongWebSocketFrame) {
+            LOG.info("WebSocket Client received pong");
+        }
+        //关闭消息
+        if (frame instanceof CloseWebSocketFrame) {
+            LOG.info("receive close frame");
+            ch.close();
+        }
     }
 
 }

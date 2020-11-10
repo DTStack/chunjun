@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
 
 /** 构建 WebSocketInputFormat
  * @Company: www.dtstack.com
- * @author kunni
+ * @author kunni@dtstack.com
  */
 
 public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -38,15 +38,27 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private String serverUrl;
 
-    public static final String WEB_SOCKET_PREFIX = "ws";
+    /**
+     * webSocket url前缀
+     */
+    private static final String WEB_SOCKET_PREFIX = "ws";
 
     public WebSocketInputFormatBuilder(){
         super.format = format = new WebSocketInputFormat();
     }
 
 
-    public void setServerUrl(String serverUrl){
-        this.serverUrl = format.serverUrl = serverUrl;
+    protected void setServerUrl(String serverUrl){
+        this.serverUrl = serverUrl;
+        format.setServerUrl(serverUrl);
+    }
+
+    protected void setRetryTime(int retryTime){
+        format.setRetryTime(retryTime);
+    }
+
+    protected void setRetryInterval(int retryInterval){
+        format.setRetryInterval(retryInterval);
     }
 
     @Override
@@ -61,7 +73,7 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
             }
             TelnetUtil.telnet(uri.getHost(), uri.getPort());
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(String.format("could not connect to serverUrl, serverUrl = %s, e = %s", serverUrl, ExceptionUtil.getErrorMessage(e)));
+            throw new IllegalArgumentException(String.format("could not connect to [serverUrl], [serverUrl] = %s, e = %s", serverUrl, ExceptionUtil.getErrorMessage(e)));
         }
     }
 }
