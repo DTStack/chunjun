@@ -102,7 +102,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         ctx.close();
         LOG.info("connection is closed by server");
         LOG.info("reconnecting .......");
-        client.retryTime--;
         client.run();
     }
 
