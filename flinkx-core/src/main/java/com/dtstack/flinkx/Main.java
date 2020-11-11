@@ -189,6 +189,8 @@ public class Main {
         } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
             ContentConfig contentConfig = config.getJob().getContent().get(0);
             contentConfig.getReader().setName(STREAM_READER);
+        }else {
+            return;
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);
