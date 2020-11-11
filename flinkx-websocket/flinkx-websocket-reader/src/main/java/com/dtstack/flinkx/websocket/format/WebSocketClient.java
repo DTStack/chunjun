@@ -47,7 +47,7 @@ import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_EXIT0;
  * @author kunni@dtstack.com
  */
 
-public class WebSocketClient extends Thread{
+public class WebSocketClient {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -74,7 +74,6 @@ public class WebSocketClient extends Thread{
         this.queue = queue;
     }
 
-    @Override
     public void run() {
         if(retryTime==0){
             return;

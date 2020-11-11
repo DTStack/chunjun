@@ -20,7 +20,6 @@ package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -42,8 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
-
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_EXIT0;
 
 /**
  * webSocket消息处理
@@ -95,10 +92,9 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * 关闭channel，设置异常失败标志
      * @param ctx channel上下文
      * @param cause 异常
-     * @throws InterruptedException 中断异常
      */
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws InterruptedException {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOG.error("connect exception ：{}", ExceptionUtil.getErrorMessage(cause));
         if (!handshakeFuture.isDone()) {
             handshakeFuture.setFailure(cause);
@@ -107,7 +103,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         LOG.info("connection is closed by server");
         LOG.info("reconnecting .......");
         client.retryTime--;
-        client.start();
+        client.run();
     }
 
     /**
