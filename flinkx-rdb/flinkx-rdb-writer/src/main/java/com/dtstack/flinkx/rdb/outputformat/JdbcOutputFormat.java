@@ -27,6 +27,7 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -142,9 +143,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DbUtil.getConnection(dbUrl, username, password);
 
-            if (restoreConfig.isRestore()){
-                dbConn.setAutoCommit(false);
-            }
+            //默认关闭事务自动提交，手动控制事务
+            dbConn.setAutoCommit(false);
 
             if(CollectionUtils.isEmpty(fullColumn)) {
                 fullColumn = probeFullColumns(table, dbConn);
@@ -213,7 +213,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
 
             preparedStatement.execute();
+            DbUtil.commit(dbConn);
         } catch (Exception e) {
+            DbUtil.rollBack(dbConn);
             processWriteException(e, index, row);
         }
     }
@@ -226,7 +228,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
 
         if(index < row.getArity()) {
-            throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+            String message = recordConvertDetailErrorMessage(index, row);
+            LOG.error(message, e);
+            throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);
     }
@@ -259,14 +263,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
             if(restoreConfig.isRestore()){
                 rowsOfCurrentTransaction += rows.size();
+            }else{
+                //手动提交事务
+                DbUtil.commit(dbConn);
             }
+            preparedStatement.clearBatch();
         } catch (Exception e){
-            if (restoreConfig.isRestore()){
-                LOG.warn("writeMultipleRecordsInternal:Start rollback");
-                dbConn.rollback();
-                LOG.warn("writeMultipleRecordsInternal:Rollback success");
-            }
-
+            LOG.warn("error to writeMultipleRecords, start to rollback connection, e = {}", ExceptionUtil.getErrorMessage(e));
+            DbUtil.rollBack(dbConn);
             throw e;
         }
     }
@@ -289,7 +293,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }else{
                     preparedStatement.executeBatch();
                 }
+                //若事务提交失败，抛出异常
                 dbConn.commit();
+                preparedStatement.clearBatch();
                 LOG.info("getFormatState:Commit connection success");
 
                 snapshotWriteCounter.add(rowsOfCurrentTransaction);
@@ -308,6 +314,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         } catch (Exception e){
             try {
                 LOG.warn("getFormatState:Start rollback");
+                //若事务回滚失败，抛出异常
                 dbConn.rollback();
                 LOG.warn("getFormatState:Rollback success");
             } catch (SQLException sqlE){
@@ -404,6 +411,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void beforeWriteRecords()  {
+        // preSql
         if(taskNumber == 0) {
             DbUtil.executeBatch(dbConn, preSql);
         }
@@ -416,10 +424,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void beforeCloseInternal() {
-        // 执行postsql
+        // 执行postSql
         if(taskNumber == 0) {
             DbUtil.executeBatch(dbConn, postSql);
         }
     }
-
 }

@@ -215,6 +215,20 @@ public class DbUtil {
     }
 
     /**
+     * 手动回滚事物
+     * @param conn Connection
+     */
+    public static void rollBack(Connection conn){
+        try {
+            if (!conn.isClosed() && !conn.getAutoCommit()){
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
+        }
+    }
+
+    /**
      * 批量执行sql
      * @param dbConn Connection
      * @param sqls   sql列表
