@@ -41,7 +41,11 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_SCHEMA;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE;
 
 /**
  * @author toutian
@@ -91,6 +95,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     protected String password;
     protected String tableBasePath;
     protected boolean autoCreateTable;
+    protected String schema;
 
     private transient HiveUtil hiveUtil;
     private transient TimePartitionFormat partitionFormat;
@@ -130,6 +135,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         connectionInfo.setHiveConf(hadoopConfig);
 
         hiveUtil = new HiveUtil(connectionInfo);
+        primaryCreateTable();
     }
 
     @Override
@@ -213,7 +219,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         try {
             formatPair = getHdfsOutputFormat(tablePath, event);
         } catch (Exception e) {
-            throw new RuntimeException("获取HDFSOutputFormat失败", e);
+            throw new RuntimeException("get HDFSOutputFormat failed", e);
         }
 
         Row rowData = row;
@@ -231,7 +237,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-                LOG.warn("写入hdfs异常:", e);
+                LOG.warn("write hdfs exception:", e);
             }
         }
     }
@@ -246,11 +252,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         //防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
         HashMap<Object, Object> newEvent = new HashMap<>(event.size() * 2);
         event.entrySet().forEach(data->{
-            newEvent.put(data.getKey().toLowerCase(),data.getValue());
+            newEvent.put(data.getKey().toLowerCase(Locale.ENGLISH),data.getValue());
         });
 
         for (int i = 0; i < columns.size(); i++) {
-            rowData.setField(i, newEvent.get(columns.get(i).toLowerCase()));
+            rowData.setField(i, newEvent.get(columns.get(i).toLowerCase(Locale.ENGLISH)));
         }
         rowData.setField(rowData.getArity() - 1, channel);
         return rowData;
@@ -291,7 +297,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             return outputFormat;
         } catch (Exception e) {
-            LOG.error("构建[HdfsOutputFormat]出错:", e);
+            LOG.error("create [HdfsOutputFormat] exception:", e);
             throw new RuntimeException(e);
         }
     }
@@ -324,7 +330,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 Map.Entry<String, BaseHdfsOutputFormat> entry = entryIterator.next();
                 entry.getValue().close();
             } catch (Exception e) {
-                LOG.error("", e);
+                LOG.error(ExceptionUtil.getErrorMessage(e));
             }
         }
     }
@@ -343,6 +349,22 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         builder.setInitAccumulatorAndDirty(false);
 
         return builder;
+    }
+
+    /**
+     * 预先建表
+     * 只适用于analyticalRules参数为schema和table的情况
+     */
+    private void primaryCreateTable(){
+        for(Map.Entry<String, TableInfo> entry : tableInfos.entrySet()){
+            Map<String, String> event = new HashMap<>(4);
+            event.put(KEY_SCHEMA, schema);
+            event.put(KEY_TABLE, entry.getKey());
+            TableInfo tableInfo = entry.getValue();
+            String tablePath = PathConverterUtil.regaxByRules(event, tableBasePath, distributeTableMapping);
+            tableInfo.setTablePath(tablePath);
+            checkCreateTable(tablePath, event);
+        }
     }
 
     static class HiveFormatState implements Serializable {

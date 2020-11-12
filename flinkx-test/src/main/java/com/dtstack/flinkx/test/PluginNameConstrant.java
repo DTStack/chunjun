@@ -58,6 +58,7 @@ public class PluginNameConstrant {
     public static final String METADATASQLSERVER_READER = "metadatasqlserverreader";
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
+    public static final String KINGBASE_READER = "kingbasereader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";
@@ -88,4 +89,5 @@ public class PluginNameConstrant {
     public static final String DM_WRITER = "dmwriter";
     public static final String GREENPLUM_WRITER = "greenplumwriter";
     public static final String PHOENIX5_WRITER = "phoenix5writer";
+    public static final String KINGBASE_WRITER = "kingbasewriter";
 }

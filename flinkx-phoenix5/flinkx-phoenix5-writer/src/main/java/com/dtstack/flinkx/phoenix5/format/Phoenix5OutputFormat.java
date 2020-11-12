@@ -25,7 +25,9 @@ import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
+import org.apache.phoenix.query.QueryServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.URLClassPath;
@@ -33,7 +35,6 @@ import sun.misc.URLClassPath;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -70,7 +71,25 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
-            dbConn = PhoenixUtil.getConnectionInternal(dbUrl, username, password, childFirstClassLoader);
+            if(StringUtils.isNotEmpty(username)){
+                properties.setProperty("user", username);
+            }
+            if(StringUtils.isNotEmpty(password)){
+                properties.setProperty("password", password);
+            }
+            if(properties.get(QueryServices.MUTATE_BATCH_SIZE_ATTRIB) == null){
+                //执行过程中被批处理并自动提交的行数
+                properties.setProperty(QueryServices.MUTATE_BATCH_SIZE_ATTRIB, "100000");
+            }
+            if(properties.get(QueryServices.MAX_MUTATION_SIZE_ATTRIB) == null){
+                //客户端批处理的最大行数
+                properties.setProperty(QueryServices.MAX_MUTATION_SIZE_ATTRIB, "1000000");
+            }
+            if(properties.get(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB) == null){
+                //客户端批处理的最大数据量（单位：B）1GB
+                properties.setProperty(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB, "1073741824");
+            }
+            dbConn = PhoenixUtil.getHelper(childFirstClassLoader).getConn(dbUrl, properties);
 
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
