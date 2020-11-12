@@ -62,7 +62,9 @@ public class KafkaBaseWriter extends BaseDataWriter {
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
         format.setTableFields(tableFields);
-
+        format.setDirtyPath(dirtyPath);
+        format.setDirtyHadoopConfig(dirtyHadoopConfig);
+        format.setSrcFieldNames(srcCols);
         return createOutput(dataSet, format);
     }
 }

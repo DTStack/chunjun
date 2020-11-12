@@ -66,6 +66,9 @@ public class EmqxWriter extends BaseDataWriter {
         builder.setPassword(password);
         builder.setCleanSession(isCleanSession);
         builder.setQos(qos);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
         return createOutput(dataSet, builder.finish());
     }
 }
