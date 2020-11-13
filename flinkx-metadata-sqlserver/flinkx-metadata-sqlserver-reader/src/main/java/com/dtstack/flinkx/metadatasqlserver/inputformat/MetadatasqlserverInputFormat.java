@@ -21,10 +21,13 @@ package com.dtstack.flinkx.metadatasqlserver.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -51,6 +54,34 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     protected String schema;
 
     protected String table;
+
+    /**
+     * 在use database失败时，不影响下一个任务
+     * @param inputSplit 分片
+     * @throws IOException 异常
+     */
+    @Override
+    protected void openInternal(InputSplit inputSplit) throws IOException {
+        LOG.info("inputSplit = {}", inputSplit);
+        try {
+            connection.set(getConnection());
+            statement.set(connection.get().createStatement());
+            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+            tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            switchDatabase(currentDb.get());
+            if (CollectionUtils.isEmpty(tableList)) {
+                tableList = showTables();
+                queryTable = true;
+            }
+        } catch (ClassNotFoundException e) {
+            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        } catch (SQLException e){
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            tableList = new LinkedList<>();
+        }
+        tableIterator.set(tableList.iterator());
+    }
 
     @Override
     protected List<Object> showTables() throws SQLException {

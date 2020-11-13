@@ -9,13 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
-
-    <artifactId>flinkx-binlog</artifactId>
-
     <modules>
-        <module>flinkx-binlog-core</module>
-        <module>flinkx-binlog-reader</module>
+        <module>flinkx-kingbase-core</module>
+        <module>flinkx-kingbase-reader</module>
+        <module>flinkx-kingbase-writer</module>
     </modules>
+
+    <artifactId>flinkx-kingbase</artifactId>
 
     <dependencies>
         <dependency>
@@ -23,16 +23,12 @@
             <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-core</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
