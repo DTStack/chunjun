@@ -27,6 +27,8 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -269,8 +271,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 dbConn.rollback();
                 LOG.warn("writeMultipleRecordsInternal:Rollback success");
             }
-
+            LOG.warn("write Multiple Records error, row size = {}, first row = {},  e = {}",
+                    rows.size(),
+                    rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
+                    ExceptionUtil.getErrorMessage(e));
             throw e;
+        }finally {
+            //执行完后清空batch
+            preparedStatement.clearBatch();
         }
     }
 
@@ -310,6 +318,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             return null;
         } catch (Exception e){
             try {
+                //执行完后清空batch
+                preparedStatement.clearBatch();
                 LOG.warn("getFormatState:Start rollback");
                 dbConn.rollback();
                 LOG.warn("getFormatState:Rollback success");
