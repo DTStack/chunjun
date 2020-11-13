@@ -34,8 +34,6 @@ public class SqlServerMetadataCons extends MetaDataCons {
     public static final String KEY_SCHEMA_NAME = "schemaName";
     public static final String KEY_TABLE_NAME = "tableName";
     public static final String KEY_TABLE_SCHEMA = "tableSchema";
-    public static final String KEY_SCHEMA_NAME = "schemaName";
-    public static final String KEY_TABLE_NAME = "tableName";
 
     public static final String KEY_ZERO = "0";
 
