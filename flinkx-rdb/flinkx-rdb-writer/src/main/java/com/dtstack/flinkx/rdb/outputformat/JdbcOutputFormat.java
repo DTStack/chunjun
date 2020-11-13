@@ -264,8 +264,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
             if(restoreConfig.isRestore()){
                 rowsOfCurrentTransaction += rows.size();
-            }else{
-                dbConn.commit();
             }
         } catch (Exception e){
             if (restoreConfig.isRestore()){
