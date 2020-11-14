@@ -23,6 +23,7 @@ import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
 import static com.dtstack.flinkx.constants.ConstantValue.LEFT_PARENTHESIS_SYMBOL;
 import static com.dtstack.flinkx.constants.ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
 import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.DRIVER;
+import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.KEY_PRIMARY_SUFFIX;
 import static com.dtstack.flinkx.kingbase.constants.KingbaseCons.KEY_UPDATE_KEY;
 
 /**
@@ -75,12 +77,26 @@ public class KingBaseDatabaseMeta extends BaseDatabaseMeta {
         return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
     }
 
+    /**
+     * Kingbase 的主键索引名为TABLE_PKEY格式
+     * @param column column名
+     * @param table 表名
+     * @param updateKey 索引
+     * @return updateSql
+     */
     @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        List<String> columnList = new LinkedList<>();
+        updateKey.forEach((key, value) -> {
+            // 兼顾查询主键索引名或者填入key map的情况
+            if (StringUtils.endsWith(key, KEY_PRIMARY_SUFFIX) || StringUtils.equals(key, KEY_UPDATE_KEY)) {
+                columnList.addAll(value);
+            }
+        });
         return "INSERT INTO " + quoteTable(table)
                 + " (" + quoteColumns(column) + ") VALUES "
                 + makeValues(column.size())
-                + " ON CONFLICT " +makeValues(updateKey.get(KEY_UPDATE_KEY)) + " DO UPDATE SET "
+                + " ON CONFLICT " +makeValues(columnList) + " DO UPDATE SET "
                 + makeUpdatePart(column);
     }
 

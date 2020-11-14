@@ -41,10 +41,11 @@ import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
 
 public class KingbaseWriter extends JdbcDataWriter {
 
+    public String schema;
+
     public KingbaseWriter(DataTransferConfig config) {
         super(config);
-        String schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
-        table = schema + ConstantValue.POINT_SYMBOL + table;
+        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
         setDatabaseInterface(new KingBaseDatabaseMeta());
         setTypeConverterInterface(new KingBaseTypeConverter());
     }
@@ -52,6 +53,7 @@ public class KingbaseWriter extends JdbcDataWriter {
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         KingbaseOutputFormat kingBaseOutputFormat = new KingbaseOutputFormat();
+        kingBaseOutputFormat.setSchema(schema);
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(kingBaseOutputFormat);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
