@@ -175,6 +175,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
+        }finally {
+            DbUtil.commit(dbConn);
         }
     }
 
@@ -199,7 +201,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             throw new RuntimeException(e);
         } finally {
             DbUtil.closeDbResources(rs, stmt,null, false);
-            DbUtil.commit(dbConn);
         }
 
         return ret;
