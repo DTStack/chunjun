@@ -18,13 +18,6 @@
 package com.dtstack.flinkx.mysql.format;
 
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import org.apache.commons.collections.CollectionUtils;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Date: 2019/09/19
@@ -33,25 +26,4 @@ import java.util.List;
  * @author tudou
  */
 public class MysqlOutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected List<String> analyzeTable() {
-        List<String> ret = new ArrayList<>();
-        ResultSet rs = null;
-        try {
-            rs = dbConn.getMetaData().getColumns(null, null, table, null);
-            while(rs.next()) {
-                ret.add(rs.getString("TYPE_NAME"));
-            }
-            if(CollectionUtils.isEmpty(fullColumn)){
-                fullColumn.addAll(ret);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            DbUtil.closeDbResources(rs, null,null, false);
-        }
-
-        return ret;
-    }
 }

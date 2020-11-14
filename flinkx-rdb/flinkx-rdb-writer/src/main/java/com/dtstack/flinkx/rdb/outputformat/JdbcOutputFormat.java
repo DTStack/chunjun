@@ -199,6 +199,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             throw new RuntimeException(e);
         } finally {
             DbUtil.closeDbResources(rs, stmt,null, false);
+            DbUtil.commit(dbConn);
         }
 
         return ret;

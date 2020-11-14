@@ -191,6 +191,8 @@ public class DbUtil {
             try {
                 if(commit){
                     commit(conn);
+                }else {
+                    rollBack(conn);
                 }
 
                 conn.close();
