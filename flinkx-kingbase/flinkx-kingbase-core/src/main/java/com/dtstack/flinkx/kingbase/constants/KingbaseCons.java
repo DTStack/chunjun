@@ -28,7 +28,13 @@ package com.dtstack.flinkx.kingbase.constants;
 public class KingbaseCons {
 
     public static final String DRIVER = "com.kingbase8.Driver";
+    /**
+     * kingbase 主键索引名后缀
+     */
     public static final String KEY_UPDATE_KEY = "key";
+
+    public static final String KEY_PRIMARY_SUFFIX = "_PKEY";
+
     public static final String INSERT_SQL_MODE_TYPE = "copy";
 
     /**
