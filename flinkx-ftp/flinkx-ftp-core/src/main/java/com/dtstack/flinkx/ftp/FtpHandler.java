@@ -107,7 +107,13 @@ public class FtpHandler implements IFtpHandler {
         String originDir = null;
         try {
             originDir = ftpClient.printWorkingDirectory();
-            return ftpClient.changeWorkingDirectory(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
+            if(ftpFiles.length == 0){
+                throw new RuntimeException("file or path is not exist, please check the path or the permissions of account, path = " + directoryPath);
+            }else {
+                return FTPReply.isPositiveCompletion(ftpClient.cwd(directoryPath));
+            }
         } catch (IOException e) {
             String message = String.format("进入目录：[%s]时发生I/O异常,请确认与ftp服务器的连接正常", directoryPath);
             LOG.error(message);
@@ -125,19 +131,7 @@ public class FtpHandler implements IFtpHandler {
 
     @Override
     public boolean isFileExist(String filePath) {
-        boolean isExitFlag = false;
-        try {
-            ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
-            if (ftpFiles.length == 1 && ftpFiles[0].isFile()) {
-                isExitFlag = true;
-            }
-        } catch (IOException e) {
-            String message = String.format("获取文件：[%s] 属性时发生I/O异常,请确认与ftp服务器的连接正常", filePath);
-            LOG.error(message);
-            throw new RuntimeException(e);
-        }
-        return isExitFlag;
+        return !isDirExist(filePath);
     }
 
 
