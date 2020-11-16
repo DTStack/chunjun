@@ -173,11 +173,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            columnCount = resultSet.getMetaData().getColumnCount();
+           if(!resultSet.isClosed()){
+               columnCount = resultSet.getMetaData().getColumnCount();
+           }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
-
         boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
         if (splitWithRowCol) {
             columnCount = columnCount - 1;
@@ -245,6 +246,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
+            updateColumnCount();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
@@ -881,5 +883,19 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     protected boolean makeTaskFailedWhenReportFailed() {
         return true;
+    }
+
+    /**
+     * 兼容db2
+     * @throws SQLException
+     */
+    private  void updateColumnCount() throws SQLException {
+        if(columnCount == 0){
+            columnCount =resultSet.getMetaData().getColumnCount();
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
+            }
+        }
     }
 }
