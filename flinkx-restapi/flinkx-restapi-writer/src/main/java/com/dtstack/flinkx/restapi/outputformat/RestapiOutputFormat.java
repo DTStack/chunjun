@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.dtstack.flinkx.restapi.common.RestapiKeys.KEY_BATCH;
+
 /**
  * @author : tiezhu
  * @date : 2020/3/12
@@ -73,9 +75,10 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
         Map<String, Object> requestBody = Maps.newHashMap();
-        Object dataRow;
+        List<Object> dataRow = new ArrayList<>();
         try {
-            dataRow = getDataFromRow(row, column);
+            dataRow.add(getDataFromRow(row, column));
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -85,7 +88,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+            LOG.info("send data:{}", gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             requestErrorMessage(e, index, row);
@@ -107,6 +110,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (Row row : rows) {
                 dataRow.add(getDataFromRow(row, column));
             }
+            params.put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!params.isEmpty()) {
                 Iterator iterator = params.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -116,7 +120,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             }
             body.put("data", dataRow);
             requestBody.put("json", body);
-            LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+            LOG.info("this batch size = {}, send data:{}", rows.size(), gson.toJson(requestBody));
             sendRequest(httpClient, requestBody, method, header, url);
         } catch (Exception e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
@@ -151,7 +155,7 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
                              String method,
                              Map<String, String> header,
                              String url) throws IOException {
-        LOG.debug("当前发送的数据为:{}", gson.toJson(requestBody));
+        LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
         //设置请求和传输超时时间
         RequestConfig requestConfig = RequestConfig.custom()
