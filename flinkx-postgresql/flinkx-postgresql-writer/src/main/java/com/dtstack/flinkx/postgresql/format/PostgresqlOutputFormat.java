@@ -20,6 +20,7 @@ package com.dtstack.flinkx.postgresql.format;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
@@ -46,6 +47,8 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
     private static final String LINE_DELIMITER = "\n";
 
+    private boolean isCopyMode = false;
+
     /**
      * now just add ext insert mode:copy
      */
@@ -63,7 +66,8 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
 
         //check is use copy mode for insert
-        if (EWriteMode.INSERT.name().equalsIgnoreCase(mode) && checkIsCopyMode(insertSqlMode)) {
+        isCopyMode = checkIsCopyMode(insertSqlMode);
+        if (EWriteMode.INSERT.name().equalsIgnoreCase(mode) && isCopyMode) {
             copyManager = new CopyManager((BaseConnection) dbConn);
             copySql = String.format(COPY_SQL_TEMPL, table, String.join(",", column), DEFAULT_FIELD_DELIM, DEFAULT_NULL_DELIM);
             return null;
@@ -73,26 +77,9 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks){
-        super.openInternal(taskNumber, numTasks);
-        try {
-            if (batchInterval > 1) {
-                dbConn.setAutoCommit(false);
-            }
-        } catch (Exception e) {
-            LOG.warn("", e);
-        }
-    }
-
-    @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if(!checkIsCopyMode(insertSqlMode)){
-            if (batchInterval == 1) {
-                super.writeSingleRecordInternal(row);
-            } else {
-                writeSingleRecordCommit(row);
-            }
-
+        if(!isCopyMode){
+            super.writeSingleRecordInternal(row);
             return;
         }
 
@@ -130,31 +117,10 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
     }
 
-    private void writeSingleRecordCommit(Row row) throws WriteRecordException {
-        try {
-            super.writeSingleRecordInternal(row);
-            try {
-                dbConn.commit();
-            } catch (Exception e) {
-                // 提交失败直接结束任务
-                throw new RuntimeException(e);
-            }
-        } catch (WriteRecordException e) {
-            try {
-                dbConn.rollback();
-            } catch (Exception e1) {
-                // 回滚失败直接结束任务
-                throw new RuntimeException(e);
-            }
-
-            throw e;
-        }
-    }
-
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        if(!checkIsCopyMode(insertSqlMode)){
-            writeMultipleRecordsCommit();
+        if(!isCopyMode){
+            super.writeMultipleRecordsInternal();
             return;
         }
 
@@ -197,16 +163,6 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
     }
 
-    private void writeMultipleRecordsCommit() throws Exception {
-        try {
-            super.writeMultipleRecordsInternal();
-            dbConn.commit();
-        } catch (Exception e){
-            dbConn.rollback();
-            throw e;
-        }
-    }
-
     @Override
     protected Object getField(Row row, int index) {
         Object field = super.getField(row, index);
@@ -216,8 +172,13 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         return field;
     }
 
+    /**
+     * 判断是否为copy模式
+     * @param insertMode
+     * @return
+     */
     private boolean checkIsCopyMode(String insertMode){
-        if(insertMode == null || insertMode.length() == 0){
+        if(StringUtils.isBlank(insertMode)){
             return false;
         }
 
@@ -227,6 +188,4 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
         return true;
     }
-
-
 }
