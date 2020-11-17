@@ -147,7 +147,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            columnCount = resultSet.getMetaData().getColumnCount();
+           if(!resultSet.isClosed()){
+               columnCount = resultSet.getMetaData().getColumnCount();
+           }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
@@ -213,6 +215,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
+            updateColumnCount();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
@@ -878,6 +881,21 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     querySql);
             LOG.error(message);
             throw new RuntimeException(message);
+        }
+    }
+
+    /**
+     * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
+     * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
+     * @throws SQLException
+     */
+    private  void updateColumnCount() throws SQLException {
+        if(columnCount == 0){
+            columnCount =resultSet.getMetaData().getColumnCount();
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
+            }
         }
     }
 }

@@ -239,6 +239,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
      * 获取数据库连接，用于子类覆盖
      * @return connection
      */
+    @Override
     protected Connection getConnection() throws SQLException {
         Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
         assert declaredField != null;
