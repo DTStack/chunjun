@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,10 +66,10 @@ public class FtpHandler implements IFtpHandler {
             // 不需要写死ftp server的OS TYPE,FTPClient getSystemType()方法会自动识别
             ftpClient.setConnectTimeout(ftpConfig.getTimeout());
             ftpClient.setDataTimeout(ftpConfig.getTimeout());
-            if ("PASV".equals(ftpConfig.getConnectPattern())) {
+            if (EFtpMode.PASV.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterRemotePassiveMode();
                 ftpClient.enterLocalPassiveMode();
-            } else if ("PORT".equals(ftpConfig.getConnectPattern())) {
+            } else if (EFtpMode.PORT.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterLocalActiveMode();
             }
             int reply = ftpClient.getReplyCode();
@@ -79,7 +81,7 @@ public class FtpHandler implements IFtpHandler {
                 throw new RuntimeException(message);
             }
             //设置命令传输编码
-            String fileEncoding = System.getProperty("file.encoding");
+            String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -87,23 +89,14 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void logoutFtpServer() {
+    public void logoutFtpServer() throws IOException{
         if (ftpClient.isConnected()) {
             try {
                 ftpClient.logout();
-            } catch (IOException e) {
-                LOG.error(DISCONNECT_FAIL_MESSAGE);
-                throw new RuntimeException(e);
-            }finally {
+            } finally {
                 if(ftpClient.isConnected()){
-                    try {
-                        ftpClient.disconnect();
-                    } catch (IOException e) {
-                        LOG.error(DISCONNECT_FAIL_MESSAGE);
-                        throw new RuntimeException(e);
-                    }
+                    ftpClient.disconnect();
                 }
-
             }
         }
     }
@@ -113,7 +106,7 @@ public class FtpHandler implements IFtpHandler {
         String originDir = null;
         try {
             originDir = ftpClient.printWorkingDirectory();
-            return ftpClient.changeWorkingDirectory(new String(directoryPath.getBytes(), FTP.DEFAULT_CONTROL_ENCODING));
+            return ftpClient.changeWorkingDirectory(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
         } catch (IOException e) {
             String message = String.format("进入目录：[%s]时发生I/O异常,请确认与ftp服务器的连接正常", directoryPath);
             LOG.error(message);
@@ -133,7 +126,8 @@ public class FtpHandler implements IFtpHandler {
     public boolean isFileExist(String filePath) {
         boolean isExitFlag = false;
         try {
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(filePath.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if (ftpFiles.length == 1 && ftpFiles[0].isFile()) {
                 isExitFlag = true;
             }
@@ -149,27 +143,52 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public List<String> getFiles(String path) {
         List<String> sources = new ArrayList<>();
-        if(isDirExist(path)) {
+        if(isFileExist(path)) {
+            sources.add(path);
+            return sources;
+        }else{
+            path = path + SP;
+        }
+        try {
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            if(ftpFiles != null) {
+                for(FTPFile ftpFile : ftpFiles) {
+                    sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
+                }
+            }
+        } catch (IOException e) {
+            LOG.error("", e);
+            throw new RuntimeException(e);
+        }
+        return sources;
+    }
+
+    /**
+     * 递归获取指定路径下的所有文件(暂无过滤)
+     * isDirExist()、isFileExist()方法在Windows系统下判断有误
+     * @param path
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    private List<String> getFiles(String path, FTPFile file)throws IOException {
+        List<String> sources = new ArrayList<>();
+        if(file.isDirectory()){
             if(!path.endsWith(SP)) {
                 path = path + SP;
             }
-            try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
-                if(ftpFiles != null) {
-                    for(FTPFile ftpFile : ftpFiles) {
-                        sources.addAll(getFiles(path + ftpFile.getName()));
-                    }
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            if(ftpFiles != null) {
+                for(FTPFile ftpFile : ftpFiles) {
+                    sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
-            } catch (IOException e) {
-                LOG.error("", e);
-                throw new RuntimeException(e);
             }
-
-        } else if(isFileExist(path)) {
+        }else{
             sources.add(path);
-            return sources;
         }
-
+        LOG.info("path = {}, FTPFile is directory = {}", path, file.isDirectory());
         return sources;
     }
 
@@ -257,7 +276,7 @@ public class FtpHandler implements IFtpHandler {
             }
 
             try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(dir.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
+                FTPFile[] ftpFiles = ftpClient.listFiles(new String(dir.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
                         if(CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())){
@@ -287,7 +306,8 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public InputStream getInputStream(String filePath) {
         try {
-            InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
+            ftpClient.enterLocalPassiveMode();
+            InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             return is;
         } catch (IOException e) {
             String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
@@ -305,7 +325,7 @@ public class FtpHandler implements IFtpHandler {
             }
 
             try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(),FTP.DEFAULT_CONTROL_ENCODING));
+                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
                         sources.add(path + ftpFile.getName());

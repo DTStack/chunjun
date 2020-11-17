@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,7 +44,7 @@ public class HbaseConfigConstants {
 
     public static final String DEFAULT_NULL_MODE = "skip";
 
-    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024;
+    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
 
     public static final boolean DEFAULT_WAL_FLAG = false;
 

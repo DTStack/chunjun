@@ -19,7 +19,6 @@ package com.dtstack.flinkx.carbondata.reader;
 
 
 import org.apache.carbondata.core.metadata.datatype.DataType;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.scan.expression.ColumnExpression;
 import org.apache.carbondata.core.scan.expression.Expression;
 import org.apache.carbondata.core.scan.expression.LiteralExpression;
@@ -30,7 +29,6 @@ import org.apache.carbondata.core.scan.expression.conditional.LessThanEqualToExp
 import org.apache.carbondata.core.scan.expression.conditional.LessThanExpression;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -52,7 +50,7 @@ public class CarbonExpressUtil {
 
     private static final String NOT_MORE_THAN = "<=";
 
-    private static final String[] ops = {EQUAL, MORE_THAN, LESS_THAN, NOT_LESS_THAN, NOT_MORE_THAN};
+    private static final String[] OPERATIONS = {EQUAL, MORE_THAN, LESS_THAN, NOT_LESS_THAN, NOT_MORE_THAN};
 
     private CarbonExpressUtil() {
         // hehe
@@ -62,8 +60,8 @@ public class CarbonExpressUtil {
         String left = null;
         String right = null;
         int i = 0;
-        for(; i < ops.length; ++i) {
-            String op = ops[i];
+        for(; i < OPERATIONS.length; ++i) {
+            String op = OPERATIONS[i];
             if(expr.contains(op)) {
                 int pos = expr.indexOf(op);
                 left = expr.substring(0, pos);
@@ -72,11 +70,11 @@ public class CarbonExpressUtil {
             break;
         }
 
-        if(i == ops.length) {
+        if(i == OPERATIONS.length) {
             throw new RuntimeException("unsupported op");
         }
 
-        String op = ops[i];
+        String op = OPERATIONS[i];
 
         if(StringUtils.isBlank(left) || StringUtils.isBlank(right)) {
             throw new RuntimeException("Illegal filter Expression");
@@ -104,9 +102,9 @@ public class CarbonExpressUtil {
                 return new GreaterThanEqualToExpression(columnExpression, literalExpression);
             case NOT_MORE_THAN:
                 return new LessThanEqualToExpression(columnExpression, literalExpression);
+            default:
+                return null;
         }
-
-        return null;
     }
 
 }

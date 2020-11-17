@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,18 +21,24 @@ import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import com.dtstack.flinkx.log.DtLogger;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.gson.Gson;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-
+/**
+ * @author toutian
+ */
 public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
@@ -97,7 +103,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         }
 
         for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            Map<String,Object> message = new HashMap<>();
+            Map<String,Object> message = new HashMap<>(8);
             message.put("type", eventType.toString());
             message.put("schema", schema);
             message.put("table", table);
@@ -113,9 +119,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             } else {
                 message.put("before", processColumnList(rowData.getBeforeColumnsList()));
                 message.put("after", processColumnList(rowData.getAfterColumnsList()));
-                Map<String,Object> event = new HashMap<>(1);
-                event.put("message", message);
-                message = event;
+                message = Collections.singletonMap("message", message);
             }
 
             try {
@@ -123,12 +127,16 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             } catch (InterruptedException e) {
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
+            if(DtLogger.isEnableTrace()){
+                //log level is trace, so don't care the performance，just new it.
+                LOG.trace("message = {}", new Gson().toJson(message));
+            }
         }
 
     }
 
     private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
             map.put(column.getName(), column.getValue());
         }
@@ -144,7 +152,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             row = queue.take();
         } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", e);
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return row;
     }

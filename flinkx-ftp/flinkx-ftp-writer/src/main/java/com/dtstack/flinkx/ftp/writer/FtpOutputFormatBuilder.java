@@ -19,9 +19,7 @@
 package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.ftp.FtpConfig;
-import com.dtstack.flinkx.ftp.FtpConfigConstants;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
-import org.apache.commons.lang.StringUtils;
 import java.util.List;
 
 /**
@@ -53,7 +51,7 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        notSupportBatchWrite("FtpWriter");
     }
 
 }

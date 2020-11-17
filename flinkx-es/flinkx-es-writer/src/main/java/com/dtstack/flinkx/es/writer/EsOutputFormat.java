@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,7 +21,7 @@ package com.dtstack.flinkx.es.writer;
 import com.dtstack.flinkx.es.EsUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -40,9 +40,13 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsOutputFormat extends RichOutputFormat {
+public class EsOutputFormat extends BaseRichOutputFormat {
 
     protected String address;
+
+    protected String username;
+
+    protected String password;
 
     protected List<Integer> idColumnIndices;
 
@@ -67,7 +71,7 @@ public class EsOutputFormat extends RichOutputFormat {
 
     @Override
     public void configure(Configuration configuration) {
-        client = EsUtil.getClient(address, clientConfig);
+        client = EsUtil.getClient(address, username, password, clientConfig);
         bulkRequest = new BulkRequest();
     }
 
@@ -115,8 +119,8 @@ public class EsOutputFormat extends RichOutputFormat {
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
-                if(numWriteCounter != null ){
-                    numWriteCounter.add(1);
+                if (errCounter != null) {
+                    errCounter.add(1);
                 }
             }
         }

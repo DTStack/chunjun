@@ -54,7 +54,7 @@ public class DictionaryDetailHelper {
             }
         });
         // 2 put dictionary file names to fileNamesMap
-        Map<String, Integer> fileNamesMap = new HashMap<>();
+        Map<String, Integer> fileNamesMap = new HashMap<>(carbonFiles.length);
         for(int i = 0; i < carbonFiles.length; ++i) {
             fileNamesMap.put(carbonFiles[i].getName(), i);
         }

@@ -36,7 +36,10 @@ public class OracleReader extends JdbcDataReader {
     public OracleReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new OracleDatabaseMeta());
-        super.builder = new JdbcInputFormatBuilder(new OracleInputFormat());
     }
 
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new OracleInputFormat());
+    }
 }

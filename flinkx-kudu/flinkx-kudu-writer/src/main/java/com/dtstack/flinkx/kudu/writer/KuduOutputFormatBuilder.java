@@ -20,16 +20,17 @@
 package com.dtstack.flinkx.kudu.writer;
 
 import com.dtstack.flinkx.kudu.core.KuduConfig;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduOutputFormatBuilder extends RichOutputFormatBuilder {
+public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private KuduOutputFormat format;
 
@@ -49,6 +50,9 @@ public class KuduOutputFormatBuilder extends RichOutputFormatBuilder {
         format.writeMode = writeMode;
     }
 
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.setHadoopConfig(hadoopConfig);
+    }
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){

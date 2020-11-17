@@ -19,19 +19,31 @@
 
 package com.dtstack.flinkx.kudu.core;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Type;
-import org.apache.kudu.client.*;
+import org.apache.kudu.client.AsyncKuduClient;
+import org.apache.kudu.client.AsyncKuduScanner;
+import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduPredicate;
+import org.apache.kudu.client.KuduScanToken;
+import org.apache.kudu.client.KuduTable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.PrivilegedExceptionAction;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,10 +59,18 @@ public class KuduUtil {
 
     public final static String AUTHENTICATION_TYPE = "Kerberos";
 
-    public static KuduClient getKuduClient(KuduConfig config) throws IOException,InterruptedException {
-        if(AUTHENTICATION_TYPE.equals(config.getAuthentication())){
-            UserGroupInformation.loginUserFromKeytab(config.getPrincipal(), config.getKeytabFile());
-            return UserGroupInformation.getLoginUser().doAs(new PrivilegedExceptionAction<KuduClient>() {
+    /**
+     * 获取kudu的客户端
+     * @param config  kudu的配置信息
+     * @param hadoopConfig hadoop相关信息 主要需要kerberos相关验证信息
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static KuduClient getKuduClient(KuduConfig config, Map<String,Object> hadoopConfig) throws IOException,InterruptedException {
+        if(AUTHENTICATION_TYPE.equals(config.getAuthentication()) && FileSystemUtil.isOpenKerberos(hadoopConfig)){
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig,null);
+            return ugi.doAs(new PrivilegedExceptionAction<KuduClient>() {
                 @Override
                 public KuduClient run() throws Exception {
                     return getKuduClientInternal(config);
@@ -71,9 +91,9 @@ public class KuduUtil {
                 .syncClient();
     }
 
-    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString) throws IOException{
+    public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString, Map<String,Object> hadoopConfig) throws IOException{
         try (
-                KuduClient client = getKuduClient(config)
+                KuduClient client = getKuduClient(config, hadoopConfig)
         ) {
             KuduTable kuduTable = client.openTable(config.getTable());
 
@@ -110,7 +130,7 @@ public class KuduUtil {
             return;
         }
 
-        Map<String, Type> nameTypeMap = new HashMap<>();
+        Map<String, Type> nameTypeMap = new HashMap<>(columns.size());
         for (MetaColumn column : columns) {
             nameTypeMap.put(column.getName(), getType(column.getType()));
         }
@@ -147,6 +167,7 @@ public class KuduUtil {
             case "varchar":
             case "text":
             case "string" : return  Type.STRING;
+            case "unixtime_micros":
             case "timestamp" : return  Type.UNIXTIME_MICROS;
             default:
                 throw new IllegalArgumentException("Not support column type:" + columnType);
@@ -183,7 +204,7 @@ public class KuduUtil {
             return null;
         }
 
-        if(value.startsWith("\"") || value.endsWith("'")){
+        if(value.startsWith(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL) || value.endsWith(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL)){
             value = value.substring(1, value.length() - 1);
         }
 

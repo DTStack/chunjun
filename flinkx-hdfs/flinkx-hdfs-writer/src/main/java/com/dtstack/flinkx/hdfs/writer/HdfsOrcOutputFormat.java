@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,11 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.compress.*;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.DefaultCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.io.compress.Lz4Codec;
+import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -42,9 +46,11 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -54,7 +60,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsOrcOutputFormat extends HdfsOutputFormat {
+public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private RecordWriter recordWriter;
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;
@@ -75,7 +81,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
-        decimalColInfo = new HashMap<>();
+        decimalColInfo = new HashMap<>((fullColumnTypes.size()<<2)/3);
         for (int i = 0; i < fullColumnTypes.size(); i++) {
             String columnType = fullColumnTypes.get(i);
 
@@ -196,7 +202,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
 
         ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
         String rowData = column.toString();
-        if(rowData == null || rowData.length() == 0){
+        if(rowData == null || (rowData.length() == 0 && !ColumnType.isStringType(columnType)) ){
             recordList.add(null);
             return;
         }
@@ -212,17 +218,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(Integer.valueOf(rowData));
                 break;
             case BIGINT:
-                if (column instanceof Timestamp){
-                    column=((Timestamp) column).getTime();
-                    recordList.add(column);
-                    break;
-                }
-                BigInteger data = new BigInteger(rowData);
-                if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
-                    recordList.add(data);
-                } else {
-                    recordList.add(Long.valueOf(rowData));
-                }
+                recordList.add(getBigint(column, rowData));
                 break;
             case FLOAT:
                 recordList.add(Float.valueOf(rowData));
@@ -231,16 +227,7 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(Double.valueOf(rowData));
                 break;
             case DECIMAL:
-                ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(fullColumnNames.get(index));
-                HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
-                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
-                if(hiveDecimal == null){
-                    String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
-                    throw new WriteRecordException(msg, new IllegalArgumentException());
-                }
-
-                HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
-                recordList.add(hiveDecimalWritable);
+                recordList.add(getDecimalWritable(index, rowData));
                 break;
             case STRING:
             case VARCHAR:
@@ -262,11 +249,37 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
                 recordList.add(DateUtil.columnToTimestamp(column,null));
                 break;
             case BINARY:
-                recordList.add(new BytesWritable(rowData.getBytes()));
+                recordList.add(new BytesWritable(rowData.getBytes(StandardCharsets.UTF_8)));
                 break;
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    private Object getBigint(Object column, String rowData) {
+        if (column instanceof Timestamp){
+            column = ((Timestamp) column).getTime();
+            return column;
+        }
+
+        BigInteger data = new BigInteger(rowData);
+        if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+            return data;
+        } else {
+            return Long.valueOf(rowData);
+        }
+    }
+
+    private HiveDecimalWritable getDecimalWritable(int index, String rowData) throws WriteRecordException {
+        ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(fullColumnNames.get(index));
+        HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
+        hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+        if(hiveDecimal == null){
+            String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+            throw new WriteRecordException(msg, new IllegalArgumentException());
+        }
+
+        return new HiveDecimalWritable(hiveDecimal);
     }
 
     @Override

@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
@@ -24,12 +23,12 @@ import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.RestartConfig;
 import com.dtstack.flinkx.config.TestConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
@@ -45,7 +44,7 @@ import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
+import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +52,11 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -81,6 +84,7 @@ public class Main {
         String jobIdString = options.getJobid();
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
+        String remotePluginPath = options.getRemotePluginPath();
         String savepointPath = options.getS();
         Properties confProperties = parseConf(options.getConfProp());
 
@@ -96,6 +100,10 @@ public class Main {
             config.setPluginRoot(pluginRoot);
         }
 
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
+        }
+
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment();
@@ -104,14 +112,14 @@ public class Main {
         configRestartStrategy(env, config);
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
-        DataReader dataReader = DataReaderFactory.getDataReader(config, env);
+        BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
 
         dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
                 new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+                        new CustomPartitioner<>()));
 
-        DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
+        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         dataWriter.writeData(dataStream);
 
         if(env instanceof MyLocalStreamEnvironment) {
@@ -181,6 +189,8 @@ public class Main {
         } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
             ContentConfig contentConfig = config.getJob().getContent().get(0);
             contentConfig.getReader().setName(STREAM_READER);
+        }else {
+            return;
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);
@@ -225,14 +235,14 @@ public class Main {
 
     private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
         if(properties!=null){
-            String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
+            String interval = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY);
             if(StringUtils.isNotBlank(interval)){
-                env.enableCheckpointing(Long.valueOf(interval.trim()));
+                env.enableCheckpointing(Long.parseLong(interval.trim()));
                 LOG.info("Open checkpoint with interval:" + interval);
             }
-            String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+            String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
             if(checkpointTimeoutStr != null){
-                long checkpointTimeout = Long.valueOf(checkpointTimeoutStr.trim());
+                long checkpointTimeout = Long.parseLong(checkpointTimeoutStr.trim());
                 //checkpoints have to complete within one min,or are discard
                 env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
 

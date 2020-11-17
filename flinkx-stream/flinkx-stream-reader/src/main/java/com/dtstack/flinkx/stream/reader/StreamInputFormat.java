@@ -18,10 +18,9 @@
 
 package com.dtstack.flinkx.stream.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -33,7 +32,7 @@ import java.util.List;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamInputFormat extends RichInputFormat {
+public class StreamInputFormat extends BaseRichInputFormat {
 
     protected static final long serialVersionUID = 1L;
 
@@ -70,12 +69,7 @@ public class StreamInputFormat extends RichInputFormat {
     }
 
     @Override
-    public void configure(Configuration parameters) {
-
-    }
-
-    @Override
-    public InputSplit[] createInputSplits(int minNumSplits) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             inputSplits[i] = new GenericInputSplit(i,minNumSplits);

@@ -22,6 +22,24 @@
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.10.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
         </dependency>
 
         <dependency>
@@ -40,20 +58,45 @@
             <artifactId>commons-codec</artifactId>
             <version>1.9</version>
         </dependency>
+
+        <!--hadoop-->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>2.7.3.2.6.4.91-3</version>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-client</artifactId>
+            <version>${hadoop.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>2.7.3.2.6.4.91-3</version>
+            <version>${hadoop.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>2.7.3.2.6.4.91-3</version>
+            <artifactId>hadoop-yarn-api</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.8.2</version>
         </dependency>
     </dependencies>
 
@@ -79,7 +122,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                <resource>reference.conf</resource>
+                                    <resource>reference.conf</resource>
                                 </transformer>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
@@ -87,19 +130,19 @@
                                 </transformer>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-                                <resource>core-site.xml</resource>
+                                    <resource>core-site.xml</resource>
                                 </transformer>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-                                <resource>yarn-default.xml</resource>
+                                    <resource>yarn-default.xml</resource>
                                 </transformer>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-                                <resource>mapred-default.xml</resource>
+                                    <resource>mapred-default.xml</resource>
                                 </transformer>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-                                <resource>mapred-site.xml</resource>
+                                    <resource>mapred-site.xml</resource>
                                 </transformer>
                             </transformers>
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.hbase.reader;
 
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.Preconditions;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
+public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private HbaseInputFormat format;
 

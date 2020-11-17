@@ -17,10 +17,11 @@
  */
 package com.dtstack.flinkx.mysqld.format;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,7 +31,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/20
@@ -43,7 +44,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
     @Override
     protected void openNextSource() throws SQLException {
         DataSource currentSource = sourceList.get(sourceIndex);
-        currentConn = DBUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
+        currentConn = DbUtil.getConnection(currentSource.getJdbcUrl(), currentSource.getUserName(), currentSource.getPassword());
         currentConn.setAutoCommit(false);
         String queryTemplate = new QuerySqlBuilder(databaseInterface, currentSource.getTable(),metaColumns,splitKey,
                 where, currentSource.isSplitByKey(), false, false).buildSql();
@@ -66,7 +67,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
         if(descColumnTypeList == null) {
-            descColumnTypeList = DBUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
+            descColumnTypeList = DbUtil.analyzeTable(currentSource.getJdbcUrl(), currentSource.getUserName(),
                     currentSource.getPassword(),databaseInterface, currentSource.getTable(),metaColumns);
         }
 
@@ -104,7 +105,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
                     currentRecord.setField(pos, obj);
                 }
 
-                if(!"*".equals(metaColumns.get(0).getName())){
+                if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
                     for (int i = 0; i < columnCount; i++) {
                         Object val = currentRecord.getField(i);
                         if(val == null && metaColumns.get(i).getValue() != null){

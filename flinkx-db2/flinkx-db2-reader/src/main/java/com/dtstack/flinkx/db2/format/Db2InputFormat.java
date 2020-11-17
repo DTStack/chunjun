@@ -22,7 +22,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/20

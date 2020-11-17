@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.odps.writer;
 
 import com.dtstack.flinkx.odps.OdpsConfigKeys;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsOutputFormatBuilder extends RichOutputFormatBuilder {
+public class OdpsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private OdpsOutputFormat format;
 
@@ -76,5 +76,7 @@ public class OdpsOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        notSupportBatchWrite("OdpsWriter");
     }
 }

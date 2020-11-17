@@ -18,9 +18,12 @@
 
 package com.dtstack.flinkx.ftp.writer;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.ftp.*;
-import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
+import com.dtstack.flinkx.ftp.IFtpHandler;
+import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,11 +32,9 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-
-import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
 
 /**
  * The OutputFormat Implementation which reads data from ftp servers.
@@ -41,7 +42,7 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormat extends FileOutputFormat {
+public class FtpOutputFormat extends BaseFileOutputFormat {
 
     protected FtpConfig ftpConfig;
 
@@ -56,19 +57,15 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     private transient OutputStream os;
 
-    private static final String DOT = ".";
-
     private static final String FILE_SUFFIX = ".csv";
 
     private static final String OVERWRITE_MODE = "overwrite";
 
+    private static final int FILE_NAME_PART_SIZE = 3;
+
     @Override
     protected void openSource() throws IOException {
-        if(SFTP_PROTOCOL.equalsIgnoreCase(ftpConfig.getProtocol())) {
-            ftpHandler = new SFtpHandler();
-        } else {
-            ftpHandler = new FtpHandler();
-        }
+        ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
     }
 
@@ -106,7 +103,7 @@ public class FtpOutputFormat extends FileOutputFormat {
                 }
 
                 String[] splits = fileName.split("\\.");
-                if (splits.length == 3) {
+                if (splits.length == FILE_NAME_PART_SIZE) {
                     return Integer.parseInt(splits[2]) <= fileIndex;
                 }
 
@@ -135,7 +132,7 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     @Override
     public void moveTemporaryDataBlockFileToDirectory(){
-        if (currentBlockFileName == null || !currentBlockFileName.startsWith(DOT)){
+        if (currentBlockFileName == null || !currentBlockFileName.startsWith(ConstantValue.POINT_SYMBOL)){
             return;
         }
 
@@ -244,9 +241,9 @@ public class FtpOutputFormat extends FileOutputFormat {
 
     @Override
     protected void coverageData(){
-        boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(ftpConfig.getWriteMode()) && !SP.equals(ftpConfig.getPath());
+        boolean cleanPath = OVERWRITE_MODE.equalsIgnoreCase(ftpConfig.getWriteMode()) && !SP.equals(ftpConfig.getPath());
         if(cleanPath){
-            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Arrays.asList(tmpPath));
+            ftpHandler.deleteAllFilesInDir(ftpConfig.getPath(), Collections.singletonList(tmpPath));
         }
     }
 
@@ -273,7 +270,7 @@ public class FtpOutputFormat extends FileOutputFormat {
             List<String> files = ftpHandler.getFiles(tmpPath);
             for (String file : files) {
                 String fileName = file.substring(file.lastIndexOf(SP) + 1);
-                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(ConstantValue.POINT_SYMBOL)){
                     String newPath = ftpConfig.getPath() + SP + fileName;
                     LOG.info("Move file {} to path {}", file, newPath);
                     ftpHandler.rename(file, newPath);
@@ -315,5 +312,10 @@ public class FtpOutputFormat extends FileOutputFormat {
     @Override
     protected String getExtension() {
         return ".csv";
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        notSupportBatchWrite("FtpWriter");
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,6 +27,10 @@ package com.dtstack.flinkx.es;
 public class EsConfigKeys {
 
     public static final String KEY_ADDRESS = "address";
+
+    public static final String KEY_USERNAME = "username";
+
+    public static final String KEY_PASSWORD = "password";
 
     public static final String KEY_QUERY = "query";
 

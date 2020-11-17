@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,9 +29,9 @@ import java.util.Date;
 
 public class TimePartitionFormat {
 
-    private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2;
-    private static final long CONSTANT_TWO_HOUR_TIME = 1000 * 60 * 60 * 2;
-    private static final long CONSTANT_TWO_MINUTE_TIME = 1000 * 60 * 2;
+    private static final long CONSTANT_TWO_DAY_TIME = 1000 * 60 * 60 * 24 * 2L;
+    private static final long CONSTANT_TWO_HOUR_TIME = 1000 * 60 * 60 * 2L;
+    private static final long CONSTANT_TWO_MINUTE_TIME = 1000 * 60 * 2L;
 
     private static PartitionEnum partitionEnum;
 
@@ -75,7 +75,21 @@ public class TimePartitionFormat {
     }
 
     public enum PartitionEnum {
-        DAY, HOUR, MINUTE
+
+        /**
+         * 天分区
+         */
+        DAY,
+
+        /**
+         * 小时分区
+         */
+        HOUR,
+
+        /**
+         * 分钟分区
+         */
+        MINUTE
     }
 
     public boolean isTimeout(long lastWriteTime) {

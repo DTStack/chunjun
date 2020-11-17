@@ -20,11 +20,11 @@ package com.dtstack.flinkx.rdb.datareader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -40,9 +40,7 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcDataReader extends DataReader {
-
-    protected JdbcInputFormatBuilder builder;
+public class JdbcDataReader extends BaseDataReader {
 
     protected DatabaseInterface databaseInterface;
 
@@ -101,8 +99,10 @@ public class JdbcDataReader extends DataReader {
 
     @Override
     public DataStream<Row> readData() {
-        builder.setDrivername(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        JdbcInputFormatBuilder builder = getBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setDriverName(databaseInterface.getDriverClass());
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
@@ -120,20 +120,27 @@ public class JdbcDataReader extends DataReader {
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
         builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
         QuerySqlBuilder sqlBuilder = new QuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        RichInputFormat format =  builder.finish();
+        BaseRichInputFormat format =  builder.finish();
 //        (databaseInterface.getDatabaseType() + "reader").toLowerCase()
         return createInput(format);
     }
 
+    protected JdbcInputFormatBuilder getBuilder() {
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
+    }
+
     private void buildIncrementConfig(ReaderConfig readerConfig){
+        boolean polling = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_POLLING, false);
         Object incrementColumn = readerConfig.getParameter().getVal(JdbcConfigKeys.KEY_INCRE_COLUMN);
         String startLocation = readerConfig.getParameter().getStringVal(JdbcConfigKeys.KEY_START_LOCATION,null);
         boolean useMaxFunc = readerConfig.getParameter().getBooleanVal(JdbcConfigKeys.KEY_USE_MAX_FUNC, false);
         int requestAccumulatorInterval = readerConfig.getParameter().getIntVal(JdbcConfigKeys.KEY_REQUEST_ACCUMULATOR_INTERVAL, 2);
+        long pollingInterval = readerConfig.getParameter().getLongVal(JdbcConfigKeys.KEY_POLLING_INTERVAL, 5000);
 
         incrementConfig = new IncrementConfig();
         if (incrementColumn != null && StringUtils.isNotEmpty(incrementColumn.toString())){
@@ -159,12 +166,14 @@ public class JdbcDataReader extends DataReader {
             }
 
             incrementConfig.setIncrement(true);
+            incrementConfig.setPolling(polling);
             incrementConfig.setColumnName(name);
             incrementConfig.setColumnType(type);
             incrementConfig.setStartLocation(startLocation);
             incrementConfig.setUseMaxFunc(useMaxFunc);
             incrementConfig.setColumnIndex(index);
             incrementConfig.setRequestAccumulatorInterval(requestAccumulatorInterval);
+            incrementConfig.setPollingInterval(pollingInterval);
 
             if (type == null || name == null){
                 throw new IllegalArgumentException("There is no " + incrementColStr +" field in the columns");

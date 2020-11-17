@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,7 +42,7 @@ import java.util.Date;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsTextOutputFormat extends HdfsOutputFormat {
+public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;
@@ -124,7 +124,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
                     sb.append(delimiter);
                 }
 
-                appendDataToString(sb, i, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
+                appendDataToString(sb, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
             }
         } catch(Exception e) {
             if(i < row.getArity()) {
@@ -151,7 +151,7 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
         }
     }
 
-    private void appendDataToString(StringBuilder sb, int ii, Object column, ColumnType columnType) {
+    private void appendDataToString(StringBuilder sb, Object column, ColumnType columnType) {
         if(column == null) {
             sb.append(HdfsUtil.NULL_VALUE);
             return;

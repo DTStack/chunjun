@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,16 +37,16 @@ public class DataReaderFactory {
     private DataReaderFactory() {
     }
 
-    public static DataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public static BaseDataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getContent().get(0).getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
-            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot());
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
                 Constructor constructor = clazz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
-                return (DataReader)constructor.newInstance(config, env);
+                return (BaseDataReader)constructor.newInstance(config, env);
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

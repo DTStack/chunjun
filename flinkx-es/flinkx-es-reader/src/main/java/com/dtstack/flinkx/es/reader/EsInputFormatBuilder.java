@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.es.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsInputFormatBuilder extends RichInputFormatBuilder {
+public class EsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private EsInputFormat format;
 
@@ -38,6 +39,16 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
 
     public EsInputFormatBuilder setAddress(String address) {
         format.address = address;
+        return this;
+    }
+
+    public EsInputFormatBuilder setUsername(String username) {
+        format.username = username;
+        return this;
+    }
+
+    public EsInputFormatBuilder setPassword(String password) {
+        format.password = password;
         return this;
     }
 
@@ -92,6 +103,10 @@ public class EsInputFormatBuilder extends RichInputFormatBuilder {
     protected void checkFormat() {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
+
+        if (format.batchSize > ConstantValue.MAX_BATCH_SIZE) {
+            throw new IllegalArgumentException("批量读取数量不能大于[200000]条");
         }
     }
 }

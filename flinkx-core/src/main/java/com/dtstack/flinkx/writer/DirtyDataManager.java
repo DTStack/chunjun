@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,7 +26,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -35,9 +34,16 @@ import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
+import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
 /**
  * The class handles dirty data management
@@ -104,7 +110,7 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(config, null, jobId, "dirty");
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null);
             Path path = new Path(location);
             stream = fs.create(path, true);
         } catch (Exception e) {

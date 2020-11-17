@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.es.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +28,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
+public class EsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private EsOutputFormat format;
 
@@ -38,6 +38,15 @@ public class EsOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setAddress(String address) {
         format.address = address;
+    }
+
+
+    public void setUsername(String username) {
+        format.username = username;
+    }
+
+    public void setPassword(String password) {
+        format.password = password;
     }
 
     public void setIdColumnIndices(List<Integer> idColumnIndices) {
