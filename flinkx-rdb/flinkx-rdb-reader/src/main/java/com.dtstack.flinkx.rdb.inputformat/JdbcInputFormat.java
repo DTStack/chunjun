@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -173,11 +174,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            columnCount = resultSet.getMetaData().getColumnCount();
+           if(!resultSet.isClosed()){
+               columnCount = resultSet.getMetaData().getColumnCount();
+           }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
-
         boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
         if (splitWithRowCol) {
             columnCount = columnCount - 1;
@@ -212,11 +214,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
-                    //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if(!dbConn.isValid(3)){
+                    //间隔轮询检测数据库连接是否断开，断开重新连接
+                    if(Objects.isNull(dbConn) || dbConn.isClosed()){
                         dbConn = DbUtil.getConnection(dbUrl, username, password);
                         //重新连接后还是不可用则认为数据库异常，任务失败
-                        if(!dbConn.isValid(3)){
+                        if(Objects.isNull(dbConn) || dbConn.isClosed()){
                             String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
                             LOG.error(message);
                             throw new RuntimeException(message);
@@ -245,6 +247,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
+            updateColumnCount();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
@@ -881,5 +884,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     protected boolean makeTaskFailedWhenReportFailed() {
         return true;
+    }
+
+    /**
+     * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
+     * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
+     * @throws SQLException
+     */
+    private  void updateColumnCount() throws SQLException {
+        if(columnCount == 0){
+            columnCount =resultSet.getMetaData().getColumnCount();
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
+            }
+        }
     }
 }
