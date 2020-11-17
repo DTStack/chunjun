@@ -191,6 +191,8 @@ public class DbUtil {
             try {
                 if(commit){
                     commit(conn);
+                }else {
+                    rollBack(conn);
                 }
 
                 conn.close();
@@ -211,6 +213,20 @@ public class DbUtil {
             }
         } catch (SQLException e){
             LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
+        }
+    }
+
+    /**
+     * 手动回滚事物
+     * @param conn Connection
+     */
+    public static void rollBack(Connection conn){
+        try {
+            if (!conn.isClosed() && !conn.getAutoCommit()){
+                conn.rollback();
+            }
+        } catch (SQLException e){
+            LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
