@@ -92,6 +92,12 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.insertSqlMode = insertSqlMode;
     }
 
+
+    public void setSchema(String schema){
+        format.setSchema(schema);
+    }
+
+
     @Override
     protected void checkFormat() {
         if (format.username == null) {
