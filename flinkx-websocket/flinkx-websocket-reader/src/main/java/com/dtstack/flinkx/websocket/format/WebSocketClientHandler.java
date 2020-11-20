@@ -55,18 +55,22 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     private WebSocketClientHandshaker handShaker;
 
+    /**
+     * 存放握手是否成功的Promise
+     */
     private ChannelPromise handshakeFuture;
 
     private SynchronousQueue<Row> queue;
 
     /**
-     * 用于重连
+     * 保存client，用于重连
      */
     private WebSocketClient client;
 
     public WebSocketClientHandler(SynchronousQueue<Row> queue, URI uri, WebSocketClient client) {
         this.queue = queue;
         this.client = client;
+        // 采用默认生成
         handShaker = WebSocketClientHandshakerFactory.newHandshaker(
                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
     }
@@ -102,6 +106,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         ctx.close();
         LOG.info("connection is closed by server");
         LOG.info("reconnecting .......");
+        // 通过调用run方法，实现重连尝试
         client.run();
     }
 
@@ -117,10 +122,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handShaker.isHandshakeComplete()) {
             try {
                 handShaker.finishHandshake(ch, (FullHttpResponse) msg);
-                System.out.println("WebSocket Client connected!");
+                LOG.info("WebSocket Client connected!");
                 handshakeFuture.setSuccess();
             } catch (WebSocketHandshakeException e) {
-                System.out.println("WebSocket Client failed to connect");
+                LOG.info("WebSocket Client failed to connect");
                 handshakeFuture.setFailure(e);
             }
             return;

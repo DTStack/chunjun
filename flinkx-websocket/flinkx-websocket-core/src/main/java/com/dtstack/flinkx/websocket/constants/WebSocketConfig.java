@@ -29,12 +29,18 @@ public class WebSocketConfig {
 
     public static final int DEFAULT_RETRY_INTERVAL = 5;
 
+    /**
+     * 设置一个websocket client失败时的标志
+     */
+    public static final String KEY_EXIT0 = "exit0";
+
+    /**
+     * 以下是reader端读取的key值
+     */
     public static final String KEY_WEB_SOCKET_SERVER_URL = "url";
 
     public static final String KEY_RETRY_TIME = "retry";
 
     public static final String KEY_RETRY_INTERVAL = "interval";
-
-    public static final String KEY_EXIT0 = "exit0";
 
 }

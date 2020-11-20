@@ -105,7 +105,7 @@ public class WebSocketClient {
 
 
     /**
-     * 连接重试，等待时间随指数增长
+     * 连接重试
      * @param boot 启动引导器
      * @param uri uri
      * @param retry 重试次数
