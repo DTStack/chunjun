@@ -53,6 +53,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,6 +129,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected MetaColumn restoreColumn;
 
     protected Row lastRow = null;
+
+    protected transient final static ThreadLocal<SimpleDateFormat> sdf = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMddHHmmss"));
 
     protected String querySql;
 
@@ -688,7 +691,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } else if (ColumnType.isNumberType(incrementColType)) {
             endLocationSql = incrementCol + operator + location;
         } else {
-            endTimeStr = String.format("'%s'", location);
+            // FIXME 京东方特殊逻辑
+            String part1 = location.substring(0, 13);
+            String part2 = location.substring(13);
+            String timeStr = sdf.get().format(new Date(Long.parseLong(part1))) + part2;
+
+            endTimeStr = String.format("'%s'",timeStr);
             endLocationSql = incrementCol + operator + endTimeStr;
         }
 
