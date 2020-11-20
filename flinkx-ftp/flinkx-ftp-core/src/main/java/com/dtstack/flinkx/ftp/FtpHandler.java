@@ -28,6 +28,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -110,7 +112,7 @@ public class FtpHandler implements IFtpHandler {
             ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles.length == 0){
-                throw new RuntimeException("file or path is not exist, please check the path or the permissions of account, path = " + directoryPath);
+                throw new FileNotFoundException("file or path is not exist, please check the path or the permissions of account, path = " + directoryPath);
             }else {
                 return FTPReply.isPositiveCompletion(ftpClient.cwd(directoryPath));
             }
@@ -133,7 +135,6 @@ public class FtpHandler implements IFtpHandler {
     public boolean isFileExist(String filePath) {
         return !isDirExist(filePath);
     }
-
 
     @Override
     public List<String> getFiles(String path) {
@@ -165,7 +166,6 @@ public class FtpHandler implements IFtpHandler {
 
     /**
      * 递归获取指定路径下的所有文件(暂无过滤)
-     * isDirExist()、isFileExist()方法在Windows系统下判断有误
      * @param path
      * @param file
      * @return
