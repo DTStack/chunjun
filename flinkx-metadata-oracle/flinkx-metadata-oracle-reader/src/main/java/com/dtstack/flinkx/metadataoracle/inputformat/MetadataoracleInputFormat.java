@@ -309,6 +309,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if(tableList.size()==0){
             return;
         }
+        allTable = null;
         if (start < tableList.size()){
             // 取出子数组，注意避免越界
             List<Object> splitTableList = tableList.subList(start, Math.min(start+MAX_TABLE_SIZE, tableList.size()));
