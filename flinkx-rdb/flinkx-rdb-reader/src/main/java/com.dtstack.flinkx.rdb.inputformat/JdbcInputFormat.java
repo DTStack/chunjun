@@ -843,6 +843,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //执行到此处代表轮询任务startLocation为空，且数据库中无数据，此时需要查询增量字段的最小值
                 ps.setFetchDirection(ResultSet.FETCH_FORWARD);
                 resultSet.close();
+                //如果事务不提交 就会导致数据库即使插入数据 也无法读到数据
+                dbConn.commit();
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
                 //每隔五分钟打印一次
