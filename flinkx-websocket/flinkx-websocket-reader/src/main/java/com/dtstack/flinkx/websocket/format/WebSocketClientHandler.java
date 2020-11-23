@@ -42,6 +42,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
 
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_PRINT_INTERVAL;
+
 /**
  * webSocket消息处理
  * @Company: www.dtstack.com
@@ -67,9 +69,14 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private WebSocketClient client;
 
+    protected String message;
+
+    private int count;
+
     public WebSocketClientHandler(SynchronousQueue<Row> queue, URI uri, WebSocketClient client) {
         this.queue = queue;
         this.client = client;
+        count = 0;
         // 采用默认生成
         handShaker = WebSocketClientHandshakerFactory.newHandshaker(
                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
@@ -77,10 +84,14 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
+        // 创建一个新的Promise，成功或失败在channelRead0方法中设置
         this.handshakeFuture = ctx.newPromise();
         handshakeFuture.addListener((future)-> {
             if(future.isSuccess()){
                 LOG.info("handshake success!");
+                // 发送开启读写信息
+                WebSocketFrame frame = new TextWebSocketFrame(message);
+                ctx.channel().writeAndFlush(frame);
             }else {
                 LOG.info("handShake failed");
             }
@@ -119,6 +130,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel ch = ctx.channel();
+        // 设置握手结果
         if (!handShaker.isHandshakeComplete()) {
             try {
                 handShaker.finishHandshake(ch, (FullHttpResponse) msg);
@@ -140,6 +152,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
             queue.put(Row.of(textFrame.text()));
+            LOG.debug("print webSocket message: {}", textFrame.text());
+            // 间隔打印收到的message
+            if(count==1 || count/DEFAULT_PRINT_INTERVAL==0){
+                LOG.info("print webSocket message: {}", textFrame.text());
+            }
         }
         //ping信息
         if (frame instanceof PongWebSocketFrame) {
@@ -149,7 +166,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (frame instanceof CloseWebSocketFrame) {
             LOG.info("receive close frame");
             ch.close();
+            // 进行重连尝试以设置任务运行结果
+            client.run();
         }
+    }
+
+    public void setMessage(String message){
+        this.message = message;
     }
 
 }

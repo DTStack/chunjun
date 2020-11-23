@@ -54,6 +54,16 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
     protected int retryInterval;
 
     /**
+     * 通知客户端开启读写的信息
+     */
+    protected String message;
+
+    /**
+     * todo 消息处理方法，暂不使用
+     */
+    protected String codec;
+
+    /**
      * 存放数据的队列
      */
     private final SynchronousQueue<Row> queue = new SynchronousQueue<>();
@@ -64,7 +74,8 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
         try {
             client = new WebSocketClient(queue, serverUrl)
                     .setRetryInterval(retryInterval)
-                    .setRetryTime(retryTime);
+                    .setRetryTime(retryTime)
+                    .setMessage(message);
             client.run();
         }catch (Exception e){
             throw new IOException(e);
@@ -117,5 +128,13 @@ public class WebSocketInputFormat extends BaseRichInputFormat {
 
     public void setRetryInterval(int retryInterval){
         this.retryInterval = retryInterval;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setCodec(String codec){
+        this.codec = codec;
     }
 }

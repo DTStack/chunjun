@@ -18,14 +18,21 @@
 
 package com.dtstack.flinkx.websocket.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /** 构建 WebSocketInputFormat
  * @Company: www.dtstack.com
@@ -48,7 +55,24 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
 
-    protected void setServerUrl(String serverUrl){
+    protected void setServerUrl(String serverUrl, Map<String, String> params){
+        // 在url的基础上加上授权认证
+        if(MapUtils.isNotEmpty(params)){
+            StringBuilder stringBuilder = new StringBuilder(30);
+            stringBuilder.append('?');
+            Set<Map.Entry<String, String>> set = params.entrySet();
+            Iterator<Map.Entry<String, String>> iterator = set.iterator();
+            while (iterator.hasNext()){
+                Map.Entry<String, String> entry = iterator.next();
+                stringBuilder.append(entry.getKey())
+                        .append(ConstantValue.EQUAL_SYMBOL)
+                        .append(entry.getValue());
+                if(iterator.hasNext()){
+                    stringBuilder.append('&');
+                }
+            }
+            serverUrl += stringBuilder.toString();
+        }
         this.serverUrl = serverUrl;
         format.setServerUrl(serverUrl);
     }
@@ -59,6 +83,14 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected void setRetryInterval(int retryInterval){
         format.setRetryInterval(retryInterval);
+    }
+
+    protected void setMessage(String message) {
+        format.setMessage(message);
+    }
+
+    protected void setCodec(String codec){
+        format.setCodec(codec);
     }
 
     @Override

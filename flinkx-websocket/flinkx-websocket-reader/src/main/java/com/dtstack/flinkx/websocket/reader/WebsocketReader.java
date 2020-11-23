@@ -25,6 +25,11 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.util.Map;
+
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_CODEC;
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_MESSAGE;
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_PARAMS;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_RETRY_INTERVAL;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_RETRY_TIME;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_WEB_SOCKET_SERVER_URL;
@@ -42,6 +47,9 @@ public class WebsocketReader extends BaseDataReader {
     protected String serverUrl;
     protected int retryTime;
     protected int interval;
+    protected String message;
+    protected String codec;
+    protected Map<String, String> params;
 
     public WebsocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -49,14 +57,19 @@ public class WebsocketReader extends BaseDataReader {
         serverUrl = readerConfig.getParameter().getStringVal(KEY_WEB_SOCKET_SERVER_URL);
         retryTime = readerConfig.getParameter().getIntVal(KEY_RETRY_TIME, DEFAULT_RETRY_TIME);
         interval = readerConfig.getParameter().getIntVal(KEY_RETRY_INTERVAL, DEFAULT_RETRY_INTERVAL);
+        message = readerConfig.getParameter().getStringVal(KEY_MESSAGE);
+        codec = readerConfig.getParameter().getStringVal(KEY_CODEC);
+        params = (Map<String, String>)readerConfig.getParameter().getVal(KEY_PARAMS);
     }
 
     @Override
     public DataStream<Row> readData() {
         WebSocketInputFormatBuilder builder = new WebSocketInputFormatBuilder();
-        builder.setServerUrl(serverUrl);
+        builder.setServerUrl(serverUrl, params);
         builder.setRetryTime(retryTime);
         builder.setRetryInterval(interval);
+        builder.setMessage(message);
+        builder.setCodec(codec);
         builder.setDataTransferConfig(dataTransferConfig);
         return createInput(builder.finish());
     }

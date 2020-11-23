@@ -27,7 +27,9 @@ public class WebSocketConfig {
 
     public static final int DEFAULT_RETRY_TIME = 5;
 
-    public static final int DEFAULT_RETRY_INTERVAL = 5;
+    public static final int DEFAULT_RETRY_INTERVAL = 2000;
+
+    public static final int DEFAULT_PRINT_INTERVAL = 100;
 
     /**
      * 设置一个websocket client失败时的标志
@@ -42,5 +44,11 @@ public class WebSocketConfig {
     public static final String KEY_RETRY_TIME = "retry";
 
     public static final String KEY_RETRY_INTERVAL = "interval";
+
+    public static final String KEY_MESSAGE = "message";
+
+    public static final String KEY_CODEC = "codec";
+
+    public static final String KEY_PARAMS = "params";
 
 }
