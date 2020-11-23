@@ -21,8 +21,20 @@ package com.dtstack.flinkx.metadatahbase.constants;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 
 /**
+ * 属性定义
  * @author kunni@dtstack.com
  */
 public class HbaseCons extends MetaDataCons {
+
+    /**
+     * json键值对中的键
+     */
+    public static final String KEY_NAME = "name";
+
+    public static final String KEY_REGIONS = "regions";
+
+    /**
+     * 以下为reader需要的参数
+     */
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 }

@@ -131,6 +131,8 @@ public class HbaseHelper {
         return false;
     }
 
+    private HbaseHelper(){
+    }
 
     /**
      * 设置hbase 开启kerberos 连接必要的固定参数

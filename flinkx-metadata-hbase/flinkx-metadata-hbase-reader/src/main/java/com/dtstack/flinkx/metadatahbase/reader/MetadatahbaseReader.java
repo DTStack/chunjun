@@ -31,11 +31,15 @@ import java.util.Map;
 import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_HADOOP_CONFIG;
 
 /**
+ * 读取hbase config并进行配置
  * @author kunni@dtstack.com
  */
 public class MetadatahbaseReader extends MetadataReader {
+
     private Map<String, Object> hadoopConfig;
-    protected MetadatahbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+
+    @SuppressWarnings("unchecked")
+    public MetadatahbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);

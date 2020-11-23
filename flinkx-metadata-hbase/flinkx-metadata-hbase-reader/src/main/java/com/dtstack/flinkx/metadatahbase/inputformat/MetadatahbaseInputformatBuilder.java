@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.metadatahbase.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 
 import java.util.Map;
 
-/**
+/** 帮助配置hbase读取参数
  * @author kunni@dtstack.com
  */
 public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder {
@@ -38,5 +37,7 @@ public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder 
         format.setHadoopConfig(hadoopConfig);
     }
 
-
+    @Override
+    protected void checkFormat() {
+    }
 }
