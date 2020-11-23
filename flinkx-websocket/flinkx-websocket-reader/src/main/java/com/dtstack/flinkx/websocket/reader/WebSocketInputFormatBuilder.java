@@ -23,13 +23,11 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;

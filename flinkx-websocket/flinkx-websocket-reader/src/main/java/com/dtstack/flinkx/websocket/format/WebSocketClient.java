@@ -20,7 +20,6 @@ package com.dtstack.flinkx.websocket.format;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -40,7 +39,6 @@ import java.net.URISyntaxException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_RETRY_INTERVAL;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_EXIT0;
 
 /**
