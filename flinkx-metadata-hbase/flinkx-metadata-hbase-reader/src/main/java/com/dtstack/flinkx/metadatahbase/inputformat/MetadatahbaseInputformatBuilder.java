@@ -16,19 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadatahive1.reader;
+package com.dtstack.flinkx.metadatahbase.inputformat;
 
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 
-public class Metadatahive1Reader extends Metadatahive2Reader {
+import java.util.Map;
 
-    public static final String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
+/**
+ * @author kunni@dtstack.com
+ */
+public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder {
+    private MetadatahbaseInputformat format;
 
-    public Metadatahive1Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        driverName = DRIVER_NAME;
+    public MetadatahbaseInputformatBuilder(MetadatahbaseInputformat format) {
+        super(format);
+        this.format = format;
     }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig){
+        format.setHadoopConfig(hadoopConfig);
+    }
+
 
 }

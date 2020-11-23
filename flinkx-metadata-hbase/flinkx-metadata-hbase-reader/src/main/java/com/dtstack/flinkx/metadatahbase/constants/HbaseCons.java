@@ -16,19 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadatahive1.reader;
+package com.dtstack.flinkx.metadatahbase.constants;
 
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import com.dtstack.flinkx.metadata.MetaDataCons;
 
-public class Metadatahive1Reader extends Metadatahive2Reader {
-
-    public static final String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
-
-    public Metadatahive1Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        driverName = DRIVER_NAME;
-    }
-
+/**
+ * @author kunni@dtstack.com
+ */
+public class HbaseCons extends MetaDataCons {
+    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 }
