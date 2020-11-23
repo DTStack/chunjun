@@ -42,8 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_PRINT_INTERVAL;
-
 /**
  * webSocket消息处理
  * @Company: www.dtstack.com
@@ -71,20 +69,19 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     protected String message;
 
-    private int count;
-
     public WebSocketClientHandler(SynchronousQueue<Row> queue, URI uri, WebSocketClient client) {
         this.queue = queue;
         this.client = client;
-        count = 0;
         // 采用默认生成
         handShaker = WebSocketClientHandshakerFactory.newHandshaker(
                 uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders());
     }
-
+    /**
+     * 创建一个新的Promise
+     * 成功或失败在{@link WebSocketClientHandler#channelRead0(ChannelHandlerContext, Object)}设置
+     */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        // 创建一个新的Promise，成功或失败在channelRead0方法中设置
         this.handshakeFuture = ctx.newPromise();
         handshakeFuture.addListener((future)-> {
             if(future.isSuccess()){
@@ -153,10 +150,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
             queue.put(Row.of(textFrame.text()));
             LOG.debug("print webSocket message: {}", textFrame.text());
-            // 间隔打印收到的message
-            if(count==1 || count/DEFAULT_PRINT_INTERVAL==0){
-                LOG.info("print webSocket message: {}", textFrame.text());
-            }
         }
         //ping信息
         if (frame instanceof PongWebSocketFrame) {

@@ -29,8 +29,6 @@ public class WebSocketConfig {
 
     public static final int DEFAULT_RETRY_INTERVAL = 2000;
 
-    public static final int DEFAULT_PRINT_INTERVAL = 100;
-
     /**
      * 设置一个websocket client失败时的标志
      */
