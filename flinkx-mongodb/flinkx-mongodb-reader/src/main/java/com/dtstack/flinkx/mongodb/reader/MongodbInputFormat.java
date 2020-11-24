@@ -24,7 +24,12 @@ import com.dtstack.flinkx.mongodb.MongodbClientUtil;
 import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -40,6 +45,7 @@ import org.bson.conversions.Bson;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Read plugin for reading static data
@@ -94,7 +100,8 @@ public class MongodbInputFormat extends BaseRichInputFormat {
             row = new Row(doc.size());
             String[] names = doc.keySet().toArray(new String[0]);
             for (int i = 0; i < names.length; i++) {
-                row.setField(i,doc.get(names[i]));
+                Object tempData =doc.get(names[i]);
+                row.setField(i, conventDocument(tempData));
             }
         } else {
             row = new Row(metaColumns.size());
@@ -103,7 +110,8 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
                 Object value = null;
                 if(metaColumn.getName() != null){
-                    value = doc.get(metaColumn.getName());
+                    Object tempData = doc.get(metaColumn.getName());
+                    value = conventDocument(tempData);
                     if(value == null && metaColumn.getValue() != null){
                         value = metaColumn.getValue();
                     }
@@ -170,5 +178,18 @@ public class MongodbInputFormat extends BaseRichInputFormat {
         if(StringUtils.isNotEmpty(mongodbConfig.getFilter())){
             filter = BasicDBObject.parse(mongodbConfig.getFilter());
         }
+    }
+
+    /**
+     * 如果是 map  或者 list 数据结构 使用gson转为json格式
+     * 主要针对 mongodb的 Document(继承Map) 类型 ，其原有document.tostring 格式不符合正常json格式
+     * @param object
+     * @return
+     */
+    private Object conventDocument(Object object){
+         if( object instanceof  List || object instanceof Map){
+            return GsonUtil.GSON.toJson(object);
+        }
+        return object;
     }
 }

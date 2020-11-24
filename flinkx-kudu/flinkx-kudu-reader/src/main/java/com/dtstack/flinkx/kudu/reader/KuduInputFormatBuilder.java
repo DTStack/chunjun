@@ -25,6 +25,7 @@ import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
@@ -44,6 +45,10 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setKuduConfig(KuduConfig kuduConfig){
         format.kuduConfig = kuduConfig;
+    }
+
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.setHadoopConfig(hadoopConfig);
     }
 
     @Override

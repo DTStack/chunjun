@@ -35,4 +35,5 @@ public class JdbcConfigKeys {
     public static final String KEY_UPDATE_KEY = "updateKey";
     public static final String KEY_FULL_COLUMN = "fullColumn";
     public static final String KEY_INSERT_SQL_MODE = "insertSqlMode";
+    public static final String KEY_PROPERTIES = "properties";
 }

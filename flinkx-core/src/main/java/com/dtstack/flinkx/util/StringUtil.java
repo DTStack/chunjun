@@ -199,10 +199,10 @@ public class StringUtil {
     }
 
 
-    public static String row2string(Row row, List<String> columnTypes, String delimiter, List<String> columnNames) throws WriteRecordException {
+    public static String row2string(Row row, List<String> columnTypes, String delimiter) throws WriteRecordException {
         // convert row to string
         int cnt = row.getArity();
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(128);
 
         int i = 0;
         try {

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.ftp;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,7 @@ public class FtpHandler implements IFtpHandler {
             //设置命令传输编码
             String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
+            ftpClient.setListHiddenFiles(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -143,6 +145,7 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public List<String> getFiles(String path) {
         List<String> sources = new ArrayList<>();
+        ftpClient.enterLocalPassiveMode();
         if(isFileExist(path)) {
             sources.add(path);
             return sources;
@@ -150,10 +153,13 @@ public class FtpHandler implements IFtpHandler {
             path = path + SP;
         }
         try {
-            ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    // .和..是特殊文件
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -182,6 +188,9 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -236,7 +245,7 @@ public class FtpHandler implements IFtpHandler {
         try {
             this.printWorkingDirectory();
             String parentDir = filePath.substring(0,
-                    StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR));
+                    StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR_UNIX));
             this.ftpClient.changeWorkingDirectory(parentDir);
             this.printWorkingDirectory();
             OutputStream writeOutputStream = this.ftpClient
@@ -280,6 +289,9 @@ public class FtpHandler implements IFtpHandler {
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
                         if(CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())){
+                            continue;
+                        }
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
                             continue;
                         }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
@@ -328,6 +340,9 @@ public class FtpHandler implements IFtpHandler {
                 FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                            continue;
+                        }
                         sources.add(path + ftpFile.getName());
                     }
                 }
@@ -343,5 +358,18 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public void rename(String oldPath, String newPath) throws IOException {
         ftpClient.rename(oldPath, newPath);
+    }
+
+    @Override
+    public void completePendingCommand() throws IOException {
+        try {
+            // throw exception when return false
+            if(!ftpClient.completePendingCommand()){
+                throw new IOException("I/O error occurs while sending or receiving data");
+            };
+        } catch (IOException e) {
+            LOG.error("I/O error occurs while sending or receiving data");
+            throw new IOException(ExceptionUtil.getErrorMessage(e));
+        }
     }
 }

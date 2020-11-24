@@ -79,7 +79,6 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
-import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -111,6 +110,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+//import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
+//import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
+
 /**
  * @author jiangbo
  */
@@ -134,7 +136,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\dtstack\\flinkx-all\\flinkx-test\\src\\main\\resources\\dev_test_job\\metadatasqlserver_stream.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/phoniex/phoenix5_stream_hbase.json";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
         System.exit(0);
@@ -270,7 +272,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
 //            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
-            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
+//            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
