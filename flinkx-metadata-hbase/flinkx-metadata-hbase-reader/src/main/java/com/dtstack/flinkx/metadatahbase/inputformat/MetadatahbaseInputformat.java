@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_NAME;
 import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_REGIONS;
 
@@ -128,6 +129,9 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         try{
             List<HRegionInfo> regionInfos = hbaseConnection.getAdmin().getTableRegions(table.getTableName());
             tableProperties.put(KEY_REGIONS, regionInfos.size());
+            // 默认的region大小是256M
+            long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
+            tableProperties.put(KEY_TABLE_TOTAL_SIZE,  regionSize * regionInfos.size());
         }catch (IOException e){
             LOG.error("query tableProperties failed. {}", ExceptionUtil.getErrorMessage(e));
             throw new SQLException(e);
