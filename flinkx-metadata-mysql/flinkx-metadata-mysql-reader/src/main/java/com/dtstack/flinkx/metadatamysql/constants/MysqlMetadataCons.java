@@ -45,5 +45,5 @@ public class MysqlMetadataCons extends TidbMetadataCons {
     public static final String RESULT_INDEX_COMMENT = "Index_comment";
 
     public static final String SQL_QUERY_TABLE_INFO = "SELECT * FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'";
-    public static final String SQL_QUERY_INDEX = "SHOW INDEX FROM %s";
+    public static final String SQL_QUERY_INDEX = "SHOW INDEX FROM `%s`";
 }
