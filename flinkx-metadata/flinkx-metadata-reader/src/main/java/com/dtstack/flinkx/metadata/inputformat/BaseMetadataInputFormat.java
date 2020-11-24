@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -81,11 +82,14 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             }
             tableIterator.set(tableList.iterator());
             init();
-        } catch (SQLException | ClassNotFoundException e) {
-            String message = String.format("获取table列表异常, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new IOException(message, e);
+        } catch (ClassNotFoundException e) {
+            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        } catch (SQLException e){
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            tableList = new LinkedList<>();
         }
+        tableIterator.set(tableList.iterator());
     }
 
     /**
