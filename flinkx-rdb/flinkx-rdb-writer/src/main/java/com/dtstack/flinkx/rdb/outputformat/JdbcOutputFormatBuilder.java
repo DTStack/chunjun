@@ -116,20 +116,6 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
         }
-        //如果设置了主键冲突 进行更新mode，则需要判断updateKey是否是存在的 并且里面的key是否是存在的
-        if(format.mode.equalsIgnoreCase(EWriteMode.UPDATE.name())){
-            if( MapUtils.isEmpty(format.updateKey) || CollectionUtils.isEmpty(format.updateKey.values())){
-                throw new IllegalArgumentException("updateKey must not null when mode is on duplicate key update");
-            }else{
-                Set<String> indexColumns = new HashSet<>();
-                for (List<String> value : format.updateKey.values()) {
-                    indexColumns.addAll(value);
-                }
-                if(CollectionUtils.isEmpty(indexColumns)){
-                    throw new IllegalArgumentException("updateKey must not null when mode is on duplicate key update");
-                }
-            }
-        }
 
         if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){
             throw new IllegalArgumentException("Batch Size must greater than 1 when checkpoint is open");
