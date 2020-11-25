@@ -77,7 +77,7 @@ public class FtpSeqBufferedReader {
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
             if (in == null) {
-                throw new NullPointerException();
+                throw new RuntimeException(String.format("can not get inputStream for file [%s], please check file read and write permissions", file));
             }
 
             br = new BufferedReader(new InputStreamReader(in, charsetName));
