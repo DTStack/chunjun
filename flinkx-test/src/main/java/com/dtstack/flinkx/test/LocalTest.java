@@ -59,6 +59,7 @@ import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
+import com.dtstack.flinkx.metadataphoenix.reader.MetadataphoenixReader;
 import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
@@ -234,6 +235,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
             case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
             case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
+            case PluginNameConstrant.METADATAPHOENIX_READER : reader = new MetadataphoenixReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstrant.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
