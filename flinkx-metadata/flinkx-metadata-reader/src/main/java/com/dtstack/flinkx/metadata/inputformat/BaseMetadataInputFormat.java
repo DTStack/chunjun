@@ -29,6 +29,7 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -226,5 +227,26 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
      * 提供子类对新增成员变量初始化的接口
      */
     protected void init() throws SQLException {}
+
+    /**
+     * 对执行sql方法的包装，增加日志打印和异常处理
+     * @param sql 原始sql语句
+     * @param statement 原始的statement
+     */
+    protected ResultSet executeQuery0(String sql, Statement statement){
+        ResultSet resultSet = null;
+        if(StringUtils.isNotBlank(sql)){
+            LOG.info("execute SQL : {}", sql);
+            try{
+                if(statement!=null){
+                    resultSet = statement.executeQuery(sql);
+                }
+            }catch (SQLException e){
+                LOG.error("execute SQL failed : {}", ExceptionUtil.getErrorMessage(e));
+            }
+
+        }
+        return resultSet;
+    }
 
 }

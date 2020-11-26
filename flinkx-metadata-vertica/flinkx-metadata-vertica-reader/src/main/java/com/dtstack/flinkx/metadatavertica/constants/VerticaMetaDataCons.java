@@ -32,4 +32,6 @@ public class VerticaMetaDataCons extends MetaDataCons {
      * 查询表的创建时间
      */
     public static final String SQL_CREATE_TIME = " SELECT table_name, create_time FROM tables WHERE table_schema = '%s' ";
+
+    public static final String SQL_COMMENT = " select object_name, comment from comments where object_schema = '%s' ";
 }
