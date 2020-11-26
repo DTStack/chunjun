@@ -99,7 +99,6 @@ public class HttpClient {
         int i = atomicInteger.incrementAndGet();
         httprequestApi.Httprequest build = restContext.build();
         doExecute(build, 2);
-        System.out.println("第" + i + "次请求值" + build);
         restContext.updateValue();
     }
 
