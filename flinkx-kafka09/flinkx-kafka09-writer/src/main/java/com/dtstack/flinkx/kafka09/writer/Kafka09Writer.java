@@ -58,7 +58,11 @@ public class Kafka09Writer extends KafkaBaseWriter {
         format.setBrokerList(brokerList);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
+        format.setHeartBeatController(new HeartBeatController());
 
+        format.setDirtyPath(dirtyPath);
+        format.setDirtyHadoopConfig(dirtyHadoopConfig);
+        format.setSrcFieldNames(srcCols);
         return createOutput(dataSet, format);
     }
 }

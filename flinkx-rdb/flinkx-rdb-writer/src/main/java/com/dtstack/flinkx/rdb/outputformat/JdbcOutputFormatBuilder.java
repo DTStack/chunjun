@@ -17,12 +17,18 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Properties;
 
 /**
  * @Company: www.dtstack.com
@@ -68,6 +74,10 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.databaseInterface = databaseInterface;
     }
 
+    public void setProperties(Properties properties){
+        format.properties = properties;
+    }
+
     public void setMode(String mode) {
         format.mode = mode;
     }
@@ -105,6 +115,20 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         }
         if (format.driverName == null) {
             throw new IllegalArgumentException("No driver supplied");
+        }
+        //如果设置了主键冲突 进行更新mode，则需要判断updateKey是否是存在的 并且里面的key是否是存在的
+        if(format.mode.equalsIgnoreCase(EWriteMode.UPDATE.name())){
+            if( MapUtils.isEmpty(format.updateKey) || CollectionUtils.isEmpty(format.updateKey.values())){
+                throw new IllegalArgumentException("updateKey must not null when mode is on duplicate key update");
+            }else{
+                Set<String> indexColumns = new HashSet<>();
+                for (List<String> value : format.updateKey.values()) {
+                    indexColumns.addAll(value);
+                }
+                if(CollectionUtils.isEmpty(indexColumns)){
+                    throw new IllegalArgumentException("updateKey must not null when mode is on duplicate key update");
+                }
+            }
         }
 
         if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){

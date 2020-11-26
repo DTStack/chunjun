@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.launcher.perJob;
 
+import com.dtstack.flinkx.launcher.KerberosInfo;
 import com.dtstack.flinkx.launcher.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,7 @@ import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.flink.yarn.cli.FlinkYarnSessionCli;
+import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -53,6 +55,9 @@ public class PerJobClusterClientBuilder {
 
     private Configuration flinkConfig;
 
+    //kerberos验证信息
+    private KerberosInfo kerberosInfo;
+
     /**
      * init yarnClient
      * @param launcherOptions flinkx args
@@ -65,6 +70,9 @@ public class PerJobClusterClientBuilder {
         }
         flinkConfig = launcherOptions.loadFlinkConfiguration();
         conProp.forEach((key, val) -> flinkConfig.setString(key.toString(), val.toString()));
+        this.kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(),launcherOptions.getKeytab(),launcherOptions.getPrincipal(),this.flinkConfig);
+        kerberosInfo.verify();
+
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
@@ -90,6 +98,17 @@ public class PerJobClusterClientBuilder {
         } else {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
+        File logback = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
+        if(logback.exists()){
+            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
+        }else{
+            File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
+            if(log4j.exists()){
+                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
+            }
+
+        }
+
         YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
                 flinkConfig,
                 yarnConf,
@@ -109,16 +128,16 @@ public class PerJobClusterClientBuilder {
             }
         }
 
-        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
-        if(log4j.exists()){
-            shipFiles.add(log4j);
-        }else{
-            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
-            if(logback.exists()){
-                shipFiles.add(logback);
-            }
-        }
         descriptor.addShipFiles(shipFiles);
         return descriptor;
+    }
+
+
+    public KerberosInfo getKerberosInfo() {
+        return kerberosInfo;
+    }
+
+    public void setKerberosInfo(KerberosInfo kerberosInfo) {
+        this.kerberosInfo = kerberosInfo;
     }
 }

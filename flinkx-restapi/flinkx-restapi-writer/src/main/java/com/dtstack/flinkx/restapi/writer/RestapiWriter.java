@@ -97,6 +97,9 @@ public class RestapiWriter extends BaseDataWriter {
         builder.setColumn(column);
         builder.setParams(params);
         builder.setBatchInterval(batchInterval);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
 
         return createOutput(dataSet, builder.finish());
     }

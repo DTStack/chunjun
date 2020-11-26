@@ -19,6 +19,7 @@ package com.dtstack.flinkx.sqlserver.reader;
 
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.sqlserver.SqlServerConstants;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +44,7 @@ public class SqlserverQuerySqlBuilder extends QuerySqlBuilder {
 
     @Override
     protected String buildQuerySql() {
-        List<String> selectColumns = buildSelectColumns(databaseInterface, metaColumns);
+        List<String> selectColumns = DbUtil.buildSelectColumns(databaseInterface, metaColumns);
         boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();

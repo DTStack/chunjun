@@ -29,6 +29,7 @@
         <module>flinkx-clickhouse</module>
         <module>flinkx-saphana</module>
         <module>flinkx-greenplum</module>
+        <module>flinkx-kingbase</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -71,7 +72,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.10.0</flink.version>
+        <flink.version>1.10.1</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>

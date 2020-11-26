@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -79,13 +80,17 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 tableList = showTables();
                 queryTable = true;
             }
+            LOG.info("current database = {}, tableSize = {}, tableList = {}",currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
             init();
-        } catch (SQLException | ClassNotFoundException e) {
-            String message = String.format("获取table列表异常, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new IOException(message, e);
+        } catch (ClassNotFoundException e) {
+            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        } catch (SQLException e){
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            tableList = new LinkedList<>();
         }
+        tableIterator.set(tableList.iterator());
     }
 
     /**
@@ -125,7 +130,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
-
+        LOG.info("query metadata: {}", metaData);
         return Row.of(metaData);
     }
 
@@ -143,8 +148,8 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 st.close();
                 statement.remove();
             } catch (SQLException e) {
-                LOG.error("关闭statement对象异常, e = {}", ExceptionUtil.getErrorMessage(e));
-                throw new IOException("关闭statement对象异常", e);
+                LOG.error("close statement failed, e = {}", ExceptionUtil.getErrorMessage(e));
+                throw new IOException("close statement failed", e);
             }
         }
 
@@ -160,8 +165,8 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 conn.close();
                 connection.remove();
             } catch (SQLException e) {
-                LOG.error("关闭数据库连接异常, e = {}", ExceptionUtil.getErrorMessage(e));
-                throw new IOException("关闭数据库连接异常", e);
+                LOG.error("close database connection failed, e = {}", ExceptionUtil.getErrorMessage(e));
+                throw new IOException("close database connection failed", e);
             }
         }
     }

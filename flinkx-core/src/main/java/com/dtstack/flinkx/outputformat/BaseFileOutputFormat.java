@@ -106,7 +106,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         nextBlock();
     }
 
-    private void initPath(){
+    protected void initPath(){
         if(StringUtils.isNotBlank(fileName)) {
             outputFilePath = path + SP + fileName;
         } else {
@@ -122,7 +122,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
                 taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
     }
 
-    private void initFileIndex() {
+    protected void initFileIndex() {
         if (null != formatState && formatState.getFileIndex() > -1) {
             blockIndex = formatState.getFileIndex() + 1;
         }

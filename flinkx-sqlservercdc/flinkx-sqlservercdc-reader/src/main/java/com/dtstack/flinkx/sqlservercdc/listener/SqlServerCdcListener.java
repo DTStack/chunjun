@@ -146,25 +146,25 @@ public class SqlServerCdcListener implements Runnable{
                 continue;
             }
 
+            Object[] dataPrev = null;
             TableId tableId = changeTable.getSourceTableId();
             if (operation == SqlserverCdcEnum.UPDATE_BEFORE.code) {
+                dataPrev = tableWithSmallestLsn.getData();
                 if (!tableWithSmallestLsn.next() || tableWithSmallestLsn.getOperation() != SqlserverCdcEnum.UPDATE_AFTER.code) {
                     throw new IllegalStateException("The update before event at " + tableWithSmallestLsn.getChangePosition() + " for table " + tableId + " was not followed by after event");
                 }
             }
 
             Object[] data = tableWithSmallestLsn.getData();
-            Object[] dataNext;
-            if(operation == SqlserverCdcEnum.UPDATE_BEFORE.code){
-                dataNext = tableWithSmallestLsn.getData();
-            }else if(operation == SqlserverCdcEnum.DELETE.code){
-                dataNext = data;
-                data = new Object[dataNext.length];
-            }else{
-                dataNext = new Object[data.length];
+
+            if(operation == SqlserverCdcEnum.DELETE.code){
+                dataPrev = data;
+                data = new Object[dataPrev.length];
+            }else if (operation !=SqlserverCdcEnum.UPDATE_BEFORE.code){
+                dataPrev = new Object[data.length];
             }
 
-            Map<String, Object> map = buildResult(changeTable, tableId, data, dataNext, operation, tableWithSmallestLsn);
+            Map<String, Object> map = buildResult(changeTable, tableId, data, dataPrev, operation, tableWithSmallestLsn);
             format.processEvent(map);
             format.setLogPosition(tableWithSmallestLsn.getChangePosition());
             tableWithSmallestLsn.next();
@@ -172,11 +172,11 @@ public class SqlServerCdcListener implements Runnable{
     }
 
     private Map<String, Object> buildResult(ChangeTable changeTable,
-                     TableId tableId,
-                     Object[] data,
-                     Object[] dataNext,
-                     int operation,
-                     ChangeTablePointer tableWithSmallestLsn) throws Exception{
+                                            TableId tableId,
+                                            Object[] data,
+                                            Object[] dataPrev,
+                                            int operation,
+                                            ChangeTablePointer tableWithSmallestLsn) throws Exception{
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("type", SqlserverCdcEnum.getEnum(operation).name.split("_")[0]);
         map.put("schema", tableId.getSchemaName());
@@ -186,7 +186,7 @@ public class SqlServerCdcListener implements Runnable{
         if(pavingData){
             int i = 0;
             for (String column : changeTable.getColumnList()) {
-                map.put("before_" + column, SqlServerCdcUtil.clobToString(dataNext[i]));
+                map.put("before_" + column, SqlServerCdcUtil.clobToString(dataPrev[i]));
                 map.put("after_" + column, SqlServerCdcUtil.clobToString(data[i]));
                 i++;
             }
@@ -195,8 +195,8 @@ public class SqlServerCdcListener implements Runnable{
             Map<String, Object> after = new LinkedHashMap<>();
             int i = 0;
             for (String column : changeTable.getColumnList()) {
-                before.put(column, SqlServerCdcUtil.clobToString(data[i]));
-                after.put(column, SqlServerCdcUtil.clobToString(dataNext[i]));
+                before.put(column, SqlServerCdcUtil.clobToString(dataPrev[i]));
+                after.put(column, SqlServerCdcUtil.clobToString(data[i]));
                 i++;
             }
             map.put("before", before);
