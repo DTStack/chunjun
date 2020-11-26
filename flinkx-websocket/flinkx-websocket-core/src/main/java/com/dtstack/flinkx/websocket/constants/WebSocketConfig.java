@@ -47,6 +47,6 @@ public class WebSocketConfig {
 
     public static final String KEY_CODEC = "codec";
 
-    public static final String KEY_PARAMS = "params";
+    public static final String KEY_PARAMS = "webSocketParams";
 
 }

@@ -87,6 +87,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             if(future.isSuccess()){
                 LOG.info("handshake success!");
                 // 发送开启读写信息
+                LOG.info("send start commend {}", message);
                 WebSocketFrame frame = new TextWebSocketFrame(message);
                 ctx.channel().writeAndFlush(frame);
             }else {
