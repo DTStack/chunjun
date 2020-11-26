@@ -162,7 +162,9 @@ public class HttpClient {
             if (i != names.length - 1) {
                 HashMap<String, Object> objectObjectHashMap = new HashMap<String, Object>(4);
                 Object value = tempHashMap.putIfAbsent(names[i], objectObjectHashMap);
-                if (value instanceof String) {
+                if(Objects.isNull(value)){
+                    tempHashMap = objectObjectHashMap;
+                }else if (value instanceof String) {
                     try {
                         Map o = GsonUtil.GSON.fromJson((String) value, GsonUtil.gsonMapTypeToken);
                         tempHashMap.put(names[i], o);
