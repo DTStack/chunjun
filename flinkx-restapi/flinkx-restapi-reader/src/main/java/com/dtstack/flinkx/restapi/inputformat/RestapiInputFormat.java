@@ -38,24 +38,17 @@ import java.util.Map;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-    protected String url;
-
-    protected String method;
-
-
     protected HttpClient myHttpClient;
 
     protected RestContext restContext;
 
-    protected Map<String, Object> header;
-
     protected Long intervalTime;
 
-    private HttpRestConfig httpRestConfig;
+    protected HttpRestConfig httpRestConfig;
 
-    private List<MetaColumn> metaColumns ;
+    protected List<MetaColumn> metaColumns ;
 
-    private List<DataHandler> handlers;
+    protected List<DataHandler> handlers;
 
     @Override
     public void openInputFormat() throws IOException {
