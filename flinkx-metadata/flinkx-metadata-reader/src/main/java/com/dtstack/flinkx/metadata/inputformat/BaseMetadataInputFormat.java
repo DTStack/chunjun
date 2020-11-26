@@ -95,19 +95,12 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             tableIterator.set(tableList.iterator());
             start = 0;
             init();
-<<<<<<< HEAD
-        } catch (SQLException | ClassNotFoundException e) {
-            String message = String.format("query table list failed, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new IOException(message, e);
-=======
         } catch (ClassNotFoundException e) {
             LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
             throw new IOException(e);
         } catch (SQLException e){
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             tableList = new LinkedList<>();
->>>>>>> 787ec1a6f0edb193c744755e2aa504aa01016dd5
         }
         tableIterator.set(tableList.iterator());
     }
