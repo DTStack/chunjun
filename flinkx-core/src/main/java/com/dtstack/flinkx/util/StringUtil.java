@@ -201,12 +201,12 @@ public class StringUtil {
 
     public static String row2string(Row row, List<String> columnTypes, String delimiter) throws WriteRecordException {
         // convert row to string
-        int size = row.getArity();
+        int cnt = row.getArity();
         StringBuilder sb = new StringBuilder(128);
 
         int i = 0;
         try {
-            for (; i < size; ++i) {
+            for (; i < cnt; ++i) {
                 if (i != 0) {
                     sb.append(delimiter);
                 }
@@ -219,9 +219,9 @@ public class StringUtil {
 
                 sb.append(col2string(column, columnTypes.get(i)));
             }
-        } catch(Exception e) {
+        } catch(Exception ex) {
             String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + row + ")";
-            throw new WriteRecordException(msg, e, i, row);
+            throw new WriteRecordException(msg, ex, i, row);
         }
 
         return sb.toString();

@@ -56,7 +56,7 @@ public class BaseMetric {
         metricCounters.put(metricName, counter);
         flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
         if (meterView){
-            flinkxOutput.meter(metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 60));
+            flinkxOutput.meter(metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
         }
     }
 

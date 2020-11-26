@@ -27,6 +27,7 @@ public class ConstantValue {
 
     public static final String STAR_SYMBOL = "*";
     public static final String POINT_SYMBOL = ".";
+    public static final String TWO_POINT_SYMBOL = "..";
     public static final String EQUAL_SYMBOL = "=";
     public static final String SINGLE_QUOTE_MARK_SYMBOL = "'";
     public static final String DOUBLE_QUOTE_MARK_SYMBOL = "\"";
@@ -37,6 +38,10 @@ public class ConstantValue {
 
     public static final String LEFT_PARENTHESIS_SYMBOL = "(";
     public static final String RIGHT_PARENTHESIS_SYMBOL = ")";
+
+
+    public static final String DATA_TYPE_UNSIGNED = "UNSIGNED";
+
 
     public static final String KEY_HTTP = "http";
 
