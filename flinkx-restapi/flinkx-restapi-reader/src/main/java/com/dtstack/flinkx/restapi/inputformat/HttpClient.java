@@ -56,7 +56,6 @@ public class HttpClient {
     private final long intervalTime;
     private BlockingQueue<Row> queue;
     private RestContext restContext;
-    private AtomicInteger atomicInteger = new AtomicInteger(0);
     private static final String THREAD_NAME = "restApiReader-thread";
     private List<MetaColumn> metaColumns;
     private List<DataHandler> handlers;
@@ -96,7 +95,6 @@ public class HttpClient {
     }
 
     public void execute() {
-        int i = atomicInteger.incrementAndGet();
         httprequestApi.Httprequest build = restContext.build();
         doExecute(build, 2);
         restContext.updateValue();
