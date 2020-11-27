@@ -28,6 +28,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -83,6 +85,7 @@ public class FtpHandler implements IFtpHandler {
             //设置命令传输编码
             String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
             ftpClient.setControlEncoding(fileEncoding);
+            ftpClient.setListHiddenFiles(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -106,7 +109,13 @@ public class FtpHandler implements IFtpHandler {
         String originDir = null;
         try {
             originDir = ftpClient.printWorkingDirectory();
-            return ftpClient.changeWorkingDirectory(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
+            ftpClient.enterLocalPassiveMode();
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
+            if(ftpFiles.length == 0){
+                throw new FileNotFoundException("file or path is not exist, please check the path or the permissions of account, path = " + directoryPath);
+            }else {
+                return FTPReply.isPositiveCompletion(ftpClient.cwd(directoryPath));
+            }
         } catch (IOException e) {
             String message = String.format("进入目录：[%s]时发生I/O异常,请确认与ftp服务器的连接正常", directoryPath);
             LOG.error(message);
@@ -124,21 +133,8 @@ public class FtpHandler implements IFtpHandler {
 
     @Override
     public boolean isFileExist(String filePath) {
-        boolean isExitFlag = false;
-        try {
-            ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
-            if (ftpFiles.length == 1 && ftpFiles[0].isFile()) {
-                isExitFlag = true;
-            }
-        } catch (IOException e) {
-            String message = String.format("获取文件：[%s] 属性时发生I/O异常,请确认与ftp服务器的连接正常", filePath);
-            LOG.error(message);
-            throw new RuntimeException(e);
-        }
-        return isExitFlag;
+        return !isDirExist(filePath);
     }
-
 
     @Override
     public List<String> getFiles(String path) {
@@ -154,6 +150,10 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    // .和..是特殊文件
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -166,7 +166,6 @@ public class FtpHandler implements IFtpHandler {
 
     /**
      * 递归获取指定路径下的所有文件(暂无过滤)
-     * isDirExist()、isFileExist()方法在Windows系统下判断有误
      * @param path
      * @param file
      * @return
@@ -182,6 +181,9 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
+                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        continue;
+                    }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
@@ -282,6 +284,9 @@ public class FtpHandler implements IFtpHandler {
                         if(CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())){
                             continue;
                         }
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                            continue;
+                        }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
                     }
                 }
@@ -328,6 +333,9 @@ public class FtpHandler implements IFtpHandler {
                 FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
+                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                            continue;
+                        }
                         sources.add(path + ftpFile.getName());
                     }
                 }
