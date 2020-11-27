@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.config;
 
+import com.dtstack.flinkx.util.ValueUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,19 +59,7 @@ public class ErrorLimitConfig extends AbstractConfig {
     }
 
     public Double getPercentage() {
-        Object val = getVal(KEY_ERROR_PERCENTAGE_LIMIT);
-        try {
-            if(val instanceof String){
-                return Double.parseDouble((String) val);
-            }else if(val instanceof Integer){
-                return ((Integer) val).doubleValue();
-            }else if(val instanceof Double){
-                return ((Double) val);
-            }
-        }catch (Exception e){
-            throw new IllegalArgumentException("config error: cannot parse " + val + " to Double");
-        }
-        return DEFAULT_ERROR_PERCENTAGE_LIMIT;
+        return ValueUtil.getDoubleVal(getVal(KEY_ERROR_PERCENTAGE_LIMIT));
     }
 
     public void setPercentage(Double percentage) {
