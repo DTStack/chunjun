@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -40,7 +41,6 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     private String encoding;
     private String brokerList;
     private transient KafkaProducer<String, String> producer;
-    private HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
@@ -97,9 +97,5 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     public void setBrokerList(String brokerList) {
         this.brokerList = brokerList;
-    }
-
-    public void setHeartBeatController(HeartBeatController heartBeatController) {
-        this.heartBeatController = heartBeatController;
     }
 }

@@ -56,6 +56,8 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected static ObjectMapper objectMapper = new ObjectMapper();
     //连续发送数据错误次数
     protected  int failedTimes = 0;
+    //和kafkaBroker连通性控制器
+    protected HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
@@ -107,10 +109,6 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
         } catch (Throwable e) {
             String errorMessage = ExceptionUtil.getErrorMessage(e);
             LOG.error("kafka writeSingleRecordInternal error:{}", errorMessage);
-            //连续发送3次数据错误 或者出现broker 连接异常，就直接认为数据源异常，退出任务 或者出现broker连接不上，超时直接抛出异常
-            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")||e.getMessage().contains("TimeoutException")){
-                throw new RuntimeException("Error data is received 3 times continuously or datasource has error"+errorMessage, e);
-            }
             throw new WriteRecordException(errorMessage, e);
         }
     }
@@ -153,4 +151,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
         this.tableFields = tableFields;
     }
 
+    public void setHeartBeatController(HeartBeatController heartBeatController) {
+        this.heartBeatController = heartBeatController;
+    }
 }

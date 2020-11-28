@@ -57,12 +57,15 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     protected void emit(Map event) throws IOException {
+        heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
         if(Objects.nonNull(exception)){
             String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
             LOG.warn(errorMessage);
-            throw new RuntimeException(errorMessage);
+            heartBeatController.onFailed(exception);
+        } else {
+            heartBeatController.onSuccess();
         }
         });
     }

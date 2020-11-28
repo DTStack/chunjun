@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -46,6 +47,7 @@ public class Kafka10Writer extends KafkaBaseWriter {
         format.setTableFields(tableFields);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
+        format.setHeartBeatController(new HeartBeatController());
 
         return createOutput(dataSet, format);
     }
