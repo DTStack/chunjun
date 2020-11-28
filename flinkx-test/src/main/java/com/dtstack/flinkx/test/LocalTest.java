@@ -92,6 +92,7 @@ import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
+import com.dtstack.flinkx.websocket.reader.WebsocketReader;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
@@ -240,6 +241,7 @@ public class LocalTest {
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstrant.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
+            case PluginNameConstrant.WEBSOCKET_READER : reader = new WebsocketReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
