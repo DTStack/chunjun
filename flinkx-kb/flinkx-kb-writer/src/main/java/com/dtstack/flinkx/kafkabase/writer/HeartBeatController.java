@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.kafkabase.writer;
 
+import com.dtstack.flinkx.exception.DataSourceException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +65,9 @@ public class HeartBeatController implements Serializable {
         }
         //连续发送3次数据错误或出现连接异常
         if (failedTimes.get() >= detectingRetryTimes || e.toString().contains("Timeout") ) {
-            String message = "Error data is received 3 times continuously or datasource has error" + ExceptionUtil.getErrorMessage(e);
+            String message = "Error data is received 3 times continuously or datasource has error->" + ExceptionUtil.getErrorMessage(e);
             logger.error(message);
-            throw new RuntimeException(message, e);
+            throw new DataSourceException("kafka",message, e);
         }
     }
 }

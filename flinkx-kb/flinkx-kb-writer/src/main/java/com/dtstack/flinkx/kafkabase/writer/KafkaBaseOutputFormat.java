@@ -19,6 +19,7 @@ package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.decoder.JsonDecoder;
+import com.dtstack.flinkx.exception.DataSourceException;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -109,6 +110,11 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
         } catch (Throwable e) {
             String errorMessage = ExceptionUtil.getErrorMessage(e);
             LOG.error("kafka writeSingleRecordInternal error:{}", errorMessage);
+          //如果是数据源错误 直接抛出异常，而不是封装为WriteRecordException
+            // 否则WriteRecordException会被上层捕获，导致任务无法结束
+            if(e instanceof DataSourceException){
+                throw (DataSourceException)e;
+            }
             throw new WriteRecordException(errorMessage, e);
         }
     }
