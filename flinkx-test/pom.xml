@@ -556,6 +556,11 @@
             <artifactId>flinkx-kingbase-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-websocket-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 
