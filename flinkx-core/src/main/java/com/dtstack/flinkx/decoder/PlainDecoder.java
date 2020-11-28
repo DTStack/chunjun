@@ -17,9 +17,6 @@
  */
 package com.dtstack.flinkx.decoder;
 
-import io.netty.buffer.ByteBuf;
-
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -29,16 +26,11 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class PlainDecoder implements IDecode, Serializable {
+public class PlainDecoder implements IDecode {
 
     @Override
     public Map<String, Object> decode(final String message) {
         return Collections.singletonMap("message", message);
-    }
-
-    @Override
-    public Map<String, Object> binaryDecode(final byte[] message) {
-        return decode(new String(message));
     }
 
 }
