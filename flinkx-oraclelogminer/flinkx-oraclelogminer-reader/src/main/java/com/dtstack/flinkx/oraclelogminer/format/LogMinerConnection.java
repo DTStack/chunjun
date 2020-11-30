@@ -143,7 +143,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.close();
         }
 
-        if (null != connection) {
+        if (null != connection && !connection.isClosed()) {
             connection.close();
         }
     }
@@ -440,7 +440,7 @@ public class LogMinerConnection {
     }
 
     public boolean hasNext() throws SQLException{
-        if (null == logMinerData) {
+        if (null == logMinerData || logMinerData.isClosed()) {
             return false;
         }
 
@@ -480,6 +480,15 @@ public class LogMinerConnection {
         }
 
         return false;
+    }
+
+    //判断连接是否正常
+    public boolean isValid()  {
+        try {
+            return connection.isValid(2000);
+        } catch (SQLException throwables) {
+            return false;
+        }
     }
 
     public void checkPrivileges() {
