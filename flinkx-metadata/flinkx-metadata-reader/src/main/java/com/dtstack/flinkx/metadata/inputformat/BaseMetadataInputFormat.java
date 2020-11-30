@@ -153,11 +153,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         }
 
         currentDb.remove();
-    }
-
-    @Override
-    public void closeInputFormat() throws IOException {
-        super.closeInputFormat();
         Connection conn = connection.get();
         if (null != conn) {
             try {
@@ -168,6 +163,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 throw new IOException("关闭数据库连接异常", e);
             }
         }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
     }
 
     /**
