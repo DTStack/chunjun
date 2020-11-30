@@ -165,8 +165,8 @@ public class LogMinerListener implements Runnable {
             }
            String message = String.format( "LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
             LOG.error(message);
-            if(++failedTimes > 3){
-                throw new RuntimeException("Error data is received 5 times continuously,error info->"+message);
+            if(++failedTimes >= 3){
+                throw new RuntimeException("Error data is received 3 times continuously,error info->"+message);
             }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
