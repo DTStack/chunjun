@@ -21,6 +21,7 @@ package com.dtstack.flinkx.websocket.reader;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
 import org.apache.commons.collections.MapUtils;
@@ -42,6 +43,8 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
     private WebSocketInputFormat format;
 
     private String serverUrl;
+
+    private int channel;
 
     /**
      * webSocket url前缀
@@ -91,19 +94,30 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setCodec(codec);
     }
 
+    protected void setChannel(int channel) {
+        this.channel = channel;
+    }
+
     @Override
     protected void checkFormat() {
+        StringBuilder sb = new StringBuilder(256);
         if(StringUtils.isBlank(serverUrl)){
-            throw new IllegalArgumentException("config error:[serverUrl] cannot be blank");
+            sb.append("config error:[serverUrl] cannot be blank; ");
+        }
+        if(!StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
+            sb.append("config error:[serverUrl] must start with [ws], current serverUrl is ").append(serverUrl).append("; ");
+        }
+        if(channel > 1){
+            sb.append("config error:[channel] could not be greater than 1; ");
         }
         try{
             URI uri = new URI(serverUrl);
-            if(!StringUtils.equals(uri.getScheme(), WEB_SOCKET_PREFIX)){
-                throw new IllegalArgumentException("config error:[serverUrl] must start with [ws], current serverUrl is " + serverUrl);
-            }
             TelnetUtil.telnet(uri.getHost(), uri.getPort());
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(String.format("could not connect to [serverUrl], [serverUrl] = %s, e = %s", serverUrl, ExceptionUtil.getErrorMessage(e)));
+            sb.append(String.format("telnet error:[serverUrl] = %s, e = %s ", serverUrl, ExceptionUtil.getErrorMessage(e)));
+        }
+        if(sb.length() > 0){
+            throw new IllegalArgumentException(sb.toString());
         }
     }
 }
