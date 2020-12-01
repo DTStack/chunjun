@@ -47,7 +47,7 @@ public class FtpSeqBufferedReader {
 
     private BufferedReader br;
 
-    private String charsetName = "utf-8";
+    private String fileEncoding;
 
     public FtpSeqBufferedReader(IFtpHandler ftpHandler, Iterator<String> iter) {
         this.ftpHandler = ftpHandler;
@@ -77,10 +77,10 @@ public class FtpSeqBufferedReader {
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
             if (in == null) {
-                throw new NullPointerException();
+                throw new RuntimeException(String.format("can not get inputStream for file [%s], please check file read and write permissions", file));
             }
 
-            br = new BufferedReader(new InputStreamReader(in, charsetName));
+            br = new BufferedReader(new InputStreamReader(in, fileEncoding));
 
             for (int i = 0; i < fromLine; i++) {
                 String skipLine = br.readLine();
@@ -106,7 +106,7 @@ public class FtpSeqBufferedReader {
         this.fromLine = fromLine;
     }
 
-    public void setCharsetName(String charsetName) {
-        this.charsetName = charsetName;
+    public void setFileEncoding(String fileEncoding) {
+        this.fileEncoding = fileEncoding;
     }
 }

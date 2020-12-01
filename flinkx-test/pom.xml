@@ -12,7 +12,6 @@
     <artifactId>flinkx-test</artifactId>
 
     <properties>
-        <flink.version>1.10.0</flink.version>
         <prometheus.version>0.3.0</prometheus.version>
     </properties>
 

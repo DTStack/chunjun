@@ -53,9 +53,10 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
+    public static final String SQL_SWITCH_DATABASE = "USE `%s`";
     public static final String SQL_SHOW_TABLES = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
-    public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM %s";
+    public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM `%s`";
     public static final String SQL_QUERY_HEALTHY = "SHOW STATS_HEALTHY WHERE Table_name='%s' AND Db_name = schema()";
     public static final String SQL_QUERY_UPDATE_TIME = "SHOW STATS_META WHERE Table_name = '%s'";
     public static final String SQL_QUERY_PARTITION = "SELECT * FROM information_schema.partitions WHERE table_schema = schema() AND table_name='%s'";

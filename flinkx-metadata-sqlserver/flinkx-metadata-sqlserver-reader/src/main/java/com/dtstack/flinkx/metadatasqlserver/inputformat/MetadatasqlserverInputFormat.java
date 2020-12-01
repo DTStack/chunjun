@@ -21,11 +21,13 @@ package com.dtstack.flinkx.metadatasqlserver.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.MetaDataCons;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -36,6 +38,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
 
 /**
  * @author : kunni@dtstack.com
@@ -49,6 +54,34 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
     protected String schema;
 
     protected String table;
+
+    /**
+     * 在use database失败时，不影响下一个任务
+     * @param inputSplit 分片
+     * @throws IOException 异常
+     */
+    @Override
+    protected void openInternal(InputSplit inputSplit) throws IOException {
+        LOG.info("inputSplit = {}", inputSplit);
+        try {
+            connection.set(getConnection());
+            statement.set(connection.get().createStatement());
+            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+            tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            switchDatabase(currentDb.get());
+            if (CollectionUtils.isEmpty(tableList)) {
+                tableList = showTables();
+                queryTable = true;
+            }
+        } catch (ClassNotFoundException e) {
+            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        } catch (SQLException e){
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            tableList = new LinkedList<>();
+        }
+        tableIterator.set(tableList.iterator());
+    }
 
     @Override
     protected List<Object> showTables() throws SQLException {
@@ -77,13 +110,14 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
             schema = pair.getKey();
             table = pair.getValue();
         }else{
-            List<String> list = StringUtil.splitIgnoreQuota((String) tableIterator.get().next(), SqlServerMetadataCons.DEFAULT_DELIMITER);
-            schema = list.get(0);
-            table = list.get(1);
+            Map<String, String> map = (Map<String, String>)tableIterator.get().next();
+            schema = map.get(KEY_SCHEMA_NAME);
+            table = map.get(KEY_TABLE_NAME);
         }
         String tableName = schema + ConstantValue.POINT_SYMBOL + table;
         metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
-        metaData.put(MetaDataCons.KEY_TABLE, tableName);
+        metaData.put(MetaDataCons.KEY_TABLE, table);
+        metaData.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
         try {
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
