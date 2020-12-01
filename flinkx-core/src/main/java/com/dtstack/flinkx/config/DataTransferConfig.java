@@ -83,7 +83,7 @@ public class DataTransferConfig extends AbstractConfig {
         Preconditions.checkNotNull(config);
 
         JobConfig jobConfig = config.getJob();
-        Preconditions.checkNotNull(jobConfig, "Must spedify job element");
+        Preconditions.checkNotNull(jobConfig, "Must specify job element");
 
         List<ContentConfig> contentConfig = jobConfig.getContent();
         Preconditions.checkNotNull(contentConfig, "Must specify content array");
