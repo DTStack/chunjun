@@ -106,6 +106,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public Properties properties;
 
+    /**
+     * schema名
+     */
+    public String schema;
+
     protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
@@ -151,12 +156,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             dbConn.setAutoCommit(false);
 
             if(CollectionUtils.isEmpty(fullColumn)) {
-                fullColumn = probeFullColumns(table, dbConn);
+                fullColumn = probeFullColumns(getTable(), dbConn);
             }
 
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
                 if(updateKey == null || updateKey.size() == 0) {
-                    updateKey = probePrimaryKeys(table, dbConn);
+                    updateKey = probePrimaryKeys(getTable(), dbConn);
                 }
             }
 
@@ -443,5 +448,17 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         if(taskNumber == 0) {
             DbUtil.executeBatch(dbConn, postSql);
         }
+    }
+
+    /**
+     * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
+     * @return
+     */
+    protected String getTable(){
+        return table;
+    }
+
+    public void setSchema(String schema){
+        this.schema = schema;
     }
 }
