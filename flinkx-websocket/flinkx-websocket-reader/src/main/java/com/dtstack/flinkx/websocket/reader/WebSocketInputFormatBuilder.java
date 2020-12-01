@@ -18,17 +18,16 @@
 
 package com.dtstack.flinkx.websocket.reader;
 
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.websocket.format.WebSocketInputFormat;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -43,8 +42,6 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
     private WebSocketInputFormat format;
 
     private String serverUrl;
-
-    private int channel;
 
     /**
      * webSocket url前缀
@@ -94,27 +91,26 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setCodec(codec);
     }
 
-    protected void setChannel(int channel) {
-        this.channel = channel;
-    }
-
     @Override
     protected void checkFormat() {
+        SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
         StringBuilder sb = new StringBuilder(256);
         if(StringUtils.isBlank(serverUrl)){
-            sb.append("config error:[serverUrl] cannot be blank; ");
+            sb.append("config error:[serverUrl] cannot be blank \n");
+        }else{
+            if(StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
+                try{
+                    URI uri = new URI(serverUrl);
+                    TelnetUtil.telnet(uri.getHost(), uri.getPort());
+                } catch (Exception e) {
+                    sb.append(String.format("telnet error:[serverUrl] = %s, e = %s ", serverUrl, ExceptionUtil.getErrorMessage(e))).append(" \n");
+                }
+            }else {
+                sb.append("config error:[serverUrl] must start with [ws], current serverUrl is ").append(serverUrl).append(" \n");
+            }
         }
-        if(!StringUtils.startsWith(serverUrl, WEB_SOCKET_PREFIX)){
-            sb.append("config error:[serverUrl] must start with [ws], current serverUrl is ").append(serverUrl).append("; ");
-        }
-        if(channel > 1){
-            sb.append("config error:[channel] could not be greater than 1; ");
-        }
-        try{
-            URI uri = new URI(serverUrl);
-            TelnetUtil.telnet(uri.getHost(), uri.getPort());
-        } catch (URISyntaxException e) {
-            sb.append(String.format("telnet error:[serverUrl] = %s, e = %s ", serverUrl, ExceptionUtil.getErrorMessage(e)));
+        if(speed.getReaderChannel() > 1 || speed.getChannel() > 1){
+            sb.append("config error:[channel] could not be greater than 1 \n");
         }
         if(sb.length() > 0){
             throw new IllegalArgumentException(sb.toString());

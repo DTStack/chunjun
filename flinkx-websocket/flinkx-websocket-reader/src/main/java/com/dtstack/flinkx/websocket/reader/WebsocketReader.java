@@ -20,7 +20,6 @@ package com.dtstack.flinkx.websocket.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -28,14 +27,14 @@ import org.apache.flink.types.Row;
 
 import java.util.Map;
 
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_RETRY_INTERVAL;
+import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_RETRY_TIME;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_CODEC;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_MESSAGE;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_PARAMS;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_RETRY_INTERVAL;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_RETRY_TIME;
 import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.KEY_WEB_SOCKET_SERVER_URL;
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_RETRY_INTERVAL;
-import static com.dtstack.flinkx.websocket.constants.WebSocketConfig.DEFAULT_RETRY_TIME;
 
 
 /** 从入参中获取配置信息
@@ -51,7 +50,6 @@ public class WebsocketReader extends BaseDataReader {
     protected String message;
     protected String codec;
     protected Map<String, String> params;
-    protected int channel;
 
     @SuppressWarnings("unchecked")
     public WebsocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -63,9 +61,6 @@ public class WebsocketReader extends BaseDataReader {
         message = readerConfig.getParameter().getStringVal(KEY_MESSAGE);
         codec = readerConfig.getParameter().getStringVal(KEY_CODEC);
         params = (Map<String, String>)readerConfig.getParameter().getVal(KEY_PARAMS);
-        channel = config.getJob().getSetting().getSpeed().getReaderChannel() > 0
-                ? config.getJob().getSetting().getSpeed().getReaderChannel()
-                : config.getJob().getSetting().getSpeed().getChannel();
     }
 
     @Override
@@ -77,7 +72,6 @@ public class WebsocketReader extends BaseDataReader {
         builder.setMessage(message);
         builder.setCodec(codec);
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setChannel(channel);
         return createInput(builder.finish());
     }
 }
