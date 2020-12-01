@@ -109,8 +109,14 @@ public class WebSocketInputFormatBuilder extends BaseRichInputFormatBuilder {
                 sb.append("config error:[serverUrl] must start with [ws], current serverUrl is ").append(serverUrl).append(" \n");
             }
         }
-        if(speed.getReaderChannel() > 1 || speed.getChannel() > 1){
-            sb.append("config error:[channel] could not be greater than 1 \n");
+        if(speed.getReaderChannel() > 1){
+            sb.append("webSocket can not support readerChannel bigger than 1, current readerChannel is [")
+                    .append(speed.getReaderChannel())
+                    .append("];\n");
+        }else if(speed.getChannel() > 1){
+            sb.append("webSocket can not support channel bigger than 1, current channel is [")
+                    .append(speed.getChannel())
+                    .append("];\n");
         }
         if(sb.length() > 0){
             throw new IllegalArgumentException(sb.toString());
