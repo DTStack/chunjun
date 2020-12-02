@@ -69,7 +69,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit = {}", inputSplit);
         try {
             connection.set(getConnection());
             statement.set(connection.get().createStatement());
@@ -89,6 +88,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             tableList = new LinkedList<>();
         }
+        LOG.info("curentDb = {}, tableList = {}", currentDb.get(), tableList);
         tableIterator.set(tableList.iterator());
     }
 
