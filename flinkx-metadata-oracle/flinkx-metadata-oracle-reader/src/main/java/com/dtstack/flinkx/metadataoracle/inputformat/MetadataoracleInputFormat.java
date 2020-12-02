@@ -93,7 +93,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
+    protected Map<String, Object> queryMetaData(String tableName) {
         Map<String, Object> result = new HashMap<>(16);
         Map<String, String> tableProperties = tablePropertiesMap.get(tableName);
         List<Map<String, Object>> columnList = columnListMap.get(tableName);
@@ -181,6 +181,10 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void init() throws SQLException {
+        allTable = null;
+        if(tableList==null || tableList.size()==0){
+            return;
+        }
         StringBuilder stringBuilder = new StringBuilder(2 * tableList.size());
         if(tableList.size() <= MAX_TABLE_SIZE){
             for(int index=0;index<tableList.size();index++){
