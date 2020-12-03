@@ -112,7 +112,7 @@ public class Es6Util {
             mappings = (Map<String, Object>) mappings.get(keys.get(0));
         }
 
-        return getColumn(mappings,"",new ArrayList<>());
+        return getColumn(mappings,new StringBuilder(),new ArrayList<>());
     }
 
     /**
@@ -122,30 +122,33 @@ public class Es6Util {
      * @param columnList    处理后的字段列表
      * @return  字段列表
      */
-    public static List<Map<String, Object>> getColumn(Map<String,Object> docs,String columnName,List<Map<String, Object>> columnList){
-
+    public static List<Map<String, Object>> getColumn(Map<String,Object> docs,StringBuilder columnName,List<Map<String, Object>> columnList){
         for(String key : docs.keySet()){
             if (key.equals("properties")){
                 getColumn((Map<String, Object>) docs.get(key),columnName,columnList);
                 break;
             }else if(key.equals("type")){
                 Map<String,Object> column = new HashMap<>();
-                column.put(MetaDataEs6Cons.KEY_COLUMN_NAME,columnName);
+                StringBuilder column_name = new StringBuilder(columnName);
+                column.put(MetaDataEs6Cons.KEY_COLUMN_NAME,column_name);
                 column.put(MetaDataEs6Cons.KEY_DATA_TYPE,docs.get(key));
                 if (docs.get(MetaDataEs6Cons.KEY_FIELDS) != null){
                     column.put(MetaDataEs6Cons.KEY_FIELDS,getFieldList(docs));
                 }
+                int cursor = columnList.size() + 1;
+                column.put("cursor",cursor);
                 columnList.add(column);
                 break;
             } else {
-                String temp = columnName;
-                if (columnName.equals("")){
-                    columnName = key;
+                StringBuilder temp = new StringBuilder(columnName);
+                if (columnName.toString().equals("")){
+                    columnName.append(key);
                 }else {
-                    columnName = columnName + "." + key;
+                    columnName.append(".").append(key);
                 }
                 getColumn((Map<String, Object>) docs.get(key),columnName,columnList);
-                columnName = temp;
+                columnName.delete(0,columnName.length());
+                columnName.append(temp);
             }
         }
 
@@ -181,7 +184,7 @@ public class Es6Util {
      */
     public static List<Map<String, Object>> queryAliases(String indexName,RestClient restClient) throws IOException {
         List<Map<String, Object>> aliasList = new ArrayList<>();
-        Map<String,Object> alias = new HashMap();
+        Map<String,Object> alias = new HashMap<String, Object>();
         Map<String,Object> index = queryIndex(indexName,restClient);
         Map<String,Object> aliases = (Map<String, Object>) ((Map<String,Object>) index.get(indexName)).get("aliases");
         Iterator<Map.Entry<String,Object>> it = aliases.entrySet().iterator();

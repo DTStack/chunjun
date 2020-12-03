@@ -66,13 +66,14 @@
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>
         <module>flinkx-metadata-sqlserver</module>
+        <module>flinkx-metadata-es6</module>
 
         <module>flinkx-restapi</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.10.1</flink.version>
+        <flink.version>1.10.0</flink.version>
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
