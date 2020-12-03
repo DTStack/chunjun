@@ -23,9 +23,11 @@ import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -97,9 +99,10 @@ public class LogMinerListener implements Runnable {
     @Override
     public void run() {
         while (running) {
+            QueueData log = null;
             try {
                 if (logMinerConnection.hasNext()) {
-                    QueueData log = logMinerConnection.next();
+                    log = logMinerConnection.next();
                     queue.put(logParser.parse(log));
                 } else {
                     logMinerConnection.closeStmt();
@@ -108,15 +111,29 @@ public class LogMinerListener implements Runnable {
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
-                running = false;
-                Map<String, Object> map = Collections.singletonMap("exception", e);
+                if (e instanceof JSQLParserException) {
+                    LOG.warn("log parse fail,log is --->{}", log);
+                }
+                Map<String, Object> map = Collections.singletonMap("e", ExceptionUtil.getErrorMessage(e));
                 try {
                     queue.put(new QueueData(0L, map));
+                    Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
                     LOG.error("error to put exception message into queue, exception message = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(ex));
-                    throw new RuntimeException(ex);
                 }
-                logMinerConnection.closeStmt();
+                //如果连接不正常 需要关闭连接 并重新进行连接
+                if (!logMinerConnection.isValid()) {
+                    try {
+                        logMinerConnection.disConnect();
+                    } catch (SQLException throwables) {
+                        LOG.error("logminerThread disConnect exception,exception message  = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(throwables));
+                    }
+                    try {
+                        logMinerConnection.connect();
+                    } catch (Exception throeables) {
+                        LOG.error("logminerThread get connect exception,exception message  = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(throeables));
+                    }
+                }
             }
         }
     }
@@ -141,14 +158,14 @@ public class LogMinerListener implements Runnable {
             QueueData data = queue.take();
             if (data.getScn() != 0L) {
                 positionManager.updatePosition(data.getScn());
-                failedTimes =0;
+                failedTimes = 0;
                 return data.getData();
 
             }
-           String message = String.format( "LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
+            String message = String.format("LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
             LOG.error(message);
-            if(++failedTimes > 5){
-                throw new RuntimeException("Error data is received 5 times continuously,error info->"+message);
+            if (++failedTimes >= 3) {
+                throw new RuntimeException("Error data is received 3 times continuously,error info->" + message);
             }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
