@@ -408,7 +408,7 @@ public class LogMinerConnection {
     }
 
     public boolean hasNext() throws SQLException{
-        if (null == logMinerData) {
+        if (null == logMinerData || logMinerData.isClosed()) {
             return false;
         }
 
@@ -448,6 +448,15 @@ public class LogMinerConnection {
         }
 
         return false;
+    }
+
+    //判断连接是否正常
+    public boolean isValid()  {
+        try {
+            return connection.isValid(2000);
+        } catch (SQLException throwables) {
+            return false;
+        }
     }
 
 
