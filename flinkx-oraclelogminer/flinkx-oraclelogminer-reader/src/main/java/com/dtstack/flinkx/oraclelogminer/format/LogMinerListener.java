@@ -23,6 +23,7 @@ import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,9 +98,10 @@ public class LogMinerListener implements Runnable {
     @Override
     public void run() {
         while (running) {
+            QueueData log = null;
             try {
                 if (logMinerConnection.hasNext()) {
-                    QueueData log = logMinerConnection.next();
+                    log = logMinerConnection.next();
                     queue.put(logParser.parse(log));
                 } else {
                     logMinerConnection.closeStmt();
@@ -108,8 +110,11 @@ public class LogMinerListener implements Runnable {
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
+                if(e instanceof JSQLParserException){
+                    LOG.warn("log parse fail,log is --->{}",log);
+                }
                 running = false;
-                Map<String, Object> map = Collections.singletonMap("exception", e);
+                Map<String, Object> map = Collections.singletonMap("e", ExceptionUtil.getErrorMessage(e));
                 try {
                     queue.put(new QueueData(0L, map));
                 } catch (InterruptedException ex) {
