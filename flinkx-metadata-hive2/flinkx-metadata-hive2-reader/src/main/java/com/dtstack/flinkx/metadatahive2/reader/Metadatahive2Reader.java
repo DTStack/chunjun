@@ -34,8 +34,7 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_H
  * @author : tiezhu
  * @date : 2020/3/9
  */
-    public class Metadatahive2Reader extends MetadataReader {
-
+public class Metadatahive2Reader extends MetadataReader {
 
     public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
