@@ -76,6 +76,9 @@ public class Es6Util {
         indexProp.put(MetaDataEs6Cons.KEY_INDEX_UUID,prop_1[3]);
         indexProp.put(MetaDataEs6Cons.KEY_INDEX_SIZE,prop_1[8]);
         indexProp.put(MetaDataEs6Cons.KEY_INDEX_DOCS_COUNT,prop_1[6]);
+        indexProp.put(MetaDataEs6Cons.KEY_INDEX_DOCS_DELETED,prop_1[7]);
+        indexProp.put(MetaDataEs6Cons.KEY_INDEX_PRI_SIZE,prop_1[9]);
+        indexProp.put(MetaDataEs6Cons.KEY_INDEX_STATUS,prop_1[1]);
 
         Map<String,Object> index = queryIndex(indexName,restClient);
         Map<String,Object> settings = ( Map<String,Object>) (( Map<String,Object>) index.get(indexName)).get("settings");
