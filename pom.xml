@@ -66,7 +66,8 @@
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>
         <module>flinkx-metadata-sqlserver</module>
-        <module>flinkx-metadata-es6</module>
+
+<!--        <module>flinkx-metadata-es6</module>-->
 
         <module>flinkx-restapi</module>
     </modules>
