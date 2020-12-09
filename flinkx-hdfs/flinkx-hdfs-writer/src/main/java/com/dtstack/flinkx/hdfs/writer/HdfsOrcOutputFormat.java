@@ -25,8 +25,11 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
@@ -44,6 +47,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -138,6 +142,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
             blockIndex++;
 
+            setFs();
             LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
             LOG.info("Current block file name:" + currentBlockTmpPath);
         } catch (Exception e){
@@ -294,6 +299,23 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
+        }
+    }
+
+    /**
+     * 数据源开启kerberos时
+     * 如果这里不通过反射对 writerOptions 赋值fs，则在recordWriter.writer时 会初始化一个fs 此fs不在ugi里获取的
+     * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
+     * @throws IllegalAccessException
+     */
+    private  void setFs() throws IllegalAccessException {
+        if(FileSystemUtil.isOpenKerberos(hadoopConfig)){
+            Field declaredField = ReflectionUtils.getDeclaredField(recordWriter, "options");
+            assert declaredField != null;
+            declaredField.setAccessible(true);
+            OrcFile.WriterOptions writerOptions = (OrcFile.WriterOptions) declaredField.get(recordWriter);
+            writerOptions.fileSystem(fs);
+            declaredField.setAccessible(false);
         }
     }
 }
