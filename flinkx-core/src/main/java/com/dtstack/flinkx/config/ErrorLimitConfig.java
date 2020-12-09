@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.config;
 
+import com.dtstack.flinkx.util.ValueUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +59,7 @@ public class ErrorLimitConfig extends AbstractConfig {
     }
 
     public Double getPercentage() {
-        return (Double) getVal(KEY_ERROR_PERCENTAGE_LIMIT);
+        return ValueUtil.getDoubleVal(getVal(KEY_ERROR_PERCENTAGE_LIMIT));
     }
 
     public void setPercentage(Double percentage) {
