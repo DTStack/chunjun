@@ -388,18 +388,6 @@ public class LogMinerConnection {
     }
 
     private List<LogFile> queryLogFiles(Long scn) throws SQLException{
-        // 防止没有数据更新的时候频繁查询数据库，限定查询的最小时间间隔 QUERY_LOG_INTERVAL
-        if (lastQueryTime > 0) {
-            long time = System.currentTimeMillis() - lastQueryTime;
-            if (time < QUERY_LOG_INTERVAL) {
-                try {
-                    Thread.sleep(QUERY_LOG_INTERVAL);
-                } catch (InterruptedException e) {
-                    LOG.warn("", e);
-                }
-            }
-        }
-
         List<LogFile> logFiles = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
