@@ -54,8 +54,6 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int BUFFER_SIZE = 1000;
 
-    private JsonParser jp = new JsonParser();
-
     @Override
     public void flushDataInternal() throws IOException {
         LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());

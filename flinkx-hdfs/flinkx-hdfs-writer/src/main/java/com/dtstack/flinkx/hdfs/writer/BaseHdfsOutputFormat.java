@@ -23,6 +23,7 @@ import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -71,6 +72,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     protected boolean enableDictionary;
 
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
+
+    //对key为string类型且value为map 或者 list 转换后的json格式在进行一次转换 去除多余的\n等值
+    protected JsonParser jp = new JsonParser();
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {

@@ -241,7 +241,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                     val=DateUtil.getDateTimeFormatter().format(valObj);
                     group.add(colName,val);
                 }else if (valObj instanceof Map || valObj instanceof List){
-                    group.add(colName,GsonUtil.GSON.toJson(valObj));
+                    group.add(colName,jp.parse(GsonUtil.GSON.toJson(valObj)).toString());
                 }else {
                     group.add(colName,val);
                 }
