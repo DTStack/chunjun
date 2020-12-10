@@ -242,7 +242,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
                 if (column instanceof Timestamp){
                     SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
                     recordList.add(fm.format(column));
-                }else if (column instanceof Map){
+                }else if (column instanceof Map || column instanceof List){
                     recordList.add(GsonUtil.GSON.toJson(column));
                 }else {
                     recordList.add(rowData);

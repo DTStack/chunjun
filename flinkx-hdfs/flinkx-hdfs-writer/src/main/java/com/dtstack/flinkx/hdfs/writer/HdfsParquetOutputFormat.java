@@ -53,6 +53,7 @@ import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -239,7 +240,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 if (valObj instanceof Timestamp){
                     val=DateUtil.getDateTimeFormatter().format(valObj);
                     group.add(colName,val);
-                }else if (valObj instanceof Map){
+                }else if (valObj instanceof Map || valObj instanceof List){
                     group.add(colName,GsonUtil.GSON.toJson(valObj));
                 }else {
                     group.add(colName,val);
