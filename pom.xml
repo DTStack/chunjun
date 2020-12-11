@@ -70,6 +70,7 @@
 <!--        <module>flinkx-metadata-es6</module>-->
 
         <module>flinkx-restapi</module>
+        <module>flinkx-websocket</module>
     </modules>
 
     <properties>

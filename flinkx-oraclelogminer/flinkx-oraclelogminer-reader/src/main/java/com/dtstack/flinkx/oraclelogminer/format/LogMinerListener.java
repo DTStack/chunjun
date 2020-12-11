@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
@@ -87,7 +86,7 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
-        logMinerConnection.checkPrivileges();
+        logMinerConnection.queryOracleVersion();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
         positionManager.updatePosition(startScn);
@@ -160,12 +159,11 @@ public class LogMinerListener implements Runnable {
                 positionManager.updatePosition(data.getScn());
                 failedTimes = 0;
                 return data.getData();
-
             }
-            String message = String.format("LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
+            String message = String.format( "LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
             LOG.error(message);
-            if (++failedTimes >= 3) {
-                throw new RuntimeException("Error data is received 3 times continuously,error info->" + message);
+            if(++failedTimes > 3){
+                throw new RuntimeException("Error data is received 3 times continuously,error info->"+message);
             }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);

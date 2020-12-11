@@ -288,9 +288,17 @@ public class SqlUtil {
 
     public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
 
+    public final static String SQL_QUERY_LOG_MODE = "SELECT LOG_MODE FROM V$DATABASE";
+
+    public final static String SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL = "SELECT SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE";
+
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
+
+    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
+
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     public static String buildSelectSql(String listenerOptions, String listenerTables){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
@@ -314,7 +322,7 @@ public class SqlUtil {
         String[] operations = listenerOptions.split(",");
         for (String operation : operations) {
             if (!SUPPORTED_OPERATIONS.contains(operation.toUpperCase())) {
-                throw new RuntimeException("不支持的操作类型:" + operation);
+                throw new RuntimeException("Unsupported operation type :" + operation);
             }
 
             standardOperations.add(String.format("'%s'", operation.toUpperCase()));
@@ -339,7 +347,7 @@ public class SqlUtil {
         for (String tableWithSchema : tableWithSchemas){
             List<String> tables = Arrays.asList(tableWithSchema.split("\\."));
             if ("*".equals(tables.get(0))) {
-                throw new IllegalArgumentException("必须指定要采集的schema:" + tableWithSchema);
+                throw new IllegalArgumentException("Must specify the schema to be collected :" + tableWithSchema);
             }
 
             StringBuilder tableFilterBuilder = new StringBuilder();
