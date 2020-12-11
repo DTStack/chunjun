@@ -21,7 +21,6 @@ package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
 import org.slf4j.Logger;
@@ -111,28 +110,27 @@ public class LogMinerListener implements Runnable {
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
+                String errorMsg = ExceptionUtil.getErrorMessage(e);
+                LOG.warn("LogMinerListener thread exception: current scn = {}, e = {}", positionManager.getPosition(), errorMsg);
                 if (e instanceof JSQLParserException) {
                     LOG.warn("log parse fail,log is --->{}", log);
                 }
-                Map<String, Object> map = Collections.singletonMap("e", ExceptionUtil.getErrorMessage(e));
+                Map<String, Object> map = Collections.singletonMap("e", errorMsg);
                 try {
                     queue.put(new QueueData(0L, map));
                     Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
-                    LOG.error("error to put exception message into queue, exception message = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(ex));
+                    LOG.error("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
                 }
-                //如果连接不正常 需要关闭连接 并重新进行连接
-                if (!logMinerConnection.isValid()) {
-                    try {
-                        logMinerConnection.disConnect();
-                    } catch (SQLException throwables) {
-                        LOG.error("logminerThread disConnect exception,exception message  = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(throwables));
-                    }
-                    try {
-                        logMinerConnection.connect();
-                    } catch (Exception throeables) {
-                        LOG.error("logminerThread get connect exception,exception message  = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(throeables));
-                    }
+                try {
+                    logMinerConnection.disConnect();
+                } catch (SQLException e1) {
+                    LOG.error("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                }
+                try {
+                    logMinerConnection.connect();
+                } catch (Exception e1) {
+                    LOG.error("LogMiner Thread get connect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
             }
         }
@@ -160,12 +158,9 @@ public class LogMinerListener implements Runnable {
                 positionManager.updatePosition(data.getScn());
                 failedTimes = 0;
                 return data.getData();
-
             }
-            String message = String.format("LogMinerListener obtain an error data, data = %s", GsonUtil.GSON.toJson(data));
-            LOG.error(message);
             if (++failedTimes >= 3) {
-                throw new RuntimeException("Error data is received 3 times continuously,error info->" + message);
+                throw new RuntimeException("Error data is received 3 times continuously, error msg is " + data.getData().get("e"));
             }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);

@@ -25,11 +25,14 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -61,6 +64,9 @@ public class LogMinerConnection {
 
     public static final int ORACLE_11_VERSION = 11;
     public int oracleVersion;
+    //oracle10数据库字符编码是否设置为GBK
+    public boolean isGBK = false;
+    boolean isOracle10;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
@@ -126,8 +132,15 @@ public class LogMinerConnection {
     }
 
     public void disConnect() throws SQLException{
+        //清除日志文件组，下次LogMiner启动时重新加载日志文件
+        addedLogFiles.clear();
+
         if (null != logMinerStartStmt && logMinerStarted) {
-            logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            try {
+                logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            }catch (SQLException e){
+                LOG.warn("close logMiner failed, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
             logMinerStarted = false;
         }
 
@@ -165,7 +178,7 @@ public class LogMinerConnection {
             lastQueryTime = System.currentTimeMillis();
 
             if (logMinerConfig.getSupportAutoAddLog()) {
-                startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
+                startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 List<LogFile> newLogFiles = queryLogFiles(startScn);
                 if (addedLogFiles.equals(newLogFiles)) {
@@ -173,7 +186,7 @@ public class LogMinerConnection {
                 } else {
                     LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
-                    startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
+                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
                 }
             }
 
@@ -189,7 +202,7 @@ public class LogMinerConnection {
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, offset:{}, sql:{}", startScn, startSql);
+            LOG.info("start logMiner successfully, startScn:{}", startScn);
         } catch (SQLException e){
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -264,7 +277,7 @@ public class LogMinerConnection {
         ResultSet lastLogFileResultSet = null;
 
         try {
-            lastLogFileStmt = connection.prepareCall(SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
+            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setLong(1, scn);
@@ -338,12 +351,16 @@ public class LogMinerConnection {
         try {
             String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
 
-            lastLogFileStmt = connection.prepareCall(SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
+            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setString(1, timeStr);
             lastLogFileStmt.setString(2, timeStr);
-            lastLogFileStmt.setString(3, timeStr);
+
+            if(!isOracle10){
+                //oracle10只有两个参数
+                lastLogFileStmt.setString(3, timeStr);
+            }
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while(lastLogFileResultSet.next()){
                 logFileFirstChange = lastLogFileResultSet.getLong(KEY_FIRST_CHANGE);
@@ -392,7 +409,7 @@ public class LogMinerConnection {
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            statement = connection.prepareStatement(oracleVersion == 10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
+            statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setLong(1, scn);
             statement.setLong(2, scn);
             rs = statement.executeQuery();
@@ -400,7 +417,7 @@ public class LogMinerConnection {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
-                if(oracleVersion == 10){
+                if(isOracle10){
                     logFile.setNextChange(Long.MAX_VALUE);
                 }else{
                     String nextChangeString = rs.getString("next_change#");
@@ -427,22 +444,23 @@ public class LogMinerConnection {
         return logFiles;
     }
 
-    public boolean hasNext() throws SQLException{
+    public boolean hasNext() throws SQLException, UnsupportedEncodingException, DecoderException {
         if (null == logMinerData || logMinerData.isClosed()) {
             return false;
         }
 
         String sqlLog;
         while (logMinerData.next()) {
-            long scn = logMinerData.getLong(KEY_SCN);
-
-            // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
-            boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-
             StringBuilder sqlRedo = new StringBuilder(logMinerData.getString(KEY_SQL_REDO));
             if(SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())){
                 continue;
             }
+            long scn = logMinerData.getLong(KEY_SCN);
+
+            // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
+            boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            //是否存在多条SQL
+            boolean hasMultiSql = isSqlNotEnd;
 
             while(isSqlNotEnd){
                 logMinerData.next();
@@ -450,7 +468,28 @@ public class LogMinerConnection {
                 isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
             }
 
-            sqlLog = sqlRedo.toString();
+            //oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
+            if(hasMultiSql && isOracle10 && isGBK){
+                String redo = sqlRedo.toString();
+
+                String hexStr = new String(Hex.encodeHex(sqlRedo.toString().getBytes("GBK")));
+
+                if(hexStr.contains("3f2c") || hexStr.contains("3f20")){
+                    LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
+                    //?, -> ',
+                    hexStr = hexStr.replace("3f2c", "272c");
+
+                    //?空格 -> '空格
+                    hexStr = hexStr.replace("3f20", "2720");
+                    LOG.info("final redo sql is: {}", new String(Hex.decodeHex(hexStr.toCharArray()), "GBK"));
+                }
+
+                byte[] bytes = Hex.decodeHex(hexStr.toCharArray());
+                sqlLog = new String(bytes, "GBK");
+            }else{
+                sqlLog = sqlRedo.toString();
+            }
+
             String schema = logMinerData.getString(KEY_SEG_OWNER);
             String tableName = logMinerData.getString(KEY_TABLE_NAME);
             String operation = logMinerData.getString(KEY_OPERATION);
@@ -473,8 +512,8 @@ public class LogMinerConnection {
     //判断连接是否正常
     public boolean isValid()  {
         try {
-            return connection.isValid(2000);
-        } catch (SQLException throwables) {
+            return connection != null && connection.isValid(2000);
+        } catch (SQLException e) {
             return false;
         }
     }
@@ -483,7 +522,10 @@ public class LogMinerConnection {
         try (Statement statement = connection.createStatement()) {
 
             oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
+            isOracle10 = oracleVersion == 10;
             LOG.info("Oracle版本为：{}", oracleVersion);
+
+            queryDataBaseEncoding();
 
             List<String> roles = getUserRoles(statement);
             if (roles.contains(DBA_ROLE)) {
@@ -553,6 +595,23 @@ public class LogMinerConnection {
             return roles;
         } catch (SQLException e) {
             throw new RuntimeException("检查用户角色出错", e);
+        }
+    }
+
+    /**
+     * 查询Oracle10数据库的字符编码
+     */
+    private void queryDataBaseEncoding(){
+        if(isOracle10){
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
+                rs.next();
+                String encoding = rs.getString(1);
+                LOG.info("current oracle encoding is {}", encoding);
+                isGBK = encoding.contains("GBK");
+            } catch (SQLException e) {
+                throw new RuntimeException("检查用户角色出错", e);
+            }
         }
     }
 
