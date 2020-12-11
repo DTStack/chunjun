@@ -26,6 +26,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The subclass of HdfsOutputFormat writing orc files
@@ -240,6 +242,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
                 if (column instanceof Timestamp){
                     SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
                     recordList.add(fm.format(column));
+                }else if (column instanceof Map || column instanceof List){
+                    recordList.add(jp.parse(GsonUtil.GSON.toJson(column)).toString());
                 }else {
                     recordList.add(rowData);
                 }
