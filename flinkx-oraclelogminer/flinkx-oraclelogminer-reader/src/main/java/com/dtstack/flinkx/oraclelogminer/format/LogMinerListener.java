@@ -23,6 +23,7 @@ import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,27 +111,30 @@ public class LogMinerListener implements Runnable {
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
-                String errorMsg = ExceptionUtil.getErrorMessage(e);
-                LOG.warn("LogMinerListener thread exception: current scn = {}, e = {}", positionManager.getPosition(), errorMsg);
+                StringBuilder sb = new StringBuilder(512);
+                sb.append("LogMinerListener thread exception: current scn =")
+                        .append(positionManager.getPosition());
                 if (e instanceof JSQLParserException) {
-                    LOG.warn("log parse fail,log is --->{}", log);
+                    sb.append(",\nlog = ").append(log);
                 }
-                Map<String, Object> map = Collections.singletonMap("e", errorMsg);
+                sb.append(",\ne = ").append(ExceptionUtil.getErrorMessage(e));
+                String msg = sb.toString();
+                Log.warn(msg);
                 try {
-                    queue.put(new QueueData(0L, map));
+                    queue.put(new QueueData(0L, Collections.singletonMap("e", msg)));
                     Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
-                    LOG.error("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
+                    LOG.warn("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
                 }
                 try {
                     logMinerConnection.disConnect();
                 } catch (SQLException e1) {
-                    LOG.error("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                    LOG.warn("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
                 try {
                     logMinerConnection.connect();
                 } catch (Exception e1) {
-                    LOG.error("LogMiner Thread get connect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                    LOG.warn("LogMiner Thread get connect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
             }
         }
