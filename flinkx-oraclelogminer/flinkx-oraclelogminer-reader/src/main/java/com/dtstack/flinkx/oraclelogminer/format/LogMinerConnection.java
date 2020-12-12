@@ -479,8 +479,8 @@ public class LogMinerConnection {
                     //?, -> ',
                     hexStr = hexStr.replace("3f2c", "272c");
 
-                    //?空格 -> '空格
-                    hexStr = hexStr.replace("3f20", "2720");
+                    //?空格a -> '空格a
+                    hexStr = hexStr.replace("3f2061", "272061");
                     LOG.info("final redo sql is: {}", new String(Hex.decodeHex(hexStr.toCharArray()), "GBK"));
                 }
 
