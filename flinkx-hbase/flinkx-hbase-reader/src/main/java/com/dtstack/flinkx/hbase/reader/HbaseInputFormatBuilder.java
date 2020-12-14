@@ -96,9 +96,6 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         Preconditions.checkArgument(format.scanCacheSize <= HbaseConfigConstants.MAX_SCAN_CACHE_SIZE && format.scanCacheSize >= HbaseConfigConstants.MIN_SCAN_CACHE_SIZE,
                 "scanCacheSize should be between " + HbaseConfigConstants.MIN_SCAN_CACHE_SIZE +  " and " + HbaseConfigConstants.MAX_SCAN_CACHE_SIZE);
 
-        Preconditions.checkArgument(format.scanBatchSize <= HbaseConfigConstants.MAX_SCAN_BATCH_SIZE && format.scanBatchSize >= HbaseConfigConstants.MIN_SCAN_BATCH_SIZE,
-                "scanBatchSize should be between " + HbaseConfigConstants.MIN_SCAN_BATCH_SIZE + " and " + HbaseConfigConstants.MAX_SCAN_BATCH_SIZE);
-
         for(int i = 0; i < format.columnTypes.size(); ++i) {
             Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnTypes.get(i)));
             Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnNames.get(i))

@@ -69,7 +69,13 @@ public class HbaseInputFormat extends BaseRichInputFormat {
     protected List<String> columnTypes;
     protected boolean isBinaryRowkey;
     protected String encoding;
+    /**
+     * 客户端每次 rpc fetch 的行数
+     */
     protected int scanCacheSize;
+    /**
+     * 客户端每次获取的列数（-1 代表不受限）
+     */
     protected int scanBatchSize;
     private transient Connection connection;
     private transient Scan scan;
