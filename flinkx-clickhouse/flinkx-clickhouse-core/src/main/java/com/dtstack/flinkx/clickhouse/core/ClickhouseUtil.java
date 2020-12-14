@@ -37,8 +37,8 @@ public class ClickhouseUtil {
 
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         Properties properties = new Properties();
-        properties.put(ClickHouseQueryParam.USER, username);
-        properties.put(ClickHouseQueryParam.PASSWORD, password);
+        properties.put(ClickHouseQueryParam.USER.getKey(), username);
+        properties.put(ClickHouseQueryParam.PASSWORD.getKey(), password);
         boolean failed = true;
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
