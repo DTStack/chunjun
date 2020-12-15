@@ -26,7 +26,8 @@ import java.util.Map;
  * @author kunni@dtstack.com
  */
 public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder {
-    private MetadatahbaseInputformat format;
+
+    protected MetadatahbaseInputformat format;
 
     public MetadatahbaseInputformatBuilder(MetadatahbaseInputformat format) {
         super(format);

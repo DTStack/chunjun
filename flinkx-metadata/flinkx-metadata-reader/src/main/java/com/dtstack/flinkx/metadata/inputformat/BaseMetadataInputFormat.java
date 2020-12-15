@@ -138,7 +138,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         start++;
-        LOG.info("query metadata: {}", metaData);
         return Row.of(metaData);
     }
 

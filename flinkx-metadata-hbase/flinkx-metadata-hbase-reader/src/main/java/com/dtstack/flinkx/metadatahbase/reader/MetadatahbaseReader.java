@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.metadatahbase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputformat;
@@ -41,8 +40,8 @@ public class MetadatahbaseReader extends MetadataReader {
     @SuppressWarnings("unchecked")
     public MetadatahbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        hadoopConfig = (Map<String, Object>) config.getJob().getContent()
+                .get(0).getReader().getParameter().getVal(KEY_HADOOP_CONFIG);
     }
 
     @Override

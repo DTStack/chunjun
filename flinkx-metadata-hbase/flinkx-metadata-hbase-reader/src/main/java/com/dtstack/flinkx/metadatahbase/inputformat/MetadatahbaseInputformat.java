@@ -28,6 +28,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
 
 import java.io.IOException;
@@ -61,6 +62,8 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
      */
     private transient Connection hbaseConnection;
 
+    private transient Admin admin;
+
     /**
      * 因为connection的类型不同，重写该方法
      * @param inputSplit 某个命名空间及需要查询的表
@@ -70,6 +73,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         LOG.info("inputSplit = {}", inputSplit);
         try {
             hbaseConnection = HbaseHelper.getHbaseConnection(hadoopConfig);
+            admin = hbaseConnection.getAdmin();
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if(CollectionUtils.isEmpty(tableList)){
@@ -84,6 +88,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
 
     @Override
     protected void closeInternal() {
+        HbaseHelper.closeAdmin(admin);
         HbaseHelper.closeConnection(hbaseConnection);
     }
 
@@ -91,7 +96,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
         try {
-            HTableDescriptor[] tableNames = hbaseConnection.getAdmin().listTableDescriptorsByNamespace(currentDb.get());
+            HTableDescriptor[] tableNames = admin.listTableDescriptorsByNamespace(currentDb.get());
             for (HTableDescriptor table : tableNames){
                 TableName tableName = table.getTableName();
                 // 排除系统表
@@ -117,7 +122,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         Map<String, Object> tableProperties;
         List<Map<String, Object>> columnList;
         try{
-            HTableDescriptor table = hbaseConnection.getAdmin().getTableDescriptor(TableName.valueOf(tableName));
+            HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
             tableProperties = queryTableProperties(table);
             columnList = queryColumnList(table);
         }catch (IOException e){
@@ -144,6 +149,11 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         return tableProperties;
     }
 
+    /**
+     * 获取列族信息
+     * @param table 表名
+     * @return 列族
+     */
     protected List<Map<String, Object>> queryColumnList(HTableDescriptor table){
         List<Map<String, Object>> columnList = new ArrayList<>();
         HColumnDescriptor[] columnDescriptors = table.getColumnFamilies();
@@ -158,7 +168,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
 
     @Override
     protected String quote(String name) {
-        return null;
+        return name;
     }
 
     public void setHadoopConfig(Map<String, Object> hadoopConfig){
