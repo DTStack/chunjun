@@ -82,10 +82,6 @@ public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.scanCacheSize = scanCacheSize;
     }
 
-    public void setScanBatchSize(int scanBatchSize) {
-        format.scanBatchSize = scanBatchSize;
-    }
-
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.columnTypes);
