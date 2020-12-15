@@ -83,6 +83,11 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     }
 
     @Override
+    protected void closeInternal() {
+        HbaseHelper.closeConnection(hbaseConnection);
+    }
+
+    @Override
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
         try {
