@@ -206,10 +206,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                         SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
                         sb.append(fm.format(column));
                     }else if (column instanceof Map || column instanceof List){
-                        //之所以text格式的hdfs写入 需要使用jp.parse 解析gson转换后的json 是因为gson.tojson转换后的json是一个标准格式json
-                        //标准json会存在换行 制表符等 使用jp.parse之后会转为一个各个key连在一起的string
-                        //text有一个delimiter换行符 默认是\u0001，如果是标准json会使得text格式的hive表读取混乱，所以使用jp.parse对标准json格式转换一次
-                        sb.append(jp.parse(GsonUtil.GSON.toJson(column)).toString());
+                        sb.append(gson.toJson(column));
                     }else {
                         sb.append(rowData);
                     }
