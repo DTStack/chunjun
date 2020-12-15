@@ -22,9 +22,9 @@ public class PostgresqlCons extends MetaDataCons {
     public static final String KEY_TABLE_NAME = "tableName";
 
     /**
-     * column
+     * metaData
      */
-    public static final String KEY_COLUMN = "column";
+    public static final String KEY_METADATA = "metaData";
 
 
     /**
@@ -39,10 +39,17 @@ public class PostgresqlCons extends MetaDataCons {
     public static final String KEY_TABLE_SCHEMA = "tableSchema";
 
 
+
+
     /**
      sql语句：查询数据库中所有的表名
     **/
-    public static final String SQL_SHOW_TABLES = "SELECT tablename FROM pg_tables";
+    public static final String SQL_SHOW_TABLES = "SELECT table_schema,table_name FROM information_schema.tables  WHERE table_schema = 'public'";
+
+    /**
+     * sql语句：查询表中共有多少条数据（包含null值）
+     */
+    public static final String SQL_SHOW_COUNT = "SELECT count(*) AS count from %s";
 
 
     /**
@@ -58,6 +65,24 @@ public class PostgresqlCons extends MetaDataCons {
             "AND a.attnum = b.objsubid, pg_type t WHERE c.relname = '%s' AND a.attnum > 0\n" +
 
             "AND a.attrelid = c.oid AND a.atttypid = t.oid ORDER BY  a.attnum";
+
+    /**
+     * sql语句：查询表中的主键名
+     */
+    public static final String SQL_SHOW_TABLE_PRIMARYKEY =
+
+            "SELECT pg_attribute.attname AS name\n"+
+
+            "FROM pg_index,pg_class,pg_attribute\n"+
+
+            "WHERE pg_class.oid = '%s' :: regclass\n"+
+
+            "AND pg_index.indrelid = pg_class.oid\n"+
+
+            "AND pg_attribute.attrelid = pg_class.oid\n"+
+
+            "AND pg_attribute.attnum = ANY (pg_index.indkey)";
+
 
 
 }

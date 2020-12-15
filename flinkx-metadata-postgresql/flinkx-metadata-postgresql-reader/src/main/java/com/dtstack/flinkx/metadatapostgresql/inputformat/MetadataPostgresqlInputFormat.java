@@ -5,7 +5,8 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.metadatapostgresql.constants.PostgresqlCons;
-import com.dtstack.flinkx.metadatapostgresql.pojo.MetaData;
+import com.dtstack.flinkx.metadatapostgresql.pojo.ColumnMetaData;
+import com.dtstack.flinkx.metadatapostgresql.pojo.TableMetaData;
 import com.dtstack.flinkx.metadatapostgresql.utils.CommonUtils;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,6 +33,7 @@ import java.util.Map;
 public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
+    private boolean tablelistisnull = false;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -62,10 +64,10 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        Map<String, Object> metaData = new HashMap<>(16);
+    protected Row nextRecordInternal(Row row) {
         String schema,table;
-  //      metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
+        Map<String, Object> metaData = new HashMap<>(16);
+        metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
         if(queryTable){
             Pair<String, String> pair = (Pair) tableIterator.get().next();
@@ -76,12 +78,11 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             schema = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
             table = map.get(PostgresqlCons.KEY_TABLE_NAME);
         }
-        String tableName = table;
+
         metaData.put(MetaDataCons.KEY_SCHEMA, schema);
         metaData.put(MetaDataCons.KEY_TABLE, table);
-        metaData.put(PostgresqlCons.KEY_TABLE_SCHEMA, schema);
         try {
-            metaData.putAll(queryMetaData(tableName));
+            metaData.putAll(queryMetaData(table));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
@@ -101,13 +102,17 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     @Override
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
-        try (ResultSet rs = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
-            while (rs.next()) {
-                tableNameList.add(rs.getString(1));
+        try (ResultSet resultSet = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
+            if (resultSet.next()){
+                tablelistisnull = true;
+            }
+            resultSet.previous();
+            while (resultSet.next()) {
+                tableNameList.add(Pair.of(resultSet.getString("table_schema"), resultSet.getString("table_name")));
             }
         }
-        return tableNameList;
 
+        return tableNameList;
     }
 
 
@@ -131,20 +136,38 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         HashMap<String,Object> result = new HashMap<>(16);
-        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_COLUMN,tableName);
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            //colnumber:表中字段编号
-            int colnumber = 1;
-            while(resultSet.next()){
-                result.put(PostgresqlCons.KEY_COLUMN + colnumber
-                            ,new MetaData(resultSet.getString("name")
-                                    ,resultSet.getString("type")
-                                    ,resultSet.getInt("length" ) < 0 ? resultSet.getInt("lengthvar") : resultSet.getInt("length")
-                                    ,resultSet.getBoolean("notnull")
-                                    ,resultSet.getString("comment")));
+        LinkedList<ColumnMetaData> columns = new LinkedList<>();
+        String sql1 = String.format(PostgresqlCons.SQL_SHOW_TABLE_COLUMN,tableName);
+        String sql2 = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
+        String sql3 = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
 
-                colnumber++;
+        try(ResultSet resultSet = statement.get().executeQuery(sql1)){
+            while(resultSet.next()){
+                columns.add(new ColumnMetaData(resultSet.getString("name")
+                        ,resultSet.getString("type")
+                        ,resultSet.getInt("length" ) < 0 ? resultSet.getInt("lengthvar") : resultSet.getInt("length")
+                        ,resultSet.getBoolean("notnull")
+                        ,resultSet.getString("comment")));
+
             }
+
+            String primaryKey = "";
+            try(ResultSet keySet = statement.get().executeQuery(sql2)){
+                if (keySet.next()){
+                    primaryKey = keySet.getString("name");
+                }
+            }
+            int dataCount = 0;
+            try(ResultSet countSet = statement.get().executeQuery(sql3)){
+                if (countSet.next()){
+                    dataCount = countSet.getInt("count");
+                }
+
+            }
+
+            TableMetaData tableMetaData = new TableMetaData(tableName, columns,primaryKey,dataCount);
+
+            result.put(PostgresqlCons.KEY_METADATA,tableMetaData);
 
         }
         return result;
