@@ -456,6 +456,7 @@ public class LogMinerConnection {
                 continue;
             }
             long scn = logMinerData.getLong(KEY_SCN);
+            String operation = logMinerData.getString(KEY_OPERATION);
 
             // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
             boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
@@ -472,27 +473,32 @@ public class LogMinerConnection {
             if(hasMultiSql && isOracle10 && isGBK){
                 String redo = sqlRedo.toString();
 
-                String hexStr = new String(Hex.encodeHex(sqlRedo.toString().getBytes("GBK")));
+                String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
 
-                if(hexStr.contains("3f2c") || hexStr.contains("3f20")){
+                if(hexStr.contains("3f2c") || hexStr.contains("3f20616e64")){
                     LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
-                    //?, -> ',
-                    hexStr = hexStr.replace("3f2c", "272c");
-
-                    //?空格a -> '空格a
-                    hexStr = hexStr.replace("3f2061", "272061");
-                    LOG.info("final redo sql is: {}", new String(Hex.decodeHex(hexStr.toCharArray()), "GBK"));
+                    if("INSERT".equalsIgnoreCase(operation)){
+                        //insert into values('','','',) value后可能存在中文乱码
+                        //?, -> ',
+                        hexStr = hexStr.replace("3f2c", "272c");
+                    }else{
+                        //update set "" = '' and "" = '' where "" = '' and "" = '' where后可能存在中文乱码
+                        //delete from where "" = '' and "" = '' where后可能存在中文乱码
+                        //?空格and -> '空格and
+                        hexStr = hexStr.replace("3f20616e64", "2720616e64");
+                    }
+                    sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
+                    LOG.info("final redo sql is: {}", sqlLog);
+                }else{
+                    sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
                 }
 
-                byte[] bytes = Hex.decodeHex(hexStr.toCharArray());
-                sqlLog = new String(bytes, "GBK");
             }else{
                 sqlLog = sqlRedo.toString();
             }
 
             String schema = logMinerData.getString(KEY_SEG_OWNER);
             String tableName = logMinerData.getString(KEY_TABLE_NAME);
-            String operation = logMinerData.getString(KEY_OPERATION);
             Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
 
             Map<String, Object> data = new HashMap<>();
