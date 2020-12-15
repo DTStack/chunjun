@@ -60,6 +60,7 @@ public class SqlservercdcReader extends BaseDataReader {
         cat = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_CATALOG);
         pavingData = readerConfig.getParameter().getBooleanVal(SqlServerCdcConfigKeys.KEY_PAVING_DATA, false);
         List<String> tables = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
+
         if (CollectionUtils.isNotEmpty(tables)) {
             tableList = new ArrayList<>(tables.size());
             //兼容[].[]
@@ -89,5 +90,4 @@ public class SqlservercdcReader extends BaseDataReader {
 
         return createInput(builder.finish(), "sqlserverdcreader");
     }
-
 }
