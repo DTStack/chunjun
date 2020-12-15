@@ -86,21 +86,7 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
 
         LOG.info("sqlServer cdc openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
-            ClassUtil.forName(DRIVER, getClass().getClassLoader());
-            conn = SqlServerCdcUtil.getConnection(url, username, password);
-            conn.setAutoCommit(false);
-            SqlServerCdcUtil.changeDatabase(conn, databaseName);
-            if(!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, databaseName)){
-                LOG.error("{} is not enable sqlServer CDC", databaseName);
-                throw new UnsupportedOperationException(databaseName + " is not enable sqlServer CDC ");
-            }
 
-            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, tableList);
-            if(CollectionUtils.isNotEmpty(unEnabledCdcTables)){
-                String tables = unEnabledCdcTables.toString();
-                LOG.error("{} is not enable sqlServer CDC", tables);
-                throw new UnsupportedOperationException(tables + " is not enable sqlServer CDC ");
-            }
             if(StringUtils.isNotBlank(lsn)){
                 logPosition = TxLogPosition.valueOf(Lsn.valueOf(lsn));
             }else if(formatState != null && formatState.getState() != null){
