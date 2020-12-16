@@ -47,13 +47,14 @@ public class BinlogReader extends BaseDataReader {
 
     @Override
     public DataStream<Row> readData() {
-        BinlogInputFormat format = new BinlogInputFormat();
-        format.setDataTransferConfig(dataTransferConfig);
-        format.setBinlogConfig(binlogConfig);
-        format.setRestoreConfig(restoreConfig);
-        format.setLogConfig(logConfig);
-        format.setTestConfig(testConfig);
-        return createInput(format);
+
+        BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setBinlogConfig(binlogConfig);
+        builder.setRestoreConfig(restoreConfig);
+        builder.setLogConfig(logConfig);
+        builder.setTestConfig(testConfig);
+        return createInput(builder.finish());
     }
 
 }
