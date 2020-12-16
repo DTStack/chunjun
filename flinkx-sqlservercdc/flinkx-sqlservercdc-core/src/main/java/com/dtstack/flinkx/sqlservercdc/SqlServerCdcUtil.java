@@ -109,6 +109,12 @@ public class SqlServerCdcUtil {
         return unEnabledCdcTables;
     }
 
+    /**
+     * 校验sqlServer是否开启了agent服务
+     * @param conn
+     * @return
+     * @throws SQLException
+     */
     public static boolean checkAgentHasStart(Connection conn) throws SQLException {
         Statement statement = null;
         ResultSet rs = null;
@@ -130,6 +136,12 @@ public class SqlServerCdcUtil {
         return false;
     }
 
+    /**
+     * 校验用户是否具有 sysadmin 权限
+     * @param conn
+     * @return
+     * @throws SQLException
+     */
     public static boolean checkUserRole(Connection conn) throws SQLException {
         Statement statement = null;
         ResultSet rs = null;
