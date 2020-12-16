@@ -115,6 +115,11 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
             ClassUtil.forName(DRIVER, getClass().getClassLoader());
             Connection conn = SqlServerCdcUtil.getConnection(format.url, format.username, format.password);
 
+            //效验是否开启agent
+            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
+                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
+            }
+
             //校验数据库是否开启cdc
             SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
@@ -135,10 +140,6 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 }
             }
 
-            //效验是否开启agent
-            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
-                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
-            }
 
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
