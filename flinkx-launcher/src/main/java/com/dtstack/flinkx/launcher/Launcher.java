@@ -67,7 +67,6 @@ public class Launcher {
     public static final String MAIN_CLASS = "com.dtstack.flinkx.Main";
 
     public static void main(String[] args) throws Exception {
-        setLogLevel(Level.DEBUG.toString());
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
         findDefaultConfigDir(launcherOptions);
@@ -266,12 +265,5 @@ public class Launcher {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static void setLogLevel(String level) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        //设置全局日志级别
-        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 }
