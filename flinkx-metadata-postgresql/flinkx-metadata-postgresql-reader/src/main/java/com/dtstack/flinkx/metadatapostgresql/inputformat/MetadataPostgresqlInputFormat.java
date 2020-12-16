@@ -33,7 +33,6 @@ import java.util.Map;
 public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
-    private boolean tablelistisnull = false;
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -106,7 +105,6 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
            //如果数据库中没有表，抛出异常
             if (!resultSet.next()){
-                tablelistisnull = true;
                 throw new SQLException();
             }
             //指针回调
@@ -185,7 +183,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
    *@return java.sql.Connection
    *
   **/
-    public  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
+    private  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
         Class.forName(driverName);
         String url = CommonUtils.dbUrlTransform(dbUrl,dbName);
         return ConnUtil.getConnection(url,username,password);

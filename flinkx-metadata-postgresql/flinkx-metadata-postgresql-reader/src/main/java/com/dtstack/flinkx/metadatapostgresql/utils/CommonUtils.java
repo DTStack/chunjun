@@ -19,7 +19,7 @@ public class CommonUtils {
      *
     **/
     public  static String dbUrlTransform(String url, String dbName){
-        //"jdbc:postgresql://172.16.8.193:5432/shitou_test"
+        //"jdbc:postgresql://xxx.xxx.xxx.xxx/xxxx"
         int index = url.lastIndexOf("/");
 
         return url.substring(0,index + 1) + dbName;

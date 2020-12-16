@@ -42,7 +42,7 @@ public class PostgresqlCons extends MetaDataCons {
 
 
     /**
-     sql语句：查询数据库中所有的表名
+     sql语句：查询数据库中所有的表名，默认在schema为public的情况下
     **/
     public static final String SQL_SHOW_TABLES = "SELECT table_schema,table_name FROM information_schema.tables  WHERE table_schema = 'public'";
 
@@ -71,17 +71,11 @@ public class PostgresqlCons extends MetaDataCons {
      */
     public static final String SQL_SHOW_TABLE_PRIMARYKEY =
 
-            "SELECT pg_attribute.attname AS name\n"+
+            "SELECT pg_attribute.attname AS name FROM pg_index,pg_class,pg_attribute\n"+
 
-            "FROM pg_index,pg_class,pg_attribute\n"+
+            "WHERE pg_class.oid = '%s' :: regclass AND pg_index.indrelid = pg_class.oid\n"+
 
-            "WHERE pg_class.oid = '%s' :: regclass\n"+
-
-            "AND pg_index.indrelid = pg_class.oid\n"+
-
-            "AND pg_attribute.attrelid = pg_class.oid\n"+
-
-            "AND pg_attribute.attnum = ANY (pg_index.indkey)";
+            "AND pg_attribute.attrelid = pg_class.oid AND pg_attribute.attnum = ANY (pg_index.indkey)";
 
 
 
