@@ -103,9 +103,13 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
         try (ResultSet resultSet = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
-            if (resultSet.next()){
+
+           //如果数据库中没有表，抛出异常
+            if (!resultSet.next()){
                 tablelistisnull = true;
+                throw new SQLException();
             }
+            //指针回调
             resultSet.previous();
             while (resultSet.next()) {
                 tableNameList.add(Pair.of(resultSet.getString("table_schema"), resultSet.getString("table_name")));
