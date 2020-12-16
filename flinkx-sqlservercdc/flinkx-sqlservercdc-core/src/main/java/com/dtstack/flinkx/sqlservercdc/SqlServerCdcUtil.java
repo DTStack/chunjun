@@ -67,124 +67,108 @@ public class SqlServerCdcUtil {
 
     public static void changeDatabase(Connection conn, String databaseName) throws SQLException {
         try (Statement statement = conn.createStatement()) {
-            statement.execute(" use " + "\""+databaseName+"\"");
+            statement.execute(" use " + "\"" + databaseName + "\"");
         }
     }
 
     public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
+
+
         boolean ret;
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(String.format(CHECK_CDC_DATABASE, databaseName));
-            ret = rs.next();
+        try (Statement statement = conn.createStatement()) {
+            try (ResultSet rs = statement.executeQuery(String.format(CHECK_CDC_DATABASE, databaseName))) {
+                ret = rs.next();
+            }
         } catch (SQLException e) {
             LOG.error("error to query {} Enabled CDC or not, sql = {}, e = {}", databaseName, String.format(CHECK_CDC_DATABASE, databaseName), ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally {
-            closeDbResources(rs, statement, null, false);
         }
         return ret;
     }
 
     public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
         CopyOnWriteArraySet<String> unEnabledCdcTables = new CopyOnWriteArraySet<>(tableSet);
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(CHECK_CDC_TABLE);
-            while (rs.next()) {
-                String tableName = rs.getString(1);
-                unEnabledCdcTables.remove(tableName);
+        try (Statement statement = conn.createStatement()) {
+            try (ResultSet rs = statement.executeQuery(CHECK_CDC_TABLE)) {
+                while (rs.next()) {
+                    String tableName = rs.getString(1);
+                    unEnabledCdcTables.remove(tableName);
+                }
             }
         } catch (SQLException e) {
             LOG.error("error to query UnEnabled CDC Tables, sql = {}, e = {}", CHECK_CDC_TABLE, ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally {
-            closeDbResources(rs, statement, null, false);
         }
         return unEnabledCdcTables;
     }
 
     /**
      * 校验sqlServer是否开启了agent服务
+     *
      * @param conn
      * @return
      * @throws SQLException
      */
     public static boolean checkAgentHasStart(Connection conn) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(CHECK_CDC_AGENT);
-           if(rs.next()){
-               String status = rs.getString(1);
-               if (StringUtils.isNotEmpty(status)) {
-                   return "Running.".equalsIgnoreCase(status.toUpperCase(Locale.ENGLISH));
-               }
-           }
+
+        try (Statement statement = conn.createStatement()) {
+            try (ResultSet rs = statement.executeQuery(CHECK_CDC_AGENT)) {
+                if (rs.next()) {
+                    String status = rs.getString(1);
+                    if (StringUtils.isNotEmpty(status)) {
+                        return "Running.".equalsIgnoreCase(status.toUpperCase(Locale.ENGLISH));
+                    }
+                }
+                return false;
+            }
         } catch (SQLException e) {
             LOG.error("error to query agent status, sql = {}, e = {}", CHECK_CDC_AGENT, ExceptionUtil.getErrorMessage(e));
-           //如果出现异常 就直接返回true  因为有可能是这个sql没有权限 即如果有权限就去判断 没权限就不需要判断
-           // throw e;
+            //如果出现异常 就直接返回true  因为有可能是这个sql没有权限 即如果有权限就去判断 没权限就不需要判断
+            // throw e;
             return true;
-        } finally {
-            closeDbResources(rs, statement, null, false);
         }
-        return false;
     }
 
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
         Set<ChangeTable> changeTableSet = new HashSet<>();
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(GET_LIST_OF_CDC_ENABLED_TABLES);
-            while (rs.next()) {
-                String column = rs.getString(15);
-                Matcher m = p.matcher(column);
-                List<String> columnList = new ArrayList<>();
-                while(m.find()){
-                    columnList.add(m.group(1));
+        try (Statement statement = conn.createStatement()) {
+            try (ResultSet rs = statement.executeQuery(GET_LIST_OF_CDC_ENABLED_TABLES)) {
+                while (rs.next()) {
+                    String column = rs.getString(15);
+                    Matcher m = p.matcher(column);
+                    List<String> columnList = new ArrayList<>();
+                    while (m.find()) {
+                        columnList.add(m.group(1));
+                    }
+                    changeTableSet.add(
+                            new ChangeTable(
+                                    new TableId(databaseName, rs.getString(1), rs.getString(2)),
+                                    rs.getString(3),
+                                    rs.getInt(4),
+                                    Lsn.valueOf(rs.getBytes(6)),
+                                    Lsn.valueOf(rs.getBytes(7)),
+                                    columnList
+                            )
+                    );
                 }
-                changeTableSet.add(
-                        new ChangeTable(
-                                new TableId(databaseName, rs.getString(1), rs.getString(2)),
-                                rs.getString(3),
-                                rs.getInt(4),
-                                Lsn.valueOf(rs.getBytes(6)),
-                                Lsn.valueOf(rs.getBytes(7)),
-                                columnList
-                        )
-                );
             }
         } catch (SQLException e) {
             LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally {
-            closeDbResources(rs, statement, null, false);
         }
         return changeTableSet;
     }
 
     public static Lsn getMaxLsn(Connection conn) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
         Lsn lsn = null;
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(GET_MAX_LSN);
-            rs.next();
-            lsn = Lsn.valueOf(rs.getBytes(1));
+        try (Statement statement = conn.createStatement()) {
+            try (ResultSet rs = statement.executeQuery(GET_MAX_LSN)) {
+                rs.next();
+                lsn = Lsn.valueOf(rs.getBytes(1));
+            }
         } catch (SQLException e) {
             LOG.error("error to query change table set, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally {
-            closeDbResources(rs, statement, null, false);
         }
         return lsn;
     }
@@ -225,20 +209,16 @@ public class SqlServerCdcUtil {
     }
 
     public static Lsn incrementLsn(Connection conn, Lsn lsn) throws SQLException {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         Lsn ret;
-        try {
-            ps = conn.prepareStatement(INCREMENT_LSN);
+        try (PreparedStatement ps = conn.prepareStatement(INCREMENT_LSN)) {
             ps.setBytes(1, lsn.getBinary());
-            rs = ps.executeQuery();
-            rs.next();
-            ret = Lsn.valueOf(rs.getBytes(1));
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                ret = Lsn.valueOf(rs.getBytes(1));
+            }
         } catch (SQLException e) {
             LOG.error("error to query increment lsn, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally {
-            closeDbResources(rs, ps, null, false);
         }
         return ret;
     }
@@ -268,17 +248,18 @@ public class SqlServerCdcUtil {
 
     /**
      * clob转string
-     * @param obj   clob
+     *
+     * @param obj clob
      * @return
      * @throws Exception
      */
-    public static Object clobToString(Object obj) throws Exception{
-        if(obj instanceof Clob){
-            Clob clob = (Clob)obj;
+    public static Object clobToString(Object obj) throws Exception {
+        if (obj instanceof Clob) {
+            Clob clob = (Clob) obj;
             BufferedReader bf = new BufferedReader(clob.getCharacterStream());
             StringBuilder stringBuilder = new StringBuilder();
             String line;
-            while ((line = bf.readLine()) != null){
+            while ((line = bf.readLine()) != null) {
                 stringBuilder.append(line);
             }
             bf.close();
@@ -290,15 +271,16 @@ public class SqlServerCdcUtil {
 
     /**
      * 获取jdbc连接(超时10S)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
+     *
+     * @param url      url
+     * @param username 账号
+     * @param password 密码
      * @return
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {
         Connection dbConn;
-        synchronized (ClassUtil.LOCK_STR){
+        synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
 
             // telnet
@@ -312,44 +294,6 @@ public class SqlServerCdcUtil {
         }
 
         return dbConn;
-    }
-
-
-    /**
-     * 关闭连接资源
-     * @param rs        ResultSet
-     * @param stmt      Statement
-     * @param conn      Connection
-     * @param commit
-     */
-    public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
-        if (null != rs) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != stmt) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != conn) {
-            try {
-                if(commit && !conn.isClosed()){
-                    conn.commit();
-                }
-
-                conn.close();
-            } catch (SQLException e) {
-                LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
     }
 
     public static class StatementResult {
