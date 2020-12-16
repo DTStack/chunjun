@@ -114,24 +114,12 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         try {
             ClassUtil.forName(DRIVER, getClass().getClassLoader());
             Connection conn = SqlServerCdcUtil.getConnection(format.url, format.username, format.password);
-            //效验是否开启agent
-            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
-                sb.append("sqlServer agentServer not running,please enable agentServer;\n\n");
-            }
-
-            //校验用户权限
-            if (!SqlServerCdcUtil.checkUserRole(conn)) {
-                sb.append("user serverRole must has sysadmin;\n\n");
-            }
 
             //校验数据库是否开启cdc
             SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
                 sb.append(format.databaseName + " is not enable sqlServer CDC;\n")
-                        .append("please execute sql for enable databaseCDC：\nUSE " + format.databaseName + "\n" +
-                                "GO  \n" +
-                                "EXEC sys.sp_cdc_enable_db  \n" +
-                                "GO  \n\n ");
+                        .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
             //效验表是否开启cdc
             Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
@@ -139,11 +127,7 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 String tables = unEnabledCdcTables.toString();
                 sb.append(GsonUtil.GSON.toJson(tables) + "  is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable tableCDC: ");
-                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n" +
-                        "@source_schema = '%s', \n" +
-                        "@source_name = '%s', \n" +
-                        "@role_name = NULL, \n" +
-                        "@supports_net_changes = 0;";
+                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
 
                 for (String table : unEnabledCdcTables) {
                     List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
@@ -151,9 +135,15 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 }
             }
 
+            //效验是否开启agent
+            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
+                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
+            }
+
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
+
         } catch (Exception e) {
             throw new RuntimeException("error to check sqlServerCDC config, e = " + ExceptionUtil.getErrorMessage(e), e);
         }

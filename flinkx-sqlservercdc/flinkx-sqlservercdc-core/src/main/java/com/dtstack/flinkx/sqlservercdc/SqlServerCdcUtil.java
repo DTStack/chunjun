@@ -59,8 +59,7 @@ public class SqlServerCdcUtil {
     private static final String STATEMENTS_PLACEHOLDER = "#";
     private static final String CHECK_CDC_DATABASE = "select 1 from sys.databases where name='%s' AND is_cdc_enabled=1";
     private static final String CHECK_CDC_TABLE = "select sys.schemas.name+'.'+sys.tables.name from sys.tables, sys.schemas where sys.tables.is_tracked_by_cdc = 1 and sys.tables.schema_id = sys.schemas.schema_id;";
-    private static final String CHECK_CDC_AGENT = "EXEC master.dbo.xp_servicecontrol N'QUERYSTATE', N'SQLSERVERAGENT';";
-    private static final String CHECK_CDC_USER_ROLE = "exec sp_helpsrvrolemember 'sysadmin';";
+    //    private static final String CHECK_CDC_AGENT = "EXEC master.dbo.xp_servicecontrol N'QUERYSTATE', N'SQLSERVERAGENT';";
     private static final String GET_LIST_OF_CDC_ENABLED_TABLES = "EXEC sys.sp_cdc_help_change_data_capture";
     private static final String GET_MAX_LSN = "SELECT sys.fn_cdc_get_max_lsn()";
     private static final String INCREMENT_LSN = "SELECT sys.fn_cdc_increment_lsn(?)";
@@ -120,49 +119,19 @@ public class SqlServerCdcUtil {
         ResultSet rs = null;
         try {
             statement = conn.createStatement();
-            rs = statement.executeQuery(CHECK_CDC_AGENT);
-           if(rs.next()){
-               String status = rs.getString(1);
-               if (StringUtils.isNotEmpty(status)) {
-                   return "Running.".toUpperCase(Locale.ENGLISH).equals(status.toUpperCase(Locale.ENGLISH));
-               }
-           }
-        } catch (SQLException e) {
-            LOG.error("error to query UnEnabled CDC Tables, sql = {}, e = {}", CHECK_CDC_TABLE, ExceptionUtil.getErrorMessage(e));
-            throw e;
-        } finally {
-            closeDbResources(rs, statement, null, false);
-        }
-        return false;
-    }
-
-    /**
-     * 校验用户是否具有 sysadmin 权限
-     * @param conn
-     * @return
-     * @throws SQLException
-     */
-    public static boolean checkUserRole(Connection conn) throws SQLException {
-        Statement statement = null;
-        ResultSet rs = null;
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(CHECK_CDC_USER_ROLE);
-
-            while (rs.next()) {
-                String privilege = rs.getString("ServerRole");
-                if (StringUtils.isNotEmpty(privilege)) {
-                    return privilege.toUpperCase(Locale.ENGLISH).equals("sysadmin".toUpperCase(Locale.ENGLISH));
-                }
+            rs = statement.executeQuery(GET_MAX_LSN);
+            if (rs.next()) {
+                return !Lsn.NULL.equals(Lsn.valueOf(rs.getBytes(1)));
             }
         } catch (SQLException e) {
-            LOG.error("error to query UnEnabled CDC Tables, sql = {}, e = {}", CHECK_CDC_TABLE, ExceptionUtil.getErrorMessage(e));
+            LOG.error("error to query CDC LSN, sql = {}, e = {}", GET_MAX_LSN, ExceptionUtil.getErrorMessage(e));
             throw e;
         } finally {
             closeDbResources(rs, statement, null, false);
         }
         return false;
     }
+
 
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName) throws SQLException {
         Statement statement = null;
