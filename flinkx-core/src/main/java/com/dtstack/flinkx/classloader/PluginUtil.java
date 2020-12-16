@@ -20,12 +20,12 @@
 package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import org.apache.commons.compress.utils.Lists;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -79,7 +79,7 @@ public class PluginUtil {
     }
 
     private static List<String> getJarNames(File pluginPath) {
-        List<String> jarNames = Lists.newArrayList();
+        List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
             File[] jarFiles = pluginPath.listFiles((dir, name) ->
                     name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
