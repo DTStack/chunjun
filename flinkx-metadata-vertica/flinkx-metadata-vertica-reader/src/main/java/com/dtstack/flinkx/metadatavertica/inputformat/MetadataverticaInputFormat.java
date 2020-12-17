@@ -24,7 +24,6 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,6 +66,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, String> ptColumnMap;
 
+    List<Map<String, Object>> ptColumns = new LinkedList<>();
+
     private static final List<String> SINGLE_DIGITAL_TYPE = Arrays.asList("Integer", "Varchar", "Char", "Numeric");
 
     private static final List<String> DOUBLE_DIGITAL_TYPE = Arrays.asList("Timestamp", "Decimal");
@@ -91,15 +92,7 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> result = new HashMap<>(16);
         result.put(KEY_TABLE_PROPERTIES, queryTableProp(tableName));
         result.put(KEY_COLUMN, queryColumn(tableName));
-        if(ptColumnMap.containsKey(tableName)){
-            Map<String, Object> map = new HashMap<>(16);
-            map.put(KEY_COLUMN_NAME, ptColumnMap.get(tableName));
-            // 只有一个分区键
-            map.put(KEY_COLUMN_INDEX, 1);
-            List<Map<String, Object>> ptColumns = Collections.singletonList(map);
-            result.put(KEY_PARTITION_COLUMNS, ptColumns);
-        }
-
+        result.put(KEY_PARTITION_COLUMNS, ptColumns);
         return result;
     }
 
@@ -135,7 +128,11 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
             map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
             map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
             map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
-            columns.add(map);
+            if(ptColumnMap.get(tableName) != null && columnName.equals(ptColumnMap.get(tableName))){
+                ptColumns.add(map);
+            }else{
+                columns.add(map);
+            }
         }
         return columns;
     }
@@ -190,11 +187,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 String expression = resultSet.getString(2);
-                if(expression != null){
-                    expression  = expression.substring(expression.indexOf(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL) + 1,
-                            expression.lastIndexOf(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL));
-                    ptColumnMap.put(resultSet.getString(1), expression);
-                }
+                expression  = expression.substring(expression.indexOf(ConstantValue.POINT_SYMBOL) + 1,
+                        expression.lastIndexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
+                ptColumnMap.put(resultSet.getString(1), expression);
             }
         }
     }
