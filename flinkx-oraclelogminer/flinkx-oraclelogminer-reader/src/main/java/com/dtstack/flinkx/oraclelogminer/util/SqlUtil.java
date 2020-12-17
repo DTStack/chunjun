@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.oraclelogminer.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -282,7 +283,11 @@ public class SqlUtil {
 
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
 
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? > FIRST_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
+
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
+
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
 
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
@@ -292,6 +297,8 @@ public class SqlUtil {
 
     public final static String SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL = "SELECT SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE";
 
+    public final static String SQL_QUERY_ENCODING = "SELECT USERENV('LANGUAGE') FROM DUAL";
+
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
@@ -300,37 +307,52 @@ public class SqlUtil {
 
     public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
+    /**
+     * 构建查询v$logmnr_contents视图SQL
+     * @param listenerOptions   需要采集操作类型字符串 delete,insert,update
+     * @param listenerTables    需要采集的schema+表名 SCHEMA1.TABLE1,SCHEMA2.TABLE2
+     * @return
+     */
     public static String buildSelectSql(String listenerOptions, String listenerTables){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-        }
-
-        if (StringUtils.isNotEmpty(listenerTables)) {
-            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-        } else {
-            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-        }
-
-        return sqlBuilder.toString();
     }
 
+        if (StringUtils.isNotEmpty(listenerTables)) {
+        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+    } else {
+        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+    }
+
+        return sqlBuilder.toString();
+}
+
+    /**
+     * 构建需要采集操作类型字符串的过滤条件
+     * @param listenerOptions 需要采集操作类型字符串 delete,insert,update
+     * @return
+     */
     private static String buildOperationFilter(String listenerOptions){
         List<String> standardOperations = new ArrayList<>();
 
-        String[] operations = listenerOptions.split(",");
+        String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
         for (String operation : operations) {
             if (!SUPPORTED_OPERATIONS.contains(operation.toUpperCase())) {
-                throw new RuntimeException("Unsupported operation type :" + operation);
+                throw new RuntimeException("Unsupported operation type:" + operation);
             }
 
             standardOperations.add(String.format("'%s'", operation.toUpperCase()));
         }
 
-        return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ","));
+        return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
     }
 
+    /**
+     * 过滤系统表
+     * @return
+     */
     private static String buildExcludeSchemaFilter(){
         List<String> filters = new ArrayList<>();
         for (String excludeSchema : EXCLUDE_SCHEMAS) {
@@ -340,20 +362,25 @@ public class SqlUtil {
         return String.format("(%s)", StringUtils.join(filters, " and "));
     }
 
+    /**
+     * 构建需要采集的schema+表名的过滤条件
+     * @param listenerTables    需要采集的schema+表名 SCHEMA1.TABLE1,SCHEMA2.TABLE2
+     * @return
+     */
     private static String buildSchemaTableFilter(String listenerTables){
         List<String> filters = new ArrayList<>();
 
-        String[] tableWithSchemas = listenerTables.split(",");
+        String[] tableWithSchemas = listenerTables.split(ConstantValue.COMMA_SYMBOL);
         for (String tableWithSchema : tableWithSchemas){
             List<String> tables = Arrays.asList(tableWithSchema.split("\\."));
-            if ("*".equals(tables.get(0))) {
-                throw new IllegalArgumentException("Must specify the schema to be collected :" + tableWithSchema);
+            if (ConstantValue.STAR_SYMBOL.equals(tables.get(0))) {
+                throw new IllegalArgumentException("Must specify the schema to be collected:" + tableWithSchema);
             }
 
-            StringBuilder tableFilterBuilder = new StringBuilder();
+            StringBuilder tableFilterBuilder = new StringBuilder(256);
             tableFilterBuilder.append(String.format("SEG_OWNER='%s'", tables.get(0)));
 
-            if(!"*".equals(tables.get(1))){
+            if(!ConstantValue.STAR_SYMBOL.equals(tables.get(1))){
                 tableFilterBuilder.append(" and ").append(String.format("TABLE_NAME='%s'", tables.get(1)));
             }
 
@@ -363,6 +390,11 @@ public class SqlUtil {
         return String.format("(%s)", StringUtils.join(filters, " or "));
     }
 
+    /**
+     * 是否为临时表，临时表没有redo sql，sql_redo内容为No SQL_UNDO for temporary tables
+     * @param sql redo sql
+     * @return
+     */
     public static boolean isCreateTemporaryTableSql(String sql) {
         return sql.contains("temporary tables");
     }
