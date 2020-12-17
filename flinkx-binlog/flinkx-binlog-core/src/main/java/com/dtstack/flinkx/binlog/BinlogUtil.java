@@ -45,9 +45,9 @@ public class BinlogUtil {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     //是否开启binlog
-    private static final String CHECK_BINLOG_ENABLE = "show variables like 'log_bin' ;";
+    private static final String CHECK_BINLOG_ENABLE = "show variables where variable_name = 'log_bin';;";
     //查看binlog format
-    private static final String CHECK_BINLOG_FORMAT = "show variables like 'binlog_format';";
+    private static final String CHECK_BINLOG_FORMAT = "show variables where variable_name = 'binlog_format';;";
     //校验用户是否有权限
     private static final String CHECK_USER_PRIVILEGE = "show master status ;";
 
@@ -62,12 +62,20 @@ public class BinlogUtil {
     public static final int SLEEP_TIME = 2000;
 
 
+    /**
+     * 校验是否开启binlog
+     *
+     * @param conn
+     * @return
+     * @throws SQLException
+     */
     public static boolean checkEnabledBinlog(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(CHECK_BINLOG_ENABLE)) {
-                while (rs.next()) {
-                    if ("log_bin".equals(rs.getString("Variable_name"))) {
-                        return "ON".equalsIgnoreCase(rs.getString("Value"));
+                if (rs.next()) {
+                    String binLog = rs.getString("Value");
+                    if (StringUtils.isNotBlank(binLog)) {
+                        return "ON".equalsIgnoreCase(binLog);
                     }
                 }
                 return false;
@@ -78,12 +86,20 @@ public class BinlogUtil {
         }
     }
 
+    /**
+     * 校验binlog的format格式
+     *
+     * @param conn
+     * @return
+     * @throws SQLException
+     */
     public static boolean checkBinlogFormat(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             try (ResultSet rs = statement.executeQuery(CHECK_BINLOG_FORMAT)) {
-                while (rs.next()) {
-                    if ("binlog_format".equals(rs.getString("Variable_name"))) {
-                        return "row".equalsIgnoreCase(rs.getString("Value"));
+                if (rs.next()) {
+                    String logFormat = rs.getString("Value");
+                    if (StringUtils.isNotBlank(logFormat)) {
+                        return "row".equalsIgnoreCase(logFormat);
                     }
                 }
                 return false;
@@ -94,6 +110,12 @@ public class BinlogUtil {
         }
     }
 
+    /**
+     * 效验用户的权限
+     *
+     * @param conn
+     * @return
+     */
     public static boolean checkUserPrivilege(Connection conn) {
         try (Statement statement = conn.createStatement()) {
             statement.execute(CHECK_USER_PRIVILEGE);

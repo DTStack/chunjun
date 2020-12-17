@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.format;
 
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
@@ -23,12 +23,14 @@ import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.binlog.BinlogJournalValidator;
 import com.dtstack.flinkx.binlog.BinlogUtil;
+import com.dtstack.flinkx.binlog.listener.BinlogAlarmHandler;
+import com.dtstack.flinkx.binlog.reader.BinlogConfig;
+import com.dtstack.flinkx.binlog.listener.BinlogEventSink;
+import com.dtstack.flinkx.binlog.listener.BinlogPositionManager;
+import com.dtstack.flinkx.binlog.listener.HeartBeatController;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.RetryUtil;
-import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,18 +43,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 

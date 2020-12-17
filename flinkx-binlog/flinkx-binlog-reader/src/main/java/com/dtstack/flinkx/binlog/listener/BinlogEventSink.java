@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.listener;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -157,7 +158,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         Row row = null;
         try {
             Map<String, Object> map = queue.take();
-            //@see com.dtstack.flinkx.binlog.reader.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
+            //@see com.dtstack.flinkx.binlog.listener.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
             if(map.size() == 1 && map.containsKey("e")){
                 throw new RuntimeException((String) map.get("e"));
             }else{

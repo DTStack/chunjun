@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.binlog.reader;
 
+import com.dtstack.flinkx.binlog.format.BinlogInputFormatBuilder;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;

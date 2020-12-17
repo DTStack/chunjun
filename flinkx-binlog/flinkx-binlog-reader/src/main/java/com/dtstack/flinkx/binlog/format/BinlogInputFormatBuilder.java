@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.format;
 
 import com.dtstack.flinkx.binlog.BinlogUtil;
+import com.dtstack.flinkx.binlog.reader.BinlogConfig;
 import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
