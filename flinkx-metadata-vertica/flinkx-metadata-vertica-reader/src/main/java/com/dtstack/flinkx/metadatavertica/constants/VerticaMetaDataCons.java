@@ -34,4 +34,6 @@ public class VerticaMetaDataCons extends MetaDataCons {
     public static final String SQL_CREATE_TIME = " SELECT table_name, create_time FROM tables WHERE table_schema = '%s' ";
 
     public static final String SQL_COMMENT = " select object_name, comment from comments where object_schema = '%s' ";
+
+    public static final String SQL_TOTAL_SIZE = " SELECT anchor_table_name, used_bytes FROM projection_storage WHERE anchor_table_schema = '%s' ";
 }
