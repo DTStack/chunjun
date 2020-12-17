@@ -24,6 +24,7 @@ import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PARTITIONS;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PARTITION_COLUMNS;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
@@ -50,6 +51,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_COMMENT;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_CREATE_TIME;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_PT_COLUMN;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_TOTAL_SIZE;
 
 /** 读取vertica的元数据
@@ -62,6 +64,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
     protected Map<String, String> commentMap;
 
     protected Map<String, String> totalSizeMap;
+
+    protected Map<String, String> ptColumnMap;
 
     private static final List<String> SINGLE_DIGITAL_TYPE = Arrays.asList("Integer", "Varchar", "Char", "Numeric");
 
@@ -87,6 +91,15 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         Map<String, Object> result = new HashMap<>(16);
         result.put(KEY_TABLE_PROPERTIES, queryTableProp(tableName));
         result.put(KEY_COLUMN, queryColumn(tableName));
+        if(ptColumnMap.containsKey(tableName)){
+            Map<String, Object> map = new HashMap<>(16);
+            map.put(KEY_COLUMN_NAME, ptColumnMap.get(tableName));
+            // 只有一个分区键
+            map.put(KEY_COLUMN_INDEX, 1);
+            List<Map<String, Object>> ptColumns = Collections.singletonList(map);
+            result.put(KEY_PARTITION_COLUMNS, ptColumns);
+        }
+
         return result;
     }
 
@@ -100,6 +113,7 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         queryCreateTime();
         queryComment();
         queryTotalSizeMap();
+        queryPtColumnMap();
     }
 
     public List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
@@ -107,7 +121,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
         while (resultSet.next()){
             Map<String, Object> map = new HashMap<>(16);
-            map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
+            String columnName = resultSet.getString(RESULT_SET_COLUMN_NAME);
+            map.put(KEY_COLUMN_NAME, columnName);
             String dataSize = resultSet.getString(RESULT_SET_COLUMN_SIZE);
             String digits = resultSet.getString(RESULT_SET_DECIMAL_DIGITS);
             String type = resultSet.getString(RESULT_SET_TYPE_NAME);
@@ -165,6 +180,21 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 totalSizeMap.put(resultSet.getString(1), resultSet.getString(2));
+            }
+        }
+    }
+
+    public void queryPtColumnMap() throws SQLException {
+        ptColumnMap = new HashMap<>(16);
+        String sql = String.format(SQL_PT_COLUMN, currentDb.get());
+        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+            while (resultSet.next()){
+                String expression = resultSet.getString(2);
+                if(expression != null){
+                    expression  = expression.substring(expression.indexOf(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL) + 1,
+                            expression.lastIndexOf(ConstantValue.SINGLE_QUOTE_MARK_SYMBOL));
+                    ptColumnMap.put(resultSet.getString(1), expression);
+                }
             }
         }
     }
