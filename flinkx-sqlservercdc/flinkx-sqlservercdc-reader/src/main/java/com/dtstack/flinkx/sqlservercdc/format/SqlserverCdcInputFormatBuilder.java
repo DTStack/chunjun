@@ -20,7 +20,9 @@ package com.dtstack.flinkx.sqlservercdc.format;
 import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.sqlservercdc.Lsn;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
+import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -156,6 +158,15 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                     } else if (strings.size() == 1) {
                         sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
                     }
+                }
+            }
+
+            //效验lsn是否超过max_lsn
+            Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
+            if(StringUtils.isNotBlank(format.lsn)){
+                TxLogPosition logPosition = TxLogPosition.valueOf(Lsn.valueOf(format.lsn));
+                if (currentMaxLsn.compareTo(logPosition.getCommitLsn()) < 0) {
+                    sb.append("lsn: '").append(format.lsn).append("' does not exist;\n");
                 }
             }
 

@@ -122,15 +122,8 @@ public class Lsn implements Comparable<Lsn> {
             return 0;
         }
 
-        if (!this.isAvailable()) {
-            if (!o.isAvailable()) {
-                return 0;
-            }
-            return -1;
-        }
-
-        if (!o.isAvailable()) {
-            return 1;
+        if (!this.isAvailable() || !o.isAvailable()) {
+            throw new IllegalArgumentException("object can not be null!");
         }
 
         final int[] thisU = getUnsignedBinary();
