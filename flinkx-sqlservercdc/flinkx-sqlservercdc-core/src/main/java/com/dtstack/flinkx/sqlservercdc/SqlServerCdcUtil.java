@@ -65,6 +65,10 @@ public class SqlServerCdcUtil {
     private static final String INCREMENT_LSN = "SELECT sys.fn_cdc_increment_lsn(?)";
     private static final String GET_ALL_CHANGES_FOR_TABLE = "SELECT * FROM cdc.[fn_cdc_get_all_changes_#](ISNULL(?,sys.fn_cdc_get_min_lsn('#')), ?, N'all update old')";
 
+    public static final int RETRY_TIMES = 3;
+
+    public static final int SLEEP_TIME = 2000;
+
     public static void changeDatabase(Connection conn, String databaseName) throws SQLException {
         try (Statement statement = conn.createStatement()) {
             statement.execute(" use " + "\"" + databaseName + "\"");

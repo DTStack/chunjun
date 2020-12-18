@@ -24,6 +24,7 @@ import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -107,59 +108,62 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(format.cat)) {
             sb.append("No cat supplied;\n");
         }
+        if (sb.length() > 0) {
+            throw new IllegalArgumentException(sb.toString());
+        }
+
         SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
-        if(speed.getReaderChannel() > 1){
+        if (speed.getReaderChannel() > 1) {
             sb.append("sqlServerCdc can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(speed.getReaderChannel())
                     .append("];\n");
-        }else if(speed.getChannel() > 1){
+        } else if (speed.getChannel() > 1) {
             sb.append("sqlServerCdc can not support channel bigger than 1, current channel is [")
                     .append(speed.getChannel())
                     .append("];\n");
         }
 
-        if (sb.length() > 0) {
-            throw new IllegalArgumentException(sb.toString());
-        }
 
-        try {
-            ClassUtil.forName(DRIVER, getClass().getClassLoader());
-            try (Connection conn = SqlServerCdcUtil.getConnection(format.url, format.username, format.password)) {
+        ClassUtil.forName(DRIVER, getClass().getClassLoader());
+        try (Connection conn = RetryUtil.executeWithRetry(
+                () -> SqlServerCdcUtil.getConnection(format.url, format.username, format.password), SqlServerCdcUtil.RETRY_TIMES,
+                SqlServerCdcUtil.SLEEP_TIME,
+                false)) {
 
-                //效验是否开启agent
-                if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
-                    sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
-                }
+            //效验是否开启agent
+            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
+                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
+            }
 
-                //校验数据库是否开启cdc
-                SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
-                if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
-                    sb.append(format.databaseName).append(" is not enable sqlServer CDC;\n")
-                            .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
-                }
-                //效验表是否开启cdc
-                Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
-                if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
-                    String tables = unEnabledCdcTables.toString();
-                    sb.append(GsonUtil.GSON.toJson(tables)).append("  is not enable sqlServer CDC;\n")
-                            .append("please execute sql for enable tableCDC: ");
-                    String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
+            //校验数据库是否开启cdc
+            SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
+            if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
+                sb.append(format.databaseName).append(" is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
+            }
+            //效验表是否开启cdc
+            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
+            if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
+                String tables = unEnabledCdcTables.toString();
+                sb.append(GsonUtil.GSON.toJson(tables)).append("  is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable tableCDC: ");
+                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
 
-                    for (String table : unEnabledCdcTables) {
-                        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
-                        if (strings.size() == 2) {
-                            sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
-                        } else if (strings.size() == 1) {
-                            sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
-                        }
+                for (String table : unEnabledCdcTables) {
+                    List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+                    if (strings.size() == 2) {
+                        sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                    } else if (strings.size() == 1) {
+                        sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
                     }
                 }
-
-
-                if (sb.length() > 0) {
-                    throw new IllegalArgumentException(sb.toString());
-                }
             }
+
+
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException(sb.toString());
+            }
+
 
         } catch (Exception e) {
             throw new RuntimeException("error to check sqlServerCDC config, e = " + ExceptionUtil.getErrorMessage(e), e);
