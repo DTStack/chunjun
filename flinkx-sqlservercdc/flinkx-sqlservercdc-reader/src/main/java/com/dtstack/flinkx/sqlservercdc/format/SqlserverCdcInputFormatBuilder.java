@@ -17,11 +17,23 @@
  */
 package com.dtstack.flinkx.sqlservercdc.format;
 
+import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
+import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.sql.Connection;
 import java.util.List;
+import java.util.Set;
+
+import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
 
 /**
  * Date: 2019/12/03
@@ -33,7 +45,7 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected SqlserverCdcInputFormat format;
 
-    public SqlserverCdcInputFormatBuilder(){
+    public SqlserverCdcInputFormatBuilder() {
         super.format = this.format = new SqlserverCdcInputFormat();
     }
 
@@ -76,23 +88,85 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
+        StringBuilder sb = new StringBuilder(256);
+
         if (StringUtils.isBlank(format.username)) {
-            throw new IllegalArgumentException("No username supplied");
+            sb.append("No username supplied;\n");
         }
         if (StringUtils.isBlank(format.password)) {
-            throw new IllegalArgumentException("No password supplied");
+            sb.append("No password supplied;\n");
         }
         if (StringUtils.isBlank(format.url)) {
-            throw new IllegalArgumentException("No url supplied");
+            sb.append("No url supplied;\n");
         }
         if (StringUtils.isBlank(format.databaseName)) {
-            throw new IllegalArgumentException("No databaseName supplied");
+            sb.append("No databaseName supplied;\n");
         }
         if (CollectionUtils.isEmpty(format.tableList)) {
-            throw new IllegalArgumentException("No tableList supplied");
+            sb.append("No tableList supplied;\n");
         }
         if (StringUtils.isBlank(format.cat)) {
-            throw new IllegalArgumentException("No cat supplied");
+            sb.append("No cat supplied;\n");
+        }
+        if (sb.length() > 0) {
+            throw new IllegalArgumentException(sb.toString());
+        }
+
+        SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
+        if (speed.getReaderChannel() > 1) {
+            sb.append("sqlServerCdc can not support readerChannel bigger than 1, current readerChannel is [")
+                    .append(speed.getReaderChannel())
+                    .append("];\n");
+        } else if (speed.getChannel() > 1) {
+            sb.append("sqlServerCdc can not support channel bigger than 1, current channel is [")
+                    .append(speed.getChannel())
+                    .append("];\n");
+        }
+
+
+        ClassUtil.forName(DRIVER, getClass().getClassLoader());
+        try (Connection conn = RetryUtil.executeWithRetry(
+                () -> SqlServerCdcUtil.getConnection(format.url, format.username, format.password), SqlServerCdcUtil.RETRY_TIMES,
+                SqlServerCdcUtil.SLEEP_TIME,
+                false)) {
+
+            //效验是否开启agent
+            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
+                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
+            }
+
+            //校验数据库是否开启cdc
+            SqlServerCdcUtil.changeDatabase(conn, format.databaseName);
+            if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.databaseName)) {
+                sb.append(format.databaseName).append(" is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
+            }
+            //效验表是否开启cdc
+            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
+            if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
+                String tables = unEnabledCdcTables.toString();
+                sb.append(GsonUtil.GSON.toJson(tables)).append("  is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable tableCDC: ");
+                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
+
+                for (String table : unEnabledCdcTables) {
+                    List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+                    if (strings.size() == 2) {
+                        sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                    } else if (strings.size() == 1) {
+                        sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
+                    }
+                }
+            }
+
+
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException("error to check sqlServerCDC config, e = " + ExceptionUtil.getErrorMessage(e), e);
         }
     }
 }
