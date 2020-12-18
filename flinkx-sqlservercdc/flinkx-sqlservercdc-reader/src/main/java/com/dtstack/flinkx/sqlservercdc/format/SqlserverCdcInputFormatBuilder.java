@@ -20,17 +20,25 @@ package com.dtstack.flinkx.sqlservercdc.format;
 import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.sqlservercdc.Lsn;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil;
+import com.dtstack.flinkx.sqlservercdc.SqlserverCdcEnum;
+import com.dtstack.flinkx.sqlservercdc.TxLogPosition;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static com.dtstack.flinkx.sqlservercdc.SqlServerCdcUtil.DRIVER;
@@ -123,6 +131,19 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                     .append("];\n");
         }
 
+        //校验cat
+        HashSet<String> set = Sets.newHashSet(SqlserverCdcEnum.DELETE.name,
+                SqlserverCdcEnum.UPDATE.name,
+                SqlserverCdcEnum.INSERT.name);
+        ArrayList<String> cats = Lists.newArrayList(format.getCat().split(ConstantValue.COMMA_SYMBOL));
+        cats.removeIf(s -> set.contains(s.toLowerCase(Locale.ENGLISH)));
+        if (CollectionUtils.isNotEmpty(cats)) {
+            sb.append("sqlServer cat not support-> ")
+                    .append(GsonUtil.GSON.toJson(cats))
+                    .append(",just support->")
+                    .append(GsonUtil.GSON.toJson(set))
+                    .append(";\n");
+        }
 
         ClassUtil.forName(DRIVER, getClass().getClassLoader());
         try (Connection conn = RetryUtil.executeWithRetry(
@@ -156,6 +177,14 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                     } else if (strings.size() == 1) {
                         sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
                     }
+                }
+            }
+
+            //效验lsn是否超过max_lsn
+            Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
+            if (StringUtils.isNotBlank(format.lsn)) {
+                if (currentMaxLsn.compareTo(Lsn.valueOf(format.lsn)) < 0) {
+                    sb.append("lsn: '").append(format.lsn).append("' does not exist;\n");
                 }
             }
 
