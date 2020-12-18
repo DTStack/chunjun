@@ -126,8 +126,15 @@ public class LogMinerConnection {
     }
 
     public void disConnect() throws SQLException{
+        //清除日志文件组，下次LogMiner启动时重新加载日志文件
+        addedLogFiles.clear();
+
         if (null != logMinerStartStmt && logMinerStarted) {
-            logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            try {
+                logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            }catch (SQLException e){
+                LOG.warn("close logMiner failed, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
             logMinerStarted = false;
         }
 
@@ -143,7 +150,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.close();
         }
 
-        if (null != connection) {
+        if (null != connection && !connection.isClosed()) {
             connection.close();
         }
     }
@@ -189,7 +196,7 @@ public class LogMinerConnection {
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, offset:{}, sql:{}", startScn, startSql);
+            LOG.info("start logMiner successfully, startScn:{}", startScn);
         } catch (SQLException e){
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -428,7 +435,7 @@ public class LogMinerConnection {
     }
 
     public boolean hasNext() throws SQLException{
-        if (null == logMinerData) {
+        if (null == logMinerData || logMinerData.isClosed()) {
             return false;
         }
 
