@@ -90,7 +90,7 @@ public class LogMinerConnection {
 
     private long lastQueryTime;
 
-    private static final long QUERY_LOG_INTERVAL = 1000;
+    private static final long QUERY_LOG_INTERVAL = 10000;
 
     private boolean logMinerStarted = false;
 
@@ -113,8 +113,15 @@ public class LogMinerConnection {
     }
 
     public void disConnect() throws SQLException{
+        //清除日志文件组，下次LogMiner启动时重新加载日志文件
+        addedLogFiles.clear();
+
         if (null != logMinerStartStmt && logMinerStarted) {
-            logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            try {
+                logMinerStartStmt.execute(SqlUtil.SQL_STOP_LOG_MINER);
+            }catch (SQLException e){
+                LOG.warn("close logMiner failed, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
             logMinerStarted = false;
         }
 
@@ -130,7 +137,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.close();
         }
 
-        if (null != connection) {
+        if (null != connection && !connection.isClosed()) {
             connection.close();
         }
     }
@@ -138,6 +145,19 @@ public class LogMinerConnection {
     public void startOrUpdateLogMiner(Long startScn) {
         String startSql = null;
         try {
+            // 防止没有数据更新的时候频繁查询数据库，限定查询的最小时间间隔 QUERY_LOG_INTERVAL
+            if (lastQueryTime > 0) {
+                long time = System.currentTimeMillis() - lastQueryTime;
+                if (time < QUERY_LOG_INTERVAL) {
+                    try {
+                        Thread.sleep(QUERY_LOG_INTERVAL-time);
+                    } catch (InterruptedException e) {
+                        LOG.warn("", e);
+                    }
+                }
+            }
+            lastQueryTime = System.currentTimeMillis();
+
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
@@ -163,7 +183,7 @@ public class LogMinerConnection {
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, offset:{}, sql:{}", startScn, startSql);
+            LOG.info("start logMiner successfully, startScn:{}", startScn);
         } catch (SQLException e){
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -362,18 +382,6 @@ public class LogMinerConnection {
     }
 
     private List<LogFile> queryLogFiles(Long scn) throws SQLException{
-        // 防止没有数据更新的时候频繁查询数据库，限定查询的最小时间间隔 QUERY_LOG_INTERVAL
-        if (lastQueryTime > 0) {
-            long time = System.currentTimeMillis() - lastQueryTime;
-            if (time < QUERY_LOG_INTERVAL) {
-                try {
-                    Thread.sleep(QUERY_LOG_INTERVAL);
-                } catch (InterruptedException e) {
-                    LOG.warn("", e);
-                }
-            }
-        }
-
         List<LogFile> logFiles = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
@@ -411,7 +419,7 @@ public class LogMinerConnection {
     }
 
     public boolean hasNext() throws SQLException{
-        if (null == logMinerData) {
+        if (null == logMinerData || logMinerData.isClosed()) {
             return false;
         }
 
