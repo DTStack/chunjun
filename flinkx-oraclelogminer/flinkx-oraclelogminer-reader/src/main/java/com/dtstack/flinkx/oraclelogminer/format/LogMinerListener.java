@@ -85,7 +85,7 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
-        logMinerConnection.checkPrivileges();
+        logMinerConnection.queryOracleVersion();
         logMinerConnection.queryDataBaseEncoding();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
