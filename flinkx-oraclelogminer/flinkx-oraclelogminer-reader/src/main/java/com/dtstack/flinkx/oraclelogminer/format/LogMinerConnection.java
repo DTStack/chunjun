@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +56,28 @@ public class LogMinerConnection {
 
     public static Logger LOG = LoggerFactory.getLogger(LogMinerConnection.class);
 
+    public static final String KEY_PRIVILEGE = "PRIVILEGE";
+    public static final String KEY_GRANTED_ROLE = "GRANTED_ROLE";
+
+    public static final String DBA_ROLE = "DBA";
+    public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
+
+    public static final int ORACLE_11_VERSION = 11;
     public int oracleVersion;
     //oracle10数据库字符编码是否设置为GBK
     public boolean isGBK = false;
     boolean isOracle10;
+
+    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
+            "CREATE SESSION",
+            "LOGMINING",
+            "SELECT ANY TRANSACTION",
+            "SELECT ANY DICTIONARY");
+
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList(
+            "CREATE SESSION",
+            "SELECT ANY TRANSACTION",
+            "SELECT ANY DICTIONARY");
 
     public static final int RETRY_TIMES = 3;
 
@@ -504,16 +523,83 @@ public class LogMinerConnection {
         }
     }
 
+    public void checkPrivileges() {
+        try (Statement statement = connection.createStatement()) {
 
-    /**
-     * 查询Oracle版本
-     */
-    public void queryOracleVersion() {
-        try{
             oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
-            LOG.info("current Oracle version is：{}", oracleVersion);
+            isOracle10 = oracleVersion == 10;
+            LOG.info("Oracle版本为：{}", oracleVersion);
+
+            queryDataBaseEncoding();
+
+            List<String> roles = getUserRoles(statement);
+            if (roles.contains(DBA_ROLE)) {
+                return;
+            }
+
+            if (!roles.contains(EXECUTE_CATALOG_ROLE)) {
+                throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
+            }
+
+            if (containsNeededPrivileges(statement)) {
+                return;
+            }
+
+            String message;
+            if(ORACLE_11_VERSION <= oracleVersion){
+                message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
+            }else{
+                message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
+            }
+
+            throw new IllegalArgumentException(message);
         } catch (SQLException e) {
-            throw new RuntimeException("query oracle version error", e);
+            throw new RuntimeException("检查权限出错", e);
+        }
+    }
+
+    private boolean containsNeededPrivileges(Statement statement) {
+        try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
+            List<String> privileges = new ArrayList<>();
+            while (rs.next()) {
+                String privilege = rs.getString(KEY_PRIVILEGE);
+                if (StringUtils.isNotEmpty(privilege)) {
+                    privileges.add(privilege.toUpperCase());
+                }
+            }
+
+            int privilegeCount = 0;
+            List<String> privilegeList;
+            if (oracleVersion <= ORACLE_11_VERSION) {
+                privilegeList = ORACLE_11_PRIVILEGES_NEEDED;
+            } else {
+                privilegeList = PRIVILEGES_NEEDED;
+            }
+            for (String privilege : privilegeList) {
+                if (privileges.contains(privilege)) {
+                    privilegeCount++;
+                }
+            }
+
+            return privilegeCount == privilegeList.size();
+        } catch (SQLException e) {
+            throw new RuntimeException("检查用户权限出错", e);
+        }
+    }
+
+    private List<String> getUserRoles(Statement statement) {
+        try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ROLES)) {
+            List<String> roles = new ArrayList<>();
+            while (rs.next()) {
+                String role = rs.getString(KEY_GRANTED_ROLE);
+                if (StringUtils.isNotEmpty(role)) {
+                    roles.add(role.toUpperCase());
+                }
+            }
+
+            return roles;
+        } catch (SQLException e) {
+            throw new RuntimeException("检查用户角色出错", e);
         }
     }
 
