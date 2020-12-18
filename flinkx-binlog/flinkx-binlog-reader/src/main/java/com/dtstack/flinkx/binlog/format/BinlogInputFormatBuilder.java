@@ -102,14 +102,14 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         //校验binlog cat
         if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
-            HashSet<String> list = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
+            HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
             List<String> cats = Lists.newArrayList(binlogConfig.getCat().toUpperCase().split(","));
-            cats.removeIf(s -> list.contains(s.toUpperCase(Locale.ENGLISH)));
+            cats.removeIf(s -> set.contains(s.toUpperCase(Locale.ENGLISH)));
             if (CollectionUtils.isNotEmpty(cats)) {
                 sb.append("binlog cat not support-> ")
                         .append(GsonUtil.GSON.toJson(cats))
                         .append(",just support->")
-                        .append(GsonUtil.GSON.toJson(list))
+                        .append(GsonUtil.GSON.toJson(set))
                         .append(";\n");
             }
         }

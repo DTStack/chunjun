@@ -28,6 +28,9 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
@@ -37,6 +40,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -95,6 +99,21 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                 && config.getStartTime() == 0){
             sb.append("[startTime] must be supplied when readPosition is [time];\n");
         }
+
+        //校验logMiner cat
+        if (StringUtils.isNotEmpty(config.getCat())) {
+            HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
+            List<String> cats = Lists.newArrayList(config.getCat().toUpperCase().split(","));
+            cats.removeIf(s -> set.contains(s.toUpperCase(Locale.ENGLISH)));
+            if (CollectionUtils.isNotEmpty(cats)) {
+                sb.append("logMiner cat not support-> ")
+                        .append(GsonUtil.GSON.toJson(cats))
+                        .append(",just support->")
+                        .append(GsonUtil.GSON.toJson(set))
+                        .append(";\n");
+            }
+        }
+
 
         SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
 
