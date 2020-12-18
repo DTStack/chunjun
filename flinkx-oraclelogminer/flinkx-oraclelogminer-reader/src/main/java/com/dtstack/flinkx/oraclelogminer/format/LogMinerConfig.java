@@ -38,7 +38,10 @@ public class LogMinerConfig implements Serializable {
 
     private String password;
 
-    private int fetchSize = 1;
+    /**
+     * LogMiner从v$logmnr_contents视图中批量拉取条数，值越大，消费存量数据越快
+     */
+    private int fetchSize = 1000;
 
     private String listenerTables;
 
@@ -61,7 +64,10 @@ public class LogMinerConfig implements Serializable {
 
     private List<String> table;
 
-    private Long queryTimeout;
+    /**
+     * LogMiner执行查询SQL的超时参数
+     */
+    private Long queryTimeout = 3000L;
 
     /**
      * Oracle 12c第二个版本之后LogMiner不支持自动添加日志

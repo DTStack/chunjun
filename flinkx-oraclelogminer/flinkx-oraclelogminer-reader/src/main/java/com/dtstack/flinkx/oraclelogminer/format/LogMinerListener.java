@@ -21,15 +21,22 @@ package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jiangbo
@@ -52,6 +59,11 @@ public class LogMinerListener implements Runnable {
     private LogParser logParser;
 
     private boolean running = false;
+
+    /**
+     * 连续接收到错误数据的次数
+     */
+    private int failedTimes;
 
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
         this.positionManager = positionManager;
@@ -96,22 +108,34 @@ public class LogMinerListener implements Runnable {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
                     logMinerConnection.queryData(positionManager.getPosition());
-
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
-                if(e instanceof JSQLParserException){
-                    LOG.warn("log parse fail,log is --->{}",log);
+                StringBuilder sb = new StringBuilder(512);
+                sb.append("LogMinerListener thread exception: current scn =")
+                        .append(positionManager.getPosition());
+                if (e instanceof JSQLParserException) {
+                    sb.append(",\nlog = ").append(log);
                 }
-                running = false;
-                Map<String, Object> map = Collections.singletonMap("e", ExceptionUtil.getErrorMessage(e));
+                sb.append(",\ne = ").append(ExceptionUtil.getErrorMessage(e));
+                String msg = sb.toString();
+                Log.warn(msg);
                 try {
-                    queue.put(new QueueData(0L, map));
+                    queue.put(new QueueData(0L, Collections.singletonMap("e", msg)));
+                    Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
-                    LOG.error("error to put exception message into queue, exception message = {}, e = {}", ExceptionUtil.getErrorMessage(e), ExceptionUtil.getErrorMessage(ex));
-                    throw new RuntimeException(ex);
+                    LOG.warn("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
                 }
-                logMinerConnection.closeStmt();
+                try {
+                    logMinerConnection.disConnect();
+                } catch (SQLException e1) {
+                    LOG.warn("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                }
+                try {
+                    logMinerConnection.connect();
+                } catch (Exception e1) {
+                    LOG.warn("LogMiner Thread get connect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
+                }
             }
         }
     }
@@ -136,10 +160,12 @@ public class LogMinerListener implements Runnable {
             QueueData data = queue.take();
             if (data.getScn() != 0L) {
                 positionManager.updatePosition(data.getScn());
+                failedTimes = 0;
                 return data.getData();
-
             }
-            LOG.error("LogMinerListener obtain an error data, data = {}", GsonUtil.GSON.toJson(data));
+            if (++failedTimes >= 3) {
+                throw new RuntimeException("Error data is received 3 times continuously, error msg is " + data.getData().get("e"));
+            }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);
         }
