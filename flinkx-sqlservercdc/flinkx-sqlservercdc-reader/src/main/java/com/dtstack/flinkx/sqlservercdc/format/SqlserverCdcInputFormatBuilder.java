@@ -136,7 +136,11 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
                 for (String table : unEnabledCdcTables) {
                     List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
-                    sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                    if (strings.size() == 2) {
+                        sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                    } else if (strings.size() == 1) {
+                        sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
+                    }
                 }
             }
 
