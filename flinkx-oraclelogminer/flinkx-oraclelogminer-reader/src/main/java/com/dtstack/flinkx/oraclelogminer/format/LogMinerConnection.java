@@ -90,8 +90,7 @@ public class LogMinerConnection {
 
     private long lastQueryTime;
 
-    //这里可能有坑，中房之前是1秒，宁波港是10秒，取个中间数5秒
-    private static final long QUERY_LOG_INTERVAL = 5000;
+    private static final long QUERY_LOG_INTERVAL = 10000;
 
     private boolean logMinerStarted = false;
 
