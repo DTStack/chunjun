@@ -92,9 +92,8 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                     .append("];\n");
         }
 
-
+        ClassUtil.forName(DRIVER_NAME, getClass().getClassLoader());
         try (Connection conn = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), BinlogUtil.RETRY_TIMES, BinlogUtil.SLEEP_TIME, false)) {
-            ClassUtil.forName(DRIVER_NAME, getClass().getClassLoader());
 
             //校验用户权限
             if (!BinlogUtil.checkUserPrivilege(conn)) {
