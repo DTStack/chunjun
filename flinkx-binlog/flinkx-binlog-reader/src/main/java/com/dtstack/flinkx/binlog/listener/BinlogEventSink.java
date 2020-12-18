@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.listener;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.gson.Gson;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,10 +113,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
             if (pavingData){
                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                    message.put("after_" + column.getName(), column.getValue());
+                    if(!column.getIsNull()){
+                        message.put("after_" + column.getName(), column.getValue());
+                    }
                 }
                 for (CanalEntry.Column column : rowData.getBeforeColumnsList()){
-                    message.put("before_" + column.getName(), column.getValue());
+                    if(!column.getIsNull()){
+                        message.put("before_" + column.getName(), column.getValue());
+                    }
                 }
             } else {
                 message.put("before", processColumnList(rowData.getBeforeColumnsList()));
@@ -129,8 +134,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
             if(DtLogger.isEnableTrace()){
-                //log level is trace, so don't care the performance，just new it.
-                LOG.trace("message = {}", new Gson().toJson(message));
+                LOG.trace("message = {}", GsonUtil.GSON.toJson(message));
             }
         }
 
@@ -139,7 +143,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
         Map<String,Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
-            map.put(column.getName(), column.getValue());
+            if(!column.getIsNull()){
+                map.put(column.getName(), column.getValue());
+            }
         }
         return map;
     }
@@ -152,7 +158,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         Row row = null;
         try {
             Map<String, Object> map = queue.take();
-            //@see com.dtstack.flinkx.binlog.reader.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
+            //@see com.dtstack.flinkx.binlog.listener.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
             if(map.size() == 1 && map.containsKey("e")){
                 throw new RuntimeException((String) map.get("e"));
             }else{
