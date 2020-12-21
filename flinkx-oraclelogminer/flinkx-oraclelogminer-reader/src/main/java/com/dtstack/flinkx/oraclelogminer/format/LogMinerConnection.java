@@ -61,6 +61,7 @@ public class LogMinerConnection {
 
     public static final int ORACLE_11_VERSION = 11;
     public int oracleVersion;
+    public boolean isOracle10;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
@@ -172,7 +173,7 @@ public class LogMinerConnection {
             lastQueryTime = System.currentTimeMillis();
 
             if (logMinerConfig.getSupportAutoAddLog()) {
-                startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
+                startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 List<LogFile> newLogFiles = queryLogFiles(startScn);
                 if (addedLogFiles.equals(newLogFiles)) {
@@ -180,7 +181,7 @@ public class LogMinerConnection {
                 } else {
                     LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
-                    startSql = oracleVersion == 10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
+                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
                 }
             }
 
@@ -188,6 +189,15 @@ public class LogMinerConnection {
                 LOG.info("close resource logMinerStartStmt");
                 logMinerStartStmt.close();
             }
+
+            //开启logMiner之前 需要设置会话级别的日期格式
+            if (isOracle10) {
+                PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
+                preparedStatement.execute();
+                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
+                preparedStatement.execute();
+            }
+
 
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
@@ -399,7 +409,7 @@ public class LogMinerConnection {
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
-            statement = connection.prepareStatement(oracleVersion == 10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
+            statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setLong(1, scn);
             statement.setLong(2, scn);
             rs = statement.executeQuery();
@@ -407,7 +417,7 @@ public class LogMinerConnection {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
-                if(oracleVersion == 10){
+                if(isOracle10){
                     logFile.setNextChange(Long.MAX_VALUE);
                 }else{
                     String nextChangeString = rs.getString("next_change#");
@@ -481,6 +491,7 @@ public class LogMinerConnection {
         try (Statement statement = connection.createStatement()) {
 
             oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
+            isOracle10 = oracleVersion == 10;
             LOG.info("Oracle版本为：{}", oracleVersion);
 
             List<String> roles = getUserRoles(statement);
