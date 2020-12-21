@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadataphoenix.constants;
+package com.dtstack.flinkx.metadataphoenix.util;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
 

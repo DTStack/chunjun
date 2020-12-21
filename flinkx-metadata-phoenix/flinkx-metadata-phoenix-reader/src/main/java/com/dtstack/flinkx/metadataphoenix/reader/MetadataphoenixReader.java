@@ -25,7 +25,7 @@ import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadataphoenix.inputformat.MetadataphoenixInputFormat;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import static com.dtstack.flinkx.metadataphoenix.constants.PhoenixMetadataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.DRIVER_NAME;
 
 /**
  * @author kunni@dtstack.com

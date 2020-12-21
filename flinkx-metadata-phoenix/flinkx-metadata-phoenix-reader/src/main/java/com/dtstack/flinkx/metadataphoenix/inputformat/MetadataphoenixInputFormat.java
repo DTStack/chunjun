@@ -18,7 +18,11 @@
 
 package com.dtstack.flinkx.metadataphoenix.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadataphoenix.util.ZkHelper;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.hadoop.hbase.HConstants;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,14 +35,19 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadataphoenix.constants.PhoenixMetadataCons.SQL_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadataphoenix.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * @author kunni@Dtstack.com
  */
 
 public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
+
+    private Map<String, Long> createTimeMap;
+
     @Override
     protected List<Object> showTables() throws SQLException{
         List<Object> table = new LinkedList<>();
@@ -57,7 +66,7 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
-        Map<String, String> tableProp = queryTableProp(tableName);
+        Map<String, Object> tableProp = queryTableProp(tableName);
         List<Map<String, Object>> column = queryColumn(tableName);
         result.put(KEY_TABLE_PROPERTIES, tableProp);
         result.put(KEY_COLUMN, column);
@@ -69,8 +78,9 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
         return null;
     }
 
-    public Map<String, String> queryTableProp(String tableName){
-        Map<String, String> tableProp = new HashMap<>();
+    public Map<String, Object> queryTableProp(String tableName){
+        Map<String, Object> tableProp = new HashMap<>();
+        tableProp.put(KEY_TABLE_CREATE_TIME, createTimeMap.get(tableName));
         return tableProp;
     }
 
@@ -87,4 +97,28 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
         return column;
     }
 
+
+    protected Map<String, Long> queryCreateTimeMap(String hosts) {
+        Map<String, Long> createTimeMap = new HashMap<>(16);
+        try{
+            ZkHelper.createSingleZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
+            List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
+            if(tables != null){
+                for(String table : tables){
+                    createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                }
+            }
+            ZkHelper.closeZooKeeper();
+        }catch (Exception e){
+            LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
+        }
+        return createTimeMap;
+    }
+
+
+    @Override
+    protected void init() {
+        String hosts = dbUrl.substring("jdbc:phoenix:".length());
+        createTimeMap = queryCreateTimeMap(hosts);
+    }
 }
