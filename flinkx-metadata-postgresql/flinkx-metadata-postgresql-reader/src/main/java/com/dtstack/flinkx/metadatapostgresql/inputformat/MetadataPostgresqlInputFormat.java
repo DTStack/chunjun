@@ -33,7 +33,6 @@ import java.util.Map;
 public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
@@ -46,14 +45,14 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
                 tableList = showTables();
                 queryTable = true;
             }
-            LOG.info("current database = {}, tableSize = {}, tableList = {}",currentDb.get(), tableList.size(), tableList);
+            LOG.info("current database = {}, tableSize = {}, tableList = {}", currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
             start = 0;
             init();
         } catch (ClassNotFoundException e) {
             LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
             throw new IOException(e);
-        } catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             tableList = new LinkedList<>();
         }
@@ -64,16 +63,16 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) {
-        String schema,table;
+        String schema, table;
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
-        if(queryTable){
+        if (queryTable) {
             Pair<String, String> pair = (Pair) tableIterator.get().next();
             schema = pair.getKey();
             table = pair.getValue();
-        }else{
-            Map<String, String> map = (Map<String, String>)tableIterator.get().next();
+        } else {
+            Map<String, String> map = (Map<String, String>) tableIterator.get().next();
             schema = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
             table = map.get(PostgresqlCons.KEY_TABLE_NAME);
         }
@@ -93,18 +92,17 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
     /**
-     *@Description 查询当前database中所有表名
-     *@param :
-     *@return List<Object>
-     *
-    **/
+     * @description 查询当前database中所有表名
+     * @param :
+     * @return List<Object>
+     **/
     @Override
     protected List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
         try (ResultSet resultSet = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
 
-           //如果数据库中没有表，抛出异常
-            if (!resultSet.next()){
+            //如果数据库中没有表，抛出异常
+            if (!resultSet.next()) {
                 throw new SQLException();
             }
             //指针回调
@@ -119,31 +117,50 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
 
     /**
-     *@description: postgresql没有对应的切换database的sql语句，所以此方法暂不实现
-     *@param databaseName:
-     *@return void
-     *
-    **/
+     * @description: postgresql没有对应的切换database的sql语句，所以此方法暂不实现
+     * @param databaseName:
+     * @return void
+     **/
     @Override
     protected void switchDatabase(String databaseName) throws SQLException {
 
     }
 
     /**
-     *@description 查询表中字段的元数据
-     *@param tableName: 表名
-     *@return Map<String,Object>
-     *
-    **/
+     * @description 查询表中字段的元数据
+     * @param tableName: 表名
+     * @return Map<String , Object>
+     **/
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        HashMap<String,Object> result = new HashMap<>(16);
-        LinkedList<ColumnMetaData> columns = new LinkedList<>();
-        String sql1 = String.format(PostgresqlCons.SQL_SHOW_TABLE_COLUMN,tableName);
-        String sql2 = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
-        String sql3 = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
 
-        try(ResultSet resultSet = statement.get().executeQuery(sql1)){
+        HashMap<String, Object> result = new HashMap<>(16);
+        //所有查询操作：
+        String primaryKey = showTablePrimaryKey(tableName);
+        int dataCount = showTableDataCount(tableName);
+        String size = showTableSize(tableName);
+        LinkedList<ColumnMetaData> columns = showColumnMetaData(tableName);
+
+
+        TableMetaData tableMetaData = new TableMetaData(tableName, primaryKey, dataCount, size, columns);
+
+        result.put(PostgresqlCons.KEY_METADATA, tableMetaData);
+
+
+        return result;
+     }
+
+
+    /**
+     *@description 查询表中所有字段的元数据
+     *@param tableName: 表名
+     *@return java.util.LinkedList<ColumnMetaData>
+     *
+    **/
+    private LinkedList<ColumnMetaData> showColumnMetaData(String tableName)throws SQLException{
+        LinkedList<ColumnMetaData> columns = new LinkedList<>();
+        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_COLUMN,tableName);
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while(resultSet.next()){
                 columns.add(new ColumnMetaData(resultSet.getString("name")
                         ,resultSet.getString("type")
@@ -153,28 +170,70 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
             }
 
-            String primaryKey = "";
-            try(ResultSet keySet = statement.get().executeQuery(sql2)){
-                if (keySet.next()){
-                    primaryKey = keySet.getString("name");
-                }
-            }
-            int dataCount = 0;
-            try(ResultSet countSet = statement.get().executeQuery(sql3)){
-                if (countSet.next()){
-                    dataCount = countSet.getInt("count");
-                }
-
-            }
-
-            TableMetaData tableMetaData = new TableMetaData(tableName, columns,primaryKey,dataCount);
-
-            result.put(PostgresqlCons.KEY_METADATA,tableMetaData);
-
         }
-        return result;
+
+
+        return columns;
     }
 
+
+
+    /**
+     *@description 查询表所占磁盘空间
+     *@param tableName: 表名
+     *@return java.lang.String
+     *
+    **/
+    private String showTableSize(String tableName) throws SQLException{
+        String size = "";
+        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,tableName);
+        try(ResultSet resultSet =  statement.get().executeQuery(sql)){
+            if (resultSet.next()){
+                size = resultSet.getString("size");
+            }
+        }
+        return size;
+    }
+
+    /**
+     *@description 查询表中的主键名
+     *@param tableName: 表名
+     *@return java.lang.String
+     *
+    **/
+    private String showTablePrimaryKey(String tableName) throws SQLException{
+        String primaryKey = "";
+        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
+
+        try (ResultSet keySet = statement.get().executeQuery(sql)) {
+            if (keySet.next()) {
+                primaryKey = keySet.getString("name");
+            }
+        }
+
+
+        return primaryKey;
+    }
+
+    /**
+     *@description 查询表中有多少条数据
+     *@param tableName: 表名
+     *@return int
+     *
+    **/
+    private int showTableDataCount(String tableName) throws SQLException{
+        int dataCount = 0;
+        String sql = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
+
+        try (ResultSet countSet = statement.get().executeQuery(sql)) {
+            if (countSet.next()) {
+                dataCount = countSet.getInt("count");
+            }
+
+        }
+
+        return dataCount;
+    }
 
 
   /**

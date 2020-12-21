@@ -12,7 +12,7 @@ public class CommonUtils {
 
 
     /**
-     *@description 用dbName替换
+     *@description 用dbName替换url中的dbName
      *@param url:
      *@param dbName: 数据库名
      *@return 新的url

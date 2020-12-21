@@ -33,13 +33,6 @@ public class PostgresqlCons extends MetaDataCons {
     public static final String KEY_SCHEMA_NAME = "schemaName";
 
 
-    /**
-    tableSchema
-    **/
-    public static final String KEY_TABLE_SCHEMA = "tableSchema";
-
-
-
 
     /**
      sql语句：查询数据库中所有的表名，默认在schema为public的情况下
@@ -77,6 +70,12 @@ public class PostgresqlCons extends MetaDataCons {
 
             "AND pg_attribute.attrelid = pg_class.oid AND pg_attribute.attnum = ANY (pg_index.indkey)";
 
+    /**
+     *sql语句：查询表所占磁盘空间大小
+     */
+    public static final String SQL_SHOW_TABLE_SIZE =
+            "SELECT pg_size_pretty(pg_total_relation_size('\"' || table_schema || '\".\"' || table_name || '\"')) AS size\n" +
 
+            "FROM information_schema.tables WHERE table_name = '%s'";
 
 }

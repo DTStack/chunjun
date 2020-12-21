@@ -16,11 +16,6 @@ public class TableMetaData {
      */
     private String tableName;
     /**
-     * 表中的所有字段
-     */
-    private LinkedList<ColumnMetaData> columns;
-
-    /**
      * 主键
      */
     private String primaryKeyName;
@@ -30,24 +25,37 @@ public class TableMetaData {
      */
     private Integer dataCount;
 
+    /**
+     * 表所占磁盘空间大小
+     */
+    private String tableSize;
+
+    /**
+     * 表中的所有字段
+     */
+    private LinkedList<ColumnMetaData> columns;
+
+
     public TableMetaData() {
 
     }
 
-    public TableMetaData(String tableName, LinkedList<ColumnMetaData> columns, String primaryKeyName, Integer dataCount) {
+    public TableMetaData(String tableName, String primaryKeyName, Integer dataCount, String tableSize, LinkedList<ColumnMetaData> columns) {
         this.tableName = tableName;
-        this.columns = columns;
         this.primaryKeyName = primaryKeyName;
         this.dataCount = dataCount;
+        this.tableSize = tableSize;
+        this.columns = columns;
     }
 
     @Override
     public String toString() {
         return "TableMetaData{" +
-                "TableName='" + tableName + '\'' +
-                ", columns=" + columns +
+                "tableName='" + tableName + '\'' +
                 ", primaryKeyName='" + primaryKeyName + '\'' +
                 ", dataCount=" + dataCount +
+                ", tableSize='" + tableSize + '\'' +
+                ", columns=" + columns +
                 '}';
     }
 }
