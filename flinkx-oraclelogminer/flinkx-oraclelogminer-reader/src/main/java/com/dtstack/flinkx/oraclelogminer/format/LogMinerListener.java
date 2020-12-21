@@ -102,7 +102,7 @@ public class LogMinerListener implements Runnable {
             try {
                 if (logMinerConnection.hasNext()) {
                     log = logMinerConnection.next();
-                    queue.put(logParser.parse(log));
+                    queue.put(logParser.parse(log,logMinerConnection.isOracle10));
                 } else {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
