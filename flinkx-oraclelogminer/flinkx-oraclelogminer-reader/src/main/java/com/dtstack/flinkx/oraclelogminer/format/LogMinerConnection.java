@@ -195,6 +195,15 @@ public class LogMinerConnection {
                 logMinerStartStmt.close();
             }
 
+            //开启logMiner之前 需要设置会话级别的日期格式
+            if (isOracle10) {
+                PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
+                preparedStatement.execute();
+                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
+                preparedStatement.execute();
+            }
+
+
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
 

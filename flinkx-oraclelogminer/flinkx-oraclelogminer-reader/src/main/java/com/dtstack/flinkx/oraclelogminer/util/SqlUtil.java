@@ -289,6 +289,12 @@ public class SqlUtil {
 
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
 
+    //修改当前会话的date日期格式
+    public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";
+
+    //修改当前会话的timestamp日期格式
+    public final static String NLS_TIMESTAMP_FORMAT ="ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'";
+
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
     public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
@@ -310,16 +316,16 @@ public class SqlUtil {
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-    }
+        }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-    } else {
-        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-    }
+            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+        } else {
+            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+        }
 
         return sqlBuilder.toString();
-}
+    }
 
     /**
      * 构建需要采集操作类型字符串的过滤条件
