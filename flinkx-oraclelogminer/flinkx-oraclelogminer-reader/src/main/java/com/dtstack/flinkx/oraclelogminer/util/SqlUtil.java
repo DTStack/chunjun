@@ -288,7 +288,7 @@ public class SqlUtil {
     //修改当前会话的date日期格式
     public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";
     //修改当前会话的timestamp日期格式
-    public final static String NLS_TIMESTAMP_FORMAT ="ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF9'";
+    public final static String NLS_TIMESTAMP_FORMAT ="ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'";
 
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
