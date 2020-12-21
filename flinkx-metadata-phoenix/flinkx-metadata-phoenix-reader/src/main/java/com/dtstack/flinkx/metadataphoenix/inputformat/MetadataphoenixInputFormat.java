@@ -22,7 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadataphoenix.util.ZkHelper;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.hadoop.hbase.HConstants;
+import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,7 +37,10 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
+import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadataphoenix.util.ZkHelper.DEFAULT_PATH;
 
 /**
@@ -50,11 +53,14 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected List<Object> showTables() throws SQLException{
+        String schema = currentDb.get();
+        if(StringUtils.isBlank(schema)){
+            schema = null;
+        }
         List<Object> table = new LinkedList<>();
-        String sql = String.format(SQL_TABLE_PROPERTIES, currentDb.get());
-        ResultSet resultSet = executeQuery0(sql, statement.get());
+        ResultSet resultSet = connection.get().getMetaData().getTables(null, schema, null, null);
         while (resultSet.next()){
-            table.add(resultSet.getString(1));
+            table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
         }
         return table;
     }
@@ -75,7 +81,7 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected String quote(String name) {
-        return null;
+        return name;
     }
 
     public Map<String, Object> queryTableProp(String tableName){
@@ -89,9 +95,9 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
         ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
         while (resultSet.next()){
             Map<String, Object> map = new HashMap<>();
-            map.put(KEY_COLUMN_NAME, resultSet.getString("COLUMN_NAME"));
-            map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString("TYPE_NAME"));
-            map.put(KEY_COLUMN_INDEX, resultSet.getString("ORDINAL_POSITION"));
+            map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
+            map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
+            map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
             column.add(map);
         }
         return column;

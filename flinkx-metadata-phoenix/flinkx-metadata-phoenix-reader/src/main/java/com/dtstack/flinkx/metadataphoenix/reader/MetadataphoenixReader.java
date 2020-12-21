@@ -39,6 +39,8 @@ public class MetadataphoenixReader extends MetadataReader {
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadataphoenixInputFormat());
+        MetadataInputFormatBuilder builder = new MetadataInputFormatBuilder(new MetadataphoenixInputFormat());
+        builder.setDataTransferConfig(dataTransferConfig);
+        return builder;
     }
 }

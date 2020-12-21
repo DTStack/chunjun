@@ -28,10 +28,4 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 
-    /**
-     * 查询某个schema下的所有表
-     */
-    public static final String SQL_TABLE_PROPERTIES = " SELECT DISTINCT TABLE_NAME FROM SYSTEM.CATALOG WHERE TABLE_SCHEM = '%s' ";
-
-
 }
