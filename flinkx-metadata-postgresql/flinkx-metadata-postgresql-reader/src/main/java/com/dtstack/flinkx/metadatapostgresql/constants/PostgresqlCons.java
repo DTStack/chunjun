@@ -17,21 +17,33 @@ public class PostgresqlCons extends MetaDataCons {
     public static final String DRIVER_NAME = "org.postgresql.Driver";
 
     /**
+     databaseName
+     */
+    public static final String KEY_DATABASE_NAME = "databaseName";
+    /**
+     databaseSize
+     */
+    public static final String KEY_DATABASE_SIZE = "databaseSize";
+
+    /**
+     databaseOwner
+     */
+    public static final String KEY_DATABASE_OWNER = "databaseOwner";
+    /**
      表名
     **/
     public static final String KEY_TABLE_NAME = "tableName";
 
     /**
-     * metaData
+     metaData
      */
     public static final String KEY_METADATA = "metaData";
 
 
     /**
-    schemaName
+     schemaName
     **/
     public static final String KEY_SCHEMA_NAME = "schemaName";
-
 
 
     /**
@@ -40,7 +52,7 @@ public class PostgresqlCons extends MetaDataCons {
     public static final String SQL_SHOW_TABLES = "SELECT table_schema,table_name FROM information_schema.tables  WHERE table_schema = 'public'";
 
     /**
-     * sql语句：查询表中共有多少条数据（包含null值）
+      sql语句：查询表中共有多少条数据（包含null值）
      */
     public static final String SQL_SHOW_COUNT = "SELECT count(*) AS count from %s";
 
@@ -60,7 +72,7 @@ public class PostgresqlCons extends MetaDataCons {
             "AND a.attrelid = c.oid AND a.atttypid = t.oid ORDER BY  a.attnum";
 
     /**
-     * sql语句：查询表中的主键名
+      sql语句：查询表中的主键名
      */
     public static final String SQL_SHOW_TABLE_PRIMARYKEY =
 
@@ -71,11 +83,23 @@ public class PostgresqlCons extends MetaDataCons {
             "AND pg_attribute.attrelid = pg_class.oid AND pg_attribute.attnum = ANY (pg_index.indkey)";
 
     /**
-     *sql语句：查询表所占磁盘空间大小
+     sql语句：查询表所占磁盘空间大小
      */
     public static final String SQL_SHOW_TABLE_SIZE =
             "SELECT pg_size_pretty(pg_total_relation_size('\"' || table_schema || '\".\"' || table_name || '\"')) AS size\n" +
 
             "FROM information_schema.tables WHERE table_name = '%s'";
+
+    /**
+      sql语句：查询数据库所占磁盘大小
+     */
+    public static final String SQL_SHOW_DATABASE_SIZE =
+            "SELECT d.datname AS name,  pg_catalog.pg_get_userbyid(d.datdba) AS owner,\n" +
+
+            "CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT')\n" +
+
+            "THEN pg_catalog.pg_size_pretty(pg_catalog.pg_database_size(d.datname))\n" +
+
+            "ELSE 'No Access' END AS size FROM pg_catalog.pg_database d WHERE d.datname = '%s'";
 
 }

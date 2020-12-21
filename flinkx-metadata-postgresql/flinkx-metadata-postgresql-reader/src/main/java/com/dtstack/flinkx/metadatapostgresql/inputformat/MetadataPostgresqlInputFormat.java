@@ -80,6 +80,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         metaData.put(MetaDataCons.KEY_SCHEMA, schema);
         metaData.put(MetaDataCons.KEY_TABLE, table);
         try {
+            metaData.putAll(showDataBaseMetaData(currentDb.get()));
             metaData.putAll(queryMetaData(table));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
@@ -89,6 +90,9 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         }
         return Row.of(metaData);
     }
+
+
+
 
 
     /**
@@ -248,6 +252,28 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         return ConnUtil.getConnection(url,username,password);
     }
 
+
+    /**
+     *@description 查询当前数据库的元数据
+     *@param dbName:
+     *@return java.util.Map<String,String>
+     *
+     **/
+    private Map<String,String> showDataBaseMetaData(String dbName) throws SQLException{
+        Map<String,String> result = new HashMap<>(16);
+        String sql = String.format(PostgresqlCons.SQL_SHOW_DATABASE_SIZE,dbName);
+
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            if (resultSet.next()){
+                result.put(PostgresqlCons.KEY_DATABASE_NAME,resultSet.getString("name"));
+                result.put(PostgresqlCons.KEY_DATABASE_OWNER,resultSet.getString("owner"));
+                result.put(PostgresqlCons.KEY_DATABASE_SIZE,resultSet.getString("size"));
+            }
+
+        }
+
+        return result;
+    }
 
     @Override
     protected String quote(String name) {
