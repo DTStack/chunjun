@@ -79,8 +79,8 @@ public class ZkHelper {
     }
 
     public static void main(String[] args) throws KeeperException, InterruptedException {
-        String path = "/hbase/table";
-        ZkHelper.createSingleZkClient("flinkx1:2181", DEFAULT_TIMEOUT);
+        String path = "/hbase";
+        ZkHelper.createSingleZkClient("172.16.100.122:2181", DEFAULT_TIMEOUT);
         List<String> tables = ZkHelper.getChildren(path);
         if(tables != null){
             for(String table : tables){

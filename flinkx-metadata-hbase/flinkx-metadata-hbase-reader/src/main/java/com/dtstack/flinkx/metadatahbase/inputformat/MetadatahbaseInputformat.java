@@ -33,7 +33,6 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
-import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -176,16 +175,20 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         return columnList;
     }
 
-    protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) throws KeeperException, InterruptedException {
+    protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
-        ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
-        List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
-        if(tables != null){
-            for(String table : tables){
-                createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+        try{
+            ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
+            List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
+            if(tables != null){
+                for(String table : tables){
+                    createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                }
             }
+            ZkHelper.closeZooKeeper();
+        }catch (Exception e){
+            LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
         }
-        ZkHelper.closeZooKeeper();
         return createTimeMap;
     }
 
