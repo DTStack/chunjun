@@ -26,12 +26,20 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import com.dtstack.flinkx.util.ValueUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import static com.dtstack.flinkx.binlog.BinlogUtil.DRIVER_NAME;
 
@@ -63,7 +71,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         if (StringUtils.isBlank(binlogConfig.jdbcUrl)) {
             sb.append("No url supplied;\n");
-        }else{
+        } else {
             //检测数据源连通性
             TelnetUtil.telnet(binlogConfig.jdbcUrl);
         }
@@ -82,14 +90,42 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
 
-        if(speed.getReaderChannel() > 1){
+        if (speed.getReaderChannel() > 1) {
             sb.append("binLog can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(speed.getReaderChannel())
                     .append("];\n");
-        }else if(speed.getChannel() > 1){
+        } else if (speed.getChannel() > 1) {
             sb.append("binLog can not support channel bigger than 1, current channel is [")
                     .append(speed.getChannel())
                     .append("];\n");
+        }
+
+        //校验binlog cat
+        if (StringUtils.isNotEmpty(binlogConfig.getCat())) {
+            HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
+            List<String> cats = Lists.newArrayList(binlogConfig.getCat().toUpperCase().split(","));
+            cats.removeIf(s -> set.contains(s.toUpperCase(Locale.ENGLISH)));
+            if (CollectionUtils.isNotEmpty(cats)) {
+                sb.append("binlog cat not support-> ")
+                        .append(GsonUtil.GSON.toJson(cats))
+                        .append(",just support->")
+                        .append(GsonUtil.GSON.toJson(set))
+                        .append(";\n");
+            }
+        }
+
+        //校验binlog的start参数
+        if (MapUtils.isNotEmpty(binlogConfig.getStart())) {
+            try {
+                MapUtils.getLong(binlogConfig.getStart(),"timestamp");
+            } catch (Exception e) {
+                sb.append("binlog start parameter of timestamp  must be long type, but your value is -> ").append(binlogConfig.getStart().get("timestamp")).append(";\n");
+            }
+            try {
+                MapUtils.getLong(binlogConfig.getStart(),"position");
+            } catch (Exception e) {
+                sb.append("binlog start parameter of position  must be long type, but your value is -> ").append(binlogConfig.getStart().get("timestamp")).append(";\n");
+            }
         }
 
         ClassUtil.forName(DRIVER_NAME, getClass().getClassLoader());
