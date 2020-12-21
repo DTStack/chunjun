@@ -29,9 +29,7 @@ public class HbaseCons extends MetaDataCons {
     /**
      * json键值对中的键
      */
-    public static final String KEY_NAME = "name";
-
-    public static final String KEY_REGIONS = "regions";
+    public static final String KEY_REGIONS = "region_count";
 
     /**
      * 以下为reader需要的参数

@@ -43,10 +43,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_NAME;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGIONS;
 import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.DEFAULT_PATH;
 
@@ -141,7 +141,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         Map<String, Object> tableProperties = new HashMap<>(16);
         try{
             HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
-            List<HRegionInfo> regionInfos = hbaseConnection.getAdmin().getTableRegions(table.getTableName());
+            List<HRegionInfo> regionInfos = admin.getTableRegions(table.getTableName());
             tableProperties.put(KEY_REGIONS, regionInfos.size());
             // 默认的region大小是256M
             long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
@@ -165,7 +165,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
             HColumnDescriptor[] columnDescriptors = table.getColumnFamilies();
             for (HColumnDescriptor column : columnDescriptors){
                 Map<String, Object> map = new HashMap<>(16);
-                map.put(KEY_NAME, column.getNameAsString());
+                map.put(KEY_COLUMN_NAME, column.getNameAsString());
                 columnList.add(map);
             }
         }catch (IOException e){

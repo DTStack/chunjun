@@ -18,10 +18,7 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.util.GsonUtil;
-import com.google.gson.Gson;
-import org.apache.avro.data.Json;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.hadoop.hdfs.web.JsonUtil;
 
 import java.util.List;
 
