@@ -68,7 +68,7 @@
         <module>flinkx-metadata-sqlserver</module>
         <module>flinkx-metadata-phoenix</module>
         <module>flinkx-metadata-hbase</module>
-
+        <module>flinkx-metadata-vertica</module>
 <!--        <module>flinkx-metadata-es6</module>-->
 
         <module>flinkx-restapi</module>
