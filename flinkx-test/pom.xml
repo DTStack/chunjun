@@ -540,6 +540,11 @@
             <artifactId>flinkx-metadata-hbase-reader</artifactId>
             <version>1.6</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.dtstack.flinkx</groupId>-->
+<!--            <artifactId>flinkx-metadata-es6-reader</artifactId>-->
+<!--            <version>1.6</version>-->
+<!--        </dependency>-->
     </dependencies>
 
 

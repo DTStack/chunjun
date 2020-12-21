@@ -20,10 +20,10 @@ package com.dtstack.flinkx.binlog.reader;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.gson.Gson;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,10 +112,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
             if (pavingData){
                 for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                    message.put("after_" + column.getName(), column.getValue());
+                    if(!column.getIsNull()){
+                        message.put("after_" + column.getName(), column.getValue());
+                    }
                 }
                 for (CanalEntry.Column column : rowData.getBeforeColumnsList()){
-                    message.put("before_" + column.getName(), column.getValue());
+                    if(!column.getIsNull()){
+                        message.put("before_" + column.getName(), column.getValue());
+                    }
                 }
             } else {
                 message.put("before", processColumnList(rowData.getBeforeColumnsList()));
@@ -129,8 +133,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
                 LOG.error("takeEvent interrupted message:{} error:{}", message, e);
             }
             if(DtLogger.isEnableTrace()){
-                //log level is trace, so don't care the performance，just new it.
-                LOG.trace("message = {}", new Gson().toJson(message));
+                LOG.trace("message = {}", GsonUtil.GSON.toJson(message));
             }
         }
 
@@ -139,7 +142,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private Map<String,Object> processColumnList(List<CanalEntry.Column> columnList) {
         Map<String,Object> map = new HashMap<>(columnList.size());
         for (CanalEntry.Column column : columnList) {
-            map.put(column.getName(), column.getValue());
+            if(!column.getIsNull()){
+                map.put(column.getName(), column.getValue());
+            }
         }
         return map;
     }

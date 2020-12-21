@@ -23,6 +23,8 @@ import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -72,8 +74,12 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
+   //如果key为string类型的值是map 或者 list 会使用gson转为json格式存入
+    protected transient Gson gson;
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        gson = new Gson();
         // 这里休眠一段时间是为了避免reader和writer或者多个任务在同一个taskmanager里同时认证kerberos
         if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
             sleepRandomTime();

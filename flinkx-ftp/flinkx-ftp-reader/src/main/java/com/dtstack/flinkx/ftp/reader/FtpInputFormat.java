@@ -43,8 +43,6 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     protected FtpConfig ftpConfig;
 
-    protected String charsetName = "utf-8";
-
     protected List<MetaColumn> metaColumns;
 
     private transient FtpSeqBufferedReader br;
@@ -102,7 +100,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
             br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
             br.setFromLine(0);
         }
-        br.setCharsetName(charsetName);
+        br.setFileEncoding(ftpConfig.getEncoding());
     }
 
     @Override

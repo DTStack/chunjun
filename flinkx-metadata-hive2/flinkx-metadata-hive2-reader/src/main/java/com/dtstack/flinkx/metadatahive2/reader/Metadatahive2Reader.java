@@ -36,7 +36,6 @@ import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_H
  */
 public class Metadatahive2Reader extends MetadataReader {
 
-
     public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
