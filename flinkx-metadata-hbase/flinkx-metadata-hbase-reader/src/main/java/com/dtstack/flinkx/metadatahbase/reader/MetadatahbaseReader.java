@@ -27,7 +27,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_HADOOP_CONFIG;
 
 /**
  * 读取hbase config并进行配置
@@ -48,6 +48,7 @@ public class MetadatahbaseReader extends MetadataReader {
     protected MetadataInputFormatBuilder getBuilder(){
         MetadatahbaseInputformatBuilder builder = new MetadatahbaseInputformatBuilder(new MetadatahbaseInputformat());
         builder.setHadoopConfig(hadoopConfig);
+        builder.setDataTransferConfig(dataTransferConfig);
         return builder;
     }
 

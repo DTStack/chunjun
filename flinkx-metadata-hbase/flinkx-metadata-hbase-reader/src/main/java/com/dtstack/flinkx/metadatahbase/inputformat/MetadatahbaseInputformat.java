@@ -18,18 +18,22 @@
 
 package com.dtstack.flinkx.metadatahbase.inputformat;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
-import com.dtstack.flinkx.metadatahbase.constants.HbaseHelper;
+import com.dtstack.flinkx.metadatahbase.util.HbaseHelper;
+import com.dtstack.flinkx.metadatahbase.util.ZkHelper;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
+import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -40,10 +44,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_NAME;
-import static com.dtstack.flinkx.metadatahbase.constants.HbaseCons.KEY_REGIONS;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_NAME;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGIONS;
+import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.DEFAULT_PATH;
 
 /** 获取元数据
  * @author kunni@dtstack.com
@@ -64,6 +70,8 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
 
     private transient Admin admin;
 
+    private Map<String, Long> createTimeMap;
+
     /**
      * 因为connection的类型不同，重写该方法
      * @param inputSplit 某个命名空间及需要查询的表
@@ -71,11 +79,12 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit)  throws IOException{
         LOG.info("inputSplit = {}", inputSplit);
+        currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
+        tableList = ((MetadataInputSplit) inputSplit).getTableList();
         try {
+            createTimeMap = queryCreateTimeMap(hadoopConfig);
             hbaseConnection = HbaseHelper.getHbaseConnection(hadoopConfig);
             admin = hbaseConnection.getAdmin();
-            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
-            tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if(CollectionUtils.isEmpty(tableList)){
                 tableList = showTables();
             }
@@ -121,27 +130,24 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         Map<String, Object> result = new HashMap<>(16);
         Map<String, Object> tableProperties;
         List<Map<String, Object>> columnList;
-        try{
-            HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
-            tableProperties = queryTableProperties(table);
-            columnList = queryColumnList(table);
-        }catch (IOException e){
-            throw new SQLException(e);
-        }
+        tableProperties = queryTableProperties(tableName);
+        columnList = queryColumnList(tableName);
         result.put(KEY_TABLE_PROPERTIES, tableProperties);
         result.put(KEY_COLUMN, columnList);
         return result;
     }
 
 
-    protected Map<String, Object> queryTableProperties(HTableDescriptor table) throws SQLException {
+    protected Map<String, Object> queryTableProperties(String tableName) throws SQLException {
         Map<String, Object> tableProperties = new HashMap<>(16);
         try{
+            HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
             List<HRegionInfo> regionInfos = hbaseConnection.getAdmin().getTableRegions(table.getTableName());
             tableProperties.put(KEY_REGIONS, regionInfos.size());
             // 默认的region大小是256M
             long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
             tableProperties.put(KEY_TABLE_TOTAL_SIZE,  regionSize * regionInfos.size());
+            tableProperties.put(KEY_TABLE_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
         }catch (IOException e){
             LOG.error("query tableProperties failed. {}", ExceptionUtil.getErrorMessage(e));
             throw new SQLException(e);
@@ -151,19 +157,38 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
 
     /**
      * 获取列族信息
-     * @param table 表名
      * @return 列族
      */
-    protected List<Map<String, Object>> queryColumnList(HTableDescriptor table){
+    protected List<Map<String, Object>> queryColumnList(String tableName) throws SQLException {
         List<Map<String, Object>> columnList = new ArrayList<>();
-        HColumnDescriptor[] columnDescriptors = table.getColumnFamilies();
-        for (HColumnDescriptor column : columnDescriptors){
-            Map<String, Object> map = new HashMap<>(16);
-            map.put(KEY_NAME, column.getNameAsString());
-            columnList.add(map);
+        try{
+            HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
+            HColumnDescriptor[] columnDescriptors = table.getColumnFamilies();
+            for (HColumnDescriptor column : columnDescriptors){
+                Map<String, Object> map = new HashMap<>(16);
+                map.put(KEY_NAME, column.getNameAsString());
+                columnList.add(map);
+            }
+        }catch (IOException e){
+            LOG.error("query columnList failed. {}", ExceptionUtil.getErrorMessage(e));
+            throw new SQLException(e);
         }
         return columnList;
     }
+
+    protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) throws KeeperException, InterruptedException {
+        Map<String, Long> createTimeMap = new HashMap<>(16);
+        ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
+        List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
+        if(tables != null){
+            for(String table : tables){
+                createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+            }
+        }
+        ZkHelper.closeZooKeeper();
+        return createTimeMap;
+    }
+
 
 
     @Override

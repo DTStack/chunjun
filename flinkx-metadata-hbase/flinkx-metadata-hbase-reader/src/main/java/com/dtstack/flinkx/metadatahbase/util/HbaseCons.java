@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadatahbase.constants;
+package com.dtstack.flinkx.metadatahbase.util;
 
 import com.dtstack.flinkx.metadata.MetaDataCons;
 

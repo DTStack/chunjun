@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadatahbase.constants;
+package com.dtstack.flinkx.metadatahbase.util;
 
 import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
@@ -50,8 +50,11 @@ public class HbaseHelper {
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private final static String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
+    private HbaseHelper(){
+    }
+
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
-        Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
+        Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "[hadoopConfig] couldn't be empty!");
 
         if(openKerberos(hbaseConfigMap)){
             return getConnectionWithKerberos(hbaseConfigMap);
