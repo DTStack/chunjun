@@ -67,8 +67,12 @@
         <module>flinkx-metadata-mysql</module>
         <module>flinkx-metadata-sqlserver</module>
         <module>flinkx-metadata-phoenix</module>
+        <module>flinkx-metadata-hbase</module>
+
+<!--        <module>flinkx-metadata-es6</module>-->
 
         <module>flinkx-restapi</module>
+        <module>flinkx-websocket</module>
     </modules>
 
     <properties>

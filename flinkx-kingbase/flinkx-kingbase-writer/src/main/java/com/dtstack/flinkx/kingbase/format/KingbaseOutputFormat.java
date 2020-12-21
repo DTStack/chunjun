@@ -239,6 +239,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         return true;
     }
 
+    @Override
     public void setSchema(String schema){
         this.schema = schema;
     }

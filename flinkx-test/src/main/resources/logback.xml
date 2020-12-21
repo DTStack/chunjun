@@ -15,7 +15,7 @@
     <root level="warn">
         <appender-ref ref="console"/>
     </root>
-    <logger name="com.dtstack.flinkx" level="trace" additivity="false">
+    <logger name="com.dtstack.flinkx" level="info" additivity="false">
         <appender-ref ref="console" />
     </logger>
 

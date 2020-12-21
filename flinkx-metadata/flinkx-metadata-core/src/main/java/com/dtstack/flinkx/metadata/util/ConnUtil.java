@@ -76,10 +76,8 @@ public class ConnUtil {
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
             try {
                 dbConn = getConnectionInternal(url, username, password);
+                failed = false;
             } catch (Exception e) {
-                if (dbConn != null) {
-                    dbConn.close();
-                }
                 if (i == MAX_RETRY_TIMES - 1) {
                     throw e;
                 } else {

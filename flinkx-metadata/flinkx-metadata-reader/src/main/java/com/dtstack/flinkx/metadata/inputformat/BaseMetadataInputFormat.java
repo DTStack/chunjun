@@ -81,7 +81,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit = {}", inputSplit);
         try {
             connection.set(getConnection());
             statement.set(connection.get().createStatement());
@@ -103,6 +102,7 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             tableList = new LinkedList<>();
         }
+        LOG.info("curentDb = {}, tableList = {}", currentDb.get(), tableList);
         tableIterator.set(tableList.iterator());
     }
 
@@ -143,7 +143,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         start++;
-        LOG.info("query metadata: {}", metaData);
         return Row.of(metaData);
     }
 
@@ -167,11 +166,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         }
 
         currentDb.remove();
-    }
-
-    @Override
-    public void closeInputFormat() throws IOException {
-        super.closeInputFormat();
         Connection conn = connection.get();
         if (null != conn) {
             try {
@@ -182,6 +176,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 throw new IOException("close database connection failed", e);
             }
         }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
     }
 
     /**
