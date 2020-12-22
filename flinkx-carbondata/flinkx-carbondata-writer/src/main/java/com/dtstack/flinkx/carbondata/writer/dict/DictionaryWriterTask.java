@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.carbondata.writer.dict;
 
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
@@ -28,6 +29,9 @@ import org.apache.carbondata.core.service.CarbonCommonFactory;
 import org.apache.carbondata.core.service.DictionaryService;
 import org.apache.carbondata.core.util.DataTypeUtil;
 import org.apache.carbondata.core.writer.CarbonDictionaryWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +46,8 @@ import java.util.Set;
  * @author huyifan_zju@163.com
  */
 public class DictionaryWriterTask {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DictionaryWriterTask.class);
 
     private Set<String> valuesBuffer;
 
@@ -99,7 +105,11 @@ public class DictionaryWriterTask {
             }
         } finally {
             if (null != writer) {
-                writer.close();
+                try {
+                    writer.close();
+                }catch (IOException e){
+                    LOG.error(ExceptionUtil.getErrorMessage(e));
+                }
             }
         }
         return distinctValues;
