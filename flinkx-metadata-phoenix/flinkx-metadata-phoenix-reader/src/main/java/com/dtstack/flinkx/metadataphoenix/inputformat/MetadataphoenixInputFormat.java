@@ -22,6 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadataphoenix.util.ZkHelper;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
@@ -41,6 +42,8 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
+import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
+import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix.util.ZkHelper.DEFAULT_PATH;
 
 /**
@@ -51,16 +54,21 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
 
     private Map<String, Long> createTimeMap;
 
+    public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
+
     @Override
     protected List<Object> showTables() throws SQLException{
-        String schema = currentDb.get();
-        if(StringUtils.isBlank(schema)){
-            schema = null;
+        String sql;
+        if(StringUtils.isBlank(currentDb.get())) {
+            sql = SQL_DEFAULT_TABLE_NAME;
+        }else {
+            sql = String.format(SQL_TABLE_NAME, currentDb.get());
         }
         List<Object> table = new LinkedList<>();
-        ResultSet resultSet = connection.get().getMetaData().getTables(null, schema, null, null);
-        while (resultSet.next()){
-            table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
+        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+            while (resultSet.next()){
+                table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
+            }
         }
         return table;
     }
@@ -92,6 +100,9 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
 
     public List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
         List<Map<String, Object>> column = new LinkedList<>();
+        if(StringUtils.isBlank(currentDb.get())){
+            currentDb.set(null);
+        }
         ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
         while (resultSet.next()){
             Map<String, Object> map = new HashMap<>(16);
@@ -124,7 +135,7 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected void init() {
-        String hosts = dbUrl.substring("jdbc:phoenix:".length());
+        String hosts = dbUrl.substring(JDBC_PHOENIX_PREFIX .length());
         createTimeMap = queryCreateTimeMap(hosts);
     }
 }
