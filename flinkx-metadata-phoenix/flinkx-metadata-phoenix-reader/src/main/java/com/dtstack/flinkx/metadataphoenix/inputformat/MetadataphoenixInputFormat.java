@@ -85,7 +85,7 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
     }
 
     public Map<String, Object> queryTableProp(String tableName){
-        Map<String, Object> tableProp = new HashMap<>();
+        Map<String, Object> tableProp = new HashMap<>(16);
         tableProp.put(KEY_TABLE_CREATE_TIME, createTimeMap.get(tableName));
         return tableProp;
     }
@@ -94,7 +94,7 @@ public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
         List<Map<String, Object>> column = new LinkedList<>();
         ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
         while (resultSet.next()){
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = new HashMap<>(16);
             map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
             map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
             map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));

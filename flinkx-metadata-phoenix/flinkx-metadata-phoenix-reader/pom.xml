@@ -12,15 +12,9 @@
     <artifactId>flinkx-metadata-phoenix-reader</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-core</artifactId>
             <version>1.6</version>
         </dependency>
         <dependency>
