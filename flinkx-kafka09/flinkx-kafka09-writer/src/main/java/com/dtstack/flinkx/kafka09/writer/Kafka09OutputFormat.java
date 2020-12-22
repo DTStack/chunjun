@@ -58,7 +58,6 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
             props.putAll(producerSettings);
         }
         props.put("metadata.broker.list", brokerList);
-        props.put("bootstrap.servers", brokerList);
         producer = new KafkaProducer<>(props);
 
         LOG.info("brokerList {}", brokerList);

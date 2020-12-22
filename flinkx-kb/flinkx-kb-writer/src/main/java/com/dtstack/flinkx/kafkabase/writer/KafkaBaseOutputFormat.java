@@ -55,8 +55,6 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
     protected static ObjectMapper objectMapper = new ObjectMapper();
-    //连续发送数据错误次数
-    protected  int failedTimes = 0;
     //和kafkaBroker连通性控制器
     protected HeartBeatController heartBeatController;
 
@@ -104,8 +102,6 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
                 }
             }
             emit(map);
-            //只要有正常的 重置为0
-            failedTimes =0;
 
         } catch (Throwable e) {
             String errorMessage = ExceptionUtil.getErrorMessage(e);
