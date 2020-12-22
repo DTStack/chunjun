@@ -56,6 +56,11 @@ public class PostgresqlCons extends MetaDataCons {
      */
     public static final String SQL_SHOW_COUNT = "SELECT count(*) AS count from %s";
 
+    /**
+      sql语句：查询表中索引名
+     */
+    public static final String SQL_SHOW_INDEXES = "SELECT indexname FROM pg_indexes WHERE tablename='%s'";
+
 
     /**
      sql语句：查询表中字段信息

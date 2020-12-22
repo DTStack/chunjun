@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * flinkx-all com.dtstack.flinkx.metadatapostgresql.inputformat
@@ -144,9 +141,10 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         int dataCount = showTableDataCount(tableName);
         String size = showTableSize(tableName);
         LinkedList<ColumnMetaData> columns = showColumnMetaData(tableName);
+        ArrayList<String> indexes = showIndexes(tableName);
 
 
-        TableMetaData tableMetaData = new TableMetaData(tableName, primaryKey, dataCount, size, columns);
+        TableMetaData tableMetaData = new TableMetaData(tableName, primaryKey, dataCount, size, columns,indexes);
 
         result.put(PostgresqlCons.KEY_METADATA, tableMetaData);
 
@@ -240,18 +238,25 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     }
 
 
-  /**
-   *@description 由于postgresql没有类似于MySQL的use database的SQL语句，所以切换数据库需要重新建立连接
-   *@param dbName: 数据库名
-   *@return java.sql.Connection
-   *
-  **/
-    private  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
-        Class.forName(driverName);
-        String url = CommonUtils.dbUrlTransform(dbUrl,dbName);
-        return ConnUtil.getConnection(url,username,password);
-    }
+    /**
+     *@description 查询表中索引名
+     *@param tableName: 表名
+     *@return java.util.ArrayList<String>
+     *
+     **/
+    private ArrayList<String> showIndexes(String tableName) throws SQLException{
+        ArrayList<String> result = new ArrayList<>();
+        String sql = String.format(PostgresqlCons.SQL_SHOW_INDEXES,tableName);
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while(resultSet.next()){
+                result.add(resultSet.getString("indexname"));
+            }
 
+        }
+
+
+        return result;
+    }
 
     /**
      *@description 查询当前数据库的元数据
@@ -274,6 +279,19 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
         return result;
     }
+
+  /**
+   *@description 由于postgresql没有类似于MySQL的use database的SQL语句，所以切换数据库需要重新建立连接
+   *@param dbName: 数据库名
+   *@return java.sql.Connection
+   *
+  **/
+    private  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
+        Class.forName(driverName);
+        String url = CommonUtils.dbUrlTransform(dbUrl,dbName);
+        return ConnUtil.getConnection(url,username,password);
+    }
+
 
     @Override
     protected String quote(String name) {
