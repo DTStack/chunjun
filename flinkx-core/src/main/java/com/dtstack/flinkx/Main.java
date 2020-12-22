@@ -18,8 +18,12 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.classloader.ClassLoaderManager;
-import com.dtstack.flinkx.config.*;
+import com.dtstack.flinkx.classloader.PluginUtil;
+import com.dtstack.flinkx.config.ContentConfig;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestartConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
@@ -46,12 +50,9 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,9 +70,7 @@ public class Main {
     public static final String STREAM_READER = "streamreader";
     public static final String STREAM_WRITER = "streamwriter";
 
-    private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
-
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
         com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
@@ -113,6 +112,8 @@ public class Main {
 
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
+        PluginUtil.registerPluginUrlToCachedFile(config, env);
+
         env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
@@ -136,8 +137,6 @@ public class Main {
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));
             }
         }
-
-        addEnvClassPath(env, ClassLoaderManager.getClassPath());
 
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
@@ -203,19 +202,6 @@ public class Main {
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);
-    }
-
-    private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{
-        int i = 0;
-        for(URL url : classPathSet){
-            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
-            env.registerCachedFile(url.getPath(),  classFileName, true);
-            i++;
-        }
-
-        if(env instanceof MyLocalStreamEnvironment){
-            ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(classPathSet));
-        }
     }
 
     private static Properties parseConf(String confStr) throws Exception{
