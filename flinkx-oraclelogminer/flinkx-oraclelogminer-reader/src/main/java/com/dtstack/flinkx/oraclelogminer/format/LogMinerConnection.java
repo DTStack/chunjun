@@ -636,10 +636,10 @@ public class LogMinerConnection {
             if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
                 logMinerSelectStmt.close();
             }
-            logMinerSelectStmt = null;
         }catch (SQLException e){
-            throw new RuntimeException("关闭logMinerStartStmt出错", e);
+            LOG.warn("关闭logMinerStartStmt出错", e);
         }
+        logMinerSelectStmt = null;
     }
 
     enum ReadPosition{
