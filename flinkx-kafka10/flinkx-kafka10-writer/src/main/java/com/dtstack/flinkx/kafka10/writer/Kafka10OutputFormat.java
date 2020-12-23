@@ -30,6 +30,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @company: www.dtstack.com
@@ -45,7 +46,7 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
         super.configure(parameters);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 86400000);
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
         props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
         if (producerSettings != null) {
@@ -56,12 +57,15 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     protected void emit(Map event) throws IOException {
+        heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
             if(Objects.nonNull(exception)){
                 String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
                 LOG.warn(errorMessage);
-                throw new RuntimeException(errorMessage);
+                heartBeatController.onFailed(exception);
+            }else{
+                heartBeatController.onSuccess();
             }
         });
     }
@@ -69,6 +73,7 @@ public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
     @Override
     public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
-        producer.close();
+        //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
+        producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
     }
 }
