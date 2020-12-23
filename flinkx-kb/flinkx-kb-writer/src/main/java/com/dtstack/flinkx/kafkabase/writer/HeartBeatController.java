@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka09.writer;
+package com.dtstack.flinkx.kafkabase.writer;
 
+import com.dtstack.flinkx.exception.DataSourceException;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.kafka.common.errors.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,11 +63,11 @@ public class HeartBeatController implements Serializable {
         if (Objects.isNull(e)) {
             return;
         }
-        //连续发送3次数据错误或出现连接异常
-        if (failedTimes.get() >= detectingRetryTimes || e instanceof TimeoutException ) {
-            String message = "Error data is received 3 times continuously or datasource has error" + ExceptionUtil.getErrorMessage(e);
+        //连续发送3次数据错误
+        if (failedTimes.get() >= detectingRetryTimes ) {
+            String message = "Failed to send data for three consecutive times，Please check whether the data source is normal，errorInfo->" + ExceptionUtil.getErrorMessage(e);
             logger.error(message);
-            throw new RuntimeException(message, e);
+            throw new DataSourceException("kafka",message, e);
         }
     }
 }
