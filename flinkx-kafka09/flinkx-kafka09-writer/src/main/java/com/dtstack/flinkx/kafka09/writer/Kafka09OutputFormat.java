@@ -21,6 +21,7 @@ import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -77,7 +78,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     protected void emit(Map event) throws IOException {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+        producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
             if (Objects.nonNull(exception)) {
                 LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(), exception);
                 heartBeatController.onFailed(exception);
