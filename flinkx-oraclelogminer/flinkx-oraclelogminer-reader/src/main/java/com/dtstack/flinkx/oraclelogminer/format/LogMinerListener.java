@@ -20,6 +20,7 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
+import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
@@ -60,6 +61,8 @@ public class LogMinerListener implements Runnable {
 
     private boolean running = false;
 
+    private String logMinerSelectSql;
+
     /**
      * 连续接收到错误数据的次数
      */
@@ -92,6 +95,8 @@ public class LogMinerListener implements Runnable {
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
         positionManager.updatePosition(startScn);
 
+        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+
         executor.submit(this);
         running = true;
     }
@@ -107,7 +112,7 @@ public class LogMinerListener implements Runnable {
                 } else {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
-                    logMinerConnection.queryData(positionManager.getPosition());
+                    logMinerConnection.queryData(positionManager.getPosition(), logMinerSelectSql);
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {

@@ -131,6 +131,10 @@ public class LogMinerConnection {
         }
     }
 
+    /**
+     * 关闭LogMiner资源
+     * @throws SQLException
+     */
     public void disConnect() throws SQLException{
         //清除日志文件组，下次LogMiner启动时重新加载日志文件
         addedLogFiles.clear();
@@ -145,22 +149,43 @@ public class LogMinerConnection {
         }
 
         if (null != logMinerData) {
-            logMinerData.close();
+            try {
+                logMinerData.close();
+            } catch (SQLException e) {
+                LOG.warn("Close logMinerData error: {}", ExceptionUtil.getErrorMessage(e));
+            }
         }
 
         if (null != logMinerStartStmt) {
-            logMinerStartStmt.close();
+            try {
+                logMinerStartStmt.close();
+            } catch (SQLException e) {
+                LOG.warn("Close logMinerStartStmt error: {}", ExceptionUtil.getErrorMessage(e));
+            }
         }
 
         if (null != logMinerSelectStmt) {
-            logMinerSelectStmt.close();
+            try {
+                logMinerSelectStmt.close();
+            } catch (SQLException e) {
+                LOG.warn("Close logMinerSelectStmt error: {}", ExceptionUtil.getErrorMessage(e));
+            }
         }
 
         if (null != connection && !connection.isClosed()) {
-            connection.close();
+
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                LOG.warn("Close connection error: {}", ExceptionUtil.getErrorMessage(e));
+            }
         }
     }
 
+    /**
+     * 启动LogMiner
+     * @param startScn
+     */
     public void startOrUpdateLogMiner(Long startScn) {
         String startSql = null;
         try {
@@ -191,7 +216,6 @@ public class LogMinerConnection {
             }
 
             if(logMinerStartStmt != null && !logMinerStartStmt.isClosed()){
-                LOG.info("close resource logMinerStartStmt");
                 logMinerStartStmt.close();
             }
 
@@ -210,8 +234,12 @@ public class LogMinerConnection {
         }
     }
 
-    public void queryData(Long startScn) {
-        String logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+    /**
+     * 从LogMiner视图查询数据
+     * @param startScn
+     * @param logMinerSelectSql
+     */
+    public void queryData(Long startScn, String logMinerSelectSql) {
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
