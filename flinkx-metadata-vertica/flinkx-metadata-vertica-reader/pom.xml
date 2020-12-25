@@ -18,9 +18,9 @@
             <version>1.6</version>
         </dependency>
         <dependency>
-            <groupId>com.vertica</groupId>
+            <groupId>fakepath</groupId>
             <artifactId>vertica-jdbc</artifactId>
-            <version>10.0.1</version>
+            <version>9.1.1-0</version>
         </dependency>
     </dependencies>
 
