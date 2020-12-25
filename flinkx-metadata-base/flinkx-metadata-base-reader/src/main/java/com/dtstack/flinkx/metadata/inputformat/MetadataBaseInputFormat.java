@@ -44,6 +44,8 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     protected Iterator<Object> iterator;
 
+    protected Object currentObject;
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         currentPosition = 0;
@@ -66,6 +68,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
+        currentObject = iterator.next();
         MetadataEntity metadataEntity = createMetadataEntity();
         metadataEntity.setOperaType(DEFAULT_OPERA_TYPE);
         currentPosition++;

@@ -32,4 +32,33 @@ public class ColumnEntity {
 
     protected String comment;
 
+
+
+    protected String position;
+
+    protected String nullAble;
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public void setNullAble(String nullAble) {
+        this.nullAble = nullAble;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 }

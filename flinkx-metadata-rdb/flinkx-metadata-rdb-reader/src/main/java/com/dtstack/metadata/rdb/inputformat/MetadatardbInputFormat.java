@@ -21,12 +21,14 @@ package com.dtstack.metadata.rdb.inputformat;
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
 import com.dtstack.metadata.rdb.entity.ColumnEntity;
 import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
 import com.dtstack.metadata.rdb.entity.TableEntity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -36,7 +38,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.dtstack.flinkx.metadata.constants.BaseConstants.DEFAULT_OPERA_TYPE;
+import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_COLUMN_DEF;
+import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_IS_NULLABLE;
+import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_RDINAL_POSITION;
 import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_TABLE_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_TYPE_NAME;
 
 /**
  * @author kunni@dtstack.com
@@ -48,7 +56,11 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     protected Statement statement;
 
-    protected String currentDb;
+    protected String currentDatabase;
+
+    protected String currentSchema;
+
+    protected String currentTable;
 
     protected List<Object> tableList;
 
@@ -74,7 +86,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
         }
 
         tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
-        currentDb = ((MetadataBaseInputSplit) inputSplit).getDbName();
+        currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
 
         if(CollectionUtils.isEmpty(tableList)){
             tableList = showTables();
@@ -94,15 +106,21 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      */
     public List<Object> showTables() {
         List<Object> tables = new ArrayList<>();
-        try(ResultSet resultSet = connection.getMetaData().getTables(null, currentDb, null, null)){
+        try(ResultSet resultSet = connection.getMetaData().getTables(null, currentDatabase, null, null)){
                while (resultSet.next()){
                    tables.add(resultSet.getString(RESULT_TABLE_NAME));
                }
         }catch (SQLException e){
-            LOG.error("failed to query table, currentDb = {} ", currentDb);
+            LOG.error("failed to query table, currentDb = {} ", currentDatabase);
             return tables;
         }
         return tables;
+    }
+
+    @Override
+    public boolean reachedEnd() {
+
+        return super.reachedEnd();
     }
 
     @Override
@@ -114,12 +132,25 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     }
 
     public TableEntity queryTableEntity(){
+        currentTable = (String) currentObject;
         TableEntity tableEntity = new TableEntity();
         return tableEntity;
     }
 
     public List<ColumnEntity> queryColumn(){
         List<ColumnEntity> columnEntities = new ArrayList<>();
+        try(ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, currentTable, null)){
+            while (resultSet.next()){
+                ColumnEntity columnEntity = new ColumnEntity();
+                columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
+                columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
+                columnEntity.setPosition(resultSet.getString(RESULT_RDINAL_POSITION));
+                columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
+                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+            }
+        }catch (SQLException e){
+            LOG.error("queryColumn failed, cause: {}", ExceptionUtil.getErrorMessage(e));
+        }
         return columnEntities;
     }
 
