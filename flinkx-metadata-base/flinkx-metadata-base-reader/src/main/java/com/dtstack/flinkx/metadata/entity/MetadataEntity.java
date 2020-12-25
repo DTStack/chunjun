@@ -18,10 +18,14 @@
 
 package com.dtstack.flinkx.metadata.entity;
 
+import java.io.Serializable;
+
 /**
  * @author kunni@dtstack.com
  */
-public class MetadataEntity {
+public class MetadataEntity implements Serializable {
+
+    protected static final long serialVersionUID = 1L;
 
     protected String schema;
 

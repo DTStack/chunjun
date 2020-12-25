@@ -22,6 +22,9 @@ import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
+import com.dtstack.metadata.rdb.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.entity.TableEntity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 
@@ -104,7 +107,20 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     @Override
     public MetadataEntity createMetadataEntity() {
-        return null;
+        MetadatardbEntity entity = new MetadatardbEntity();
+        entity.setTableProperties(queryTableEntity());
+        entity.setColumn(queryColumn());
+        return entity;
+    }
+
+    public TableEntity queryTableEntity(){
+        TableEntity tableEntity = new TableEntity();
+        return tableEntity;
+    }
+
+    public List<ColumnEntity> queryColumn(){
+        List<ColumnEntity> columnEntities = new ArrayList<>();
+        return columnEntities;
     }
 
     public void setUsername(String username){

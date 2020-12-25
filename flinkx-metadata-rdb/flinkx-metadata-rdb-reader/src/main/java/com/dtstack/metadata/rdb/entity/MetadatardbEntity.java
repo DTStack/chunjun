@@ -18,8 +18,25 @@
 
 package com.dtstack.metadata.rdb.entity;
 
+import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+
+import java.util.List;
+
 /**
  * @author kunni@dtstack.com
  */
-public class MetadataRdbEntity {
+public class MetadatardbEntity extends MetadataEntity {
+
+    protected TableEntity tableProperties;
+
+    protected List<ColumnEntity> column;
+
+    public void setTableProperties(TableEntity tableProperties) {
+        this.tableProperties = tableProperties;
+    }
+
+    public void setColumn(List<ColumnEntity> column) {
+        this.column = column;
+    }
+
 }
