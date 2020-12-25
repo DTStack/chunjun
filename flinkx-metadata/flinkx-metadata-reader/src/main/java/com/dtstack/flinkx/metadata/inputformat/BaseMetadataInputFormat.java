@@ -41,7 +41,7 @@ import java.util.Map;
  * @author : tiezhu
  * @date : 2020/3/20
  */
-public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
+public abstract class  BaseMetadataInputFormat extends BaseRichInputFormat {
 
     private static final long serialVersionUID = 1L;
 

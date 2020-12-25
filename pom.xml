@@ -57,6 +57,8 @@
 
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
+        <module>flinkx-restapi</module>
+        <module>flinkx-websocket</module>
 
         <!--******元数据******-->
         <module>flinkx-metadata</module>
@@ -66,11 +68,10 @@
         <module>flinkx-metadata-oracle</module>
         <module>flinkx-metadata-mysql</module>
         <module>flinkx-metadata-sqlserver</module>
-
+        <module>flinkx-metadata-base</module>
+        <module>flinkx-metadata-rdb</module>
 <!--        <module>flinkx-metadata-es6</module>-->
 
-        <module>flinkx-restapi</module>
-        <module>flinkx-websocket</module>
     </modules>
 
     <properties>
