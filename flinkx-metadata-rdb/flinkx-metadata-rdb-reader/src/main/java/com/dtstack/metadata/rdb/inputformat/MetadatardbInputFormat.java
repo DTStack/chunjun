@@ -18,6 +18,7 @@
 
 package com.dtstack.metadata.rdb.inputformat;
 
+import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
@@ -99,6 +100,11 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
             return tables;
         }
         return tables;
+    }
+
+    @Override
+    public MetadataEntity createMetadataEntity() {
+        return null;
     }
 
     public void setUsername(String username){

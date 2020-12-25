@@ -19,12 +19,7 @@
 package com.dtstack.metadata.rdb.entity;
 
 /**
- * @author 分区的元数据
+ * @author kunni@dtstack.com
  */
-public class PartitionEntity {
-
-    protected String name;
-
-    protected String partitionKey;
-
+public class MetadataRdbEntity {
 }

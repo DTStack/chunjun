@@ -77,7 +77,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
      * 创建元数据实体类
      * @return metadataEntity
      */
-    abstract MetadataEntity createMetadataEntity();
+    public abstract MetadataEntity createMetadataEntity();
 
     @Override
     protected void closeInternal() {
