@@ -47,9 +47,15 @@ public class PostgresqlCons extends MetaDataCons {
 
 
     /**
-     sql语句：查询数据库中所有的表名，默认在schema为public的情况下
+     设置搜索路径
+     */
+    public static final String SQL_SET_SEARCHPATH = "SET search_path = %s";
+
+
+    /**
+     sql语句：查询数据库中所有的表名
     **/
-    public static final String SQL_SHOW_TABLES = "SELECT table_schema,table_name FROM information_schema.tables  WHERE table_schema = 'public'";
+    public static final String SQL_SHOW_TABLES = "SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema <> 'information_schema' AND  table_schema <> 'pg_catalog'";
 
     /**
       sql语句：查询表中共有多少条数据（包含null值）
@@ -59,22 +65,8 @@ public class PostgresqlCons extends MetaDataCons {
     /**
       sql语句：查询表中索引名
      */
-    public static final String SQL_SHOW_INDEXES = "SELECT indexname FROM pg_indexes WHERE tablename='%s'";
+    public static final String SQL_SHOW_INDEXES = "SELECT indexname FROM pg_indexes WHERE schemaname = '%s' AND tablename='%s'";
 
-
-    /**
-     sql语句：查询表中字段信息
-    **/
-    public static final String SQL_SHOW_TABLE_COLUMN =
-            "SELECT a.attname AS name,t.typname AS type, a.attlen AS length, a.atttypmod AS lengthvar \n" +
-
-            ", a.attnotnull AS notnull , b.description AS comment\n" +
-
-            "FROM pg_class c, pg_attribute a LEFT JOIN  pg_description b ON a.attrelid = b.objoid\n" +
-
-            "AND a.attnum = b.objsubid, pg_type t WHERE c.relname = '%s' AND a.attnum > 0\n" +
-
-            "AND a.attrelid = c.oid AND a.atttypid = t.oid ORDER BY  a.attnum";
 
     /**
       sql语句：查询表中的主键名
@@ -91,9 +83,9 @@ public class PostgresqlCons extends MetaDataCons {
      sql语句：查询表所占磁盘空间大小
      */
     public static final String SQL_SHOW_TABLE_SIZE =
-            "SELECT pg_size_pretty(pg_total_relation_size('\"' || table_schema || '\".\"' || table_name || '\"')) AS size\n" +
+            "SELECT pg_size_pretty(pg_total_relation_size('\"'||table_schema||'\".\"'|| table_name || '\"')) AS size\n" +
 
-            "FROM information_schema.tables WHERE table_name = '%s'";
+            "FROM information_schema.tables WHERE  table_schema= '%s' AND table_name = '%s'";
 
     /**
       sql语句：查询数据库所占磁盘大小

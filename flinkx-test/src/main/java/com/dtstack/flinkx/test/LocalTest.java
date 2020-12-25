@@ -81,6 +81,7 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -276,7 +277,7 @@ public class LocalTest {
             case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
 //            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
-//            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
+            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;

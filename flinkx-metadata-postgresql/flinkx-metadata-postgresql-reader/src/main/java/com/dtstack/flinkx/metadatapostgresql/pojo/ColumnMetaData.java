@@ -25,7 +25,7 @@ public class ColumnMetaData {
     /**
      * 是否非空字段
      */
-    private Boolean isNotNull;
+    private Boolean nullable;
     /**
      * 注释
      */
@@ -34,11 +34,11 @@ public class ColumnMetaData {
     public ColumnMetaData() {
     }
 
-    public ColumnMetaData(String columnName, String dataType, Integer length, Boolean isNotNull, String comment) {
+    public ColumnMetaData(String columnName, String dataType, Integer length, Boolean nullable, String comment) {
         this.columnName = columnName;
         this.dataType = dataType;
         this.length = length;
-        this.isNotNull = isNotNull;
+        this.nullable = nullable;
         this.comment = comment;
     }
 
@@ -48,7 +48,7 @@ public class ColumnMetaData {
                 "columnName='" + columnName + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", length=" + length +
-                ", isNotNull=" + isNotNull +
+                ", nullable=" + nullable +
                 ", comment='" + comment + '\'' +
                 '}';
     }

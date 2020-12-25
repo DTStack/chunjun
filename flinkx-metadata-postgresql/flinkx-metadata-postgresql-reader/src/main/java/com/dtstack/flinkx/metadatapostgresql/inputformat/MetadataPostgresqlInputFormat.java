@@ -29,6 +29,19 @@ import java.util.*;
  */
 public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
+    /**
+     * 是否查询过database的元数据
+     */
+    private boolean queried = false;
+
+    /**
+     * 是否设置了搜索路径
+     */
+    private boolean setsearchpath = false;
+
+
+    private String schemaName;
+
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -36,7 +49,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             //切换数据库，重新建立连接
             connection.set(getConnection(currentDb.get()));
-            statement.set(connection.get().createStatement());
+            statement.set(connection.get().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY));
             tableList = ((MetadataInputSplit) inputSplit).getTableList();
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
@@ -44,8 +57,10 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             }
             LOG.info("current database = {}, tableSize = {}, tableList = {}", currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
-            start = 0;
-            init();
+
+            queried = false;
+
+
         } catch (ClassNotFoundException e) {
             LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
             throw new IOException(e);
@@ -53,32 +68,43 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
             tableList = new LinkedList<>();
         }
-        LOG.info("curentDb = {}, tableList = {}", currentDb.get(), tableList);
+        LOG.info("currentDb = {}, tableList = {}", currentDb.get(), tableList);
         tableIterator.set(tableList.iterator());
     }
 
 
     @Override
     protected Row nextRecordInternal(Row row) {
-        String schema, table;
+        String  tableName;
         Map<String, Object> metaData = new HashMap<>(16);
         metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
 
         if (queryTable) {
             Pair<String, String> pair = (Pair) tableIterator.get().next();
-            schema = pair.getKey();
-            table = pair.getValue();
+            //保证在同一个schema下搜索路径只设置一次
+            if(schemaName != null && !pair.getKey().equals(schemaName)){
+                setsearchpath = false;
+            }
+            schemaName = pair.getKey();
+            tableName = pair.getValue();
         } else {
             Map<String, String> map = (Map<String, String>) tableIterator.get().next();
-            schema = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
-            table = map.get(PostgresqlCons.KEY_TABLE_NAME);
+            if(schemaName != null && !map.get(PostgresqlCons.KEY_SCHEMA_NAME).equals(schemaName)){
+                setsearchpath = false;
+            }
+            schemaName = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
+            tableName = map.get(PostgresqlCons.KEY_TABLE_NAME);
         }
 
-        metaData.put(MetaDataCons.KEY_SCHEMA, schema);
-        metaData.put(MetaDataCons.KEY_TABLE, table);
+
+        metaData.put(MetaDataCons.KEY_SCHEMA, schemaName);
+        metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
-            metaData.putAll(showDataBaseMetaData(currentDb.get()));
-            metaData.putAll(queryMetaData(table));
+            if(!queried){
+                metaData.putAll(showDataBaseMetaData(currentDb.get()));
+            }
+
+            metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
         } catch (Exception e) {
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
@@ -161,20 +187,17 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     **/
     private LinkedList<ColumnMetaData> showColumnMetaData(String tableName)throws SQLException{
         LinkedList<ColumnMetaData> columns = new LinkedList<>();
-        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_COLUMN,tableName);
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while(resultSet.next()){
-                columns.add(new ColumnMetaData(resultSet.getString("name")
-                        ,resultSet.getString("type")
-                        ,resultSet.getInt("length" ) < 0 ? resultSet.getInt("lengthvar") : resultSet.getInt("length")
-                        ,resultSet.getBoolean("notnull")
-                        ,resultSet.getString("comment")));
 
-            }
+        ResultSet resultSet = connection.get().getMetaData().getColumns(currentDb.get(), schemaName, tableName, null);
+
+        while(resultSet.next()) {
+            columns.add(new ColumnMetaData(resultSet.getString("COLUMN_NAME")
+                    , resultSet.getString("TYPE_NAME")
+                    , resultSet.getInt("COLUMN_SIZE")
+                    , resultSet.getBoolean("NULLABLE")
+                    , resultSet.getString("REMARKS")));
 
         }
-
-
         return columns;
     }
 
@@ -188,7 +211,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     **/
     private String showTableSize(String tableName) throws SQLException{
         String size = "";
-        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,tableName);
+        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,schemaName,tableName);
         try(ResultSet resultSet =  statement.get().executeQuery(sql)){
             if (resultSet.next()){
                 size = resultSet.getString("size");
@@ -206,7 +229,10 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     private String showTablePrimaryKey(String tableName) throws SQLException{
         String primaryKey = "";
         String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
-
+        //由于主键所在系统表不具备schema隔离性，所以在查询前需要设置查询路径为当前schema
+        if (!setsearchpath){
+            setSearchPath(schemaName);
+        }
         try (ResultSet keySet = statement.get().executeQuery(sql)) {
             if (keySet.next()) {
                 primaryKey = keySet.getString("name");
@@ -227,6 +253,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         int dataCount = 0;
         String sql = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
 
+
         try (ResultSet countSet = statement.get().executeQuery(sql)) {
             if (countSet.next()) {
                 dataCount = countSet.getInt("count");
@@ -246,7 +273,8 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      **/
     private ArrayList<String> showIndexes(String tableName) throws SQLException{
         ArrayList<String> result = new ArrayList<>();
-        String sql = String.format(PostgresqlCons.SQL_SHOW_INDEXES,tableName);
+        String sql = String.format(PostgresqlCons.SQL_SHOW_INDEXES,schemaName,tableName);
+
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             while(resultSet.next()){
                 result.add(resultSet.getString("indexname"));
@@ -277,7 +305,22 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
         }
 
+        queried = true;
         return result;
+    }
+
+    /**
+     *@description 设置查询路径为当前schema
+     *@param schemaName:
+     *@return void
+     *
+    **/
+    private void setSearchPath(String schemaName) throws SQLException{
+        String sql = String.format(PostgresqlCons.SQL_SET_SEARCHPATH,schemaName);
+        statement.get().execute(sql);
+
+        setsearchpath = true;
+
     }
 
   /**
@@ -295,6 +338,6 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
     @Override
     protected String quote(String name) {
-        return null;
+        return name;
     }
 }
