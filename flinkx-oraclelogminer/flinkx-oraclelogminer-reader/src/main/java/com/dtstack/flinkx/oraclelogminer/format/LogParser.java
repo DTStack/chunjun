@@ -68,11 +68,11 @@ public class LogParser {
             str = str.replace("TIMESTAMP ", "");
         }
 
-        if (str.startsWith("'") && str.endsWith("'")) {
+        if (str.startsWith("'") && str.endsWith("'") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
-        if (str.startsWith("\"") && str.endsWith("\"")) {
+        if (str.startsWith("\"") && str.endsWith("\"") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
