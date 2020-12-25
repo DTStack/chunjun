@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-metadata-phoenix</artifactId>
+        <artifactId>flinkx-metadata-phoenix5</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-metadata-phoenix-reader</artifactId>
+    <artifactId>flinkx-metadata-phoenix5-reader</artifactId>
 
     <dependencies>
         <dependency>
@@ -59,15 +59,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.metadataphoenixreader.io.netty</shadedPattern>
+                                    <shadedPattern>shade.metadataphoenix5reader.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.metadataphoenixreader.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.metadataphoenix5reader.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.metadataphoenixreader.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.metadataphoenix5reader.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -88,14 +88,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../syncplugins/metadataphoenixreader">
+                                <copy todir="${basedir}/../../syncplugins/metadataphoenix5reader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/metadataphoenixreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/metadataphoenixreader/${project.name}-${git.branch}.jar" />
+                                <move file="${basedir}/../../syncplugins/metadataphoenix5reader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/metadataphoenix5reader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

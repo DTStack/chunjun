@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadataphoenix.inputformat;
+package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadataphoenix.util.ZkHelper;
+import com.dtstack.flinkx.metadataphoenix5.util.ZkHelper;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
@@ -42,15 +41,15 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
-import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
-import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.SQL_TABLE_NAME;
-import static com.dtstack.flinkx.metadataphoenix.util.ZkHelper.DEFAULT_PATH;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * @author kunni@Dtstack.com
  */
 
-public class MetadataphoenixInputFormat extends BaseMetadataInputFormat {
+public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     private Map<String, Long> createTimeMap;
 

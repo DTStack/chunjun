@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.metadataphoenix.util;
+package com.dtstack.flinkx.metadataphoenix5.util;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;

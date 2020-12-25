@@ -16,30 +16,30 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadataphoenix.reader;
+package com.dtstack.flinkx.metadataphoenix5.reader;
 
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
-import com.dtstack.flinkx.metadataphoenix.inputformat.MetadataphoenixInputFormat;
+import com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import static com.dtstack.flinkx.metadataphoenix.util.PhoenixMetadataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.DRIVER_NAME;
 
 /**
  * @author kunni@dtstack.com
  */
-public class MetadataphoenixReader extends MetadataReader {
+public class Metadataphoenix5Reader extends MetadataReader {
 
-    public MetadataphoenixReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public Metadataphoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         driverName = DRIVER_NAME;
     }
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        MetadataInputFormatBuilder builder = new MetadataInputFormatBuilder(new MetadataphoenixInputFormat());
+        MetadataInputFormatBuilder builder = new MetadataInputFormatBuilder(new Metadataphoenix5InputFormat());
         builder.setDataTransferConfig(dataTransferConfig);
         return builder;
     }

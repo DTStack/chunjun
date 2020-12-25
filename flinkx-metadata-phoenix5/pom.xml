@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <artifactId>flinkx-metadata-phoenix</artifactId>
+    <artifactId>flinkx-metadata-phoenix5</artifactId>
 
     <dependencies>
         <dependency>
@@ -22,7 +22,7 @@
     </dependencies>
 
     <modules>
-        <module>flinkx-metadata-phoenix-reader</module>
+        <module>flinkx-metadata-phoenix5-reader</module>
     </modules>
 
 </project>

@@ -61,7 +61,7 @@ import com.dtstack.flinkx.metadatahbase.reader.MetadatahbaseReader;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
-import com.dtstack.flinkx.metadataphoenix.reader.MetadataphoenixReader;
+import com.dtstack.flinkx.metadataphoenix5.reader.MetadataphoenixReader;
 import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.metadatavertica.reader.MetadataverticaReader;
