@@ -24,6 +24,10 @@ package com.dtstack.flinkx.metadata;
  * todo 需要定义的常量较多，找到好的命名方法
  */
 public class MetaDataCons {
+
+
+    public static final String KEY_USER = "user";
+
     /**
      * reader 需要的参数
      */

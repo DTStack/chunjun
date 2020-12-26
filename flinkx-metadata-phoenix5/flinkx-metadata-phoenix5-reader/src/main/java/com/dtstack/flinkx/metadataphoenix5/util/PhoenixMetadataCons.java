@@ -26,6 +26,8 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 
 public class PhoenixMetadataCons extends MetaDataCons {
 
+    public static final String KEY_DEFAULT = "default";
+
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 
     public static final String SQL_DEFAULT_TABLE_NAME = " SELECT DISTINCT TABLE_NAME FROM SYSTEM.CATALOG WHERE TABLE_SCHEM is null ";
