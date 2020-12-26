@@ -21,7 +21,7 @@ package com.dtstack.flinkx.metadata.constants;
 /**
  * @author kunni@dtstack.com
  */
-public class BaseConstants {
+public class BaseCons {
 
     public static final String KEY_DB_LIST = "dbList";
 

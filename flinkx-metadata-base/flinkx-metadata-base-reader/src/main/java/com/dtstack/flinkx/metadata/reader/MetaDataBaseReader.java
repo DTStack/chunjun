@@ -21,7 +21,7 @@ package com.dtstack.flinkx.metadata.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.flinkx.metadata.constants.BaseConstants;
+import com.dtstack.flinkx.metadata.constants.BaseCons;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -45,7 +45,7 @@ abstract public class MetaDataBaseReader extends BaseDataReader {
     protected MetaDataBaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         params = config.getJob().getContent().get(0).getReader().getParameter();
-        originalJob = (List<Map<String, Object>>) params.getVal(BaseConstants.KEY_DB_LIST);
+        originalJob = (List<Map<String, Object>>) params.getVal(BaseCons.KEY_DB_LIST);
     }
 
     @Override

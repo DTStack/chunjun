@@ -32,8 +32,40 @@ public class TableEntity {
     /**
      * 创建时间，格式为时间戳
      */
-    protected int createTime;
+    protected String createTime;
 
     protected String comment;
+
+    protected String totalSize;
+
+    protected String rows;
+
+    public void setRows(String rows) {
+        this.rows = rows;
+    }
+
+    public void setTotalSize(String totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
 }

@@ -11,8 +11,9 @@ public class MetadatardbBuilder extends MetadataBaseBuilder {
 
     protected MetadatardbInputFormat format;
 
-    public MetadatardbBuilder(MetadataBaseInputFormat format) {
+    public MetadatardbBuilder(MetadatardbInputFormat format){
         super(format);
+        this.format = format;
     }
 
     public void setUsername(String username){

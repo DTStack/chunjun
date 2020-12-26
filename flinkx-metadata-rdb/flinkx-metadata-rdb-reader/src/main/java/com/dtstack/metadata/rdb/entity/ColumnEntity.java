@@ -32,11 +32,21 @@ public class ColumnEntity {
 
     protected String comment;
 
-
-
     protected String position;
 
     protected String nullAble;
+
+    protected String length;
+
+    protected String digital;
+
+    public void setDigital(String digital) {
+        this.digital = digital;
+    }
+
+    public void setLength(String length) {
+        this.length = length;
+    }
 
     public void setPosition(String position) {
         this.position = position;

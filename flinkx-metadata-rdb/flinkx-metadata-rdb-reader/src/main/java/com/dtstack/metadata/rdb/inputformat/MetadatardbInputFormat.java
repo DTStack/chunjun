@@ -28,7 +28,6 @@ import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
 import com.dtstack.metadata.rdb.entity.TableEntity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -38,13 +37,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.dtstack.flinkx.metadata.constants.BaseConstants.DEFAULT_OPERA_TYPE;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_COLUMN_DEF;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_COLUMN_NAME;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_IS_NULLABLE;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_RDINAL_POSITION;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_TABLE_NAME;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.RESULT_TYPE_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_IS_NULLABLE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_ORDINAL_POSITION;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TABLE_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 /**
  * @author kunni@dtstack.com
@@ -72,27 +70,26 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     protected String password;
 
-
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit : {}", inputSplit);
+        LOG.info("inputSplit : {} ", inputSplit);
+        tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
+        currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
         try{
             Class.forName(driverName);
             connection = MetadataDbUtil.getConnection(url, username, password);
             statement = connection.createStatement();
+            switchDataBase();
         }catch (ClassNotFoundException | SQLException e){
             throw new RuntimeException(e);
         }
-
-        tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
-        currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
-
         if(CollectionUtils.isEmpty(tableList)){
             tableList = showTables();
         }
         iterator = tableList.iterator();
     }
+
+    abstract public void switchDataBase() throws SQLException;
 
     @Override
     protected void closeInternal() {
@@ -106,7 +103,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      */
     public List<Object> showTables() {
         List<Object> tables = new ArrayList<>();
-        try(ResultSet resultSet = connection.getMetaData().getTables(null, currentDatabase, null, null)){
+        try(ResultSet resultSet = connection.getMetaData().getTables(currentDatabase, null, null, null)){
                while (resultSet.next()){
                    tables.add(resultSet.getString(RESULT_TABLE_NAME));
                }
@@ -118,38 +115,37 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() {
-
-        return super.reachedEnd();
-    }
-
-    @Override
-    public MetadataEntity createMetadataEntity() {
-        MetadatardbEntity entity = new MetadatardbEntity();
+    public MetadataEntity createMetadataEntity() throws IOException {
+        currentTable = (String) currentObject;
+        MetadatardbEntity entity = createMetadatardbEntity();
         entity.setTableProperties(queryTableEntity());
         entity.setColumn(queryColumn());
         return entity;
     }
 
-    public TableEntity queryTableEntity(){
-        currentTable = (String) currentObject;
-        TableEntity tableEntity = new TableEntity();
+    abstract public MetadatardbEntity createMetadatardbEntity();
+
+    public TableEntity queryTableEntity() throws IOException {
+        TableEntity tableEntity = queryTableProp();
         return tableEntity;
     }
 
+    abstract public TableEntity queryTableProp() throws IOException;
+
     public List<ColumnEntity> queryColumn(){
         List<ColumnEntity> columnEntities = new ArrayList<>();
-        try(ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, currentTable, null)){
+        try(ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)){
             while (resultSet.next()){
                 ColumnEntity columnEntity = new ColumnEntity();
                 columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
                 columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
-                columnEntity.setPosition(resultSet.getString(RESULT_RDINAL_POSITION));
+                columnEntity.setPosition(resultSet.getString(RESULT_ORDINAL_POSITION));
                 columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
                 columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+                columnEntities.add(columnEntity);
             }
         }catch (SQLException e){
-            LOG.error("queryColumn failed, cause: {}", ExceptionUtil.getErrorMessage(e));
+            LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
         }
         return columnEntities;
     }

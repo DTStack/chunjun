@@ -19,19 +19,21 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.metadata.constants.BaseConstants;
+import com.dtstack.flinkx.metadata.constants.BaseCons;
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.constants.BaseConstants.DEFAULT_OPERA_TYPE;
+import static com.dtstack.flinkx.metadata.constants.BaseCons.DEFAULT_OPERA_TYPE;
 
 /**
  * @author kunni@dtstack.com
@@ -57,9 +59,9 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
         InputSplit[] inputSplits = new MetadataBaseInputSplit[originalJob.size()];
         for (int index = 0; index < originalJob.size(); index++) {
             Map<String, Object> dbTables = originalJob.get(index);
-            String dbName = MapUtils.getString(dbTables, BaseConstants.KEY_DB_NAME);
+            String dbName = MapUtils.getString(dbTables, BaseCons.KEY_DB_NAME);
             if(StringUtils.isNotEmpty(dbName)){
-                List<Object> tables = (List<Object>) dbTables.get(BaseConstants.KEY_TABLE_LIST);
+                List<Object> tables = (List<Object>) dbTables.get(BaseCons.KEY_TABLE_LIST);
                 inputSplits[index] = new MetadataBaseInputSplit(splitNumber, dbName, tables);
             }
         }
@@ -72,15 +74,14 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
         MetadataEntity metadataEntity = createMetadataEntity();
         metadataEntity.setOperaType(DEFAULT_OPERA_TYPE);
         currentPosition++;
-
-        return Row.of(metadataEntity);
+        return Row.of(GsonUtil.GSON.toJson(metadataEntity));
     }
 
     /**
      * 创建元数据实体类
      * @return metadataEntity
      */
-    public abstract MetadataEntity createMetadataEntity();
+    public abstract MetadataEntity createMetadataEntity() throws IOException;
 
     @Override
     protected void closeInternal() {
@@ -88,7 +89,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() {
-        return iterator.hasNext();
+        return !iterator.hasNext();
     }
 
     public void setOriginalJob(List<Map<String, Object>> originalJob){

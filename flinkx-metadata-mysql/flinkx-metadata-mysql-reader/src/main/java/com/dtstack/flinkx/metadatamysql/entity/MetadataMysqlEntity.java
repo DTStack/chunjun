@@ -16,33 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.metadata.rdb.core.constants;
+package com.dtstack.flinkx.metadatamysql.entity;
 
-import com.dtstack.flinkx.metadata.constants.BaseConstants;
+import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
+
+import java.util.List;
 
 /**
  * @author kunni@dtstack.com
  */
-public class RdbConstants extends BaseConstants {
+public class MetadataMysqlEntity extends MetadatardbEntity {
 
-    public static final String KEY_CONN_USERNAME = "username";
+    protected List<IndexEntity> indexEntities;
 
-    public static final String KEY_CONN_PASSWORD = "password";
-
-    public static final String KEY_JDBC_URL = "jdbcUrl";
-
-    public static final String RESULT_TABLE_NAME = "TABLE_NAME";
-
-    public static final String RESULT_COLUMN_NAME = "COLUMN_NAME";
-
-    public static final String RESULT_TYPE_NAME = "TYPE_NAME";
-
-    public static final String RESULT_IS_NULLABLE = "IS_NULLABLE";
-
-    public static final String RESULT_REMARKS = "REMARKS";
-
-    public static final String RESULT_COLUMN_DEF = "COLUMN_DEF";
-
-    public static final String RESULT_RDINAL_POSITION = "RDINAL_POSITION";
+    public void setIndexEntities(List<IndexEntity> indexEntities) {
+        this.indexEntities = indexEntities;
+    }
 
 }

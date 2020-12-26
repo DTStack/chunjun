@@ -25,9 +25,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.KEY_CONN_PASSWORD;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.KEY_CONN_USERNAME;
-import static com.dtstack.metadata.rdb.core.constants.RdbConstants.KEY_JDBC_URL;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_CONN_PASSWORD;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_CONN_USERNAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_JDBC_URL;
 
 /**
  * @author kunni@dtstack.com
@@ -47,6 +47,7 @@ abstract public class MetadatardbReader extends MetaDataBaseReader {
         url = params.getStringVal(KEY_JDBC_URL);
         username = params.getStringVal(KEY_CONN_USERNAME);
         password = params.getStringVal(KEY_CONN_PASSWORD);
+        driverName = getDriverName();
     }
 
     @Override
@@ -71,5 +72,5 @@ abstract public class MetadatardbReader extends MetaDataBaseReader {
     /**
      * 设置驱动
      */
-    abstract public void setDriverName();
+    abstract public String getDriverName();
 }
