@@ -39,7 +39,6 @@ public class MetadataBaseBuilder extends BaseRichInputFormatBuilder {
         format.setOriginalJob(originalJob);
     }
 
-
     @Override
     protected void checkFormat() {
 

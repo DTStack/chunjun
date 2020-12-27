@@ -25,9 +25,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_CONN_PASSWORD;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_CONN_USERNAME;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_JDBC_URL;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_PASSWORD;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_USERNAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_URL;
 
 /**
  * @author kunni@dtstack.com
@@ -44,9 +44,9 @@ abstract public class MetadatardbReader extends MetaDataBaseReader {
 
     protected MetadatardbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        url = params.getStringVal(KEY_JDBC_URL);
-        username = params.getStringVal(KEY_CONN_USERNAME);
-        password = params.getStringVal(KEY_CONN_PASSWORD);
+        url = params.getStringVal(KEY_URL);
+        username = params.getStringVal(KEY_USERNAME);
+        password = params.getStringVal(KEY_PASSWORD);
         driverName = getDriverName();
     }
 
@@ -63,14 +63,15 @@ abstract public class MetadatardbReader extends MetaDataBaseReader {
     }
 
     /**
-     * 重写该方法，返回metadatardbBuilder
-     * @return metadatardbbuilder
+     * 重写该方法，返回builder
+     * @return builder
      */
     @Override
     abstract public MetadatardbBuilder createBuilder();
 
     /**
      * 设置驱动
+     * @return 驱动类名
      */
     abstract public String getDriverName();
 }

@@ -25,11 +25,11 @@ import com.dtstack.flinkx.metadata.constants.BaseCons;
  */
 public class RdbCons extends BaseCons {
 
-    public static final String KEY_CONN_USERNAME = "username";
+    public static final String KEY_USERNAME = "username";
 
-    public static final String KEY_CONN_PASSWORD = "password";
+    public static final String KEY_PASSWORD = "password";
 
-    public static final String KEY_JDBC_URL = "jdbcUrl";
+    public static final String KEY_URL = "jdbcUrl";
 
     public static final String RESULT_TABLE_NAME = "TABLE_NAME";
 

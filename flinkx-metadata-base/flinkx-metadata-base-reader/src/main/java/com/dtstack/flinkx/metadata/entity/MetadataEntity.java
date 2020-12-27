@@ -37,40 +37,20 @@ public class MetadataEntity implements Serializable {
 
     protected String operaType;
 
-    public String getOperaType() {
-        return operaType;
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public void setOperaType(String operaType) {
         this.operaType = operaType;
     }
 
-    public String getSchema() {
-        return schema;
-    }
-
     public void setSchema(String schema) {
         this.schema = schema;
     }
 
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public boolean isQuerySuccess() {
-        return querySuccess;
-    }
-
     public void setQuerySuccess(boolean querySuccess) {
         this.querySuccess = querySuccess;
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
     }
 
     public void setErrorMsg(String errorMsg) {

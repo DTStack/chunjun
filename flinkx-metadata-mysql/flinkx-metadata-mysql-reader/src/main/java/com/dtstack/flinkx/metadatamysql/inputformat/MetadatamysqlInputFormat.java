@@ -48,32 +48,11 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_S
 
 /**
  * @author : kunni@dtstack.com
- * @date : 2020/6/8
  */
 
 public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
-
-    @Override
-    public TableEntity queryTableProp() throws IOException {
-        MysqlTableEntity entity = new MysqlTableEntity();
-        String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentTable);
-        try(ResultSet rs = statement.executeQuery(sql)){
-            while (rs.next()) {
-                entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
-                entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
-                entity.setTotalSize(rs.getString(RESULT_DATA_LENGTH));
-                entity.setRows(rs.getString(RESULT_ROWS));
-                entity.setEngine(RESULT_TABLE_TYPE);
-                entity.setRowFormat(rs.getString(RESULT_ENGINE));
-                entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
-            }
-        }catch (SQLException e){
-            throw new IOException(e);
-        }
-        return entity;
-    }
 
     protected List<IndexEntity> queryIndex() throws SQLException {
         List<IndexEntity> indexEntities = new LinkedList<>();
@@ -97,14 +76,34 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
     }
 
     @Override
-    public MetadatardbEntity createMetadatardbEntity() {
+    public MetadatardbEntity createMetadatardbEntity() throws IOException {
         MetadataMysqlEntity metadataMysqlEntity = new MetadataMysqlEntity();
         try{
             metadataMysqlEntity.setIndexEntities(queryIndex());
         }catch (Exception e){
-          throw new RuntimeException(e);
+          throw new IOException(e);
         }
         return metadataMysqlEntity;
+    }
+
+    @Override
+    public TableEntity createTableEntity() throws IOException {
+        MysqlTableEntity entity = new MysqlTableEntity();
+        String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentTable);
+        try(ResultSet rs = statement.executeQuery(sql)){
+            while (rs.next()) {
+                entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
+                entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
+                entity.setTotalSize(rs.getString(RESULT_DATA_LENGTH));
+                entity.setRows(rs.getString(RESULT_ROWS));
+                entity.setEngine(RESULT_TABLE_TYPE);
+                entity.setRowFormat(rs.getString(RESULT_ENGINE));
+                entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
+            }
+        }catch (SQLException e){
+            throw new IOException(e);
+        }
+        return entity;
     }
 
 }

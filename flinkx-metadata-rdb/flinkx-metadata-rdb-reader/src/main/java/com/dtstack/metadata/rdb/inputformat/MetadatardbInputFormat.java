@@ -20,14 +20,12 @@ package com.dtstack.metadata.rdb.inputformat;
 
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
 import com.dtstack.metadata.rdb.entity.ColumnEntity;
 import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
 import com.dtstack.metadata.rdb.entity.TableEntity;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.flink.core.io.InputSplit;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -39,8 +37,11 @@ import java.util.List;
 
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_SIZE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_DECIMAL_DIGITS;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_IS_NULLABLE;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_ORDINAL_POSITION;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_REMARKS;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TABLE_NAME;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
@@ -54,13 +55,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     protected Statement statement;
 
-    protected String currentDatabase;
-
-    protected String currentSchema;
-
     protected String currentTable;
-
-    protected List<Object> tableList;
 
     protected String driverName;
 
@@ -71,10 +66,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     protected String password;
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit : {} ", inputSplit);
-        tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
-        currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
+    protected void initJob() {
         try{
             Class.forName(driverName);
             connection = MetadataDbUtil.getConnection(url, username, password);
@@ -86,8 +78,12 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
         if(CollectionUtils.isEmpty(tableList)){
             tableList = showTables();
         }
-        iterator = tableList.iterator();
     }
+
+    /**
+     * 设置当前数据库环境
+     * @throws SQLException sql异常
+     */
 
     abstract public void switchDataBase() throws SQLException;
 
@@ -118,21 +114,26 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     public MetadataEntity createMetadataEntity() throws IOException {
         currentTable = (String) currentObject;
         MetadatardbEntity entity = createMetadatardbEntity();
-        entity.setTableProperties(queryTableEntity());
+        entity.setTableProperties(createTableEntity());
         entity.setColumn(queryColumn());
         return entity;
     }
 
-    abstract public MetadatardbEntity createMetadatardbEntity();
+    /**
+     * 元数据信息
+     * @return MetadatardbEntity
+     * @throws IOException sql异常
+     */
+    abstract public MetadatardbEntity createMetadatardbEntity() throws IOException;
 
-    public TableEntity queryTableEntity() throws IOException {
-        TableEntity tableEntity = queryTableProp();
-        return tableEntity;
-    }
+    /**
+     * 表的元数据属性
+     * @return TableEntity
+     * @throws IOException sql异常
+     */
+    abstract public TableEntity createTableEntity()  throws IOException;
 
-    abstract public TableEntity queryTableProp() throws IOException;
-
-    public List<ColumnEntity> queryColumn(){
+    public List<ColumnEntity> queryColumn()  throws IOException {
         List<ColumnEntity> columnEntities = new ArrayList<>();
         try(ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)){
             while (resultSet.next()){
@@ -142,6 +143,9 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
                 columnEntity.setPosition(resultSet.getString(RESULT_ORDINAL_POSITION));
                 columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
                 columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+                columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
+                columnEntity.setDigital(resultSet.getString(RESULT_DECIMAL_DIGITS));
+                columnEntity.setLength(resultSet.getString(RESULT_COLUMN_SIZE));
                 columnEntities.add(columnEntity);
             }
         }catch (SQLException e){

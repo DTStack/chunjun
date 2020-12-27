@@ -39,8 +39,6 @@ abstract public class MetaDataBaseReader extends BaseDataReader {
 
     protected List<Map<String, Object>> originalJob;
 
-
-
     @SuppressWarnings("unchecked")
     protected MetaDataBaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);

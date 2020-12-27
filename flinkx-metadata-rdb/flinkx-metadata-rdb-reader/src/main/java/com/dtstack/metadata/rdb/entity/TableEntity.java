@@ -29,9 +29,6 @@ public class TableEntity {
 
     protected String databaseName;
 
-    /**
-     * 创建时间，格式为时间戳
-     */
     protected String createTime;
 
     protected String comment;

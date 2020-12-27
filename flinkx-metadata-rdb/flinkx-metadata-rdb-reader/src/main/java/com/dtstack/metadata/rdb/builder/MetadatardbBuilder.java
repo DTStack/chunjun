@@ -1,7 +1,6 @@
 package com.dtstack.metadata.rdb.builder;
 
 import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 
 /**

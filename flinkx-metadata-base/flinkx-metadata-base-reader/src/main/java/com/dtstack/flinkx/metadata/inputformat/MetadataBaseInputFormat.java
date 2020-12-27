@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadata.inputformat;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metadata.constants.BaseCons;
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +29,6 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,10 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     protected List<Map<String, Object>> originalJob;
 
+    protected String currentDatabase;
+
+    protected List<Object> tableList;
+
     protected int currentPosition;
 
     protected Iterator<Object> iterator;
@@ -51,11 +55,22 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         currentPosition = 0;
+        LOG.info("inputSplit : {} ", inputSplit);
+        tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
+        currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
+        initJob();
+        iterator = tableList.iterator();
     }
+
+    /**
+     * 建立连接，初始化设置
+     * @throws IOException 异常
+     */
+    abstract protected void initJob() throws IOException;
 
     @SuppressWarnings("unchecked")
     @Override
-    protected InputSplit[] createInputSplitsInternal(int splitNumber) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int splitNumber) {
         InputSplit[] inputSplits = new MetadataBaseInputSplit[originalJob.size()];
         for (int index = 0; index < originalJob.size(); index++) {
             Map<String, Object> dbTables = originalJob.get(index);
@@ -69,9 +84,16 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
+    protected Row nextRecordInternal(Row row) {
         currentObject = iterator.next();
-        MetadataEntity metadataEntity = createMetadataEntity();
+        MetadataEntity metadataEntity = new MetadataEntity();
+        try{
+            metadataEntity = createMetadataEntity();
+            metadataEntity.setQuerySuccess(true);
+        }catch (Exception e){
+            metadataEntity.setQuerySuccess(false);
+            metadataEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
+        }
         metadataEntity.setOperaType(DEFAULT_OPERA_TYPE);
         currentPosition++;
         return Row.of(GsonUtil.GSON.toJson(metadataEntity));
@@ -79,13 +101,10 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     /**
      * 创建元数据实体类
-     * @return metadataEntity
+     * @return metadataEntity 表的元数据
+     * @throws IOException 异常
      */
     public abstract MetadataEntity createMetadataEntity() throws IOException;
-
-    @Override
-    protected void closeInternal() {
-    }
 
     @Override
     public boolean reachedEnd() {

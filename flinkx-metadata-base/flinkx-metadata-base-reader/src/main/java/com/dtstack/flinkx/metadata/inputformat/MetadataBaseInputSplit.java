@@ -23,7 +23,7 @@ import org.apache.flink.core.io.InputSplit;
 
 import java.util.List;
 
-/** 元数据查询子任务划分
+/** 元数据查询的子任务
  * @author kunni@dtstack.com
  */
 public class MetadataBaseInputSplit  implements InputSplit {
@@ -35,7 +35,7 @@ public class MetadataBaseInputSplit  implements InputSplit {
     protected String dbName;
 
     /**
-     * 采用Object是兼容查询table或者schema table结构
+     * 为了兼容查询table或者schema table结构
      */
     protected List<Object> tableList;
 
