@@ -32,12 +32,12 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     /**
      * 是否查询过database的元数据
      */
-    private boolean queried = false;
+    private boolean isQueried = false;
 
     /**
      * 是否设置了搜索路径
      */
-    private boolean setsearchpath = false;
+    private boolean isChanged = false;
 
 
     private String schemaName;
@@ -58,7 +58,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             LOG.info("current database = {}, tableSize = {}, tableList = {}", currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
 
-            queried = false;
+            isQueried = false;
 
 
         } catch (ClassNotFoundException e) {
@@ -83,14 +83,14 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             Pair<String, String> pair = (Pair) tableIterator.get().next();
             //保证在同一个schema下搜索路径只设置一次
             if(schemaName != null && !pair.getKey().equals(schemaName)){
-                setsearchpath = false;
+                isChanged = false;
             }
             schemaName = pair.getKey();
             tableName = pair.getValue();
         } else {
             Map<String, String> map = (Map<String, String>) tableIterator.get().next();
             if(schemaName != null && !map.get(PostgresqlCons.KEY_SCHEMA_NAME).equals(schemaName)){
-                setsearchpath = false;
+                isChanged = false;
             }
             schemaName = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
             tableName = map.get(PostgresqlCons.KEY_TABLE_NAME);
@@ -100,7 +100,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         metaData.put(MetaDataCons.KEY_SCHEMA, schemaName);
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
-            if(!queried){
+            if(!isQueried){
                 metaData.putAll(showDataBaseMetaData(currentDb.get()));
             }
 
@@ -230,7 +230,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         String primaryKey = "";
         String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
         //由于主键所在系统表不具备schema隔离性，所以在查询前需要设置查询路径为当前schema
-        if (!setsearchpath){
+        if (!isChanged){
             setSearchPath(schemaName);
         }
         try (ResultSet keySet = statement.get().executeQuery(sql)) {
@@ -305,7 +305,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
         }
 
-        queried = true;
+        isQueried = true;
         return result;
     }
 
@@ -319,7 +319,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         String sql = String.format(PostgresqlCons.SQL_SET_SEARCHPATH,schemaName);
         statement.get().execute(sql);
 
-        setsearchpath = true;
+        isChanged = true;
 
     }
 
