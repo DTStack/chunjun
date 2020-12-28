@@ -58,7 +58,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
         LOG.info("inputSplit : {} ", inputSplit);
         tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
         currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
-        initJob();
+        doOpenInternal();
         iterator = tableList.iterator();
     }
 
@@ -66,7 +66,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
      * 建立连接，初始化设置
      * @throws IOException 异常
      */
-    abstract protected void initJob() throws IOException;
+    abstract protected void doOpenInternal() throws IOException;
 
     @SuppressWarnings("unchecked")
     @Override

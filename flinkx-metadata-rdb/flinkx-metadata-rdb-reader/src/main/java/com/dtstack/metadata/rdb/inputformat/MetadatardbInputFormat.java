@@ -66,7 +66,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     protected String password;
 
     @Override
-    protected void initJob() {
+    protected void doOpenInternal() {
         try{
             Class.forName(driverName);
             connection = MetadataDbUtil.getConnection(url, username, password);
