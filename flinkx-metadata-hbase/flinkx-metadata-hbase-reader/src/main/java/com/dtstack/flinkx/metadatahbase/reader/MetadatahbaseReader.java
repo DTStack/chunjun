@@ -24,6 +24,7 @@ import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputformat;
 import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputformatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.hadoop.hbase.HConstants;
 
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public class MetadatahbaseReader extends MetadataReader {
         super(config, env);
         hadoopConfig = (Map<String, Object>) config.getJob().getContent()
                 .get(0).getReader().getParameter().getVal(KEY_HADOOP_CONFIG);
+        hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, jdbcUrl);
     }
 
     @Override
