@@ -133,9 +133,8 @@ public class LogMinerConnection {
 
     /**
      * 关闭LogMiner资源
-     * @throws SQLException
      */
-    public void disConnect() throws SQLException{
+    public void disConnect() {
         //清除日志文件组，下次LogMiner启动时重新加载日志文件
         addedLogFiles.clear();
 
@@ -148,38 +147,8 @@ public class LogMinerConnection {
             logMinerStarted = false;
         }
 
-        if (null != logMinerData) {
-            try {
-                logMinerData.close();
-            } catch (SQLException e) {
-                LOG.warn("Close logMinerData error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != logMinerStartStmt) {
-            try {
-                logMinerStartStmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close logMinerStartStmt error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != logMinerSelectStmt) {
-            try {
-                logMinerSelectStmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close logMinerSelectStmt error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-
-        if (null != connection && !connection.isClosed()) {
-
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                LOG.warn("Close connection error: {}", ExceptionUtil.getErrorMessage(e));
-            }
-        }
+        closeStmt(logMinerStartStmt);
+        closeResources(logMinerData, logMinerSelectStmt, connection);
     }
 
     /**
@@ -215,10 +184,7 @@ public class LogMinerConnection {
                 }
             }
 
-            if(logMinerStartStmt != null && !logMinerStartStmt.isClosed()){
-                logMinerStartStmt.close();
-            }
-
+            closeStmt(logMinerStartStmt);
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
 
@@ -272,19 +238,19 @@ public class LogMinerConnection {
         } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的时间获取对应时间段的日志文件的起始位置
             if (logMinerConfig.getStartTime() == 0) {
-                throw new RuntimeException("[startTime] must not be null or empty when readMode is [time]");
+                throw new IllegalArgumentException("[startTime] must not be null or empty when readMode is [time]");
             }
 
             startScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
         } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartScn())){
-                throw new RuntimeException("[startSCN] must not be null or empty when readMode is [scn]");
+                throw new IllegalArgumentException("[startSCN] must not be null or empty when readMode is [scn]");
             }
 
             startScn = Long.parseLong(logMinerConfig.getStartScn());
         } else {
-            throw new RuntimeException("unsupported readMode : " + logMinerConfig.getReadPosition());
+            throw new IllegalArgumentException("unsupported readMode : " + logMinerConfig.getReadPosition());
         }
 
         return startScn;
@@ -403,31 +369,28 @@ public class LogMinerConnection {
         }
     }
 
+    /**
+     * 关闭数据库连接资源
+     * @param rs
+     * @param stmt
+     * @param conn
+     */
     private void closeResources(ResultSet rs, Statement stmt, Connection conn) {
         if (null != rs) {
             try {
                 rs.close();
             } catch (SQLException e) {
                 LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
             }
         }
 
-        if (null != stmt) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
-            }
-        }
+        closeStmt(stmt);
 
         if (null != conn) {
             try {
                 conn.close();
             } catch (SQLException e) {
                 LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
             }
         }
     }
@@ -659,15 +622,32 @@ public class LogMinerConnection {
         return result;
     }
 
+
+    /**
+     * 关闭logMinerSelectStmt
+     */
     public void closeStmt(){
         try {
             if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
                 logMinerSelectStmt.close();
             }
         }catch (SQLException e){
-            LOG.warn("关闭logMinerStartStmt出错", e);
+            LOG.warn("Close logMinerSelectStmt error", e);
         }
         logMinerSelectStmt = null;
+    }
+
+    /**
+     * 关闭Statement
+     */
+    private void closeStmt(Statement statement){
+        try {
+            if(statement != null && !statement.isClosed()){
+                statement.close();
+            }
+        }catch (SQLException e){
+            LOG.warn("Close statement error", e);
+        }
     }
 
     enum ReadPosition{
