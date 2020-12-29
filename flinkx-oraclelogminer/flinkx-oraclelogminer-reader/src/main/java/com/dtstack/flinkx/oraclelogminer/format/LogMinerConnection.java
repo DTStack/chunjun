@@ -27,7 +27,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +67,8 @@ public class LogMinerConnection {
     //oracle10数据库字符编码是否设置为GBK
     public boolean isGBK = false;
     boolean isOracle10;
+
+    public static final long MAX_SCN = 281474976710655L;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
@@ -112,6 +114,11 @@ public class LogMinerConnection {
     private static final long QUERY_LOG_INTERVAL = 10000;
 
     private boolean logMinerStarted = false;
+
+    /**
+     * 上一次查询的scn
+     */
+    private Long preScn = null;
 
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
         this.logMinerConfig = logMinerConfig;
@@ -174,7 +181,7 @@ public class LogMinerConnection {
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
-                List<LogFile> newLogFiles = queryLogFiles(startScn);
+                List<LogFile> newLogFiles = queryLogFiles(preScn);
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
@@ -188,11 +195,14 @@ public class LogMinerConnection {
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
 
-            logMinerStartStmt.setLong(1, startScn);
+            logMinerStartStmt.setLong(1, preScn);
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, startScn:{}", startScn);
+            LOG.info("start logMiner successfully, preScn:{}, startScn:{}", preScn, startScn);
+            if(startScn > preScn){
+                preScn = startScn;
+            }
         } catch (SQLException e){
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -395,6 +405,12 @@ public class LogMinerConnection {
         }
     }
 
+    /**
+     * 根据scn号查询在线及归档日志组
+     * @param scn
+     * @return
+     * @throws SQLException
+     */
     private List<LogFile> queryLogFiles(Long scn) throws SQLException{
         List<LogFile> logFiles = new ArrayList<>();
         PreparedStatement statement = null;
@@ -409,11 +425,11 @@ public class LogMinerConnection {
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
                 if(isOracle10){
-                    logFile.setNextChange(Long.MAX_VALUE);
+                    logFile.setNextChange(MAX_SCN);
                 }else{
                     String nextChangeString = rs.getString("next_change#");
                     if (nextChangeString.length() == 20) {
-                        logFile.setNextChange(Long.MAX_VALUE);
+                        logFile.setNextChange(MAX_SCN);
                     } else {
                         logFile.setNextChange(Long.parseLong(nextChangeString));
                     }
@@ -442,7 +458,11 @@ public class LogMinerConnection {
 
         String sqlLog;
         while (logMinerData.next()) {
-            StringBuilder sqlRedo = new StringBuilder(logMinerData.getString(KEY_SQL_REDO));
+            String sql = logMinerData.getString(KEY_SQL_REDO);
+            if(StringUtils.isBlank(sql)){
+                continue;
+            }
+            StringBuilder sqlRedo = new StringBuilder(sql);
             if(SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())){
                 continue;
             }
@@ -652,5 +672,9 @@ public class LogMinerConnection {
 
     enum ReadPosition{
         ALL, CURRENT, TIME, SCN
+    }
+
+    public void setPreScn(Long preScn) {
+        this.preScn = preScn;
     }
 }
