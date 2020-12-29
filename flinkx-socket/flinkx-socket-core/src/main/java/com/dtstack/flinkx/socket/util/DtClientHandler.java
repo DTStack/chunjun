@@ -23,6 +23,7 @@ import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.PlainDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.commons.lang.StringUtils;
@@ -30,14 +31,14 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.dtstack.flinkx.socket.constants.SocketCons.PREFIX_PACKAGE;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_EXIT0;
 
-/** 自定义handler
- * Date: 2019/09/20
- * Company: www.dtstack.com
+/**
+ * 自定义handler
  * @author kunni@dtstack.com
  */
 
@@ -49,18 +50,19 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected IDecode decoder;
 
-    public DtClientHandler(SynchronousQueue<Row> queue, String binaryArrayDecoder){
+    public DtClientHandler(SynchronousQueue<Row> queue, String decoder){
         this.queue = queue;
-        decoder = getDecoder(binaryArrayDecoder);
+        this.decoder = getDecoder(decoder);
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        Map<String, Object> event = decoder.decode((String) msg);
+        ByteBuf byteBuf = (ByteBuf) msg;
+        Map<String, Object> event = decoder.decode(byteBuf.toString(StandardCharsets.UTF_8));
         Row row = new Row(event.size());
         int count = 0;
         for(Map.Entry<String, Object> entry : event.entrySet()){
-            row.setField(count, entry.getValue());
+            row.setField(count++, entry.getValue());
         }
         try{
             queue.put(row);
@@ -69,25 +71,13 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public IDecode getDecoder(String binaryArrayDecoder){
-        switch (DecodeEnum.valueOf(StringUtils.upperCase(binaryArrayDecoder))){
-            case JSON:{
+    public IDecode getDecoder(String codeC){
+        switch (DecodeEnum.valueOf(StringUtils.upperCase(codeC))){
+            case JSON:
                 return new JsonDecoder();
-            }
-            case PLAIN:{
+            case TEXT:
+            default:
                 return new PlainDecoder();
-            }
-            default:{
-                try{
-                    Class<?> clz = Class.forName(PREFIX_PACKAGE + binaryArrayDecoder);
-                    return (IDecode) clz.getConstructor().newInstance();
-                }catch (Exception e){
-                    LOG.error("please check Class Name");
-                    LOG.error(ExceptionUtil.getErrorMessage(e));
-                    throw new RuntimeException(e);
-                }
-
-            }
         }
     }
 
@@ -95,5 +85,10 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOG.error(ExceptionUtil.getErrorMessage(cause));
         ctx.close();
+        try {
+            queue.put(Row.of(KEY_EXIT0));
+        } catch (InterruptedException ex) {
+            LOG.error(ExceptionUtil.getErrorMessage(ex));
+        }
     }
 }

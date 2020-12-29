@@ -25,45 +25,40 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.Map;
+import java.util.ArrayList;
 
-import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_BINARY_ARRAY_DECODER;
-import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_BYTE_BUF_DECODER;
-import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_PROPERTIES;
-import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_SERVER;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_ADDRESS;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_CODEC;
 
 /** 读取用户传入参数
  *
  * @author by kunni@dtstack.com
- * @Date 2020/09/18
  */
 
 public class SocketReader extends BaseDataReader {
 
-    protected String server;
+    protected String address;
 
-    protected String byteBufDecoder;
+    protected String codeC;
 
-    protected String binaryArrayDecoder;
+    protected ArrayList<String> columns;
 
-    protected Map<String, Object> properties;
-
-    protected SocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    @SuppressWarnings("unchecked")
+    public SocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        server = readerConfig.getParameter().getStringVal(KEY_SERVER);
-        byteBufDecoder = readerConfig.getParameter().getStringVal(KEY_BYTE_BUF_DECODER);
-        binaryArrayDecoder = readerConfig.getParameter().getStringVal(KEY_BINARY_ARRAY_DECODER);
-        properties = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_PROPERTIES);
+        ReaderConfig.ParameterConfig parameter = config.getJob().getContent().get(0).getReader().getParameter();
+        address = parameter.getStringVal(KEY_ADDRESS);
+        codeC = parameter.getStringVal(KEY_CODEC);
+        columns = (ArrayList<String>) parameter.getColumn();
     }
 
     @Override
     public DataStream<Row> readData() {
         SocketBuilder socketBuilder = new SocketBuilder();
-        socketBuilder.setServer(server);
-        socketBuilder.setByteBufDecoder(byteBufDecoder);
-        socketBuilder.setBinaryArrayDecoder(binaryArrayDecoder);
-        socketBuilder.setProperties(properties);
+        socketBuilder.setAddress(address);
+        socketBuilder.setCodeC(codeC);
+        socketBuilder.setColumns(columns);
+        socketBuilder.setDataTransferConfig(dataTransferConfig);
         return createInput(socketBuilder.finish());
     }
 }

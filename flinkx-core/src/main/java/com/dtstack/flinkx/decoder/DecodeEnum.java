@@ -32,7 +32,7 @@ public enum DecodeEnum {
     /**
      * text format
      */
-    PLAIN("plain");
+    TEXT("text");
 
     private String name;
 

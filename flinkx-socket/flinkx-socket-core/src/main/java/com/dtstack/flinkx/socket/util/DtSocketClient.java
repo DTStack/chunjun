@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.socket.util;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -26,55 +27,75 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_EXIT0;
+
 /** 采用netty实现Socket Client
- * Date: 2019/09/20
- * Company: www.dtstack.com
- *
- * @author kunni
+ * @author kunni.dtstack.com
  */
 
 public class DtSocketClient implements Closeable, Serializable {
 
     protected String host;
-    protected String port;
+    protected int port;
 
+    protected String codeC;
     protected EventLoopGroup group;
-    protected DtChannelInitializer initializer = new DtChannelInitializer();
+    protected transient SynchronousQueue<Row> queue;
 
-    public DtSocketClient(String host, String port){
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    public DtSocketClient(String host, int port, SynchronousQueue<Row> queue){
         this.host = host;
         this.port = port;
+        this.queue = queue;
     }
 
-    //开启监听
-    public void start() throws IOException {
-        group = new NioEventLoopGroup();
+    public void start() {
+        group = new NioEventLoopGroup(1);
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
-                    .handler(initializer);
-            bootstrap.connect(host, Integer.parseInt(port)).sync();
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel ch) {
+                            ch.pipeline().addLast(new DtClientHandler(queue, codeC));
+                        }
+                    });
+            bootstrap.connect(host, port).addListener(future -> {
+                if(future.isSuccess()) {
+                    LOG.info("connect success");
+                }else {
+                    throw new RuntimeException("connect failed");
+                }
+            });
         }catch (Exception e){
-            throw new IOException(e);
+            // 设置失败标志位
+            try {
+                queue.put(Row.of(KEY_EXIT0));
+            } catch (InterruptedException ex) {
+                LOG.error(ExceptionUtil.getErrorMessage(e));
+            }
         }
+    }
+
+    public void setCodeC(String codeC) {
+        this.codeC = codeC;
     }
 
     @Override
     public void close() {
-        group.shutdownGracefully();
-    }
-
-    public void setInitializer(DtChannelInitializer initializer) {
-        this.initializer = initializer;
+        if(group != null){
+            group.shutdownGracefully();
+        }
     }
 
 }
