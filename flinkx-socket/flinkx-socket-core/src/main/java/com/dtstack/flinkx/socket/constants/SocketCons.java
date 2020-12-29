@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,31 +16,23 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.decoder;
+package com.dtstack.flinkx.socket.constants;
 
 /**
- * @author jiangbo
- * @date 2020/3/23
+ * @author kunni@dtstack.com
  */
-public enum DecodeEnum {
+
+public class SocketCons {
 
     /**
-     * json format
+     * 设置一个socket client失败时的标志
      */
-    JSON("json"),
+    public static final String KEY_EXIT0 = "exit0";
 
     /**
-     * text format
+     * reader读取的常量
      */
-    TEXT("text");
+    public static final String KEY_ADDRESS = "address";
+    public static final String KEY_CODEC = "codec";
 
-    private String name;
-
-    DecodeEnum(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
 }
