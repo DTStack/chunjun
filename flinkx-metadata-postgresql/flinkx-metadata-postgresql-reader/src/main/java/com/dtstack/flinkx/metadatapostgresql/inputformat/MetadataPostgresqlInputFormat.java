@@ -6,8 +6,10 @@ import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.metadatapostgresql.constants.PostgresqlCons;
 import com.dtstack.flinkx.metadatapostgresql.pojo.ColumnMetaData;
+import com.dtstack.flinkx.metadatapostgresql.pojo.IndexMetaData;
 import com.dtstack.flinkx.metadatapostgresql.pojo.TableMetaData;
 import com.dtstack.flinkx.metadatapostgresql.utils.CommonUtils;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,7 +20,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * flinkx-all com.dtstack.flinkx.metadatapostgresql.inputformat
@@ -163,11 +170,11 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
 
         HashMap<String, Object> result = new HashMap<>(16);
         //所有查询操作：
-        String primaryKey = showTablePrimaryKey(tableName);
+        ArrayList<String> primaryKey = showTablePrimaryKey(tableName);
         int dataCount = showTableDataCount(tableName);
         String size = showTableSize(tableName);
         LinkedList<ColumnMetaData> columns = showColumnMetaData(tableName);
-        ArrayList<String> indexes = showIndexes(tableName);
+        ArrayList<IndexMetaData> indexes = showIndexes(tableName);
 
 
         TableMetaData tableMetaData = new TableMetaData(tableName, primaryKey, dataCount, size, columns,indexes);
@@ -193,8 +200,11 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         while(resultSet.next()) {
             columns.add(new ColumnMetaData(resultSet.getString("COLUMN_NAME")
                     , resultSet.getString("TYPE_NAME")
+                    , resultSet.getString("COLUMN_DEF")
                     , resultSet.getInt("COLUMN_SIZE")
                     , resultSet.getBoolean("NULLABLE")
+                    , resultSet.getBoolean("IS_AUTOINCREMENT")
+                    , resultSet.getInt("ORDINAL_POSITION")
                     , resultSet.getString("REMARKS")));
 
         }
@@ -211,7 +221,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     **/
     private String showTableSize(String tableName) throws SQLException{
         String size = "";
-        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,schemaName,tableName);
+        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,schemaName, tableName);
         try(ResultSet resultSet =  statement.get().executeQuery(sql)){
             if (resultSet.next()){
                 size = resultSet.getString("size");
@@ -226,19 +236,14 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      *@return java.lang.String
      *
     **/
-    private String showTablePrimaryKey(String tableName) throws SQLException{
-        String primaryKey = "";
-        String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_PRIMARYKEY, tableName);
-        //由于主键所在系统表不具备schema隔离性，所以在查询前需要设置查询路径为当前schema
-        if (!isChanged){
-            setSearchPath(schemaName);
-        }
-        try (ResultSet keySet = statement.get().executeQuery(sql)) {
-            if (keySet.next()) {
-                primaryKey = keySet.getString("name");
-            }
-        }
+    private ArrayList<String> showTablePrimaryKey(String tableName) throws SQLException{
+        ArrayList<String> primaryKey = new ArrayList<>();
 
+        ResultSet resultSet = connection.get().getMetaData().getPrimaryKeys(currentDb.get(), schemaName, tableName);
+
+        while(resultSet.next()){
+            primaryKey.add(resultSet.getString("COLUMN_NAME"));
+        }
 
         return primaryKey;
     }
@@ -253,6 +258,10 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
         int dataCount = 0;
         String sql = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
 
+        //由于主键所在系统表不具备schema隔离性，所以在查询前需要设置查询路径为当前schema
+        if (!isChanged){
+            setSearchPath(schemaName);
+        }
 
         try (ResultSet countSet = statement.get().executeQuery(sql)) {
             if (countSet.next()) {
@@ -271,16 +280,31 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      *@return java.util.ArrayList<String>
      *
      **/
-    private ArrayList<String> showIndexes(String tableName) throws SQLException{
-        ArrayList<String> result = new ArrayList<>();
-        String sql = String.format(PostgresqlCons.SQL_SHOW_INDEXES,schemaName,tableName);
+    private ArrayList<IndexMetaData> showIndexes(String tableName) throws SQLException{
+        ArrayList<IndexMetaData> result = new ArrayList<>();
+        //索引名对columnName的映射
+        HashMap<String,ArrayList<String>> indexColumns = new HashMap<>(16);
+        //索引名对索引类型的映射
+        HashMap<String,String> indexType = new HashMap<>(16);
 
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while(resultSet.next()){
-                result.add(resultSet.getString("indexname"));
-            }
+        ResultSet resultSet = connection.get().getMetaData().getIndexInfo(currentDb.get(), schemaName, tableName, false, false);
+        while(resultSet.next()){
+            ArrayList<String> columns = indexColumns.get(resultSet.getString("INDEX_NAME"));
+            if(columns != null){
+                columns.add(resultSet.getString("COLUMN_NAME"));
+            }else{
+                ArrayList<String> list = new ArrayList<>();
+                list.add(resultSet.getString("COLUMN_NAME"));
+                indexColumns.put(resultSet.getString("INDEX_NAME"),list);
+               }
 
-        }
+               indexType.put(resultSet.getString("INDEX_NAME")
+                       , resultSet.getShort("TYPE") == 3 ? "hash" : "other");
+
+           }
+          for(String key : indexColumns.keySet()){
+              result.add(new IndexMetaData(key, indexColumns.get(key), indexType.get(key)));
+          }
 
 
         return result;
@@ -294,7 +318,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      **/
     private Map<String,String> showDataBaseMetaData(String dbName) throws SQLException{
         Map<String,String> result = new HashMap<>(16);
-        String sql = String.format(PostgresqlCons.SQL_SHOW_DATABASE_SIZE,dbName);
+        String sql = String.format(PostgresqlCons.SQL_SHOW_DATABASE_SIZE, dbName);
 
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
             if (resultSet.next()){
@@ -316,7 +340,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      *
     **/
     private void setSearchPath(String schemaName) throws SQLException{
-        String sql = String.format(PostgresqlCons.SQL_SET_SEARCHPATH,schemaName);
+        String sql = String.format(PostgresqlCons.SQL_SET_SEARCHPATH, schemaName);
         statement.get().execute(sql);
 
         isChanged = true;
@@ -330,7 +354,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
    *
   **/
     private  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
-        Class.forName(driverName);
+        ClassUtil.forName(driverName);
         String url = CommonUtils.dbUrlTransform(dbUrl,dbName);
         return ConnUtil.getConnection(url,username,password);
     }

@@ -1,6 +1,8 @@
 package com.dtstack.flinkx.metadatapostgresql.pojo;
 
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -19,7 +21,7 @@ public class TableMetaData {
     /**
      * 主键
      */
-    private String primaryKeyName;
+    private ArrayList<String> primaryKey;
 
     /**
      * 表中有多条数据
@@ -39,16 +41,16 @@ public class TableMetaData {
     /**
      * 表中的索引
      */
-    private ArrayList<String> indexes;
+    private ArrayList<IndexMetaData> indexes;
 
 
     public TableMetaData() {
 
     }
 
-    public TableMetaData(String tableName, String primaryKeyName, Integer dataCount, String tableSize, LinkedList<ColumnMetaData> columns, ArrayList<String> indexes) {
+    public TableMetaData(String tableName, ArrayList<String> primaryKey, Integer dataCount, String tableSize, LinkedList<ColumnMetaData> columns, ArrayList<IndexMetaData> indexes) {
         this.tableName = tableName;
-        this.primaryKeyName = primaryKeyName;
+        this.primaryKey = primaryKey;
         this.dataCount = dataCount;
         this.tableSize = tableSize;
         this.columns = columns;
@@ -59,7 +61,7 @@ public class TableMetaData {
     public String toString() {
         return "TableMetaData{" +
                 "tableName='" + tableName + '\'' +
-                ", primaryKeyName='" + primaryKeyName + '\'' +
+                ", primaryKey=" + primaryKey +
                 ", dataCount=" + dataCount +
                 ", tableSize='" + tableSize + '\'' +
                 ", columns=" + columns +
