@@ -15,19 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.metadata.rdb.builder;
+package com.dtstack.flinkx.metadataes6.builder;
+
 
 import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
+import com.dtstack.flinkx.metadataes6.format.Metadataes6InputFormat;
 
 /**
- * @author kunni@dtstack.com
+ * @author : baiyu
+ * @date : 2020/12/30
  */
-public class MetadatardbBuilder extends MetadataBaseBuilder {
+public class Metadataes6Builder extends MetadataBaseBuilder {
 
-    protected MetadatardbInputFormat format;
+    private Metadataes6InputFormat format;
 
-    public MetadatardbBuilder(MetadatardbInputFormat format){
+    public Metadataes6Builder(Metadataes6InputFormat format) {
         super(format);
         this.format = format;
     }
@@ -43,10 +45,4 @@ public class MetadatardbBuilder extends MetadataBaseBuilder {
     public void setUrl(String url){
         format.setUrl(url);
     }
-
-    public void setDriverName(String driverName){
-        format.setDriverName(driverName);
-    }
-
-
 }

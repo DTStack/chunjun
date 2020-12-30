@@ -1,60 +1,67 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.metadataes6.constants;
 
+/**
+ * @author : baiyu
+ * @date : 2020/12/3
+ */
 public class MetaDataEs6Cons {
 
     public static final String KEY_INDICES = "indices";
 
-    public static final String KEY_ADDRESS = "address";
+    public static final String KEY_URL = "url";
 
     public static final String KEY_USERNAME = "username";
 
     public static final String KEY_PASSWORD = "password";
 
-    public static final String KEY_TIMEOUT = "timeout";
-
-    public static final String KEY_PATH_PREFIX = "pathPrefix";
-
-    public static final String KEY_INDEX_HEALTH = "health";                     //green为正常，yellow表示索引不可靠（单节点），red索引不可用
-
-    public static final String KEY_INDEX_STATUS = "status";                //表明索引是否打开
-
     public static final String KEY_INDEX = "index";
 
-    public static final String KEY_INDEX_PROP = "indexProperties";
+    /**
+     *  字段映射
+     */
+    public static final String KEY_FIELDS = "fields";
 
-    public static final String KEY_INDEX_UUID = "uuid";                         //索引的唯一标识
+    /**
+     *  API_*表示restAPI请求前缀
+     */
+    public static final String API_METHOD_GET = "GET";
 
-    public static final String KEY_INDEX_PRI = "indexPri";                      //集群的主分片数
+    public static final String API_ENDPOINT_CAT_INDEX = "/_cat/indices";
 
-    public static final String KEY_INDEX_REP = "replicas";
+    /**
+     * Map_*表示es查询得到的map的关键字key
+     */
+    public static final String MAP_SETTINGS = "settings";
 
-    public static final String KEY_INDEX_DOCS_COUNT = "docs_count";         //文档数
+    public static final String MAP_CREATION_DATE = "creation_date";
 
-    public static final String KEY_INDEX_DOCS_DELETED = "docs_deleted";     //已删除文档数
+    public static final String MAP_NUMBER_OF_SHARDS = "number_of_shards";
 
-    public static final String KEY_INDEX_SIZE = "totalsize";                    //索引存储的总容量
+    public static final String MAP_NUMBER_OF_REPLICAS = "number_of_replicas";
 
-    public static final String KEY_INDEX_PRI_SIZE = "pri_size";             //主分片的总容量
+    public static final String MAP_MAPPINGS = "mappings";
 
-    public static final String KEY_INDEX_CREATE_TIME = "createtime";            //索引创建时间
+    public static final String MAP_PROPERTIES = "properties";
 
-    public static final String KEY_TYPE_NAME = "type";                          //索引下类型名
+    public static final String MAP_TYPE = "type";
 
-    public static final String KEY_INDEX_SHARDS = "shards";                 //分片数
+    public static final String MAP_ALIASES = "aliases";
 
-    public static final String KEY_ALIAS = "alias";                             //索引别名
-
-    public static final String KEY_COLUMN = "column";
-
-    public static final String KEY_COLUMN_NAME = "column_name";                 //文档名
-
-    public static final String KEY_DATA_TYPE = "data_type";                     //数据类型
-
-    public static final String KEY_FIELDS = "fields";                           //字段映射
-
-    public static final String KEY_FIELD_NAME = "field_name";                   //字段映射名
-
-    public static final String KEY_FIELD_PROP = "field_prop";                   //字段映射参数
-
-    public static final String API_METHOD_GET = "GET";                          //restAPI请求方式，GET
 }

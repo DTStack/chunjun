@@ -15,38 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.metadata.rdb.builder;
+package com.dtstack.flinkx.metadataes6.entity;
 
-import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
+import java.io.Serializable;
 
 /**
- * @author kunni@dtstack.com
+ * @author : baiyu
+ * @date : 2020/12/4
  */
-public class MetadatardbBuilder extends MetadataBaseBuilder {
+public class AliasEntity implements Serializable {
 
-    protected MetadatardbInputFormat format;
+    private String aliasName;
 
-    public MetadatardbBuilder(MetadatardbInputFormat format){
-        super(format);
-        this.format = format;
+    private String aliasProp;
+
+    public String getAliasName() {
+        return aliasName;
     }
 
-    public void setUsername(String username){
-        format.setUsername(username);
+    public void setAliasName(String aliasName) {
+        this.aliasName = aliasName;
     }
 
-    public void setPassword(String password){
-        format.setPassword(password);
+    public String getAliasProp() {
+        return aliasProp;
     }
 
-    public void setUrl(String url){
-        format.setUrl(url);
+    public void setAliasProp(String aliasProp) {
+        this.aliasProp = aliasProp;
     }
-
-    public void setDriverName(String driverName){
-        format.setDriverName(driverName);
-    }
-
-
 }
