@@ -34,6 +34,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.FlinkUserCodeClassLoader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
@@ -265,7 +266,7 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
         list.add("org.apache.flink");
         list.add("com.dtstack.flinkx");
 
-        childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
+        childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]), FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER);
 
         ClassUtil.forName(driverName, childFirstClassLoader);
         properties.setProperty("user", username);
