@@ -99,13 +99,13 @@ public class PerJobClusterClientBuilder {
             throw new IllegalArgumentException("The Flink jar path is null");
         }
 
-        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
+        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
         if(log4j.exists()){
-            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME);
+            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
         } else{
-            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
+            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
             if(logback.exists()){
-                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME);
+                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
             }
 
         }
