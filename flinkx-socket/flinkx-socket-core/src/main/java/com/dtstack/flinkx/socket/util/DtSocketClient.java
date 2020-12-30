@@ -48,7 +48,7 @@ public class DtSocketClient implements Closeable, Serializable {
     protected int port;
 
     protected String codeC;
-    protected EventLoopGroup group;
+    protected EventLoopGroup group = new NioEventLoopGroup();
     protected SynchronousQueue<Row> queue;
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -60,7 +60,6 @@ public class DtSocketClient implements Closeable, Serializable {
     }
 
     public void start() {
-        group = new NioEventLoopGroup(1);
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
@@ -75,9 +74,9 @@ public class DtSocketClient implements Closeable, Serializable {
             if(future.isSuccess()) {
                 LOG.info("connect [{}:{}] success", host, port);
             }else {
-                LOG.error("connect [{}:{}] failed", host, port);
+                String error = String.format("connect [%s:%d] failed", host, port);
                 try {
-                    queue.put(Row.of(KEY_EXIT0));
+                    queue.put(Row.of(KEY_EXIT0 + error));
                 } catch (InterruptedException ex) {
                     LOG.error(ExceptionUtil.getErrorMessage(ex));
                 }

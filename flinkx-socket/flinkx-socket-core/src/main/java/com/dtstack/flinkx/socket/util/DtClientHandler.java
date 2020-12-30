@@ -83,10 +83,11 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        LOG.error(ExceptionUtil.getErrorMessage(cause));
+        String error = ExceptionUtil.getErrorMessage(cause);
+        LOG.error(error);
         ctx.close();
         try {
-            queue.put(Row.of(KEY_EXIT0));
+            queue.put(Row.of(KEY_EXIT0 + error));
         } catch (InterruptedException ex) {
             LOG.error(ExceptionUtil.getErrorMessage(ex));
         }

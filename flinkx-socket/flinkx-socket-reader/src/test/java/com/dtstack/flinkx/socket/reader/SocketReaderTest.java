@@ -16,23 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.socket.constants;
+package com.dtstack.flinkx.socket.reader;
 
-/**
- * @author kunni@dtstack.com
- */
+public class SocketReaderTest {
 
-public class SocketCons {
-
-    /**
-     * 设置一个socket client失败时的标志
-     */
-    public static final String KEY_EXIT0 = "exit0 ";
-
-    /**
-     * reader读取的常量
-     */
-    public static final String KEY_ADDRESS = "address";
-    public static final String KEY_CODEC = "codec";
 
 }

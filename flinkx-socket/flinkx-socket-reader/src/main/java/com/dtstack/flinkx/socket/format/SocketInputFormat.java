@@ -76,8 +76,8 @@ public class SocketInputFormat extends BaseRichInputFormat {
         try {
             row = queue.take();
             // 设置特殊字符串，作为失败标志
-            if(StringUtils.equals((String) row.getField(0), KEY_EXIT0)){
-                throw new IOException("socket client lost connection completely, job failed.");
+            if(StringUtils.startsWith((String) row.getField(0), KEY_EXIT0)){
+                throw new IOException("socket client lost connection completely, job failed" + row.getField(0));
             }
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
