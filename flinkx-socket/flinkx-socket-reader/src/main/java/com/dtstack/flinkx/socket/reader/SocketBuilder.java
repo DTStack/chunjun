@@ -18,12 +18,15 @@
 
 package com.dtstack.flinkx.socket.reader;
 
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.socket.format.SocketInputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.net.URI;
 import java.util.ArrayList;
 
 /** 构建InputFormat
@@ -54,13 +57,27 @@ public class SocketBuilder extends BaseRichInputFormatBuilder {
         format.setColumns(columns);
     }
 
+    /**
+     * 不加telnet检验是为了避免服务端发送到错误的连接
+     */
     @Override
     protected void checkFormat() {
-        if(StringUtils.isBlank(address) || !StringUtils.contains(address, ConstantValue.COLON_SYMBOL)){
-            throw new RuntimeException("please check your [address] = [" + address + "]");
+        SpeedConfig speed = format.getDataTransferConfig().getJob().getSetting().getSpeed();
+        StringBuilder sb = new StringBuilder(256);
+        if(StringUtils.isBlank(address)){
+            sb.append("config error:[address] cannot be blank \n");
         }
-
-        TelnetUtil.telnet(address);
-        // todo channel校验
+        if(speed.getReaderChannel() > 1){
+            sb.append("Socket can not support readerChannel bigger than 1, current readerChannel is [")
+                    .append(speed.getReaderChannel())
+                    .append("];\n");
+        }else if(speed.getChannel() > 1){
+            sb.append("Socket can not support channel bigger than 1, current channel is [")
+                    .append(speed.getChannel())
+                    .append("];\n");
+        }
+        if(sb.length() > 0){
+            throw new IllegalArgumentException(sb.toString());
+        }
     }
 }

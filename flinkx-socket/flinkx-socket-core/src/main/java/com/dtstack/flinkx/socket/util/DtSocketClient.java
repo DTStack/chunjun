@@ -59,32 +59,28 @@ public class DtSocketClient implements Closeable, Serializable {
 
     public void start() {
         group = new NioEventLoopGroup(1);
-        try {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(group)
-                    .channel(NioSocketChannel.class)
-                    .option(ChannelOption.TCP_NODELAY, true)
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        public void initChannel(SocketChannel ch) {
-                            ch.pipeline().addLast(new DtClientHandler(queue, codeC));
-                        }
-                    });
-            bootstrap.connect(host, port).addListener(future -> {
-                if(future.isSuccess()) {
-                    LOG.info("connect success");
-                }else {
-                    throw new RuntimeException("connect failed");
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(group)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel ch) {
+                        ch.pipeline().addLast(new DtClientHandler(queue, codeC));
+                    }
+                });
+        bootstrap.connect(host, port).addListener(future -> {
+            if(future.isSuccess()) {
+                LOG.info("connect [{}:{}] success", host, port);
+            }else {
+                LOG.error("connect [{}:{}] failed", host, port);
+                try {
+                    queue.put(Row.of(KEY_EXIT0));
+                } catch (InterruptedException ex) {
+                    LOG.error(ExceptionUtil.getErrorMessage(ex));
                 }
-            });
-        }catch (Exception e){
-            // 设置失败标志位
-            try {
-                queue.put(Row.of(KEY_EXIT0));
-            } catch (InterruptedException ex) {
-                LOG.error(ExceptionUtil.getErrorMessage(e));
             }
-        }
+        });
     }
 
     public void setCodeC(String codeC) {
