@@ -16,30 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.hbase;
+package com.dtstack.flinkx.exception;
 
 /**
- * The class containing Hbase configuration constants
- *
- * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ * 数据源异常类型
  */
-public class HbaseConfigConstants {
+public class DataSourceException extends RuntimeException {
+    private String dataSourceName;
 
-    public static final int DEFAULT_SCAN_CACHE_SIZE = 256;
+    public DataSourceException(String sourceName, String message, Throwable cause) {
+        super(message, cause);
+        this.dataSourceName = sourceName;
+    }
 
-    public static final int MAX_SCAN_CACHE_SIZE = 1000;
-
-    public static final int MIN_SCAN_CACHE_SIZE = 1;
-
-    public static final String DEFAULT_ENCODING = "UTF-8";
-
-    public static final String DEFAULT_DATA_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    public static final String DEFAULT_NULL_MODE = "skip";
-
-    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
-
-    public static final boolean DEFAULT_WAL_FLAG = false;
-
+    @Override
+    public String toString() {
+        return "datasourceName【" + dataSourceName+"】" + super.toString() + "\n" + getCause().toString();
+    }
 }

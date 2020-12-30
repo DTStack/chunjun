@@ -19,8 +19,10 @@ package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -32,6 +34,7 @@ import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @company: www.dtstack.com
@@ -43,7 +46,6 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     private String encoding;
     private String brokerList;
     private transient KafkaProducer<String, String> producer;
-    private HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
@@ -61,7 +63,6 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
             props.putAll(producerSettings);
         }
         props.put("metadata.broker.list", brokerList);
-        props.put("bootstrap.servers", brokerList);
         producer = new KafkaProducer<>(props);
 
         LOG.info("brokerList {}", brokerList);
@@ -77,7 +78,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     protected void emit(Map event) throws IOException {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+        producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
             if (Objects.nonNull(exception)) {
                 LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(), exception);
                 heartBeatController.onFailed(exception);
@@ -90,7 +91,8 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     @Override
     public void closeInternal() {
         LOG.warn("kafka output closeInternal.");
-        producer.close();
+        //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
+        producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
     }
 
     public void setEncoding(String encoding) {
@@ -99,9 +101,5 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     public void setBrokerList(String brokerList) {
         this.brokerList = brokerList;
-    }
-
-    public void setHeartBeatController(HeartBeatController heartBeatController) {
-        this.heartBeatController = heartBeatController;
     }
 }

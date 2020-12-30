@@ -209,7 +209,7 @@ public class DbUtil {
      */
     public static void commit(Connection conn){
         try {
-            if (!conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
                 conn.commit();
             }
         } catch (SQLException e){
@@ -223,7 +223,7 @@ public class DbUtil {
      */
     public static void rollBack(Connection conn){
         try {
-            if (!conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
                 conn.rollback();
             }
         } catch (SQLException e){
