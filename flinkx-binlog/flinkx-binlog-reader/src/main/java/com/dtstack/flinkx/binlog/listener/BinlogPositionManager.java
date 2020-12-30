@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.listener;
 
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
+import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;

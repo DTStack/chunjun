@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit = {}", inputSplit);
         try {
             connection.set(getConnection());
             statement.set(connection.get().createStatement());
@@ -94,11 +94,15 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
             tableIterator.set(tableList.iterator());
             start = 0;
             init();
-        } catch (SQLException | ClassNotFoundException e) {
-            String message = String.format("query table list failed, dbUrl = %s, username = %s, inputSplit = %s, e = %s", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new IOException(message, e);
+        } catch (ClassNotFoundException e) {
+            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        } catch (SQLException e){
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
+            tableList = new LinkedList<>();
         }
+        LOG.info("curentDb = {}, tableList = {}", currentDb.get(), tableList);
+        tableIterator.set(tableList.iterator());
     }
 
     /**
@@ -162,11 +166,6 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
         }
 
         currentDb.remove();
-    }
-
-    @Override
-    public void closeInputFormat() throws IOException {
-        super.closeInputFormat();
         Connection conn = connection.get();
         if (null != conn) {
             try {
@@ -177,6 +176,11 @@ public abstract class BaseMetadataInputFormat extends BaseRichInputFormat {
                 throw new IOException("close database connection failed", e);
             }
         }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
     }
 
     /**

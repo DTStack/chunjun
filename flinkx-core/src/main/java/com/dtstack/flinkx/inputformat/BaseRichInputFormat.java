@@ -422,4 +422,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
         this.dataTransferConfig = dataTransferConfig;
     }
+
+    public DataTransferConfig getDataTransferConfig() {
+        return dataTransferConfig;
+    }
 }

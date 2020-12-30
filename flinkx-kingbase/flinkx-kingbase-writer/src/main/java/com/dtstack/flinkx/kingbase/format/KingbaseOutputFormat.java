@@ -18,11 +18,13 @@
 
 package com.dtstack.flinkx.kingbase.format;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.rdb.util.DbUtil;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import com.kingbase8.copy.CopyManager;
 import com.kingbase8.core.BaseConnection;
 import org.apache.commons.collections.CollectionUtils;
@@ -54,6 +56,60 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     private CopyManager copyManager;
 
+    /**
+     * schema名
+     */
+    public String schema;
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks){
+        try {
+            ClassUtil.forName(driverName, getClass().getClassLoader());
+            dbConn = DbUtil.getConnection(dbUrl, username, password);
+
+            if (restoreConfig.isRestore()){
+                dbConn.setAutoCommit(false);
+            }
+            // 查询主键时用table格式
+            if(CollectionUtils.isEmpty(fullColumn)) {
+                fullColumn = probeFullColumns(table, dbConn);
+            }
+
+            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
+                if(updateKey == null || updateKey.size() == 0) {
+                    updateKey = probePrimaryKeys(table, dbConn);
+                }
+            }
+            // 其他情况，使用schema.table作为表名
+            table = schema + ConstantValue.POINT_SYMBOL + table;
+            if(fullColumnType == null) {
+                fullColumnType = analyzeTable();
+            }
+
+            for(String col : column) {
+                for (int i = 0; i < fullColumn.size(); i++) {
+                    if (col.equalsIgnoreCase(fullColumn.get(i))){
+                        columnType.add(fullColumnType.get(i));
+                        break;
+                    }
+                }
+            }
+
+            preparedStatement = prepareTemplates();
+            readyCheckpoint = false;
+
+            LOG.info("subTask[{}}] wait finished", taskNumber);
+        } catch (SQLException sqe) {
+            throw new IllegalArgumentException("open() failed.", sqe);
+        }
+        try {
+            if (batchInterval > 1) {
+                dbConn.setAutoCommit(false);
+            }
+        } catch (Exception e) {
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+        }
+    }
 
     @Override
     protected PreparedStatement prepareTemplates() throws SQLException {
@@ -69,18 +125,6 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         }
 
         return super.prepareTemplates();
-    }
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks){
-        super.openInternal(taskNumber, numTasks);
-        try {
-            if (batchInterval > 1) {
-                dbConn.setAutoCommit(false);
-            }
-        } catch (Exception e) {
-            LOG.warn(ExceptionUtil.getErrorMessage(e));
-        }
     }
 
     @Override
@@ -195,4 +239,8 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         return true;
     }
 
+    @Override
+    public void setSchema(String schema){
+        this.schema = schema;
+    }
 }

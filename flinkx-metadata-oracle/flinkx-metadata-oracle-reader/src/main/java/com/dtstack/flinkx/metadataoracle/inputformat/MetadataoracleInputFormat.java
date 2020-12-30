@@ -228,6 +228,8 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         try (ResultSet rs = statement.get().executeQuery(sql)) {
             while (rs.next()) {
                 Map<String, String> column = new HashMap<>(16);
+                // oracle中，resultSet的LONG、LONG ROW类型要放第一个取出来
+                column.put(KEY_COLUMN_DEFAULT, rs.getString(5));
                 column.put(KEY_COLUMN_NAME, rs.getString(1));
                 String type = rs.getString(2);
                 String length = rs.getString(7);
@@ -240,7 +242,6 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
                 }
                 column.put(KEY_COLUMN_COMMENT, rs.getString(3));
                 String tableName = rs.getString(4);
-                column.put(KEY_COLUMN_DEFAULT, rs.getString(5));
                 column.put(KEY_COLUMN_NULL, rs.getString(6));
                 column.put(KEY_COLUMN_SCALE, length);
                 String index = rs.getString(8);
@@ -308,6 +309,7 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         if(tableList.size()==0){
             return;
         }
+        allTable = null;
         if (start < tableList.size()){
             // 取出子数组，注意避免越界
             List<Object> splitTableList = tableList.subList(start, Math.min(start+MAX_TABLE_SIZE, tableList.size()));

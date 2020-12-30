@@ -147,7 +147,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            columnCount = resultSet.getMetaData().getColumnCount();
+           if(!resultSet.isClosed()){
+               columnCount = resultSet.getMetaData().getColumnCount();
+           }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
@@ -213,6 +215,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
+            updateColumnCount();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
@@ -813,6 +816,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //执行到此处代表轮询任务startLocation为空，且数据库中无数据，此时需要查询增量字段的最小值
                 ps.setFetchDirection(ResultSet.FETCH_FORWARD);
                 resultSet.close();
+                //如果事务不提交 就会导致数据库即使插入数据 也无法读到数据
+                dbConn.commit();
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
                 //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
@@ -878,6 +883,21 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     querySql);
             LOG.error(message);
             throw new RuntimeException(message);
+        }
+    }
+
+    /**
+     * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
+     * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
+     * @throws SQLException
+     */
+    private  void updateColumnCount() throws SQLException {
+        if(columnCount == 0){
+            columnCount =resultSet.getMetaData().getColumnCount();
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
+            }
         }
     }
 }
