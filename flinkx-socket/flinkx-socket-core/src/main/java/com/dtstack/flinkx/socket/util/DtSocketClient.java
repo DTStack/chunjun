@@ -42,12 +42,14 @@ import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_EXIT0;
 
 public class DtSocketClient implements Closeable, Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     protected String host;
     protected int port;
 
     protected String codeC;
     protected EventLoopGroup group;
-    protected transient SynchronousQueue<Row> queue;
+    protected SynchronousQueue<Row> queue;
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 

@@ -41,13 +41,15 @@ import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_EXIT0;
 
 public class SocketInputFormat extends BaseRichInputFormat {
 
+    private static final long serialVersionUID = 1L;
+
     protected String host;
     protected int port;
     protected String codeC;
     protected ArrayList<String> columns;
 
     protected DtSocketClient client;
-    protected transient SynchronousQueue<Row> queue;
+    protected SynchronousQueue<Row> queue;
 
     private static final int ADDR_SPLITS = 2;
 
@@ -101,7 +103,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
     public void setAddress(String address) {
         String[] hostPort = StringUtils.split(address, ConstantValue.COLON_SYMBOL);
         if(hostPort.length != ADDR_SPLITS){
-            throw new RuntimeException("please check your host format");
+            throw new IllegalArgumentException("please check your host format");
         }
         this.host = hostPort[0];
         this.port = ValueUtil.getIntegerVal(hostPort[1]);

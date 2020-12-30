@@ -53,7 +53,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.sqlserverwriter.io.netty</shadedPattern>
+                                    <shadedPattern>shade.socket.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>

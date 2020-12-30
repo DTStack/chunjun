@@ -46,7 +46,7 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected transient SynchronousQueue<Row> queue;
+    protected SynchronousQueue<Row> queue;
 
     protected IDecode decoder;
 

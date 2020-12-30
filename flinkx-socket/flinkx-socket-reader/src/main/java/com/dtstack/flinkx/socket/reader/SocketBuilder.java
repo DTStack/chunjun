@@ -19,14 +19,10 @@
 package com.dtstack.flinkx.socket.reader;
 
 import com.dtstack.flinkx.config.SpeedConfig;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.socket.format.SocketInputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.URI;
 import java.util.ArrayList;
 
 /** 构建InputFormat
@@ -49,8 +45,8 @@ public class SocketBuilder extends BaseRichInputFormatBuilder {
         format.setAddress(address);
     }
 
-    public void setCodeC(String binaryArrayDecoder){
-        format.setCodeC(binaryArrayDecoder);
+    public void setCodeC(String codeC){
+        format.setCodeC(codeC);
     }
 
     public void setColumns(ArrayList<String> columns){
@@ -67,6 +63,7 @@ public class SocketBuilder extends BaseRichInputFormatBuilder {
         if(StringUtils.isBlank(address)){
             sb.append("config error:[address] cannot be blank \n");
         }
+
         if(speed.getReaderChannel() > 1){
             sb.append("Socket can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(speed.getReaderChannel())
