@@ -47,6 +47,12 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     private boolean isChanged = false;
 
 
+    /**
+     * 数据库元数据
+     */
+    private HashMap<String,String> dataBaseMetaData;
+
+
     private String schemaName;
 
 
@@ -61,6 +67,8 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
                 queryTable = true;
+            }else {
+                queryTable = false;
             }
             LOG.info("current database = {}, tableSize = {}, tableList = {}", currentDb.get(), tableList.size(), tableList);
             tableIterator.set(tableList.iterator());
@@ -94,6 +102,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             }
             schemaName = pair.getKey();
             tableName = pair.getValue();
+
         } else {
             Map<String, String> map = (Map<String, String>) tableIterator.get().next();
             if(schemaName != null && !map.get(PostgresqlCons.KEY_SCHEMA_NAME).equals(schemaName)){
@@ -103,13 +112,13 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
             tableName = map.get(PostgresqlCons.KEY_TABLE_NAME);
         }
 
-
         metaData.put(MetaDataCons.KEY_SCHEMA, schemaName);
         metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
             if(!isQueried){
-                metaData.putAll(showDataBaseMetaData(currentDb.get()));
+                dataBaseMetaData = showDataBaseMetaData(currentDb.get());
             }
+            metaData.putAll(dataBaseMetaData);
 
             metaData.putAll(queryMetaData(tableName));
             metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
@@ -132,7 +141,7 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
      **/
     @Override
     protected List<Object> showTables() throws SQLException {
-        List<Object> tableNameList = new LinkedList<>();
+        List<Object> tableNameList = new ArrayList<>();
         try (ResultSet resultSet = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
 
             //如果数据库中没有表，抛出异常
@@ -313,11 +322,11 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
     /**
      *@description 查询当前数据库的元数据
      *@param dbName:
-     *@return java.util.Map<String,String>
+     *@return java.util.HashMap<String,String>
      *
      **/
-    private Map<String,String> showDataBaseMetaData(String dbName) throws SQLException{
-        Map<String,String> result = new HashMap<>(16);
+    private HashMap<String,String> showDataBaseMetaData(String dbName) throws SQLException{
+        HashMap<String,String> result = new HashMap<>(16);
         String sql = String.format(PostgresqlCons.SQL_SHOW_DATABASE_SIZE, dbName);
 
         try(ResultSet resultSet = statement.get().executeQuery(sql)){
