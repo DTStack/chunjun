@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
+import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
@@ -58,6 +59,10 @@ public class LogMinerListener implements Runnable {
 
     private boolean running = false;
 
+    private String logMinerSelectSql;
+
+    private transient LogMinerListener listener;
+
     /**
      * 连续接收到错误数据的次数
      */
@@ -66,6 +71,7 @@ public class LogMinerListener implements Runnable {
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
         this.positionManager = positionManager;
         this.logMinerConfig = logMinerConfig;
+        this.listener = this;
     }
 
     public void init() {
@@ -89,14 +95,21 @@ public class LogMinerListener implements Runnable {
         logMinerConnection.queryDataBaseEncoding();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
+        logMinerConnection.setPreScn(startScn);
         positionManager.updatePosition(startScn);
 
-        executor.submit(this);
+        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+        executor.execute(this);
         running = true;
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
+            LOG.warn("LogMinerListener run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
+            executor.execute(listener);
+            LOG.info("Re-execute LogMinerListener successfully");
+        });
         while (running) {
             QueueData log = null;
             try {
@@ -106,7 +119,7 @@ public class LogMinerListener implements Runnable {
                 } else {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
-                    logMinerConnection.queryData(positionManager.getPosition());
+                    logMinerConnection.queryData(positionManager.getPosition(), logMinerSelectSql);
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
@@ -127,7 +140,7 @@ public class LogMinerListener implements Runnable {
                 }
                 try {
                     logMinerConnection.disConnect();
-                } catch (SQLException e1) {
+                } catch (Exception e1) {
                     LOG.warn("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
                 try {

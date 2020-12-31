@@ -324,16 +324,16 @@ public class SqlUtil {
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-        }
+    }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-        } else {
-            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-        }
+        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+    } else {
+        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+    }
 
         return sqlBuilder.toString();
-    }
+}
 
     /**
      * 构建需要采集操作类型字符串的过滤条件
