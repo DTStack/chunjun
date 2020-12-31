@@ -108,6 +108,11 @@ public class LogMinerConnection {
 
     private boolean logMinerStarted = false;
 
+    /**
+     * 上一次查询的scn
+     */
+    private Long preScn = null;
+
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
         this.logMinerConfig = logMinerConfig;
     }
@@ -126,7 +131,10 @@ public class LogMinerConnection {
         }
     }
 
-    public void disConnect() throws SQLException{
+    /**
+     * 关闭LogMiner资源
+     */
+    public void disConnect() {
         //清除日志文件组，下次LogMiner启动时重新加载日志文件
         addedLogFiles.clear();
 
@@ -139,23 +147,14 @@ public class LogMinerConnection {
             logMinerStarted = false;
         }
 
-        if (null != logMinerData) {
-            logMinerData.close();
-        }
-
-        if (null != logMinerStartStmt) {
-            logMinerStartStmt.close();
-        }
-
-        if (null != logMinerSelectStmt) {
-            logMinerSelectStmt.close();
-        }
-
-        if (null != connection && !connection.isClosed()) {
-            connection.close();
-        }
+        closeStmt(logMinerStartStmt);
+        closeResources(logMinerData, logMinerSelectStmt, connection);
     }
 
+    /**
+     * 启动LogMiner
+     * @param startScn
+     */
     public void startOrUpdateLogMiner(Long startScn) {
         String startSql = null;
         try {
@@ -175,7 +174,7 @@ public class LogMinerConnection {
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
-                List<LogFile> newLogFiles = queryLogFiles(startScn);
+                List<LogFile> newLogFiles = queryLogFiles(preScn);
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
@@ -202,11 +201,14 @@ public class LogMinerConnection {
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
 
-            logMinerStartStmt.setLong(1, startScn);
+            logMinerStartStmt.setLong(1, preScn);
             logMinerStartStmt.execute();
 
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, startScn:{}", startScn);
+            LOG.info("start logMiner successfully, preScn:{}, startScn:{}", preScn, startScn);
+            if(startScn > preScn){
+                preScn = startScn;
+            }
         } catch (SQLException e){
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -214,8 +216,12 @@ public class LogMinerConnection {
         }
     }
 
-    public void queryData(Long startScn) {
-        String logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+    /**
+     * 从LogMiner视图查询数据
+     * @param startScn
+     * @param logMinerSelectSql
+     */
+    public void queryData(Long startScn, String logMinerSelectSql) {
         try {
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
@@ -575,18 +581,39 @@ public class LogMinerConnection {
         return result;
     }
 
+
+    /**
+     * 关闭logMinerSelectStmt
+     */
     public void closeStmt(){
         try {
             if(logMinerSelectStmt != null && !logMinerSelectStmt.isClosed()){
                 logMinerSelectStmt.close();
             }
-            logMinerSelectStmt = null;
         }catch (SQLException e){
-            throw new RuntimeException("关闭logMinerStartStmt出错", e);
+            LOG.warn("Close logMinerSelectStmt error", e);
+        }
+        logMinerSelectStmt = null;
+    }
+
+    /**
+     * 关闭Statement
+     */
+    private void closeStmt(Statement statement){
+        try {
+            if(statement != null && !statement.isClosed()){
+                statement.close();
+            }
+        }catch (SQLException e){
+            LOG.warn("Close statement error", e);
         }
     }
 
     enum ReadPosition{
         ALL, CURRENT, TIME, SCN
+    }
+
+    public void setPreScn(Long preScn) {
+        this.preScn = preScn;
     }
 }
