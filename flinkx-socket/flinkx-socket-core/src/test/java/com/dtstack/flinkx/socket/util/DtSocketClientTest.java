@@ -18,13 +18,10 @@
 
 package com.dtstack.flinkx.socket.util;
 
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.types.Row;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -32,26 +29,27 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.SynchronousQueue;
 
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_EXIT0;
+
 public class DtSocketClientTest {
-
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
-
-    public DtSocketClient client;
 
     public static final String HOST = "localhost";
 
     public static final int PORT = 8000;
 
-    public static final String MESSAGE = "message";
+    public static final String MESSAGE = "{\"key\":\"value\"}";
 
-    SynchronousQueue<Row> queue = new SynchronousQueue<>();
+    public static final String TEST = "text";
 
+    public SynchronousQueue<Row> queue;
 
+    public DtSocketClient client;
 
     @Before
-    public void testDtSocketClient(){
+    public void init(){
+        queue = new SynchronousQueue<>();
         client = new DtSocketClient(HOST, PORT, queue);
+        client.setCodeC(TEST);
     }
 
     @Test
@@ -59,20 +57,28 @@ public class DtSocketClientTest {
         new Thread(this::socketServer).start();
         client.start();
         Row row = queue.take();
+        client.close();
         Assert.assertEquals(row.getField(0), MESSAGE);
+    }
+
+    @Test
+    public void testStartFailed() throws InterruptedException {
+        client = new DtSocketClient(HOST, PORT, queue);
+        client.start();
+        Row row = queue.take();
+        client.close();
+        Assert.assertTrue(((String) row.getField(0)).startsWith(KEY_EXIT0));
     }
 
     public void socketServer() {
         try{
             ServerSocket ss = new ServerSocket(PORT);
-            Thread.sleep(3000);
             Socket s = ss.accept();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             bw.write(MESSAGE);
             bw.flush();
             s.close();
-        }catch (Exception e){
-            LOG.error("{}", ExceptionUtil.getErrorMessage(e));
+        }catch (Exception ignored){
         }
 
     }

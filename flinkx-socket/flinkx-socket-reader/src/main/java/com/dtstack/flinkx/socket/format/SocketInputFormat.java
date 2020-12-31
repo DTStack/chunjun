@@ -51,8 +51,6 @@ public class SocketInputFormat extends BaseRichInputFormat {
     protected DtSocketClient client;
     protected SynchronousQueue<Row> queue;
 
-    private static final int ADDR_SPLITS = 2;
-
     @Override
     protected void openInternal(InputSplit inputSplit) {
         queue = new SynchronousQueue<>();
@@ -77,7 +75,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
             row = queue.take();
             // 设置特殊字符串，作为失败标志
             if(StringUtils.startsWith((String) row.getField(0), KEY_EXIT0)){
-                throw new IOException("socket client lost connection completely, job failed" + row.getField(0));
+                throw new IOException("socket client lost connection completely, job failed " + row.getField(0));
             }
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error: {}", ExceptionUtil.getErrorMessage(e));
@@ -102,9 +100,6 @@ public class SocketInputFormat extends BaseRichInputFormat {
 
     public void setAddress(String address) {
         String[] hostPort = StringUtils.split(address, ConstantValue.COLON_SYMBOL);
-        if(hostPort.length != ADDR_SPLITS){
-            throw new IllegalArgumentException("please check your host format");
-        }
         this.host = hostPort[0];
         this.port = ValueUtil.getIntegerVal(hostPort[1]);
     }

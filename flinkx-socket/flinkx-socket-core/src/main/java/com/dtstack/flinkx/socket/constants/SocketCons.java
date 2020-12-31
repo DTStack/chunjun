@@ -33,6 +33,6 @@ public class SocketCons {
      * reader读取的常量
      */
     public static final String KEY_ADDRESS = "address";
-    public static final String KEY_CODEC = "codec";
+    public static final String KEY_PARSE = "parse";
 
 }

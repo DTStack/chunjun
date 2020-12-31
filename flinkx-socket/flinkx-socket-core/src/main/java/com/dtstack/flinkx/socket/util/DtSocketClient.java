@@ -20,6 +20,7 @@ package com.dtstack.flinkx.socket.util;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -53,6 +54,8 @@ public class DtSocketClient implements Closeable, Serializable {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
+    public Channel channel;
+
     public DtSocketClient(String host, int port, SynchronousQueue<Row> queue){
         this.host = host;
         this.port = port;
@@ -70,7 +73,7 @@ public class DtSocketClient implements Closeable, Serializable {
                         ch.pipeline().addLast(new DtClientHandler(queue, codeC));
                     }
                 });
-        bootstrap.connect(host, port).addListener(future -> {
+        channel = bootstrap.connect(host, port).addListener(future -> {
             if(future.isSuccess()) {
                 LOG.info("connect [{}:{}] success", host, port);
             }else {
@@ -81,7 +84,7 @@ public class DtSocketClient implements Closeable, Serializable {
                     LOG.error(ExceptionUtil.getErrorMessage(ex));
                 }
             }
-        });
+        }).channel();
     }
 
     public void setCodeC(String codeC) {
@@ -90,7 +93,11 @@ public class DtSocketClient implements Closeable, Serializable {
 
     @Override
     public void close() {
-        if(group != null){
+        LOG.error("close channel!!! ");
+        if(channel != null){
+            channel.close();
+        }
+        if(group != null) {
             group.shutdownGracefully();
         }
     }

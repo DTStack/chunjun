@@ -28,7 +28,7 @@ import org.apache.flink.types.Row;
 import java.util.ArrayList;
 
 import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_ADDRESS;
-import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_CODEC;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_PARSE;
 
 /** 读取用户传入参数
  *
@@ -48,7 +48,7 @@ public class SocketReader extends BaseDataReader {
         super(config, env);
         ReaderConfig.ParameterConfig parameter = config.getJob().getContent().get(0).getReader().getParameter();
         address = parameter.getStringVal(KEY_ADDRESS);
-        codeC = parameter.getStringVal(KEY_CODEC);
+        codeC = parameter.getStringVal(KEY_PARSE);
         columns = (ArrayList<String>) parameter.getColumn();
     }
 
