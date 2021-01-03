@@ -60,6 +60,8 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITI
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_DEFAULT;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_COLUMN;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.DEFAULT_PATH;
@@ -119,17 +121,33 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     public List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
         List<Map<String, Object>> column = new LinkedList<>();
-        if(StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
-                StringUtils.isBlank(currentDb.get())){
+        if(isDefaultSchema()){
             currentDb.set(null);
         }
-        ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
-        while (resultSet.next()){
-            Map<String, Object> map = new HashMap<>(16);
-            map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
-            map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
-            map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
-            column.add(map);
+        String sql;
+        if(isDefaultSchema()){
+            sql = String.format(SQL_DEFAULT_COLUMN, tableName);
+        }else {
+            sql = String.format(SQL_COLUMN, currentDb.get(), tableName);
+        }
+        Map<String, String> familyMap = new HashMap<>(16);
+        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+            while (resultSet.next()) {
+                familyMap.put(resultSet.getString(1), resultSet.getString(2));
+            }
+        }
+        try(ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)){
+            while (resultSet.next()){
+                Map<String, Object> map = new HashMap<>(16);
+                String index = resultSet.getString(RESULT_SET_ORDINAL_POSITION);
+                String family = familyMap.get(index);
+                map.put(KEY_COLUMN_NAME, family  + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_SET_COLUMN_NAME));
+                map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
+                map.put(KEY_COLUMN_INDEX, index);
+                column.add(map);
+            }
+        }catch (SQLException e){
+            LOG.error("failed to get column information, {} ", ExceptionUtil.getErrorMessage(e));
         }
         return column;
     }
@@ -190,10 +208,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
         Properties properties = new Properties();
         ClassUtil.forName(driverName, childFirstClassLoader);
-        if(org.apache.commons.lang3.StringUtils.isNotEmpty(username)){
+        if(StringUtils.isNotEmpty(username)){
             properties.setProperty(KEY_USER, username);
         }
-        if(org.apache.commons.lang3.StringUtils.isNotEmpty(password)){
+        if(StringUtils.isNotEmpty(password)){
             properties.setProperty(KEY_CONN_PASSWORD, password);
         }
 
@@ -205,4 +223,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             throw new RuntimeException(message, e);
         }
     }
+
+    public boolean isDefaultSchema(){
+        return StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
+                StringUtils.isBlank(currentDb.get());
+    }
+
 }

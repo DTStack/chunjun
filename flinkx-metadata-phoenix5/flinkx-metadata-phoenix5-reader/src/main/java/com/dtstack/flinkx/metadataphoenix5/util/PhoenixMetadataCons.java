@@ -34,4 +34,8 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String SQL_TABLE_NAME = " SELECT DISTINCT TABLE_NAME FROM SYSTEM.CATALOG WHERE TABLE_SCHEM = '%s' ";
 
+    public static final String SQL_COLUMN = "SELECT ORDINAL_POSITION, COLUMN_FAMILY FROM SYSTEM.CATALOG WHERE TABLE_SCHEM = '%s' AND TABLE_NAME = '%s' ";
+
+    public static final String SQL_DEFAULT_COLUMN = "SELECT ORDINAL_POSITION, COLUMN_FAMILY FROM SYSTEM.CATALOG WHERE TABLE_SCHEM is null AND TABLE_NAME = '%s' ";
+
 }
