@@ -84,15 +84,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.core.io.netty</shadedPattern>
+                                    <shadedPattern>shade.metadatahbase.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.metadatahbase.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.metadatahbase.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
