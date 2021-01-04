@@ -71,6 +71,7 @@
 
         <module>flinkx-restapi</module>
         <module>flinkx-websocket</module>
+        <module>flinkx-socket</module>
     </modules>
 
     <properties>
