@@ -52,9 +52,12 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_CONN_PASSWORD;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_USER;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
@@ -147,7 +150,13 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
                 Map<String, Object> map = new HashMap<>(16);
                 String index = resultSet.getString(RESULT_SET_ORDINAL_POSITION);
                 String family = familyMap.get(index);
-                map.put(KEY_COLUMN_NAME, family  + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_SET_COLUMN_NAME));
+                if(StringUtils.isBlank(family)){
+                    map.put(KEY_COLUMN_PRIMARY, KEY_TRUE);
+                    map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
+                }else {
+                    map.put(KEY_COLUMN_PRIMARY, KEY_FALSE);
+                    map.put(KEY_COLUMN_NAME, family  + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_SET_COLUMN_NAME));
+                }
                 map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
                 map.put(KEY_COLUMN_INDEX, index);
                 column.add(map);
