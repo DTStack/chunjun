@@ -65,15 +65,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>shade.metadataphoenix5reader.io.netty</shadedPattern>
+                                    <shadedPattern>shade.core.io.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.metadataphoenix5reader.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.metadataphoenix5reader.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
