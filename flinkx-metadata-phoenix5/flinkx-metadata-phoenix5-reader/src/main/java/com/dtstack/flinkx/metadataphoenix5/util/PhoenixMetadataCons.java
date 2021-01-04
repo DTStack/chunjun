@@ -26,6 +26,10 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 
 public class PhoenixMetadataCons extends MetaDataCons {
 
+    public static final String KEY_PRIMARY_KEY = "is_primarykey";
+
+    public static final String KEY_PATH = "path";
+
     public static final String KEY_DEFAULT = "default";
 
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";

@@ -52,7 +52,6 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_CONN_PASSWORD;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
@@ -64,6 +63,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITI
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_DEFAULT;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_PRIMARY_KEY;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
@@ -81,6 +81,8 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
 
     protected ZooKeeper zooKeeper;
+
+    protected String path = DEFAULT_PATH;
 
     @Override
     protected List<Object> showTables() {
@@ -151,10 +153,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
                 String index = resultSet.getString(RESULT_SET_ORDINAL_POSITION);
                 String family = familyMap.get(index);
                 if(StringUtils.isBlank(family)){
-                    map.put(KEY_COLUMN_PRIMARY, KEY_TRUE);
+                    map.put(KEY_PRIMARY_KEY, KEY_TRUE);
                     map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
                 }else {
-                    map.put(KEY_COLUMN_PRIMARY, KEY_FALSE);
+                    map.put(KEY_PRIMARY_KEY, KEY_FALSE);
                     map.put(KEY_COLUMN_NAME, family  + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_SET_COLUMN_NAME));
                 }
                 map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
@@ -172,10 +174,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
             zooKeeper = ZkHelper.createSingleZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
-            List<String> tables = ZkHelper.getChildren(zooKeeper, DEFAULT_PATH);
+            List<String> tables = ZkHelper.getChildren(zooKeeper, path);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper, DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper, path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
             ZkHelper.closeZooKeeper(zooKeeper);
@@ -242,6 +244,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     public boolean isDefaultSchema(){
         return StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
                 StringUtils.isBlank(currentDb.get());
+    }
+
+    public void setPath(String path){
+        this.path = path;
     }
 
 }
