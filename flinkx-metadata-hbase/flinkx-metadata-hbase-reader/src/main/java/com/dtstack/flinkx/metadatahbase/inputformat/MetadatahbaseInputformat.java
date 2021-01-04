@@ -74,6 +74,8 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
 
     protected ZooKeeper zooKeeper;
 
+    protected String path;
+
     /**
      * 因为connection的类型不同，重写该方法
      * @param inputSplit 某个命名空间及需要查询的表
@@ -181,11 +183,11 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
-            zooKeeper = ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
+            zooKeeper = ZkHelper.createZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
             List<String> tables = ZkHelper.getChildren(zooKeeper, DEFAULT_PATH);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper,DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper,DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
             ZkHelper.closeZooKeeper(zooKeeper);
@@ -195,7 +197,9 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         return createTimeMap;
     }
 
-
+    public void setPath(String path){
+        this.path = path;
+    }
 
     @Override
     protected String quote(String name) {

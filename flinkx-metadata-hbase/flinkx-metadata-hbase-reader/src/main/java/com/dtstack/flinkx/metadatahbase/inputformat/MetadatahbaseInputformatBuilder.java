@@ -38,6 +38,10 @@ public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder 
         format.setHadoopConfig(hadoopConfig);
     }
 
+    public void setPath(String path){
+        format.setPath(path);
+    }
+
     @Override
     protected void checkFormat() {
     }

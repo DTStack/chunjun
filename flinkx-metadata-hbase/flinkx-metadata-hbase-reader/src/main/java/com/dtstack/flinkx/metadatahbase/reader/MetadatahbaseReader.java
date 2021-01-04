@@ -29,6 +29,8 @@ import org.apache.hadoop.hbase.HConstants;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_PATH;
+import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * 读取hbase config并进行配置
@@ -38,6 +40,8 @@ public class MetadatahbaseReader extends MetadataReader {
 
     private Map<String, Object> hadoopConfig;
 
+    private String path;
+
     @SuppressWarnings("unchecked")
     public MetadatahbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -46,6 +50,8 @@ public class MetadatahbaseReader extends MetadataReader {
         if(!hadoopConfig.containsKey(HConstants.ZOOKEEPER_QUORUM)){
             hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, jdbcUrl);
         }
+        path = config.getJob().getContent().get(0).getReader()
+                .getParameter().getStringVal(KEY_PATH, DEFAULT_PATH);
     }
 
     @Override
@@ -53,6 +59,7 @@ public class MetadatahbaseReader extends MetadataReader {
         MetadatahbaseInputformatBuilder builder = new MetadatahbaseInputformatBuilder(new MetadatahbaseInputformat());
         builder.setHadoopConfig(hadoopConfig);
         builder.setDataTransferConfig(dataTransferConfig);
+        builder.setPath(path);
         return builder;
     }
 

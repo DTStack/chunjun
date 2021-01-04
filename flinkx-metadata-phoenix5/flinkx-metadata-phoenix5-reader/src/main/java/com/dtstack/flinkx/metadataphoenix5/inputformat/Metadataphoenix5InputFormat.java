@@ -173,11 +173,11 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     protected Map<String, Long> queryCreateTimeMap(String hosts) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
-            zooKeeper = ZkHelper.createSingleZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
+            zooKeeper = ZkHelper.createZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
             List<String> tables = ZkHelper.getChildren(zooKeeper, path);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper, path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper, path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
             ZkHelper.closeZooKeeper(zooKeeper);

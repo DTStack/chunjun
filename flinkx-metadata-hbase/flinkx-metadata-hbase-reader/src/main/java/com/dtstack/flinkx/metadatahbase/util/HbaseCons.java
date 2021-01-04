@@ -26,6 +26,8 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
  */
 public class HbaseCons extends MetaDataCons {
 
+    public static final String KEY_PATH = "path";
+
     /**
      * json键值对中的键
      */
