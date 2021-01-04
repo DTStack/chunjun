@@ -21,9 +21,9 @@ import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -54,7 +54,6 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
 
     private transient MqttClient client;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
-    protected static ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Override
@@ -96,7 +95,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
             }else{
                 map = Collections.singletonMap("message", row.toString());
             }
-            MqttMessage message = new MqttMessage(objectMapper.writeValueAsString(map).getBytes());
+            MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());
             message.setQos(qos);
             client.publish(topic, message);
         } catch (Throwable e) {

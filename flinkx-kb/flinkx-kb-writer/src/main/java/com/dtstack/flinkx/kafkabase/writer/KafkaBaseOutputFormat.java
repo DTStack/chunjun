@@ -25,7 +25,6 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,6 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
-    protected static ObjectMapper objectMapper = new ObjectMapper();
     //和kafkaBroker连通性控制器
     protected HeartBeatController heartBeatController;
 

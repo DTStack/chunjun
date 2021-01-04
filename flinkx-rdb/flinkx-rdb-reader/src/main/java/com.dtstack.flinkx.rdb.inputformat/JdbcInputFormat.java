@@ -31,6 +31,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
@@ -42,7 +43,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -757,7 +757,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (endLocationAccumulator != null) {
                 metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
             }
-            out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
+            out.writeUTF(MapUtil.writeValueAsString(metrics));
         } catch (Exception e) {
             LOG.error("hadoop conf:{}", hadoopConfig);
             throw new IOException("Upload metric to HDFS error", e);

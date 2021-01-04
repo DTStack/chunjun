@@ -19,8 +19,8 @@ package com.dtstack.flinkx.kafka09.writer;
 
 import com.dtstack.flinkx.kafkabase.Formatter;
 import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
-import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -73,7 +73,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
     protected void emit(Map event) throws IOException {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), objectMapper.writeValueAsString(event)), (metadata, exception) -> {
+        producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
             if (Objects.nonNull(exception)) {
                 LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(), exception);
                 heartBeatController.onFailed(exception);
