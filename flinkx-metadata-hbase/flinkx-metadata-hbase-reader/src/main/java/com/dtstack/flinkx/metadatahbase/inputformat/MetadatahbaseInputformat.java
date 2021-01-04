@@ -33,6 +33,7 @@ import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -65,11 +66,13 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     /**
      * hbase 连接
      */
-    private transient Connection hbaseConnection;
+    protected Connection hbaseConnection;
 
-    private transient Admin admin;
+    protected Admin admin;
 
-    private Map<String, Long> createTimeMap;
+    protected Map<String, Long> createTimeMap;
+
+    protected ZooKeeper zooKeeper;
 
     /**
      * 因为connection的类型不同，重写该方法
@@ -178,14 +181,14 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
-            ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
-            List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
+            zooKeeper = ZkHelper.createSingleZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
+            List<String> tables = ZkHelper.getChildren(zooKeeper, DEFAULT_PATH);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper,DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
-            ZkHelper.closeZooKeeper();
+            ZkHelper.closeZooKeeper(zooKeeper);
         }catch (Exception e){
             LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
         }

@@ -22,8 +22,6 @@ public class ZkHelper {
     public static final int DEFAULT_TIMEOUT = 20000;
 
     public static final String DEFAULT_PATH = "/hbase/table";
-
-    private static ZooKeeper zooKeeper;
     
     private ZkHelper(){}
 
@@ -32,22 +30,19 @@ public class ZkHelper {
      * @param hosts ip和端口
      * @param timeOut 创建超时时间
      */
-    public static void createSingleZkClient(String hosts, int timeOut) {
-        if(zkAvailable()){
-            ZkHelper.closeZooKeeper();
-        }
+    public static ZooKeeper createSingleZkClient(String hosts, int timeOut) {
         try {
-            zooKeeper = new ZooKeeper(hosts, timeOut, null);
             LOG.info("create zookeeper client success ");
+            return new ZooKeeper(hosts, timeOut, null);
         }catch (IOException e){
-            zooKeeper = null;
             LOG.error("create zookeeper client failed. error {} ", ExceptionUtil.getErrorMessage(e));
+            return null;
         }
     }
 
-    public static long getStat(String path) throws KeeperException, InterruptedException {
+    public static long getStat(ZooKeeper zooKeeper, String path) throws KeeperException, InterruptedException {
         Stat stat = new Stat();
-        if(zkAvailable()){
+        if(zooKeeper != null){
             zooKeeper.getData(path, null, stat);
             return stat.getCtime();
         }else {
@@ -55,8 +50,8 @@ public class ZkHelper {
         }
     }
     
-    public static List<String> getChildren(String path) throws KeeperException, InterruptedException {
-        if(zkAvailable()){
+    public static List<String> getChildren(ZooKeeper zooKeeper, String path) throws KeeperException, InterruptedException {
+        if(zooKeeper != null){
             return zooKeeper.getChildren(path,false);
         }else {
             return null;
@@ -64,31 +59,14 @@ public class ZkHelper {
 
     }
 
-    public static void closeZooKeeper() {
-        if(zkAvailable()){
-            try{
+    public static void closeZooKeeper(ZooKeeper zooKeeper) {
+        if (zooKeeper != null) {
+            try {
                 zooKeeper.close();
-            }catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 LOG.error(ExceptionUtils.getMessage(e));
             }
         }
-    }
-
-    public static boolean zkAvailable(){
-        return zooKeeper != null;
-    }
-
-    public static void main(String[] args) throws KeeperException, InterruptedException {
-        String path = "/hbase";
-        ZkHelper.createSingleZkClient("172.16.100.122:2181", DEFAULT_TIMEOUT);
-        List<String> tables = ZkHelper.getChildren(path);
-        if(tables != null){
-            for(String table : tables){
-                System.out.println(table);
-                System.out.println(ZkHelper.getStat(path + '/' + table));
-            }
-        }
-        ZkHelper.closeZooKeeper();
     }
 
 }

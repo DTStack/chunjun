@@ -43,7 +43,9 @@ public class MetadatahbaseReader extends MetadataReader {
         super(config, env);
         hadoopConfig = (Map<String, Object>) config.getJob().getContent()
                 .get(0).getReader().getParameter().getVal(KEY_HADOOP_CONFIG);
-        hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, jdbcUrl);
+        if(!hadoopConfig.containsKey(HConstants.ZOOKEEPER_QUORUM)){
+            hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, jdbcUrl);
+        }
     }
 
     @Override

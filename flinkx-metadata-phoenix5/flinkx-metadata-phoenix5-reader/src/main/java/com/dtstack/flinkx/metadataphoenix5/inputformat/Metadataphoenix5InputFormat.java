@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
+import org.apache.zookeeper.ZooKeeper;
 import org.codehaus.commons.compiler.CompileException;
 import sun.misc.URLClassPath;
 
@@ -76,8 +77,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
 
+    protected ZooKeeper zooKeeper;
+
     @Override
-    protected List<Object> showTables() throws SQLException{
+    protected List<Object> showTables() {
         String sql;
         if( StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT)||
                 StringUtils.isBlank(currentDb.get())) {
@@ -90,16 +93,19 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             while (resultSet.next()){
                 table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
             }
+        }catch (SQLException e){
+            LOG.error("query table lists failed, {}", ExceptionUtil.getErrorMessage(e));
         }
         return table;
     }
 
     @Override
     protected void switchDatabase(String databaseName) {
+        currentDb.set(databaseName);
     }
 
     @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
+    protected Map<String, Object> queryMetaData(String tableName) {
         Map<String, Object> result = new HashMap<>(16);
         Map<String, Object> tableProp = queryTableProp(tableName);
         List<Map<String, Object>> column = queryColumn(tableName);
@@ -119,22 +125,22 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         return tableProp;
     }
 
-    public List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
+    public List<Map<String, Object>> queryColumn(String tableName) {
         List<Map<String, Object>> column = new LinkedList<>();
-        if(isDefaultSchema()){
-            currentDb.set(null);
-        }
         String sql;
         if(isDefaultSchema()){
+            currentDb.set(null);
             sql = String.format(SQL_DEFAULT_COLUMN, tableName);
         }else {
             sql = String.format(SQL_COLUMN, currentDb.get(), tableName);
         }
         Map<String, String> familyMap = new HashMap<>(16);
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()) {
                 familyMap.put(resultSet.getString(1), resultSet.getString(2));
             }
+        }catch (SQLException e){
+            LOG.error("query column information failed, {}", ExceptionUtil.getErrorMessage(e));
         }
         try(ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)){
             while (resultSet.next()){
@@ -156,14 +162,14 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     protected Map<String, Long> queryCreateTimeMap(String hosts) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
-            ZkHelper.createSingleZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
-            List<String> tables = ZkHelper.getChildren(DEFAULT_PATH);
+            zooKeeper = ZkHelper.createSingleZkClient(hosts, ZkHelper.DEFAULT_TIMEOUT);
+            List<String> tables = ZkHelper.getChildren(zooKeeper, DEFAULT_PATH);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getStat(DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getStat(zooKeeper, DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
-            ZkHelper.closeZooKeeper();
+            ZkHelper.closeZooKeeper(zooKeeper);
         }catch (Exception e){
             LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
         }
