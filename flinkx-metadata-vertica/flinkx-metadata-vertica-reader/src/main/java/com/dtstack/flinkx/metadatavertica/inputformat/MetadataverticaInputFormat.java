@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadatavertica.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -68,18 +69,24 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
 
     List<Map<String, Object>> ptColumns = new LinkedList<>();
 
+    /**
+     * 采用数组是为了构建Varchar(10)、Decimal(10,2)这种格式
+     */
     private static final List<String> SINGLE_DIGITAL_TYPE = Arrays.asList("Integer", "Varchar", "Char", "Numeric");
 
     private static final List<String> DOUBLE_DIGITAL_TYPE = Arrays.asList("Timestamp", "Decimal");
 
     @Override
-    protected List<Object> showTables() throws SQLException {
-        List<Object> table = new LinkedList<>();
-        ResultSet resultSet = connection.get().getMetaData().getTables(null, currentDb.get(), null, null);
-        while (resultSet.next()){
-            table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
+    protected List<Object> showTables() {
+        List<Object> tables = new LinkedList<>();
+        try(ResultSet resultSet = connection.get().getMetaData().getTables(null, currentDb.get(), null, null)){
+            while (resultSet.next()){
+                tables.add(resultSet.getString(RESULT_SET_TABLE_NAME));
+            }
+        }catch (SQLException e){
+            LOG.error("query table lists failed, {}", ExceptionUtil.getErrorMessage(e));
         }
-        return table;
+        return tables;
     }
 
     @Override
@@ -88,7 +95,7 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
+    protected Map<String, Object> queryMetaData(String tableName) {
         Map<String, Object> result = new HashMap<>(16);
         result.put(KEY_TABLE_PROPERTIES, queryTableProp(tableName));
         result.put(KEY_COLUMN, queryColumn(tableName));
@@ -102,86 +109,94 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
     }
 
     @Override
-    protected void init() throws SQLException {
+    protected void init() {
         queryCreateTime();
         queryComment();
         queryTotalSizeMap();
         queryPtColumnMap();
     }
 
-    public List<Map<String, Object>> queryColumn(String tableName) throws SQLException {
+    public List<Map<String, Object>> queryColumn(String tableName) {
         List<Map<String, Object>> columns = new LinkedList<>();
-        ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null);
-        while (resultSet.next()){
-            Map<String, Object> map = new HashMap<>(16);
-            String columnName = resultSet.getString(RESULT_SET_COLUMN_NAME);
-            map.put(KEY_COLUMN_NAME, columnName);
-            String dataSize = resultSet.getString(RESULT_SET_COLUMN_SIZE);
-            String digits = resultSet.getString(RESULT_SET_DECIMAL_DIGITS);
-            String type = resultSet.getString(RESULT_SET_TYPE_NAME);
-            if(SINGLE_DIGITAL_TYPE.contains(type)){
-                type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
-            }else if(DOUBLE_DIGITAL_TYPE.contains(type)){
-                type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits +  ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
+        try(ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)){
+            while (resultSet.next()){
+                Map<String, Object> map = new HashMap<>(16);
+                String columnName = resultSet.getString(RESULT_SET_COLUMN_NAME);
+                map.put(KEY_COLUMN_NAME, columnName);
+                String dataSize = resultSet.getString(RESULT_SET_COLUMN_SIZE);
+                String digits = resultSet.getString(RESULT_SET_DECIMAL_DIGITS);
+                String type = resultSet.getString(RESULT_SET_TYPE_NAME);
+                if(SINGLE_DIGITAL_TYPE.contains(type)){
+                    type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
+                }else if(DOUBLE_DIGITAL_TYPE.contains(type)){
+                    type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits +  ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
+                }
+                map.put(KEY_COLUMN_DATA_TYPE, type);
+                map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
+                map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
+                map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
+                // 分区列信息
+                if(ptColumnMap.get(tableName) != null && columnName.equals(ptColumnMap.get(tableName))){
+                    ptColumns.add(map);
+                }else{
+                    columns.add(map);
+                }
             }
-            map.put(KEY_COLUMN_DATA_TYPE, type);
-            map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
-            map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
-            map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
-            if(ptColumnMap.get(tableName) != null && columnName.equals(ptColumnMap.get(tableName))){
-                ptColumns.add(map);
-            }else{
-                columns.add(map);
-            }
+        } catch (SQLException e){
+            LOG.error("query columns failed, {}", ExceptionUtil.getErrorMessage(e) );
         }
         return columns;
     }
 
 
-    public Map<String, String> queryTableProp(String tableName){
+    public Map<String, String> queryTableProp(String tableName) {
         Map<String, String> tableProperties = new HashMap<>(16);
         tableProperties.put(KEY_TABLE_CREATE_TIME,  createTimeMap.get(tableName));
         tableProperties.put(KEY_TABLE_COMMENT, commentMap.get(tableName));
         // 单位 byte
         String totalSize = totalSizeMap.get(tableName);
-        if(totalSize == null){
-            totalSize = "0";
-        }
+        totalSize = totalSize == null ? "0" : totalSize;
         tableProperties.put(KEY_TABLE_TOTAL_SIZE, totalSize);
         return tableProperties;
     }
 
-    public void queryCreateTime() throws SQLException {
+    public void queryCreateTime() {
         createTimeMap = new HashMap<>(16);
         String sql = String.format(SQL_CREATE_TIME, currentDb.get());
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 createTimeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
+        }catch (SQLException e){
+            LOG.error("query create time failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
-    public void queryComment() throws SQLException {
+    public void queryComment() {
         commentMap = new HashMap<>(16);
         String sql = String.format(SQL_COMMENT, currentDb.get());
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 commentMap.put(resultSet.getString(1), resultSet.getString(2));
             }
+        }catch (SQLException e){
+            LOG.error("query comment failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
-    public void queryTotalSizeMap() throws SQLException {
+    public void queryTotalSizeMap() {
         totalSizeMap = new HashMap<>(16);
         String sql = String.format(SQL_TOTAL_SIZE, currentDb.get());
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 totalSizeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
+        }catch (SQLException e){
+            LOG.error("query totalSize failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
-    public void queryPtColumnMap() throws SQLException {
+    public void queryPtColumnMap() {
         ptColumnMap = new HashMap<>(16);
         String sql = String.format(SQL_PT_COLUMN, currentDb.get());
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
@@ -191,6 +206,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
                         expression.lastIndexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
                 ptColumnMap.put(resultSet.getString(1), expression);
             }
+        }catch (SQLException e){
+            LOG.error("query partition columns failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
