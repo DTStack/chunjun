@@ -21,7 +21,7 @@ package com.dtstack.flinkx.socket.util;
 import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
-import com.dtstack.flinkx.decoder.PlainDecoder;
+import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,7 +31,7 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.SynchronousQueue;
 
@@ -50,15 +50,18 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected IDecode decoder;
 
-    public DtClientHandler(SynchronousQueue<Row> queue, String decoder){
+    protected String encoding;
+
+    public DtClientHandler(SynchronousQueue<Row> queue, String decoder, String encoding){
         this.queue = queue;
         this.decoder = getDecoder(decoder);
+        this.encoding = encoding;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf byteBuf = (ByteBuf) msg;
-        Map<String, Object> event = decoder.decode(byteBuf.toString(StandardCharsets.UTF_8));
+        Map<String, Object> event = decoder.decode(byteBuf.toString(Charset.forName(encoding)));
         Row row = new Row(event.size());
         int count = 0;
         for(Map.Entry<String, Object> entry : event.entrySet()){
@@ -77,7 +80,7 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
                 return new JsonDecoder();
             case TEXT:
             default:
-                return new PlainDecoder();
+                return new TextDecoder();
         }
     }
 

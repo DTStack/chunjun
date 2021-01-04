@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class PlainDecoder implements IDecode {
+public class TextDecoder implements IDecode {
 
     @Override
     public Map<String, Object> decode(final String message) {

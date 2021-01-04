@@ -21,13 +21,16 @@ package com.dtstack.flinkx.socket.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
+import org.apache.commons.lang.CharSet;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.ArrayList;
 
+import static com.dtstack.flinkx.socket.constants.SocketCons.DEFAULT_ENCODING;
 import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_ADDRESS;
+import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_ENCODING;
 import static com.dtstack.flinkx.socket.constants.SocketCons.KEY_PARSE;
 
 /** 读取用户传入参数
@@ -43,12 +46,15 @@ public class SocketReader extends BaseDataReader {
 
     protected ArrayList<String> columns;
 
+    protected String encoding;
+
     @SuppressWarnings("unchecked")
     public SocketReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig.ParameterConfig parameter = config.getJob().getContent().get(0).getReader().getParameter();
         address = parameter.getStringVal(KEY_ADDRESS);
         codeC = parameter.getStringVal(KEY_PARSE);
+        encoding = parameter.getStringVal(KEY_ENCODING, DEFAULT_ENCODING);
         columns = (ArrayList<String>) parameter.getColumn();
     }
 

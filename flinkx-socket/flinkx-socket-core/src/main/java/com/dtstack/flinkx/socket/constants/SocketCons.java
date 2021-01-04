@@ -29,10 +29,13 @@ public class SocketCons {
      */
     public static final String KEY_EXIT0 = "exit0 ";
 
+    public static final String DEFAULT_ENCODING = "UTF-8";
+
     /**
      * reader读取的常量
      */
     public static final String KEY_ADDRESS = "address";
     public static final String KEY_PARSE = "parse";
+    public static final String KEY_ENCODING = "encoding";
 
 }

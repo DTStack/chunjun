@@ -50,6 +50,10 @@ public class SocketBuilder extends BaseRichInputFormatBuilder {
         format.setAddress(address);
     }
 
+    protected void setEncoding(String encoding){
+        format.setEncoding(encoding);
+    }
+
     public void setCodeC(String codeC){
         format.setCodeC(codeC);
     }

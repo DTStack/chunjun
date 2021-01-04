@@ -47,6 +47,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
     protected int port;
     protected String codeC;
     protected ArrayList<String> columns;
+    protected String encoding;
 
     protected DtSocketClient client;
     protected SynchronousQueue<Row> queue;
@@ -56,6 +57,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
         queue = new SynchronousQueue<>();
         client = new DtSocketClient(host, port, queue);
         client.setCodeC(codeC);
+        client.setEncoding(encoding);
         client.start();
     }
 
@@ -110,6 +112,10 @@ public class SocketInputFormat extends BaseRichInputFormat {
 
     public void setColumns(ArrayList<String> columns){
         this.columns = columns;
+    }
+
+    public void setEncoding(String encoding){
+        this.encoding = encoding;
     }
 
 }

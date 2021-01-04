@@ -47,6 +47,7 @@ public class DtSocketClient implements Closeable, Serializable {
 
     protected String host;
     protected int port;
+    protected String encoding = "UTF-8";
 
     protected String codeC;
     protected EventLoopGroup group = new NioEventLoopGroup();
@@ -70,7 +71,7 @@ public class DtSocketClient implements Closeable, Serializable {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast(new DtClientHandler(queue, codeC));
+                        ch.pipeline().addLast(new DtClientHandler(queue, codeC, encoding));
                     }
                 });
         channel = bootstrap.connect(host, port).addListener(future -> {
@@ -89,6 +90,10 @@ public class DtSocketClient implements Closeable, Serializable {
 
     public void setCodeC(String codeC) {
         this.codeC = codeC;
+    }
+
+    public void setEncoding(String encoding){
+        this.encoding = encoding;
     }
 
     @Override
