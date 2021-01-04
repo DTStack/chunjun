@@ -91,6 +91,10 @@
                                     <shadedPattern>shade.metadatahbase.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>org.apache.hadoop.hbase</pattern>
+                                    <shadedPattern>shade.metadatahbase.org.apache.hadoop.hbase</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>com.google.thirdparty</pattern>
                                     <shadedPattern>shade.metadatahbase.com.google.thirdparty</shadedPattern>
                                 </relocation>
