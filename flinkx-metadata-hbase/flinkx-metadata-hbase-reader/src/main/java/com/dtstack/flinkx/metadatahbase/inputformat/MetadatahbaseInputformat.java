@@ -51,6 +51,7 @@ import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_NAMESPACE;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGION_COUNT;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_STORAGE_SIZE;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_TABLE_NAME;
+import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.APPEND_PATH;
 
 /** 获取元数据
  * @author kunni@dtstack.com
@@ -197,7 +198,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     }
 
     public void setPath(String path){
-        this.path = path;
+        this.path = path + APPEND_PATH;
     }
 
     @Override

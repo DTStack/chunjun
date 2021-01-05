@@ -20,7 +20,9 @@ public class ZkHelper {
 
     public static final int DEFAULT_TIMEOUT = 5000;
 
-    public static final String DEFAULT_PATH = "/hbase/table";
+    public static final String APPEND_PATH = "/table";
+
+    public static final String DEFAULT_PATH = "/hbase";
     
     private ZkHelper(){}
 

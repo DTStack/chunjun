@@ -70,6 +70,7 @@ import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_C
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.APPEND_PATH;
 import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.DEFAULT_PATH;
 
 /**
@@ -84,7 +85,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     protected ZooKeeper zooKeeper;
 
-    protected String path = DEFAULT_PATH;
+    protected String path;
 
     @Override
     protected List<Object> showTables() {
@@ -251,7 +252,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     }
 
     public void setPath(String path){
-        this.path = path;
+        this.path = path + APPEND_PATH;
     }
 
 }
