@@ -26,7 +26,7 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
 
 public class PhoenixMetadataCons extends MetaDataCons {
 
-    public static final String KEY_PRIMARY_KEY = "is_primarykey";
+    public static final String KEY_PRIMARY_KEY = "is_primary_key";
 
     public static final String KEY_PATH = "path";
 
@@ -36,7 +36,7 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String KEY_NAMESPACE = "namespace";
 
-    public static final String KEY_CREATE_TIME = "create_time";
+    public static final String KEY_CREATE_TIME = "createTime";
 
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 

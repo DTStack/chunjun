@@ -34,11 +34,11 @@ public class HbaseCons extends MetaDataCons {
 
     public static final String KEY_COLUMN_FAMILY = "column_family";
 
-    public static final String KEY_CREATE_TIME = "create_time";
+    public static final String KEY_CREATE_TIME = "createTime";
 
-    public static final String KEY_REGION_COUNT = "region_count";
+    public static final String KEY_REGION_COUNT = "regionCount";
 
-    public static final String KEY_STORAGE_SIZE = "storage_size";
+    public static final String KEY_STORAGE_SIZE = "totalSize";
 
     /**
      * 以下为reader需要的参数
