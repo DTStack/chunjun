@@ -32,6 +32,12 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String KEY_DEFAULT = "default";
 
+    public static final String KEY_TABLE_NAME = "table_name";
+
+    public static final String KEY_NAMESPACE = "namespace";
+
+    public static final String KEY_CREATE_TIME = "create_time";
+
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 
     public static final String SQL_DEFAULT_TABLE_NAME = " SELECT DISTINCT TABLE_NAME FROM SYSTEM.CATALOG WHERE TABLE_SCHEM is null ";

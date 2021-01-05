@@ -54,7 +54,6 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_CONN_PASSWORD;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_USER;
@@ -62,8 +61,11 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_CREATE_TIME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_DEFAULT;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_NAMESPACE;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_PRIMARY_KEY;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
@@ -126,7 +128,9 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     public Map<String, Object> queryTableProp(String tableName){
         Map<String, Object> tableProp = new HashMap<>(16);
-        tableProp.put(KEY_TABLE_CREATE_TIME, createTimeMap.get(tableName));
+        tableProp.put(KEY_CREATE_TIME, createTimeMap.get(tableName));
+        tableProp.put(KEY_NAMESPACE, currentDb.get());
+        tableProp.put(KEY_TABLE_NAME, tableName);
         return tableProp;
     }
 

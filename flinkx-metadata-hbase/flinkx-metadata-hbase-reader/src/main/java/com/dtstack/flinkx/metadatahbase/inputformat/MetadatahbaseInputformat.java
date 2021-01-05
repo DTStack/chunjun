@@ -44,12 +44,13 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGIONS;
-import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.DEFAULT_PATH;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_COLUMN_FAMILY;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_CREATE_TIME;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_NAMESPACE;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGION_COUNT;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_STORAGE_SIZE;
+import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_TABLE_NAME;
 
 /** 获取元数据
  * @author kunni@dtstack.com
@@ -132,12 +133,8 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
-        Map<String, Object> tableProperties;
-        List<Map<String, Object>> columnList;
-        tableProperties = queryTableProperties(tableName);
-        columnList = queryColumnList(tableName);
-        result.put(KEY_TABLE_PROPERTIES, tableProperties);
-        result.put(KEY_COLUMN, columnList);
+        result.put(KEY_TABLE_PROPERTIES, queryTableProperties(tableName));
+        result.put(KEY_COLUMN, queryColumnList(tableName));
         return result;
     }
 
@@ -147,11 +144,13 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         try{
             HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
             List<HRegionInfo> regionInfos = admin.getTableRegions(table.getTableName());
-            tableProperties.put(KEY_REGIONS, regionInfos.size());
+            tableProperties.put(KEY_REGION_COUNT, regionInfos.size());
             // 默认的region大小是256M
             long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
-            tableProperties.put(KEY_TABLE_TOTAL_SIZE,  regionSize * regionInfos.size());
-            tableProperties.put(KEY_TABLE_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
+            tableProperties.put(KEY_STORAGE_SIZE,  regionSize * regionInfos.size());
+            tableProperties.put(KEY_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
+            tableProperties.put(KEY_TABLE_NAME, tableName);
+            tableProperties.put(KEY_NAMESPACE, currentDb.get());
         }catch (IOException e){
             LOG.error("query tableProperties failed. {}", ExceptionUtil.getErrorMessage(e));
             throw new SQLException(e);
@@ -170,7 +169,7 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
             HColumnDescriptor[] columnDescriptors = table.getColumnFamilies();
             for (HColumnDescriptor column : columnDescriptors){
                 Map<String, Object> map = new HashMap<>(16);
-                map.put(KEY_COLUMN_NAME, column.getNameAsString());
+                map.put(KEY_COLUMN_FAMILY, column.getNameAsString());
                 columnList.add(map);
             }
         }catch (IOException e){
@@ -184,15 +183,15 @@ public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
             zooKeeper = ZkHelper.createZkClient((String) hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM), ZkHelper.DEFAULT_TIMEOUT);
-            List<String> tables = ZkHelper.getChildren(zooKeeper, DEFAULT_PATH);
+            List<String> tables = ZkHelper.getChildren(zooKeeper, path);
             if(tables != null){
                 for(String table : tables){
-                    createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper,DEFAULT_PATH + ConstantValue.SINGLE_SLASH_SYMBOL + table));
+                    createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper,path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
             ZkHelper.closeZooKeeper(zooKeeper);
         }catch (Exception e){
-            LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
+            LOG.error("query createTime map failed, error {} ", ExceptionUtil.getErrorMessage(e));
         }
         return createTimeMap;
     }

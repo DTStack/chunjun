@@ -28,10 +28,17 @@ public class HbaseCons extends MetaDataCons {
 
     public static final String KEY_PATH = "path";
 
-    /**
-     * json键值对中的键
-     */
-    public static final String KEY_REGIONS = "region_count";
+    public static final String KEY_TABLE_NAME = "table_name";
+
+    public static final String KEY_NAMESPACE = "namespace";
+
+    public static final String KEY_COLUMN_FAMILY = "column_family";
+
+    public static final String KEY_CREATE_TIME = "create_time";
+
+    public static final String KEY_REGION_COUNT = "region_count";
+
+    public static final String KEY_STORAGE_SIZE = "storage_size";
 
     /**
      * 以下为reader需要的参数
