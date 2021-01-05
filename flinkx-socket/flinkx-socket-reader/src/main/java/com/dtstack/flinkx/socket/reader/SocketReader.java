@@ -21,7 +21,6 @@ package com.dtstack.flinkx.socket.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
-import org.apache.commons.lang.CharSet;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -64,6 +63,7 @@ public class SocketReader extends BaseDataReader {
         socketBuilder.setAddress(address);
         socketBuilder.setCodeC(codeC);
         socketBuilder.setColumns(columns);
+        socketBuilder.setEncoding(encoding);
         socketBuilder.setDataTransferConfig(dataTransferConfig);
         return createInput(socketBuilder.finish());
     }
