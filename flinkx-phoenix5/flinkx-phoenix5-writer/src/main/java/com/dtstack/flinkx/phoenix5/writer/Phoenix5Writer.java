@@ -38,7 +38,7 @@ public class Phoenix5Writer extends JdbcDataWriter {
     public Phoenix5Writer(DataTransferConfig config) {
         super(config);
         setDatabaseInterface(new PhoenixMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+      //  dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override
