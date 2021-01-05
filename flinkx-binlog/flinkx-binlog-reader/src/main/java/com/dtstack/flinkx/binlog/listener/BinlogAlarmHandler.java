@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.binlog.reader;
+package com.dtstack.flinkx.binlog.listener;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
+import com.dtstack.flinkx.binlog.format.BinlogInputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

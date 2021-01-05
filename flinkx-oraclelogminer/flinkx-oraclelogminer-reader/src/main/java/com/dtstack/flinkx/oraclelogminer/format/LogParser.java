@@ -37,7 +37,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
@@ -46,6 +53,12 @@ import java.util.*;
 public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
+
+    //TO_DATE函数值匹配
+    public static Pattern toDatePattern = Pattern.compile("(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
+    //TO_TIMESTAMP函数值匹配
+    public static Pattern timeStampPattern = Pattern.compile("(?i)(?<toTimeStamp>(TO_TIMESTAMP\\('(?<datetime>(.*?))'\\)))");
+
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
@@ -129,13 +142,18 @@ public class LogParser {
         });
     }
 
-    public QueueData parse(QueueData pair) throws JSQLParserException {
+    public QueueData parse(QueueData pair, boolean isOracle10) throws JSQLParserException {
         Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
         String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
+        //只有oracle10需要进行toDate toTimestamp转换
+        LOG.debug("before parse toDate/toTimestamp sqlRedo = {}",sqlRedo);
+        if (isOracle10) {
+            sqlRedo = parseToTimeStamp(parseToDate(sqlRedo));
+        }
         Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
 
         Map<String,Object> message = new LinkedHashMap<>();
@@ -174,4 +192,53 @@ public class LogParser {
             return new QueueData(pair.getScn(), event);
         }
     }
+
+    /**
+     * 解析to_date函数
+     *
+     * @param redoLog
+     * @return
+     */
+    private String parseToDate(String redoLog) {
+        Matcher matcher = toDatePattern.matcher(redoLog);
+        HashMap<String, String> replaceData = new HashMap<>(8);
+        while (matcher.find()) {
+            String key = matcher.group("toDate");
+            String value = "'" + matcher.group("datetime") + "'";
+            replaceData.put(key, value);
+        }
+        return replace(redoLog, replaceData);
+    }
+
+
+    /**
+     * 解析to_timestamp函数
+     *
+     * @param redoLog
+     * @return
+     */
+    private String parseToTimeStamp(String redoLog) {
+        Matcher matcher = timeStampPattern.matcher(redoLog);
+        HashMap<String, String> replaceData = new HashMap<>(8);
+        while (matcher.find()) {
+            String key = matcher.group("toTimeStamp");
+            String value = "'" + matcher.group("datetime") + "'";
+            replaceData.put(key, value);
+        }
+        return replace(redoLog, replaceData);
+    }
+
+
+    private String replace(String redoLog, HashMap<String, String> replaceData) {
+        if (MapUtils.isNotEmpty(replaceData)) {
+            for (Map.Entry<String, String> entry : replaceData.entrySet()) {
+                //to_timeStamp/to_date()函数有括号 需要转义
+                String k = entry.getKey().replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)");
+                String v = entry.getValue();
+                redoLog = redoLog.replaceAll(k, v);
+            }
+        }
+        return redoLog;
+    }
+
 }

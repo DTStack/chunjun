@@ -20,7 +20,7 @@ package com.dtstack.flinkx.kafkabase.format;
 import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
-import com.dtstack.flinkx.decoder.PlainDecoder;
+import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.kafkabase.KafkaInputSplit;
 import com.dtstack.flinkx.kafkabase.client.KafkaBaseConsumer;
@@ -85,7 +85,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
         if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
             decode = new JsonDecoder();
         } else {
-            decode = new PlainDecoder();
+            decode = new TextDecoder();
         }
     }
 

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.hive.util;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class AddressUtil {
                     client.disconnect();
                 }
             } catch (Exception e){
-                logger.error("{}",e);
+                logger.error("{}", ExceptionUtil.getErrorMessage(e));
             }
         }
     }
