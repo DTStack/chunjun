@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
+import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_COMMENT;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
@@ -47,6 +48,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_SIZE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_DECIMAL_DIGITS;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_IS_NULLABLE;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
+import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_REMARKS;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_COMMENT;
@@ -132,6 +134,7 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
                     type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits +  ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
                 }
                 map.put(KEY_COLUMN_DATA_TYPE, type);
+                map.put(KEY_COLUMN_COMMENT, resultSet.getString(RESULT_SET_REMARKS));
                 map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
                 map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
                 map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));

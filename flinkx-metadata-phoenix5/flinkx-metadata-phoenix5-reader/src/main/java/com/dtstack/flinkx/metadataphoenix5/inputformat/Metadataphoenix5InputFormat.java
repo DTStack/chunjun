@@ -71,7 +71,6 @@ import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_D
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.APPEND_PATH;
-import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * @author kunni@Dtstack.com

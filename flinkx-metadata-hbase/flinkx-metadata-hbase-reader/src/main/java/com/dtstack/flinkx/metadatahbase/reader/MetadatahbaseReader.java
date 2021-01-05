@@ -21,8 +21,8 @@ package com.dtstack.flinkx.metadatahbase.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
-import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputformat;
-import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputformatBuilder;
+import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputFormat;
+import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.hadoop.hbase.HConstants;
 
@@ -56,7 +56,7 @@ public class MetadatahbaseReader extends MetadataReader {
 
     @Override
     protected MetadataInputFormatBuilder getBuilder(){
-        MetadatahbaseInputformatBuilder builder = new MetadatahbaseInputformatBuilder(new MetadatahbaseInputformat());
+        MetadatahbaseInputFormatBuilder builder = new MetadatahbaseInputFormatBuilder(new MetadatahbaseInputFormat());
         builder.setHadoopConfig(hadoopConfig);
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setPath(path);

@@ -82,6 +82,7 @@ public class MetaDataCons {
     public static final String RESULT_SET_DECIMAL_DIGITS = "DECIMAL_DIGITS";
     public static final String RESULT_SET_ORDINAL_POSITION = "ORDINAL_POSITION";
     public static final String RESULT_SET_IS_NULLABLE = "IS_NULLABLE";
+    public static final String RESULT_SET_REMARKS = "REMARKS";
     public static final String RESULT_SET_COLUMN_DEF = "COLUMN_DEF";
 
 

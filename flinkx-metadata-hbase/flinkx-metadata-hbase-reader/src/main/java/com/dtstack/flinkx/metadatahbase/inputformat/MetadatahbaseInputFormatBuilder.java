@@ -25,11 +25,11 @@ import java.util.Map;
 /** 帮助配置hbase读取参数
  * @author kunni@dtstack.com
  */
-public class MetadatahbaseInputformatBuilder extends MetadataInputFormatBuilder {
+public class MetadatahbaseInputFormatBuilder extends MetadataInputFormatBuilder {
 
-    protected MetadatahbaseInputformat format;
+    protected MetadatahbaseInputFormat format;
 
-    public MetadatahbaseInputformatBuilder(MetadatahbaseInputformat format) {
+    public MetadatahbaseInputFormatBuilder(MetadatahbaseInputFormat format) {
         super(format);
         this.format = format;
     }

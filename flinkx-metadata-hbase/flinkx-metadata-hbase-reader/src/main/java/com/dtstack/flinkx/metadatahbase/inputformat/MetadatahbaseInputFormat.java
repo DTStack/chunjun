@@ -56,7 +56,7 @@ import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.APPEND_PATH;
 /** 获取元数据
  * @author kunni@dtstack.com
  */
-public class MetadatahbaseInputformat extends BaseMetadataInputFormat {
+public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
 
     private static final long serialVersionUID = 1L;
 
