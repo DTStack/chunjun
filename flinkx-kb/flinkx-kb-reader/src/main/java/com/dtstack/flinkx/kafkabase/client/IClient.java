@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkabase.reader;
+package com.dtstack.flinkx.kafkabase.client;
 
 /**
  * Date: 2019/12/25
@@ -32,10 +32,13 @@ public interface IClient extends Runnable {
 
     /**
      * 处理消息的方法
-     *
-     * @param message 待处理的消息
+     * @param message       待处理的消息
+     * @param topic         kafka topic
+     * @param partition     kafka分区
+     * @param offset        kafka offset
+     * @param timestamp     kafka timestamp
      */
-    void processMessage(String message);
+    void processMessage(String message, String topic, Integer partition, Long offset, Long timestamp);
 
     /**
      * 关闭连接

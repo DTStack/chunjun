@@ -15,15 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka09.writer;
+package com.dtstack.flinkx.kafka09.format;
 
-import com.dtstack.flinkx.kafkabase.Formatter;
-import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
-import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
-import com.dtstack.flinkx.util.GsonUtil;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+import com.dtstack.flinkx.kafka09.writer.HeartBeatController;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -64,13 +60,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
         props.put("bootstrap.servers", brokerList);
         producer = new KafkaProducer<>(props);
 
-        LOG.info("brokerList {}", brokerList);
-        String broker = brokerList.split(",")[0];
-        String[] split = broker.split(":");
-
-        if (split.length != 2 || !AddressUtil.telnet(split[0], Integer.parseInt(split[1]))) {
-            throw new RuntimeException("telnet error,brokerList" + brokerList);
-        }
+        super.configure(parameters);
     }
 
     @Override
@@ -89,7 +79,7 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     public void closeInternal() {
-        LOG.warn("kafka output closeInternal.");
+        LOG.info("kafka output closeInternal.");
         producer.close();
     }
 

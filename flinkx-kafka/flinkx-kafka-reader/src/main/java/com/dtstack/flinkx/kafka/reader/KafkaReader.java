@@ -18,7 +18,8 @@
 package com.dtstack.flinkx.kafka.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafka.format.KafkaInputFormat;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -39,7 +40,7 @@ public class KafkaReader extends KafkaBaseReader {
     }
 
     @Override
-    public KafkaBaseInputFormat getFormat(){
-        return new KafkaInputFormat();
+    public KafkaBaseInputFormatBuilder getBuilder(){
+        return new KafkaBaseInputFormatBuilder(new KafkaInputFormat());
     }
 }

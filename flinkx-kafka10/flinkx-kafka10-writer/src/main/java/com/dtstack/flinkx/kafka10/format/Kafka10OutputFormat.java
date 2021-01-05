@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka11.writer;
+package com.dtstack.flinkx.kafka10.format;
 
-import com.dtstack.flinkx.kafkabase.Formatter;
-import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -35,7 +35,7 @@ import java.util.Objects;
  * @author: toutian
  * @create: 2019/7/5
  */
-public class Kafka11OutputFormat extends KafkaBaseOutputFormat {
+public class Kafka10OutputFormat extends KafkaBaseOutputFormat {
 
     private transient KafkaProducer<String, String> producer;
 

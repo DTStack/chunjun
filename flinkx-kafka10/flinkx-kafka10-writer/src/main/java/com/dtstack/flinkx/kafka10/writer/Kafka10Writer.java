@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.kafka10.format.Kafka10OutputFormat;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;

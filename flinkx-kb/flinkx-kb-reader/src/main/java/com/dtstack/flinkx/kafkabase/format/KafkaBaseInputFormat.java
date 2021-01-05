@@ -15,14 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkabase.reader;
+package com.dtstack.flinkx.kafkabase.format;
 
 import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.PlainDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.kafkabase.KafkaInputSplit;
+import com.dtstack.flinkx.kafkabase.client.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.entity.kafkaState;
+import com.dtstack.flinkx.kafkabase.enums.KafkaVersion;
+import com.dtstack.flinkx.kafkabase.enums.StartupMode;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
@@ -30,8 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
@@ -50,69 +57,19 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected String codec;
     protected boolean blankIgnore;
     protected String encoding;
+    protected StartupMode mode;
+    protected String offset;
+    protected Long timestamp;
     protected Map<String, String> consumerSettings;
+    protected Map<String, kafkaState> stateMap;
     protected volatile boolean running = false;
     protected transient BlockingQueue<Row> queue;
     protected transient KafkaBaseConsumer consumer;
     protected transient IDecode decode;
 
-    @Override
-    public void openInputFormat() throws IOException {
-        super.openInputFormat();
-
-        queue = new SynchronousQueue<>(false);
-        if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
-            decode = new JsonDecoder();
-        } else {
-            decode = new PlainDecoder();
-        }
-    }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        consumer.createClient(topic, groupId, this).execute();
-        running = true;
-    }
-
-    @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        try {
-            row = queue.take();
-        } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
-        }
-        return row;
-    }
-
-    @Override
-    protected void closeInternal() throws IOException {
-        if (running) {
-            consumer.close();
-            running = false;
-            LOG.warn("input kafka release.");
-        }
-    }
-
-    public void processEvent(Map<String, Object> event) {
-        try {
-            queue.put(Row.of(event));
-        } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", event, e);
-        }
-    }
-
-    protected Properties geneConsumerProp() {
-        Properties props = new Properties();
-        for (Map.Entry<String, String> entry : consumerSettings.entrySet()) {
-            String k = entry.getKey();
-            String v = entry.getValue();
-            props.put(k, v);
-        }
-        return props;
-    }
-
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i, minNumSplits);
@@ -121,44 +78,100 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
+        queue = new SynchronousQueue<>(false);
+        stateMap = new HashMap<>(16);
+        if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
+            decode = new JsonDecoder();
+        } else {
+            decode = new PlainDecoder();
+        }
+    }
+
+    @Override
+    protected void openInternal(InputSplit inputSplit) {
+        LOG.info("inputSplit = {}", inputSplit);
+        consumer.createClient(topic, groupId, this, (KafkaInputSplit) inputSplit).execute();
+        running = true;
+    }
+
+    @Override
+    protected Row nextRecordInternal(Row row) {
+        try {
+            row = queue.take();
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+        }
+        return row;
+    }
+
+    public void processEvent(Pair<Map<String, Object>, kafkaState> pair) {
+        try {
+            queue.put(Row.of(pair.getLeft()));
+            kafkaState state = pair.getRight();
+            stateMap.put(String.format("%s-%s", state.getTopic(), state.getPartition()), state);
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted pair:{} error:{}", pair, e);
+        }
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        super.getFormatState();
+        if (formatState != null) {
+            formatState.setState(stateMap);
+        }
+        return formatState;
+    }
+
+    @Override
+    public boolean reachedEnd() {
         return false;
     }
 
-
-    public void setTopic(String topic) {
-        this.topic = topic;
+    @Override
+    protected void closeInternal() {
+        if (running) {
+            consumer.close();
+            running = false;
+            LOG.warn("input kafka release.");
+        }
     }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+    /**
+     * 获取kafka版本信息
+     *  0.9:  kakfa09
+     *  0.10: kafka10
+     * @return
+     */
+    public KafkaVersion getKafkaVersion() {
+        return KafkaVersion.unknown;
     }
 
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-    public void setBlankIgnore(boolean blankIgnore) {
-        this.blankIgnore = blankIgnore;
-    }
-
-    public boolean getBlankIgnore() {
-        return blankIgnore;
-    }
-
-    public void setConsumerSettings(Map<String, String> consumerSettings) {
-        this.consumerSettings = consumerSettings;
+    /**
+     * 获取kafka state
+     * @return
+     */
+    public Object getState(){
+        return formatState == null ? null : formatState.getState();
     }
 
     public String getEncoding() {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
-
     public IDecode getDecode() {
         return decode;
     }
+
+    public boolean getBlankIgnore() {
+        return blankIgnore;
+    }
+
+    public StartupMode getMode() {
+        return mode;
+    }
+
+
 }

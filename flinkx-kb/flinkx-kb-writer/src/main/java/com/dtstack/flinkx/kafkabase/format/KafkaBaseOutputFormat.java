@@ -15,13 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkabase.writer;
+package com.dtstack.flinkx.kafkabase.format;
 
 import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -57,14 +59,16 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void configure(Configuration parameters) {
-        if(producerSettings != null && producerSettings.get("bootstrap.servers") != null){
+        if(producerSettings != null && producerSettings.containsKey("bootstrap.servers")){
             String brokerList = producerSettings.get("bootstrap.servers");
             LOG.info("brokerList->{}",brokerList);
-            String broker = brokerList.split(",")[0];
-            String[] split = broker.split(":");
+            String broker = brokerList.split(ConstantValue.COMMA_SYMBOL)[0];
+            String[] split = broker.split(ConstantValue.COLON_SYMBOL);
 
-            if( split.length !=2 ||!AddressUtil.telnet(split[0], Integer.parseInt(split[1]))){
-                throw new RuntimeException("telnet error,brokerList"+brokerList+" please check dataSource is running");
+            try {
+                TelnetUtil.telnet(split[0], Integer.parseInt(split[1]));
+            }catch (Exception e){
+                throw new RuntimeException("telnet error, brokerList = " + brokerList);
             }
         }
     }
