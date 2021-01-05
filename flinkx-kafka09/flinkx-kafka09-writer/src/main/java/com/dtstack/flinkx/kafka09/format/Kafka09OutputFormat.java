@@ -17,9 +17,9 @@
  */
 package com.dtstack.flinkx.kafka09.format;
 
-import com.dtstack.flinkx.kafka09.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.kafkabase.util.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
