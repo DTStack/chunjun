@@ -22,7 +22,6 @@ import com.dtstack.flinkx.kafka11.format.Kafka11InputFormat;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.kafka.clients.producer.ProducerConfig;
 
 /**
  * @company: www.dtstack.com
@@ -33,9 +32,6 @@ public class Kafka11Reader extends KafkaBaseReader {
 
     public Kafka11Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
-            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
-        }
     }
 
     @Override
