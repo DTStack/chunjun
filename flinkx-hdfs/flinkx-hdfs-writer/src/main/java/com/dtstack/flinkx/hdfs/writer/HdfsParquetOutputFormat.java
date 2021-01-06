@@ -25,6 +25,7 @@ import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileSystem;
@@ -52,6 +53,8 @@ import java.security.PrivilegedAction;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The subclass of HdfsOutputFormat writing parquet files
@@ -237,6 +240,8 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 if (valObj instanceof Timestamp){
                     val=DateUtil.getDateTimeFormatter().format(valObj);
                     group.add(colName,val);
+                }else if (valObj instanceof Map || valObj instanceof List){
+                    group.add(colName,gson.toJson(valObj));
                 }else {
                     group.add(colName,val);
                 }

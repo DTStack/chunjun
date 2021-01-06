@@ -22,10 +22,14 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.sqlservercdc.SqlServerCdcConfigKeys;
 import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormatBuilder;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,7 +59,16 @@ public class SqlservercdcReader extends BaseDataReader {
         databaseName = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_DATABASE_NAME);
         cat = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_CATALOG);
         pavingData = readerConfig.getParameter().getBooleanVal(SqlServerCdcConfigKeys.KEY_PAVING_DATA, false);
-        tableList = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
+        List<String> tables = (List<String>) readerConfig.getParameter().getVal(SqlServerCdcConfigKeys.KEY_TABLE_LIST);
+
+        if (CollectionUtils.isNotEmpty(tables)) {
+            tableList = new ArrayList<>(tables.size());
+            //兼容[].[]
+            tables.forEach(item -> tableList.add(StringUtil.splitIgnoreQuotaAndJoinByPoint(item)));
+        } else {
+            tableList = Collections.emptyList();
+        }
+
         pollInterval = readerConfig.getLongVal(SqlServerCdcConfigKeys.KEY_POLL_INTERVAL, 1000);
         lsn = readerConfig.getParameter().getStringVal(SqlServerCdcConfigKeys.KEY_LSN);
     }
