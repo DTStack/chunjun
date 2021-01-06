@@ -21,8 +21,6 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 字段类型：String
    - 默认值：无
 
-
-
 - **mode**
    - 描述：kafka消费端启动模式，目前仅支持`kafkareader`插件
    - 可选值：
@@ -36,16 +34,11 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 字段类型：String
    - 默认值：group-offsets
 
-
-
-
 - **timestamp**
    - 描述：指定的kafka时间戳采集起点，目前仅支持`kafkareader`插件
    - 必选：当`mode`为`timestamp`时必选
    - 字段类型：Long
    - 默认值：无
-
-
 
 - **offset**
    - 描述：消费的分区及对应的特定偏移量，目前仅支持`kafkareader`插件
@@ -54,23 +47,17 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 格式：partition:0,offset:42;partition:1,offset:300;partition:2,offset:300
    - 默认值：无
 
-
-
 - **groupId**
    - 描述：kafka消费组Id
    - 必选：否
    - 字段类型：String
    - 默认值：default
 
-
-
 - **encoding**
    - 描述：字符编码
    - 必选：否
    - 字段类型：String
    - 默认值：UTF-8
-
-
 
 - **codec**
    - 描述：编码解码器类型，支持 json、text
@@ -86,11 +73,10 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
     }
 ]
 ```
-
-
       - json：将kafka获取到的消息字符串按照json格式进行解析
          - 若该字符串为json格式
             - 当其中含有message字段时，发送至下游的数据格式为：
+            
 ```json
 [
     {
@@ -99,32 +85,26 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
     }
 ]
 ```
-
             - 当其中不包含message字段时，增加一个key为message，value为原始消息字符串的键值对，发送至下游的数据格式为：
 ```json
 [
     {
         "key":"key",
         "value":"value",
-        "message":"{"key": "key", "value": "value"}"
+        "message":"{\"key\": \"key\", \"value\": \"value\"}"
     }
 ]
 ```
-
          - 若改字符串不为json格式，则按照text类型进行处理
    - 必选：否
    - 字段类型：String
    - 默认值：text
-
-
 
 - **blankIgnore**
    - 描述：是否忽略空值消息
    - 必选：否
    - 字段类型：Boolean
    - 默认值：false
-
-
 
 - **consumerSettings**
    - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
