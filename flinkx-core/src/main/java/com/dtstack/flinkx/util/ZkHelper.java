@@ -1,6 +1,5 @@
-package com.dtstack.flinkx.metadataphoenix5.util;
+package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -40,6 +39,12 @@ public class ZkHelper {
         }
     }
 
+    /**
+     * 获取某个节点的创建时间
+     * @param zooKeeper zookeeper
+     * @param path 节点路径
+     * @return 创建时间
+     */
     public static long getCreateTime(ZooKeeper zooKeeper, String path) {
         Stat stat = new Stat();
         if(zooKeeper != null){
@@ -55,6 +60,12 @@ public class ZkHelper {
         }
     }
 
+    /**
+     * 获取某个目录下的所有子节点
+     * @param zooKeeper zookeeper
+     * @param path 目录
+     * @return 子节点路径名集合
+     */
     public static List<String> getChildren(ZooKeeper zooKeeper, String path) {
         if(zooKeeper != null){
             try{

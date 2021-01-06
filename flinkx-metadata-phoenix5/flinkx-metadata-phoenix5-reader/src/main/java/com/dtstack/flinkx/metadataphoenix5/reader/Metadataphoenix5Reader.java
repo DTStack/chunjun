@@ -23,12 +23,13 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
 import com.dtstack.flinkx.metadata.reader.MetadataReader;
+import com.dtstack.flinkx.metadataphoenix5.inputformat.MetadataPhoenixBuilder;
 import com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.DRIVER_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_PATH;
-import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.DEFAULT_PATH;
+import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * @author kunni@dtstack.com

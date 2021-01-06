@@ -118,6 +118,11 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         queryPtColumnMap();
     }
 
+    /**
+     * 获取列级别的元数据信息
+     * @param tableName 表名
+     * @return 列的元数据
+     */
     public List<Map<String, Object>> queryColumn(String tableName) {
         List<Map<String, Object>> columns = new LinkedList<>();
         try(ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)){
@@ -151,7 +156,11 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         return columns;
     }
 
-
+    /**
+     * 获取表级别的元数据信息
+     * @param tableName 表名
+     * @return 表的元数据
+     */
     public Map<String, String> queryTableProp(String tableName) {
         Map<String, String> tableProperties = new HashMap<>(16);
         tableProperties.put(KEY_TABLE_CREATE_TIME,  createTimeMap.get(tableName));
@@ -163,6 +172,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         return tableProperties;
     }
 
+    /**
+     * 获取创建时间
+     */
     public void queryCreateTime() {
         createTimeMap = new HashMap<>(16);
         String sql = String.format(SQL_CREATE_TIME, currentDb.get());
@@ -175,6 +187,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         }
     }
 
+    /**
+     * 获取表注释
+     */
     public void queryComment() {
         commentMap = new HashMap<>(16);
         String sql = String.format(SQL_COMMENT, currentDb.get());
@@ -187,6 +202,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         }
     }
 
+    /**
+     * 获取表的总大小
+     */
     public void queryTotalSizeMap() {
         totalSizeMap = new HashMap<>(16);
         String sql = String.format(SQL_TOTAL_SIZE, currentDb.get());
@@ -199,6 +217,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         }
     }
 
+    /**
+     * 获取分区列信息
+     */
     public void queryPtColumnMap() {
         ptColumnMap = new HashMap<>(16);
         String sql = String.format(SQL_PT_COLUMN, currentDb.get());

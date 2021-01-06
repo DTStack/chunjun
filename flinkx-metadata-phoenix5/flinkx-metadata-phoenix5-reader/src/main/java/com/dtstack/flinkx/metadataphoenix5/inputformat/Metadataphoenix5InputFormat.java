@@ -22,7 +22,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
 import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Util;
-import com.dtstack.flinkx.metadataphoenix5.util.ZkHelper;
+import com.dtstack.flinkx.util.ZkHelper;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -70,7 +70,7 @@ import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_C
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
-import static com.dtstack.flinkx.metadataphoenix5.util.ZkHelper.APPEND_PATH;
+import static com.dtstack.flinkx.util.ZkHelper.APPEND_PATH;
 
 /**
  * @author kunni@Dtstack.com
@@ -126,6 +126,11 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         return name;
     }
 
+    /**
+     * 获取表级别的元数据信息
+     * @param tableName 表名
+     * @return 表的元数据
+     */
     public Map<String, Object> queryTableProp(String tableName){
         Map<String, Object> tableProp = new HashMap<>(16);
         tableProp.put(KEY_CREATE_TIME, createTimeMap.get(tableName));
@@ -134,6 +139,11 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         return tableProp;
     }
 
+    /**
+     * 获取列级别的元数据信息
+     * @param tableName 表名
+     * @return 列的元数据信息
+     */
     public List<Map<String, Object>> queryColumn(String tableName) {
         List<Map<String, Object>> column = new LinkedList<>();
         String sql;
@@ -173,7 +183,12 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         return column;
     }
 
-
+    /**
+     * 查询表的创建时间
+     * 如果zookeeper没有权限访问，返回空map
+     * @param hosts zookeeper地址
+     * @return 表名与创建时间的映射
+     */
     protected Map<String, Long> queryCreateTimeMap(String hosts) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{
@@ -245,11 +260,19 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         }
     }
 
+    /**
+     * phoenix 默认schema为空，在平台层设置值为default
+     * @return 是否为默认schema
+     */
     public boolean isDefaultSchema(){
         return StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
                 StringUtils.isBlank(currentDb.get());
     }
 
+    /**
+     * 传入为hbase在zookeeper中的路径，增加/table表示table所在路径
+     * @param path hbase路径
+     */
     public void setPath(String path){
         this.path = path + APPEND_PATH;
     }

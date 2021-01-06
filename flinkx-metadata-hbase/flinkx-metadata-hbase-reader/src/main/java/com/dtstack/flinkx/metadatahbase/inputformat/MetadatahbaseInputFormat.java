@@ -22,8 +22,8 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadatahbase.util.HbaseHelper;
-import com.dtstack.flinkx.metadatahbase.util.ZkHelper;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ZkHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -51,7 +51,7 @@ import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_NAMESPACE;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_REGION_COUNT;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_STORAGE_SIZE;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_TABLE_NAME;
-import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.APPEND_PATH;
+import static com.dtstack.flinkx.util.ZkHelper.APPEND_PATH;
 
 /** 获取元数据
  * @author kunni@dtstack.com
@@ -139,7 +139,12 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
         return result;
     }
 
-
+    /**
+     * 获取hbase表级别的元数据信息
+     * @param tableName 表名
+     * @return 表的元数据
+     * @throws SQLException sql异常
+     */
     protected Map<String, Object> queryTableProperties(String tableName) throws SQLException {
         Map<String, Object> tableProperties = new HashMap<>(16);
         try{
@@ -180,6 +185,12 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
         return columnList;
     }
 
+    /**
+     * 查询hbase表的创建时间
+     * 如果zookeeper没有权限访问，返回空map
+     * @param hadoopConfig hadoop配置
+     * @return 表名与创建时间的映射
+     */
     protected Map<String, Long> queryCreateTimeMap(Map<String, Object> hadoopConfig) {
         Map<String, Long> createTimeMap = new HashMap<>(16);
         try{

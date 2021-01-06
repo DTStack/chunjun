@@ -1,5 +1,4 @@
-package com.dtstack.flinkx.metadataphoenix5.util;
-
+package com.dtstack.flinkx.util;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -53,7 +52,7 @@ public class ZkHelperTest {
 
     @Test
     public void testGetCreateTime(){
-        Assert.assertNotEquals(ZkHelper.getCreateTime(zooKeeper, "/hbase/table/test1"), 0L);
+      Assert.assertNotEquals(ZkHelper.getCreateTime(zooKeeper, "/hbase/table/test1"), 0L);
     }
 
 

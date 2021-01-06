@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.metadataphoenix5.util;
 
 import org.codehaus.commons.compiler.CompileException;
@@ -10,10 +28,10 @@ public class Phoenix5Util {
 
     /**
      * 通过指定类加载器获取helper
-     * @param parentClassLoader
-     * @return
-     * @throws IOException
-     * @throws CompileException
+     * @param parentClassLoader 类加载器
+     * @return helper实现类
+     * @throws IOException io异常
+     * @throws CompileException 编译异常
      */
     public static IPhoenix5Helper getHelper(ClassLoader parentClassLoader) throws IOException, CompileException {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();

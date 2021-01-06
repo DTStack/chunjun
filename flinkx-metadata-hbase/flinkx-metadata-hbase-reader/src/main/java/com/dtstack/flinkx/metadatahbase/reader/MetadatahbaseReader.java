@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_HADOOP_CONFIG;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_PATH;
-import static com.dtstack.flinkx.metadatahbase.util.ZkHelper.DEFAULT_PATH;
+import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
 
 /**
  * 读取hbase config并进行配置
