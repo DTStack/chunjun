@@ -199,9 +199,10 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
                     createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper, path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
-            ZkHelper.closeZooKeeper(zooKeeper);
         }catch (Exception e){
             LOG.error("query createTime map failed, error {}", ExceptionUtil.getErrorMessage(e));
+        }finally {
+            ZkHelper.closeZooKeeper(zooKeeper);
         }
         return createTimeMap;
     }
