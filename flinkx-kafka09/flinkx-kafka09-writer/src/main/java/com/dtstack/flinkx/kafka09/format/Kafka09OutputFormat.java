@@ -15,17 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka11.writer;
+package com.dtstack.flinkx.kafka09.format;
 
-import com.dtstack.flinkx.kafkabase.Formatter;
-import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,22 +36,32 @@ import java.util.concurrent.TimeUnit;
  * @author: toutian
  * @create: 2019/7/5
  */
-public class Kafka11OutputFormat extends KafkaBaseOutputFormat {
+public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
 
+    private String encoding;
+    private String brokerList;
     private transient KafkaProducer<String, String> producer;
+    private HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
-        super.configure(parameters);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
-        props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
-        props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
+        props.put("key.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put("value.serializer", org.apache.kafka.common.serialization.StringSerializer.class.getName());
+        props.put("producer.type", "sync");
+        props.put("compression.codec", "none");
+        props.put("request.required.acks", "1");
+        props.put("batch.num.messages", "1024");
+        props.put("partitioner.class", DefaultPartitioner.class.getName());
+
+        props.put("client.id", "");
+
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
+        props.put("metadata.broker.list", brokerList);
         producer = new KafkaProducer<>(props);
+
+        super.configure(parameters);
     }
 
     @Override
@@ -60,9 +69,8 @@ public class Kafka11OutputFormat extends KafkaBaseOutputFormat {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
         producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
-            if(Objects.nonNull(exception)){
-                String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
-                LOG.warn(errorMessage);
+            if (Objects.nonNull(exception)) {
+                LOG.warn("kafka writeSingleRecordInternal error:{}", exception.getMessage(), exception);
                 heartBeatController.onFailed(exception);
             } else {
                 heartBeatController.onSuccess();
@@ -72,8 +80,20 @@ public class Kafka11OutputFormat extends KafkaBaseOutputFormat {
 
     @Override
     public void closeInternal() {
-        LOG.warn("kafka output closeInternal.");
+        LOG.info("kafka output closeInternal.");
         //未设置具体超时时间 关闭时间默认是long.value  导致整个方法长时间等待关闭不了，因此明确指定20s时间
         producer.close(KafkaBaseOutputFormat.CLOSE_TIME, TimeUnit.MILLISECONDS);
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
+    public void setBrokerList(String brokerList) {
+        this.brokerList = brokerList;
+    }
+
+    public void setHeartBeatController(HeartBeatController heartBeatController) {
+        this.heartBeatController = heartBeatController;
     }
 }

@@ -14,14 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka09.reader;
+package com.dtstack.flinkx.kafka09.client;
 
 import com.dtstack.flinkx.decoder.IDecode;
-import com.dtstack.flinkx.kafkabase.reader.IClient;
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.client.IClient;
+import com.dtstack.flinkx.kafkabase.entity.kafkaState;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
+import kafka.message.MessageAndMetadata;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,17 +53,21 @@ public class Kafka09Client implements IClient {
 
     @Override
     public void run() {
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
+            LOG.warn("KafkaClient run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
+        });
         try {
             while (running) {
                 ConsumerIterator<byte[], byte[]> it = mStream.iterator();
                 while (it.hasNext()) {
                     String m = null;
                     try {
-                        m = new String(it.next().message(), format.getEncoding());
-                        Map<String, Object> event = this.decode.decode(m);
-                        if (event != null && event.size() > 0) {
-                            this.format.processEvent(event);
-                        }
+                        MessageAndMetadata<byte[], byte[]> next = it.next();
+                        processMessage(new String(next.message(), format.getEncoding()),
+                                next.topic(),
+                                next.partition(),
+                                next.offset(),
+                                null);
                     } catch (Exception e) {
                         LOG.error("process event = {}, e = {}", m, ExceptionUtil.getErrorMessage(e));
                     }
@@ -72,10 +79,10 @@ public class Kafka09Client implements IClient {
     }
 
     @Override
-    public void processMessage(String message) {
+    public void processMessage(String message, String topic, Integer partition, Long offset, Long timestamp) {
         Map<String, Object> event = decode.decode(message);
         if (event != null && event.size() > 0) {
-            format.processEvent(event);
+            format.processEvent(Pair.of(event, new kafkaState(topic, partition, offset, timestamp)));
         }
     }
 

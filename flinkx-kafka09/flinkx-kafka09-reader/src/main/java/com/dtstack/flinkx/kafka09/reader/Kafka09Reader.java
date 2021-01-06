@@ -18,13 +18,12 @@
 package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.kafka09.format.Kafka09InputFormat;
 import com.dtstack.flinkx.kafkabase.KafkaConfigKeys;
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @company: www.dtstack.com
@@ -32,18 +31,18 @@ import java.nio.charset.StandardCharsets;
  * @create: 2019/7/4
  */
 public class Kafka09Reader extends KafkaBaseReader {
-    private String encoding;
 
     public Kafka09Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        encoding = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_ENCODING, StandardCharsets.UTF_8.name());
+        //兼容历史脚本
+        String id = consumerSettings.get(KafkaConfigKeys.GROUP_ID);
+        if(StringUtils.isNotBlank(id)){
+            super.groupId = id;
+        }
     }
 
     @Override
-    public KafkaBaseInputFormat getFormat(){
-        Kafka09InputFormat format = new Kafka09InputFormat();
-        format.setEncoding(encoding);
-        return format;
+    public KafkaBaseInputFormatBuilder getBuilder(){
+        return new KafkaBaseInputFormatBuilder(new Kafka09InputFormat());
     }
 }

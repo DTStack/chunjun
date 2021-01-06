@@ -6,47 +6,55 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.decoder;
+package com.dtstack.flinkx.kafkabase;
 
-import com.dtstack.flinkx.util.MapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.dtstack.flinkx.kafkabase.entity.kafkaState;
+import org.apache.flink.core.io.InputSplit;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 /**
- * Date: 2019/11/21
+ * Date: 2020/12/30
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class JsonDecoder implements IDecode {
-    private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
+public class KafkaInputSplit implements InputSplit {
 
-    private static final String KEY_MESSAGE = "message";
+    private static final long serialVersionUID = 1L;
+
+    private int splitNumber;
+
+    private List<kafkaState> list;
+
+    public KafkaInputSplit(int splitNumber, List<kafkaState> list) {
+        this.splitNumber = splitNumber;
+        this.list = list;
+    }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> decode(final String message) {
-        try {
-            Map<String, Object> event = MapUtil.objectToMap(message);
-            if (!event.containsKey(KEY_MESSAGE)) {
-                event.put(KEY_MESSAGE, message);
-            }
-            return event;
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
-            return Collections.singletonMap(KEY_MESSAGE, message);
-        }
+    public int getSplitNumber() {
+        return splitNumber;
+    }
+
+    public List<kafkaState> getList() {
+        return list;
+    }
+
+    @Override
+    public String toString() {
+        return "KafkaInputSplit{" +
+                "splitNumber=" + splitNumber +
+                ", list=" + list +
+                '}';
     }
 }

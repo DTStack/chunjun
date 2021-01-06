@@ -15,26 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-package com.dtstack.flinkx.kafka11.reader;
-
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
-
-import java.io.IOException;
-import java.util.Properties;
+package com.dtstack.flinkx.kafkabase.enums;
 
 /**
- * @company: www.dtstack.com
- * @author: toutian
- * @create: 2019/7/5
+ * Date: 2020/12/26
+ * Company: www.dtstack.com
+ *
+ * @author tudou
  */
-public class Kafka11InputFormat extends KafkaBaseInputFormat {
+public enum KafkaVersion {
 
-    @Override
-    public void openInputFormat() throws IOException {
-        super.openInputFormat();
-        Properties props = geneConsumerProp();
-        consumer = new Kafka11Consumer(props);
+    unknown("-1"),
+
+    kafka09("0.9"),
+
+    kafka10("0.10"),
+
+    kafka11("0.11"),
+
+    kafka("1");
+
+    private String code;
+
+    KafkaVersion(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
     }
 }

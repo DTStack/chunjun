@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafkabase.reader;
+package com.dtstack.flinkx.kafkabase.client;
 
+import com.dtstack.flinkx.kafkabase.KafkaInputSplit;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.Properties;
@@ -28,33 +30,30 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  *
  * @author tudou
  */
-public class KafkaBaseConsumer {
+public abstract class KafkaBaseConsumer {
     protected Properties props;
 
     protected IClient client;
 
     protected ExecutorService executor = new ScheduledThreadPoolExecutor(1, new BasicThreadFactory
             .Builder()
-            .namingPattern("KafkaConsumerThread-%d")
+            .namingPattern("KafkaConsumerThread-" + Thread.currentThread().getName())
             .daemon(true)
             .build());
 
     public KafkaBaseConsumer(Properties properties) {
-        Properties props = new Properties();
-        props.put("max.poll.interval.ms", "86400000");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("auto.offset.reset", "earliest");
-        if (properties != null) {
-            props.putAll(properties);
-        }
-
-        this.props = props;
+        this.props = properties;
     }
 
-    public KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format){
-        throw new RuntimeException("KafkaBaseConsumer.createClient() should be override by subclass!");
-    }
+    /**
+     * 创建kafka consumer
+     * @param topic     kafka topic 多个,分割
+     * @param group     kafka消费组
+     * @param format    InputFormat
+     * @param kafkaInputSplit   kafka数据分片
+     * @return
+     */
+    public abstract KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit);
 
     public void execute() {
         executor.execute(client);
@@ -65,5 +64,4 @@ public class KafkaBaseConsumer {
             client.close();
         }
     }
-
 }

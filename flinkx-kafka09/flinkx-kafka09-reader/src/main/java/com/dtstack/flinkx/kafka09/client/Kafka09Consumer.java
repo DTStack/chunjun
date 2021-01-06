@@ -1,4 +1,5 @@
 /*
+ * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -14,32 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.kafka10.reader;
+package com.dtstack.flinkx.kafka09.client;
 
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseConsumer;
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.KafkaInputSplit;
+import com.dtstack.flinkx.kafkabase.client.KafkaBaseConsumer;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
+import kafka.consumer.KafkaStream;
 
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
  * @company: www.dtstack.com
  * @author: toutian
- * @create: 2019/7/4
+ * @create: 2019/7/5
  */
-public class Kafka10Consumer extends KafkaBaseConsumer {
+public class Kafka09Consumer extends KafkaBaseConsumer {
+    private KafkaStream<byte[], byte[]> mStream;
 
-    public Kafka10Consumer(Properties properties) {
-        super(properties);
+    public Kafka09Consumer(KafkaStream<byte[], byte[]> aStream) {
+        super(new Properties());
+        this.mStream = aStream;
     }
 
     @Override
-    public Kafka10Consumer createClient(String topic, String group, KafkaBaseInputFormat format) {
-        Properties clientProps = new Properties();
-        clientProps.putAll(props);
-        clientProps.put("group.id", group);
-
-        client = new Kafka10Client(clientProps, Arrays.asList(topic.split(",")), Long.MAX_VALUE, format);
+    public KafkaBaseConsumer createClient(String topic, String group, KafkaBaseInputFormat format, KafkaInputSplit kafkaInputSplit) {
+        client = new Kafka09Client(mStream, format);
         return this;
     }
 }

@@ -15,27 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.kafka10.format;
 
-
-package com.dtstack.flinkx.kafka.reader;
-
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafka10.client.Kafka10Consumer;
+import com.dtstack.flinkx.kafkabase.enums.KafkaVersion;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.util.KafkaUtil;
 
 import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
- *
- * @author tudou
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/5
  */
-public class KafkaInputFormat extends KafkaBaseInputFormat {
+public class Kafka10InputFormat extends KafkaBaseInputFormat {
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        Properties props = geneConsumerProp();
-        consumer = new KafkaConsumer(props);
+        Properties props = KafkaUtil.geneConsumerProp(consumerSettings, mode);
+        consumer = new Kafka10Consumer(props);
+    }
+
+    @Override
+    public KafkaVersion getKafkaVersion() {
+        return KafkaVersion.kafka10;
     }
 }

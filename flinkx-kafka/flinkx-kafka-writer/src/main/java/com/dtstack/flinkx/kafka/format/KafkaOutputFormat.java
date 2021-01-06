@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.kafka.writer;
+package com.dtstack.flinkx.kafka.format;
 
-import com.dtstack.flinkx.kafkabase.Formatter;
-import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
+import com.dtstack.flinkx.kafkabase.util.Formatter;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.flink.configuration.Configuration;
