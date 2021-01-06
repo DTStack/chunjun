@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.classloader;
 
+import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -133,6 +134,10 @@ public class PluginUtil {
             String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
             env.registerCachedFile(url.getPath(), classFileName, true);
             i++;
+        }
+
+        if (env instanceof MyLocalStreamEnvironment) {
+            ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
         }
     }
 }
