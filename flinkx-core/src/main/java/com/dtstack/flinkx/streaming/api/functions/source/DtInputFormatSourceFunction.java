@@ -157,6 +157,9 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				if (format instanceof RichInputFormat) {
 					((RichInputFormat) format).closeInputFormat();
 				}
+				if(null != tryException) {
+					throw tryException;
+				}
 			}catch (Exception finallyException){
 				if(null != tryException){
 					LOG.error(ExceptionUtil.getErrorMessage(finallyException));
