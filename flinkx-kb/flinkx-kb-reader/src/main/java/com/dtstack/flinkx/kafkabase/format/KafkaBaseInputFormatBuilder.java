@@ -102,7 +102,7 @@ public class KafkaBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
                 }
             }
         }else if(StartupMode.UNKNOWN.equals(format.mode)){
-            sb.append("parameter [mode] config error, the value of mode must in [group-offsets, earliest-offset, latest-offset, timestamp-offset, specific-offsets]\n");
+            sb.append("parameter [mode] config error, the value of mode must in [group-offsets, earliest-offset, latest-offset, timestamp, specific-offsets]\n");
         }
 
         if(!KafkaVersion.kafka09.equals(format.getKafkaVersion())){

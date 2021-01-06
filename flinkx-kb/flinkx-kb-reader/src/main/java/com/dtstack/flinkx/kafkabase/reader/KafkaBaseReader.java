@@ -54,7 +54,7 @@ public class KafkaBaseReader extends BaseDataReader {
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         topic = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_TOPIC);
         groupId = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_GROUP_ID, "default");
-        codec = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_CODEC, "plain");
+        codec = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_CODEC, "text");
         blankIgnore = readerConfig.getParameter().getBooleanVal(KafkaConfigKeys.KEY_BLANK_IGNORE, false);
         encoding = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_ENCODING, StandardCharsets.UTF_8.name());
         mode = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_MODE, StartupMode.GROUP_OFFSETS.name);

@@ -110,7 +110,7 @@ public class KafkaClient implements IClient {
                     partitionMap.put(tp, offsetAndTimestamp.offset());
                 }
             }
-            LOG.info("init kafka client from [timestamp-offset], offsets = {}", offsets);
+            LOG.info("init kafka client from [timestamp], offsets = {}", offsets);
         }else if(StartupMode.SPECIFIC_OFFSETS.equals(mode)){
             for (kafkaState state : stateList) {
                 TopicPartition tp = new TopicPartition(state.getTopic(), state.getPartition());

@@ -57,7 +57,6 @@ import com.dtstack.flinkx.kingbase.reader.KingbaseReader;
 import com.dtstack.flinkx.kingbase.writer.KingbaseWriter;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
-//import com.dtstack.flinkx.metadataes6.reader.Metadataes6Reader;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;

@@ -45,7 +45,7 @@ public enum StartupMode {
     /**
      * Start from user-supplied timestamp for each partition.
      */
-    TIMESTAMP("timestamp-offset"),
+    TIMESTAMP("timestamp"),
     /**
      * Start from user-supplied specific offsets for each partition
      */
@@ -71,7 +71,7 @@ public enum StartupMode {
         switch (name.toLowerCase(Locale.ENGLISH)){
             case "earliest-offset": return EARLIEST;
             case "latest-offset": return LATEST;
-            case "timestamp-offset": return TIMESTAMP;
+            case "timestamp": return TIMESTAMP;
             case "specific-offsets": return SPECIFIC_OFFSETS;
             case "group-offsets": return GROUP_OFFSETS;
             default: return UNKNOWN;
