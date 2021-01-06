@@ -37,7 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +53,7 @@ import java.util.regex.Pattern;
 public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
+
     //TO_DATE函数值匹配
     public static Pattern toDatePattern = Pattern.compile("(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
     //TO_TIMESTAMP函数值匹配
@@ -71,11 +77,11 @@ public class LogParser {
             str = str.replace("TIMESTAMP ", "");
         }
 
-        if (str.startsWith("'") && str.endsWith("'")) {
+        if (str.startsWith("'") && str.endsWith("'") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
-        if (str.startsWith("\"") && str.endsWith("\"")) {
+        if (str.startsWith("\"") && str.endsWith("\"") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
@@ -136,7 +142,7 @@ public class LogParser {
         });
     }
 
-    public QueueData parse(QueueData pair,boolean isOracle10) throws JSQLParserException {
+    public QueueData parse(QueueData pair, boolean isOracle10) throws JSQLParserException {
         Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
@@ -159,8 +165,13 @@ public class LogParser {
         message.put("opTime", timestamp);
 
 
-        LOG.debug("sqlRedo = {}", sqlRedo);
-        Statement stmt = CCJSqlParserUtil.parse(sqlRedo);
+        Statement stmt;
+        try {
+            stmt = CCJSqlParserUtil.parse(sqlRedo);
+        }catch (JSQLParserException e){
+            LOG.info("sqlRedo = {}", sqlRedo);
+            stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'","\\ '"));
+        }
         LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
         LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
 
