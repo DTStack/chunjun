@@ -52,6 +52,9 @@ public class MetadatahbaseReader extends MetadataReader {
         }
         path = config.getJob().getContent().get(0).getReader()
                 .getParameter().getStringVal(KEY_PATH, DEFAULT_PATH);
+        if(!hadoopConfig.containsKey(HConstants.ZOOKEEPER_ZNODE_PARENT)){
+            hadoopConfig.put(HConstants.ZOOKEEPER_ZNODE_PARENT, path);
+        }
     }
 
     @Override

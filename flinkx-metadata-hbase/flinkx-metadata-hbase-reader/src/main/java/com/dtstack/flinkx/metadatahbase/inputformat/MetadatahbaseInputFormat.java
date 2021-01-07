@@ -90,6 +90,9 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
         try {
             createTimeMap = queryCreateTimeMap(hadoopConfig);
             hbaseConnection = HbaseHelper.getHbaseConnection(hadoopConfig);
+            hadoopConfig.forEach((key,value)->{
+                LOG.info("{}:{}   ",key,value);
+            });
             admin = hbaseConnection.getAdmin();
             if(CollectionUtils.isEmpty(tableList)){
                 tableList = showTables();
@@ -134,6 +137,7 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
     @Override
     protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
         Map<String, Object> result = new HashMap<>(16);
+        tableName = String.format("%s:%s", currentDb.get(), tableName);
         result.put(KEY_TABLE_PROPERTIES, queryTableProperties(tableName));
         result.put(KEY_COLUMN, queryColumnList(tableName));
         return result;
@@ -198,6 +202,7 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
             List<String> tables = ZkHelper.getChildren(zooKeeper, path);
             if(tables != null){
                 for(String table : tables){
+                    LOG.info(table);
                     createTimeMap.put(table, ZkHelper.getCreateTime(zooKeeper,path + ConstantValue.SINGLE_SLASH_SYMBOL + table));
                 }
             }
