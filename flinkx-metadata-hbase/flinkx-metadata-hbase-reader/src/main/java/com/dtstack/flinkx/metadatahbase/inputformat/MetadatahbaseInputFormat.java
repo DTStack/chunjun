@@ -119,7 +119,9 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
                 TableName tableName = table.getTableName();
                 // 排除系统表
                 if(!tableName.isSystemTable()){
-                    tableNameList.add(tableName.getNameAsString());
+                    //此时的表名带有namespace,需要去除
+                    String tableWithNameSpace = tableName.getNameAsString();
+                    tableNameList.add(tableWithNameSpace.split(ConstantValue.COLON_SYMBOL)[1]);
                 }
             }
         }catch (IOException e){
