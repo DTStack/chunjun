@@ -28,15 +28,9 @@ public class HbaseConfigConstants {
 
     public static final int DEFAULT_SCAN_CACHE_SIZE = 256;
 
-    public static final int DEFAULT_SCAN_BATCH_SIZE = 100;
-
     public static final int MAX_SCAN_CACHE_SIZE = 1000;
 
     public static final int MIN_SCAN_CACHE_SIZE = 1;
-
-    public static final int MAX_SCAN_BATCH_SIZE = 100;
-
-    public static final int MIN_SCAN_BATCH_SIZE = 1;
 
     public static final String DEFAULT_ENCODING = "UTF-8";
 

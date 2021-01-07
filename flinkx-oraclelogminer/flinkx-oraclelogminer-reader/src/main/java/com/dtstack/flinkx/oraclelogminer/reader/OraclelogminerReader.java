@@ -45,7 +45,7 @@ public class OraclelogminerReader extends BaseDataReader {
         try {
             logMinerConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), LogMinerConfig.class);
         } catch (Exception e) {
-            throw new RuntimeException("解析mongodb配置出错:", e);
+            throw new RuntimeException("parse logMiner config error:", e);
         }
 
         buildTableListenerRegex();
