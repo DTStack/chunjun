@@ -133,7 +133,11 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
      */
     public Map<String, Object> queryTableProp(String tableName){
         Map<String, Object> tableProp = new HashMap<>(16);
-        tableProp.put(KEY_CREATE_TIME, createTimeMap.get(tableName));
+        if(StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) || currentDb.get() == null){
+            tableProp.put(KEY_CREATE_TIME, createTimeMap.get(tableName));
+        }else {
+            tableProp.put(KEY_CREATE_TIME, createTimeMap.get(currentDb.get() + ConstantValue.POINT_SYMBOL + tableName));
+        }
         tableProp.put(KEY_NAMESPACE, currentDb.get());
         tableProp.put(KEY_TABLE_NAME, tableName);
         return tableProp;
