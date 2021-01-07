@@ -19,7 +19,7 @@ package com.dtstack.flinkx.emqx.format;
 
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
-import com.dtstack.flinkx.decoder.PlainDecoder;
+import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +70,7 @@ public class EmqxInputFormat extends BaseRichInputFormat {
         if (DEFAULT_CODEC.equals(codec)) {
             decode = new JsonDecoder();
         } else {
-            decode = new PlainDecoder();
+            decode = new TextDecoder();
         }
 
         try {
