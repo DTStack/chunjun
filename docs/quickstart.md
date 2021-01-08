@@ -248,9 +248,10 @@ bin/flinkx -mode yarnPer \
 ./install_jars.sh
 ```
 
-## 添加于2020-12-07  13：59
-1.8_release版本，现阶段支持的flink版本为1.8/1.9/1.10     1.11版本的flink暂时不支持，在standalone和yarn session模式提交时，会报错
+## 2.FlinkX版本需要与flink版本保持一致
+1.8_release版本对应flink1.8
+1.10_release版本对应flink1.10
+版本不对应在standalone和yarn session模式提交时，会报错
 Caused by: java.io.InvalidClassException: org.apache.flink.api.common.operators.ResourceSpec; incompatible types for field cpuCores
-大家注意
 
 
