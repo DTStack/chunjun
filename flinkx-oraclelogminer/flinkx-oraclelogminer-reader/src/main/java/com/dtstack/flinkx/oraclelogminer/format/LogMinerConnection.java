@@ -27,7 +27,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +67,8 @@ public class LogMinerConnection {
     //oracle10数据库字符编码是否设置为GBK
     public boolean isGBK = false;
     boolean isOracle10;
+
+    public static final long MAX_SCN = 281474976710655L;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
@@ -188,10 +190,7 @@ public class LogMinerConnection {
                 }
             }
 
-            if(logMinerStartStmt != null && !logMinerStartStmt.isClosed()){
-                LOG.info("close resource logMinerStartStmt");
-                logMinerStartStmt.close();
-            }
+            closeStmt(logMinerStartStmt);
 
             //开启logMiner之前 需要设置会话级别的日期格式
             if (isOracle10) {
@@ -258,19 +257,19 @@ public class LogMinerConnection {
         } else if(ReadPosition.TIME.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的时间获取对应时间段的日志文件的起始位置
             if (logMinerConfig.getStartTime() == 0) {
-                throw new RuntimeException("[startTime] must not be null or empty when readMode is [time]");
+                throw new IllegalArgumentException("[startTime] must not be null or empty when readMode is [time]");
             }
 
             startScn = getLogFileStartPositionByTime(logMinerConfig.getStartTime());
         } else  if(ReadPosition.SCN.name().equalsIgnoreCase(logMinerConfig.getReadPosition())){
             // 根据指定的scn获取对应日志文件的起始位置
             if(StringUtils.isEmpty(logMinerConfig.getStartScn())){
-                throw new RuntimeException("[startSCN] must not be null or empty when readMode is [scn]");
+                throw new IllegalArgumentException("[startSCN] must not be null or empty when readMode is [scn]");
             }
 
             startScn = Long.parseLong(logMinerConfig.getStartScn());
         } else {
-            throw new RuntimeException("unsupported readMode : " + logMinerConfig.getReadPosition());
+            throw new IllegalArgumentException("unsupported readMode : " + logMinerConfig.getReadPosition());
         }
 
         return startScn;
@@ -389,35 +388,38 @@ public class LogMinerConnection {
         }
     }
 
+    /**
+     * 关闭数据库连接资源
+     * @param rs
+     * @param stmt
+     * @param conn
+     */
     private void closeResources(ResultSet rs, Statement stmt, Connection conn) {
         if (null != rs) {
             try {
                 rs.close();
             } catch (SQLException e) {
                 LOG.warn("Close resultSet error: {}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
             }
         }
 
-        if (null != stmt) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                LOG.warn("Close statement error:{}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
-            }
-        }
+        closeStmt(stmt);
 
         if (null != conn) {
             try {
                 conn.close();
             } catch (SQLException e) {
                 LOG.warn("Close connection error:{}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException(e);
             }
         }
     }
 
+    /**
+     * 根据scn号查询在线及归档日志组
+     * @param scn
+     * @return
+     * @throws SQLException
+     */
     private List<LogFile> queryLogFiles(Long scn) throws SQLException{
         List<LogFile> logFiles = new ArrayList<>();
         PreparedStatement statement = null;
@@ -432,11 +434,11 @@ public class LogMinerConnection {
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
                 if(isOracle10){
-                    logFile.setNextChange(Long.MAX_VALUE);
+                    logFile.setNextChange(MAX_SCN);
                 }else{
                     String nextChangeString = rs.getString("next_change#");
                     if (nextChangeString.length() == 20) {
-                        logFile.setNextChange(Long.MAX_VALUE);
+                        logFile.setNextChange(MAX_SCN);
                     } else {
                         logFile.setNextChange(Long.parseLong(nextChangeString));
                     }
@@ -465,7 +467,11 @@ public class LogMinerConnection {
 
         String sqlLog;
         while (logMinerData.next()) {
-            StringBuilder sqlRedo = new StringBuilder(logMinerData.getString(KEY_SQL_REDO));
+            String sql = logMinerData.getString(KEY_SQL_REDO);
+            if(StringUtils.isBlank(sql)){
+                continue;
+            }
+            StringBuilder sqlRedo = new StringBuilder(sql);
             if(SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())){
                 continue;
             }
