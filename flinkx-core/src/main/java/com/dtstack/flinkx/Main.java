@@ -26,6 +26,7 @@ import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
+import com.dtstack.flinkx.trans.UpperLowerTransformHandler;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
@@ -132,6 +133,12 @@ public class Main {
         if (speedConfig.isRebalance()) {
             dataStream = dataStream.rebalance();
         }
+
+
+        //转换操作
+        ConvertConfig convertConfig = config.getJob().getContent().get(0).getConverter();
+        List convertList = convertConfig.getConvertList();
+        dataStream=transformHandler(dataStream,convertList);
 
         BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
@@ -268,5 +275,24 @@ public class Main {
                     CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         }
         return env;
+    }
+
+    private static DataStream<Row> transformHandler(DataStream<Row> dataStream, List converterList) {
+
+        if (null != converterList && !converterList.isEmpty()) {
+            for (Object converter : converterList) {
+                Map<String, Object> converterMap = (Map<String, Object>) converter;
+                //1.大小写转换组件
+                Object upperLowerConvertObject = converterMap.get("upper_lower_converter");
+                if (null != upperLowerConvertObject) {
+                    List optList = (List) upperLowerConvertObject;
+                    UpperLowerTransformHandler handler = new UpperLowerTransformHandler();
+                    dataStream = handler.doUpperLowerTransform(dataStream, optList);
+                }
+                //2.其他组件依次去取
+                //
+            }
+        }
+        return dataStream;
     }
 }

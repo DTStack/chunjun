@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.config;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,15 +31,19 @@ public class ContentConfig extends AbstractConfig {
 
     public final static String KEY_READER_CONFIG = "reader";
     public final static String KEY_WRITER_CONFIG = "writer";
+    public final static String KEY_CONVERT_CONFIG = "converter";
 
     ReaderConfig reader;
     WriterConfig writer;
+    //转换组件
+    ConvertConfig converter;
 
     public ContentConfig(Map<String, Object> map) {
         super(map);
         if(map != null) {
             reader = new ReaderConfig((Map<String, Object>) map.get(KEY_READER_CONFIG));
             writer = new WriterConfig((Map<String, Object>) map.get(KEY_WRITER_CONFIG));
+            converter=new ConvertConfig((List) map.get(KEY_CONVERT_CONFIG));
         }
     }
 
@@ -58,4 +63,11 @@ public class ContentConfig extends AbstractConfig {
         this.writer = writer;
     }
 
+    public ConvertConfig getConverter() {
+        return converter;
+    }
+
+    public void setConverter(ConvertConfig converter) {
+        this.converter = converter;
+    }
 }

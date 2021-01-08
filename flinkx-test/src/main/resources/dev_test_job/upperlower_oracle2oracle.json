@@ -1,0 +1,76 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "test123",
+            "column": [
+              "COL1",
+              "COL2"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//10.136.106.163:1521/helowin"
+                ],
+                "table": [
+                  "TEST.UPPERLOWER_SRC_STUDENT"
+                ]
+              }
+            ],
+            "username": "test"
+          },
+          "name": "oraclereader"
+        },
+        "converter": [
+          {
+            "upper_lower_converter": [
+              {
+                //字段名字
+                "name": "COL2",
+                //字段位置
+                "position": "2",
+                //字段类型
+                "type": "String",
+                //操作类型自定义
+                "opt": "upper"
+              }
+            ]
+          }
+        ],
+        "writer": {
+          "parameter": {
+            "password": "test123",
+            "column": [
+              "COL1",
+              "COL2"
+            ],
+            "batchSize": 1024,
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@//10.136.106.163:1521/helowin",
+                "table": [
+                  "TEST.UPPERLOWER_TAR_STUDENT"
+                ]
+              }
+            ],
+            "writeMode": "insert",
+            "username": "test"
+          },
+          "name": "oraclewriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 3
+      },
+      "speed": {
+        "bytes": 1048576,
+        "channel": 1
+      }
+    }
+  }
+}
+
