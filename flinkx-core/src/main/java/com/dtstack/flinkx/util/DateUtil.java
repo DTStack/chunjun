@@ -42,6 +42,8 @@ public class DateUtil {
 
     private static final String STANDARD_DATETIME_FORMAT = "standardDatetimeFormatter";
 
+    private static final String STANDARD_DATETIME_FORMAT_FOR_MILLISECOND= "standardDatetimeFormatterForMillisecond";
+
     private static final String UN_STANDARD_DATETIME_FORMAT = "unStandardDatetimeFormatter";
 
     private static final String DATE_FORMAT = "dateFormatter";
@@ -67,7 +69,6 @@ public class DateUtil {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
 
             Map<String, SimpleDateFormat> formatterMap = new HashMap<>();
-
             SimpleDateFormat standardDatetimeFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             standardDatetimeFormatter.setTimeZone(timeZone);
             formatterMap.put(STANDARD_DATETIME_FORMAT,standardDatetimeFormatter);
@@ -88,7 +89,11 @@ public class DateUtil {
             yearFormatter.setTimeZone(timeZone);
             formatterMap.put(YEAR_FORMAT,yearFormatter);
 
-            return formatterMap;
+            SimpleDateFormat standardDatetimeFormatterOfMillisecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            standardDatetimeFormatterOfMillisecond.setTimeZone(timeZone);
+            formatterMap.put(STANDARD_DATETIME_FORMAT_FOR_MILLISECOND,standardDatetimeFormatterOfMillisecond);
+
+        return formatterMap;
     });
 
     private DateUtil() {}
@@ -234,6 +239,11 @@ public class DateUtil {
 
     public static SimpleDateFormat getDateTimeFormatter(){
         return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT);
+    }
+
+    //获取毫秒级别的日期解析
+    public static SimpleDateFormat getDateTimeFormatterForMillisencond(){
+        return datetimeFormatter.get().get(STANDARD_DATETIME_FORMAT_FOR_MILLISECOND);
     }
 
     public static SimpleDateFormat getDateFormatter(){
