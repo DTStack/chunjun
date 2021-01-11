@@ -33,8 +33,21 @@ else
   fi
 fi
 
+# if neither HADOOP_CONF_DIR nor HADOOP_CLASSPATH are set, use some common default (if available)
+if [ -z "$HADOOP_CONF_DIR" ] && [ -z "$HADOOP_CLASSPATH" ]; then
+  if [ -d "/etc/hadoop/conf" ]; then
+      echo "Setting HADOOP_CONF_DIR=/etc/hadoop/conf because no HADOOP_CONF_DIR or HADOOP_CLASSPATH was set." >&2
+      HADOOP_CONF_DIR="/etc/hadoop/conf"
+  else
+    echo "HADOOP_CLASSPATH or HADOOP_CONF_DIR is not set" >&2
+    exit 1
+  fi
+fi
+
+INTERNAL_HADOOP_CLASSPATHS="${HADOOP_CLASSPATH}:${HADOOP_CONF_DIR}"
+
 JAR_DIR=$FLINKX_HOME/lib/*
 CLASS_NAME=com.dtstack.flinkx.launcher.Launcher
 
 echo "flinkx starting ..."
-nohup $JAVA_RUN -cp $JAR_DIR $CLASS_NAME $@ &
+nohup $JAVA_RUN -cp "$JAR_DIR:$INTERNAL_HADOOP_CLASSPATHS" $CLASS_NAME $@ &
