@@ -121,7 +121,10 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
                 if(!tableName.isSystemTable()){
                     //此时的表名带有namespace,需要去除
                     String tableWithNameSpace = tableName.getNameAsString();
-                    tableNameList.add(tableWithNameSpace.split(ConstantValue.COLON_SYMBOL)[1]);
+                    if(tableWithNameSpace.contains(ConstantValue.COLON_SYMBOL)){
+                        tableWithNameSpace  = tableWithNameSpace.split(ConstantValue.COLON_SYMBOL)[1];
+                    }
+                    tableNameList.add(tableWithNameSpace);
                 }
             }
         }catch (IOException e){
@@ -161,6 +164,10 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
             long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
             tableProperties.put(KEY_STORAGE_SIZE,  regionSize * regionInfos.size());
             tableProperties.put(KEY_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
+            //这里的table带了schema
+            if(tableName.contains(ConstantValue.COLON_SYMBOL)){
+                tableName  = tableName.split(ConstantValue.COLON_SYMBOL)[1];
+            }
             tableProperties.put(KEY_TABLE_NAME, tableName);
             tableProperties.put(KEY_NAMESPACE, currentDb.get());
         }catch (IOException e){
