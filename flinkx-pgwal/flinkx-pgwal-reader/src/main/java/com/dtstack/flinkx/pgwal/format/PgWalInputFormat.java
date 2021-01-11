@@ -67,6 +67,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInputFormat() throws IOException{
+        super.openInputFormat();
         executor = Executors.newFixedThreadPool(1);
         queue = new SynchronousQueue<>(true);
     }
