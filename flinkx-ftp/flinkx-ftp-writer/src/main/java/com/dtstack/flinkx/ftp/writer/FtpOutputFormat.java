@@ -71,6 +71,20 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     private static final String OVERWRITE_MODE = "overwrite";
     private transient BufferedWriter writer;
 
+    /**
+     * 避免ftp没有数据时阻塞
+     * @param taskNumber 通道索引
+     * @param numTasks 通道数量
+     * @throws IOException IO异常
+     */
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        initFileIndex();
+        initPath();
+        openSource();
+        actionBeforeWriteData();
+    }
+
     @Override
     protected void openSource() throws IOException {
         ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());

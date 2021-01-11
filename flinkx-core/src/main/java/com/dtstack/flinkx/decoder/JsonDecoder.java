@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.decoder;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +31,14 @@ import java.util.Map;
  * @author tudou
  */
 public class JsonDecoder implements IDecode {
-    private static final String KEY_MESSAGE = "message";
     private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
-    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String KEY_MESSAGE = "message";
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, Object> decode(final String message) {
         try {
-            Map<String, Object> event = objectMapper.readValue(message, Map.class);
+            Map<String, Object> event = GsonUtil.GSON.fromJson(message, GsonUtil.gsonMapTypeToken);
             if (!event.containsKey(KEY_MESSAGE)) {
                 event.put(KEY_MESSAGE, message);
             }

@@ -35,20 +35,18 @@ import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.runtime.util.LeaderConnectionInfo;
 import org.apache.flink.runtime.util.LeaderRetrievalUtils;
-import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
 import org.apache.flink.yarn.YarnClusterDescriptor;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import java.io.File;
 import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The Factory of ClusterClient
@@ -92,6 +90,10 @@ public class ClusterClientFactory {
         if(StringUtils.isNotBlank(yarnConfDir)) {
             config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
             FileSystem.initialize(config);
+
+            //进行kerberos验证 如果需要的话
+            KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(), launcherOptions.getKeytab(), launcherOptions.getPrincipal(), config);
+            kerberosInfo.verify();
 
             YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
 

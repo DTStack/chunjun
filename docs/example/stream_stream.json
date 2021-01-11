@@ -1,0 +1,30 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "column" : [ {
+            "name": "id",
+            "type" : "id"
+          }, {
+            "name": "string",
+            "type" : "string"
+          } ],
+          "sliceRecordCount" : [ "10"]
+        },
+        "name" : "streamreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "print" : true
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "speed" : {
+        "channel" : 1
+      }
+    }
+  }
+}

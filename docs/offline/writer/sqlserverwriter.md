@@ -105,7 +105,7 @@
             },
             {
               "name":"name",
-              "type:"string"
+              "type":"string"
             }
           ]
         },
@@ -175,7 +175,7 @@
             },
             {
               "name":"name",
-              "type:"string"
+              "type":"string"
             }
           ]
         },

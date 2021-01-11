@@ -28,6 +28,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -35,6 +36,8 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The builder class of HdfsOutputFormat writing text files
@@ -198,8 +201,10 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 case VARCHAR:
                 case CHAR:
                     if (column instanceof Timestamp){
-                        SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                        SimpleDateFormat fm = DateUtil.getDateTimeFormatterForMillisencond();
                         sb.append(fm.format(column));
+                    }else if (column instanceof Map || column instanceof List){
+                        sb.append(gson.toJson(column));
                     }else {
                         sb.append(rowData);
                     }

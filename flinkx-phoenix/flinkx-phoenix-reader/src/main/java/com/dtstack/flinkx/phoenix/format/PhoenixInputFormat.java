@@ -19,7 +19,7 @@ package com.dtstack.flinkx.phoenix.format;
 
 import com.dtstack.flinkx.phoenix.util.PhoenixUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
@@ -110,14 +109,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             checkSize(columnCount, metaColumns);
             hasNext = resultSet.next();
 
-            if (StringUtils.isEmpty(customSql)) {
-                descColumnTypeList = PhoenixUtil.analyzeTable(resultSet, metaColumns);
-            } else {
-                descColumnTypeList = new ArrayList<>();
-                for (MetaColumn metaColumn : metaColumns) {
-                    descColumnTypeList.add(metaColumn.getName());
-                }
-            }
+            descColumnTypeList = DbUtil.analyzeColumnType(resultSet, metaColumns);
 
         } catch (Exception se) {
             throw new IllegalArgumentException("open() failed. " + se.getMessage(), se);

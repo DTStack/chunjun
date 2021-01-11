@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.launcher.perjob;
 
+import com.dtstack.flinkx.launcher.KerberosInfo;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.lang.StringUtils;
@@ -54,6 +55,7 @@ public class PerJobSubmitter {
         ClusterSpecification clusterSpecification = FlinkPerJobResourceUtil.createClusterSpecification(conProp);
         PerJobClusterClientBuilder perJobClusterClientBuilder = new PerJobClusterClientBuilder();
         Configuration config = StringUtils.isEmpty(options.getFlinkconf()) ? new Configuration() : GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        perJobClusterClientBuilder.setKerberosInfo(new KerberosInfo(options.getKrb5conf(),options.getKeytab(),options.getPrincipal(),config));
         perJobClusterClientBuilder.init(options.getYarnconf(), config, conProp);
 
         AbstractYarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(conProp, options, jobGraph);

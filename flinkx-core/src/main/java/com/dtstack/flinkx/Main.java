@@ -20,12 +20,15 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
-import com.dtstack.flinkx.config.*;
+import com.dtstack.flinkx.config.ContentConfig;
+import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestartConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.config.TestConfig;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
-import com.dtstack.flinkx.streaming.runtime.partitioner.CustomPartitioner;
 import com.dtstack.flinkx.util.ResultPrintUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
@@ -46,7 +49,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.transformations.PartitionTransformation;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,6 +208,8 @@ public class Main {
         } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
             ContentConfig contentConfig = config.getJob().getContent().get(0);
             contentConfig.getReader().setName(STREAM_READER);
+        }else {
+            return;
         }
 
         config.getJob().getSetting().getSpeed().setBytes(-1);

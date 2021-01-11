@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
@@ -55,6 +53,8 @@ import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
 import com.dtstack.flinkx.kafka10.writer.Kafka10Writer;
 import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
 import com.dtstack.flinkx.kafka11.writer.Kafka11Writer;
+import com.dtstack.flinkx.kingbase.reader.KingbaseReader;
+import com.dtstack.flinkx.kingbase.writer.KingbaseWriter;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.mongodb.reader.MongodbReader;
@@ -66,8 +66,6 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
-import com.dtstack.flinkx.phoenix.reader.PhoenixReader;
-import com.dtstack.flinkx.phoenix.writer.PhoenixWriter;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
@@ -92,8 +90,6 @@ import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.transformations.PartitionTransformation;
@@ -119,7 +115,6 @@ public class LocalTest {
     public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
-        setLogLevel(Level.INFO.toString());
         Properties confProperties = new Properties();
 //        confProperties.put("flink.checkpoint.interval", "10000");
 //        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
@@ -218,10 +213,11 @@ public class LocalTest {
             case PluginNameConstants.KUDU_READER : reader = new KuduReader(config, env); break;
             case PluginNameConstants.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
             case PluginNameConstants.POLARDB_READER : reader = new PolardbReader(config, env); break;
-            case PluginNameConstants.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
+//            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
             case PluginNameConstants.EMQX_READER : reader = new EmqxReader(config, env); break;
             case PluginNameConstants.DM_READER : reader = new DmReader(config, env); break;
             case PluginNameConstants.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
+            case PluginNameConstants.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -255,11 +251,12 @@ public class LocalTest {
             case PluginNameConstants.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
             case PluginNameConstants.POLARDB_WRITER : writer = new PolardbWriter(config); break;
             case PluginNameConstants.KAFKA_WRITER : writer = new KafkaWriter(config); break;
-            case PluginNameConstants.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
+//            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
             case PluginNameConstants.EMQX_WRITER : writer = new EmqxWriter(config); break;
             case PluginNameConstants.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
             case PluginNameConstants.DM_WRITER : writer = new DmWriter(config); break;
             case PluginNameConstants.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
+            case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
@@ -302,11 +299,5 @@ public class LocalTest {
                 Time.of(FAILURE_INTERVAL, TimeUnit.MINUTES),
                 Time.of(DELAY_INTERVAL, TimeUnit.SECONDS)
         ));
-    }
-
-    private static void setLogLevel(String level) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        ch.qos.logback.classic.Logger logger = loggerContext.getLogger("root");
-        logger.setLevel(Level.toLevel(level));
     }
 }

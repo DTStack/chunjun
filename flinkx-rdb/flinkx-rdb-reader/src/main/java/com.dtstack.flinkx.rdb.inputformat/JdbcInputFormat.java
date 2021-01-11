@@ -31,6 +31,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
@@ -42,7 +43,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -53,13 +53,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
-import static com.dtstack.flinkx.rdb.util.DbUtil.analyzeTable;
 
 /**
  * InputFormat for reading data from a database and generate Rows.
@@ -175,7 +173,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            columnCount = resultSet.getMetaData().getColumnCount();
+           if(!resultSet.isClosed()){
+               columnCount = resultSet.getMetaData().getColumnCount();
+           }
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
@@ -185,15 +185,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             columnCount = columnCount - 1;
         }
         checkSize(columnCount, metaColumns);
-        if (StringUtils.isEmpty(customSql)) {
-            //获取表对应的所有字段类型抽取一个方法，而不是直接调用DbUtil#analyzeTable 以便子类更好扩展
-            descColumnTypeList = analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
-            } else {
-            descColumnTypeList = new ArrayList<>();
-            for (MetaColumn metaColumn : metaColumns) {
-                descColumnTypeList.add(metaColumn.getName());
-            }
-        }
+        descColumnTypeList = DbUtil.analyzeColumnType(resultSet, metaColumns);
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
@@ -215,11 +207,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (incrementConfig.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(incrementConfig.getPollingInterval());
-                    //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-                    if(!dbConn.isValid(3)){
+                    //间隔轮询检测数据库连接是否断开，断开重新连接
+                    if(Objects.isNull(dbConn) || dbConn.isClosed()){
                         dbConn = DbUtil.getConnection(dbUrl, username, password);
                         //重新连接后还是不可用则认为数据库异常，任务失败
-                        if(!dbConn.isValid(3)){
+                        if(Objects.isNull(dbConn) || dbConn.isClosed()){
                             String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
                             LOG.error(message);
                             throw new RuntimeException(message);
@@ -248,6 +240,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
         try {
+            updateColumnCount();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {
                     Object val = row.getField(i);
@@ -343,6 +336,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             //endLocation设置为数据库中查询的最大值
             String endLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
             endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
+        }else{
+            //增量任务，且useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
+            if (StringUtils.isNotEmpty(startLocation)) {
+                endLocationAccumulator.add(new BigInteger(startLocation));
+            }
         }
 
         //将累加器信息添加至prometheus
@@ -750,7 +748,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (endLocationAccumulator != null) {
                 metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
             }
-            out.writeUTF(new ObjectMapper().writeValueAsString(metrics));
+            out.writeUTF(MapUtil.writeValueAsString(metrics));
         } catch (Exception e) {
             LOG.error("hadoop conf:{}", hadoopConfig);
             throw new IOException("Upload metric to HDFS error", e);
@@ -798,7 +796,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //从数据库中获取起始位置
                 queryStartLocation();
             }else{
-                ps = dbConn.prepareStatement(querySql);
+                ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
                 ps.setFetchSize(fetchSize);
                 ps.setQueryTimeout(queryTimeOut);
                 queryForPolling(startLocation);
@@ -823,7 +821,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)
                 .append(incrementConfig.getColumnName())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
-        ps = dbConn.prepareStatement(builder.toString(), ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        ps = dbConn.prepareStatement(builder.toString(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(fetchSize);
         //第一次查询数据库中增量字段的最大值
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
@@ -838,6 +836,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //执行到此处代表轮询任务startLocation为空，且数据库中无数据，此时需要查询增量字段的最小值
                 ps.setFetchDirection(ResultSet.FETCH_FORWARD);
                 resultSet.close();
+                //如果事务不提交 就会导致数据库即使插入数据 也无法读到数据
+                dbConn.commit();
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
                 //每隔五分钟打印一次
@@ -858,7 +858,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 .append(incrementConfig.getColumnName())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
         querySql = builder.toString();
-        ps = dbConn.prepareStatement(querySql);
+        ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
         ps.setFetchSize(fetchSize);
         ps.setQueryTimeout(queryTimeOut);
@@ -887,8 +887,18 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
-    protected List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                        String table, List<MetaColumn> metaColumns) {
-        return DbUtil.analyzeTable(dbUrl, username, password, databaseInterface, table, metaColumns);
+    /**
+     * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
+     * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
+     * @throws SQLException
+     */
+    private  void updateColumnCount() throws SQLException {
+        if(columnCount == 0){
+            columnCount =resultSet.getMetaData().getColumnCount();
+            boolean splitWithRowCol = numPartitions > 1 && StringUtils.isNotEmpty(splitKey) && splitKey.contains("(");
+            if (splitWithRowCol) {
+                columnCount = columnCount - 1;
+            }
+        }
     }
 }

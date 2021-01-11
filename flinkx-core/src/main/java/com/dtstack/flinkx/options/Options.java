@@ -43,7 +43,7 @@ public class Options {
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
 
-    @OptionRequired(description = "env properties")
+    @OptionRequired(required = true, description = "env properties")
     private String pluginRoot;
 
     @OptionRequired(description = "Sync remote plugin root path")
@@ -86,6 +86,15 @@ public class Options {
     public void setAppId(String appId) {
         this.appId = appId;
     }
+
+    @OptionRequired(description = "kerberos krb5conf")
+    private String krb5conf ;
+
+    @OptionRequired(description = "kerberos keytabPath")
+    private String keytab ;
+
+    @OptionRequired(description = "kerberos principal")
+    private String principal ;
 
     public String getS() {
         return s;
@@ -215,6 +224,30 @@ public class Options {
         this.p = p;
     }
 
+    public String getKrb5conf() {
+        return krb5conf;
+    }
+
+    public void setKrb5conf(String krb5conf) {
+        this.krb5conf = krb5conf;
+    }
+
+    public String getKeytab() {
+        return keytab;
+    }
+
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
+    }
+
+    public String getPrincipal() {
+        return principal;
+    }
+
+    public void setPrincipal(String principal) {
+        this.principal = principal;
+    }
+
     @Override
     public String toString() {
         return "Options{" +
@@ -224,15 +257,18 @@ public class Options {
                 ", jobid='" + jobid + '\'' +
                 ", flinkconf='" + flinkconf + '\'' +
                 ", pluginRoot='" + pluginRoot + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
                 ", yarnconf='" + yarnconf + '\'' +
                 ", parallelism='" + parallelism + '\'' +
                 ", priority='" + priority + '\'' +
                 ", queue='" + queue + '\'' +
                 ", flinkLibJar='" + flinkLibJar + '\'' +
                 ", confProp='" + confProp + '\'' +
-                ", p='" + p + '\'' +
                 ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", krb5conf='" + krb5conf + '\'' +
+                ", keytab='" + keytab + '\'' +
+                ", principal='" + principal + '\'' +
+                ", p='" + p + '\'' +
                 ", pluginLoadMode='" + pluginLoadMode + '\'' +
                 ", appId='" + appId + '\'' +
                 '}';

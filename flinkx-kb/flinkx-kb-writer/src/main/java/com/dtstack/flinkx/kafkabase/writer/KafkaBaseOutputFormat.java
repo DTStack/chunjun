@@ -19,12 +19,12 @@ package com.dtstack.flinkx.kafkabase.writer;
 
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.decoder.JsonDecoder;
+import com.dtstack.flinkx.exception.DataSourceException;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +44,8 @@ import java.util.Properties;
 public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(KafkaBaseOutputFormat.class);
+    //producer.close最长等待时间
+    protected static final long CLOSE_TIME = 20000L;
 
     protected Properties props = new Properties();
     protected String timezone;
@@ -51,9 +53,8 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
-    protected static ObjectMapper objectMapper = new ObjectMapper();
-    //连续发送数据错误次数
-    protected  int failedTimes = 0;
+    //和kafkaBroker连通性控制器
+    protected HeartBeatController heartBeatController;
 
     @Override
     public void configure(Configuration parameters) {
@@ -99,15 +100,14 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
                 }
             }
             emit(map);
-            //只要有正常的 重置为0
-            failedTimes =0;
 
         } catch (Throwable e) {
             String errorMessage = ExceptionUtil.getErrorMessage(e);
             LOG.error("kafka writeSingleRecordInternal error:{}", errorMessage);
-            //连续发送3次数据错误 或者出现broker 连接异常，就直接认为数据源异常，退出任务 或者出现broker连接不上，超时直接抛出异常
-            if(++failedTimes >= 3 || e.getMessage().contains("Broker may not be available")||e.getMessage().contains("TimeoutException")){
-                throw new RuntimeException("Error data is received 3 times continuously or datasource has error"+errorMessage, e);
+          //如果是数据源错误 直接抛出异常，而不是封装为WriteRecordException
+            // 否则WriteRecordException会被上层捕获，导致任务无法结束
+            if(e instanceof DataSourceException){
+                throw (DataSourceException)e;
             }
             throw new WriteRecordException(errorMessage, e);
         }
@@ -151,4 +151,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
         this.tableFields = tableFields;
     }
 
+    public void setHeartBeatController(HeartBeatController heartBeatController) {
+        this.heartBeatController = heartBeatController;
+    }
 }

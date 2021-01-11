@@ -55,6 +55,7 @@ public class GsonUtil {
     @SuppressWarnings("unchecked")
     private static Gson getGson() {
         GSON = new GsonBuilder()
+                .disableHtmlEscaping()
                 .setPrettyPrinting()
                 .create();
         try {

@@ -331,7 +331,6 @@
           "customSql": "",
           "increColumn": "id",
           "startLocation": "20",
-          "queryTimeOut": 1000,
           "requestAccumulatorInterval": 2
         },
         "name" : "postgresqlreader"
@@ -391,7 +390,6 @@
           "customSql": "",
           "increColumn": "id",
           "startLocation": "20",
-          "queryTimeOut": 1000,
           "requestAccumulatorInterval": 2
         },
         "name" : "postgresqlreader"

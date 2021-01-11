@@ -18,25 +18,13 @@
 package com.dtstack.flinkx.sqlserver.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.sqlserver.SqlServerConstants;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
@@ -47,9 +35,6 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  * @author tudou
  */
 public class SqlserverInputFormat extends JdbcInputFormat {
-
-    //是否在sql语句后面添加 with(nolock) ,默认是false
-    private Boolean withNoLock;
 
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
@@ -126,59 +111,4 @@ public class SqlserverInputFormat extends JdbcInputFormat {
 
         return timeStr;
     }
-
-    @Override
-    protected List<String> analyzeTable(String dbUrl, String username, String password, DatabaseInterface databaseInterface,
-                                        String table, List<MetaColumn> metaColumns) {
-        List<String> ret = new ArrayList<>(metaColumns.size());
-        Connection dbConn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            dbConn = DbUtil.getConnection(dbUrl, username, password);
-            if (null == dbConn) {
-                throw new RuntimeException("Get hive connection error");
-            }
-
-            stmt = dbConn.createStatement();
-            String queryFieldsSql = databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table));
-
-            //是否需要添加 with(nolock)，添加规则是 from table with(nolock)
-            if (getWithNoLock()) {
-                //databaseInterface.getSqlQueryFields 返回的结果就是from table  后面没有where等语句所以直接添加的
-                queryFieldsSql += SqlServerConstants.WITH_NO_LOCK;
-            }
-            rs = stmt.executeQuery(queryFieldsSql);
-            ResultSetMetaData rd = rs.getMetaData();
-
-            Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for (int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i + 1), rd.getColumnTypeName(i + 1));
-            }
-
-            for (MetaColumn metaColumn : metaColumns) {
-                if (metaColumn.getValue() != null) {
-                    ret.add("string");
-                } else {
-                    ret.add(nameTypeMap.get(metaColumn.getName()));
-                }
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            DbUtil.closeDbResources(rs, stmt, dbConn, false);
-        }
-
-        return ret;
-    }
-
-    public Boolean getWithNoLock() {
-        return withNoLock;
-    }
-
-    public void setWithNoLock(Boolean withNoLock) {
-        this.withNoLock = withNoLock;
-    }
-
 }

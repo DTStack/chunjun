@@ -29,27 +29,29 @@ import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.apache.commons.lang3.StringUtils;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
 import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
@@ -541,20 +543,26 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
             return RUNNING_STATE;
         }
 
-        String taskState;
+        String taskState = null;
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
+        String monitors = String.format("%s/jobs/overview", monitorUrl);
         LOG.info("Monitor url:{}", monitors);
 
-        JsonParser parser = new JsonParser();
         int retryNumber = 5;
         for (int i = 0; i < retryNumber; i++) {
             try{
                 String response = UrlUtil.get(httpClient, monitors);
                 LOG.info("response:{}", response);
+                HashMap<String, ArrayList<HashMap<String, Object>>> map = GsonUtil.GSON.fromJson(response, new TypeToken<HashMap<String, ArrayList<HashMap<String, Object>>>>() {}.getType());
+                List<HashMap<String, Object>> list = map.get("jobs");
 
-                JsonObject obj = parser.parse(response).getAsJsonObject();
-                taskState = obj.get("state").getAsString();
+                for (HashMap<String, Object> hashMap : list) {
+                    String jid = (String)hashMap.get("jid");
+                    if(Objects.equals(jid, jobId)){
+                        taskState = (String) hashMap.get("state");
+                        break;
+                    }
+                }
                 LOG.info("Job state is:{}", taskState);
 
                 if(taskState != null){

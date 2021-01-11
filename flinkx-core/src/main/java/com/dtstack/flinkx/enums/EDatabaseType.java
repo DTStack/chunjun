@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.enums;
 
-import org.apache.commons.net.ftp.FTP;
-
 /**
  * Database type
  *
@@ -40,8 +38,6 @@ public enum EDatabaseType {
     MongoDB,
     Redis,
     ES,
-    SapHana,
-    TeraData,
 
     /**
      * contains ftp and sftp
@@ -56,4 +52,7 @@ public enum EDatabaseType {
     polarDB,
     Phoenix,
     dm,
+    SapHana,
+    KingBase,
+    TeraData
 }
