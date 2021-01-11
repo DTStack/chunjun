@@ -60,24 +60,7 @@ public class PostgresqlCons extends MetaDataCons {
     /**
       sql语句：查询表中共有多少条数据（包含null值）
      */
-    public static final String SQL_SHOW_COUNT = "SELECT count(*) AS count from %s";
-
-    /**
-      sql语句：查询表中索引名
-     */
-    public static final String SQL_SHOW_INDEXES = "SELECT indexname FROM pg_indexes WHERE schemaname = '%s' AND tablename='%s'";
-
-
-    /**
-      sql语句：查询表中的主键名
-     */
-    public static final String SQL_SHOW_TABLE_PRIMARYKEY =
-
-            "SELECT pg_attribute.attname AS name FROM pg_index,pg_class,pg_attribute\n"+
-
-            "WHERE pg_class.oid = '%s' :: regclass AND pg_index.indrelid = pg_class.oid\n"+
-
-            "AND pg_attribute.attrelid = pg_class.oid AND pg_attribute.attnum = ANY (pg_index.indkey)";
+    public static final String SQL_SHOW_COUNT = "SELECT count(1) AS count from %s";
 
     /**
      sql语句：查询表所占磁盘空间大小
@@ -88,7 +71,7 @@ public class PostgresqlCons extends MetaDataCons {
             "FROM information_schema.tables WHERE  table_schema= '%s' AND table_name = '%s'";
 
     /**
-      sql语句：查询数据库所占磁盘大小
+      sql语句：查询数据库信息（database的所有者和database占磁盘大小）
      */
     public static final String SQL_SHOW_DATABASE_SIZE =
             "SELECT d.datname AS name,  pg_catalog.pg_get_userbyid(d.datdba) AS owner,\n" +
