@@ -166,6 +166,9 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 					throw finallyException;
 				}
 			}
+			if(null != tryException) {
+				throw tryException;
+			}
 		}
 	}
 
