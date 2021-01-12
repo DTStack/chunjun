@@ -25,10 +25,6 @@ import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.sql.Statement;
-
-import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/11/05

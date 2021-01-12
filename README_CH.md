@@ -77,12 +77,10 @@ FlinkX目前支持下面这些数据库：
 |                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
-|                        | RestApi        | [doc](docs/realTime/reader/restapireader.md)     | [doc](docs/realTime/writer/restapiwriter.md)   |
+|                        | RestApi        | | [doc](docs/realTime/writer/restapiwriter.md)   |
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-|                        | Oracle Logminer| Coming Soon                                      |                                                |
-|                        | SqlServer CDC  | Coming Soon                                      |                                                |
 
 # 快速开始
 
@@ -99,6 +97,10 @@ FlinkX目前支持下面这些数据库：
 # Kerberos
 
 请点击[Kerberos](docs/kerberos.md)
+
+# Questions
+
+请点击[Questions](docs/questions.md)
 
 # 如何贡献FlinkX
 

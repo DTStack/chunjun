@@ -94,6 +94,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/dmwriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/dmwriter/${project.name}-${package.name}.jar" />
                             </tasks>

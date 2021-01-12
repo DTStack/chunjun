@@ -18,10 +18,10 @@
 package com.dtstack.flinkx.kafka.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafka.format.KafkaInputFormat;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.kafka.clients.producer.ProducerConfig;
 
 /**
  * Date: 2019/11/21
@@ -33,13 +33,10 @@ public class KafkaReader extends KafkaBaseReader {
 
     public KafkaReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-            throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
-        }
     }
 
     @Override
-    public KafkaBaseInputFormat getFormat(){
-        return new KafkaInputFormat();
+    public KafkaBaseInputFormatBuilder getBuilder(){
+        return new KafkaBaseInputFormatBuilder(new KafkaInputFormat());
     }
 }

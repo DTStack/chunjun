@@ -395,18 +395,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
@@ -463,7 +451,26 @@
             <artifactId>flinkx-greenplum-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix5-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-phoenix5-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-kingbase-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
-
 
 </project>

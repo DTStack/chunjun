@@ -67,7 +67,10 @@ public abstract class BaseRichInputFormatBuilder {
 
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
-        checkFormat();
+        boolean check = format.getDataTransferConfig().getJob().getContent().get(0).getReader().getParameter().getBooleanVal("check", true);
+        if(check){
+            checkFormat();
+        }
         return format;
     }
 

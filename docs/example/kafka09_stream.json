@@ -1,0 +1,36 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic": "kafka09",
+            "groupId": "default",
+            "codec": "text",
+            "encoding": "UTF-8",
+            "blankIgnore": false,
+            "consumerSettings": {
+              "zookeeper.connect": "localhost:2181/kafka09"
+            }
+          },
+          "name": "kafka09reader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

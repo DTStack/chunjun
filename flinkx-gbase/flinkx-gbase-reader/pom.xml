@@ -93,6 +93,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/gbasereader/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/gbasereader/${project.name}-${package.name}.jar" />
                             </tasks>

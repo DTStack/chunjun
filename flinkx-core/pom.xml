@@ -135,6 +135,13 @@
             <artifactId>simpleclient</artifactId>
             <version>0.5.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -88,6 +88,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/clickhousewriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/clickhousewriter/${project.name}-${package.name}.jar" />
                             </tasks>

@@ -98,6 +98,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/polardbwriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/polardbwriter/${project.name}-${package.name}.jar" />
                             </tasks>

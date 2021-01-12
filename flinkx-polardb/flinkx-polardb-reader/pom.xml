@@ -97,6 +97,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/polardbreader/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/polardbreader/${project.name}-${package.name}.jar" />
                             </tasks>

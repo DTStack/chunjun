@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.pulsar.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.pulsar.format.PulsarOutputFormatBuilder;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -26,7 +27,7 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.pulsar.writer.Constants.*;
+import static com.dtstack.flinkx.pulsar.format.Constants.*;
 
 
 /**

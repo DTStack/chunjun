@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.launcher;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
@@ -36,7 +34,6 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,7 +59,7 @@ public class Launcher {
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
 
-    public static final String PLUGINS_DIR_NAME = "plugins";
+    public static final String PLUGINS_DIR_NAME = "syncplugins";
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
     public static final String MAIN_CLASS = "com.dtstack.flinkx.Main";
 
@@ -161,6 +158,7 @@ public class Launcher {
 
         return urlList;
     }
+
     private static void findDefaultConfigDir(Options launcherOptions) {
         findDefaultPluginRoot(launcherOptions);
 

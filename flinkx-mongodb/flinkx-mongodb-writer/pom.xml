@@ -87,6 +87,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/mongodbwriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/mongodbwriter/${project.name}-${package.name}.jar" />
                             </tasks>

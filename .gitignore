@@ -11,3 +11,4 @@ flinkconf/
 hadoopconf/
 /default_task_id_output
 /syncplugins
+/ci/

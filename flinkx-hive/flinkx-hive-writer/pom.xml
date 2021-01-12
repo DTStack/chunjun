@@ -92,6 +92,18 @@ under the License.
                                     <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
+
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resource>META-INF/services/java.sql.Driver</resource>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                    <resource>META-INF/services</resource>
+                                    <file>java.sql.hive2.Driver</file>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
@@ -115,6 +127,7 @@ under the License.
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/hivewriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/hivewriter/${project.name}-${package.name}.jar" />
                             </tasks>

@@ -57,7 +57,7 @@ public class HdfsUtil {
 
     public static Object getWritableValue(Object writable) {
         Class<?> clz = writable.getClass();
-        Object ret;
+        Object ret = null;
 
         if(clz == IntWritable.class) {
             ret = ((IntWritable) writable).get();

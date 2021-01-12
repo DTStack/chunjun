@@ -30,6 +30,7 @@
         <module>flinkx-saphana</module>
         <module>flinkx-teradata</module>
         <module>flinkx-greenplum</module>
+        <module>flinkx-kingbase</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -37,7 +38,8 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-        <module>flinkx-phoenix</module>
+<!--        <module>flinkx-phoenix</module>-->
+        <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
         <module>flinkx-cassandra</module>
@@ -54,6 +56,7 @@
         <module>flinkx-kafka</module>
         <module>flinkx-emqx</module>
         <module>flinkx-pulsar</module>
+        <module>flinkx-pgwal</module>
         <module>flinkx-restapi</module>
     </modules>
 
@@ -63,7 +66,7 @@
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <package.name>release_1.10.2</package.name>
+        <package.name>release_1.10.4</package.name>
     </properties>
 
     <dependencies>

@@ -20,7 +20,6 @@
 package com.dtstack.flinkx.ftp;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.Serializable;
 
@@ -43,11 +42,11 @@ public class FtpConfig implements Serializable {
 
     public String fieldDelimiter = FtpConfigConstants.DEFAULT_FIELD_DELIMITER;
 
-    public String path;
+    public String path = "/";
 
     public String encoding = "UTF-8";
 
-    public String connectPattern = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
+    public String connectPattern = FtpConfigConstants.STANDARD_FTP_PROTOCOL;
 
     public String host;
 

@@ -54,7 +54,6 @@ public class HbaseReader extends BaseDataReader {
     protected boolean isBinaryRowkey;
     protected String tableName;
     protected int scanCacheSize;
-    protected int scanBatchSize;
 
     public HbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -71,7 +70,6 @@ public class HbaseReader extends BaseDataReader {
 
         encoding = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_ENCODING);
         scanCacheSize = readerConfig.getParameter().getIntVal(HbaseConfigKeys.KEY_SCAN_CACHE_SIZE, HbaseConfigConstants.DEFAULT_SCAN_CACHE_SIZE);
-        scanBatchSize = readerConfig.getParameter().getIntVal(HbaseConfigKeys.KEY_SCAN_BATCH_SIZE, HbaseConfigConstants.DEFAULT_SCAN_BATCH_SIZE);
 
         List columns = readerConfig.getParameter().getColumn();
         if(columns != null && columns.size() > 0) {
@@ -110,7 +108,6 @@ public class HbaseReader extends BaseDataReader {
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setScanCacheSize(scanCacheSize);
-        builder.setScanBatchSize(scanBatchSize);
         builder.setMonitorUrls(monitorUrls);
         builder.setTestConfig(testConfig);
         builder.setLogConfig(logConfig);

@@ -41,6 +41,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -209,7 +210,7 @@ public class DbUtil {
      */
     public static void commit(Connection conn){
         try {
-            if (!conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
                 conn.commit();
             }
         } catch (SQLException e){
@@ -223,7 +224,7 @@ public class DbUtil {
      */
     public static void rollBack(Connection conn){
         try {
-            if (!conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
                 conn.rollback();
             }
         } catch (SQLException e){
@@ -283,18 +284,23 @@ public class DbUtil {
 
         try {
             ResultSetMetaData rd = resultSet.getMetaData();
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            Map<String,String> nameTypeMap = new LinkedHashMap<>((rd.getColumnCount() << 2) / 3);
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
             }
 
-            for (MetaColumn metaColumn : metaColumns) {
-                if(metaColumn.getValue() != null){
-                    columnTypeList.add("VARCHAR");
-                } else {
-                    columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
+            if (ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
+                columnTypeList.addAll(nameTypeMap.values());
+            }else{
+                for (MetaColumn metaColumn : metaColumns) {
+                    if(metaColumn.getValue() != null){
+                        columnTypeList.add("VARCHAR");
+                    } else {
+                        columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
+                    }
                 }
             }
+
         } catch (SQLException e) {
             String message = String.format("error to analyzeSchema, resultSet = %s, columnTypeList = %s, e = %s",
                     resultSet,

@@ -87,6 +87,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/restapiwriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/restapiwriter/${project.name}-${package.name}.jar" />
                             </tasks>

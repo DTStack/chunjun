@@ -19,20 +19,19 @@ package com.dtstack.flinkx.kafkabase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.kafkabase.KafkaConfigKeys;
+import com.dtstack.flinkx.kafkabase.enums.StartupMode;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_BLANK_IGNORE;
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_CODEC;
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_CONSUMER_SETTINGS;
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_GROUP_ID;
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TOPIC;
 
 /**
  * Date: 2019/11/21
@@ -41,11 +40,14 @@ import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TOPIC;
  * @author tudou
  */
 public class KafkaBaseReader extends BaseDataReader {
-
     protected String topic;
     protected String groupId;
     protected String codec;
     protected boolean blankIgnore;
+    protected String encoding;
+    protected String mode;
+    protected String offset;
+    protected Long timestamp;
     protected Map<String, String> consumerSettings;
     protected List<MetaColumn> metaColumns;
 
@@ -53,28 +55,41 @@ public class KafkaBaseReader extends BaseDataReader {
     public KafkaBaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
-        groupId = readerConfig.getParameter().getStringVal(KEY_GROUP_ID);
-        codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
-        blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
-        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+        topic = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_TOPIC);
+        groupId = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_GROUP_ID, "default");
+        codec = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_CODEC, "text");
+        blankIgnore = readerConfig.getParameter().getBooleanVal(KafkaConfigKeys.KEY_BLANK_IGNORE, false);
+        encoding = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_ENCODING, StandardCharsets.UTF_8.name());
+        mode = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_MODE, StartupMode.GROUP_OFFSETS.name);
+        offset = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_OFFSET, "");
+        timestamp = readerConfig.getParameter().getLongVal(KafkaConfigKeys.KEY_TIMESTAMP, -1L);
+        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KafkaConfigKeys.KEY_CONSUMER_SETTINGS);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
     public DataStream<Row> readData() {
-        KafkaBaseInputFormat format = getFormat();
-        format.setDataTransferConfig(dataTransferConfig);
-        format.setTopic(topic);
-        format.setGroupId(groupId);
-        format.setCodec(codec);
-        format.setBlankIgnore(blankIgnore);
-        format.setConsumerSettings(consumerSettings);
-        format.setRestoreConfig(restoreConfig);
-        return createInput(format);
+        KafkaBaseInputFormatBuilder builder = getBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setRestoreConfig(restoreConfig);
+        builder.setTopic(topic);
+        builder.setGroupId(groupId);
+        builder.setCodec(codec);
+        builder.setBlankIgnore(blankIgnore);
+        builder.setEncoding(encoding);
+        builder.setConsumerSettings(consumerSettings);
+        builder.setMode(StartupMode.getFromName(mode));
+        builder.setOffset(offset);
+        builder.setTimestamp(timestamp);
+        builder.setMetaColumns(metaColumns);
+        return createInput(builder.finish());
     }
 
-    public KafkaBaseInputFormat getFormat(){
-        return new KafkaBaseInputFormat();
+    /**
+     * 获取不同版本的kafkaInputFormat
+     * @return
+     */
+    public KafkaBaseInputFormatBuilder getBuilder(){
+        return new KafkaBaseInputFormatBuilder(new KafkaBaseInputFormat());
     }
 }

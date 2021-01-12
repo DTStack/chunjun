@@ -77,7 +77,7 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
             if(dataValue.contains(".")){
                 dataValue =  new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
             }
-            data = Integer.parseInt(dataValue);
+            data = Long.parseLong(dataValue);
         }
 
         return data;

@@ -14,7 +14,7 @@
     <modules>
         <module>flinkx-mongodb-core</module>
         <module>flinkx-mongodb-reader</module>
-        <module>flinkx-mongodb-oplog-reader</module>
+        <module>flinkx-mongodboplog-reader</module>
         <module>flinkx-mongodb-writer</module>
     </modules>
 

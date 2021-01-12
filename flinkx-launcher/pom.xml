@@ -13,6 +13,12 @@
 
     <dependencies>
         <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.1.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
@@ -24,11 +30,7 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
-        </dependency>
+
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -109,12 +111,6 @@
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>1.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
