@@ -17,10 +17,11 @@
  */
 package com.dtstack.flinkx.kafka09.format;
 
-import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
-import com.dtstack.flinkx.kafkabase.util.Formatter;
-import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
+import com.dtstack.flinkx.kafkabase.Formatter;
+import com.dtstack.flinkx.kafkabase.writer.AddressUtil;
+import com.dtstack.flinkx.kafkabase.writer.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.MapUtil;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -61,7 +62,13 @@ public class Kafka09OutputFormat extends KafkaBaseOutputFormat {
         props.put("metadata.broker.list", brokerList);
         producer = new KafkaProducer<>(props);
 
-        super.configure(parameters);
+        LOG.info("brokerList {}", brokerList);
+        String broker = brokerList.split(",")[0];
+        String[] split = broker.split(":");
+
+        if (split.length != 2 || !AddressUtil.telnet(split[0], Integer.parseInt(split[1]))) {
+            throw new RuntimeException("telnet error,brokerList" + brokerList);
+        }
     }
 
     @Override
