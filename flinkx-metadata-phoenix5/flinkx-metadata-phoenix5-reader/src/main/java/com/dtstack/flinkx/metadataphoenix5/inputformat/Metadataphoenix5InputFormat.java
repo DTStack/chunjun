@@ -152,7 +152,6 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         List<Map<String, Object>> column = new LinkedList<>();
         String sql;
         if(isDefaultSchema()){
-            currentDb.set(null);
             sql = String.format(SQL_DEFAULT_COLUMN, tableName);
         }else {
             sql = String.format(SQL_COLUMN, currentDb.get(), tableName);
