@@ -19,6 +19,9 @@
 package com.dtstack.flinkx.util;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Range Split Utilities
@@ -88,5 +91,50 @@ public final class RangeSplitUtil {
 
             return result;
         }
+    }
+
+    /**
+     * 分隔数组 根据段数分段
+     * 多出部分在最后一个数组
+     * 不够的最后为空数组
+     *
+     * @param data     被分隔的数组
+     * @param segments 需要分隔的段数
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static  <T> List<List<T>> subListBySegment(List<T> data, int segments) {
+        List<List<T>> result = new ArrayList<>();
+        // 数据长度
+        int size = data.size();
+        // segments == 0 ，不需要分隔
+        if (size > 0 && segments > 0) {
+            // 每段List
+            List<T> cutList;
+            if(size <= segments){
+                for (int i = 0; i < segments; i++) {
+                    if(i < size){
+                        cutList = Collections.singletonList(data.get(i));
+                    }else{
+                        cutList = Collections.EMPTY_LIST;
+                    }
+                    result.add(cutList);
+                }
+            }else{
+                // 每段数量
+                int count = size / segments;
+                for (int i = 0; i < segments; i++) {
+                    if (i == segments - 1) {
+                        cutList = new ArrayList<>(data.subList(count * i, size));
+                    } else {
+                        cutList = new ArrayList<>(data.subList(count * i, count * (i + 1)));
+                    }
+                    result.add(cutList);
+                }
+            }
+        } else {
+            result.add(data);
+        }
+        return result;
     }
 }

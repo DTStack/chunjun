@@ -66,12 +66,10 @@ The following databases are currently supported:
 |                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
-|                        | RestApi        | [doc](docs/realTime/reader/restapireader.md)     | [doc](docs/realTime/writer/restapiwriter.md)   |
+|                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-|                        | Oracle Logminer| Coming Soon                                      |                                                |
-|                        | SqlServer CDC  | Coming Soon                                      |                                                |
 
 # Quick Start
 
@@ -88,6 +86,10 @@ Please click [Statistics Metric](docs/statistics.md)
 # Kerberos
 
 Please click [Kerberos](docs/kerberos.md)
+
+# Questions
+
+Please click [Questions](docs/questions.md)
 
 # How to contribute FlinkX
 

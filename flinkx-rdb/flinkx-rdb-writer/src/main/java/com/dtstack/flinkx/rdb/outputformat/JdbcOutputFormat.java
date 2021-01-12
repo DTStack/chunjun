@@ -27,7 +27,8 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
-import com.google.gson.Gson;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -102,6 +104,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected long rowsOfCurrentTransaction;
 
+    public Properties properties;
+
+    /**
+     * schema名
+     */
+    public String schema;
+
     protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
@@ -143,17 +152,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             ClassUtil.forName(driverName, getClass().getClassLoader());
             dbConn = DbUtil.getConnection(dbUrl, username, password);
 
-            if (restoreConfig.isRestore()){
-                dbConn.setAutoCommit(false);
-            }
+            //默认关闭事务自动提交，手动控制事务
+            dbConn.setAutoCommit(false);
 
             if(CollectionUtils.isEmpty(fullColumn)) {
-                fullColumn = probeFullColumns(table, dbConn);
+                fullColumn = probeFullColumns(getTable(), dbConn);
             }
 
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
                 if(updateKey == null || updateKey.size() == 0) {
-                    updateKey = probePrimaryKeys(table, dbConn);
+                    updateKey = probePrimaryKeys(getTable(), dbConn);
                 }
             }
 
@@ -176,6 +184,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
+        }finally {
+            DbUtil.commit(dbConn);
         }
     }
 
@@ -210,17 +220,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             for (; index < row.getArity(); index++) {
-                Object object = row.getField(index);
-                if( object instanceof String && StringUtils.isBlank((String) object)){
-                    if(!STRING_TYPES.contains(columnType.get(index))){
-                        object = null;
-                    }
-                }
-                preparedStatement.setObject(index+1, object);
+                preparedStatement.setObject(index+1, getField(row, index));
             }
 
             preparedStatement.execute();
+            DbUtil.commit(dbConn);
         } catch (Exception e) {
+            DbUtil.rollBack(dbConn);
             processWriteException(e, index, row);
         }
     }
@@ -233,7 +239,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
 
         if(index < row.getArity()) {
-            throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+            String message = recordConvertDetailErrorMessage(index, row);
+            LOG.error(message, e);
+            throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);
     }
@@ -248,13 +256,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             for (Row row : rows) {
                 for (int index = 0; index < row.getArity(); index++) {
-                    Object object = row.getField(index);
-                    if( object instanceof String && StringUtils.isBlank((String) object)){
-                        if(!STRING_TYPES.contains(columnType.get(index))){
-                            object = null;
-                        }
-                    }
-                    preparedStatement.setObject(index+1, object);
+                    preparedStatement.setObject(index+1, getField(row, index));
                 }
                 preparedStatement.addBatch();
 
@@ -272,15 +274,22 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
             if(restoreConfig.isRestore()){
                 rowsOfCurrentTransaction += rows.size();
+            }else{
+                //手动提交事务
+                DbUtil.commit(dbConn);
             }
+            preparedStatement.clearBatch();
         } catch (Exception e){
-            if (restoreConfig.isRestore()){
-                LOG.warn("writeMultipleRecordsInternal:Start rollback");
-                dbConn.rollback();
-                LOG.warn("writeMultipleRecordsInternal:Rollback success");
-            }
-
+            LOG.warn("write Multiple Records error, row size = {}, first row = {},  e = {}",
+                    rows.size(),
+                    rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
+                    ExceptionUtil.getErrorMessage(e));
+            LOG.warn("error to writeMultipleRecords, start to rollback connection, e = {}", ExceptionUtil.getErrorMessage(e));
+            DbUtil.rollBack(dbConn);
             throw e;
+        }finally {
+            //执行完后清空batch
+            preparedStatement.clearBatch();
         }
     }
 
@@ -302,7 +311,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }else{
                     preparedStatement.executeBatch();
                 }
+                //若事务提交失败，抛出异常
                 dbConn.commit();
+                preparedStatement.clearBatch();
                 LOG.info("getFormatState:Commit connection success");
 
                 snapshotWriteCounter.add(rowsOfCurrentTransaction);
@@ -320,7 +331,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             return null;
         } catch (Exception e){
             try {
+                //执行完后清空batch
+                preparedStatement.clearBatch();
                 LOG.warn("getFormatState:Start rollback");
+                //若事务回滚失败，抛出异常
                 dbConn.rollback();
                 LOG.warn("getFormatState:Rollback success");
             } catch (SQLException sqlE){
@@ -331,9 +345,23 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    /**
+     * 获取转换后的字段value
+     * @param row
+     * @param index
+     * @return
+     */
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
         String type = columnType.get(index);
+
+        //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
+        if(field instanceof String
+                && StringUtils.isBlank((String) field)
+                &&!STRING_TYPES.contains(type)){
+            return null;
+        }
+
         if(type.matches(DateUtil.DATE_REGEX)) {
             field = DateUtil.columnToDate(field,null);
         } else if(type.matches(DateUtil.DATETIME_REGEX) || type.matches(DateUtil.TIMESTAMP_REGEX)){
@@ -403,8 +431,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void beforeWriteRecords()  {
+        // preSql
         if(taskNumber == 0) {
-            LOG.info("start to execute preSql, preSql = {}", new Gson().toJson(preSql));
             DbUtil.executeBatch(dbConn, preSql);
         }
     }
@@ -416,11 +444,21 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void beforeCloseInternal() {
-        // 执行postsql
+        // 执行postSql
         if(taskNumber == 0) {
-            LOG.info("start to execute postSql, postSql = {}", new Gson().toJson(postSql));
             DbUtil.executeBatch(dbConn, postSql);
         }
     }
 
+    /**
+     * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
+     * @return
+     */
+    protected String getTable(){
+        return table;
+    }
+
+    public void setSchema(String schema){
+        this.schema = schema;
+    }
 }

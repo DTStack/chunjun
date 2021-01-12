@@ -1,0 +1,65 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic": "tudou",
+            "mode": "timestamp",
+            "timestamp": 1609812275000,
+            "offset": "partition:0,offset:0;partition:1,offset:1;partition:2,offset:2",
+            "codec": "text",
+            "blankIgnore": false,
+            "consumerSettings": {
+              "bootstrap.servers": "ip1:9092,ip2:9092,ip3:9092"
+            },
+            "column": ["id","user_id","name"]
+          },
+          "name": "kafkareader"
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "root",
+            "password": "abc123",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://localhost:3306/test",
+                "table": [
+                  "test"
+                ]
+              }
+            ],
+            "preSql": ["truncate table test;"],
+            "postSql": [],
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "user_id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "varchar"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "speed": {
+        "readerChannel": 3,
+        "writerChannel": 1
+      }
+    }
+  }
+}

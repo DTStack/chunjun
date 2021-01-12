@@ -1,6 +1,5 @@
 # Kafka Reader
 
-<a name="c6v6n"></a>
 ## 一、插件名称
 kafka插件存在四个版本，根据kafka版本的不同，插件名称也略有不同。具体对应关系如下表所示：
 
@@ -9,101 +8,151 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 | kafka 0.9 | kafka09reader |
 | kafka 0.10 | kafka10reader |
 | kafka 0.11 | kafka11reader |
-| kafka 1.0及以上 | kafkareader |
+| kafka 1.0及以后 | kafkareader |
 
-<br />
-<a name="8Xm5p"></a>
-二、参数说明<br />
+
+
+## 二、参数说明
 
 - **topic**
-  - 描述：要消费的topic
-  - 必选：是
-  - 默认值：无
+   - 描述：要消费的topic，多个以,分割，当`mode`为`timestamp`、`specific-offsets`时不支持多topic
+   - 必选：是
+   - 字段类型：String
+   - 默认值：无
 
+<br />
 
+- **mode**
+   - 描述：kafka消费端启动模式，目前仅支持`kafkareader`插件
+   - 可选值：
+      - group-offsets：     从ZK / Kafka brokers中指定的消费组已经提交的offset开始消费
+      - earliest-offset：    从最早的偏移量开始(如果可能)
+      - latest-offset：      从最新的偏移量开始(如果可能)
+      - timestamp：         从每个分区的指定的时间戳开始
+      - specific-offsets： 从每个分区的指定的特定偏移量开始
+   - 必选：否
+   - 字段类型：String
+   - 默认值：group-offsets
+
+<br />
+
+- **timestamp**
+   - 描述：指定的kafka时间戳采集起点，目前仅支持`kafkareader`插件
+   - 必选：当`mode`为`timestamp`时必选
+   - 字段类型：Long
+   - 默认值：无
+
+<br />
+
+- **offset**
+   - 描述：消费的分区及对应的特定偏移量，目前仅支持`kafkareader`插件
+   - 必选：当`mode`为`specific-offsets`时必选
+   - 字段类型：String
+   - 格式：partition:0,offset:42;partition:1,offset:300;partition:2,offset:300
+   - 默认值：无
+
+<br />
 
 - **groupId**
-  - 描述：kafka消费组Id
-  - 注意：该参数对kafka09reader插件无效
-  - 必选：是
-  - 默认值：无
+   - 描述：kafka消费组Id
+   - 必选：否
+   - 字段类型：String
+   - 默认值：default
 
-
+<br />
 
 - **encoding**
-  - 描述：字符编码
-  - 注意：该参数只对kafka09reader插件有效
-  - 必选：否
-  - 默认值：UTF-8
+   - 描述：字符编码
+   - 必选：否
+   - 字段类型：String
+   - 默认值：UTF-8
 
-
+<br />
 
 - **codec**
-  - 描述：编码解码器类型，支持 json、plain
-    - plain：将kafka获取到的消息字符串存储到一个key为message的map中，如：`{"message":"{\"key\": \"key\", \"message\": \"value\"}"}`
-    - json：将kafka获取到的消息字符串按照json格式进行解析
-      - 若该字符串为json格式
-        - 当其中含有message字段时，原样输出，如：`{"key": "key", "message": "value"}`
-        - 当其中不包含message字段时，增加一个key为message，value为原始消息字符串的键值对，如：`{"key": "key", "value": "value", "message": "{\"key\": \"key\", \"value\": \"value\"}"}`
-      - 若改字符串不为json格式，则按照plain类型进行处理
-  - 必选：否
-  - 默认值：plain
+   - 描述：编码解码器类型，支持 json、text
+      - text：
+		将kafka获取到的消息字符串存储到一个key为message的map中，如：kafka中的消息为：{"key":"key","message":"value"}，
+		则发送至下游的数据格式为：
 
+		```json
+		[
+			{
+				"message":"{\"key\": \"key\", \"value\": \"value\"}"
+			}
+		]
+		```
 
+ 	- json：将kafka获取到的消息字符串按照json格式进行解析
+    	 - 若该字符串为json格式
+     		- 当其中含有message字段时，发送至下游的数据格式为：
+				```json
+				[
+					{
+						"key":"key",
+						"message":"value"
+					}
+				]
+				```
+
+		- 当其中不包含message字段时，增加一个key为message，value为原始消息字符串的键值对，发送至下游的数据格式为：
+			```json
+			[
+				{
+					"key":"key",
+					"value":"value",
+					"message":"{\"key\": \"key\", \"value\": \"value\"}"
+				}
+			]
+			```
+         - 若改字符串不为json格式，则按照text类型进行处理
+   - 必选：否
+   - 字段类型：String
+   - 默认值：text
+
+<br />
 
 - **blankIgnore**
-  - 描述：是否忽略空值消息
-  - 必选：否
-  - 默认值：false
+   - 描述：是否忽略空值消息
+   - 必选：否
+   - 字段类型：Boolean
+   - 默认值：false
 
-
+<br />
 
 - **consumerSettings**
-  - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
-  - 必选：是
-  - 默认值：无
-
-
-
-- **column**
-  - 描述：需要读取的字段。
-  - 格式：
+   - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
+   - 必选：是
+   - 字段类型：Map
+   - 默认值：无
+   - 注意：
+      - kafka09 reader插件: consumerSettings必须至少包含`zookeeper.connect`参数
+      - kafka09 reader以外的插件：consumerSettings必须至少包含`bootstrap.servers`参数
+   - 如：
 ```json
-"column": [{
-    "name": "col",
-    "type": "datetime",
-    "format": "yyyy-MM-dd hh:mm:ss",
-    "value": "value"
-}]
+{
+    "consumerSettings":{
+        "bootstrap.servers":"host1:9092,host2:9092,host3:9092"
+    }
+}
 ```
 
-  - 属性说明:
-    - name：字段名称
-    - type：字段类型，可以和数据库里的字段类型不一样，程序会做一次类型转换
-    - format：如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回
-    - value：如果数据库里不存在指定的字段，则会把value的值作为常量列返回，如果指定的字段存在，当指定字段的值为null时，会以此value值作为默认值返回
-  - 必选：是
-  - 默认值：无
 
-
-<a name="ftKiS"></a>
 ## 三、配置示例
-<a name="VaSXt"></a>
 #### 1、kafka09
 ```json
 {
-  "job": {
-    "content": [{
+  "job" : {
+    "content" : [ {
       "reader" : {
         "parameter" : {
           "topic" : "kafka09",
-          "codec": "plain",
+          "groupId" : "default",
+          "codec" : "text",
           "encoding": "UTF-8",
+          "blankIgnore": false,
           "consumerSettings" : {
-            "zookeeper.connect" : "0.0.0.1:2182/kafka09",
-            "group.id" : "default",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "smallest"
+            "zookeeper.connect" : "localhost:2181/kafka09"
           }
         },
         "name" : "kafka09reader"
@@ -115,101 +164,71 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
         "name" : "streamwriter"
       }
     } ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
+    "setting" : {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : true
       },
-      "errorLimit": {
-        "record": 100
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "isStream" : true,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+      "speed" : {
+        "channel" : 1
       }
     }
   }
 }
 ```
-<a name="BbqQ7"></a>
 #### 2、kafka10
 ```json
 {
   "job": {
-    "content": [{
-      "reader" : {
-        "parameter" : {
-          "topic" : "kafka10",
-          "groupId" : "default",
-          "codec": "plain",
-          "blankIgnore": false,
-          "consumerSettings" : {
-            "zookeeper.connect" : "0.0.0.1:2182/kafka",
-            "bootstrap.servers" : "0.0.0.1:9092",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "latest"
-          }
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic": "kafka10",
+            "groupId": "default",
+            "codec": "text",
+            "encoding": "UTF-8",
+            "blankIgnore": false,
+            "consumerSettings": {
+              "bootstrap.servers": "localhost:9092"
+            }
+          },
+          "name": "kafka10reader"
         },
-        "name" : "kafka10reader"
-      },
-      "writer" : {
-        "parameter" : {
-          "print" : true
-        },
-        "name" : "streamwriter"
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
       }
-    } ],
+    ],
     "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 100
-      },
       "restore": {
-        "maxRowNumForCheckpoint": 0,
         "isRestore": false,
-        "isStream" : true,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
+        "isStream": true
       },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+      "speed": {
+        "channel": 1
       }
     }
   }
 }
 ```
-<a name="Jl0dk"></a>
 #### 3、kafka11
 ```json
 {
-  "job": {
-    "content": [{
+  "job" : {
+    "content" : [ {
       "reader" : {
         "parameter" : {
           "topic" : "kafka11",
-          "groupId" : "default",
-          "codec": "plain",
+          "groupId": "default",
+          "codec": "text",
+          "encoding": "UTF-8",
           "blankIgnore": false,
-          "consumerSettings" : {
-            "zookeeper.connect" : "0.0.0.1:2182/kafka",
-            "bootstrap.servers" : "0.0.0.1:9092",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "latest"
+          "consumerSettings": {
+            "bootstrap.servers": "localhost:9092"
           }
         },
         "name" : "kafka11reader"
@@ -221,48 +240,33 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
         "name" : "streamwriter"
       }
     } ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
+    "setting" : {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : true
       },
-      "errorLimit": {
-        "record": 100
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "isStream" : true,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+      "speed" : {
+        "channel" : 1
       }
     }
   }
 }
 ```
-<a name="SvAwr"></a>
 #### 4、kafka
 ```json
 {
-  "job": {
-    "content": [{
+  "job" : {
+    "content" : [ {
       "reader" : {
         "parameter" : {
-          "topic" : "kafka",
-          "groupId" : "default",
-          "codec": "plain",
+          "topic" : "test",
+          "mode": "timestamp",
+          "timestamp": 1609812275000,
+          "offset": "partition:0,offset:0;partition:1,offset:1;partition:2,offset:2",
+          "codec": "text",
           "blankIgnore": false,
           "consumerSettings" : {
-            "zookeeper.connect" : "0.0.0.1:2182/kafka",
-            "bootstrap.servers" : "0.0.0.1:9092",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "latest"
+            "bootstrap.servers" : "ip1:9092,ip2:9092,ip3:9092"
           }
         },
         "name" : "kafkareader"
@@ -275,122 +279,70 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
       }
     } ],
     "setting": {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : true
+      },
       "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 100
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "isStream" : true,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+        "readerChannel": 3,
+        "writerChannel": 1
       }
     }
   }
 }
 ```
-<a name="4oSeP"></a>
-#### 5、kafka->MySQL
+#### 5、kafka->Hive
 ```json
 {
-  "job" : {
-    "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "codec": "json",
-          "groupId" : "default",
-          "topic" : "tudou",
-          "consumerSettings" : {
-            "zookeeper.connect" : "kudu1:2181/kafka",
-            "bootstrap.servers" : "kudu1:9092",
-            "auto.commit.interval.ms" : "1000",
-            "auto.offset.reset" : "earliest"
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" : {
+            "topic" : "test",
+            "mode": "timestamp",
+            "timestamp": 1609812275000,
+            "codec": "text",
+            "consumerSettings" : {
+              "bootstrap.servers" : "ip1:9092,ip2:9092,ip3:9092"
+            }
           },
-          "column": [
-            {
-              "name": "id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "user_id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "name",
-              "type": "VARCHAR"
-            }
-          ]
+          "name" : "kafkareader"
         },
-        "name" : "kafkareader"
-      },
-      "writer": {
-        "name": "mysqlwriter",
-        "parameter": {
-          "username": "dtstack",
-          "password": "abc123",
-          "batchSize": 1,
-          "connection": [
-            {
-              "jdbcUrl": "jdbc:mysql://kudu3:3306/tudou?useSSL=false",
-              "table": [
-                "kudu"
-              ]
+        "writer": {
+          "parameter" : {
+            "jdbcUrl" : "jdbc:hive2://ip:10000/test",
+            "fileType" : "parquet",
+            "writeMode" : "overwrite",
+            "compress" : "",
+            "charsetName" : "UTF-8",
+            "maxFileSize" : 1073741824,
+            "tablesColumn" : "{\"message\":[{\"part\":false,\"comment\":\"\",\"type\":\"string\",\"key\":\"message\"}]}",
+            "partition" : "pt",
+            "partitionType" : "DAY",
+            "defaultFS" : "hdfs://ns",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns.nn2": "ip1:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip2:9000",
+              "dfs.nameservices": "ns"
             }
-          ],
-          "session": [],
-          "preSql": [],
-          "postSql": [],
-          "writeMode": "insert",
-          "column": [
-            {
-              "name": "id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "user_id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "name",
-              "type": "VARCHAR"
-            }
-          ]
+          },
+          "name" : "hivewriter"
         }
       }
-    } ],
+    ],
     "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 100
-      },
       "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "isStream" : true,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
+        "isRestore": true,
+        "isStream": true
       },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+      "speed": {
+        "readerChannel": 3,
+        "writerChannel": 1
       }
     }
   }
 }
 ```
-<br />

@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -378,5 +379,13 @@ public class SftpHandler implements IFtpHandler {
     @Override
     public void rename(String oldPath, String newPath) throws SftpException {
         channelSftp.rename(oldPath, newPath);
+    }
+
+    /**
+     * 仅ftp输入流需要显示关闭
+     */
+    @Override
+    public void completePendingCommand() {
+
     }
 }

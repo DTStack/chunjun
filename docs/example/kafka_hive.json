@@ -1,0 +1,52 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" : {
+            "topic" : "test",
+            "mode": "timestamp",
+            "timestamp": 1609812275000,
+            "codec": "text",
+            "consumerSettings" : {
+              "bootstrap.servers" : "ip1:9092,ip2:9092,ip3:9092"
+            }
+          },
+          "name" : "kafkareader"
+        },
+        "writer": {
+          "parameter" : {
+            "jdbcUrl" : "jdbc:hive2://ip:10000/test",
+            "fileType" : "parquet",
+            "writeMode" : "overwrite",
+            "compress" : "",
+            "charsetName" : "UTF-8",
+            "maxFileSize" : 1073741824,
+            "tablesColumn" : "{\"message\":[{\"part\":false,\"comment\":\"\",\"type\":\"string\",\"key\":\"message\"}]}",
+            "partition" : "pt",
+            "partitionType" : "DAY",
+            "defaultFS" : "hdfs://ns",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns.nn2": "ip1:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip2:9000",
+              "dfs.nameservices": "ns"
+            }
+          },
+          "name" : "hivewriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "speed": {
+        "readerChannel": 3,
+        "writerChannel": 1
+      }
+    }
+  }
+}

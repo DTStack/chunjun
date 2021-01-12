@@ -38,7 +38,6 @@ import static com.dtstack.flinkx.constants.ConfigConstant.YARN_RESOURCE_MANAGER_
  * @author tudou
  */
 public class FlinkPerJobUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
     /**
      * Minimum memory requirements, checked by the Client.
      * the minimum memory should be higher than the min heap cutoff
@@ -48,6 +47,7 @@ public class FlinkPerJobUtil {
     public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.mb";
     public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.mb";
     public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    private static final Logger LOG = LoggerFactory.getLogger(FlinkPerJobUtil.class);
 
     /**
      * the specification of this per-job mode cost

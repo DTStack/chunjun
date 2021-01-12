@@ -89,8 +89,9 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/phoenixwriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/phoenixwriter/${project.name}-${package.name}.jar" />
+                                      tofile="${basedir}/../../syncplugins/phoenixwriter/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

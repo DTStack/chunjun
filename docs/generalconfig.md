@@ -8,22 +8,18 @@
 	"job" : {
 		"content" :[{
     	"reader" : {
-				......
       },
     	"writer" : {
-				......
 			}
     }],
    "setting" : {
       "restore" : {
-        ......
       },
       "speed" : {
       },
       "dirty" : {
       },
       "log" : {
-      	......
       }
     }
 	}
@@ -68,11 +64,12 @@ reader用于配置数据的输入源，即数据从何而来。具体配置如�
 writer用于配置数据的输出源，即数据写往何处。具体配置如下所示：
 
 ```json
+{
 "writer" : {
   "name" : "xxwriter",
   "parameter" : {
-		......
   }
+}
 }
 ```
 | 名称 | 说明 | 是否必填 |
@@ -89,12 +86,14 @@ writer用于配置数据的输出源，即数据写往何处。具体配置如�
 restore用于配置同步任务类型（离线同步、实时采集）和断点续传功能。具体配置如下所示：
 
 ```json
+{
 "restore" : {
   "isStream" : false,
   "isRestore" : false,
   "restoreColumnName" : "",
   "restoreColumnIndex" : 0,
   "maxRowNumForCheckpoint" : 10000
+}
 }
 ```
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
@@ -111,9 +110,11 @@ restore用于配置同步任务类型（离线同步、实时采集）和断点�
 speed用于配置任务并发数及速率限制。具体配置如下所示：
 
 ```json
+{
 "speed" : {
   "channel": 1,
   "bytes": 0
+}
 }
 ```
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
@@ -127,9 +128,11 @@ speed用于配置任务并发数及速率限制。具体配置如下所示：
 errorLimit用于配置任务运行时数据读取写入的出错控制。具体配置如下所示：
 
 ```json
+{
 "errorLimit" : {
   "record": 100,
   "percentage": 10.0
+}
 }
 ```
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
@@ -143,12 +146,13 @@ errorLimit用于配置任务运行时数据读取写入的出错控制。具体�
 dirty用于配置脏数据的保存，通常与上文出错控制联合使用。具体配置如下所示：
 
 ```json
+{
 "dirty" : {
   "path" : "xxx",
   "hadoopConfig" : {
-    ......
   }
  }
+}
 ```
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |
@@ -159,6 +163,7 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
 参考模板如下：
 
 ```json
+{
 "dirty" : {
         "path" : "/user/hive/warehouse/xx.db/xx",
         "hadoopConfig" : {
@@ -169,7 +174,8 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
           "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
           "dfs.nameservices" : "ns1"
         }
-      }
+  }
+}
 ```
 
 <a name="dGiqW"></a>
@@ -177,13 +183,14 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
 log用于配置Flinkx中定义的插件日志的保存与记录。具体配置如下所示：
 
 ```json
+{
 "log" : {
   "isLogger": false,
   "level" : "info",
   "path" : "/tmp/dtstack/flinkx/",
   "pattern":""
 }
-
+}
 ```
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |

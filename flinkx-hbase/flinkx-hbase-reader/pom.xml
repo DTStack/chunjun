@@ -13,6 +13,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>12.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hbase-core</artifactId>
             <version>1.6</version>
@@ -68,11 +73,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.hbase.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                    <shadedPattern>shade.hbase.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -98,6 +103,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/hbasereader/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/hbasereader/${project.name}-${package.name}.jar" />
                             </tasks>

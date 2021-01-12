@@ -41,6 +41,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_SCHEMA;
@@ -202,7 +203,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                         event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
                     }catch (JsonSyntaxException e){
                         // is not a json string
-                        LOG.warn("bad json string:【{}】", tempObj);
+                        //tempObj 不是map类型 则event直接往下传递
+                       // LOG.warn("bad json string:【{}】", tempObj);
                     }
                 }
             }
@@ -230,7 +232,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             //row包含map嵌套的数据内容和channel， 而rowData是非常简单的纯数据，此处补上数据差额
             if (fromLogData && bytesWriteCounter != null) {
-                bytesWriteCounter.add((long) row.toString().length() - rowData.toString().length());
+                bytesWriteCounter.add((long)row.toString().getBytes().length - rowData.toString().getBytes().length);
             }
         } catch (Exception e) {
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
@@ -250,11 +252,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         //防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
         HashMap<Object, Object> newEvent = new HashMap<>(event.size() * 2);
         event.entrySet().forEach(data->{
-            newEvent.put(data.getKey().toLowerCase(),data.getValue());
+            newEvent.put(data.getKey().toLowerCase(Locale.ENGLISH),data.getValue());
         });
 
         for (int i = 0; i < columns.size(); i++) {
-            rowData.setField(i, newEvent.get(columns.get(i).toLowerCase()));
+            rowData.setField(i, newEvent.get(columns.get(i).toLowerCase(Locale.ENGLISH)));
         }
         rowData.setField(rowData.getArity() - 1, channel);
         return rowData;

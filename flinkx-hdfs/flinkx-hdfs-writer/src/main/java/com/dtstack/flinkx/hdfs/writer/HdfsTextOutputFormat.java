@@ -23,6 +23,9 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
@@ -35,6 +38,8 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The builder class of HdfsOutputFormat writing text files
@@ -200,6 +205,8 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                     if (column instanceof Timestamp){
                         SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
                         sb.append(fm.format(column));
+                    }else if (column instanceof Map || column instanceof List){
+                        sb.append(gson.toJson(column));
                     }else {
                         sb.append(rowData);
                     }

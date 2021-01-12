@@ -17,12 +17,18 @@
  */
 package com.dtstack.flinkx.rdb.outputformat;
 
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Properties;
 
 /**
  * @Company: www.dtstack.com
@@ -68,6 +74,10 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.databaseInterface = databaseInterface;
     }
 
+    public void setProperties(Properties properties){
+        format.properties = properties;
+    }
+
     public void setMode(String mode) {
         format.mode = mode;
     }
@@ -91,6 +101,12 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     public void setInsertSqlMode(String insertSqlMode){
         format.insertSqlMode = insertSqlMode;
     }
+
+
+    public void setSchema(String schema){
+        format.setSchema(schema);
+    }
+
 
     @Override
     protected void checkFormat() {

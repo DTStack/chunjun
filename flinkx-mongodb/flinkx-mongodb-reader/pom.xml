@@ -87,6 +87,7 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/mongodbreader/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/mongodbreader/${project.name}-${package.name}.jar" />
                             </tasks>

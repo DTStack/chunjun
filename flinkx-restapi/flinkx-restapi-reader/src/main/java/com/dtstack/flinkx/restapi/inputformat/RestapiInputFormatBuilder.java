@@ -18,7 +18,12 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.handler.DataHandler;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,18 +33,33 @@ import java.util.Map;
 public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
     protected RestapiInputFormat format;
 
-    public RestapiInputFormatBuilder(){ super.format = format = new RestapiInputFormat();}
 
-    public void setUrl(String url){this.format.url = url;}
-    public void setHeader(Map<String, Object> header){ this.format.header = header;}
-    public void setMethod(String method){ this.format.method = method;}
+    public RestapiInputFormatBuilder() {
+        super.format = format = new RestapiInputFormat();
+    }
+
+    public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
+        this.format.setHttpRestConfig(httpRestConfig);
+    }
+
+    public void setIntervalTime(long intervalTime) {
+        this.format.setIntervalTime(intervalTime);
+    }
+
+    public void setMetaColumns(List<MetaColumn> metaColumns) {
+        this.format.setMetaColumns(metaColumns);
+    }
+
+    public void setHandlers(List<DataHandler> handlers) {
+        this.format.setHandlers(handlers);
+    }
 
     @Override
     protected void checkFormat() {
-        if(format.url.isEmpty()){
+        if(StringUtils.isBlank(format.httpRestConfig.getUrl())){
             throw new IllegalArgumentException("缺少url");
         }
-        if (format.method.isEmpty()) {
+        if (StringUtils.isBlank(format.httpRestConfig.getType())) {
             throw new IllegalArgumentException("缺少method");
         }
     }

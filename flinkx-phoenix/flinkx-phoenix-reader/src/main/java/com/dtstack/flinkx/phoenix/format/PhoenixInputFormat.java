@@ -107,7 +107,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             if (splitWithRowCol) {
                 columnCount = columnCount - 1;
             }
-            checkSize(columnCount, metaColumns);
+
             hasNext = resultSet.next();
 
             if (StringUtils.isEmpty(customSql)) {

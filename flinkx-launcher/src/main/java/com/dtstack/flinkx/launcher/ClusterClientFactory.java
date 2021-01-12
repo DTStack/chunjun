@@ -25,6 +25,7 @@ import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.deployment.StandaloneClusterId;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.HighAvailabilityOptions;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
@@ -75,6 +76,10 @@ public class ClusterClientFactory {
         if(StringUtils.isNotBlank(yarnConfDir)) {
             try {
                 FileSystem.initialize(flinkConfig);
+
+                //进行kerberos验证 如果需要的话
+                KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(), launcherOptions.getKeytab(), launcherOptions.getPrincipal(), flinkConfig);
+                kerberosInfo.verify();
 
                 YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
                 YarnClient yarnClient = YarnClient.createYarnClient();

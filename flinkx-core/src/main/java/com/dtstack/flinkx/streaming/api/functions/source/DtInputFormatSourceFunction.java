@@ -20,6 +20,7 @@ package com.dtstack.flinkx.streaming.api.functions.source;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -110,6 +111,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void run(SourceContext<OUT> ctx) throws Exception {
+		Exception tryException = null;
 		try {
 
 			Counter completedSplitsCounter = getRuntimeContext().getMetricGroup().counter("numSplitsProcessed");
@@ -146,12 +148,27 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 					isRunning = splitIterator.hasNext();
 				}
 			}
+		} catch (Exception exception){
+				tryException = exception;
 		} finally {
-			format.close();
-			if (format instanceof RichInputFormat) {
-				((RichInputFormat) format).closeInputFormat();
-			}
 			isRunning = false;
+			try {
+				format.close();
+				if (format instanceof RichInputFormat) {
+					((RichInputFormat) format).closeInputFormat();
+				}
+			}catch (Exception finallyException){
+				if(null != tryException){
+					LOG.error(ExceptionUtil.getErrorMessage(finallyException));
+					tryException.addSuppressed(finallyException);
+					throw tryException;
+				}else {
+					throw finallyException;
+				}
+			}
+			if(null != tryException) {
+				throw tryException;
+			}
 		}
 	}
 

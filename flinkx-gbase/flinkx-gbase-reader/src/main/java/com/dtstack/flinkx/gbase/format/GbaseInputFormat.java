@@ -18,11 +18,6 @@
 package com.dtstack.flinkx.gbase.format;
 
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.inputformat.JdbcInputSplit;
-import com.dtstack.flinkx.rdb.util.DbUtil;
-import com.dtstack.flinkx.util.ClassUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;

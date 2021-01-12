@@ -18,6 +18,8 @@
 package com.dtstack.flinkx.kafka11.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.kafka11.format.Kafka11OutputFormat;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -46,7 +48,10 @@ public class Kafka11Writer extends KafkaBaseWriter {
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
         format.setTableFields(tableFields);
-
+        format.setHeartBeatController(new HeartBeatController());
+        format.setDirtyPath(dirtyPath);
+        format.setDirtyHadoopConfig(dirtyHadoopConfig);
+        format.setSrcFieldNames(srcCols);
         return createOutput(dataSet, format);
     }
 }

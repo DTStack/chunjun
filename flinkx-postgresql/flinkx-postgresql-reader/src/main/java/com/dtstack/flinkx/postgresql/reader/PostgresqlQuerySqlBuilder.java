@@ -19,6 +19,7 @@ package com.dtstack.flinkx.postgresql.reader;
 
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class PostgresqlQuerySqlBuilder extends QuerySqlBuilder {
 
     @Override
     protected String buildQuerySql(){
-        List<String> selectColumns = buildSelectColumns(databaseInterface, metaColumns);
+        List<String> selectColumns = DbUtil.buildSelectColumns(databaseInterface, metaColumns);
         boolean splitWithRowNum = addRowNumColumn(databaseInterface, selectColumns, isSplitByKey, splitKey);
 
         StringBuilder sb = new StringBuilder();

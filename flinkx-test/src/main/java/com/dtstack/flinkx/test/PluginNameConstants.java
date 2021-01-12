@@ -21,7 +21,6 @@ package com.dtstack.flinkx.test;
 /**
  * @author jiangbo
  */
-@SuppressWarnings("all")
 public class PluginNameConstants {
 
     public static final String STREAM_READER = "streamreader";
@@ -50,13 +49,10 @@ public class PluginNameConstants {
     public static final String ORACLE_LOG_MINER_READER = "oraclelogminerreader";
     public static final String PHOENIX_READER = "phoenixreader";
     public static final String EMQX_READER = "emqxreader";
-    public static final String SQLSERVER_CDC_READER = "sqlservercdcreader";
-    public static final String METADATAHIVE2_READER = "metadatahive2reader";
     public static final String DM_READER = "dmreader";
-    public static final String METADATATIDB_READER = "metadatatidbreader";
-    public static final String METADATAORACLE_READER = "metadataoraclereader";
-    public static final String METADATAMYSQL_READER = "metadatamysqlreader";
     public static final String GREENPLUM_READER = "greenplumreader";
+    public static final String PHOENIX5_READER = "phoenix5reader";
+    public static final String KINGBASE_READER = "kingbasereader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";
@@ -86,4 +82,6 @@ public class PluginNameConstants {
     public static final String RESTAPI_WRITER = "restapiwriter";
     public static final String DM_WRITER = "dmwriter";
     public static final String GREENPLUM_WRITER = "greenplumwriter";
+    public static final String PHOENIX5_WRITER = "phoenix5writer";
+    public static final String KINGBASE_WRITER = "kingbasewriter";
 }

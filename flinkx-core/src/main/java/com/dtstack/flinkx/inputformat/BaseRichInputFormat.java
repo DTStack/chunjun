@@ -288,7 +288,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
                 numReadCounter.add(1);
             }
             if(bytesReadCounter!=null){
-                bytesReadCounter.add(internalRow.toString().length());
+                bytesReadCounter.add(internalRow.toString().getBytes().length);
             }
         }
 
@@ -421,5 +421,9 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
         this.dataTransferConfig = dataTransferConfig;
+    }
+
+    public DataTransferConfig getDataTransferConfig() {
+        return dataTransferConfig;
     }
 }

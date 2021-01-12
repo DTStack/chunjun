@@ -18,18 +18,18 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.ParamType;
+import com.dtstack.flinkx.restapi.common.RestContext;
+import com.dtstack.flinkx.restapi.common.handler.DataHandler;
+import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,47 +38,37 @@ import java.util.Map;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-    protected String url;
+    protected HttpClient myHttpClient;
 
-    protected String method;
+    protected RestContext restContext;
 
-    protected transient CloseableHttpClient httpClient;
+    protected Long intervalTime;
 
-    protected  Map<String, Object> header;
+    protected HttpRestConfig httpRestConfig;
 
-    protected  Map<String, Object> entityDataToMap;
+    protected List<MetaColumn> metaColumns ;
 
-    protected boolean getData;
+    protected List<DataHandler> handlers;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        httpClient = HttpUtil.getHttpClient();
     }
 
-    @Override
-    public void closeInputFormat() {
-        HttpUtil.closeClient(httpClient);
-    }
 
 
     @Override
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        HttpUriRequest request = HttpUtil.getRequest(method, header,null, url);
-        try {
-            CloseableHttpResponse httpResponse = httpClient.execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                String entityData = EntityUtils.toString(entity);
-                entityDataToMap = GsonUtil.GSON.fromJson(entityData, Map.class);
-                getData = true;
-            } else {
-                throw new RuntimeException("entity is null");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("get entity error");
-        }
+        restContext = new RestContext(httpRestConfig.getType(),httpRestConfig.getUrl(),httpRestConfig.getFormat());
+        myHttpClient = new HttpClient(restContext, intervalTime);
+        myHttpClient.setMetaColumns(metaColumns);
+        myHttpClient.setHandlers(handlers);
+        restContext.parseAndInt(httpRestConfig.getBody(), ParamType.BODY);
+        restContext.parseAndInt(httpRestConfig.getHeader(), ParamType.HEADER);
+        restContext.parseAndInt(httpRestConfig.getParam(), ParamType.PARAM);
+
+        myHttpClient.start();
     }
 
     @Override
@@ -92,18 +82,37 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(1);
-        row.setField(0, entityDataToMap);
-        getData = false;
-        return row;
+        return myHttpClient.takeEvent();
+
     }
 
     @Override
     protected void closeInternal() throws IOException {
+        myHttpClient.close();
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return !getData;
+        return false;
+    }
+
+    public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
+        this.httpRestConfig = httpRestConfig;
+    }
+
+    public void setIntervalTime(Long intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
+    public void setMetaColumns(List<MetaColumn> metaColumns) {
+        this.metaColumns = metaColumns;
+    }
+
+    public List<DataHandler> getHandlers() {
+        return handlers;
+    }
+
+    public void setHandlers(List<DataHandler> handlers) {
+        this.handlers = handlers;
     }
 }

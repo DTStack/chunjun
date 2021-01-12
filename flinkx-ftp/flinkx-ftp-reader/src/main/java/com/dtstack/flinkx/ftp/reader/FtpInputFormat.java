@@ -26,7 +26,6 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -43,8 +42,6 @@ import java.util.List;
 public class FtpInputFormat extends BaseRichInputFormat {
 
     protected FtpConfig ftpConfig;
-
-    protected String charsetName = "utf-8";
 
     protected List<MetaColumn> metaColumns;
 
@@ -103,7 +100,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
             br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
             br.setFromLine(0);
         }
-        br.setCharsetName(charsetName);
+        br.setFileEncoding(ftpConfig.getEncoding());
     }
 
     @Override

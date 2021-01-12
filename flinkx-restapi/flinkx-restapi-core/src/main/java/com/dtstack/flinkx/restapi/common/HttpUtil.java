@@ -92,7 +92,7 @@ public class HttpUtil {
             post.setEntity(getEntityData(requestBody));
             request = post;
         } else {
-            throw new RuntimeException("Unsupported method:" + method);
+            throw new UnsupportedOperationException("Unsupported method:" + method);
         }
 
         for (Map.Entry<String, String> entry : header.entrySet()) {

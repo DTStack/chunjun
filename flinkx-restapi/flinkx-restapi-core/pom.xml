@@ -16,5 +16,11 @@
             <artifactId>httpclient</artifactId>
             <version>${http.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.pfmiles</groupId>
+            <artifactId>dropincc.java</artifactId>
+            <version>0.2.2</version>
+        </dependency>
     </dependencies>
 </project>

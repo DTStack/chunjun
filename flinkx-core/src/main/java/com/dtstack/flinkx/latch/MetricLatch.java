@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.latch;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -76,10 +77,11 @@ public class MetricLatch extends BaseLatch {
         try(InputStream inputStream = UrlUtil.open(requestUrl)) {
             try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
+                LOG.info("requestUrl = {}, and return map = {}", requestUrl, GsonUtil.GSON.toJson(map));
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     if(metricName != null && metricName.equals(accumulator.get("name"))) {
-                        return Integer.valueOf((String )accumulator.get("value"));
+                        return Integer.parseInt((String )accumulator.get("value"));
                     }
                 }
             } catch (Exception e) {

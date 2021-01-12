@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -41,9 +42,9 @@ public class JsonModifyUtil {
      */
     public static HashMap<String, String> CommandTransform(String command) {
         HashMap<String, String> parameter = new HashMap<>();
-        String[] split = StringUtils.split(command, ",");
+        String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);
         for (String item : split) {
-            String[] temp = item.split("=");
+            String[] temp = item.split(ConstantValue.EQUAL_SYMBOL);
             parameter.put(temp[0], temp[1]);
         }
         return parameter;

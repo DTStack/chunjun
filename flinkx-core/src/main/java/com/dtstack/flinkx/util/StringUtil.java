@@ -201,12 +201,12 @@ public class StringUtil {
 
     public static String row2string(Row row, List<String> columnTypes, String delimiter) throws WriteRecordException {
         // convert row to string
-        int size = row.getArity();
+        int cnt = row.getArity();
         StringBuilder sb = new StringBuilder(128);
 
         int i = 0;
         try {
-            for (; i < size; ++i) {
+            for (; i < cnt; ++i) {
                 if (i != 0) {
                     sb.append(delimiter);
                 }
@@ -219,9 +219,9 @@ public class StringUtil {
 
                 sb.append(col2string(column, columnTypes.get(i)));
             }
-        } catch(Exception e) {
+        } catch(Exception ex) {
             String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + row + ")";
-            throw new WriteRecordException(msg, e, i, row);
+            throw new WriteRecordException(msg, ex, i, row);
         }
 
         return sb.toString();
@@ -302,22 +302,6 @@ public class StringUtil {
     }
 
     /**
-     * 调用{@linkplain com.dtstack.flinkx.util.StringUtil}的splitIgnoreQuota处理 并对返回结果按照.拼接
-     * @param table [dbo.schema1].[table]
-     * @return dbo.schema1.table
-     */
-    public static String splitIgnoreQuotaAndJoinByPoint(String table) {
-        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
-        StringBuffer stringBuffer = new StringBuffer(64);
-        for(int i =0 ;i<strings.size();i++){
-            stringBuffer.append(strings.get(i));
-            if(i !=strings.size()-1){
-                stringBuffer.append(ConstantValue.POINT_SYMBOL);
-            }
-        }
-        return stringBuffer.toString();
-    }
-    /**
      * 字符串转换成对应时间戳字符串
      * @param location
      * @return
@@ -337,5 +321,22 @@ public class StringUtil {
             String message = String.format("cannot transform 【%s】to 【%s】, e = %s", location, type, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message);
         }
+    }
+
+    /**
+     * 调用{@linkplain com.dtstack.flinkx.util.StringUtil}的splitIgnoreQuota处理 并对返回结果按照.拼接
+     * @param table [dbo.schema1].[table]
+     * @return dbo.schema1.table
+     */
+    public static String splitIgnoreQuotaAndJoinByPoint(String table) {
+        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+        StringBuffer stringBuffer = new StringBuffer(64);
+        for(int i =0; i < strings.size(); i++){
+            stringBuffer.append(strings.get(i));
+            if(i != strings.size()-1){
+                stringBuffer.append(ConstantValue.POINT_SYMBOL);
+            }
+        }
+        return stringBuffer.toString();
     }
 }

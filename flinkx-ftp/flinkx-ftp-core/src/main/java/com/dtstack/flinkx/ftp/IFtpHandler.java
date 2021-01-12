@@ -116,4 +116,10 @@ public interface IFtpHandler {
      * @throws Exception 可能会出现文件不存在，连接异常等
      */
     void rename(String oldPath, String newPath) throws Exception;
+
+    /**
+     * 关闭ftp输入流
+     * @throws IOException 文件句柄操作异常
+     */
+    void completePendingCommand() throws IOException;
 }

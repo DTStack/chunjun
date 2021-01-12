@@ -105,6 +105,7 @@ under the License.
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+                                <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/ftpwriter/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/ftpwriter/${project.name}-${package.name}.jar" />
                             </tasks>

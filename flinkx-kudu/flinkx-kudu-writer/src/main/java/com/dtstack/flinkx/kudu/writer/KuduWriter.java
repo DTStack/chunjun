@@ -31,6 +31,7 @@ import org.apache.flink.types.Row;
 import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_ADMIN_OPERATION_TIMEOUT;
 import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_AUTHENTICATION;
@@ -57,6 +58,8 @@ public class KuduWriter extends BaseDataWriter {
 
     private int batchInterval;
 
+    protected Map<String,Object> hadoopConfig;
+
     public KuduWriter(DataTransferConfig config) {
         super(config);
 
@@ -77,6 +80,8 @@ public class KuduWriter extends BaseDataWriter {
                 .withTable(parameterConfig.getStringVal(KEY_TABLE))
                 .withFlushMode(parameterConfig.getStringVal(KEY_FLUSH_MODE))
                 .build();
+
+        hadoopConfig = (Map<String, Object>) parameterConfig.getVal("hadoopConfig");
     }
 
     @Override
@@ -89,6 +94,10 @@ public class KuduWriter extends BaseDataWriter {
         builder.setBatchInterval(batchInterval);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
+        builder.setHadoopConfig(hadoopConfig);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
         return createOutput(dataSet,builder.finish());
     }
 }
