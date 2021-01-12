@@ -15,6 +15,13 @@ unzip 1.10_release.zip
 cd 1.10_release
 ```
 
+3.直接下载源码和编译好的插件包(推荐)
+```
+wget https://github.com/DTStack/flinkx/releases/download/1.10.4/flinkx.7z
+7za x flinkx.7z
+cd flinkx
+```
+
 ## 编译插件
 
 ```bash
@@ -87,9 +94,8 @@ mvn clean package -DskipTests
 ```bash
 bin/flinkx \
 	-mode local \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINKX_HOME/syncplugins \
-	-confProp "{\"flink.checkpoint.interval\":60000}"
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins
 ```
 
 可以在flink的配置文件里配置端口：
@@ -104,8 +110,8 @@ rest.bind-port: 8888
 ```bash
 bin/flinkx \
 	-mode local \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINK_HOME/syncplugins \
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins
 ```
 
 任务运行后可以通过8888端口访问flink界面查看任务运行情况：
@@ -121,8 +127,8 @@ bin/flinkx \
 ```bash
 bin/flinkx \
 	-mode standalone \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINKX_HOME/syncplugins \
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins \
 	-flinkconf $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
@@ -145,7 +151,7 @@ $FLINK_HOME/bin/start-cluster.sh
 ```bash
 ./bin/flinkx \
 	-mode standalone \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
+	-job docs/example/stream_stream.json \
 	-flinkconf $FLINK_HOME/conf
 ```
 
@@ -162,8 +168,8 @@ $FLINK_HOME/bin/start-cluster.sh
 ```bash
 bin/flinkx \
 	-mode yarn \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINKX_HOME/syncplugins \
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins \
 	-flinkconf $FLINK_HOME/conf \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
@@ -188,7 +194,7 @@ $FLINK_HOME/bin/yarn-session.sh -n 1 -s 2 -jm 1024 -tm 1024
 ```bash
 bin/flinkx \
 	-mode yarn \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
+	-job docs/example/stream_stream.json \
 	-flinkconf $FLINK_HOME/conf \
 	-yarnconf $HADOOP_HOME/etc/hadoop
 ```
@@ -206,8 +212,8 @@ bin/flinkx \
 ```bash
 bin/flinkx \
 	-mode yarnPer \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINKX_HOME/syncplugins \
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins \
 	-flinkconf $FLINK_HOME/conf \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-flinkLibJar $FLINK_HOME/lib \
@@ -221,8 +227,8 @@ bin/flinkx \
 ```bash
 bin/flinkx \
 	-mode yarnPer \
-	-job $FLINKX_HOME/docs/example/stream_stream.json \
-	-pluginRoot $FLINKX_HOME/syncplugins \
+	-job docs/example/stream_stream.json \
+	-pluginRoot syncplugins \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-flinkLibJar $FLINK_HOME/lib \
 	-pluginLoadMode classpath
