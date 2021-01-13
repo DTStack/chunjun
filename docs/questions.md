@@ -12,9 +12,12 @@
 ./install_jars.sh
 ```
 
-### 2.FlinkX版本需要与Flink版本保持一致
-1.8_release版本对应flink1.8
-1.10_release版本对应flink1.10 版本
+### 2.FlinkX版本需要与Flink版本保持一致，最好小版本也保持一致
+| FlinkX分支 | Flink版本 |
+| --- | --- |
+| 1.8_release | Flink1.8.3 |
+| 1.10_release | Flink1.10.1 |
+| 1.11_release | Flink1.11.3 |
 不对应在standalone和yarn session模式提交时，会报错：
 Caused by: java.io.InvalidClassException: org.apache.flink.api.common.operators.ResourceSpec; incompatible types for field cpuCores
 

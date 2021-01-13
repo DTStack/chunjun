@@ -336,18 +336,6 @@
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kudu-reader</artifactId>
             <version>1.6</version>
         </dependency>

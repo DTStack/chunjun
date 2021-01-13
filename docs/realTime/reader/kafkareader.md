@@ -1,14 +1,14 @@
 # Kafka Reader
 
 ## 一、插件名称
-kafka插件存在四个版本，根据kafka版本的不同，插件名称也略有不同。具体对应关系如下表所示：
+kafka插件存在三个版本，根据kafka版本的不同，插件名称也略有不同。具体对应关系如下表所示：
 
 | kafka版本 | 插件名称 |
 | --- | --- |
-| kafka 0.9 | kafka09reader |
 | kafka 0.10 | kafka10reader |
 | kafka 0.11 | kafka11reader |
 | kafka 1.0及以后 | kafkareader |
+注：从FlinkX1.11版本开始不再支持kafka 0.9
 
 
 
@@ -125,9 +125,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 必选：是
    - 字段类型：Map
    - 默认值：无
-   - 注意：
-      - kafka09 reader插件: consumerSettings必须至少包含`zookeeper.connect`参数
-      - kafka09 reader以外的插件：consumerSettings必须至少包含`bootstrap.servers`参数
+   - 注意：consumerSettings必须至少包含`bootstrap.servers`参数
    - 如：
 ```json
 {
@@ -139,44 +137,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 
 
 ## 三、配置示例
-#### 1、kafka09
-```json
-{
-  "job" : {
-    "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "topic" : "kafka09",
-          "groupId" : "default",
-          "codec" : "text",
-          "encoding": "UTF-8",
-          "blankIgnore": false,
-          "consumerSettings" : {
-            "zookeeper.connect" : "localhost:2181/kafka09"
-          }
-        },
-        "name" : "kafka09reader"
-      },
-      "writer" : {
-        "parameter" : {
-          "print" : true
-        },
-        "name" : "streamwriter"
-      }
-    } ],
-    "setting" : {
-      "restore" : {
-        "isRestore" : false,
-        "isStream" : true
-      },
-      "speed" : {
-        "channel" : 1
-      }
-    }
-  }
-}
-```
-#### 2、kafka10
+#### 1、kafka10
 ```json
 {
   "job": {
@@ -215,7 +176,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 3、kafka11
+#### 2、kafka11
 ```json
 {
   "job" : {
@@ -252,7 +213,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 4、kafka
+#### 3、kafka
 ```json
 {
   "job" : {
@@ -291,7 +252,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 5、kafka->Hive
+#### 4、kafka->Hive
 ```json
 {
   "job": {

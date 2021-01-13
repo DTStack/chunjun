@@ -60,7 +60,6 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected String groupId;
     protected String codec;
     protected boolean blankIgnore;
-    protected String encoding;
     protected StartupMode mode;
     protected String offset;
     protected Long timestamp;
@@ -173,10 +172,6 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
      */
     public Object getState(){
         return formatState == null ? null : formatState.getState();
-    }
-
-    public String getEncoding() {
-        return encoding;
     }
 
     public IDecode getDecode() {

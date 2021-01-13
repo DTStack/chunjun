@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.FlinkUserCodeClassLoader;
 import sun.misc.URLClassPath;
 
 import java.io.IOException;
@@ -72,7 +73,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             String[] alwaysParentFirstPatterns = new String[2];
             alwaysParentFirstPatterns[0] = "org.apache.flink";
             alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
-            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns, FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
 

@@ -64,10 +64,6 @@ public class KafkaBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.consumerSettings = consumerSettings;
     }
 
-    public void setEncoding(String encoding) {
-        format.encoding = encoding;
-    }
-
     public void setMode(StartupMode mode) {
         format.mode = mode;
     }

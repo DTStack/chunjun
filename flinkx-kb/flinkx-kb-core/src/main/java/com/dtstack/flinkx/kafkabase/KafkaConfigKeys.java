@@ -39,12 +39,6 @@ public class KafkaConfigKeys {
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_TIMESTAMP = "timestamp";
 
-    /**
-     * kafka 09
-     */
-    public static final String KEY_ENCODING = "encoding";
-    public static final String KEY_BROKER_LIST = "brokerList";
-
     public static final String GROUP_ID = "group.id";
 
     public static final String BOOTSTRAP_SERVERS= "bootstrap.servers";

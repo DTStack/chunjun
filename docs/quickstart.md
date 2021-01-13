@@ -10,14 +10,14 @@ cd flinkx
 2.直接下载源码
 
 ```
-wget https://github.com/DTStack/flinkx/archive/1.10_release.zip
-unzip 1.10_release.zip
-cd 1.10_release
+wget https://github.com/DTStack/flinkx/archive/1.11_release.zip
+unzip 1.11_release.zip
+cd 1.11_release
 ```
 
 3.直接下载源码和编译好的插件包(推荐)
 ```
-wget https://github.com/DTStack/flinkx/releases/download/1.10.4/flinkx.7z
+wget https://github.com/DTStack/flinkx/releases/download/1.11.0/flinkx.7z
 7za x flinkx.7z
 cd flinkx
 ```
@@ -253,7 +253,7 @@ bin/flinkx \
 | **jobid**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
 | **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/syncplugins    |
 | **flinkconf**      | flink配置文件所在的目录（单机模式下不需要）                               | $FLINK_HOME/conf                                                                                                                                                                                                                            | 否    | $FLINK_HOME/conf        |
-| **flinkLibJar**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.10.1/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
+| **flinkLibJar**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.11.3/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
 | **yarnconf**       | Hadoop配置文件（包括hdfs和yarn）所在的目录                           | $HADOOP_HOME/etc/hadoop                                                                                                                                                                                                                     | 否    | $HADOOP_HOME/etc/hadoop |
 | **queue**          | yarn队列，如default                                        | 无                                                                                                                                                                                                                                           | 否    | default                 |
 | **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点pluginRoot目录下部署插件包，但任务启动速度较快<br />2.**shipfile**：提交任务时上传pluginRoot目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境                                                                           | 否    | shipfile                |
