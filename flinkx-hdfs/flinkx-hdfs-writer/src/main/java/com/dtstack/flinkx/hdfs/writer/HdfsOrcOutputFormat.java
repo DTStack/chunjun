@@ -240,7 +240,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             case VARCHAR:
             case CHAR:
                 if (column instanceof Timestamp){
-                    SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                    SimpleDateFormat fm = DateUtil.getDateTimeFormatterForMillisencond();
                     recordList.add(fm.format(column));
                 }else if (column instanceof Map || column instanceof List){
                     recordList.add(gson.toJson(column));

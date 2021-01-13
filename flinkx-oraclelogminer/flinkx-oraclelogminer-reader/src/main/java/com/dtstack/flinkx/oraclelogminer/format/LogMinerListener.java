@@ -16,16 +16,19 @@
  * limitations under the License.
  */
 
+
 package com.dtstack.flinkx.oraclelogminer.format;
 
 import com.dtstack.flinkx.oraclelogminer.entity.QueueData;
+import com.dtstack.flinkx.oraclelogminer.util.OraUtil;
+import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -58,6 +61,10 @@ public class LogMinerListener implements Runnable {
 
     private boolean running = false;
 
+    private String logMinerSelectSql;
+
+    private transient LogMinerListener listener;
+
     /**
      * 连续接收到错误数据的次数
      */
@@ -66,6 +73,7 @@ public class LogMinerListener implements Runnable {
     public LogMinerListener(LogMinerConfig logMinerConfig, PositionManager positionManager) {
         this.positionManager = positionManager;
         this.logMinerConfig = logMinerConfig;
+        this.listener = this;
     }
 
     public void init() {
@@ -85,28 +93,34 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
-        logMinerConnection.queryOracleVersion();
-        logMinerConnection.queryDataBaseEncoding();
+        logMinerConnection.checkPrivileges();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
+        logMinerConnection.setPreScn(startScn);
         positionManager.updatePosition(startScn);
 
-        executor.submit(this);
+        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+        executor.execute(this);
         running = true;
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
+            LOG.warn("LogMinerListener run failed, Throwable = {}", ExceptionUtil.getErrorMessage(e));
+            executor.execute(listener);
+            LOG.info("Re-execute LogMinerListener successfully");
+        });
         while (running) {
             QueueData log = null;
             try {
                 if (logMinerConnection.hasNext()) {
                     log = logMinerConnection.next();
-                    queue.put(logParser.parse(log,logMinerConnection.isOracle10));
+                    queue.put(logParser.parse(log, logMinerConnection.isOracle10));
                 } else {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
-                    logMinerConnection.queryData(positionManager.getPosition());
+                    logMinerConnection.queryData(positionManager.getPosition(), logMinerSelectSql);
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
             } catch (Exception e) {
@@ -127,7 +141,7 @@ public class LogMinerListener implements Runnable {
                 }
                 try {
                     logMinerConnection.disConnect();
-                } catch (SQLException e1) {
+                } catch (Exception e1) {
                     LOG.warn("LogMiner Thread disConnect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
                 try {
@@ -139,7 +153,7 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    public void stop() throws Exception {
+    public void stop() {
         if (null != executor && !executor.isShutdown()) {
             executor.shutdown();
             running = false;
@@ -163,7 +177,19 @@ public class LogMinerListener implements Runnable {
                 return data.getData();
             }
             if (++failedTimes >= 3) {
-                throw new RuntimeException("Error data is received 3 times continuously, error msg is " + data.getData().get("e"));
+                String errorMsg = (String)data.getData().get("e");
+                StringBuilder sb = new StringBuilder(errorMsg.length() + 128);
+                sb.append("Error data is received 3 times continuously, ");
+                Pair<String, String> pair = OraUtil.parseErrorMsg(errorMsg);
+                if(pair != null){
+                    sb.append("\nthe Cause maybe : ")
+                            .append(pair.getLeft())
+                            .append(", \nand the Solution maybe : ")
+                            .append(pair.getRight())
+                            .append(", ");
+                }
+                sb.append("\nerror msg is : ").append(errorMsg);
+                throw new RuntimeException(sb.toString());
             }
         } catch (InterruptedException e) {
             LOG.warn("Get data from queue error:", e);

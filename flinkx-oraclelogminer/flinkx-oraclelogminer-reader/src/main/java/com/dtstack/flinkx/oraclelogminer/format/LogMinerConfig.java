@@ -65,9 +65,9 @@ public class LogMinerConfig implements Serializable {
     private List<String> table;
 
     /**
-     * LogMiner执行查询SQL的超时参数
+     * LogMiner执行查询SQL的超时参数，单位秒
      */
-    private Long queryTimeout = 3000L;
+    private Long queryTimeout = 300L;
 
     /**
      * Oracle 12c第二个版本之后LogMiner不支持自动添加日志

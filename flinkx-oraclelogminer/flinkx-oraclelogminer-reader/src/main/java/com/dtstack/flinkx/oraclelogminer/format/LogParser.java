@@ -77,11 +77,11 @@ public class LogParser {
             str = str.replace("TIMESTAMP ", "");
         }
 
-        if (str.startsWith("'") && str.endsWith("'")) {
+        if (str.startsWith("'") && str.endsWith("'") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
-        if (str.startsWith("\"") && str.endsWith("\"")) {
+        if (str.startsWith("\"") && str.endsWith("\"") && str.length() != 1) {
             str = str.substring(1, str.length() - 1);
         }
 
@@ -165,8 +165,13 @@ public class LogParser {
         message.put("opTime", timestamp);
 
 
-        LOG.debug("sqlRedo = {}", sqlRedo);
-        Statement stmt = CCJSqlParserUtil.parse(sqlRedo);
+        Statement stmt;
+        try {
+            stmt = CCJSqlParserUtil.parse(sqlRedo);
+        }catch (JSQLParserException e){
+            LOG.info("sqlRedo = {}", sqlRedo);
+            stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'","\\ '"));
+        }
         LinkedHashMap<String,String> afterDataMap = new LinkedHashMap<>();
         LinkedHashMap<String,String> beforeDataMap = new LinkedHashMap<>();
 

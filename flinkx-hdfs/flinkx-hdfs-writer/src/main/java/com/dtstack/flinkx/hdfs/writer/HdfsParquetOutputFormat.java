@@ -238,7 +238,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             case "varchar" :
             case "string" :
                 if (valObj instanceof Timestamp){
-                    val=DateUtil.getDateTimeFormatter().format(valObj);
+                    val=DateUtil.getDateTimeFormatterForMillisencond().format(valObj);
                     group.add(colName,val);
                 }else if (valObj instanceof Map || valObj instanceof List){
                     group.add(colName,gson.toJson(valObj));

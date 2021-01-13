@@ -18,13 +18,12 @@
 
 package com.dtstack.flinkx.stream.writer;
 
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.StringUtils;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -40,40 +39,52 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     protected List<MetaColumn> metaColumns;
 
+    protected Row lastRow;
+
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         // do nothing
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    protected void writeSingleRecordInternal(Row row) {
         if (print) {
             LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
         }
-
-        if (restoreConfig.isRestore()) {
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-            LOG.info("print data subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
-        }
+        lastRow = row;
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
+    protected void writeMultipleRecordsInternal() {
         if (print) {
             for (Row row : rows) {
                 LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
             }
         }
+        if(rows.size() > 1){
+            lastRow = rows.get(rows.size() - 1);
+        }
+    }
+
+    public FormatState getFormatState(){
+        if(lastRow != null){
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(lastRow, writeDelimiter));
+        }
+        return super.getFormatState();
     }
 
     public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < row.getArity(); i++) {
-            if (i > 0) {
-                sb.append(writeDelimiter);
+        if(row == null){
+            return "";
+        }else{
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < row.getArity(); i++) {
+                if (i > 0) {
+                    sb.append(writeDelimiter);
+                }
+                sb.append(StringUtils.arrayAwareToString(row.getField(i)));
             }
-            sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+            return sb.toString();
         }
-        return sb.toString();
     }
 }
