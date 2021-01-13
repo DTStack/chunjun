@@ -94,10 +94,10 @@ public class FtpInputFormat extends BaseRichInputFormat {
         List<String> paths = inputSplit.getPaths();
 
         if (ftpConfig.getIsFirstLineHeader()){
-            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
+            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator(),ftpConfig);
             br.setFromLine(1);
         } else {
-            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator());
+            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator(),ftpConfig);
             br.setFromLine(0);
         }
         br.setFileEncoding(ftpConfig.getEncoding());
