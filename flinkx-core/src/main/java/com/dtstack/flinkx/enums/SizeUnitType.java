@@ -80,6 +80,13 @@ public enum SizeUnitType {
         this.name = name;
     }
 
+    /**
+     * 不同单位类型转换
+     * @param source
+     * @param target
+     * @param value
+     * @return
+     */
     public static String covertUnit(SizeUnitType source, SizeUnitType target, Long value) {
         //大单位转小单位
         if(source.getCode()>target.getCode()){
