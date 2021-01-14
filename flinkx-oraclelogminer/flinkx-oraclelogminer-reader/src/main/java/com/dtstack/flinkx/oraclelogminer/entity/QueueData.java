@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.oraclelogminer.entity;
 
-import com.google.gson.Gson;
-
 import java.util.Map;
 
 /**
@@ -48,7 +46,7 @@ public class QueueData {
     public String toString() {
         return "QueueData{" +
                 "scn=" + scn +
-                ", data=" + new Gson().toJson(data) +
+                ", data=" + data +
                 '}';
     }
 }

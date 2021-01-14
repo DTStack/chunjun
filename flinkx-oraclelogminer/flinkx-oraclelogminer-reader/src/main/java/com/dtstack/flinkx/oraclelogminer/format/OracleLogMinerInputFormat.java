@@ -91,7 +91,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         return false;
     }
 

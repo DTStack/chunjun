@@ -83,20 +83,19 @@ public class SqlUtil {
             "    FOR l_log_rec IN (\n" +
             "        SELECT\n" +
             "            MIN(name) name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        FROM\n" +
             "            (\n" +
             "                SELECT\n" +
             "                    MIN(member) AS name,\n" +
             "                    first_change#,\n" +
-            "                    next_change#\n" +
+            "                    281474976710655 AS next_change#\n" +
             "                FROM\n" +
             "                    v$log       l\n" +
             "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "                GROUP BY\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
+            "                    first_change#\n" +
             "                UNION\n" +
             "                SELECT\n" +
             "                    name,\n" +
@@ -111,8 +110,7 @@ public class SqlUtil {
             "            first_change# >= start_scn\n" +
             "            OR start_scn < next_change#\n" +
             "        GROUP BY\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        ORDER BY\n" +
             "            first_change#\n" +
             "    ) LOOP IF st THEN\n" +
@@ -151,7 +149,7 @@ public class SqlUtil {
             "                FROM\n" +
             "                    v$log       l\n" +
             "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS != 'UNUSED'\n" +
+            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "                GROUP BY\n" +
             "                    first_change#\n" +
             "                UNION\n" +
@@ -191,20 +189,19 @@ public class SqlUtil {
     public final static String SQL_QUERY_LOG_FILE =
             "SELECT\n" +
             "    MIN(name) name,\n" +
-            "    first_change#,\n" +
-            "    next_change#\n" +
+            "    first_change#\n" +
             "FROM\n" +
             "    (\n" +
             "        SELECT\n" +
             "            MIN(member) AS name,\n" +
             "            first_change#,\n" +
-            "            next_change#\n" +
+            "            281474976710655 AS next_change#\n" +
             "        FROM\n" +
             "            v$log       l\n" +
             "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+            "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "        GROUP BY\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        UNION\n" +
             "        SELECT\n" +
             "            name,\n" +
@@ -219,8 +216,7 @@ public class SqlUtil {
             "    first_change# >= ?\n" +
             "    OR ? < next_change#\n" +
             "GROUP BY\n" +
-            "    first_change#,\n" +
-            "    next_change#\n" +
+            "    first_change#\n" +
             "ORDER BY\n" +
             "    first_change#";
 
@@ -237,7 +233,7 @@ public class SqlUtil {
             "        FROM\n" +
             "            v$log       l\n" +
             "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS != 'UNUSED'\n" +
+            "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "        GROUP BY\n" +
             "            first_change#\n" +
             "        UNION\n" +
@@ -279,15 +275,21 @@ public class SqlUtil {
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO')";
+    public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO' and name is not null)";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? between FIRST_CHANGE# and NEXT_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO'  and name is not null)";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? > FIRST_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO')";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where ? > FIRST_CHANGE# union select FIRST_CHANGE# from v$archived_log where ? between FIRST_CHANGE# and NEXT_CHANGE# and standby_dest='NO' and name is not null)";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
 
-    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO')";
+    public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
+
+    //修改当前会话的date日期格式
+    public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";
+
+    //修改当前会话的timestamp日期格式
+    public final static String NLS_TIMESTAMP_FORMAT ="ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'";
 
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
@@ -318,16 +320,16 @@ public class SqlUtil {
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-        }
+    }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-        } else {
-            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-        }
+        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+    } else {
+        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+    }
 
         return sqlBuilder.toString();
-    }
+}
 
     /**
      * 构建需要采集操作类型字符串的过滤条件

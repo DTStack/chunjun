@@ -197,6 +197,10 @@
                                     <pattern>com.google.thirdparty</pattern>
                                     <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.metadatahive1.org.apache.http</shadedPattern>
+                                </relocation>
                             </relocations>
 
                             <transformers>
