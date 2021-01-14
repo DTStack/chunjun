@@ -21,7 +21,6 @@ package com.dtstack.flinkx.metadataphoenix5.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
-import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Help;
 import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Util;
 import com.dtstack.flinkx.util.ZkHelper;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -29,6 +28,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -63,6 +63,7 @@ import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_MASTER_KERBEROS_PRINCIPAL;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_CREATE_TIME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_DEFAULT;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_NAMESPACE;
@@ -266,8 +267,8 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             properties.setProperty(KEY_CONN_PASSWORD, password);
         }
         String jdbcUrl = dbUrl + ConstantValue.COLON_SYMBOL + zooKeeperPath;
-        if (Phoenix5Help.isOpenKerberos(hadoopConfig)) {
-            jdbcUrl = Phoenix5Help.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
+        if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
+            jdbcUrl = Phoenix5Util.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
         }
         try {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
