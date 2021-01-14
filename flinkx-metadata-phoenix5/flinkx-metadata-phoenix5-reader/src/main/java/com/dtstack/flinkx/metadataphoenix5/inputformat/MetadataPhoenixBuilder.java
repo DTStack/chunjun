@@ -19,7 +19,8 @@
 package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat;
+
+import java.util.Map;
 
 /**
  * @author kunni@dtstack.com
@@ -35,5 +36,9 @@ public class MetadataPhoenixBuilder extends MetadataInputFormatBuilder {
 
     public void setPath(String path){
         format.setPath(path);
+    }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig){
+        format.setHadoopConfig(hadoopConfig);
     }
 }
