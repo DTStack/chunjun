@@ -91,7 +91,7 @@
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/phoenix5writer/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/phoenix5writer/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../syncplugins/phoenix5writer/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
