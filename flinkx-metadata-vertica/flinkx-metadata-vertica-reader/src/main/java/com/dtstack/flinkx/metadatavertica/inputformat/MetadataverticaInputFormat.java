@@ -143,8 +143,9 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
                 map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
                 map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
                 map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
-                // 分区列信息
-                if(ptColumnMap.get(tableName) != null && columnName.equals(ptColumnMap.get(tableName))){
+                // 分区列信息,vertical partition express 中字段自动增加表名
+                String expressColumn = tableName + ConstantValue.POINT_SYMBOL + columnName;
+                if (ptColumnMap.get(tableName) != null && ptColumnMap.get(tableName).contains(expressColumn)) {
                     ptColumns.add(map);
                 }else{
                     columns.add(map);
@@ -226,8 +227,6 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         try(ResultSet resultSet = executeQuery0(sql, statement.get())){
             while (resultSet.next()){
                 String expression = resultSet.getString(2);
-                expression  = expression.substring(expression.indexOf(ConstantValue.POINT_SYMBOL) + 1,
-                        expression.lastIndexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
                 ptColumnMap.put(resultSet.getString(1), expression);
             }
         }catch (SQLException e){
