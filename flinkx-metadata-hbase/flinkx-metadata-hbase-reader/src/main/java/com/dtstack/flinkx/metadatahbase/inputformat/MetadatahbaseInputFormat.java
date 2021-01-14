@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.metadatahbase.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadatahbase.util.HbaseHelper;
@@ -190,9 +191,9 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
             HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
             List<HRegionInfo> regionInfos = admin.getTableRegions(table.getTableName());
             tableProperties.put(KEY_REGION_COUNT, regionInfos.size());
-
-            // 默认的region大小是256M
-            tableProperties.put(KEY_STORAGE_SIZE, tableSizeMap.get(table.getNameAsString()));
+            //统一表大小单位为字节
+            String tableSize = SizeUnitType.covertUnit(SizeUnitType.MB,SizeUnitType.B,Long.valueOf(tableSizeMap.get(table.getNameAsString())));
+            tableProperties.put(KEY_STORAGE_SIZE, Long.valueOf(tableSize));
             tableProperties.put(KEY_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
             //这里的table带了schema
             if(tableName.contains(ConstantValue.COLON_SYMBOL)){
