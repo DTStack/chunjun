@@ -18,11 +18,27 @@
 
 package com.dtstack.flinkx.metadataphoenix5.util;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import org.apache.commons.collections.MapUtils;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ClassBodyEvaluator;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
+import java.util.Properties;
+
+import static com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat.JDBC_PHOENIX_PREFIX;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.AUTHENTICATION_TYPE;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HADOOP_SECURITY_AUTHENTICATION;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_MASTER_KERBEROS_PRINCIPAL;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_REGIONSERVER_KERBEROS_PRINCIPAL;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_SECURITY_AUTHENTICATION;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_SECURITY_AUTHORIZATION;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_ZOOKEEPER_QUORUM;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.PHOENIX_QUERYSERVER_KERBEROS_PRINCIPAL;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.ZOOKEEPER_ZNODE_PARENT;
 
 public class Phoenix5Util {
 
@@ -90,5 +106,32 @@ public class Phoenix5Util {
         cbe.setImplementedInterfaces(new Class[]{IPhoenix5Helper.class});
         StringReader sr = new StringReader(IPhoenix5Helper.CLASS_STR);
         return (IPhoenix5Helper) cbe.createInstance(sr);
+    }
+
+
+    /**
+     * 设定phoenix认证所需要的kerberos参数
+     * @param p
+     * @param hbaseConfigMap
+     * @param dbUrl
+     * @param znode
+     * @return
+     */
+    public static String setKerberosParams(Properties p, Map<String, Object> hbaseConfigMap, String dbUrl, String znode) {
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
+        keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
+        String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
+        KerberosUtil.loadKrb5Conf(hbaseConfigMap);
+        p.setProperty(HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        p.setProperty(HBASE_SECURITY_AUTHORIZATION, AUTHENTICATION_TYPE);
+        p.setProperty(HADOOP_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        //获取zookeeper地址
+        String zooKeeperQuorum = dbUrl.substring(JDBC_PHOENIX_PREFIX.length(), dbUrl.length() - znode.length() - 1);
+        p.setProperty(HBASE_ZOOKEEPER_QUORUM, zooKeeperQuorum);
+        p.setProperty(ZOOKEEPER_ZNODE_PARENT, znode);
+        p.setProperty(HBASE_MASTER_KERBEROS_PRINCIPAL, MapUtils.getString(hbaseConfigMap, HBASE_MASTER_KERBEROS_PRINCIPAL));
+        p.setProperty(HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, MapUtils.getString(hbaseConfigMap, HBASE_REGIONSERVER_KERBEROS_PRINCIPAL));
+        p.setProperty(PHOENIX_QUERYSERVER_KERBEROS_PRINCIPAL, principal);
+        return dbUrl + ConstantValue.COLON_SYMBOL + principal + ConstantValue.COLON_SYMBOL + keytabFileName;
     }
 }
