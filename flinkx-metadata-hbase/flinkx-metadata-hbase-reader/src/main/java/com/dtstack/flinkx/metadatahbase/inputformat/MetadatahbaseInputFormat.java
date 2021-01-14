@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.metadatahbase.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadatahbase.util.HbaseHelper;
@@ -26,10 +27,14 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ZkHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.hadoop.hbase.ClusterStatus;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.RegionLoad;
+import org.apache.hadoop.hbase.ServerLoad;
+import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
@@ -43,6 +48,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.constants.ConstantValue.COMMA_SYMBOL;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
 import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatahbase.util.HbaseCons.KEY_COLUMN_FAMILY;
@@ -74,6 +80,8 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, Long> createTimeMap;
 
+    protected Map<String, Integer> tableSizeMap;
+
     protected ZooKeeper zooKeeper;
 
     protected String path;
@@ -94,6 +102,7 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
                 LOG.info("{}:{}   ",key,value);
             });
             admin = hbaseConnection.getAdmin();
+            tableSizeMap = generateTableSizeMap();
             if(CollectionUtils.isEmpty(tableList)){
                 tableList = showTables();
             }
@@ -102,6 +111,28 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
         }catch (Exception e){
             throw new IOException(e);
         }
+    }
+
+    /**
+     * 获取表的region大小的总和即为表饿的存储大小，误差最大为1M * regionSize
+     * @return
+     * @throws Exception
+     */
+    private Map<String,Integer> generateTableSizeMap() throws Exception{
+        Map<String,Integer> sizeMap = new HashMap<>(16);
+        ClusterStatus clusterStatus = admin.getClusterStatus();
+        for (ServerName serverName : clusterStatus.getServers()) {
+            ServerLoad serverLoad = clusterStatus.getLoad(serverName);
+            for (Map.Entry<byte[], RegionLoad> entry : serverLoad.getRegionsLoad().entrySet()) {
+                RegionLoad regionLoad = entry.getValue();
+                String regionName = new String(entry.getKey(), "UTF-8");
+                String[] regionSplits = regionName.split(COMMA_SYMBOL);
+                //regionSplits[0] 为table name
+                int sumSize=sizeMap.getOrDefault(regionSplits[0],0)+regionLoad.getStorefileSizeMB();;
+                sizeMap.put(regionSplits[0],sumSize);
+            }
+        }
+        return sizeMap;
     }
 
     @Override
@@ -121,7 +152,10 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
                 if(!tableName.isSystemTable()){
                     //此时的表名带有namespace,需要去除
                     String tableWithNameSpace = tableName.getNameAsString();
-                    tableNameList.add(tableWithNameSpace.split(ConstantValue.COLON_SYMBOL)[1]);
+                    if(tableWithNameSpace.contains(ConstantValue.COLON_SYMBOL)){
+                        tableWithNameSpace  = tableWithNameSpace.split(ConstantValue.COLON_SYMBOL)[1];
+                    }
+                    tableNameList.add(tableWithNameSpace);
                 }
             }
         }catch (IOException e){
@@ -157,10 +191,14 @@ public class MetadatahbaseInputFormat extends BaseMetadataInputFormat {
             HTableDescriptor table = admin.getTableDescriptor(TableName.valueOf(tableName));
             List<HRegionInfo> regionInfos = admin.getTableRegions(table.getTableName());
             tableProperties.put(KEY_REGION_COUNT, regionInfos.size());
-            // 默认的region大小是256M
-            long regionSize = table.getMaxFileSize()==-1 ? 256 : table.getMaxFileSize();
-            tableProperties.put(KEY_STORAGE_SIZE,  regionSize * regionInfos.size());
+            //统一表大小单位为字节
+            String tableSize = SizeUnitType.covertUnit(SizeUnitType.MB,SizeUnitType.B,Long.valueOf(tableSizeMap.get(table.getNameAsString())));
+            tableProperties.put(KEY_STORAGE_SIZE, Long.valueOf(tableSize));
             tableProperties.put(KEY_CREATE_TIME, createTimeMap.get(table.getNameAsString()));
+            //这里的table带了schema
+            if(tableName.contains(ConstantValue.COLON_SYMBOL)){
+                tableName  = tableName.split(ConstantValue.COLON_SYMBOL)[1];
+            }
             tableProperties.put(KEY_TABLE_NAME, tableName);
             tableProperties.put(KEY_NAMESPACE, currentDb.get());
         }catch (IOException e){
