@@ -21,6 +21,7 @@ package com.dtstack.flinkx.metadatavertica.inputformat;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -145,7 +146,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
                 map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
                 // 分区列信息,vertical partition express 中字段自动增加表名
                 String expressColumn = tableName + ConstantValue.POINT_SYMBOL + columnName;
-                if (ptColumnMap.get(tableName) != null && ptColumnMap.get(tableName).contains(expressColumn)) {
+                String partitionExpression = ptColumnMap.get(tableName);
+                if (StringUtils.isNotBlank(partitionExpression) && partitionExpression.contains(expressColumn)) {
                     ptColumns.add(map);
                 }else{
                     columns.add(map);
