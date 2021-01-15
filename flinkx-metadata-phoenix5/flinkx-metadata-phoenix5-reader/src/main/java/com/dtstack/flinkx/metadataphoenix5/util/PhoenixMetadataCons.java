@@ -67,9 +67,7 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String AUTHENTICATION_TYPE = "kerberos";
 
-    public static final String HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
-
-    public static final String ZOOKEEPER_ZNODE_PARENT = "zookeeper.znode.parent";
+    public static final String KEYTAB_FILE = "keytabFileName";
 
 
 }

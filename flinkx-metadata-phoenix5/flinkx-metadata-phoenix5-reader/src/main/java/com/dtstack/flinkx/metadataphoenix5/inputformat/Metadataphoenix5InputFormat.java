@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.zookeeper.ZooKeeper;
 import org.codehaus.commons.compiler.CompileException;
@@ -267,11 +266,12 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             properties.setProperty(KEY_CONN_PASSWORD, password);
         }
         String jdbcUrl = dbUrl + ConstantValue.COLON_SYMBOL + zooKeeperPath;
-        if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
-            jdbcUrl = Phoenix5Util.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
-        }
         try {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
+            if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
+                Phoenix5Util.setKerberosParams(properties, hadoopConfig);
+                return Phoenix5Util.getConnectionWithKerberos(hadoopConfig,properties,jdbcUrl,helper);
+            }
             return helper.getConn(jdbcUrl, properties);
         } catch (IOException | CompileException e) {
             String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
