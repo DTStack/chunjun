@@ -19,7 +19,9 @@
 package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Map;
 
 /**
  * @author kunni@dtstack.com
@@ -33,7 +35,23 @@ public class MetadataPhoenixBuilder extends MetadataInputFormatBuilder {
         this.format = format;
     }
 
+    @Override
+    protected void checkFormat() {
+        super.checkFormat();
+        StringBuilder sb = new StringBuilder(256);
+        if (StringUtils.isEmpty(format.path)) {
+            sb.append("phoenix zookeeper can not be empty ;\n");
+        }
+        if (sb.length() > 0) {
+            throw new IllegalArgumentException(sb.toString());
+        }
+    }
+
     public void setPath(String path){
         format.setPath(path);
+    }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig){
+        format.setHadoopConfig(hadoopConfig);
     }
 }

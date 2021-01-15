@@ -61,10 +61,10 @@ public class FlinkPerJobUtil {
         int slotsPerTaskManager = 1;
 
         if (conProp != null) {
-            if (conProp.contains(JOBMANAGER_MEMORY_MB)) {
+            if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
                 jobmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
             }
-            if (conProp.contains(TASKMANAGER_MEMORY_MB)) {
+            if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
                 taskmanagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
             }
             if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {

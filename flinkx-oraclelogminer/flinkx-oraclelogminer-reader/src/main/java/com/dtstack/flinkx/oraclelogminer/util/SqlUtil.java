@@ -83,21 +83,19 @@ public class SqlUtil {
             "    FOR l_log_rec IN (\n" +
             "        SELECT\n" +
             "            MIN(name) name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        FROM\n" +
             "            (\n" +
             "                SELECT\n" +
             "                    MIN(member) AS name,\n" +
             "                    first_change#,\n" +
-            "                    next_change#\n" +
+            "                    281474976710655 AS next_change#\n" +
             "                FROM\n" +
             "                    v$log       l\n" +
             "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
             "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "                GROUP BY\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
+            "                    first_change#\n" +
             "                UNION\n" +
             "                SELECT\n" +
             "                    name,\n" +
@@ -112,8 +110,7 @@ public class SqlUtil {
             "            first_change# >= start_scn\n" +
             "            OR start_scn < next_change#\n" +
             "        GROUP BY\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        ORDER BY\n" +
             "            first_change#\n" +
             "    ) LOOP IF st THEN\n" +
@@ -192,21 +189,19 @@ public class SqlUtil {
     public final static String SQL_QUERY_LOG_FILE =
             "SELECT\n" +
             "    MIN(name) name,\n" +
-            "    first_change#,\n" +
-            "    next_change#\n" +
+            "    first_change#\n" +
             "FROM\n" +
             "    (\n" +
             "        SELECT\n" +
             "            MIN(member) AS name,\n" +
             "            first_change#,\n" +
-            "            next_change#\n" +
+            "            281474976710655 AS next_change#\n" +
             "        FROM\n" +
             "            v$log       l\n" +
             "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
             "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
             "        GROUP BY\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
+            "            first_change#\n" +
             "        UNION\n" +
             "        SELECT\n" +
             "            name,\n" +
@@ -221,8 +216,7 @@ public class SqlUtil {
             "    first_change# >= ?\n" +
             "    OR ? < next_change#\n" +
             "GROUP BY\n" +
-            "    first_change#,\n" +
-            "    next_change#\n" +
+            "    first_change#\n" +
             "ORDER BY\n" +
             "    first_change#";
 

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.util.JsonModifyUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.client.ClientUtils;
@@ -42,12 +43,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * FlinkX commandline Launcher
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class Launcher {
@@ -56,7 +59,7 @@ public class Launcher {
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
 
-    public static final String PLUGINS_DIR_NAME = "plugins";
+    public static final String PLUGINS_DIR_NAME = "syncplugins";
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
     public static final String MAIN_CLASS = "com.dtstack.flinkx.Main";
 
@@ -66,6 +69,23 @@ public class Launcher {
         findDefaultConfigDir(launcherOptions);
 
         List<String> argList = optionParser.getProgramExeArgList();
+
+        // 将argList转化为HashMap，方便通过参数名称来获取参数值
+        HashMap<String, String> temp = new HashMap<>(16);
+        for (int i = 0; i < argList.size(); i += 2) {
+            temp.put(argList.get(i), argList.get(i + 1));
+        }
+        // 对json中的值进行修改
+        HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(temp.get("-p"));
+        temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
+
+        // 清空list，填充修改后的参数值
+        argList.clear();
+        for (int i = 0; i < temp.size(); i++) {
+            argList.add(temp.keySet().toArray()[i].toString());
+            argList.add(temp.values().toArray()[i].toString());
+        }
+
         switch (ClusterMode.getByName(launcherOptions.getMode())) {
             case local:
                 com.dtstack.flinkx.Main.main(argList.toArray(new String[0]));
@@ -92,7 +112,7 @@ public class Launcher {
         }
     }
 
-    private static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
+    public static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
         String pluginRoot = launcherOptions.getPluginRoot();
         String content = launcherOptions.getJob();
         String coreJarName = getCoreJarFileName(pluginRoot);

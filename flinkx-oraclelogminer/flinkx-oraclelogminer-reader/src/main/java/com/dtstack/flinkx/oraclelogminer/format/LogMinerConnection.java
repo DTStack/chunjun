@@ -433,16 +433,7 @@ public class LogMinerConnection {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
                 logFile.setFirstChange(rs.getLong("first_change#"));
-                if(isOracle10){
-                    logFile.setNextChange(MAX_SCN);
-                }else{
-                    String nextChangeString = rs.getString("next_change#");
-                    if (nextChangeString.length() == 20) {
-                        logFile.setNextChange(MAX_SCN);
-                    } else {
-                        logFile.setNextChange(Long.parseLong(nextChangeString));
-                    }
-                }
+                logFile.setNextChange(MAX_SCN);
 
                 logFiles.add(logFile);
             }

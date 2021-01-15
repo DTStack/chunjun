@@ -27,7 +27,10 @@ import com.dtstack.flinkx.metadataphoenix5.inputformat.MetadataPhoenixBuilder;
 import com.dtstack.flinkx.metadataphoenix5.inputformat.Metadataphoenix5InputFormat;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.util.Map;
+
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_HADOOP_CONFIG;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_PATH;
 import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
 
@@ -40,7 +43,8 @@ public class Metadataphoenix5Reader extends MetadataReader {
 
     public Metadataphoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-
+        hadoopConfig = (Map<String, Object>) config.getJob().getContent()
+                .get(0).getReader().getParameter().getVal(KEY_HADOOP_CONFIG);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         path = readerConfig.getParameter().getStringVal(KEY_PATH, DEFAULT_PATH);
         driverName = DRIVER_NAME;
@@ -51,6 +55,7 @@ public class Metadataphoenix5Reader extends MetadataReader {
         MetadataPhoenixBuilder builder = new MetadataPhoenixBuilder(new Metadataphoenix5InputFormat());
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setPath(path);
+        builder.setHadoopConfig(hadoopConfig);
         return builder;
     }
 }

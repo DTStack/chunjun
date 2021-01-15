@@ -5,7 +5,7 @@
 名称：**phoenixwriter**<br />
 <a name="jVb3v"></a>
 ## 二、支持的数据源版本
-phoenix4.12.0-HBase-1.3及之后<br />
+phoenix4.12.0-HBase-1.3及以上<br />
 <a name="2lzA4"></a>
 ## 三、参数说明
 

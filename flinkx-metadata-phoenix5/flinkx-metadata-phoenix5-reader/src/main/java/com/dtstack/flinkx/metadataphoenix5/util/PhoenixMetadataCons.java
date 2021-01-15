@@ -48,4 +48,26 @@ public class PhoenixMetadataCons extends MetaDataCons {
 
     public static final String SQL_DEFAULT_COLUMN = "SELECT ORDINAL_POSITION, COLUMN_FAMILY FROM SYSTEM.CATALOG WHERE TABLE_SCHEM is null AND TABLE_NAME = '%s' ";
 
+    public static final String HBASE_MASTER_KERBEROS_PRINCIPAL = "hbase.master.kerberos.principal";
+
+    public static final String HBASE_REGIONSERVER_KERBEROS_PRINCIPAL = "hbase.regionserver.kerberos.principal";
+
+    public static final String PHOENIX_QUERYSERVER_KERBEROS_PRINCIPAL = "phoenix.queryserver.kerberos.principal";
+
+    public final static String HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
+
+    public final static String HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
+
+
+    public final static String HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
+
+    public final static String KEY_PRINCIPAL = "principal";
+
+    public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
+
+    public static final String AUTHENTICATION_TYPE = "kerberos";
+
+    public static final String KEYTAB_FILE = "keytabFileName";
+
+
 }
