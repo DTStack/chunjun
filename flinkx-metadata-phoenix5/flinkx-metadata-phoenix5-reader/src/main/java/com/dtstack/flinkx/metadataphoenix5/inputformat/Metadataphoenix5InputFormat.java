@@ -20,6 +20,7 @@ package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
 import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Util;
 import com.dtstack.flinkx.util.ZkHelper;
@@ -28,6 +29,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +46,7 @@ import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,6 +95,35 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
     protected String path;
 
     protected String zooKeeperPath;
+
+    @Override
+    protected void closeInternal() throws IOException {
+        tableIterator.remove();
+        Statement st = statement.get();
+        if (null != st) {
+            try {
+                st.close();
+                statement.remove();
+            } catch (SQLException e) {
+                LOG.error("close statement failed, e = {}", ExceptionUtil.getErrorMessage(e));
+                throw new IOException("close statement failed", e);
+            }
+        }
+        currentDb.remove();
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        if(connection.get() != null){
+            try{
+                connection.get().close();
+                connection.remove();
+            }catch (SQLException e){
+                LOG.error("failed to close connection, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
+        }
+        super.closeInputFormat();
+    }
 
 
     @Override
@@ -267,11 +299,12 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             properties.setProperty(KEY_CONN_PASSWORD, password);
         }
         String jdbcUrl = dbUrl + ConstantValue.COLON_SYMBOL + zooKeeperPath;
-        if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
-            jdbcUrl = Phoenix5Util.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
-        }
         try {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
+            if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
+                Phoenix5Util.setKerberosParams(properties, hadoopConfig);
+                return Phoenix5Util.getConnectionWithKerberos(hadoopConfig, properties, jdbcUrl, helper);
+            }
             return helper.getConn(jdbcUrl, properties);
         } catch (IOException | CompileException e) {
             String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
