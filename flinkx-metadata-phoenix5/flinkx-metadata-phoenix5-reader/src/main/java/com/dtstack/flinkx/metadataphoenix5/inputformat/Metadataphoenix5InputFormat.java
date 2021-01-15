@@ -303,7 +303,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
             if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
                 Phoenix5Util.setKerberosParams(properties, hadoopConfig);
-                return Phoenix5Util.getConnectionWithKerberos(hadoopConfig,properties,jdbcUrl,helper);
+                return Phoenix5Util.getConnectionWithKerberos(hadoopConfig, properties, jdbcUrl, helper);
             }
             return helper.getConn(jdbcUrl, properties);
         } catch (IOException | CompileException e) {
