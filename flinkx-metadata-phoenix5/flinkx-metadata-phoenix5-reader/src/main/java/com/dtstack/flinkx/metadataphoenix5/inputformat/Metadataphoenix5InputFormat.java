@@ -88,6 +88,8 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
     public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
 
+    public static final String DEFAULT_SCHEMA = "default";
+
     protected ZooKeeper zooKeeper;
 
     protected Map<String, Object> hadoopConfig;
@@ -206,7 +208,12 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         } catch (SQLException e) {
             LOG.error("query column information failed, {}", ExceptionUtil.getErrorMessage(e));
         }
-        try (ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)) {
+        //default schema需要特殊处理
+        String originSchema = currentDb.get();
+        if (DEFAULT_SCHEMA.equalsIgnoreCase(originSchema)) {
+            originSchema = null;
+        }
+        try (ResultSet resultSet = connection.get().getMetaData().getColumns(null, originSchema, tableName, null)) {
             while (resultSet.next()) {
                 Map<String, Object> map = new HashMap<>(16);
                 String index = resultSet.getString(RESULT_SET_ORDINAL_POSITION);
