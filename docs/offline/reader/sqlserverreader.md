@@ -5,7 +5,7 @@
 名称：**sqlserverreader**
 <a name="nZJPy"></a>
 ## 二、支持的数据源版本
-**Microsoft SQL Server 2012及以后**
+**Microsoft SQL Server 2012及以上**
 
 <a name="2lzA4"></a>
 ## 三、参数说明
@@ -198,7 +198,6 @@
       }
   }
 }
-}
 ```
 <a name="FexiH"></a>
 #### 2、多通道
@@ -264,7 +263,6 @@
         "pattern":""
       }
   }
-}
 }
 ```
 <a name="SYwsa"></a>
@@ -332,7 +330,6 @@
       }
   }
 }
-}
 ```
 <a name="labNO"></a>
 #### 4、增量同步指定startLocation
@@ -399,8 +396,8 @@
         "path" : "",
         "pattern":""
       }
+    }
   }
-}
 }
 ```
 <a name="b1Fsl"></a>

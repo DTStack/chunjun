@@ -14,12 +14,13 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 
 ## 二、参数说明
 
-
 - **topic**
    - 描述：要消费的topic，多个以,分割，当`mode`为`timestamp`、`specific-offsets`时不支持多topic
    - 必选：是
    - 字段类型：String
    - 默认值：无
+
+<br />
 
 - **mode**
    - 描述：kafka消费端启动模式，目前仅支持`kafkareader`插件
@@ -33,11 +34,15 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 字段类型：String
    - 默认值：group-offsets
 
+<br />
+
 - **timestamp**
    - 描述：指定的kafka时间戳采集起点，目前仅支持`kafkareader`插件
    - 必选：当`mode`为`timestamp`时必选
    - 字段类型：Long
    - 默认值：无
+
+<br />
 
 - **offset**
    - 描述：消费的分区及对应的特定偏移量，目前仅支持`kafkareader`插件
@@ -46,17 +51,23 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 格式：partition:0,offset:42;partition:1,offset:300;partition:2,offset:300
    - 默认值：无
 
+<br />
+
 - **groupId**
    - 描述：kafka消费组Id
    - 必选：否
    - 字段类型：String
    - 默认值：default
 
+<br />
+
 - **encoding**
    - 描述：字符编码
    - 必选：否
    - 字段类型：String
    - 默认值：UTF-8
+
+<br />
 
 - **codec**
    - 描述：编码解码器类型，支持 json、text
@@ -99,11 +110,15 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 字段类型：String
    - 默认值：text
 
+<br />
+
 - **blankIgnore**
    - 描述：是否忽略空值消息
    - 必选：否
    - 字段类型：Boolean
    - 默认值：false
+
+<br />
 
 - **consumerSettings**
    - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
@@ -188,20 +203,14 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
         }
       }
     ],
-    "writer": {
-      "parameter": {
-        "print": true
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": true
       },
-      "name": "streamwriter"
-    }
-  },
-  "setting": {
-    "restore": {
-      "isRestore": false,
-      "isStream": true
-    },
-    "speed": {
-      "channel": 1
+      "speed": {
+        "channel": 1
+      }
     }
   }
 }
@@ -251,7 +260,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
       "reader" : {
         "parameter" : {
           "topic" : "test",
-          "mode": "timestamp-offset",
+          "mode": "timestamp",
           "timestamp": 1609812275000,
           "offset": "partition:0,offset:0;partition:1,offset:1;partition:2,offset:2",
           "codec": "text",
@@ -270,6 +279,10 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
       }
     } ],
     "setting": {
+      "restore" : {
+        "isRestore" : false,
+        "isStream" : true
+      },
       "speed": {
         "readerChannel": 3,
         "writerChannel": 1
@@ -287,7 +300,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
         "reader" : {
           "parameter" : {
             "topic" : "test",
-            "mode": "timestamp-offset",
+            "mode": "timestamp",
             "timestamp": 1609812275000,
             "codec": "text",
             "consumerSettings" : {
@@ -333,5 +346,3 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-
-
