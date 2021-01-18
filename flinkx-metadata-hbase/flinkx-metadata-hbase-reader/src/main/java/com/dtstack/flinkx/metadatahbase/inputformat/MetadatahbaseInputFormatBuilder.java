@@ -18,14 +18,14 @@
 
 package com.dtstack.flinkx.metadatahbase.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
+import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
 
 import java.util.Map;
 
 /** 帮助配置hbase读取参数
  * @author kunni@dtstack.com
  */
-public class MetadatahbaseInputFormatBuilder extends MetadataInputFormatBuilder {
+public class MetadatahbaseInputFormatBuilder extends MetadataBaseBuilder {
 
     protected MetadatahbaseInputFormat format;
 

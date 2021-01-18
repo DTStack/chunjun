@@ -67,6 +67,8 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
      */
     abstract protected void doOpenInternal() throws IOException;
 
+    abstract protected List<Object> showTables() throws Exception;
+
     @SuppressWarnings("unchecked")
     @Override
     protected InputSplit[] createInputSplitsInternal(int splitNumber) {
@@ -102,7 +104,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
      * @return metadataEntity 表的元数据
      * @throws IOException 异常
      */
-    public abstract MetadataEntity createMetadataEntity() throws IOException;
+    public abstract MetadataEntity createMetadataEntity() throws Exception;
 
     @Override
     public boolean reachedEnd() {

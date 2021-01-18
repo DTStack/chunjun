@@ -31,7 +31,7 @@ public class MetadatardbEntity extends MetadataEntity {
 
     protected List<ColumnEntity> column;
 
-    protected  String tableName;
+    protected String tableName;
 
     public void setTableProperties(TableEntity tableProperties) {
         this.tableProperties = tableProperties;

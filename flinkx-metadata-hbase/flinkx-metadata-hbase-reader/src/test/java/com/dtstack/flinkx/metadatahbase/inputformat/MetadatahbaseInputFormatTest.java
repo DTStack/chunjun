@@ -60,10 +60,6 @@ public class MetadatahbaseInputFormatTest {
         Assert.assertEquals(inputFormat.path, "/hbase/table");
     }
 
-    @Test
-    public void testQuote(){
-        Assert.assertEquals(inputFormat.quote("table"), "table");
-    }
 
     @Test
     public void testQueryCreateTimeMap(){
