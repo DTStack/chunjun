@@ -116,6 +116,8 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     @Override
     public MetadataEntity createMetadataEntity() throws IOException {
         MetadatardbEntity entity = createMetadatardbEntity();
+        entity.setSchema(currentDatabase);
+        entity.setTableName((String)currentObject);
         entity.setTableProperties(createTableEntity());
         entity.setColumn(queryColumn());
         return entity;

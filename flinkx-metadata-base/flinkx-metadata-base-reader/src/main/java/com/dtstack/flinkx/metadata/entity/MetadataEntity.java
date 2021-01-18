@@ -29,17 +29,11 @@ public class MetadataEntity implements Serializable {
 
     protected String schema;
 
-    protected String table;
-
     protected boolean querySuccess;
 
     protected String errorMsg;
 
     protected String operaType;
-
-    public void setTable(String table) {
-        this.table = table;
-    }
 
     public void setOperaType(String operaType) {
         this.operaType = operaType;

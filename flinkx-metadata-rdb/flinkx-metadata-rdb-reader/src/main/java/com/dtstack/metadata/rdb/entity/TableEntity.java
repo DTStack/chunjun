@@ -23,12 +23,6 @@ package com.dtstack.metadata.rdb.entity;
  */
 public class TableEntity {
 
-    protected String table;
-
-    protected String schemaName;
-
-    protected String databaseName;
-
     protected String createTime;
 
     protected String comment;
@@ -43,18 +37,6 @@ public class TableEntity {
 
     public void setTotalSize(String totalSize) {
         this.totalSize = totalSize;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
-    }
-
-    public void setSchemaName(String schemaName) {
-        this.schemaName = schemaName;
-    }
-
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
     }
 
     public void setCreateTime(String createTime) {

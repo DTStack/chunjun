@@ -92,7 +92,6 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
         String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
         try(ResultSet rs = statement.executeQuery(sql)){
             while (rs.next()) {
-                entity.setTable(rs.getString(RESULT_TABLE_NAME));
                 entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
                 entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
                 entity.setTotalSize(rs.getString(RESULT_DATA_LENGTH));
