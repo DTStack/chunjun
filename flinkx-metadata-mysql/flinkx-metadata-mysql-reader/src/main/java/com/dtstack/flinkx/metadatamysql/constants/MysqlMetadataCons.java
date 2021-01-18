@@ -30,14 +30,11 @@ public class MysqlMetadataCons extends RdbCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
 
-    public static final String KEY_ENGINE = "engine";
-    public static final String KEY_ROW_FORMAT = "rowFormat";
-    public static final String KEY_TABLE_TYPE = "tableType";
-
     public static final String RESULT_TABLE_TYPE = "TABLE_TYPE";
     public static final String RESULT_ENGINE = "ENGINE";
     public static final String RESULT_ROW_FORMAT = "ROW_FORMAT";
     public static final String RESULT_ROWS = "TABLE_ROWS";
+    public static final String RESULT_TABLE_NAME = "TABLE_NAME";
     public static final String RESULT_DATA_LENGTH = "DATA_LENGTH";
     public static final String RESULT_CREATE_TIME = "CREATE_TIME";
     public static final String RESULT_TABLE_COMMENT = "TABLE_COMMENT";

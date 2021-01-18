@@ -72,6 +72,4 @@ public class ConstantValue {
     public static final long STORE_SIZE_G = 1024L * 1024 * 1024;
 
     public static final long STORE_SIZE_M = 1024L * 1024;
-
-    public static final String COLON_SYMBOL = ":" ;
 }

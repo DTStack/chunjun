@@ -23,7 +23,7 @@ package com.dtstack.metadata.rdb.entity;
  */
 public class TableEntity {
 
-    protected String tableName;
+    protected String table;
 
     protected String schemaName;
 
@@ -45,8 +45,8 @@ public class TableEntity {
         this.totalSize = totalSize;
     }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public void setSchemaName(String schemaName) {

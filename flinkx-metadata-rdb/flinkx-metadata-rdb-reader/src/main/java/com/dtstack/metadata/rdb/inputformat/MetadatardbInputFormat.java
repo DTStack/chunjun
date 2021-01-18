@@ -20,6 +20,7 @@ package com.dtstack.metadata.rdb.inputformat;
 
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
 import com.dtstack.metadata.rdb.entity.ColumnEntity;
@@ -55,8 +56,6 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     protected Statement statement;
 
-    protected String currentTable;
-
     protected String driverName;
 
     protected String url;
@@ -67,21 +66,24 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     @Override
     protected void doOpenInternal() {
-        try{
-            Class.forName(driverName);
-            connection = MetadataDbUtil.getConnection(url, username, password);
-            statement = connection.createStatement();
+        try {
+            ClassUtil.forName(driverName, getClass().getClassLoader());
+            if (connection == null) {
+                connection = MetadataDbUtil.getConnection(url, username, password);
+                statement = connection.createStatement();
+            }
             switchDataBase();
-        }catch (ClassNotFoundException | SQLException e){
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        if(CollectionUtils.isEmpty(tableList)){
+        if (CollectionUtils.isEmpty(tableList)) {
             tableList = showTables();
         }
     }
 
     /**
      * 设置当前数据库环境
+     *
      * @throws SQLException sql异常
      */
 
@@ -89,21 +91,22 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     @Override
     protected void closeInternal() {
-        MetadataDbUtil.closeConnection(connection);
+
     }
 
     /**
      * 当传入表名为空时，手动查询所有表
      * 提供默认实现为只查询表名的情况，查询
+     *
      * @return 表名
      */
     public List<Object> showTables() {
         List<Object> tables = new ArrayList<>();
-        try(ResultSet resultSet = connection.getMetaData().getTables(currentDatabase, null, null, null)){
-               while (resultSet.next()){
-                   tables.add(resultSet.getString(RESULT_TABLE_NAME));
-               }
-        }catch (SQLException e){
+        try (ResultSet resultSet = connection.getMetaData().getTables(currentDatabase, null, null, null)) {
+            while (resultSet.next()) {
+                tables.add(resultSet.getString(RESULT_TABLE_NAME));
+            }
+        } catch (SQLException e) {
             LOG.error("failed to query table, currentDb = {} ", currentDatabase);
             return tables;
         }
@@ -112,7 +115,6 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     @Override
     public MetadataEntity createMetadataEntity() throws IOException {
-        currentTable = (String) currentObject;
         MetadatardbEntity entity = createMetadatardbEntity();
         entity.setTableProperties(createTableEntity());
         entity.setColumn(queryColumn());
@@ -121,6 +123,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 元数据信息
+     *
      * @return MetadatardbEntity
      * @throws IOException sql异常
      */
@@ -128,15 +131,17 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 表的元数据属性
+     *
      * @return TableEntity
      * @throws IOException sql异常
      */
-    abstract public TableEntity createTableEntity()  throws IOException;
+    abstract public TableEntity createTableEntity() throws IOException;
 
-    public List<ColumnEntity> queryColumn()  throws IOException {
+    public List<ColumnEntity> queryColumn() throws IOException {
         List<ColumnEntity> columnEntities = new ArrayList<>();
-        try(ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)){
-            while (resultSet.next()){
+        String currentTable = (String) currentObject;
+        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)) {
+            while (resultSet.next()) {
                 ColumnEntity columnEntity = new ColumnEntity();
                 columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
                 columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
@@ -148,26 +153,32 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
                 columnEntity.setLength(resultSet.getString(RESULT_COLUMN_SIZE));
                 columnEntities.add(columnEntity);
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
         }
         return columnEntities;
     }
 
-    public void setUsername(String username){
+    public void setUsername(String username) {
         this.username = username;
     }
 
-    public void setPassword(String password){
+    public void setPassword(String password) {
         this.password = password;
     }
 
-    public void setUrl(String url){
+    public void setUrl(String url) {
         this.url = url;
     }
 
-    public void setDriverName(String driverName){
+    public void setDriverName(String driverName) {
         this.driverName = driverName;
     }
 
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        MetadataDbUtil.closeConnection(connection);
+        super.closeInputFormat();
+    }
 }

@@ -46,15 +46,14 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     protected List<Object> tableList;
 
-    protected int currentPosition;
-
     protected Iterator<Object> iterator;
 
     protected Object currentObject;
 
+
+
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        currentPosition = 0;
         LOG.info("inputSplit : {} ", inputSplit);
         tableList = ((MetadataBaseInputSplit) inputSplit).getTableList();
         currentDatabase = ((MetadataBaseInputSplit) inputSplit).getDbName();
@@ -95,7 +94,6 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
             metadataEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
         }
         metadataEntity.setOperaType(DEFAULT_OPERA_TYPE);
-        currentPosition++;
         return Row.of(GsonUtil.GSON.toJson(metadataEntity));
     }
 

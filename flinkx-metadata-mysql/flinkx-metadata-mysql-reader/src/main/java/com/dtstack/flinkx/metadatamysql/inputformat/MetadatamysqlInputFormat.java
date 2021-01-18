@@ -41,7 +41,7 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESUL
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROWS;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROW_FORMAT;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_TYPE;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_TABLE_INFO;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_SWITCH_DATABASE;
@@ -56,7 +56,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
 
     protected List<IndexEntity> queryIndex() throws SQLException {
         List<IndexEntity> indexEntities = new LinkedList<>();
-        String sql = String.format(SQL_QUERY_INDEX, currentTable);
+        String sql = String.format(SQL_QUERY_INDEX, currentObject);
         ResultSet rs = statement.executeQuery(sql);
         while (rs.next()) {
             IndexEntity entity = new IndexEntity();
@@ -89,15 +89,15 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
     @Override
     public TableEntity createTableEntity() throws IOException {
         MysqlTableEntity entity = new MysqlTableEntity();
-        String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentTable);
+        String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
         try(ResultSet rs = statement.executeQuery(sql)){
             while (rs.next()) {
+                entity.setTable(rs.getString(RESULT_TABLE_NAME));
                 entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
                 entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
                 entity.setTotalSize(rs.getString(RESULT_DATA_LENGTH));
                 entity.setRows(rs.getString(RESULT_ROWS));
-                entity.setEngine(RESULT_TABLE_TYPE);
-                entity.setRowFormat(rs.getString(RESULT_ENGINE));
+                entity.setEngine(rs.getString(RESULT_ENGINE));
                 entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
             }
         }catch (SQLException e){
