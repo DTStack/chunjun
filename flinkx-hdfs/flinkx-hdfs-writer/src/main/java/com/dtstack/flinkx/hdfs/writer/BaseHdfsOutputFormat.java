@@ -24,7 +24,6 @@ import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -53,6 +52,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     /** hdfs高可用配置 */
     protected Map<String,Object> hadoopConfig;
+
+    //hadoop是否是高可用
+    protected boolean isHa;
 
     protected String defaultFs;
 

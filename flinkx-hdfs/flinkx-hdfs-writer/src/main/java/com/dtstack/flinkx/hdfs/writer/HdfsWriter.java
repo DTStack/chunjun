@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hdfs.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -63,6 +64,9 @@ public class HdfsWriter extends BaseDataWriter {
 
     protected Map<String,Object> hadoopConfig;
 
+    //hadoop是否是高可用
+    protected boolean isHa;
+
     protected String charSet;
 
     protected List<String> fullColumnName;
@@ -81,6 +85,7 @@ public class HdfsWriter extends BaseDataWriter {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        isHa = writerConfig.getParameter().getBooleanVal(HdfsConfigKeys.KEY_HADOOP_HA,true);
         List columns = writerConfig.getParameter().getColumn();
         fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
         defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
@@ -120,6 +125,7 @@ public class HdfsWriter extends BaseDataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setIsHa(isHa);
         builder.setDefaultFs(defaultFs);
         builder.setPath(path);
         builder.setFileName(fileName);
