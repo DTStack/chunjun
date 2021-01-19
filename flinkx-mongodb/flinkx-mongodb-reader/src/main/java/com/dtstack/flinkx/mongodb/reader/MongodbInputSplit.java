@@ -57,4 +57,13 @@ public class MongodbInputSplit implements InputSplit {
     public int getSplitNumber() {
         return 0;
     }
+
+
+    @Override
+    public String toString() {
+        return "MongodbInputSplit{" +
+                "skip=" + skip +
+                ", limit=" + limit +
+                '}';
+    }
 }
