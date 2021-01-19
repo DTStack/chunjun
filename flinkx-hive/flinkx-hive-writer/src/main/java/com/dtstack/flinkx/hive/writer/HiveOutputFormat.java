@@ -55,6 +55,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
      */
     protected Map<String, Object> hadoopConfig;
 
+    //hadoop是否是高可用
+    protected boolean isHa;
+
     protected String fileType;
 
     /**
@@ -332,6 +335,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private HdfsOutputFormatBuilder getHdfsOutputFormatBuilder() {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(fileType);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setIsHa(isHa);
         builder.setDefaultFs(defaultFs);
         builder.setWriteMode(writeMode);
         builder.setCompress(compress);

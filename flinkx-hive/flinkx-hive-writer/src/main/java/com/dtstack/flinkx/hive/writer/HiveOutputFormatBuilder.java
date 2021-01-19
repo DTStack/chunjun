@@ -92,6 +92,10 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.hadoopConfig = hadoopConfig;
     }
 
+    public void setIsHa(boolean isHa) {
+        format.isHa = isHa;
+    }
+
     public void setDelimiter(String delimiter) {
         format.delimiter = delimiter;
     }
