@@ -30,7 +30,6 @@
         <module>flinkx-clickhouse</module>
         <module>flinkx-saphana</module>
         <module>flinkx-greenplum</module>
-        <module>flinkx-kingbase</module>
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
