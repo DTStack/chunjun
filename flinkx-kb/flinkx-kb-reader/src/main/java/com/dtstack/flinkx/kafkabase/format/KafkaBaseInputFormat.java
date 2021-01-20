@@ -115,7 +115,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
         try {
             Row row;
             if(CollectionUtils.isEmpty(metaColumns)){
-                row = Row.of(Row.of(pair.getLeft()));
+                row = Row.of(pair.getLeft());
             }else{
                 row = new Row(metaColumns.size());
                 for (int i = 0; i < metaColumns.size(); i++) {
