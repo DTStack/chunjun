@@ -450,11 +450,10 @@ public class Row implements Serializable{
 
 <a name="605265ae"></a>
 ## 加载原理
+- 用户在插件中在`reader`/`writer`配置的`name`字段指定插件名字。
 
-1. 框架扫描`plugin/reader`和`plugin/writer`目录，加载每个插件的`plugin.json`文件。
-1. 以`plugin.json`文件中`name`为key，索引所有的插件配置。如果发现重名的插件或者不存在的插件，框架会异常退出。
-1. 用户在插件中在`reader`/`writer`配置的`name`字段指定插件名字。框架根据插件的类型（`reader`/`writer`）和插件名称去插件的路径下扫描所有的jar，加入`classpath`。
-1. 根据插件配置中定义的入口类，框架通过反射实例化对应的`Job`对象。
+- 框架根据插件的类型（`reader`/`writer`）和插件名称去插件的路径下扫描所有的jar，加入`classpath`。
+- 根据插件名称，按规则生成插件入口类，框架通过反射实例化对应的`Job`对象。
 
 <a name="8e3d16c4"></a>
 ## 统一的目录结构
@@ -462,11 +461,11 @@ public class Row implements Serializable{
 #### 项目目录层级
 注意，插件Reader/Writer类需放在符合插件包名命名规则的reader下，如MysqlReader类需放在com.dtstack.flinkx.mysql.reader包下，具体命名规则参照 **项目命名规则** 内容
 ```xml
+
 ```
 ${Flinkx_HOME}
 |-- bin       
-|   -- flink
-|   -- flinkx.sh 
+|   -- flink 
 |
 |-- flinkx-somePlugin
     |-- flinkx-somePlugin-core
@@ -474,18 +473,21 @@ ${Flinkx_HOME}
 		|-- exception 异常处理类
 		|-- pom.xml 插件公用依赖
     |-- flinkx-somePlugin-reader
-		|-- InputFormat
+		|-- format
 			|-- SomePluginInputFormat
 			|-- SomePluginInputFormatBuiler
 		|-- reader
 			|-- SomePluginReader
+		|-- pom.xml
 	|-- flinkx-somePlugin-writer
-		|-- OutputFormat
+		|-- format
 			|-- SomePluginOutputFormat
 			|-- SomePluginOutputFormatBuiler
-		|-- reader
+		|-- writer
 			|-- SomePluginWriter
+		|-- pom.xml
 ```
+
 ```
 <a name="NMw2H"></a>
 #### 项目命名规则
@@ -511,4 +513,4 @@ unix平台
 mvn clean package -DskipTests -Prelease -DscriptType=sh
 ```
 
-打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+打包结束后，项目根目录下会产生bin、lib、syncplugins目录，其中bin目录包含FlinkX的启动脚本，lib目录存储提交flink任务的launcher jar包, syncplugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
