@@ -334,22 +334,22 @@ public class HbaseInputFormat extends BaseRichInputFormat {
 
         switch (columnType.toUpperCase()) {
             case "BOOLEAN":
-                column = Bytes.toBoolean(byteArray);
+                column = Boolean.valueOf(new String(byteArray, encoding));
                 break;
             case "SHORT":
-                column = String.valueOf(Bytes.toShort(byteArray));
+                column = Short.valueOf(new String(byteArray, encoding));
                 break;
             case "INT":
-                column = Bytes.toInt(byteArray);
+                column = Integer.valueOf(new String(byteArray, encoding));
                 break;
             case "LONG":
-                column = Bytes.toLong(byteArray);
+                column = Long.valueOf(new String(byteArray, encoding));
                 break;
             case "FLOAT":
-                column = Bytes.toFloat(byteArray);
+                column = Float.valueOf(new String(byteArray, encoding));
                 break;
             case "DOUBLE":
-                column = Bytes.toDouble(byteArray);
+                column = Double.valueOf(new String(byteArray, encoding));
                 break;
             case "STRING":
                 column = new String(byteArray, encoding);
