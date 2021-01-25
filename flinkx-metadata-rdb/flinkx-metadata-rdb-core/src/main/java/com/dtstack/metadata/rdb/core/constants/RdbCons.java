@@ -18,7 +18,7 @@
 
 package com.dtstack.metadata.rdb.core.constants;
 
-import com.dtstack.flinkx.metadata.constants.BaseCons;
+import com.dtstack.flinkx.metadata.core.util.BaseCons;
 
 /**
  * @author kunni@dtstack.com
@@ -48,5 +48,12 @@ public class RdbCons extends BaseCons {
     public static final String RESULT_DECIMAL_DIGITS = "DECIMAL_DIGITS";
 
     public static final String RESULT_COLUMN_SIZE = "COLUMN_SIZE";
+
+    public static final String RESULT_SET_ORDINAL_POSITION = "ORDINAL_POSITION";
+
+    public static final String KEY_USER = "user";
+
+    public static final String KEY_CONN_USERNAME = "username";
+    public static final String KEY_CONN_PASSWORD = "password";
 
 }

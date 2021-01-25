@@ -21,8 +21,9 @@ package com.dtstack.flinkx.metadatamysql.inputformat;
 import com.dtstack.flinkx.metadatamysql.entity.IndexEntity;
 import com.dtstack.flinkx.metadatamysql.entity.MetadataMysqlEntity;
 import com.dtstack.flinkx.metadatamysql.entity.MysqlTableEntity;
-import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
-import com.dtstack.metadata.rdb.entity.TableEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+
+import com.dtstack.metadata.rdb.core.entity.TableEntity;
 import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 
 import java.io.IOException;
@@ -41,7 +42,6 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESUL
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROWS;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROW_FORMAT;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_TABLE_INFO;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_SWITCH_DATABASE;
@@ -80,13 +80,14 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
         MetadataMysqlEntity metadataMysqlEntity = new MetadataMysqlEntity();
         try{
             metadataMysqlEntity.setIndexEntities(queryIndex());
+            metadataMysqlEntity.setTableProperties(createTableEntity());
+            metadataMysqlEntity.setColumns(queryColumn());
         }catch (Exception e){
           throw new IOException(e);
         }
         return metadataMysqlEntity;
     }
 
-    @Override
     public TableEntity createTableEntity() throws IOException {
         MysqlTableEntity entity = new MysqlTableEntity();
         String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
@@ -94,8 +95,8 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
             while (rs.next()) {
                 entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
                 entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
-                entity.setTotalSize(rs.getString(RESULT_DATA_LENGTH));
-                entity.setRows(rs.getString(RESULT_ROWS));
+                entity.setTotalSize(rs.getLong(RESULT_DATA_LENGTH));
+                entity.setRows(rs.getLong(RESULT_ROWS));
                 entity.setEngine(rs.getString(RESULT_ENGINE));
                 entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
             }

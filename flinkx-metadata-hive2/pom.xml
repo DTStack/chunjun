@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>flinkx-metadata-hive2-reader</module>
+        <module>flinkx-metadata-hive2-core</module>
     </modules>
     <dependencies>
         <dependency>

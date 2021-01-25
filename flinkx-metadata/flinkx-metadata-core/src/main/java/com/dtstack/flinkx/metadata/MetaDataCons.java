@@ -107,7 +107,7 @@ public class MetaDataCons {
     public static final String DEFAULT_OPERA_TYPE = "createTable";
 
     public static final String SQL_SHOW_TABLES = "SHOW TABLES";
-    public static final String SQL_SWITCH_DATABASE = "USE %s";
+
 
     public static final int MAX_TABLE_SIZE = 20;
 }

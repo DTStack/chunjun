@@ -50,13 +50,15 @@ public class PluginNameConstrant {
     public static final String PHOENIX_READER = "phoenixreader";
     public static final String EMQX_READER = "emqxreader";
     public static final String SQLSERVER_CDC_READER = "sqlservercdcreader";
+    public static final String METADATAHIVE1_READER = "metadatahive1reader";
     public static final String METADATAHIVE2_READER = "metadatahive2reader";
+    public static final String METASTORE_READER = "metastorereader";
     public static final String DM_READER = "dmreader";
     public static final String METADATATIDB_READER = "metadatatidbreader";
     public static final String METADATAORACLE_READER = "metadataoraclereader";
     public static final String METADATAMYSQL_READER = "metadatamysqlreader";
     public static final String METADATASQLSERVER_READER = "metadatasqlserverreader";
-    public static final String METADATAPHOENIX_READER = "metadataphoenixreader";
+    public static final String METADATAPHOENIX_READER = "metadataphoenix5reader";
     public static final String METADATAHBASE_READER = "metadatahbasereader";
     public static final String METADATAES6_READER = "metadataes6reader";
     public static final String METADATAVERTICA_READER = "metadataverticareader";

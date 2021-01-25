@@ -19,7 +19,9 @@
 package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadataphoenix5.entity.MetadataPhoenix5Entity;
+import com.dtstack.flinkx.metadataphoenix5.entity.Phoenix5ColumnEntity;
+import com.dtstack.flinkx.metadataphoenix5.entity.Phoenix5TableEntity;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
 import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Util;
 import com.dtstack.flinkx.util.ZkHelper;
@@ -27,11 +29,13 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.zookeeper.ZooKeeper;
 import org.codehaus.commons.compiler.CompileException;
@@ -50,40 +54,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_CONN_PASSWORD;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_USER;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.HBASE_MASTER_KERBEROS_PRINCIPAL;
-import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_CREATE_TIME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_DEFAULT;
-import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_NAMESPACE;
-import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_PRIMARY_KEY;
-import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_TABLE_NAME;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_FALSE;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.KEY_TRUE;
+import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.RESULT_SET_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_COLUMN;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_DEFAULT_TABLE_NAME;
 import static com.dtstack.flinkx.metadataphoenix5.util.PhoenixMetadataCons.SQL_TABLE_NAME;
 import static com.dtstack.flinkx.util.ZkHelper.APPEND_PATH;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_CONN_PASSWORD;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_USER;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_SET_ORDINAL_POSITION;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 /**
  * @author kunni@Dtstack.com
  */
 
-public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
+public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
 
     private Map<String, Long> createTimeMap;
 
     public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
+
+    public static final String DEFAULT_SCHEMA = "default";
 
     protected ZooKeeper zooKeeper;
 
@@ -95,16 +92,41 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
 
     @Override
-    protected List<Object> showTables() {
+    protected void doOpenInternal() {
+        super.doOpenInternal();
+        if (createTimeMap == null) {
+            String hosts = connectionInfo.getJdbcUrl().substring(JDBC_PHOENIX_PREFIX.length());
+            createTimeMap = queryCreateTimeMap(hosts);
+        }
+    }
+
+    @Override
+    public void switchDataBase() throws SQLException {
+
+    }
+
+
+    @Override
+    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+        String tableName = (String) currentObject;
+        MetadataPhoenix5Entity metadataPhoenix5Entity = new MetadataPhoenix5Entity();
+        metadataPhoenix5Entity.setTableProperties(queryTableProp(tableName));
+        metadataPhoenix5Entity.setColumns(queryColumn(tableName));
+        return metadataPhoenix5Entity;
+    }
+
+
+
+
+    public List<Object> showTables() {
         String sql;
-        if (StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
-                StringUtils.isBlank(currentDb.get())) {
+        if (StringUtils.isBlank(currentDatabase)||StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT)) {
             sql = SQL_DEFAULT_TABLE_NAME;
         } else {
-            sql = String.format(SQL_TABLE_NAME, currentDb.get());
+            sql = String.format(SQL_TABLE_NAME, currentDatabase);
         }
         List<Object> table = new LinkedList<>();
-        try (ResultSet resultSet = executeQuery0(sql, statement.get())) {
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
             while (resultSet.next()) {
                 table.add(resultSet.getString(RESULT_SET_TABLE_NAME));
             }
@@ -114,42 +136,22 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         return table;
     }
 
-    @Override
-    protected void switchDatabase(String databaseName) {
-        currentDb.set(databaseName);
-    }
-
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) {
-        Map<String, Object> result = new HashMap<>(16);
-        Map<String, Object> tableProp = queryTableProp(tableName);
-        List<Map<String, Object>> column = queryColumn(tableName);
-        result.put(KEY_TABLE_PROPERTIES, tableProp);
-        result.put(KEY_COLUMN, column);
-        return result;
-    }
-
-    @Override
-    protected String quote(String name) {
-        return name;
-    }
-
     /**
      * 获取表级别的元数据信息
      *
      * @param tableName 表名
      * @return 表的元数据
      */
-    public Map<String, Object> queryTableProp(String tableName) {
-        Map<String, Object> tableProp = new HashMap<>(16);
-        if (StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) || currentDb.get() == null) {
-            tableProp.put(KEY_CREATE_TIME, createTimeMap.get(tableName));
+    public Phoenix5TableEntity queryTableProp(String tableName) {
+        Phoenix5TableEntity phoenix5TableEntity = new Phoenix5TableEntity();
+        if (StringUtils.isEmpty(currentDatabase) || StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT)) {
+            phoenix5TableEntity.setCreateTime(String.valueOf(createTimeMap.get(tableName)));
         } else {
-            tableProp.put(KEY_CREATE_TIME, createTimeMap.get(currentDb.get() + ConstantValue.POINT_SYMBOL + tableName));
+            phoenix5TableEntity.setCreateTime(String.valueOf(createTimeMap.get(currentDatabase + ConstantValue.POINT_SYMBOL + tableName)));
         }
-        tableProp.put(KEY_NAMESPACE, currentDb.get());
-        tableProp.put(KEY_TABLE_NAME, tableName);
-        return tableProp;
+        phoenix5TableEntity.setNameSpace(currentDatabase);
+        phoenix5TableEntity.setTableName(tableName);
+        return phoenix5TableEntity;
     }
 
     /**
@@ -158,42 +160,47 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
      * @param tableName 表名
      * @return 列的元数据信息
      */
-    public List<Map<String, Object>> queryColumn(String tableName) {
-        List<Map<String, Object>> column = new LinkedList<>();
+    public List<ColumnEntity> queryColumn(String tableName) {
+        List<ColumnEntity> columns = new LinkedList<>();
         String sql;
         if (isDefaultSchema()) {
             sql = String.format(SQL_DEFAULT_COLUMN, tableName);
         } else {
-            sql = String.format(SQL_COLUMN, currentDb.get(), tableName);
+            sql = String.format(SQL_COLUMN, currentDatabase, tableName);
         }
         Map<String, String> familyMap = new HashMap<>(16);
-        try (ResultSet resultSet = executeQuery0(sql, statement.get())) {
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
             while (resultSet.next()) {
                 familyMap.put(resultSet.getString(1), resultSet.getString(2));
             }
         } catch (SQLException e) {
             LOG.error("query column information failed, {}", ExceptionUtil.getErrorMessage(e));
         }
-        try (ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)) {
+        //default schema需要特殊处理
+        String originSchema = currentDatabase;
+        if (DEFAULT_SCHEMA.equalsIgnoreCase(originSchema)) {
+            originSchema = null;
+        }
+        try (ResultSet resultSet = connection.getMetaData().getColumns(null, originSchema, tableName, null)) {
             while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>(16);
-                String index = resultSet.getString(RESULT_SET_ORDINAL_POSITION);
+                Phoenix5ColumnEntity phoenix5ColumnEntity = new Phoenix5ColumnEntity();
+                int index = resultSet.getInt(RESULT_SET_ORDINAL_POSITION);
                 String family = familyMap.get(index);
                 if (StringUtils.isBlank(family)) {
-                    map.put(KEY_PRIMARY_KEY, KEY_TRUE);
-                    map.put(KEY_COLUMN_NAME, resultSet.getString(RESULT_SET_COLUMN_NAME));
+                    phoenix5ColumnEntity.setIsPrimaryKey(KEY_TRUE);
+                    phoenix5ColumnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
                 } else {
-                    map.put(KEY_PRIMARY_KEY, KEY_FALSE);
-                    map.put(KEY_COLUMN_NAME, family + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_SET_COLUMN_NAME));
+                    phoenix5ColumnEntity.setIsPrimaryKey(KEY_FALSE);
+                    phoenix5ColumnEntity.setName(family + ConstantValue.COLON_SYMBOL + resultSet.getString(RESULT_COLUMN_NAME));
                 }
-                map.put(KEY_COLUMN_DATA_TYPE, resultSet.getString(RESULT_SET_TYPE_NAME));
-                map.put(KEY_COLUMN_INDEX, index);
-                column.add(map);
+                phoenix5ColumnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
+                phoenix5ColumnEntity.setIndex(index);
+                columns.add(phoenix5ColumnEntity);
             }
         } catch (SQLException e) {
             LOG.error("failed to get column information, {} ", ExceptionUtil.getErrorMessage(e));
         }
-        return column;
+        return columns;
     }
 
     /**
@@ -219,14 +226,6 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             ZkHelper.closeZooKeeper(zooKeeper);
         }
         return createTimeMap;
-    }
-
-
-    @Override
-    protected void init() {
-        //兼容url携带zookeeper路径
-        String hosts = dbUrl.substring(JDBC_PHOENIX_PREFIX.length());
-        createTimeMap = queryCreateTimeMap(hosts);
     }
 
     @Override
@@ -259,14 +258,14 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
 
         URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
         Properties properties = new Properties();
-        ClassUtil.forName(driverName, childFirstClassLoader);
-        if (StringUtils.isNotEmpty(username)) {
-            properties.setProperty(KEY_USER, username);
+        ClassUtil.forName(connectionInfo.getDriver(), childFirstClassLoader);
+        if (StringUtils.isNotEmpty(connectionInfo.getUsername())) {
+            properties.setProperty(KEY_USER, connectionInfo.getUsername());
         }
-        if (StringUtils.isNotEmpty(password)) {
-            properties.setProperty(KEY_CONN_PASSWORD, password);
+        if (StringUtils.isNotEmpty(connectionInfo.getPassword())) {
+            properties.setProperty(KEY_CONN_PASSWORD, connectionInfo.getPassword());
         }
-        String jdbcUrl = dbUrl + ConstantValue.COLON_SYMBOL + zooKeeperPath;
+        String jdbcUrl = connectionInfo.getJdbcUrl() + ConstantValue.COLON_SYMBOL + zooKeeperPath;
         if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
             jdbcUrl = Phoenix5Util.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
         }
@@ -274,7 +273,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
             return helper.getConn(jdbcUrl, properties);
         } catch (IOException | CompileException e) {
-            String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
+            String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", connectionInfo.getJdbcUrl(), GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
         }
     }
@@ -285,8 +284,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
      * @return 是否为默认schema
      */
     public boolean isDefaultSchema() {
-        return StringUtils.endsWithIgnoreCase(currentDb.get(), KEY_DEFAULT) ||
-                StringUtils.isBlank(currentDb.get());
+        return StringUtils.isBlank(currentDatabase)||StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT);
     }
 
     /**

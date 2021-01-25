@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.metadata.rdb.entity;
+package com.dtstack.metadata.rdb.core.entity;
 
 /** 列层级的元数据
  * @author kunni@dtstack.com
@@ -26,30 +26,31 @@ public class ColumnEntity {
 
     protected String defaultValue;
 
+
     protected String type;
 
     protected String name;
 
     protected String comment;
 
-    protected String position;
+    protected Integer index;
 
     protected String nullAble;
 
-    protected String length;
+    protected Integer length;
 
-    protected String digital;
+    protected Integer digital;
 
-    public void setDigital(String digital) {
-        this.digital = digital;
+    public void setIndex(Integer index) {
+        this.index = index;
     }
 
-    public void setLength(String length) {
+    public void setLength(Integer length) {
         this.length = length;
     }
 
-    public void setPosition(String position) {
-        this.position = position;
+    public void setDigital(Integer digital) {
+        this.digital = digital;
     }
 
     public void setNullAble(String nullAble) {
@@ -71,4 +72,9 @@ public class ColumnEntity {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    public String getName() {
+        return name;
+    }
+
 }

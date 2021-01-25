@@ -1,6 +1,6 @@
 package com.dtstack.flinkx.metadatahive2.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class Metadatehive2InputFormatBuilder extends MetadataInputFormatBuilder {
+public class Metadatehive2InputFormatBuilder extends MetadatardbBuilder {
     private Metadatahive2InputFormat format;
 
 

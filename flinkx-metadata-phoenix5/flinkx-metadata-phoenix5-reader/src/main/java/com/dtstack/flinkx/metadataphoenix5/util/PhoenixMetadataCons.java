@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.metadataphoenix5.util;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * @author kunni@dtstack.com
  */
 
-public class PhoenixMetadataCons extends MetaDataCons {
+public class PhoenixMetadataCons extends RdbCons {
 
     public static final String KEY_PRIMARY_KEY = "is_primary_key";
 
@@ -70,6 +71,11 @@ public class PhoenixMetadataCons extends MetaDataCons {
     public static final String HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
 
     public static final String ZOOKEEPER_ZNODE_PARENT = "zookeeper.znode.parent";
+
+    public static final String RESULT_SET_TABLE_NAME = "TABLE_NAME";
+
+    public static final String KEY_TRUE = "Y";
+    public static final String KEY_FALSE = "N";
 
 
 }

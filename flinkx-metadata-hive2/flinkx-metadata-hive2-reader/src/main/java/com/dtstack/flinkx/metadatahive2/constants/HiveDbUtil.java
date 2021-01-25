@@ -19,10 +19,10 @@
 package com.dtstack.flinkx.metadatahive2.constants;
 
 import com.dtstack.flinkx.authenticate.KerberosUtil;
+import com.dtstack.flinkx.metadatahive2.entity.HiveConnectionInfo;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RetryUtil;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -33,7 +33,6 @@ import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -55,7 +54,7 @@ public final class HiveDbUtil {
     private HiveDbUtil() {
     }
 
-    public static Connection getConnection(ConnectionInfo connectionInfo) {
+    public static Connection getConnection(HiveConnectionInfo connectionInfo) {
         if(openKerberos(connectionInfo.getJdbcUrl())){
             return getConnectionWithKerberos(connectionInfo);
         } else {
@@ -63,7 +62,7 @@ public final class HiveDbUtil {
         }
     }
 
-    private static Connection getConnectionWithRetry(ConnectionInfo connectionInfo){
+    private static Connection getConnectionWithRetry(HiveConnectionInfo connectionInfo){
         try {
             return RetryUtil.executeWithRetry(() -> connect(connectionInfo), 1, 1000L, false);
         } catch (Exception e1) {
@@ -71,7 +70,7 @@ public final class HiveDbUtil {
         }
     }
 
-    private static Connection getConnectionWithKerberos(ConnectionInfo connectionInfo){
+    private static Connection getConnectionWithKerberos(HiveConnectionInfo connectionInfo){
         if(connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()){
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
@@ -113,7 +112,7 @@ public final class HiveDbUtil {
         return false;
     }
 
-    public static Connection connect(ConnectionInfo connectionInfo) {
+    public static Connection connect(HiveConnectionInfo connectionInfo) {
         lock.lock();
         try {
             Class.forName(connectionInfo.getDriver());
@@ -137,74 +136,4 @@ public final class HiveDbUtil {
             lock.unlock();
         }
     }
-
-    public static class ConnectionInfo{
-        private String jdbcUrl;
-        private String username;
-        private String password;
-        private String driver;
-        private int timeout = 30000;
-        private Map<String, Object> hiveConf;
-
-        public String getJdbcUrl() {
-            return jdbcUrl;
-        }
-
-        public void setJdbcUrl(String jdbcUrl) {
-            this.jdbcUrl = jdbcUrl;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        public Map<String, Object> getHiveConf() {
-            return hiveConf;
-        }
-
-        public void setHiveConf(Map<String, Object> hiveConf) {
-            this.hiveConf = hiveConf;
-        }
-
-        public int getTimeout() {
-            return timeout;
-        }
-
-        public void setTimeout(int timeout) {
-            this.timeout = timeout;
-        }
-
-        public String getDriver(){
-            return driver;
-        }
-
-        public void setDriver(String driver){
-            this.driver = driver;
-        }
-
-        @Override
-        public String toString() {
-            return "ConnectionInfo{" +
-                    "jdbcUrl='" + jdbcUrl + '\'' +
-                    ", username='" + username + '\'' +
-                    ", password='" + password + '\'' +
-                    ", timeout='" + timeout + '\'' +
-                    ", driver='" + driver + '\'' +
-                    ", hiveConf=" + hiveConf +
-                    '}';
-        }
-    }
-
 }

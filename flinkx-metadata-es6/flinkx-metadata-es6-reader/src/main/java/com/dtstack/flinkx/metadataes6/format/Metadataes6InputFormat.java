@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.metadataes6.format;
 
-import com.dtstack.flinkx.metadata.constants.BaseCons;
+import com.dtstack.flinkx.metadata.core.BaseCons;
 import com.dtstack.flinkx.metadata.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;

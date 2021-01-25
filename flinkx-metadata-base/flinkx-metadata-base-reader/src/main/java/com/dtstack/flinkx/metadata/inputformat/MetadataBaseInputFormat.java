@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.metadata.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.metadata.constants.BaseCons;
-import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.metadata.core.util.BaseCons;
+import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.MapUtils;
@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.constants.BaseCons.DEFAULT_OPERA_TYPE;
+import static com.dtstack.flinkx.metadata.core.util.BaseCons.DEFAULT_OPERA_TYPE;
 
 /**
  * @author kunni@dtstack.com

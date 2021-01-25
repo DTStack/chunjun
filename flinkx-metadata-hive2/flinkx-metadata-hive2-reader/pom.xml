@@ -13,7 +13,12 @@
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-reader</artifactId>
+            <artifactId>flinkx-metadata-rdb-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-hive2-core</artifactId>
             <version>1.6</version>
         </dependency>
         <dependency>

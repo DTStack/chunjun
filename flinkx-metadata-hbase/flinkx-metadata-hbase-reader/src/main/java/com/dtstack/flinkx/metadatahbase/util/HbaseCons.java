@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.metadatahbase.util;
 
 
-import com.dtstack.flinkx.metadata.constants.BaseCons;
+import com.dtstack.flinkx.metadata.core.util.BaseCons;
 
 /**
  * 属性定义

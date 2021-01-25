@@ -20,7 +20,7 @@ package com.dtstack.flinkx.metadatahbase.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.SizeUnitType;
-import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metadatahbase.entity.HbaseColumnEntity;
 import com.dtstack.flinkx.metadatahbase.entity.HbaseTableEntity;
@@ -128,7 +128,6 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
                 String[] regionSplits = regionName.split(COMMA_SYMBOL);
                 //regionSplits[0] 为table name
                 int sumSize = sizeMap.getOrDefault(regionSplits[0], 0) + regionLoad.getStorefileSizeMB();
-                ;
                 sizeMap.put(regionSplits[0], sumSize);
             }
         }

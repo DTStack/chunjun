@@ -19,18 +19,17 @@
 
 package com.dtstack.metadata.rdb.core.util;
 
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import com.dtstack.metadata.rdb.core.entity.ConnectionInfo;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Objects;
 
 /**
  * @author kunni@dtstack.com
@@ -39,82 +38,42 @@ public class MetadataDbUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetadataDbUtil.class);
 
-    private static int MAX_RETRY_TIMES = 3;
-
-    public static void closeConnection(Connection connection){
-        if(connection != null){
-            try{
-                connection.close();
-            }catch (SQLException e){
-                LOG.error("failed to close connection , cause = {} ", ExceptionUtil.getErrorMessage(e));
-            }
-        }
-    }
-
     /**
-     * 获取jdbc连接(重试3次)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
-     * @return connection
-     * @throws SQLException sql异常
+     * 关闭jdbc相关资源
+     * @param closeables
+     * @throws Exception
      */
-    public static Connection getConnection(String url, String username, String password) throws SQLException {
-        if (!url.startsWith(ConstantValue.PROTOCOL_JDBC_MYSQL)) {
-            return getConnectionInternal(url, username, password);
-        } else {
-            boolean failed = true;
-            Connection dbConn = null;
-            for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
-                try {
-                    dbConn = getConnectionInternal(url, username, password);
-                    try (Statement statement = dbConn.createStatement()){
-                        statement.execute("SELECT 1 FROM dual");
-                        failed = false;
-                    }
-                } catch (Exception e) {
-                    if (dbConn != null) {
-                        dbConn.close();
-                    }
-
-                    if (i == MAX_RETRY_TIMES - 1) {
-                        throw e;
-                    } else {
-                        SysUtil.sleep(3000);
-                    }
+    public static void close(AutoCloseable... closeables) throws Exception {
+        if (Objects.nonNull(closeables)) {
+            for (AutoCloseable closeable : closeables) {
+                if (Objects.nonNull(closeable)) {
+                    closeable.close();
                 }
             }
-
-            return dbConn;
         }
     }
 
-
-
     /**
-     * 获取jdbc连接(超时10S)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
-     * @return Connection
-     * @throws SQLException sql异常
+     * 默认的连接方式
+     * @param connectionInfo
+     * @return
+     * @throws SQLException
      */
-    private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
+    public static Connection getConnection(ConnectionInfo connectionInfo) throws SQLException {
+        ClassUtil.forName(connectionInfo.getDriver());
         Connection dbConn;
-        synchronized (ClassUtil.LOCK_STR){
+        synchronized (ClassUtil.LOCK_STR) {
             DriverManager.setLoginTimeout(10);
 
             // telnet
-            TelnetUtil.telnet(url);
+            TelnetUtil.telnet(connectionInfo.getJdbcUrl());
 
-            if (username == null) {
-                dbConn = DriverManager.getConnection(url);
+            if (StringUtils.isEmpty(connectionInfo.getUsername())) {
+                dbConn = DriverManager.getConnection(connectionInfo.getJdbcUrl());
             } else {
-                dbConn = DriverManager.getConnection(url, username, password);
+                dbConn = DriverManager.getConnection(connectionInfo.getJdbcUrl(), connectionInfo.getUsername(), connectionInfo.getPassword());
             }
         }
-
         return dbConn;
     }
-
 }

@@ -21,6 +21,7 @@ package com.dtstack.metadata.rdb.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.reader.MetaDataBaseReader;
 import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.core.entity.ConnectionInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -34,20 +35,15 @@ import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_URL;
  */
 abstract public class MetadatardbReader extends MetaDataBaseReader {
 
-    protected String url;
-
-    protected String username;
-
-    protected String password;
-
-    protected String driverName;
+    protected ConnectionInfo connectionInfo;
 
     protected MetadatardbReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        url = params.getStringVal(KEY_URL);
-        username = params.getStringVal(KEY_USERNAME);
-        password = params.getStringVal(KEY_PASSWORD);
-        driverName = getDriverName();
+        connectionInfo =new ConnectionInfo();
+        connectionInfo.setDriver(getDriverName());
+        connectionInfo.setJdbcUrl(params.getStringVal(KEY_URL));
+        connectionInfo.setPassword(params.getStringVal(KEY_PASSWORD));
+        connectionInfo.setUsername(params.getStringVal(KEY_USERNAME));
     }
 
     @Override
@@ -55,10 +51,7 @@ abstract public class MetadatardbReader extends MetaDataBaseReader {
         MetadatardbBuilder builder = createBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setOriginalJob(originalJob);
-        builder.setDriverName(driverName);
-        builder.setPassword(password);
-        builder.setUsername(username);
-        builder.setUrl(url);
+        builder.setConnectionInfo(connectionInfo);
         return createInput(builder.finish());
     }
 

@@ -16,35 +16,40 @@
  * limitations under the License.
  */
 
-package com.dtstack.metadata.rdb.entity;
+package com.dtstack.flinkx.metadata.core.entity;
 
-/** 表层级的元数据
+import java.io.Serializable;
+
+/**
  * @author kunni@dtstack.com
  */
-public class TableEntity {
+public class MetadataEntity implements Serializable {
 
-    protected String createTime;
+    protected static final long serialVersionUID = 1L;
 
-    protected String comment;
+    protected String schema;
 
-    protected String totalSize;
+    protected boolean querySuccess;
 
-    protected String rows;
+    protected String errorMsg;
 
-    public void setRows(String rows) {
-        this.rows = rows;
+    protected String operaType;
+
+    public void setOperaType(String operaType) {
+        this.operaType = operaType;
     }
 
-    public void setTotalSize(String totalSize) {
-        this.totalSize = totalSize;
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
+    public void setQuerySuccess(boolean querySuccess) {
+        this.querySuccess = querySuccess;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
+
 
 }

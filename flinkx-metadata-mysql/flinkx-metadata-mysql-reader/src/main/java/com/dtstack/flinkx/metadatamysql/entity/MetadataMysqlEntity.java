@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.metadatamysql.entity;
 
-import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 
 import java.util.List;
 

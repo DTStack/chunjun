@@ -18,15 +18,15 @@
 
 package com.dtstack.metadata.rdb.inputformat;
 
-import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
-import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.core.entity.ConnectionInfo;
 import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
-import com.dtstack.metadata.rdb.entity.ColumnEntity;
-import com.dtstack.metadata.rdb.entity.MetadatardbEntity;
-import com.dtstack.metadata.rdb.entity.TableEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -56,29 +56,23 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     protected Statement statement;
 
-    protected String driverName;
-
-    protected String url;
-
-    protected String username;
-
-    protected String password;
+    public ConnectionInfo connectionInfo;
 
     @Override
     protected void doOpenInternal() {
         try {
-            ClassUtil.forName(driverName, getClass().getClassLoader());
             if (connection == null) {
-                connection = MetadataDbUtil.getConnection(url, username, password);
+                connection = getConnection();
                 statement = connection.createStatement();
             }
             switchDataBase();
+            if (CollectionUtils.isEmpty(tableList)) {
+                tableList = showTables();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        if (CollectionUtils.isEmpty(tableList)) {
-            tableList = showTables();
-        }
+
     }
 
     /**
@@ -100,7 +94,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      *
      * @return 表名
      */
-    public List<Object> showTables() {
+    public List<Object> showTables() throws SQLException{
         List<Object> tables = new ArrayList<>();
         try (ResultSet resultSet = connection.getMetaData().getTables(currentDatabase, null, null, null)) {
             while (resultSet.next()) {
@@ -108,18 +102,16 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
             }
         } catch (SQLException e) {
             LOG.error("failed to query table, currentDb = {} ", currentDatabase);
-            return tables;
+            throw new SQLException("show tables error"+e.getMessage(),e);
         }
         return tables;
     }
 
     @Override
-    public MetadataEntity createMetadataEntity() throws IOException {
+    public MetadataEntity createMetadataEntity() throws Exception {
         MetadatardbEntity entity = createMetadatardbEntity();
         entity.setSchema(currentDatabase);
         entity.setTableName((String)currentObject);
-        entity.setTableProperties(createTableEntity());
-        entity.setColumn(queryColumn());
         return entity;
     }
 
@@ -129,17 +121,10 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      * @return MetadatardbEntity
      * @throws IOException sql异常
      */
-    abstract public MetadatardbEntity createMetadatardbEntity() throws IOException;
+    abstract public MetadatardbEntity createMetadatardbEntity() throws Exception;
 
-    /**
-     * 表的元数据属性
-     *
-     * @return TableEntity
-     * @throws IOException sql异常
-     */
-    abstract public TableEntity createTableEntity() throws IOException;
 
-    public List<ColumnEntity> queryColumn() throws IOException {
+    public List<ColumnEntity> queryColumn() throws SQLException {
         List<ColumnEntity> columnEntities = new ArrayList<>();
         String currentTable = (String) currentObject;
         try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)) {
@@ -147,40 +132,58 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
                 ColumnEntity columnEntity = new ColumnEntity();
                 columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
                 columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
-                columnEntity.setPosition(resultSet.getString(RESULT_ORDINAL_POSITION));
+                columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
                 columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
                 columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
                 columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
-                columnEntity.setDigital(resultSet.getString(RESULT_DECIMAL_DIGITS));
-                columnEntity.setLength(resultSet.getString(RESULT_COLUMN_SIZE));
+                columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
+                columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
                 columnEntities.add(columnEntity);
             }
         } catch (SQLException e) {
             LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
+            throw e;
         }
         return columnEntities;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public void setDriverName(String driverName) {
-        this.driverName = driverName;
-    }
-
-
     @Override
     public void closeInputFormat() throws IOException {
-        MetadataDbUtil.closeConnection(connection);
+        closeResource();
         super.closeInputFormat();
+    }
+
+    /**
+     * jdbc数据源获取连接
+     * @return
+     * @throws SQLException
+     */
+    public Connection getConnection() throws SQLException{
+        return MetadataDbUtil.getConnection(connectionInfo);
+    }
+
+    public void closeResource() throws IOException{
+        try {
+            MetadataDbUtil.close(statement,connection);
+        } catch (Exception e) {
+            throw new IOException("close resource error"+e.getMessage(),e);
+        }
+    }
+
+
+    protected ResultSet executeQuery0(String sql, Statement statement){
+        ResultSet resultSet = null;
+        if(StringUtils.isNotBlank(sql)){
+            LOG.info("execute SQL : {}", sql);
+            try{
+                if(statement!=null){
+                    resultSet = statement.executeQuery(sql);
+                }
+            }catch (SQLException e){
+                LOG.error("execute SQL failed : {}", ExceptionUtil.getErrorMessage(e));
+            }
+
+        }
+        return resultSet;
     }
 }

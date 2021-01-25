@@ -21,7 +21,7 @@ package com.dtstack.flinkx.metadata.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.flinkx.metadata.constants.BaseCons;
+import com.dtstack.flinkx.metadata.core.util.BaseCons;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

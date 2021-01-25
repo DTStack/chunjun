@@ -19,34 +19,40 @@ package com.dtstack.flinkx.metadatahive2.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadatahive2.inputformat.Metadatahive2InputFormat;
 import com.dtstack.flinkx.metadatahive2.inputformat.Metadatehive2InputFormatBuilder;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.DRIVER_NAME;
-import static com.dtstack.flinkx.metadatahive2.constants.Hive2MetaDataCons.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.KEY_HADOOP_CONFIG;
 
 /**
  * @author : tiezhu
  * @date : 2020/3/9
  */
-public class Metadatahive2Reader extends MetadataReader {
+public class Metadatahive2Reader extends MetadatardbReader {
 
     public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
-        driverName = DRIVER_NAME;
     }
 
+
+
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
+    public MetadatardbBuilder createBuilder() {
         Metadatehive2InputFormatBuilder builder = new Metadatehive2InputFormatBuilder(new Metadatahive2InputFormat());
         builder.setHadoopConfig(hadoopConfig);
         return builder;
+    }
+
+    @Override
+    public String getDriverName() {
+        return DRIVER_NAME;
     }
 }

@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.metadatamysql.entity;
 
-import com.dtstack.metadata.rdb.entity.TableEntity;
+
+import com.dtstack.metadata.rdb.core.entity.TableEntity;
 
 /**
  * @author kunni@dtstack.com
