@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -331,28 +332,28 @@ public class HbaseInputFormat extends BaseRichInputFormat {
         if(ArrayUtils.isEmpty(byteArray)) {
             return null;
         }
-
-        switch (columnType.toUpperCase()) {
+        String bytesToString  = new String(byteArray, encoding);
+        switch (columnType.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
-                column = Boolean.valueOf(new String(byteArray, encoding));
+                column = Boolean.valueOf(bytesToString);
                 break;
             case "SHORT":
-                column = Short.valueOf(new String(byteArray, encoding));
+                column = Short.valueOf(bytesToString);
                 break;
             case "INT":
-                column = Integer.valueOf(new String(byteArray, encoding));
+                column = Integer.valueOf(bytesToString);
                 break;
             case "LONG":
-                column = Long.valueOf(new String(byteArray, encoding));
+                column = Long.valueOf(bytesToString);
                 break;
             case "FLOAT":
-                column = Float.valueOf(new String(byteArray, encoding));
+                column = Float.valueOf(bytesToString);
                 break;
             case "DOUBLE":
-                column = Double.valueOf(new String(byteArray, encoding));
+                column = Double.valueOf(bytesToString);
                 break;
             case "STRING":
-                column = new String(byteArray, encoding);
+                column = bytesToString;
                 break;
             case "BINARY_STRING":
                 column = Bytes.toStringBinary(byteArray);
