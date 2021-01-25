@@ -39,11 +39,10 @@ import org.apache.flink.types.Row;
  */
 public class PostgresqlWriter extends JdbcDataWriter {
 
-    public String schema;
 
     public PostgresqlWriter(DataTransferConfig config) {
         super(config);
-        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
+        String schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
         if (StringUtils.isNotEmpty(schema)){
             table = schema + ConstantValue.POINT_SYMBOL + table;
         }
