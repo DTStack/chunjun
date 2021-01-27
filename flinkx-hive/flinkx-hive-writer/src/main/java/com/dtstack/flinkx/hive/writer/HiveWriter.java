@@ -20,6 +20,7 @@ package com.dtstack.flinkx.hive.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
@@ -67,6 +68,9 @@ public class HiveWriter extends BaseDataWriter {
 
     private Map<String, Object> hadoopConfig;
 
+    //hadoop是否是高可用
+    private boolean isHa;
+
     private String charSet;
 
     private long maxFileSize;
@@ -90,6 +94,7 @@ public class HiveWriter extends BaseDataWriter {
         readerName = config.getJob().getContent().get(0).getReader().getName();
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
+        isHa = writerConfig.getParameter().getBooleanVal(HdfsConfigKeys.KEY_HADOOP_HA,true);
         defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
         if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(KEY_FS_DEFAULT_FS)){
             defaultFs = MapUtils.getString(hadoopConfig, KEY_FS_DEFAULT_FS);
@@ -199,6 +204,7 @@ public class HiveWriter extends BaseDataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
         builder.setHadoopConfig(hadoopConfig);
+        builder.setIsHa(isHa);
         builder.setDefaultFs(defaultFs);
         builder.setWriteMode(mode);
         builder.setCompress(compress);

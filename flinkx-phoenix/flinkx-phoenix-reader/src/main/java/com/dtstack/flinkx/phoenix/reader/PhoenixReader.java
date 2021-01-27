@@ -39,7 +39,6 @@ public class PhoenixReader extends JdbcDataReader {
     public PhoenixReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new PhoenixMeta());
-        dbUrl = DbUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
 
     @Override
