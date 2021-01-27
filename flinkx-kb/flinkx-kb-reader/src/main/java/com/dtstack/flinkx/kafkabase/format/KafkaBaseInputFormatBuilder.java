@@ -23,8 +23,10 @@ import com.dtstack.flinkx.kafkabase.KafkaConfigKeys;
 import com.dtstack.flinkx.kafkabase.enums.KafkaVersion;
 import com.dtstack.flinkx.kafkabase.enums.StartupMode;
 import com.dtstack.flinkx.kafkabase.util.KafkaUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -76,6 +78,10 @@ public class KafkaBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setTimestamp(Long timestamp) {
         format.timestamp = timestamp;
+    }
+
+    public void setMetaColumns(List<MetaColumn> metaColumns) {
+        format.metaColumns = metaColumns;
     }
 
     @Override
