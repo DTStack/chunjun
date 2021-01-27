@@ -45,9 +45,9 @@ public class BinlogUtil {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     //是否开启binlog
-    private static final String CHECK_BINLOG_ENABLE = "show variables where variable_name = 'log_bin';;";
+    private static final String CHECK_BINLOG_ENABLE = "show variables where variable_name = 'log_bin';";
     //查看binlog format
-    private static final String CHECK_BINLOG_FORMAT = "show variables where variable_name = 'binlog_format';;";
+    private static final String CHECK_BINLOG_FORMAT = "show variables where variable_name = 'binlog_format';";
     //校验用户是否有权限
     private static final String CHECK_USER_PRIVILEGE = "show master status ;";
 
