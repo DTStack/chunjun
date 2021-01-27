@@ -560,6 +560,12 @@
             <artifactId>flinkx-socket-reader</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-postgresql-reader</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
