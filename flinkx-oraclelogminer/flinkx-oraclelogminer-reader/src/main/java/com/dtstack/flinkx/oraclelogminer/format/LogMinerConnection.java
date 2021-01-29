@@ -128,11 +128,12 @@ public class LogMinerConnection {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
-
+            setSessionFormat();
             LOG.info("get connection successfully, url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
         } catch (Exception e){
             String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
+            closeResources(null,null,connection);
             throw new RuntimeException(message, e);
         }
     }
