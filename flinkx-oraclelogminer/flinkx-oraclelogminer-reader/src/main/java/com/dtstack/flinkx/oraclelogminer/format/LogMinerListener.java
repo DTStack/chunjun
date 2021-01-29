@@ -112,6 +112,9 @@ public class LogMinerListener implements Runnable {
             executor.execute(listener);
             LOG.info("Re-execute LogMinerListener successfully");
         });
+
+        logMinerConnection.setSessionFormat();
+
         while (running) {
             QueueData log = null;
             try {
@@ -150,6 +153,7 @@ public class LogMinerListener implements Runnable {
                 } catch (Exception e1) {
                     LOG.warn("LogMiner Thread get connect exception, e = {}", ExceptionUtil.getErrorMessage(e1));
                 }
+                logMinerConnection.setSessionFormat();
             }
         }
     }

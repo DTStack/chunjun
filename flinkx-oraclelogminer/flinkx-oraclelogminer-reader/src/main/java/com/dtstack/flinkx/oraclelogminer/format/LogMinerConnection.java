@@ -192,15 +192,6 @@ public class LogMinerConnection {
 
             closeStmt(logMinerStartStmt);
 
-            //开启logMiner之前 需要设置会话级别的日期格式
-            if (isOracle10) {
-                PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
-                preparedStatement.execute();
-                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
-                preparedStatement.execute();
-            }
-
-
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
 
@@ -567,6 +558,27 @@ public class LogMinerConnection {
             throw new IllegalArgumentException(message);
         } catch (SQLException e) {
             throw new RuntimeException("检查权限出错", e);
+        }
+    }
+
+    /**
+     * oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
+     */
+    public void setSessionFormat() {
+        if (!isOracle10) {
+            return;
+        }
+
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
+            preparedStatement.execute();
+            preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException("初始化session级别配置出错", e);
+        } finally {
+            closeStmt(preparedStatement);
         }
     }
 
