@@ -18,13 +18,24 @@
 
 package com.dtstack.flinkx.metadatavertica.constants;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * 定义了一些常量属性
  * @author kunni@dtstack.com
  */
-public class VerticaMetaDataCons extends MetaDataCons {
+public class VerticaMetaDataCons extends RdbCons {
+
+    public static final String RESULT_SET_COLUMN_NAME = "COLUMN_NAME";
+    public static final String RESULT_SET_TYPE_NAME = "TYPE_NAME";
+    public static final String RESULT_SET_COLUMN_SIZE = "COLUMN_SIZE";
+    public static final String RESULT_SET_DECIMAL_DIGITS = "DECIMAL_DIGITS";
+    public static final String RESULT_SET_ORDINAL_POSITION = "ORDINAL_POSITION";
+    public static final String RESULT_SET_IS_NULLABLE = "IS_NULLABLE";
+    public static final String RESULT_SET_REMARKS = "REMARKS";
+    public static final String RESULT_SET_COLUMN_DEF = "COLUMN_DEF";
+
+    public static final String RESULT_SET_TABLE_NAME = "TABLE_NAME";
 
     public static final String DRIVER_NAME = "com.vertica.jdbc.Driver";
 

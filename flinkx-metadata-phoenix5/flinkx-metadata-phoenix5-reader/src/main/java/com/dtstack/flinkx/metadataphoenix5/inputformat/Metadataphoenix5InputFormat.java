@@ -101,12 +101,6 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     }
 
     @Override
-    public void switchDataBase() throws SQLException {
-
-    }
-
-
-    @Override
     public MetadatardbEntity createMetadatardbEntity() throws Exception {
         String tableName = (String) currentObject;
         MetadataPhoenix5Entity metadataPhoenix5Entity = new MetadataPhoenix5Entity();

@@ -10,6 +10,7 @@ import com.dtstack.metadata.rdb.core.entity.TableEntity;
  * @Description:
  */
 public class Phoenix5TableEntity extends TableEntity {
+
     private String nameSpace;
 
     public String getNameSpace() {

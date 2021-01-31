@@ -42,6 +42,7 @@ import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESUL
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROWS;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROW_FORMAT;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_COMMENT;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_TYPE;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_INDEX;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_TABLE_INFO;
 import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_SWITCH_DATABASE;
@@ -93,6 +94,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
         String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
         try(ResultSet rs = statement.executeQuery(sql)){
             while (rs.next()) {
+                entity.setTableType(RESULT_TABLE_TYPE);
                 entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
                 entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
                 entity.setTotalSize(rs.getLong(RESULT_DATA_LENGTH));

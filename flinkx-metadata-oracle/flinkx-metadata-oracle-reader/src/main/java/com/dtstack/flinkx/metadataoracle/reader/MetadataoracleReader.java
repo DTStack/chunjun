@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.metadataoracle.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadataoracle.inputformat.MetadataoracleInputFormat;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.DRIVER_NAME;
@@ -32,14 +32,20 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.DRI
  * @description : MetadataOracleReader
  */
 
-public class MetadataoracleReader extends MetadataReader {
-    public MetadataoracleReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        driverName = DRIVER_NAME;
+public class MetadataoracleReader extends MetadatardbReader {
+
+    @Override
+    public MetadatardbBuilder createBuilder() {
+        return new MetadatardbBuilder(new MetadataoracleInputFormat());
     }
 
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadataoracleInputFormat());
+    public String getDriverName() {
+        return DRIVER_NAME;
     }
+
+    public MetadataoracleReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+    }
+
 }

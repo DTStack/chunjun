@@ -19,7 +19,6 @@ package com.dtstack.flinkx.metadatahive2.inputformat;
 
 import com.dtstack.flinkx.metadatahive2.constants.HiveDbUtil;
 import com.dtstack.flinkx.metadatahive2.entity.HiveConnectionInfo;
-import com.dtstack.flinkx.metatdata.hive2.core.entity.HiveColumnEntity;
 import com.dtstack.flinkx.metatdata.hive2.core.entity.HiveTableEntity;
 import com.dtstack.flinkx.metatdata.hive2.core.entity.MetadataHive2Entity;
 import com.dtstack.flinkx.metatdata.hive2.core.util.HiveOperatorUtils;
@@ -97,7 +96,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
     public MetadatardbEntity createMetadatardbEntity() throws IOException {
         MetadataHive2Entity metadataHive2Entity = new MetadataHive2Entity();
         List<ColumnEntity> columnList = new ArrayList<>();
-        List<HiveColumnEntity> partitionColumnList = new ArrayList<>();
+        List<ColumnEntity> partitionColumnList = new ArrayList<>();
         HiveTableEntity tableProperties = new HiveTableEntity();
         String tableName = (String)currentObject;
         List<Map<String, String>> metaData;
@@ -148,7 +147,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
         }
         if (partitionColumnList.size() > 0) {
             List<String> partitionColumnNames = new ArrayList<>();
-            for (HiveColumnEntity partitionColumn : partitionColumnList) {
+            for (ColumnEntity partitionColumn : partitionColumnList) {
                 partitionColumnNames.add(partitionColumn.getName());
             }
             columnList.removeIf(column -> partitionColumnNames.contains(column.getName()));
@@ -232,8 +231,8 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
     }
 
 
-    private HiveColumnEntity parseColumn(Map<String, String> lineDataInternal, int index){
-        HiveColumnEntity hiveColumnEntity = new HiveColumnEntity();
+    private ColumnEntity parseColumn(Map<String, String> lineDataInternal, int index){
+        ColumnEntity hiveColumnEntity = new ColumnEntity();
         String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
         String commentInternal = lineDataInternal.get(KEY_COMMENT);
         String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
