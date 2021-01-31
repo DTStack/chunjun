@@ -26,7 +26,6 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.commons.lang3.tuple.Pair;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,7 +132,7 @@ public class LogMinerListener implements Runnable {
                 }
                 sb.append(",\ne = ").append(ExceptionUtil.getErrorMessage(e));
                 String msg = sb.toString();
-                Log.warn(msg);
+                LOG.warn(msg);
                 try {
                     queue.put(new QueueData(0L, Collections.singletonMap("e", msg)));
                     Thread.sleep(2000L);
