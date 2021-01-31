@@ -74,8 +74,7 @@ public class PhoenixMetadataCons extends RdbCons {
 
     public static final String RESULT_SET_TABLE_NAME = "TABLE_NAME";
 
-    public static final String KEY_TRUE = "Y";
-    public static final String KEY_FALSE = "N";
+
 
 
 }

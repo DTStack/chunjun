@@ -19,10 +19,16 @@
 package com.dtstack.flinkx.metadatavertica.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadatavertica.entity.MetadataVerticaEntity;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.core.entity.TableEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.core.io.InputSplit;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -31,27 +37,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_COMMENT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DATA_TYPE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_INDEX;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PARTITION_COLUMNS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_DEF;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_COLUMN_SIZE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_DECIMAL_DIGITS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_IS_NULLABLE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_ORDINAL_POSITION;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_REMARKS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TABLE_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.RESULT_SET_TYPE_NAME;
+
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_COLUMN_DEF;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_COLUMN_NAME;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_COLUMN_SIZE;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_DECIMAL_DIGITS;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_IS_NULLABLE;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_ORDINAL_POSITION;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_REMARKS;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_TABLE_NAME;
+import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.RESULT_SET_TYPE_NAME;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_COMMENT;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_CREATE_TIME;
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.SQL_PT_COLUMN;
@@ -60,7 +55,7 @@ import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.S
 /** 读取vertica的元数据
  * @author kunni@dtstack.com
  */
-public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
+public class MetadataverticaInputFormat extends MetadatardbInputFormat {
 
     protected Map<String, String> createTimeMap;
 
@@ -70,7 +65,7 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
 
     protected Map<String, String> ptColumnMap;
 
-    List<Map<String, Object>> ptColumns = new LinkedList<>();
+    List<ColumnEntity> ptColumns = new LinkedList<>();
 
     /**
      * 采用数组是为了构建Varchar(10)、Decimal(10,2)这种格式
@@ -79,10 +74,22 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
 
     private static final List<String> DOUBLE_DIGITAL_TYPE = Arrays.asList("Timestamp", "Decimal");
 
+
     @Override
-    protected List<Object> showTables() {
+    protected void openInternal(InputSplit inputSplit) throws IOException {
+        super.openInternal(inputSplit);
+        init();
+    }
+
+    @Override
+    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+        return queryMetaData((String)currentObject);
+    }
+
+    @Override
+    public List<Object> showTables() {
         List<Object> tables = new LinkedList<>();
-        try(ResultSet resultSet = connection.get().getMetaData().getTables(null, currentDb.get(), null, null)){
+        try(ResultSet resultSet = connection.getMetaData().getTables(null, currentDatabase, null, null)){
             while (resultSet.next()){
                 tables.add(resultSet.getString(RESULT_SET_TABLE_NAME));
             }
@@ -92,26 +99,19 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
         return tables;
     }
 
-    @Override
-    protected void switchDatabase(String databaseName) {
-        currentDb.set(databaseName);
+    protected MetadataVerticaEntity queryMetaData(String tableName) {
+        MetadataVerticaEntity metadataVerticaEntity = new MetadataVerticaEntity();
+        metadataVerticaEntity.setPartitionColumns(ptColumns);
+        ptColumns.clear();
+        metadataVerticaEntity.setTableProperties(queryTableProp(tableName));
+        metadataVerticaEntity.setColumns(queryColumn(tableName));
+        return metadataVerticaEntity;
     }
 
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) {
-        Map<String, Object> result = new HashMap<>(16);
-        result.put(KEY_TABLE_PROPERTIES, queryTableProp(tableName));
-        result.put(KEY_COLUMN, queryColumn(tableName));
-        result.put(KEY_PARTITION_COLUMNS, ptColumns);
-        return result;
-    }
-
-    @Override
     protected String quote(String name) {
         return name;
     }
 
-    @Override
     protected void init() {
         queryCreateTime();
         queryComment();
@@ -124,13 +124,13 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      * @param tableName 表名
      * @return 列的元数据
      */
-    public List<Map<String, Object>> queryColumn(String tableName) {
-        List<Map<String, Object>> columns = new LinkedList<>();
-        try(ResultSet resultSet = connection.get().getMetaData().getColumns(null, currentDb.get(), tableName, null)){
+    public List<ColumnEntity> queryColumn(String tableName) {
+        List<ColumnEntity> columns = new LinkedList<>();
+        try(ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, tableName, null)){
             while (resultSet.next()){
-                Map<String, Object> map = new HashMap<>(16);
+                ColumnEntity verticaColumnEntity = new ColumnEntity();
                 String columnName = resultSet.getString(RESULT_SET_COLUMN_NAME);
-                map.put(KEY_COLUMN_NAME, columnName);
+                verticaColumnEntity.setName(columnName);
                 String dataSize = resultSet.getString(RESULT_SET_COLUMN_SIZE);
                 String digits = resultSet.getString(RESULT_SET_DECIMAL_DIGITS);
                 String type = resultSet.getString(RESULT_SET_TYPE_NAME);
@@ -139,18 +139,18 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
                 }else if(DOUBLE_DIGITAL_TYPE.contains(type)){
                     type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits +  ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
                 }
-                map.put(KEY_COLUMN_DATA_TYPE, type);
-                map.put(KEY_COLUMN_COMMENT, resultSet.getString(RESULT_SET_REMARKS));
-                map.put(KEY_COLUMN_INDEX, resultSet.getString(RESULT_SET_ORDINAL_POSITION));
-                map.put(KEY_COLUMN_NULL, resultSet.getString(RESULT_SET_IS_NULLABLE));
-                map.put(KEY_COLUMN_DEFAULT, resultSet.getString(RESULT_SET_COLUMN_DEF));
+                verticaColumnEntity.setType(type);
+                verticaColumnEntity.setComment(resultSet.getString(RESULT_SET_REMARKS));
+                verticaColumnEntity.setIndex(resultSet.getInt(RESULT_SET_ORDINAL_POSITION));
+                verticaColumnEntity.setNullAble(resultSet.getString(RESULT_SET_IS_NULLABLE));
+                verticaColumnEntity.setDefaultValue(resultSet.getString(RESULT_SET_COLUMN_DEF));
                 // 分区列信息,vertical partition express 中字段自动增加表名
                 String expressColumn = tableName + ConstantValue.POINT_SYMBOL + columnName;
                 String partitionExpression = ptColumnMap.get(tableName);
                 if (StringUtils.isNotBlank(partitionExpression) && partitionExpression.contains(expressColumn)) {
-                    ptColumns.add(map);
+                    ptColumns.add(verticaColumnEntity);
                 }else{
-                    columns.add(map);
+                    columns.add(verticaColumnEntity);
                 }
             }
         } catch (SQLException e){
@@ -164,15 +164,15 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      * @param tableName 表名
      * @return 表的元数据
      */
-    public Map<String, String> queryTableProp(String tableName) {
-        Map<String, String> tableProperties = new HashMap<>(16);
-        tableProperties.put(KEY_TABLE_CREATE_TIME,  createTimeMap.get(tableName));
-        tableProperties.put(KEY_TABLE_COMMENT, commentMap.get(tableName));
+    public TableEntity queryTableProp(String tableName) {
+        TableEntity verticaTableEntity = new TableEntity();
+        verticaTableEntity.setCreateTime(createTimeMap.get(tableName));
+        verticaTableEntity.setComment(commentMap.get(tableName));
         // 单位 byte
         String totalSize = totalSizeMap.get(tableName);
         totalSize = totalSize == null ? "0" : totalSize;
-        tableProperties.put(KEY_TABLE_TOTAL_SIZE, totalSize);
-        return tableProperties;
+        verticaTableEntity.setTotalSize(Long.valueOf(totalSize));
+        return verticaTableEntity;
     }
 
     /**
@@ -180,8 +180,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      */
     public void queryCreateTime() {
         createTimeMap = new HashMap<>(16);
-        String sql = String.format(SQL_CREATE_TIME, currentDb.get());
-        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+        String sql = String.format(SQL_CREATE_TIME, currentDatabase);
+        try(ResultSet resultSet = executeQuery0(sql, statement)){
             while (resultSet.next()){
                 createTimeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
@@ -195,8 +195,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      */
     public void queryComment() {
         commentMap = new HashMap<>(16);
-        String sql = String.format(SQL_COMMENT, currentDb.get());
-        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+        String sql = String.format(SQL_COMMENT, currentDatabase);
+        try(ResultSet resultSet = executeQuery0(sql, statement)){
             while (resultSet.next()){
                 commentMap.put(resultSet.getString(1), resultSet.getString(2));
             }
@@ -210,8 +210,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      */
     public void queryTotalSizeMap() {
         totalSizeMap = new HashMap<>(16);
-        String sql = String.format(SQL_TOTAL_SIZE, currentDb.get());
-        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+        String sql = String.format(SQL_TOTAL_SIZE, currentDatabase);
+        try(ResultSet resultSet = executeQuery0(sql, statement)){
             while (resultSet.next()){
                 totalSizeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
@@ -225,8 +225,8 @@ public class MetadataverticaInputFormat extends BaseMetadataInputFormat {
      */
     public void queryPtColumnMap() {
         ptColumnMap = new HashMap<>(16);
-        String sql = String.format(SQL_PT_COLUMN, currentDb.get());
-        try(ResultSet resultSet = executeQuery0(sql, statement.get())){
+        String sql = String.format(SQL_PT_COLUMN, currentDatabase);
+        try(ResultSet resultSet = executeQuery0(sql, statement)){
             while (resultSet.next()){
                 String expression = resultSet.getString(2);
                 ptColumnMap.put(resultSet.getString(1), expression);

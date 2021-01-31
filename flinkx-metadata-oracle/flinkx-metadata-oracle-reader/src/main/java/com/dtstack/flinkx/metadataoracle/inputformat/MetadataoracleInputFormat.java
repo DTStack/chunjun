@@ -19,7 +19,13 @@
 package com.dtstack.flinkx.metadataoracle.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadataoracle.entity.MetadataOracleEntity;
+import com.dtstack.flinkx.metadataoracle.entity.OracleColumnEntity;
+import com.dtstack.flinkx.metadataoracle.entity.OracleIndexEntity;
+import com.dtstack.flinkx.metadataoracle.entity.OracleTableEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
@@ -30,31 +36,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_DEFAULT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NULL;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_SCALE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_PARTITION_COLUMNS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.MAX_TABLE_SIZE;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_COMMENT;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_INDEX;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_COLUMN_TYPE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_CREATE_TIME;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_FALSE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_MAX_NUMBER;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_NUMBER;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_PARTITION_KEY;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_PRIMARY_KEY;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_PROPERTIES;
-import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TABLE_TYPE;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.KEY_TRUE;
+import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.MAX_TABLE_SIZE;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.NUMBER_PRECISION;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_PARTITION_KEY;
 import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL_QUERY_COLUMN;
@@ -76,23 +65,23 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
  * @description :Oracle元数据可在系统表中查询
  */
 
-public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
+public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
     /**
      * 表基本属性
      */
-    private Map<String, Map<String, String>> tablePropertiesMap;
+    private Map<String, OracleTableEntity> tablePropertiesMap;
 
     /**
      * 列基本属性
      */
-    private Map<String, List<Map<String, String>>> columnListMap;
+    private Map<String, List<OracleColumnEntity>> columnListMap;
 
     /**
      * 索引基本属性
      */
-    private Map<String, List<Map<String, String>>> indexListMap;
+    private Map<String, List<OracleIndexEntity>> indexListMap;
 
     /**
      * 主键信息
@@ -113,11 +102,19 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     private String sql;
 
+    private Integer currentTablePosition = 0;
+
+
     @Override
-    protected List<Object> showTables() throws SQLException {
+    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+        return queryMetaData((String) currentObject);
+    }
+
+
+    public List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
-        sql = String.format(SQL_SHOW_TABLES, quote(currentDb.get()));
-        try (ResultSet rs = statement.get().executeQuery(sql)) {
+        sql = String.format(SQL_SHOW_TABLES, quote(currentDatabase));
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
                 tableNameList.add(rs.getString(1));
             }
@@ -125,92 +122,81 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return tableNameList;
     }
 
-    @Override
-    protected void switchDatabase(String databaseName) {
-        currentDb.set(databaseName);
-    }
 
-    @Override
     protected String quote(String name) {
-        return String.format("'%s'",name);
+        return String.format("'%s'", name);
     }
 
-    /**
-     * 从预先查询好的map中取出信息
-     * @param tableName 表名
-     * @return 表的元数据信息
-     * @throws SQLException 异常
-     */
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
+
+    protected MetadataOracleEntity queryMetaData(String tableName) throws SQLException {
+        MetadataOracleEntity metadataOracleEntity = new MetadataOracleEntity();
         // 如果当前map中没有，说明要重新取值
-        if(!tablePropertiesMap.containsKey(tableName)){
+        if (tablePropertiesMap == null || !tablePropertiesMap.containsKey(tableName)) {
             init();
         }
-        Map<String, String> tableProperties = tablePropertiesMap.get(tableName);
-        tableProperties.put(KEY_TABLE_CREATE_TIME, createdTimeMap.get(tableName));
-        List<Map<String, String>> columnList = columnListMap.get(tableName);
-        List<Map<String, String>> indexList = indexListMap.get(tableName);
+        OracleTableEntity tableProperties = tablePropertiesMap.get(tableName);
+        tableProperties.setCreateTime(createdTimeMap.get(tableName));
+        List<OracleColumnEntity> columnList = columnListMap.get(tableName);
+        List<OracleIndexEntity> indexList = indexListMap.get(tableName);
         String primaryColumn = primaryKeyMap.get(tableName);
         String partitionKey = partitionMap.get(tableName);
-        List<Map<String, String>> partitionColumnList = new ArrayList<>();
-        for(Map<String, String> map : columnList){
-            if(StringUtils.equals(map.get(KEY_COLUMN_NAME), primaryColumn)){
-                map.put(KEY_COLUMN_PRIMARY, KEY_TRUE);
-            }else{
-                map.put(KEY_COLUMN_PRIMARY, KEY_FALSE);
+        List<OracleColumnEntity> partitionColumnList = new ArrayList<>();
+        for (OracleColumnEntity oracleColumnEntity : columnList) {
+            if (StringUtils.equals(oracleColumnEntity.getName(), primaryColumn)) {
+                oracleColumnEntity.setPrimaryKey(KEY_TRUE);
+            } else {
+                oracleColumnEntity.setPrimaryKey(KEY_FALSE);
             }
-            if(StringUtils.equals(map.get(KEY_COLUMN_NAME), partitionKey)){
-                partitionColumnList.add(map);
+            if (StringUtils.equals(oracleColumnEntity.getName(), partitionKey)) {
+                partitionColumnList.add(oracleColumnEntity);
             }
         }
-        result.put(KEY_PARTITION_COLUMNS, partitionColumnList);
-        result.put(KEY_TABLE_PROPERTIES, tableProperties);
-        result.put(KEY_COLUMN, columnList);
-        result.put(KEY_COLUMN_INDEX, indexList);
-        return result;
+        metadataOracleEntity.setPartitionColumns(partitionColumnList);
+        metadataOracleEntity.setTableProperties(tableProperties);
+        metadataOracleEntity.setColumns(columnList);
+        metadataOracleEntity.setOracleIndexEntityList(indexList);
+        return metadataOracleEntity;
     }
 
-    protected Map<String, Map<String, String> > queryTableProperties() throws SQLException {
-        Map<String, Map<String, String>> tablePropertiesMap = new HashMap<>(16);
-        sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDb.get()));
-        if(StringUtils.isNotBlank(allTable)){
+    protected Map<String, OracleTableEntity> queryTableProperties() throws SQLException {
+        Map<String, OracleTableEntity> tablePropertiesMap = new HashMap<>(16);
+        sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDatabase));
+        if (StringUtils.isNotBlank(allTable)) {
             sql += String.format(SQL_QUERY_TABLE_PROPERTIES, allTable);
         }
         LOG.info("querySQL: {}", sql);
-        try (ResultSet rs = statement.get().executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, String> map = new HashMap<>(16);
-                map.put(KEY_TABLE_TOTAL_SIZE, rs.getString(1));
-                map.put(KEY_TABLE_COMMENT, rs.getString(2));
-                map.put(KEY_TABLE_TYPE, rs.getString(3));
-                map.put(KEY_TABLE_ROWS, rs.getString(4));
-                tablePropertiesMap.put(rs.getString(5), map);
+                OracleTableEntity oracleTableEntity = new OracleTableEntity();
+                oracleTableEntity.setTotalSize(rs.getLong(1));
+                oracleTableEntity.setComment(rs.getString(2));
+                oracleTableEntity.setTableType(rs.getString(3));
+                oracleTableEntity.setRows(rs.getLong(4));
+                tablePropertiesMap.put(rs.getString(5), oracleTableEntity);
             }
         }
         return tablePropertiesMap;
     }
 
-    protected Map<String, List<Map<String, String>>> queryIndexList() throws SQLException {
-        Map<String, List<Map<String, String>>> indexListMap = new HashMap<>(16);
-        sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDb.get()));
-        if(StringUtils.isNotBlank(allTable)){
+    protected Map<String, List<OracleIndexEntity>> queryIndexList() throws SQLException {
+        Map<String, List<OracleIndexEntity>> indexListMap = new HashMap<>(16);
+        sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDatabase));
+        if (StringUtils.isNotBlank(allTable)) {
             sql += String.format(SQL_QUERY_INDEX, allTable);
         }
         LOG.info("querySQL: {}", sql);
-        try (ResultSet rs = statement.get().executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, String> column = new HashMap<>(16);
-                column.put(KEY_INDEX_NAME, rs.getString(1));
-                column.put(KEY_COLUMN_NAME, rs.getString(2));
-                column.put(KEY_COLUMN_TYPE, rs.getString(3));
+                OracleIndexEntity oracleIndexEntity = new OracleIndexEntity();
+                oracleIndexEntity.setName(rs.getString(1));
+                oracleIndexEntity.setColumnName(rs.getString(2));
+                oracleIndexEntity.setType(rs.getString(3));
                 String tableName = rs.getString(4);
-                if(indexListMap.containsKey(tableName)){
-                    indexListMap.get(tableName).add(column);
-                }else {
-                    List<Map<String, String>> indexList  = new LinkedList<>();
-                    indexList.add(column);
+                if (indexListMap.containsKey(tableName)) {
+                    indexListMap.get(tableName).add(oracleIndexEntity);
+                } else {
+                    List<OracleIndexEntity> indexList = new LinkedList<>();
+                    indexList.add(oracleIndexEntity);
                     indexListMap.put(tableName, indexList);
                 }
             }
@@ -218,40 +204,38 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
         return indexListMap;
     }
 
-    protected Map<String, List<Map<String, String>>> queryColumnList() throws SQLException {
-        Map<String, List<Map<String, String>>> columnListMap = new HashMap<>(16);
-        sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDb.get()));
-        if(StringUtils.isNotBlank(allTable)){
+    protected Map<String, List<OracleColumnEntity>> queryColumnList() throws SQLException {
+        Map<String, List<OracleColumnEntity>> columnListMap = new HashMap<>(16);
+        sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDatabase));
+        if (StringUtils.isNotBlank(allTable)) {
             sql += String.format(SQL_QUERY_COLUMN, allTable);
         }
         LOG.info("querySQL: {}", sql);
-        try (ResultSet rs = statement.get().executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, String> column = new HashMap<>(16);
+                OracleColumnEntity oracleColumnEntity = new OracleColumnEntity();
                 // oracle中，resultSet的LONG、LONG ROW类型要放第一个取出来
-                column.put(KEY_COLUMN_DEFAULT, rs.getString(5));
-                column.put(KEY_COLUMN_NAME, rs.getString(1));
+                oracleColumnEntity.setDefaultValue(rs.getString(5));
+                oracleColumnEntity.setName(rs.getString(1));
                 String type = rs.getString(2);
-                String length = rs.getString(7);
-                if(StringUtils.equals(type, KEY_NUMBER)){
+                Integer length = rs.getInt(7);
+                oracleColumnEntity.setType(type);
+                oracleColumnEntity.setLength(length);
+                if (StringUtils.equals(type, KEY_NUMBER)) {
                     String precision = rs.getString(9);
                     String scale = rs.getString(10);
-                    column.put(KEY_COLUMN_TYPE, String.format(NUMBER_PRECISION, precision==null?length:precision, scale==null?KEY_MAX_NUMBER:scale));
-                }else {
-                    column.put(KEY_COLUMN_TYPE, type);
+                    oracleColumnEntity.setType(String.format(NUMBER_PRECISION, precision == null ? length : precision, scale == null ? KEY_MAX_NUMBER : scale));
                 }
-                column.put(KEY_COLUMN_COMMENT, rs.getString(3));
+                oracleColumnEntity.setComment(rs.getString(3));
                 String tableName = rs.getString(4);
-                column.put(KEY_COLUMN_NULL, rs.getString(6));
-                column.put(KEY_COLUMN_SCALE, length);
-                String index = rs.getString(8);
-                if(columnListMap.containsKey(tableName)){
-                    column.put(KEY_COLUMN_INDEX, index);
-                    columnListMap.get(tableName).add(column);
-                }else {
-                    List<Map<String, String>>columnList  = new LinkedList<>();
-                    column.put(KEY_COLUMN_INDEX, index);
-                    columnList.add(column);
+                oracleColumnEntity.setNullAble(rs.getString(6));
+                Integer index = rs.getInt(8);
+                oracleColumnEntity.setIndex(index);
+                if (columnListMap.containsKey(tableName)) {
+                    columnListMap.get(tableName).add(oracleColumnEntity);
+                } else {
+                    List<OracleColumnEntity> columnList = new LinkedList<>();
+                    columnList.add(oracleColumnEntity);
                     columnListMap.put(tableName, columnList);
                 }
             }
@@ -261,62 +245,70 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
 
     /**
      * 表名和某个特定属性映射的map
+     *
      * @return 映射map
      * @throws SQLException sql异常
      */
-    protected Map<String, String> queryTableKeyMap(String type) throws SQLException {
-        Map<String, String> primaryKeyMap = new HashMap<>(16);
-        switch (type){
-            case KEY_PRIMARY_KEY:{
-                sql = String.format(SQL_QUERY_PRIMARY_KEY_TOTAL, quote(currentDb.get()));
-                if (StringUtils.isNotBlank(allTable)){
+    protected void queryTableKeyMap(String type) throws SQLException {
+        switch (type) {
+            case KEY_PRIMARY_KEY: {
+                sql = String.format(SQL_QUERY_PRIMARY_KEY_TOTAL, quote(currentDatabase));
+                if (StringUtils.isNotBlank(allTable)) {
                     sql += String.format(SQL_QUERY_PRIMARY_KEY, allTable);
                 }
+                primaryKeyMap = getResultByMap(sql);
                 break;
             }
-            case KEY_CREATE_TIME:{
-                sql = String.format(SQL_QUERY_TABLE_CREATE_TIME_TOTAL, quote(currentDb.get()));
-                if (StringUtils.isNotBlank(allTable)){
+            case KEY_CREATE_TIME: {
+                sql = String.format(SQL_QUERY_TABLE_CREATE_TIME_TOTAL, quote(currentDatabase));
+                if (StringUtils.isNotBlank(allTable)) {
                     sql += String.format(SQL_QUERY_TABLE_CREATE_TIME, allTable);
                 }
+                createdTimeMap = getResultByMap(sql);
                 break;
             }
-            case KEY_PARTITION_KEY:{
-                sql = String.format(SQL_PARTITION_KEY, quote(currentDb.get()));
-                if (StringUtils.isNotBlank(allTable)){
+            case KEY_PARTITION_KEY: {
+                sql = String.format(SQL_PARTITION_KEY, quote(currentDatabase));
+                if (StringUtils.isNotBlank(allTable)) {
                     sql += String.format(SQL_QUERY_TABLE_PARTITION_KEY, allTable);
                 }
+                partitionMap = getResultByMap(sql);
                 break;
             }
-            default: break;
+            default:
+                break;
         }
+    }
+
+    private Map<String, String> getResultByMap(String sql) throws SQLException {
+        Map<String, String> resultMap = Maps.newHashMap();
         LOG.info("querySQL: {}", sql);
-        try (ResultSet rs = statement.get().executeQuery(sql)){
-            while (rs.next()){
-                primaryKeyMap.put(rs.getString(1), rs.getString(2));
+        try (ResultSet rs = statement.executeQuery(sql)) {
+            while (rs.next()) {
+                resultMap.put(rs.getString(1), rs.getString(2));
             }
         }
-        return primaryKeyMap;
+        return resultMap;
     }
 
     /**
      * 每隔20张表进行一次查询
+     *
      * @throws SQLException 执行sql出现的异常
      */
-    @Override
     protected void init() throws SQLException {
         // 没有表则退出
-        if(tableList.size()==0){
+        if (tableList.size() == 0) {
             return;
         }
         allTable = null;
-        if (start < tableList.size()){
+        if (currentTablePosition < tableList.size()) {
             // 取出子数组，注意避免越界
-            List<Object> splitTableList = tableList.subList(start, Math.min(start+MAX_TABLE_SIZE, tableList.size()));
+            List<Object> splitTableList = tableList.subList(currentTablePosition, Math.min(currentTablePosition + MAX_TABLE_SIZE, tableList.size()));
             StringBuilder stringBuilder = new StringBuilder(2 * splitTableList.size());
-            for(int index=0;index<splitTableList.size();index++){
+            for (int index = 0; index < splitTableList.size(); index++) {
                 stringBuilder.append(quote((String) splitTableList.get(index)));
-                if(index!=splitTableList.size()-1){
+                if (index != splitTableList.size() - 1) {
                     stringBuilder.append(ConstantValue.COMMA_SYMBOL);
                 }
             }
@@ -324,9 +316,11 @@ public class MetadataoracleInputFormat extends BaseMetadataInputFormat {
             tablePropertiesMap = queryTableProperties();
             columnListMap = queryColumnList();
             indexListMap = queryIndexList();
-            primaryKeyMap =  queryTableKeyMap(KEY_PRIMARY_KEY);
-            createdTimeMap = queryTableKeyMap(KEY_CREATE_TIME);
-            partitionMap = queryTableKeyMap(KEY_PARTITION_KEY);
+            queryTableKeyMap(KEY_PRIMARY_KEY);
+            queryTableKeyMap(KEY_CREATE_TIME);
+            //TODO oracle 支持多级分区
+            queryTableKeyMap(KEY_PARTITION_KEY);
+            currentTablePosition = currentTablePosition + splitTableList.size();
         }
     }
 }

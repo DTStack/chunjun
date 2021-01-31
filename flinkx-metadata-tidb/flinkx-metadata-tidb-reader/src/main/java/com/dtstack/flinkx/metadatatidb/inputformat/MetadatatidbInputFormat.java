@@ -17,39 +17,27 @@
  */
 package com.dtstack.flinkx.metadatatidb.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
+import com.dtstack.flinkx.metadatamysql.entity.MysqlColumnEntity;
+import com.dtstack.flinkx.metadatamysql.entity.MysqlTableEntity;
+import com.dtstack.flinkx.metadatamysql.inputformat.MetadatamysqlInputFormat;
+import com.dtstack.flinkx.metadatatidb.entity.MetadataTidbEntity;
+import com.dtstack.flinkx.metadatatidb.entity.TidbPartitionEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_COMMENT;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_INDEX;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_TYPE;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_CREATE_TIME;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_DEFAULT;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_NULL;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITIONS;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PARTITION_COLUMN;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_PRI;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_COLUMN_SCALE;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_PROPERTIES;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TES;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_TABLE_TOTAL_SIZE;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.KEY_UPDATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_DEFAULT;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.RESULT_COLUMN_NULL;
@@ -73,141 +61,127 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUE
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_TABLE_INFO;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_QUERY_UPDATE_TIME;
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_SHOW_TABLES;
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.SQL_SWITCH_DATABASE;
-
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_FALSE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_TRUE;
 
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
+public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected List<Object> showTables() throws SQLException {
+    public List<Object> showTables() throws SQLException {
         List<Object> tables = new ArrayList<>();
-        try (ResultSet rs = statement.get().executeQuery(SQL_SHOW_TABLES)) {
+        try (ResultSet rs = statement.executeQuery(SQL_SHOW_TABLES)) {
             while (rs.next()) {
                 tables.add(rs.getString(1));
             }
         }
-
         return tables;
     }
 
-
     @Override
-    protected void switchDatabase(String databaseName) throws SQLException {
-        statement.get().execute(String.format(SQL_SWITCH_DATABASE, quote(databaseName)));
+    public MetadatardbEntity createMetadatardbEntity() throws IOException {
+        try {
+            return queryMetaData((String) currentObject);
+        } catch (SQLException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
-    @Override
-    protected String quote(String name) {
-        return name;
-    }
 
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
-        Map<String, String> tableProp = queryTableProp(tableName);
-        List<Map<String, Object>> column = queryColumn(tableName);
-        List<Map<String, Object>> partition = queryPartition(tableName);
-        Map<String, Object> updateTime = queryAddPartition(tableName, KEY_UPDATE_TIME);
-        List<Map<String, Object>> partitionColumn = queryPartitionColumn(tableName);
-        column.removeIf((Map<String, Object> perColumn)->{
-            for(Map<String, Object> perPartitionColumn : partitionColumn){
-                if(StringUtils.equals((String)perPartitionColumn.get(KEY_COLUMN_NAME), (String)perColumn.get(KEY_COLUMN_NAME))){
-                    perPartitionColumn.put(KEY_COLUMN_TYPE, perColumn.get(KEY_COLUMN_TYPE));
-                    perPartitionColumn.put(KEY_COLUMN_NULL, perColumn.get(KEY_COLUMN_NULL));
-                    perPartitionColumn.put(KEY_COLUMN_DEFAULT, perColumn.get(KEY_COLUMN_DEFAULT));
-                    perPartitionColumn.put(KEY_COLUMN_COMMENT, perColumn.get(KEY_COLUMN_COMMENT));
-                    perPartitionColumn.put(KEY_COLUMN_INDEX, perColumn.get(KEY_COLUMN_INDEX));
+    protected MetadataTidbEntity queryMetaData(String tableName) throws SQLException {
+        MetadataTidbEntity metadataTidbEntity = new MetadataTidbEntity();
+        MysqlTableEntity tableProp = queryTableProp(tableName);
+        List<MysqlColumnEntity> columns = queryColumn(tableName);
+        List<TidbPartitionEntity> partitions = queryPartition(tableName);
+        Map<String, String> updateTime = queryAddPartition(tableName);
+        List<String> partitionColumns = queryPartitionColumn(tableName);
+        List<MysqlColumnEntity> partitionsColumnEntities= new ArrayList<>();
+        columns.removeIf((MysqlColumnEntity perColumn) -> {
+            for (String partitionColumn: partitionColumns) {
+                if (StringUtils.equals(partitionColumn, perColumn.getName())) {
+                    //copy属性值
+                    partitionsColumnEntities.add(perColumn);
                     return true;
                 }
             }
             return false;
         });
-        result.put(KEY_TABLE_PROPERTIES, tableProp);
-        result.put(KEY_COLUMN, column);
-        if(CollectionUtils.size(partition) > 1){
-            for(Map<String, Object> perPartition : partition){
-                String columnName = (String)perPartition.get(KEY_COLUMN_NAME);
-                perPartition.put(KEY_UPDATE_TIME, updateTime.get(KEY_COLUMN_NAME));
+        metadataTidbEntity.setTableProperties(tableProp);
+        metadataTidbEntity.setColumns(columns);
+        if (CollectionUtils.size(partitions) > 1) {
+            for (TidbPartitionEntity tidbPartitionEntity : partitions) {
+                String columnName = tidbPartitionEntity.getColumnName();
+                tidbPartitionEntity.setCreateTime(MapUtils.getString(updateTime, columnName) == null ? updateTime.get(KEY_UPDATE_TIME) : MapUtils.getString(updateTime, columnName));
             }
-            result.put(KEY_PARTITIONS, partition);
+            metadataTidbEntity.setPartitions(partitions);
         }
-        result.put(KEY_PARTITION_COLUMN, partitionColumn);
-        return result;
+        metadataTidbEntity.setPartitionColumnEntities(partitionsColumnEntities);
+        return metadataTidbEntity;
     }
 
-    public Map<String, String> queryTableProp(String tableName) throws SQLException {
-        Map<String, String> tableProp = new HashMap<>(16);
+    public MysqlTableEntity queryTableProp(String tableName) throws SQLException {
+        MysqlTableEntity mysqlTableEntity = new MysqlTableEntity();
         String sql = String.format(SQL_QUERY_TABLE_INFO, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                tableProp.put(KEY_TABLE_ROWS, rs.getString(RESULT_ROWS));
-                tableProp.put(KEY_TABLE_TOTAL_SIZE, rs.getString(RESULT_DATA_LENGTH));
-                tableProp.put(KEY_TABLE_CREATE_TIME, rs.getString(RESULT_CREATE_TIME));
-                tableProp.put(KEY_TABLE_COMMENT, rs.getString(RESULT_COMMENT));
+                mysqlTableEntity.setRows(Long.valueOf(rs.getString(RESULT_ROWS)));
+                mysqlTableEntity.setTotalSize(Long.valueOf(rs.getString(RESULT_DATA_LENGTH)));
+                mysqlTableEntity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
+                mysqlTableEntity.setComment(rs.getString(RESULT_COMMENT));
             }
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage());
         }
-        return tableProp;
+        return mysqlTableEntity;
     }
 
-    protected List<Map<String, Object> > queryColumn(String tableName) throws SQLException {
-        List<Map<String, Object> > column = new LinkedList<>();
+    protected List<MysqlColumnEntity> queryColumn(String tableName) throws SQLException {
+        List<MysqlColumnEntity> columns = new LinkedList<>();
         String sql = String.format(SQL_QUERY_COLUMN, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             int pos = 1;
             while (rs.next()) {
-                Map<String, Object> perColumn = new HashMap<>(16);
-                perColumn.put(KEY_COLUMN_NAME, rs.getString(RESULT_FIELD));
+                MysqlColumnEntity columnEntity = new MysqlColumnEntity();
+                columnEntity.setName(rs.getString(RESULT_FIELD));
                 String type = rs.getString(RESULT_TYPE);
-                perColumn.put(KEY_COLUMN_TYPE, type);
-                perColumn.put(KEY_COLUMN_NULL, StringUtils.equals(rs.getString(RESULT_COLUMN_NULL), KEY_TES) ? KEY_TRUE : KEY_FALSE);
-                perColumn.put(KEY_COLUMN_PRIMARY, StringUtils.equals(rs.getString(RESULT_KEY), KEY_PRI) ? KEY_TRUE : KEY_FALSE);
-                perColumn.put(KEY_COLUMN_DEFAULT, rs.getString(RESULT_COLUMN_DEFAULT));
-                perColumn.put(KEY_COLUMN_SCALE, StringUtils.contains(type, '(') ? StringUtils.substring(type, type.indexOf("(")+1, type.indexOf(")")) : 0);
-                perColumn.put(KEY_COLUMN_COMMENT, rs.getString(RESULT_COMMENT));
-                perColumn.put(KEY_COLUMN_INDEX, pos++);
-                column.add(perColumn);
+                columnEntity.setType(type);
+                columnEntity.setNullAble(StringUtils.equals(rs.getString(RESULT_COLUMN_NULL), KEY_TES) ? KEY_TRUE : KEY_FALSE);
+                columnEntity.setPrimaryKey(StringUtils.equals(rs.getString(RESULT_KEY), KEY_PRI) ? KEY_TRUE : KEY_FALSE);
+                columnEntity.setDefaultValue(rs.getString(RESULT_COLUMN_DEFAULT));
+                String length = StringUtils.contains(type, '(') ? StringUtils.substring(type, type.indexOf("(") + 1, type.indexOf(")")) : "0";
+                columnEntity.setLength(Integer.valueOf(length));
+                columnEntity.setComment(rs.getString(RESULT_COMMENT));
+                columnEntity.setIndex(pos++);
+                columns.add(columnEntity);
             }
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage());
         }
-        return column;
+        return columns;
     }
 
-    protected List<Map<String, Object>> queryPartition(String tableName) throws SQLException {
-        List<Map<String, Object> > partition = new LinkedList<>();
+    protected List<TidbPartitionEntity> queryPartition(String tableName) throws SQLException {
+        List<TidbPartitionEntity> partitions = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, Object> perPartition = new HashMap<>(16);
-                perPartition.put(KEY_COLUMN_NAME, rs.getString(RESULT_PARTITION_NAME));
-                perPartition.put(KEY_TABLE_CREATE_TIME, rs.getString(RESULT_PARTITION_CREATE_TIME));
-                perPartition.put(KEY_TABLE_ROWS, rs.getInt(RESULT_PARTITION_TABLE_ROWS));
-                perPartition.put(KEY_TABLE_TOTAL_SIZE, rs.getLong(RESULT_PARTITION_DATA_LENGTH));
-                partition.add(perPartition);
+                TidbPartitionEntity tidbPartitionEntity = new TidbPartitionEntity();
+                tidbPartitionEntity.setColumnName(rs.getString(RESULT_PARTITION_NAME));
+                tidbPartitionEntity.setCreateTime(rs.getString(RESULT_PARTITION_CREATE_TIME));
+                tidbPartitionEntity.setPartitionRows(rs.getLong(RESULT_PARTITION_TABLE_ROWS));
+                tidbPartitionEntity.setPartitionSize(rs.getLong(RESULT_PARTITION_DATA_LENGTH));
+                partitions.add(tidbPartitionEntity);
             }
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage());
         }
-        return partition;
+        return partitions;
     }
 
 
-    protected Map<String, Object> queryAddPartition(String tableName, String msg) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
+    protected Map<String, String> queryAddPartition(String tableName) throws SQLException {
+        Map<String, String> result = new HashMap<>(16);
         String sql = String.format(SQL_QUERY_UPDATE_TIME, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
                 /* 考虑partitionName 为空的情况 */
                 String name = rs.getString(RESULT_PARTITIONNAME);
@@ -217,30 +191,22 @@ public class MetadatatidbInputFormat extends BaseMetadataInputFormat {
                     result.put(KEY_UPDATE_TIME, rs.getString(RESULT_UPDATE_TIME));
                 }
             }
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage());
         }
         return result;
     }
 
-    protected List<Map<String, Object> > queryPartitionColumn(String tableName) throws SQLException {
-        List<Map<String, Object> > partitionColumn = new LinkedList<>();
+    protected List<String> queryPartitionColumn(String tableName) throws SQLException {
+        List<String> partitionColumns = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION_COLUMN, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                Map<String, Object> perPartitionColumn = new HashMap<>(16);
                 String partitionExp = rs.getString(RESULT_PARTITION_EXPRESSION);
-                if(StringUtils.isNotBlank(partitionExp)){
-                    String columnName = partitionExp.substring(partitionExp.indexOf("`")+1, partitionExp.lastIndexOf("`"));
-                    perPartitionColumn.put(KEY_COLUMN_NAME, columnName);
+                if (StringUtils.isNotBlank(partitionExp)) {
+                    String columnName = partitionExp.substring(partitionExp.indexOf("`") + 1, partitionExp.lastIndexOf("`"));
+                    partitionColumns.add(columnName);
                 }
-                partitionColumn.add(perPartitionColumn);
             }
-        } catch (SQLException e) {
-            throw new SQLException(e.getMessage());
         }
-        return partitionColumn;
+        return partitionColumns;
     }
-
 }

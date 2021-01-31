@@ -17,13 +17,13 @@
  */
 package com.dtstack.flinkx.metadatatidb.constants;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class TidbMetadataCons extends MetaDataCons {
+public class TidbMetadataCons extends RdbCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";

@@ -81,7 +81,9 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      * @throws SQLException sql异常
      */
 
-    abstract public void switchDataBase() throws SQLException;
+    public void switchDataBase() throws SQLException {
+
+    }
 
     @Override
     protected void closeInternal() {

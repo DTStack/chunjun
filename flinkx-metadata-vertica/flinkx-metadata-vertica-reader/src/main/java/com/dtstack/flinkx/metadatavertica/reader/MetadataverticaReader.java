@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.metadatavertica.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadatavertica.inputformat.MetadataverticaInputFormat;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.DRIVER_NAME;
@@ -30,14 +30,20 @@ import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.D
  *  读取配置参数
  * @author kunni@dtstack.com
  */
-public class MetadataverticaReader extends MetadataReader {
-    public MetadataverticaReader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
-        driverName = DRIVER_NAME;
+public class MetadataverticaReader extends MetadatardbReader {
+
+    @Override
+    public MetadatardbBuilder createBuilder() {
+        return new MetadatardbBuilder(new MetadataverticaInputFormat());
     }
 
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadataverticaInputFormat());
+    public String getDriverName() {
+        return DRIVER_NAME;
     }
+
+    public MetadataverticaReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+        super(config, env);
+    }
+
 }
