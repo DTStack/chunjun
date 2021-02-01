@@ -69,9 +69,7 @@ public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
                 tableList = showTables();
             }
         } catch (SQLException e) {
-            LOG.error("获取table列表异常, dbUrl = {}, username = {}, e = {}", connectionInfo.getJdbcUrl(), connectionInfo.getUsername(), ExceptionUtil.getErrorMessage(e));
-        } catch (ClassNotFoundException e) {
-            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
         }
     }
 
@@ -272,7 +270,7 @@ public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
    *@return Connection
    *
   **/
-    private  Connection getConnectionForCurrentDataBase() throws SQLException, ClassNotFoundException{
+    private  Connection getConnectionForCurrentDataBase() throws SQLException{
         ClassUtil.forName(connectionInfo.getDriver());
         //新的jdbcURL
         String url = CommonUtils.dbUrlTransform(connectionInfo.getJdbcUrl(),currentDatabase);
