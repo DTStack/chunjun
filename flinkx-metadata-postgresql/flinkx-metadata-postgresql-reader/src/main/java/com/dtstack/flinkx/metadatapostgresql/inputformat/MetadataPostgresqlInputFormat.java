@@ -1,302 +1,235 @@
 package com.dtstack.flinkx.metadatapostgresql.inputformat;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadata.util.ConnUtil;
 import com.dtstack.flinkx.metadatapostgresql.constants.PostgresqlCons;
-import com.dtstack.flinkx.metadatapostgresql.pojo.ColumnMetaData;
-import com.dtstack.flinkx.metadatapostgresql.pojo.IndexMetaData;
-import com.dtstack.flinkx.metadatapostgresql.pojo.TableMetaData;
+import com.dtstack.flinkx.metadatapostgresql.entity.MetadataPostgresqlEntity;
+import com.dtstack.flinkx.metadatapostgresql.entity.IndexMetaData;
+import com.dtstack.flinkx.metadatapostgresql.entity.TableMetaData;
 import com.dtstack.flinkx.metadatapostgresql.utils.CommonUtils;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadata.core.util.BaseCons.DEFAULT_OPERA_TYPE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_SIZE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_DECIMAL_DIGITS;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_IS_NULLABLE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_ORDINAL_POSITION;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_REMARKS;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
+
 
 /**
- * flinkx-all com.dtstack.flinkx.metadatapostgresql.inputformat
  *
  * @author shitou
- * @description //TODO
  * @date 2020/12/9 16:25
  */
-public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
+public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
 
-    /**
-     * 是否查询过database的元数据
-     */
-    private boolean isQueried = false;
 
     /**
      * 是否设置了搜索路径
      */
     private boolean isChanged = false;
 
+    /**
+     * schema
+     */
+    private String schemaName;
 
     /**
-     * 数据库元数据
+     * table
      */
-    private HashMap<String,String> dataBaseMetaData;
+    private String tableName;
 
-
-    private String schemaName;
 
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void doOpenInternal(){
         try {
-            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
-            //切换数据库，重新建立连接
-            connection.set(getConnection(currentDb.get()));
-            statement.set(connection.get().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY));
-            tableList = ((MetadataInputSplit) inputSplit).getTableList();
+            connection = getConnectionForCurrentDataBase();
+            statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
-                queryTable = true;
-            }else {
-                queryTable = false;
             }
-            LOG.info("current database = {}, tableSize = {}, tableList = {}", currentDb.get(), tableList.size(), tableList);
-            tableIterator.set(tableList.iterator());
-
-            isQueried = false;
-
-
+        } catch (SQLException e) {
+            LOG.error("获取table列表异常, dbUrl = {}, username = {}, e = {}", connectionInfo.getJdbcUrl(), connectionInfo.getUsername(), ExceptionUtil.getErrorMessage(e));
         } catch (ClassNotFoundException e) {
             LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
-            throw new IOException(e);
-        } catch (SQLException e) {
-            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            tableList = new LinkedList<>();
         }
-        LOG.info("currentDb = {}, tableList = {}", currentDb.get(), tableList);
-        tableIterator.set(tableList.iterator());
     }
-
 
     @Override
     protected Row nextRecordInternal(Row row) {
-        String  tableName;
-        Map<String, Object> metaData = new HashMap<>(16);
-        metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
-
-        if (queryTable) {
-            Pair<String, String> pair = (Pair) tableIterator.get().next();
-            //保证在同一个schema下搜索路径只设置一次
-            if(schemaName != null && !pair.getKey().equals(schemaName)){
-                isChanged = false;
-            }
-            schemaName = pair.getKey();
-            tableName = pair.getValue();
-
-        } else {
-            Map<String, String> map = (Map<String, String>) tableIterator.get().next();
-            if(schemaName != null && !map.get(PostgresqlCons.KEY_SCHEMA_NAME).equals(schemaName)){
-                isChanged = false;
-            }
-            schemaName = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
-            tableName = map.get(PostgresqlCons.KEY_TABLE_NAME);
+        MetadataPostgresqlEntity metadataPostgresqlEntity = new MetadataPostgresqlEntity();
+        currentObject = iterator.next();
+        Map<String,String> map = (Map<String,String>) currentObject;
+        //保证在同一schema下只需要设置一次搜索路径
+        if(schemaName != null && !map.get(PostgresqlCons.KEY_SCHEMA_NAME).equals(schemaName)){
+            isChanged = false;
         }
+        schemaName = map.get(PostgresqlCons.KEY_SCHEMA_NAME);
+        tableName = map.get(PostgresqlCons.KEY_TABLE_NAME);
 
-        metaData.put(MetaDataCons.KEY_SCHEMA, schemaName);
-        metaData.put(MetaDataCons.KEY_TABLE, tableName);
         try {
-            if(!isQueried){
-                dataBaseMetaData = showDataBaseMetaData(currentDb.get());
-            }
-            metaData.putAll(dataBaseMetaData);
-
-            metaData.putAll(queryMetaData(tableName));
-            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
+            metadataPostgresqlEntity = (MetadataPostgresqlEntity) createMetadatardbEntity();
+            metadataPostgresqlEntity.setDataBaseName(currentDatabase);
+            metadataPostgresqlEntity.setSchema(schemaName);
+            metadataPostgresqlEntity.setTableName(tableName);
+            metadataPostgresqlEntity.setQuerySuccess(true);
         } catch (Exception e) {
-            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
-            metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
-            LOG.error(ExceptionUtil.getErrorMessage(e));
+            metadataPostgresqlEntity.setQuerySuccess(false);
+            metadataPostgresqlEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
         }
-        return Row.of(metaData);
+        metadataPostgresqlEntity.setOperaType(DEFAULT_OPERA_TYPE);
+        return Row.of(GsonUtil.GSON.toJson(metadataPostgresqlEntity));
     }
 
 
-
-
+    @Override
+    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+        MetadataPostgresqlEntity postgresqlEntity = new MetadataPostgresqlEntity();
+        postgresqlEntity.setColumns(queryColumn());
+        TableMetaData tableMetaData = new TableMetaData();
+        tableMetaData.setTableName(tableName);
+        tableMetaData.setRows(showTableDataCount());
+        tableMetaData.setIndexes(showIndexes());
+        tableMetaData.setPrimaryKey(showTablePrimaryKey());
+        tableMetaData.setTotalSize(showTableSize());
+        postgresqlEntity.setTableProperties(tableMetaData);
+        return postgresqlEntity;
+    }
 
     /**
-     * @description 查询当前database中所有表名
-     * @param :
+     *  postgresql没有对应的切换database的sql语句，所以此方法暂不实现
+     **/
+    @Override
+    public void switchDataBase() throws SQLException {
+
+    }
+
+    /**
+     * 查询当前database中所有表名
      * @return List<Object>
      **/
     @Override
-    protected List<Object> showTables() throws SQLException {
-        List<Object> tableNameList = new ArrayList<>();
-        try (ResultSet resultSet = statement.get().executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
-
-            //如果数据库中没有表，抛出异常
-            if (!resultSet.next()) {
-                throw new SQLException();
-            }
-            //指针回调
-            resultSet.previous();
+    public List<Object> showTables() throws SQLException {
+        List<Object> tables = new ArrayList<>();
+        try (ResultSet resultSet = statement.executeQuery(PostgresqlCons.SQL_SHOW_TABLES)) {
             while (resultSet.next()) {
-                tableNameList.add(Pair.of(resultSet.getString("table_schema"), resultSet.getString("table_name")));
+                HashMap<String, String> map = new HashMap<>();
+                map.put(PostgresqlCons.KEY_SCHEMA_NAME,resultSet.getString("table_schema"));
+                map.put(PostgresqlCons.KEY_TABLE_NAME, resultSet.getString("table_name"));
+                tables.add(map);
             }
+        } catch (SQLException e) {
+            LOG.error("failed to query table, currentDb = {} ", currentDatabase);
+            throw new SQLException("show tables error"+e.getMessage(),e);
         }
-
-        return tableNameList;
+        return tables;
     }
 
-
-    /**
-     * @description: postgresql没有对应的切换database的sql语句，所以此方法暂不实现
-     * @param databaseName:
-     * @return void
-     **/
     @Override
-    protected void switchDatabase(String databaseName) throws SQLException {
-
-    }
-
-    /**
-     * @description 查询表中字段的元数据
-     * @param tableName: 表名
-     * @return Map<String , Object>
-     **/
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-
-        HashMap<String, Object> result = new HashMap<>(16);
-        //所有查询操作：
-        ArrayList<String> primaryKey = showTablePrimaryKey(tableName);
-        int dataCount = showTableDataCount(tableName);
-        String size = showTableSize(tableName);
-        LinkedList<ColumnMetaData> columns = showColumnMetaData(tableName);
-        ArrayList<IndexMetaData> indexes = showIndexes(tableName);
-
-
-        TableMetaData tableMetaData = new TableMetaData(tableName, primaryKey, dataCount, size, columns,indexes);
-
-        result.put(PostgresqlCons.KEY_METADATA, tableMetaData);
-
-
-        return result;
-     }
-
-
-    /**
-     *@description 查询表中所有字段的元数据
-     *@param tableName: 表名
-     *@return java.util.LinkedList<ColumnMetaData>
-     *
-    **/
-    private LinkedList<ColumnMetaData> showColumnMetaData(String tableName)throws SQLException{
-        LinkedList<ColumnMetaData> columns = new LinkedList<>();
-
-        ResultSet resultSet = connection.get().getMetaData().getColumns(currentDb.get(), schemaName, tableName, null);
-
-        while(resultSet.next()) {
-            columns.add(new ColumnMetaData(resultSet.getString("COLUMN_NAME")
-                    , resultSet.getString("TYPE_NAME")
-                    , resultSet.getString("COLUMN_DEF")
-                    , resultSet.getInt("COLUMN_SIZE")
-                    , resultSet.getBoolean("NULLABLE")
-                    , resultSet.getBoolean("IS_AUTOINCREMENT")
-                    , resultSet.getInt("ORDINAL_POSITION")
-                    , resultSet.getString("REMARKS")));
-
+    public List<ColumnEntity> queryColumn() throws SQLException {
+        List<ColumnEntity> columnEntities = new ArrayList<>();
+        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schemaName, tableName, null)) {
+            while (resultSet.next()) {
+                ColumnEntity columnEntity = new ColumnEntity();
+                columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
+                columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
+                columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
+                columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
+                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+                columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
+                columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
+                columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
+                columnEntities.add(columnEntity);
+            }
+        } catch (SQLException e) {
+            LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
+            throw e;
         }
-        return columns;
+        return columnEntities;
     }
 
-
-
     /**
-     *@description 查询表所占磁盘空间
-     *@param tableName: 表名
-     *@return java.lang.String
-     *
+     *查询表所占磁盘空间
+     *@return long
     **/
-    private String showTableSize(String tableName) throws SQLException{
-        String size = "";
+    private long showTableSize() throws SQLException{
+        long size = 0;
         String sql = String.format(PostgresqlCons.SQL_SHOW_TABLE_SIZE,schemaName, tableName);
-        try(ResultSet resultSet =  statement.get().executeQuery(sql)){
+        try(ResultSet resultSet =  statement.executeQuery(sql)){
             if (resultSet.next()){
-                size = resultSet.getString("size");
+                size = resultSet.getLong("size");
             }
         }
         return size;
     }
 
     /**
-     *@description 查询表中的主键名
-     *@param tableName: 表名
-     *@return java.lang.String
+     * 查询表中的主键名
+     *@return String
      *
     **/
-    private ArrayList<String> showTablePrimaryKey(String tableName) throws SQLException{
-        ArrayList<String> primaryKey = new ArrayList<>();
-
-        ResultSet resultSet = connection.get().getMetaData().getPrimaryKeys(currentDb.get(), schemaName, tableName);
-
+    private List<String> showTablePrimaryKey() throws SQLException{
+        List<String> primaryKey = new ArrayList<>();
+        ResultSet resultSet = connection.getMetaData().getPrimaryKeys(currentDatabase, schemaName, tableName);
         while(resultSet.next()){
             primaryKey.add(resultSet.getString("COLUMN_NAME"));
         }
-
         return primaryKey;
     }
 
     /**
-     *@description 查询表中有多少条数据
-     *@param tableName: 表名
-     *@return int
+     * 查询表中有多少条数据
+     *@return long
      *
     **/
-    private int showTableDataCount(String tableName) throws SQLException{
-        int dataCount = 0;
+    private long showTableDataCount() throws SQLException{
+        long dataCount = 0;
         String sql = String.format(PostgresqlCons.SQL_SHOW_COUNT, tableName);
-
         //由于主键所在系统表不具备schema隔离性，所以在查询前需要设置查询路径为当前schema
         if (!isChanged){
-            setSearchPath(schemaName);
+            setSearchPath();
         }
-
-        try (ResultSet countSet = statement.get().executeQuery(sql)) {
+        try (ResultSet countSet = statement.executeQuery(sql)) {
             if (countSet.next()) {
-                dataCount = countSet.getInt("count");
+                dataCount = countSet.getLong("count");
             }
-
         }
-
         return dataCount;
     }
 
-
     /**
-     *@description 查询表中索引名
-     *@param tableName: 表名
-     *@return java.util.ArrayList<String>
+     * 查询表中索引名
+     *@return List<String>
      *
      **/
-    private ArrayList<IndexMetaData> showIndexes(String tableName) throws SQLException{
-        ArrayList<IndexMetaData> result = new ArrayList<>();
+    private List<IndexMetaData> showIndexes() throws SQLException{
+        List<IndexMetaData> result = new ArrayList<>();
         //索引名对columnName的映射
         HashMap<String,ArrayList<String>> indexColumns = new HashMap<>(16);
         //索引名对索引类型的映射
         HashMap<String,String> indexType = new HashMap<>(16);
 
-        ResultSet resultSet = connection.get().getMetaData().getIndexInfo(currentDb.get(), schemaName, tableName, false, false);
+        ResultSet resultSet = connection.getMetaData().getIndexInfo(currentDatabase, schemaName, tableName, false, false);
         while(resultSet.next()){
             ArrayList<String> columns = indexColumns.get(resultSet.getString("INDEX_NAME"));
             if(columns != null){
@@ -306,71 +239,44 @@ public class MetadataPostgresqlInputFormat extends BaseMetadataInputFormat {
                 list.add(resultSet.getString("COLUMN_NAME"));
                 indexColumns.put(resultSet.getString("INDEX_NAME"),list);
                }
-
-               indexType.put(resultSet.getString("INDEX_NAME")
-                       , resultSet.getShort("TYPE") == 3 ? "hash" : "other");
-
            }
-          for(String key : indexColumns.keySet()){
+
+        String sql = String.format(PostgresqlCons.SQL_SHOW_INDEX,schemaName,tableName);
+        ResultSet indexResultSet = statement.executeQuery(sql);
+        while (indexResultSet.next()){
+            indexType.put(indexResultSet.getString("indexname")
+                    , CommonUtils.indexType(indexResultSet.getString("indexdef")));
+        }
+
+        for(String key : indexColumns.keySet()){
               result.add(new IndexMetaData(key, indexColumns.get(key), indexType.get(key)));
           }
 
-
         return result;
     }
 
     /**
-     *@description 查询当前数据库的元数据
-     *@param dbName:
-     *@return java.util.HashMap<String,String>
-     *
-     **/
-    private HashMap<String,String> showDataBaseMetaData(String dbName) throws SQLException{
-        HashMap<String,String> result = new HashMap<>(16);
-        String sql = String.format(PostgresqlCons.SQL_SHOW_DATABASE_SIZE, dbName);
-
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            if (resultSet.next()){
-                result.put(PostgresqlCons.KEY_DATABASE_NAME,resultSet.getString("name"));
-                result.put(PostgresqlCons.KEY_DATABASE_OWNER,resultSet.getString("owner"));
-                result.put(PostgresqlCons.KEY_DATABASE_SIZE,resultSet.getString("size"));
-            }
-
-        }
-
-        isQueried = true;
-        return result;
-    }
-
-    /**
-     *@description 设置查询路径为当前schema
-     *@param schemaName:
-     *@return void
+     * 设置查询路径为当前schema
      *
     **/
-    private void setSearchPath(String schemaName) throws SQLException{
+    private void setSearchPath() throws SQLException{
         String sql = String.format(PostgresqlCons.SQL_SET_SEARCHPATH, schemaName);
-        statement.get().execute(sql);
-
+        statement.execute(sql);
+        //置为true表示查询路径已经为当前schema
         isChanged = true;
-
     }
 
   /**
-   *@description 由于postgresql没有类似于MySQL的use database的SQL语句，所以切换数据库需要重新建立连接
-   *@param dbName: 数据库名
-   *@return java.sql.Connection
+   * 由于postgresql没有类似于MySQL的"use database"的SQL语句，所以切换数据库需要重新建立连接
+   *@return Connection
    *
   **/
-    private  Connection getConnection(String dbName) throws SQLException, ClassNotFoundException{
-        ClassUtil.forName(driverName);
-        String url = CommonUtils.dbUrlTransform(dbUrl,dbName);
-        return ConnUtil.getConnection(url,username,password);
+    private  Connection getConnectionForCurrentDataBase() throws SQLException, ClassNotFoundException{
+        ClassUtil.forName(connectionInfo.getDriver());
+        //新的jdbcURL
+        String url = CommonUtils.dbUrlTransform(connectionInfo.getJdbcUrl(),currentDatabase);
+        return ConnUtil.getConnection(url,connectionInfo.getUsername(),connectionInfo.getPassword());
     }
 
 
-    @Override
-    protected String quote(String name) {
-        return name;
-    }
 }
