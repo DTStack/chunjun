@@ -17,20 +17,14 @@
  */
 package com.dtstack.flinkx.restapi.inputformat;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
-import com.dtstack.flinkx.restapi.common.MapUtils;
-import com.dtstack.flinkx.restapi.common.RestContext;
-import com.dtstack.flinkx.restapi.common.exception.ReadRecordException;
-import com.dtstack.flinkx.restapi.common.exception.ResponseRetryException;
-import com.dtstack.flinkx.restapi.common.handler.DataHandler;
-import com.dtstack.flinkx.restapi.common.httprequestApi;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
+import com.dtstack.flinkx.restapi.reader.Strategy;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
-import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -38,9 +32,13 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * httpClient
@@ -52,143 +50,182 @@ public class HttpClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpClient.class);
 
     private ScheduledExecutorService scheduledExecutorService;
-    protected transient CloseableHttpClient httpClient;
-    private final long intervalTime;
+    private transient CloseableHttpClient httpClient;
     private BlockingQueue<Row> queue;
-    private RestContext restContext;
     private static final String THREAD_NAME = "restApiReader-thread";
-    private List<MetaColumn> metaColumns;
-    private List<DataHandler> handlers;
 
 
-    public HttpClient(RestContext restContext, Long intervalTime) {
-        this.restContext = restContext;
-        this.intervalTime = intervalTime;
-        queue = new SynchronousQueue<>(false);
-        this.scheduledExecutorService = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, THREAD_NAME);
-            }
-        });
+    protected HttpRestConfig restConfig;
+
+    private boolean first = true;
+
+    private RestHandler restHandler;
+
+    /**
+     * 内部重试次数(返回的httpStatus 不是 200 就进行重试 默认2次)
+     **/
+    private int requestRetryTime;
+
+    /**
+     * json字段信息
+     **/
+    private String fields;
+
+
+    /**
+     * 原始请求body
+     */
+    private List<MetaParam> originalBody;
+
+    /**
+     * 原始请求param
+     */
+    private List<MetaParam> originalParam;
+
+    /**
+     * 原始请求header
+     */
+    private List<MetaParam> originalHeader;
+
+    /**
+     * 当前请求参数
+     */
+    private HttpRequestParam currentParam;
+
+    /**
+     * 上次请求参数
+     */
+    private HttpRequestParam prevParam;
+
+
+    /**
+     * 上一次请求的返回值
+     */
+    private String prevResponse;
+
+    private boolean reachEnd;
+
+
+    public HttpClient(HttpRestConfig httpRestConfig, String fields, List<MetaParam> originalBody, List<MetaParam> originalParam, List<MetaParam> originalHeader) {
+        this.restConfig = httpRestConfig;
+        this.fields = fields;
+        this.originalHeader = originalHeader;
+        this.originalBody = originalBody;
+        this.originalParam = originalParam;
+        this.currentParam = new HttpRequestParam();
+        this.prevParam = new HttpRequestParam();
         this.httpClient = HttpUtil.getHttpClient();
+        this.scheduledExecutorService = new ScheduledThreadPoolExecutor(1, r -> new Thread(r, THREAD_NAME));
+        this.restHandler = new DefaultRestHandler();
+        this.queue = new LinkedBlockingQueue<Row>();
+        this.reachEnd = false;
+        this.requestRetryTime = 2;
     }
 
     public void start() {
-
-        scheduledExecutorService.scheduleAtFixedRate(
+        scheduledExecutorService.scheduleWithFixedDelay(
                 this::execute,
                 0,
-                intervalTime,
+                restConfig.getIntervalTime(),
                 TimeUnit.MILLISECONDS
         );
     }
 
+    public void execute() {
+
+        if (restConfig.isJsonDecode()) {
+            currentParam = restHandler.buildRequestParam(originalBody, originalHeader, prevParam, GsonUtil.GSON.fromJson(prevResponse, Map.class), restConfig, first);
+        } else {
+            currentParam = restHandler.buildRequestParam(originalBody, originalHeader, prevParam, null, restConfig, first);
+        }
+
+        LOG.info("currentParam is {}", currentParam);
+        doExecute(com.dtstack.flinkx.restapi.common.ConstantValue.REQUEST_RETRY_TIME);
+        first = false;
+        requestRetryTime = 2;
+    }
+
+    public void doExecute(int retryTime) {
+
+        HttpUriRequest request = HttpUtil.getRequest(restConfig.getRequestMode(), currentParam.getBody(),currentParam.getParam(), currentParam.getHeader(), restConfig.getUrl());
+        prevParam = currentParam;
+
+        try {
+            CloseableHttpResponse httpResponse = httpClient.execute(request);
+            if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                if (retryTime == 0) {
+                    queue.put(Row.of("exit job when response status is not 200,the last response status is " + httpResponse.getStatusLine().getStatusCode()));
+                } else {
+                    doExecute(--requestRetryTime);
+                    return;
+                }
+            }
+
+            String responseValue = EntityUtils.toString(httpResponse.getEntity());
+            Strategy strategy;
+            if (restConfig.isJsonDecode()) {
+                strategy = restHandler.chooseStrategy(restConfig.getStrategy(), GsonUtil.GSON.fromJson(responseValue, Map.class), restConfig, currentParam);
+            } else {
+                strategy = restHandler.chooseStrategy(restConfig.getStrategy(), null, restConfig, currentParam);
+            }
+
+            if (strategy != null) {
+                //进行策略的执行
+                switch (strategy.getHandle()) {
+                    case "retry":
+                        doExecute(--retryTime);
+                        return;
+                    case "stop":
+                        reachEnd = true;
+                        close();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (reachEnd) {
+                //如果结束了  需要告诉format 结束了
+                ResponseValue value = restHandler.buildData(restConfig.getDecode(), responseValue, fields);
+                if (value.isNormal()) {
+                    value.setStatus(0);
+                }
+                queue.put(Row.of(value));
+            } else {
+                queue.put(Row.of(restHandler.buildData(restConfig.getDecode(), responseValue, fields)));
+            }
+
+            prevResponse = responseValue;
+        } catch (Throwable e) {
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+            doExecute(--retryTime);
+        }
+
+        if (reachEnd) {
+            close();
+        }
+    }
+
+
     public Row takeEvent() {
         Row row = null;
         try {
-            row = queue.take();
-        } catch (InterruptedException e) {
+            row = queue.poll();
+        } catch (Exception e) {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
+
         return row;
     }
 
-    public void execute() {
-        httprequestApi.Httprequest build = restContext.build();
-        doExecute(build, 2);
-        restContext.updateValue();
-    }
-
-    public void doExecute(httprequestApi.Httprequest build, int retryTime) {
-
-        HttpUriRequest request = HttpUtil.getRequest(restContext.getRequestType(), build.getBody(), build.getHeader(), restContext.getUrl());
-        try {
-            CloseableHttpResponse httpResponse = httpClient.execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                String entityData = EntityUtils.toString(entity);
-                if (restContext.getFormat().equals("json")) {
-                    Map<String, Object> map = HttpUtil.gson.fromJson(entityData, Map.class);
-
-                    if(CollectionUtils.isNotEmpty(handlers)){
-                        for (DataHandler handler : handlers) {
-                            if (handler.isPipei(map)) {
-                                handler.execute(map);
-                            }
-                        }
-                    }
-
-                    if (CollectionUtils.isEmpty(metaColumns) || (metaColumns.size() == 1 && metaColumns.get(0).getName().equals(ConstantValue.STAR_SYMBOL))) {
-                        queue.put(Row.of(map));
-                    } else {
-                        HashMap<String, Object> stringObjectHashMap = new HashMap<>();
-                        for (MetaColumn metaColumn : metaColumns) {
-                            String[] names = metaColumn.getName().split("\\.");
-                            Map<String, Object> keyToMap = initData(stringObjectHashMap, names);
-                            if (Objects.nonNull(keyToMap)) {
-                                Object data = MapUtils.getData(map, names);
-                                keyToMap.put(names[names.length - 1], data);
-                            }
-                        }
-                        queue.put(Row.of(stringObjectHashMap));
-                    }
-                } else {
-                    queue.put(Row.of(entityData));
-                }
-            } else {
-                throw new RuntimeException("entity is null");
-            }
-        } catch (ResponseRetryException e) {
-            //todo 重试
-            if (--retryTime > 0) {
-                doExecute(build, retryTime);
-            }
-        } catch (Exception e) {
-            //todo 脏数据处理
-            throw new ReadRecordException("get entity error");
-        }
-
-    }
 
     public void close() {
-        HttpUtil.closeClient(httpClient);
-        scheduledExecutorService.shutdown();
-    }
-
-    public Map<String, Object> initData(HashMap<String, Object> data, String[] names) {
-        Map<String, Object> tempHashMap = data;
-        for (int i = 0; i < names.length; i++) {
-            if (i != names.length - 1) {
-                HashMap<String, Object> objectObjectHashMap = new HashMap<String, Object>(4);
-                Object value = tempHashMap.putIfAbsent(names[i], objectObjectHashMap);
-                if(Objects.isNull(value)){
-                    tempHashMap = objectObjectHashMap;
-                }else if (value instanceof String) {
-                    try {
-                        Map o = GsonUtil.GSON.fromJson((String) value, GsonUtil.gsonMapTypeToken);
-                        tempHashMap.put(names[i], o);
-                        tempHashMap = o;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                } else if (value instanceof Map) {
-                    tempHashMap = (Map) value;
-                } else {
-                    return null;
-                }
-            } else {
-                tempHashMap.put(names[i], null);
-            }
+        try {
+            HttpUtil.closeClient(httpClient);
+            scheduledExecutorService.shutdown();
+        } catch (Exception e) {
+            LOG.warn("close resource error,msg is " + ExceptionUtil.getErrorMessage(e));
         }
-        return tempHashMap;
     }
 
-    public void setMetaColumns(List<MetaColumn> metaColumns) {
-        this.metaColumns = metaColumns;
-    }
-
-    public void setHandlers(List<DataHandler> handlers) {
-        this.handlers = handlers;
-    }
 }

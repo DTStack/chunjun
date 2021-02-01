@@ -21,18 +21,14 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.restapi.common.InnerVaribleFactory;
-import com.dtstack.flinkx.restapi.common.IntervalTimeVarible;
-import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author : tiezhu
@@ -40,13 +36,27 @@ import java.util.Map;
  */
 public class RestapiReader extends BaseDataReader {
 
+    /**
+     * http的请求参数
+     **/
     private HttpRestConfig httpRestConfig;
 
-    private List<MetaColumn> metaColumns;
 
-    protected Long intervalTime;
+    /**
+     * 请求body
+     **/
+    private List<MetaParam> metaBodys;
 
-    protected List handlers;
+    /**
+     * 请求body
+     **/
+    private List<MetaParam> metaParams;
+
+    /**
+     * 请求header
+     **/
+    private List<MetaParam> metaHeaders;
+
 
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -56,24 +66,13 @@ public class RestapiReader extends BaseDataReader {
         try {
             this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
         } catch (Exception e) {
-            throw new RuntimeException("解析httpRest Config配置出错:", e);
-        }
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-        List handlers = httpRestConfig.getHandlers();
-        if (CollectionUtils.isNotEmpty(handlers)) {
-            handlers = new ArrayList(handlers.size() * 2);
-            for (Object handlerParam : handlers) {
-                try {
-                    handlers.add(DataHandlerFactory.getDataHandler((Map) handlerParam));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("dataHandler param error" + httpRestConfig.getHandlers());
-                }
-            }
-            DataHandlerFactory.destroy();
+            throw new RuntimeException("analyze httpRest Config failed:", e);
         }
 
-        InnerVaribleFactory.addVarible("intervalTime", new IntervalTimeVarible(httpRestConfig.getIntervalTime()));
-        intervalTime = httpRestConfig.getIntervalTime();
+        metaBodys = MetaParam.getMetaColumns(httpRestConfig.getBody(), ParamType.BODY);
+        metaParams = MetaParam.getMetaColumns(httpRestConfig.getParam(), ParamType.PARAM);
+        metaHeaders = MetaParam.getMetaColumns(httpRestConfig.getHeader(), ParamType.HEADER);
+
 
     }
 
@@ -81,12 +80,12 @@ public class RestapiReader extends BaseDataReader {
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setIntervalTime(intervalTime);
-        builder.setMetaColumns(metaColumns);
-        builder.setHandlers(handlers);
+
+        builder.setMetaHeaders(metaHeaders);
+        builder.setMetaParams(metaParams);
+        builder.setMetaBodys(metaBodys);
         builder.setHttpRestConfig(httpRestConfig);
-
-
+        builder.setStream(restoreConfig.isStream());
         return createInput(builder.finish());
     }
 }

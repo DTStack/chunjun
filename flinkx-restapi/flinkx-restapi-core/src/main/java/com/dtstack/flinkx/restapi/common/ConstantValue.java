@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,42 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.restapi.common;
 
 /**
- * ParamDefinition
+ * 常量
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/26
+ * @author dujie
  */
-public interface ParamDefinition {
-
-    /**
-     * key
-     *
-     * @return
-     */
-    String getName();
-
-    ParamType getType();
-
-    Object getValue();
-
-    String getValueType();
-
-    /**
-     * 用户定义的json
-     *
-     * @return
-     */
-    String getDescription();
-
-    String getFormat();
-
-    Object format(Object data);
+public class ConstantValue {
 
 
-    default void init(){
+    public static final String STRATEGY_EXIT = "stop";
+    public static final String SYSTEM_FUNCTION_UUID = "uuid";
+    public static final String SYSTEM_FUNCTION_CURRENT_TIME = "currentTime";
+    public static final String SYSTEM_FUNCTION_INTERVAL_TIME = "intervalTime";
+    public static final String SOURCE_ERROR_FLAG = "exit job when response status is not 200,the last response status is";
 
-    }
+    public static final String DEFAULT_DECODE = "json";
+
+    public static String prefix = "${";
+    public static String suffix = "}";
+
+    public static final int REQUEST_RETRY_TIME = 3;
+
 }

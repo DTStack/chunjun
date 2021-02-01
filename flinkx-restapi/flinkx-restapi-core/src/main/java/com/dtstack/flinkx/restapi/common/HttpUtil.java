@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.restapi.common;
 
 import com.google.gson.Gson;
+import org.apache.commons.collections.MapUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -100,6 +103,45 @@ public class HttpUtil {
         }
         return request;
     }
+
+
+    public static HttpRequestBase getRequest(String method,
+                                             Map<String, String> requestBody,
+                                             Map<String, String> requestParam,
+                                             Map<String, String> header,
+                                             String url) {
+        LOG.debug("current request url: {}  current method:{} \n", url, method);
+        HttpRequestBase request = null;
+        if (MapUtils.isNotEmpty(requestParam)) {
+            ArrayList<String> params = new ArrayList<>();
+            requestParam.forEach((k, v) -> {
+                params.add(k + "=" + v);
+            });
+            if (url.contains("?")) {
+                url += "&" + String.join("&", params);
+            } else {
+                url += "?" + String.join("&", params);
+            }
+        }
+
+        if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
+            request = new HttpGet(url);
+        } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
+            HttpPost post = new HttpPost(url);
+            HashMap<String, Object> tmp = new HashMap<>();
+            requestBody.forEach(tmp::put);
+            post.setEntity(getEntityData(tmp));
+            request = post;
+        } else {
+            throw new UnsupportedOperationException("Unsupported method:" + method);
+        }
+
+        for (Map.Entry<String, String> entry : header.entrySet()) {
+            request.addHeader(entry.getKey(), entry.getValue());
+        }
+        return request;
+    }
+
 
     public static void closeClient(CloseableHttpClient httpClient) {
         try {

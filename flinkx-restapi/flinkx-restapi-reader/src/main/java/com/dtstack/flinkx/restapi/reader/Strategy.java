@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,34 +15,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.restapi.common;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Optional;
+package com.dtstack.flinkx.restapi.reader;
+
+import java.io.Serializable;
 
 /**
- * ReplaceParamItem
+ * 返回结果处理策略
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/26
+ * @author dujie
  */
-public class ReplaceParamItem implements Paramitem<Object> {
-    private final String name;
+public class Strategy implements Serializable {
 
-    public ReplaceParamItem(String name) {
-     this.name=name;
+    /**
+     * 处理参数
+     */
+    private String key;
+    /**
+     * 处理场景
+     */
+    private String value;
+
+    /**
+     * 处理方式
+     */
+    private String handle;
+
+
+    public String getKey() {
+        return key;
     }
 
-    @Override
-    public Object getValue(RestContext restContext) {
-        return restContext.getValue(name);
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    @Override
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
+    public void setValue(String value) {
+        this.value = value;
+    }
 
+    public String getHandle() {
+        return handle;
+    }
+
+    public void setHandle(String handle) {
+        this.handle = handle;
+    }
 }

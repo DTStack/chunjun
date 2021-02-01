@@ -18,13 +18,27 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.restapi.common.handler.DataHandler;
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.HttpMethod;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
+import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author : tiezhu
@@ -42,25 +56,119 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
         this.format.setHttpRestConfig(httpRestConfig);
     }
 
-    public void setIntervalTime(long intervalTime) {
-        this.format.setIntervalTime(intervalTime);
+    public void setMetaParams(List<MetaParam> metaColumns) {
+        this.format.metaParams = metaColumns;
     }
 
-    public void setMetaColumns(List<MetaColumn> metaColumns) {
-        this.format.setMetaColumns(metaColumns);
+    public void setMetaBodys(List<MetaParam> metaColumns) {
+        this.format.metaBodys = metaColumns;
     }
 
-    public void setHandlers(List<DataHandler> handlers) {
-        this.format.setHandlers(handlers);
+    public void setMetaHeaders(List<MetaParam> metaColumns) {
+        this.format.metaHeaders = metaColumns;
+    }
+
+    public void setStream(boolean stream) {
+        this.format.isStream = stream;
     }
 
     @Override
     protected void checkFormat() {
-        if(StringUtils.isBlank(format.httpRestConfig.getUrl())){
-            throw new IllegalArgumentException("缺少url");
+
+        StringBuilder errorMsg = new StringBuilder(128);
+        String errorTemplate = "param 【%s】 is not allow null \n";
+
+        if (StringUtils.isBlank(format.httpRestConfig.getProtocol())) {
+            errorMsg.append(String.format(errorTemplate, "protocol"));
         }
-        if (StringUtils.isBlank(format.httpRestConfig.getType())) {
-            throw new IllegalArgumentException("缺少method");
+        if (StringUtils.isBlank(format.httpRestConfig.getUrl())) {
+            errorMsg.append(String.format(errorTemplate, "url"));
         }
+        if (StringUtils.isBlank(format.httpRestConfig.getRequestMode())) {
+            errorMsg.append(String.format(errorTemplate, "requestMode"));
+        } else {
+
+            if (!Sets.newHashSet(HttpMethod.GET.name(), HttpMethod.POST.name()).contains(format.httpRestConfig.getRequestMode().toUpperCase(Locale.ENGLISH))) {
+                errorMsg.append("requestMode just support GET and POST,we not support ").append(format.httpRestConfig.getRequestMode()).append(" \n");
+            }
+        }
+        if (StringUtils.isBlank(format.httpRestConfig.getDecode())) {
+            errorMsg.append(String.format(errorTemplate, "format"));
+        }
+        if (format.httpRestConfig.getIntervalTime() == null) {
+            errorMsg.append(String.format(errorTemplate, "intervalTime"));
+        } else if (format.httpRestConfig.getIntervalTime() <= 0) {
+            errorMsg.append("param 【intervalTime" + "】must more than 0 \n");
+        }
+
+        if (!this.format.isStream) {
+            if (CollectionUtils.isEmpty(format.httpRestConfig.getStrategy())) {
+                errorMsg.append("param 【strategy" + "】is not allow null when the job is not stream");
+            } else if (format.httpRestConfig.getStrategy().stream().noneMatch(i -> i.getHandle().equals(ConstantValue.STRATEGY_EXIT))) {
+                errorMsg.append("param 【strategy" + "】must contains exit strategy  when the job is not stream");
+            }
+        }
+
+        //循环依赖判断
+        ArrayList<MetaParam> metaParams = new ArrayList<>(format.metaParams.size() + format.metaBodys.size() + format.metaHeaders.size());
+        metaParams.addAll(format.metaParams);
+        metaParams.addAll(format.metaBodys);
+        metaParams.addAll(format.metaHeaders);
+
+        Map<String, MetaParam> allParam = metaParams.stream().collect(Collectors.toMap(MetaParam::getAllName, Function.identity()));
+
+
+        HashSet<String> anallyIng = new HashSet<>();
+        HashSet<String> analyzed = new HashSet<>();
+
+
+        metaParams.forEach(i -> {
+            getValue(allParam, i, true, errorMsg, anallyIng, analyzed);
+        });
+
+        anallyIng.clear();
+        analyzed.clear();
+
+        metaParams.forEach(i -> {
+            getValue(allParam, i, false, errorMsg, anallyIng, analyzed);
+        });
+
+
+        if (errorMsg.length() > 0) {
+            throw new IllegalArgumentException(errorMsg.toString());
+        }
+    }
+
+    public void getValue(Map<String, MetaParam> allParam, MetaParam metaParam, boolean first, StringBuilder errorMsg, HashSet<String> anallyIng, HashSet<String> analyzed) {
+        anallyIng.add(metaParam.getAllName());
+        ArrayList<MetaParam> collect = MetaparamUtils.getValueOfMetaParams(metaParam.getActualValue(first), format.httpRestConfig, allParam).stream().filter(i -> !analyzed.contains(i.getAllName()) || i.getParamType().equals(ParamType.BODY) || i.getParamType().equals(ParamType.PARAM) || i.getParamType().equals(ParamType.RESPONSE)).collect(
+                collectingAndThen(
+                        toCollection(() -> new TreeSet<>(Comparator.comparing(MetaParam::getAllName))), ArrayList::new)
+        );
+        collect.forEach(i1 -> {
+                    //value变量里不能有response变量  因为value变量是第一次请求的key，此时还没有resPonse
+                    if (first && i1.getParamType().equals(ParamType.RESPONSE)) {
+                        errorMsg.append("param ").append(i1.getName()).append(" can not has response variable in value \n");
+                    //value变量里不能指向自己，因为此时value还没有初始值，只有nextValue里的变量可以指向自己
+                    } else if (first && i1.getAllName().equals(metaParam.getAllName())) {
+                        errorMsg.append("param ").append(" The variable in the value of ").append(i1.getName()).append(" cannot point to itself \n");
+                    } else if (i1.getParamType().equals(ParamType.PARAM) || i1.getParamType().equals(ParamType.BODY)) {
+
+                        //如果这个变量是指向自己的 那么就直接跳过 不需要解析
+                        if (!i1.getAllName().equals(metaParam.getAllName())) {
+                            if (anallyIng.contains(i1.getAllName())) {
+                                errorMsg.append(metaParam.getName()).append(" and ").append(i1.getAllName()).append(" are cyclically dependent \n");
+                                //发生循环依赖就直接报错
+                                throw new IllegalArgumentException(errorMsg.toString());
+                            } else if (!analyzed.contains(i1.getAllName())) {
+                                anallyIng.add(i1.getAllName());
+                                getValue(allParam, i1, first, errorMsg, anallyIng, analyzed);
+                            }
+                        }
+                    }
+                }
+        );
+        anallyIng.remove(metaParam.getAllName());
+        analyzed.add(metaParam.getAllName());
     }
 }

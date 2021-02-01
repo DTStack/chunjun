@@ -18,11 +18,7 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.restapi.common.ParamType;
-import com.dtstack.flinkx.restapi.common.RestContext;
-import com.dtstack.flinkx.restapi.common.handler.DataHandler;
-import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
+import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -30,7 +26,6 @@ import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author : tiezhu
@@ -38,41 +33,50 @@ import java.util.Map;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
+
+    /**
+     * 是否是实时任务
+     **/
+    protected boolean isStream;
+
+    protected boolean reachEnd;
+
     protected HttpClient myHttpClient;
-
-    protected RestContext restContext;
-
-    protected Long intervalTime;
 
     protected HttpRestConfig httpRestConfig;
 
-    protected List<MetaColumn> metaColumns ;
+    /**
+     * 原始请求参数
+     */
+    protected List<MetaParam> metaBodys;
 
-    protected List<DataHandler> handlers;
+    /**
+     * 原始请求参数
+     */
+    protected List<MetaParam> metaParams;
+
+    /**
+     * 原始请求header
+     */
+    protected List<MetaParam> metaHeaders;
+
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
+        reachEnd = false;
     }
-
 
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        restContext = new RestContext(httpRestConfig.getType(),httpRestConfig.getUrl(),httpRestConfig.getFormat());
-        myHttpClient = new HttpClient(restContext, intervalTime);
-        myHttpClient.setMetaColumns(metaColumns);
-        myHttpClient.setHandlers(handlers);
-        restContext.parseAndInt(httpRestConfig.getBody(), ParamType.BODY);
-        restContext.parseAndInt(httpRestConfig.getHeader(), ParamType.HEADER);
-        restContext.parseAndInt(httpRestConfig.getParam(), ParamType.PARAM);
-
+    protected void openInternal(InputSplit inputSplit) {
+        myHttpClient = new HttpClient(httpRestConfig, httpRestConfig.getFields(), metaBodys, metaParams, metaHeaders);
         myHttpClient.start();
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             inputSplits[i] = new GenericInputSplit(i, minNumSplits);
@@ -81,38 +85,36 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        return myHttpClient.takeEvent();
-
+    protected Row nextRecordInternal(Row row) {
+        row = myHttpClient.takeEvent();
+        if (null == row) {
+            return null;
+        }
+        ResponseValue value = (ResponseValue) row.getField(0);
+        if (value.isNormal()) {
+            //如果status是0代表是最后一条数据，reachEnd更新为true
+            if (value.getStatus() == 0) {
+                reachEnd = true;
+            }
+            return Row.of(value.getData());
+        } else {
+            throw new RuntimeException("request data error,msg is " + value.getErrorMsg());
+        }
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
         myHttpClient.close();
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
-        return false;
+    public boolean reachedEnd() {
+        return reachEnd;
     }
+
 
     public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
     }
 
-    public void setIntervalTime(Long intervalTime) {
-        this.intervalTime = intervalTime;
-    }
-
-    public void setMetaColumns(List<MetaColumn> metaColumns) {
-        this.metaColumns = metaColumns;
-    }
-
-    public List<DataHandler> getHandlers() {
-        return handlers;
-    }
-
-    public void setHandlers(List<DataHandler> handlers) {
-        this.handlers = handlers;
-    }
 }
