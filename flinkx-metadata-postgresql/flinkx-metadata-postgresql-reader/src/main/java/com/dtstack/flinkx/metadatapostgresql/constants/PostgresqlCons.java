@@ -1,13 +1,13 @@
 package com.dtstack.flinkx.metadatapostgresql.constants;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * 常量定义
  * @author shitou
  * @date 2020/12/9 15:26
  */
-public class PostgresqlCons extends MetaDataCons {
+public class PostgresqlCons extends RdbCons {
     /**
      驱动
     **/

@@ -1,6 +1,6 @@
 package com.dtstack.flinkx.metadatapostgresql.inputformat;
 
-import com.dtstack.flinkx.metadata.util.ConnUtil;
+
 import com.dtstack.flinkx.metadatapostgresql.constants.PostgresqlCons;
 import com.dtstack.flinkx.metadatapostgresql.entity.MetadataPostgresqlEntity;
 import com.dtstack.flinkx.metadatapostgresql.entity.IndexMetaData;
@@ -11,6 +11,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
 import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
 import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
@@ -275,7 +276,8 @@ public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
         ClassUtil.forName(connectionInfo.getDriver());
         //新的jdbcURL
         String url = CommonUtils.dbUrlTransform(connectionInfo.getJdbcUrl(),currentDatabase);
-        return ConnUtil.getConnection(url,connectionInfo.getUsername(),connectionInfo.getPassword());
+        connectionInfo.setJdbcUrl(url);
+        return MetadataDbUtil.getConnection(connectionInfo);
     }
 
 
