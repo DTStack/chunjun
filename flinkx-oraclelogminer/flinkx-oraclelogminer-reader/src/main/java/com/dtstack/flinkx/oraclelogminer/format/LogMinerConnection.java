@@ -125,15 +125,28 @@ public class LogMinerConnection {
     }
 
     public void connect() {
+        PreparedStatement preparedStatement = null;
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME,false);
 
-            LOG.info("get connection successfully, url:{}, username:{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername());
+            oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
+            isOracle10 = oracleVersion == 10;
+
+            if(isOracle10){
+                //oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
+                preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
+                preparedStatement.execute();
+                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
+                preparedStatement.execute();
+            }
+
+           LOG.info("get connection successfully, url:{}, username:{}, Oracle version：{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), oracleVersion);
         } catch (Exception e){
             String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
+            closeResources(null, preparedStatement, connection);
             throw new RuntimeException(message, e);
         }
     }
@@ -192,15 +205,6 @@ public class LogMinerConnection {
             }
 
             closeStmt(logMinerStartStmt);
-
-            //开启logMiner之前 需要设置会话级别的日期格式
-            if (isOracle10) {
-                PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
-                preparedStatement.execute();
-                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
-                preparedStatement.execute();
-            }
-
 
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
@@ -539,10 +543,6 @@ public class LogMinerConnection {
     public void checkPrivileges() {
         try (Statement statement = connection.createStatement()) {
 
-            oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
-            isOracle10 = oracleVersion == 10;
-            LOG.info("Oracle版本为：{}", oracleVersion);
-
             queryDataBaseEncoding();
 
             List<String> roles = getUserRoles(statement);
@@ -570,6 +570,7 @@ public class LogMinerConnection {
             throw new RuntimeException("检查权限出错", e);
         }
     }
+
 
     private boolean containsNeededPrivileges(Statement statement) {
         try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
