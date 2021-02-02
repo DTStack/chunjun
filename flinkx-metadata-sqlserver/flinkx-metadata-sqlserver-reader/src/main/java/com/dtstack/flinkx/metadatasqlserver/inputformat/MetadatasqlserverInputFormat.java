@@ -18,19 +18,21 @@
 
 package com.dtstack.flinkx.metadatasqlserver.inputformat;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.metadata.MetaDataCons;
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
+
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
+import com.dtstack.flinkx.metadatasqlserver.entity.MetadatasqlserverEntity;
+import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverIndexEntity;
+import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverPartitionEntity;
+import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverTableEntity;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -39,25 +41,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_COLUMN_PRIMARY;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_CREATE_TIME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_FALSE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_INDEX_NAME;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_ROWS;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_COMMENT;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TABLE_TOTAL_SIZE;
-import static com.dtstack.flinkx.metadata.MetaDataCons.KEY_TRUE;
-import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_SCHEMA_NAME;
-import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_TABLE_NAME;
-import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_ZERO;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_SIZE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_DECIMAL_DIGITS;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_IS_NULLABLE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_ORDINAL_POSITION;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_REMARKS;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/08/06
  */
 
-public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
+public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
 
@@ -65,199 +63,221 @@ public class MetadatasqlserverInputFormat extends BaseMetadataInputFormat {
 
     protected String table;
 
-    /**
-     * 在use database失败时，不影响下一个任务
-     * @param inputSplit 分片
-     * @throws IOException 异常
-     */
+
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        LOG.info("inputSplit = {}", inputSplit);
+    protected void doOpenInternal() {
         try {
-            connection.set(getConnection());
-            statement.set(connection.get().createStatement());
-            currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
-            tableList = ((MetadataInputSplit) inputSplit).getTableList();
-            switchDatabase(currentDb.get());
+            if (connection == null) {
+                connection = getConnection();
+                statement = connection.createStatement();
+            }
+            switchDatabase();
             if (CollectionUtils.isEmpty(tableList)) {
                 tableList = showTables();
-                queryTable = true;
             }
-        } catch (ClassNotFoundException e) {
-            LOG.error("could not find suitable driver, e={}", ExceptionUtil.getErrorMessage(e));
-            throw new IOException(e);
-        } catch (SQLException e){
-            LOG.error("获取table列表异常, dbUrl = {}, username = {}, inputSplit = {}, e = {}", dbUrl, username, inputSplit, ExceptionUtil.getErrorMessage(e));
-            tableList = new LinkedList<>();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        tableIterator.set(tableList.iterator());
+
     }
 
     @Override
-    protected List<Object> showTables() throws SQLException {
+    protected Row nextRecordInternal(Row row){
+
+        MetadatasqlserverEntity metadatasqlserverEntity = new MetadatasqlserverEntity();
+
+        currentObject = iterator.next();
+        Map<String,String> map = (Map<String,String>) currentObject;
+        schema = map.get(SqlServerMetadataCons.KEY_SCHEMA_NAME);
+        table  = map.get(SqlServerMetadataCons.KEY_TABLE_NAME);
+
+        try {
+            metadatasqlserverEntity = (MetadatasqlserverEntity) createMetadatardbEntity();
+            metadatasqlserverEntity.setDataBaseName(currentDatabase);
+            metadatasqlserverEntity.setSchema(schema);
+            metadatasqlserverEntity.setTableName(table);
+            metadatasqlserverEntity.setQuerySuccess(true);
+
+        } catch (Exception e) {
+            metadatasqlserverEntity.setQuerySuccess(false);
+            metadatasqlserverEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
+        }
+        return Row.of(GsonUtil.GSON.toJson(metadatasqlserverEntity));
+    }
+
+    @Override
+    public List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
-        try (ResultSet rs = statement.get().executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
+        try (ResultSet rs = statement.executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
-                tableNameList.add(Pair.of(rs.getString(1), rs.getString(2)));
+                HashMap<String, String> map = new HashMap<>();
+                map.put(SqlServerMetadataCons.KEY_SCHEMA_NAME,rs.getString(1));
+                map.put(SqlServerMetadataCons.KEY_TABLE_NAME,rs.getString(2));
+                tableNameList.add(map);
             }
         }
         return tableNameList;
     }
 
     @Override
-    protected void switchDatabase(String databaseName) throws SQLException {
+    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+        MetadatasqlserverEntity metadatasqlserverEntity = new MetadatasqlserverEntity();
+
+        SqlserverTableEntity tableEntity = queryTableProp();
+        tableEntity.setIndex(queryIndexes());
+        tableEntity.setPrimaryKey(queryTablePrimaryKey());
+        tableEntity.setPartition(queryPartition());
+
+        List<ColumnEntity> columns = queryColumn();
+        String key = queryPartitionColumn();
+        List<ColumnEntity> partitionColumn = distinctPartitionColumn(columns, key);
+
+        metadatasqlserverEntity.setColumns(columns);
+        metadatasqlserverEntity.setPartionColumn(partitionColumn);
+        metadatasqlserverEntity.setTableProperties(tableEntity);
+        return metadatasqlserverEntity;
+    }
+
+
+
+    @Override
+    public List<ColumnEntity> queryColumn() throws SQLException {
+        List<ColumnEntity> columnEntities = new ArrayList<>();
+        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schema, table, null)) {
+            while (resultSet.next()) {
+                ColumnEntity columnEntity = new ColumnEntity();
+                columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
+                columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
+                columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
+                columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
+                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+                columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
+                columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
+                columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
+                columnEntities.add(columnEntity);
+            }
+        } catch (SQLException e) {
+            LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
+            throw e;
+        }
+        return columnEntities;
+    }
+
+    private void switchDatabase() throws SQLException {
         // database 以数字开头时，需要双引号
-        statement.get().execute(String.format(SqlServerMetadataCons.SQL_SWITCH_DATABASE, databaseName));
+        statement.execute(String.format(SqlServerMetadataCons.SQL_SWITCH_DATABASE, currentDatabase));
     }
 
-    @Override
-    protected Row nextRecordInternal(Row row) throws IOException{
-        Map<String, Object> metaData = new HashMap<>(16);
-        metaData.put(MetaDataCons.KEY_OPERA_TYPE, MetaDataCons.DEFAULT_OPERA_TYPE);
-
-        if(queryTable){
-            Pair<String, String> pair = (Pair) tableIterator.get().next();
-            schema = pair.getKey();
-            table = pair.getValue();
-        }else{
-            Map<String, String> map = (Map<String, String>)tableIterator.get().next();
-            schema = map.get(KEY_SCHEMA_NAME);
-            table = map.get(KEY_TABLE_NAME);
-        }
-        String tableName = schema + ConstantValue.POINT_SYMBOL + table;
-        metaData.put(MetaDataCons.KEY_SCHEMA, currentDb.get());
-        metaData.put(MetaDataCons.KEY_TABLE, table);
-        metaData.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
-        try {
-            metaData.putAll(queryMetaData(tableName));
-            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, true);
-        } catch (Exception e) {
-            metaData.put(MetaDataCons.KEY_QUERY_SUCCESS, false);
-            metaData.put(MetaDataCons.KEY_ERROR_MSG, ExceptionUtil.getErrorMessage(e));
-            LOG.error(ExceptionUtil.getErrorMessage(e));
-        }
-        return Row.of(metaData);
-    }
-
-    @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
-        Map<String, Object> tableProperties = queryTableProp();
-        result.put(MetaDataCons.KEY_TABLE_PROPERTIES, tableProperties);
-        List<Map<String, String>> column = queryColumn();
-        String partitionKey = queryPartitionColumn();
-        List<Map<String, String>> partitionColumn = new ArrayList<>();
-        if(StringUtils.isNotEmpty(partitionKey)){
-            column.removeIf((Map<String, String> perColumn)->
-            {
-                if(StringUtils.equals(partitionKey, perColumn.get(KEY_COLUMN_NAME))){
-                    partitionColumn.add(perColumn);
-                    return true;
-                }else {
-                    return false;
-                }
-            });
-        }
-        result.put(SqlServerMetadataCons.KEY_PARTITION_COLUMN, partitionColumn);
-        result.put(MetaDataCons.KEY_COLUMN, column);
-        List<Map<String, String>> index = queryIndex();
-        result.put(MetaDataCons.KEY_COLUMN_INDEX, index);
-        List<Map<String, String>> partition = queryPartition();
-        result.put(MetaDataCons.KEY_PARTITIONS, partition);
-        return result;
-    }
-
-    protected List<Map<String, String>> queryPartition() throws SQLException{
-        List<Map<String, String>> index = new ArrayList<>();
+    private List<SqlserverPartitionEntity> queryPartition() throws SQLException{
+        List<SqlserverPartitionEntity> partitions = new ArrayList<>();
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+        try(ResultSet resultSet = statement.executeQuery(sql)){
             while (resultSet.next()){
-                Map<String, String> perIndex = new HashMap<>(16);
-                perIndex.put(KEY_COLUMN_NAME, resultSet.getString(1));
-                perIndex.put(KEY_TABLE_ROWS,  resultSet.getString(2));
-                perIndex.put(KEY_TABLE_CREATE_TIME, resultSet.getString(3));
-                perIndex.put(SqlServerMetadataCons.KEY_FILE_GROUP_NAME, resultSet.getString(4));
-                index.add(perIndex);
+                SqlserverPartitionEntity partitionEntity = new SqlserverPartitionEntity();
+                partitionEntity.setColumnName(resultSet.getString(1));
+                partitionEntity.setRows(resultSet.getLong(2));
+                partitionEntity.setCreateTime(resultSet.getString(3));
+                partitionEntity.setFileGroupName(resultSet.getString(4));
             }
         }
-        return index;
+        return partitions;
     }
 
-    protected List<Map<String, String>> queryIndex() throws SQLException{
-        List<Map<String, String>> index = new ArrayList<>();
-        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_INDEX, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while (resultSet.next()){
-                Map<String, String> perIndex = new HashMap<>(16);
-                perIndex.put(KEY_INDEX_NAME, resultSet.getString(1));
-                perIndex.put(MetaDataCons.KEY_COLUMN_NAME,  resultSet.getString(2));
-                perIndex.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(3));
-                index.add(perIndex);
-            }
-        }
-        return index;
-    }
 
-    protected String queryPartitionColumn() throws SQLException{
+    private String queryPartitionColumn() throws SQLException {
         String partitionKey = null;
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION_COLUMN, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
                 partitionKey = resultSet.getString(1);
             }
         }
         return partitionKey;
     }
 
-    protected List<Map<String, String>> queryColumn() throws SQLException {
-        List<Map<String, String>> column = new ArrayList<>();
-        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_COLUMN, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while(resultSet.next()){
-                Map<String, String> perColumn = new HashMap<>(16);
-                perColumn.put(KEY_COLUMN_NAME, resultSet.getString(1));
-                perColumn.put(MetaDataCons.KEY_COLUMN_TYPE, resultSet.getString(2));
-                perColumn.put(MetaDataCons.KEY_COLUMN_COMMENT, resultSet.getString(3));
-                perColumn.put(MetaDataCons.KEY_COLUMN_NULL, StringUtils.equals(resultSet.getString(4), KEY_ZERO) ? KEY_FALSE : KEY_TRUE);
-                perColumn.put(MetaDataCons.KEY_COLUMN_SCALE, resultSet.getString(5));
-                perColumn.put(MetaDataCons.KEY_COLUMN_DEFAULT, resultSet.getString(6));
-                perColumn.put(MetaDataCons.KEY_COLUMN_INDEX, resultSet.getString(7));
-                column.add(perColumn);
-            }
+    /**
+     * 区分分区字段和非分区字段
+     * @param columns 所有字段
+     * @param key  分区字段
+    */
+    private List<ColumnEntity> distinctPartitionColumn(List<ColumnEntity> columns, String key){
+        List<ColumnEntity> partitionColumn = new ArrayList<>();
+        if(StringUtils.isNotEmpty(key)){
+            columns.removeIf(columnEntity->
+            {
+                if(StringUtils.equals(key, columnEntity.getName())){
+                    partitionColumn.add(columnEntity);
+                    return true;
+                }else {
+                    return false;
+                }
+            });
         }
-        sql = String.format(SqlServerMetadataCons.SQL_QUERY_PRIMARY_KEY, quote(table), quote(schema));
-        String primaryKey = null;
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
-            while(resultSet.next()){
-                primaryKey = resultSet.getString(1);
-            }
-        }
-        for(Map<String, String> perColumn : column){
-            perColumn.put(KEY_COLUMN_PRIMARY, StringUtils.equals(perColumn.get(KEY_COLUMN_NAME), primaryKey) ? KEY_TRUE : KEY_FALSE);
-        }
-        return column;
+        return partitionColumn;
     }
 
-    protected Map<String, Object> queryTableProp() throws SQLException{
-        Map<String, Object> tableProperties = new HashMap<>(16);
+    private List<SqlserverIndexEntity> queryIndexes() throws SQLException{
+        List<SqlserverIndexEntity> result = new ArrayList<>();
+        //索引名对columnName的映射
+        HashMap<String,ArrayList<String>> indexColumns = new HashMap<>(16);
+        //索引名对索引类型的映射
+        HashMap<String,String> indexType = new HashMap<>(16);
+
+        ResultSet resultSet = connection.getMetaData().getIndexInfo(currentDatabase, schema, table, false, false);
+        while(resultSet.next()){
+            ArrayList<String> columns = indexColumns.get(resultSet.getString("INDEX_NAME"));
+            if(columns != null){
+                columns.add(resultSet.getString("COLUMN_NAME"));
+            }else if(resultSet.getString("COLUMN_NAME") != null){
+                ArrayList<String> list = new ArrayList<>();
+                list.add(resultSet.getString("COLUMN_NAME"));
+                indexColumns.put(resultSet.getString("INDEX_NAME"),list);
+            }
+        }
+
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_INDEX, quote(table), quote(schema));
+        ResultSet indexResultSet = statement.executeQuery(sql);
+        while (indexResultSet.next()){
+            indexType.put(indexResultSet.getString(1)
+                    , indexResultSet.getString(3));
+        }
+
+        for(String key : indexColumns.keySet()){
+            result.add(new SqlserverIndexEntity(key, indexType.get(key), indexColumns.get(key)));
+        }
+
+        return result;
+    }
+
+
+    private List<String> queryTablePrimaryKey() throws SQLException{
+        List<String> primaryKey = new ArrayList<>();
+        ResultSet resultSet = connection.getMetaData().getPrimaryKeys(currentDatabase, schema, table);
+        while(resultSet.next()){
+            primaryKey.add(resultSet.getString("COLUMN_NAME"));
+        }
+        return primaryKey;
+    }
+
+
+    private SqlserverTableEntity queryTableProp() throws SQLException{
+        SqlserverTableEntity tableEntity = new SqlserverTableEntity();
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.get().executeQuery(sql)){
+        try(ResultSet resultSet = statement.executeQuery(sql)){
             while(resultSet.next()){
-                tableProperties.put(KEY_TABLE_CREATE_TIME, resultSet.getString(1));
-                tableProperties.put(KEY_TABLE_ROWS, resultSet.getString(2));
-                tableProperties.put(KEY_TABLE_TOTAL_SIZE, resultSet.getString(3));
-                tableProperties.put(KEY_TABLE_COMMENT, resultSet.getString(4));
+                tableEntity.setCreateTime(resultSet.getString(1));
+                tableEntity.setRows(resultSet.getLong(2));
+                tableEntity.setTotalSize(resultSet.getLong(3));
+                tableEntity.setComment(resultSet.getString(4));
             }
         }
-        if(tableProperties.size()==0){
-            throw new SQLException(String.format("no such table(schema=%s,table=%s) in database", schema, table));
-        }
-        tableProperties.put(SqlServerMetadataCons.KEY_TABLE_SCHEMA, schema);
-        return tableProperties;
+        tableEntity.setTableName(table);
+        return tableEntity;
     }
 
-    @Override
-    protected String quote(String name) {
+
+    private String quote(String name) {
         return "'" + name + "'";
     }
 

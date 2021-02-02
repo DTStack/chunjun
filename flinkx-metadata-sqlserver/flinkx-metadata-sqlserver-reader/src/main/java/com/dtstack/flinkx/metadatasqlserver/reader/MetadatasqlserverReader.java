@@ -20,10 +20,10 @@ package com.dtstack.flinkx.metadatasqlserver.reader;
 
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
 import com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons;
 import com.dtstack.flinkx.metadatasqlserver.inputformat.MetadatasqlserverInputFormat;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -31,14 +31,19 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @date : 2020/08/06
  */
 
-public class MetadatasqlserverReader extends MetadataReader {
+public class MetadatasqlserverReader extends MetadatardbReader {
     public MetadatasqlserverReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        driverName = SqlServerMetadataCons.DRIVER_NAME;
     }
 
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadatasqlserverInputFormat());
+    public MetadatardbBuilder createBuilder() {
+        return new MetadatardbBuilder(new MetadatasqlserverInputFormat());
     }
+
+    @Override
+    public String getDriverName() {
+        return SqlServerMetadataCons.DRIVER_NAME;
+    }
+
 }
