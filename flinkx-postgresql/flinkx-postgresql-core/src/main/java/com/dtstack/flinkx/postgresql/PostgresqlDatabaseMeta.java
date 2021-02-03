@@ -20,7 +20,10 @@ package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -73,10 +76,22 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
                 "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
         return String.format(sql,table);
     }
-
     @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        throw new UnsupportedOperationException("PostgreSQL not support update mode");
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") values "
+                + makeValues(column.size())
+                + " ON CONFLICT (" + StringUtils.join(updateKey.get("key"), ",") + ") DO UPDATE SET "
+                + makeUpdatePart(column);
+    }
+
+    private String makeUpdatePart (List<String> column) {
+        List<String> updateList = new ArrayList<>();
+        for(String col : column) {
+            String quotedCol = quoteColumn(col);
+            updateList.add(quotedCol + "=excluded." + quotedCol);
+        }
+        return StringUtils.join(updateList, ",");
     }
 
     @Override
@@ -97,5 +112,9 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public int getQueryTimeout(){
         return 1000;
+    }
+
+    private String makeValues(int nCols) {
+        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
     }
 }
