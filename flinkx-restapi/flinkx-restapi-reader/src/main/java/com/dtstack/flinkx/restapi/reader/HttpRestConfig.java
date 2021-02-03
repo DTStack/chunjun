@@ -47,7 +47,7 @@ public class HttpRestConfig implements Serializable {
     /**
      * 对返回值的处理 text/json
      **/
-    private String decode;
+    private String decode = "text";
 
     /**
      * decode为json时，指定解析的key

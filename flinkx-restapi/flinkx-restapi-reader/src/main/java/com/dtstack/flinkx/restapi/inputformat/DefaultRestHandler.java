@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultRestHandler implements RestHandler {
-    private Gson gson = new Gson();
+    private Gson gson = GsonUtil.setTypeAdapter(new Gson());
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRestHandler.class);
 
@@ -108,7 +108,7 @@ public class DefaultRestHandler implements RestHandler {
     @Override
     public ResponseValue buildResponseValue(String decode, String responseValue, String fields, HttpRequestParam requestParam) {
         if (decode.equals(ConstantValue.DEFAULT_DECODE)) {
-            Map map = HttpUtil.gson.fromJson(responseValue, Map.class);
+            Map map = gson.fromJson(responseValue, Map.class);
             if (StringUtils.isEmpty(fields)) {
                 return new ResponseValue(gson.toJson(map),requestParam,responseValue);
             } else {

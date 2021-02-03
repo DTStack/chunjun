@@ -97,4 +97,15 @@ public class ResponseValue {
     public void setOriginResponseValue(String originResponseValue) {
         this.originResponseValue = originResponseValue;
     }
+
+    @Override
+    public String toString() {
+        return "ResponseValue{" +
+                "status=" + status +
+                ", data='" + data + '\'' +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", requestParam=" + requestParam +
+                ", originResponseValue='" + originResponseValue + '\'' +
+                '}';
+    }
 }

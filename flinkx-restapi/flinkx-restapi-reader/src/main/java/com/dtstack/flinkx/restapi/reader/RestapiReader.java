@@ -77,7 +77,7 @@ public class RestapiReader extends BaseDataReader {
         metaParams = MetaParam.getMetaColumns(httpRestConfig.getParam(), ParamType.PARAM);
         metaHeaders = MetaParam.getMetaColumns(httpRestConfig.getHeader(), ParamType.HEADER);
 
-        //post 骑牛 如果contentTy没有设置，则默认设置为 application/json
+        //post请求 如果contentTy没有设置，则默认设置为 application/json
         if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && metaHeaders.stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getName()))){
             if(CollectionUtils.isEmpty(metaHeaders)){
                 metaHeaders = Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
@@ -99,6 +99,12 @@ public class RestapiReader extends BaseDataReader {
         builder.setMetaBodys(metaBodys);
         builder.setHttpRestConfig(httpRestConfig);
         builder.setStream(restoreConfig.isStream());
+
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setRestoreConfig(restoreConfig);
+
+        builder.setMonitorUrls(monitorUrls);
+        builder.setBytes(bytes);
         return createInput(builder.finish());
     }
 }

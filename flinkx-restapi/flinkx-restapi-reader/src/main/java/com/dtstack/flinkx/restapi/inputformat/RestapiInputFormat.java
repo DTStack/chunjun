@@ -70,7 +70,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     /**
      * 读取的最新数据，checkpoint时保存
      */
-    protected ResponseValue responseValue;
+    protected ResponseValue state;
 
 
     @Override
@@ -85,8 +85,8 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) {
         myHttpClient = new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders);
-        if(responseValue != null){
-            myHttpClient.initPosition(responseValue.getRequestParam(), responseValue.getOriginResponseValue());
+        if(state != null){
+            myHttpClient.initPosition(state.getRequestParam(), state.getOriginResponseValue());
         }
 
         myHttpClient.start();
@@ -113,8 +113,8 @@ public class RestapiInputFormat extends BaseRichInputFormat {
             if (value.getStatus() == 0) {
                 reachEnd = true;
             }
-            this.responseValue = value;
-
+            //更新当前的最新请求和返回值 作为checkPoint使用
+            state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()),value.getOriginResponseValue());
             return Row.of(value.getData());
         } else {
             throw new RuntimeException("request data error,msg is " + value.getErrorMsg());
@@ -124,7 +124,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
-            responseValue = ((ResponseValue) formatState.getState());
+            state = ((ResponseValue) formatState.getState());
         }
     }
 
@@ -133,7 +133,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         super.getFormatState();
 
         if (formatState != null) {
-            formatState.setState(responseValue);
+            formatState.setState(state);
         }
 
         return formatState;
