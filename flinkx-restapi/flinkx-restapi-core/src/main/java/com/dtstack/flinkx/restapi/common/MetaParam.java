@@ -19,17 +19,13 @@
 package com.dtstack.flinkx.restapi.common;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * 原始header param body配置信息
@@ -54,49 +50,18 @@ public class MetaParam implements Serializable {
         this.paramType = paramType;
     }
 
-    public static List<MetaParam> getMetaColumns(List params, ParamType paramType) {
+    /** metaparam设置各自类型 **/
+    public static void setMetaColumnsType(List<MetaParam> params, ParamType paramType) {
 
         if (CollectionUtils.isNotEmpty(params)) {
-            ArrayList<MetaParam> metaParams = new ArrayList<>();
-            for (int i = 0; i < params.size(); i++) {
-                Map sm = (Map) params.get(i);
-
-                MetaParam mc = new MetaParam();
-                mc.setParamType(paramType);
-                mc.setName(String.valueOf(sm.get("name")));
-                mc.setValue(String.valueOf(sm.get("value")));
-                //header是没有nextValue的
-                if(!paramType.equals(ParamType.HEADER)){
-                    mc.setNextValue(sm.get("nextValue") != null ? String.valueOf(sm.get("nextValue")) : null);
-                }
-                if (sm.get("format") != null && String.valueOf(sm.get("format")).trim().length() > 0) {
-                    mc.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(sm.get("format")).trim()));
-                }
-                metaParams.add(mc);
-            }
-            return metaParams;
+            params.forEach(i -> i.setParamType(paramType));
         }
-
-        return Collections.emptyList();
     }
 
 
-    public String getNextValue() {
-        return nextValue;
-    }
-
-    public String getActualValue(boolean isFirst) {
-
-        if(StringUtils.isEmpty(nextValue)){
-            return value;
-        }
-        return isFirst ? value : nextValue;
-    }
-
-    public void setNextValue(String nextValue) {
-        this.nextValue = nextValue;
-    }
-
+    /**
+     * 获取一个metaparam的唯一名称 如body里的time参数 其全名称为body.name，因为name可能在body header里都有
+     */
     public String getAllName() {
         switch (paramType) {
             case PARAM:
@@ -113,9 +78,30 @@ public class MetaParam implements Serializable {
     }
 
 
-    public String getVariableName(){
+    /**  获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name} **/
+    public String getVariableName() {
         return new StringBuilder().append(com.dtstack.flinkx.restapi.common.ConstantValue.PREFIX).append(getAllName()).append(com.dtstack.flinkx.restapi.common.ConstantValue.SUFFIX).toString();
     }
+
+
+    /** 根据是否是第一次 获取真正的表达式 **/
+    public String getActualValue(boolean isFirst) {
+        if (StringUtils.isEmpty(nextValue)) {
+            return value;
+        }
+        return isFirst ? value : nextValue;
+    }
+
+
+
+    public String getNextValue() {
+        return nextValue;
+    }
+
+    public void setNextValue(String nextValue) {
+        this.nextValue = nextValue;
+    }
+
 
     public String getName() {
         return name;

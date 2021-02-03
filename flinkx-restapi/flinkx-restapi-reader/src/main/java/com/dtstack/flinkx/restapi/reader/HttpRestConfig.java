@@ -17,7 +17,11 @@
  */
 package com.dtstack.flinkx.restapi.reader;
 
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,31 +64,33 @@ public class HttpRestConfig implements Serializable {
      **/
     private Long intervalTime;
 
-    /**
-     * 对返回的json解析出对应的字段
-     **/
-    private List columns;
 
     /**
      * 请求的header头
      **/
-    private List header;
+    private List<MetaParam> header = new ArrayList<>(2);
 
     /**
      * 请求的param
      **/
-    private List param;
+    private List<MetaParam> param = new ArrayList<>(2);
 
 
     /**
      * 请求的body
      **/
-    private List body;
+    private List<MetaParam> body = new ArrayList<>(2);
 
     /**
      * 返回结果的处理策略
      **/
     protected List<Strategy> strategy;
+
+
+    public boolean isJsonDecode() {
+        return getDecode().equalsIgnoreCase(ConstantValue.DEFAULT_DECODE);
+    }
+
 
     public String getProtocol() {
         return protocol;
@@ -126,30 +132,6 @@ public class HttpRestConfig implements Serializable {
         this.intervalTime = intervalTime;
     }
 
-    public List getColumns() {
-        return columns;
-    }
-
-    public void setColumns(List columns) {
-        this.columns = columns;
-    }
-
-    public List getHeader() {
-        return header;
-    }
-
-    public void setHeader(List header) {
-        this.header = header;
-    }
-
-    public List getParam() {
-        return param;
-    }
-
-    public void setParam(List param) {
-        this.param = param;
-    }
-
 
     public List<Strategy> getStrategy() {
         return strategy;
@@ -159,23 +141,35 @@ public class HttpRestConfig implements Serializable {
         this.strategy = strategy;
     }
 
-    public List getBody() {
-        return body;
-    }
-
-    public void setBody(List body) {
-        this.body = body;
-    }
-
-    public  boolean isJsonDecode(){
-        return  getDecode().equalsIgnoreCase("json");
-    }
-
     public String getFields() {
         return fields;
     }
 
     public void setFields(String fields) {
         this.fields = fields;
+    }
+
+    public List<MetaParam> getHeader() {
+        return header;
+    }
+
+    public void setHeader(List<MetaParam> header) {
+        this.header = header;
+    }
+
+    public List<MetaParam> getParam() {
+        return param;
+    }
+
+    public void setParam(List<MetaParam> param) {
+        this.param = param;
+    }
+
+    public List<MetaParam> getBody() {
+        return body;
+    }
+
+    public void setBody(List<MetaParam> body) {
+        this.body = body;
     }
 }

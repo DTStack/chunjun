@@ -71,11 +71,6 @@ public class HttpUtil {
             LOG.warn(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
-
-        PoolingHttpClientConnectionManager pcm = new PoolingHttpClientConnectionManager();
-        pcm.setDefaultMaxPerRoute(COUNT);
-        pcm.setMaxTotal(TOTAL_COUNT);
-
         return getBaseBuilder()
                 .setSSLContext(sslContext)
                 .setSSLHostnameVerifier(new NoopHostnameVerifier())

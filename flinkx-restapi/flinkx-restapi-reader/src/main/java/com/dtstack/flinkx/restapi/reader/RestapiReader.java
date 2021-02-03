@@ -20,7 +20,6 @@ package com.dtstack.flinkx.restapi.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
-import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.MetaParam;
@@ -46,22 +45,6 @@ public class RestapiReader extends BaseDataReader {
     private HttpRestConfig httpRestConfig;
 
 
-    /**
-     * 请求body
-     **/
-    private List<MetaParam> metaBodys;
-
-    /**
-     * 请求body
-     **/
-    private List<MetaParam> metaParams;
-
-    /**
-     * 请求header
-     **/
-    private List<MetaParam> metaHeaders;
-
-
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -73,20 +56,19 @@ public class RestapiReader extends BaseDataReader {
             throw new RuntimeException("analyze httpRest Config failed:", e);
         }
 
-        metaBodys = MetaParam.getMetaColumns(httpRestConfig.getBody(), ParamType.BODY);
-        metaParams = MetaParam.getMetaColumns(httpRestConfig.getParam(), ParamType.PARAM);
-        metaHeaders = MetaParam.getMetaColumns(httpRestConfig.getHeader(), ParamType.HEADER);
+        MetaParam.setMetaColumnsType(httpRestConfig.getBody(), ParamType.BODY);
+        MetaParam.setMetaColumnsType(httpRestConfig.getParam(), ParamType.PARAM);
+        MetaParam.setMetaColumnsType(httpRestConfig.getHeader(), ParamType.HEADER);
 
         //post请求 如果contentTy没有设置，则默认设置为 application/json
-        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && metaHeaders.stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getName()))){
-            if(CollectionUtils.isEmpty(metaHeaders)){
-                metaHeaders = Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig.getHeader().stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getName()))){
+            if(CollectionUtils.isEmpty(httpRestConfig.getHeader())){
+                httpRestConfig.setHeader( Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER)));
             }else{
-                metaHeaders.add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+                httpRestConfig.getHeader().add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
             }
         }
 
-        config.getJob().getSetting().getSpeed();
     }
 
     @Override
@@ -94,9 +76,9 @@ public class RestapiReader extends BaseDataReader {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
 
-        builder.setMetaHeaders(metaHeaders);
-        builder.setMetaParams(metaParams);
-        builder.setMetaBodys(metaBodys);
+        builder.setMetaHeaders(httpRestConfig.getHeader());
+        builder.setMetaParams(httpRestConfig.getParam());
+        builder.setMetaBodys(httpRestConfig.getBody());
         builder.setHttpRestConfig(httpRestConfig);
         builder.setStream(restoreConfig.isStream());
 
