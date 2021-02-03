@@ -20,6 +20,8 @@ package com.dtstack.flinkx.restapi.inputformat;
 
 /**
  * 返回值
+ *
+ * @author dujie@dtstack.com
  */
 public class ResponseValue {
 
@@ -30,17 +32,34 @@ public class ResponseValue {
      * 1  代表任务正常
      **/
     private int status;
+    /**
+     * 返回值
+     **/
     private String data;
+    /**
+     * 如果是异常数据 这个是异常数据
+     **/
     private String errorMsg;
+    /**
+     * 请求参数
+     **/
+    private HttpRequestParam requestParam;
 
-    public ResponseValue(int status, String data, String errorMsg) {
+    /**
+     * 原始的返回值
+     **/
+    private String originResponseValue;
+
+    public ResponseValue(int status, String data, String errorMsg, HttpRequestParam requestParam, String originResponseValue) {
         this.status = status;
         this.data = data;
         this.errorMsg = errorMsg;
+        this.requestParam = requestParam;
+        this.originResponseValue = originResponseValue;
     }
 
-    public ResponseValue(String data) {
-        this(1, data, null);
+    public ResponseValue(String data, HttpRequestParam requestParam, String originResponseValue) {
+        this(1, data, null, requestParam, originResponseValue);
     }
 
     public String getData() {
@@ -61,5 +80,21 @@ public class ResponseValue {
 
     public boolean isNormal() {
         return status != -1;
+    }
+
+    public HttpRequestParam getRequestParam() {
+        return requestParam;
+    }
+
+    public void setRequestParam(HttpRequestParam requestParam) {
+        this.requestParam = requestParam;
+    }
+
+    public String getOriginResponseValue() {
+        return originResponseValue;
+    }
+
+    public void setOriginResponseValue(String originResponseValue) {
+        this.originResponseValue = originResponseValue;
     }
 }

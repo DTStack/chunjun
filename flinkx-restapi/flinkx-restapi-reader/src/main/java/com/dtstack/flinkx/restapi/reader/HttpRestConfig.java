@@ -31,7 +31,7 @@ public class HttpRestConfig implements Serializable {
     /**
      * http协议 https/http
      **/
-    private String protocol;
+    private String protocol = "https";
 
     /**
      * http请求地址
@@ -39,7 +39,7 @@ public class HttpRestConfig implements Serializable {
     private String url;
 
     /**
-     * http请求方式 post/get/...
+     * http请求方式 post/get
      **/
     private String requestMode;
 

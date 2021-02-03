@@ -23,6 +23,7 @@ import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import com.dtstack.flinkx.util.DateUtil;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -37,10 +38,12 @@ import java.util.regex.Pattern;
 
 /**
  * Metaparam 工具类
+ *
+ * @author dujie@dtstack.com
  */
 public class MetaparamUtils {
     public static Pattern valueExpression =
-            Pattern.compile("(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[\\}]*))))\\}))");
+            Pattern.compile("(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[}]*))))}))");
 
 
     /**
@@ -56,10 +59,13 @@ public class MetaparamUtils {
 
         ArrayList<MetaParam> metaParams = new ArrayList<>(12);
         while (matcher.find()) {
+            //整个变量 如${body.time}
             String variableName = matcher.group("variable");
+            //变量的名称 如${body.time}里的time
             String name = matcher.group("name");
+            //内置变量名称 如currentTime
             String innerName = matcher.group("innerName");
-            ParamType variableType;
+
             if (StringUtils.isNotBlank(innerName)) {
                 MetaParam innerMetaParam = new MetaParam();
                 innerMetaParam.setName(innerName);
@@ -83,7 +89,7 @@ public class MetaparamUtils {
                 metaParams.add(innerMetaParam);
 
             } else {
-                variableType = ParamType.valueOf(matcher.group("paramType").toUpperCase(Locale.ENGLISH));
+                ParamType variableType = ParamType.valueOf(matcher.group("paramType").toUpperCase(Locale.ENGLISH));
 
                 if (variableType.equals(ParamType.RESPONSE)) {
                     MetaParam metaParam1 = new MetaParam();
@@ -103,9 +109,15 @@ public class MetaparamUtils {
      * 表达式 是否是动态变量而不是常量，包含内部变量，body response header param等 都是变量
      *
      * @param text 表达式
-     * @return
      */
     public static boolean isDynamic(String text) {
         return valueExpression.matcher(text).find();
     }
+
+    public static boolean isInnerParam(String text) {
+        return Sets.newHashSet(ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_UUID + ConstantValue.SUFFIX,
+                ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_UUID + ConstantValue.SUFFIX,
+                ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_INTERVAL_TIME + ConstantValue.SUFFIX).contains(text);
+    }
+
 }

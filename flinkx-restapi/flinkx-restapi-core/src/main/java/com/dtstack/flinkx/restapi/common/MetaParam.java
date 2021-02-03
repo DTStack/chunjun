@@ -45,6 +45,15 @@ public class MetaParam implements Serializable {
     private ParamType paramType;
 
 
+    public MetaParam() {
+    }
+
+    public MetaParam(String name, String value, ParamType paramType) {
+        this.name = name;
+        this.value = value;
+        this.paramType = paramType;
+    }
+
     public static List<MetaParam> getMetaColumns(List params, ParamType paramType) {
 
         if (CollectionUtils.isNotEmpty(params)) {
@@ -56,7 +65,10 @@ public class MetaParam implements Serializable {
                 mc.setParamType(paramType);
                 mc.setName(String.valueOf(sm.get("name")));
                 mc.setValue(String.valueOf(sm.get("value")));
-                mc.setNextValue(sm.get("nextValue") != null ? String.valueOf(sm.get("nextValue")) : null);
+                //header是没有nextValue的
+                if(!paramType.equals(ParamType.HEADER)){
+                    mc.setNextValue(sm.get("nextValue") != null ? String.valueOf(sm.get("nextValue")) : null);
+                }
                 if (sm.get("format") != null && String.valueOf(sm.get("format")).trim().length() > 0) {
                     mc.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(sm.get("format")).trim()));
                 }
@@ -102,7 +114,7 @@ public class MetaParam implements Serializable {
 
 
     public String getVariableName(){
-        return new StringBuilder().append(com.dtstack.flinkx.restapi.common.ConstantValue.prefix).append(getAllName()).append(com.dtstack.flinkx.restapi.common.ConstantValue.suffix).toString();
+        return new StringBuilder().append(com.dtstack.flinkx.restapi.common.ConstantValue.PREFIX).append(getAllName()).append(com.dtstack.flinkx.restapi.common.ConstantValue.SUFFIX).toString();
     }
 
     public String getName() {

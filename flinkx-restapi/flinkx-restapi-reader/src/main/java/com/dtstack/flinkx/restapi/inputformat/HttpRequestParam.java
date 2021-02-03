@@ -67,10 +67,6 @@ public class HttpRequestParam {
         }
     }
 
-    public Object getValue(String name) {
-        return body.get(name);
-    }
-
     public boolean containsParam(String name) {
 
         return body.containsKey(name);
@@ -87,6 +83,20 @@ public class HttpRequestParam {
 
     public Map<String, String> getParam() {
         return param;
+    }
+
+    public static HttpRequestParam copy(HttpRequestParam source) {
+        HttpRequestParam requestParam = new HttpRequestParam();
+        source.getBody().forEach((k, v) ->
+                requestParam.putValue(ParamType.BODY, k, v));
+
+
+        source.getParam().forEach((k, v) ->
+                requestParam.putValue(ParamType.PARAM, k, v));
+
+        source.getHeader().forEach((k, v) ->
+                requestParam.putValue(ParamType.HEADER, k, v));
+        return requestParam;
     }
 
     @Override

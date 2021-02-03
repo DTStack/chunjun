@@ -26,16 +26,19 @@ package com.dtstack.flinkx.restapi.common;
 public class ConstantValue {
 
 
-    public static final String STRATEGY_EXIT = "stop";
+    public static final String STRATEGY_STOP= "stop";
+    public static final String STRATEGY_RETRY= "retry";
     public static final String SYSTEM_FUNCTION_UUID = "uuid";
     public static final String SYSTEM_FUNCTION_CURRENT_TIME = "currentTime";
     public static final String SYSTEM_FUNCTION_INTERVAL_TIME = "intervalTime";
-    public static final String SOURCE_ERROR_FLAG = "exit job when response status is not 200,the last response status is";
 
     public static final String DEFAULT_DECODE = "json";
 
-    public static String prefix = "${";
-    public static String suffix = "}";
+    public static String PREFIX = "${";
+    public static String SUFFIX = "}";
+
+    public static String CONTENT_TYPE_NAME = "Content-Type";
+    public static String CONTENT_TYPE_DEFAULT_VALUE = "application/json";
 
     public static final int REQUEST_RETRY_TIME = 3;
 

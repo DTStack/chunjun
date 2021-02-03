@@ -17,12 +17,15 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.gson.Gson;
 import org.apache.commons.collections.MapUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -30,6 +33,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -50,6 +54,36 @@ public class HttpUtil {
     public static Gson gson = new Gson();
 
     public static CloseableHttpClient getHttpClient() {
+
+        return getBaseBuilder().build();
+//        return HttpClientBuilder.create().build();
+    }
+
+
+    public static CloseableHttpClient getHttpsClient() {
+
+        // 设置Http连接池
+        SSLContext sslContext;
+        try {
+            sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (certificate, authType) -> true).build();
+        } catch (Exception e) {
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
+        }
+
+        PoolingHttpClientConnectionManager pcm = new PoolingHttpClientConnectionManager();
+        pcm.setDefaultMaxPerRoute(COUNT);
+        pcm.setMaxTotal(TOTAL_COUNT);
+
+        return getBaseBuilder()
+                .setSSLContext(sslContext)
+                .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                .build();
+//        return HttpClientBuilder.create().build();
+    }
+
+    public static HttpClientBuilder getBaseBuilder() {
         // 设置自定义的重试策略
         MyServiceUnavailableRetryStrategy strategy = new MyServiceUnavailableRetryStrategy
                 .Builder()
@@ -76,9 +110,7 @@ public class HttpUtil {
                 .setServiceUnavailableRetryStrategy(strategy)
                 .setRetryHandler(retryHandler)
                 .setDefaultRequestConfig(requestConfig)
-                .setConnectionManager(pcm)
-                .build();
-//        return HttpClientBuilder.create().build();
+                .setConnectionManager(pcm);
     }
 
     public static HttpRequestBase getRequest(String method,
@@ -110,7 +142,7 @@ public class HttpUtil {
                                              Map<String, String> requestParam,
                                              Map<String, String> header,
                                              String url) {
-        LOG.debug("current request url: {}  current method:{} \n", url, method);
+
         HttpRequestBase request = null;
         if (MapUtils.isNotEmpty(requestParam)) {
             ArrayList<String> params = new ArrayList<>();
@@ -124,6 +156,7 @@ public class HttpUtil {
             }
         }
 
+        LOG.debug("current request url: {}  current method:{} \n", url, method);
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
         } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {

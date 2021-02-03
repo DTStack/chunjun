@@ -21,13 +21,17 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -73,7 +77,16 @@ public class RestapiReader extends BaseDataReader {
         metaParams = MetaParam.getMetaColumns(httpRestConfig.getParam(), ParamType.PARAM);
         metaHeaders = MetaParam.getMetaColumns(httpRestConfig.getHeader(), ParamType.HEADER);
 
+        //post 骑牛 如果contentTy没有设置，则默认设置为 application/json
+        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && metaHeaders.stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getName()))){
+            if(CollectionUtils.isEmpty(metaHeaders)){
+                metaHeaders = Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+            }else{
+                metaHeaders.add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+            }
+        }
 
+        config.getJob().getSetting().getSpeed();
     }
 
     @Override
