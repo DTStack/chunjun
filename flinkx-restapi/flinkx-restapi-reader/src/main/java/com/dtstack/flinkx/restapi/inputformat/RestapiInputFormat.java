@@ -18,18 +18,15 @@
 package com.dtstack.flinkx.restapi.inputformat;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.restapi.common.HttpUtil;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author : tiezhu
@@ -37,51 +34,66 @@ import java.util.Map;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-    protected String url;
 
-    protected String method;
+    /**
+     * 是否是实时任务
+     **/
+    protected boolean isStream;
 
-    protected transient CloseableHttpClient httpClient;
+    /**
+     * 是否读取结束
+     **/
+    protected boolean reachEnd;
 
-    protected  Map<String, Object> header;
+    /**
+     * 执行请求客户端
+     **/
+    protected HttpClient myHttpClient;
 
-    protected  Map<String, Object> entityDataToMap;
+    protected HttpRestConfig httpRestConfig;
 
-    protected boolean getData;
+    /**
+     * 原始请求参数body
+     */
+    protected List<MetaParam> metaBodys;
+
+    /**
+     * 原始请求参数param
+     */
+    protected List<MetaParam> metaParams;
+
+    /**
+     * 原始请求header
+     */
+    protected List<MetaParam> metaHeaders;
+
+    /**
+     * 读取的最新数据，checkpoint时保存
+     */
+    protected ResponseValue state;
+
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        httpClient = HttpUtil.getHttpClient();
-    }
-
-    @Override
-    public void closeInputFormat() {
-        HttpUtil.closeClient(httpClient);
+        reachEnd = false;
+        initPosition();
     }
 
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void openInternal(InputSplit inputSplit) throws IOException {
-        HttpUriRequest request = HttpUtil.getRequest(method, header,null, url);
-        try {
-            CloseableHttpResponse httpResponse = httpClient.execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                String entityData = EntityUtils.toString(entity);
-                entityDataToMap = HttpUtil.gson.fromJson(entityData, Map.class);
-                getData = true;
-            } else {
-                throw new RuntimeException("entity is null");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("get entity error");
+    protected void openInternal(InputSplit inputSplit) {
+        myHttpClient = new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders);
+        if(state != null){
+            myHttpClient.initPosition(state.getRequestParam(), state.getOriginResponseValue());
         }
+
+        myHttpClient.start();
     }
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
             inputSplits[i] = new GenericInputSplit(i, minNumSplits);
@@ -90,19 +102,56 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
-        row = new Row(1);
-        row.setField(0, entityDataToMap);
-        getData = false;
-        return row;
+    protected Row nextRecordInternal(Row row) {
+        row = myHttpClient.takeEvent();
+        if (null == row) {
+            return null;
+        }
+        ResponseValue value = (ResponseValue) row.getField(0);
+        if (value.isNormal()) {
+            //如果status是0代表是最后一条数据，reachEnd更新为true
+            if (value.getStatus() == 0) {
+                reachEnd = true;
+            }
+            //更新当前的最新请求和返回值 作为checkPoint使用
+            state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()),value.getOriginResponseValue());
+            return Row.of(value.getData());
+        } else {
+            throw new RuntimeException("request data error,msg is " + value.getErrorMsg());
+        }
+    }
+
+
+    private void initPosition() {
+        if (null != formatState && formatState.getState() != null) {
+            state = ((ResponseValue) formatState.getState());
+        }
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    public FormatState getFormatState() {
+        super.getFormatState();
+
+        if (formatState != null) {
+            formatState.setState(state);
+        }
+
+        return formatState;
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
-        return !getData;
+    protected void closeInternal() {
+        myHttpClient.close();
     }
+
+    @Override
+    public boolean reachedEnd() {
+        return reachEnd;
+    }
+
+
+    public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
+        this.httpRestConfig = httpRestConfig;
+    }
+
 }
