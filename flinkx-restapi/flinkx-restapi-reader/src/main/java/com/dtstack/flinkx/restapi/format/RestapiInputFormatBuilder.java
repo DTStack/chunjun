@@ -15,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.format;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.restapi.client.MetaparamUtils;
 import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.MetaParam;

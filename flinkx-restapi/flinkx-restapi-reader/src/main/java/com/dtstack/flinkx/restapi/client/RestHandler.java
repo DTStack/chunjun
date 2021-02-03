@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.client;
 
 
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
-import com.dtstack.flinkx.restapi.reader.Strategy;
 
 import java.util.List;
 import java.util.Map;

@@ -19,6 +19,7 @@ package com.dtstack.flinkx.restapi.reader;
 
 import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.client.Strategy;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ import java.util.List;
  * @Date 2020/9/28
  */
 public class HttpRestConfig implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * http协议 https/http
@@ -171,5 +174,21 @@ public class HttpRestConfig implements Serializable {
 
     public void setBody(List<MetaParam> body) {
         this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        return "HttpRestConfig{" +
+                "protocol='" + protocol + '\'' +
+                ", url='" + url + '\'' +
+                ", requestMode='" + requestMode + '\'' +
+                ", decode='" + decode + '\'' +
+                ", fields='" + fields + '\'' +
+                ", intervalTime=" + intervalTime +
+                ", header=" + header +
+                ", param=" + param +
+                ", body=" + body +
+                ", strategy=" + strategy +
+                '}';
     }
 }

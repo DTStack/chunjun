@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.restapi.reader;
+package com.dtstack.flinkx.restapi.client;
 
 import java.io.Serializable;
 

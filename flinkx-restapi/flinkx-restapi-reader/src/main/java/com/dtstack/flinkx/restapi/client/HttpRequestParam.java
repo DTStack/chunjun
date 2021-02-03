@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.client;
 
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * HttpRequestParam
+ * HttpRequestParam 一次http请求的所有参数
  *
  * @author by dujie@dtstack.com
  * @Date 2020/9/25
@@ -59,7 +59,6 @@ public class HttpRequestParam {
                 return body.get(key);
             case HEADER:
                 return header.get(key);
-
             case PARAM:
                 return param.get(key);
             default:
@@ -67,9 +66,18 @@ public class HttpRequestParam {
         }
     }
 
-    public boolean containsParam(String name) {
+    public boolean containsParam(ParamType type, String key) {
 
-        return body.containsKey(name);
+        switch (type) {
+            case BODY:
+                return body.containsKey(key);
+            case HEADER:
+                return header.containsKey(key);
+            case PARAM:
+                return param.containsKey(key);
+            default:
+                throw new UnsupportedOperationException("HttpRequestParam not supported  to judge contains key when type is " + type.name() + " ,key is  " + key);
+        }
 
     }
 
@@ -102,7 +110,7 @@ public class HttpRequestParam {
     @Override
     public String toString() {
         return "HttpRequestParam{" +
-                "param=" + GsonUtil.GSON.toJson(body) +
+                "body=" + GsonUtil.GSON.toJson(body) +
                 ", header=" + GsonUtil.GSON.toJson(header) +
                 ", param=" + GsonUtil.GSON.toJson(param) +
                 '}';

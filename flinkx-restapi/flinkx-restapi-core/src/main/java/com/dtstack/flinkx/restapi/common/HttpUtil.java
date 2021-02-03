@@ -138,7 +138,7 @@ public class HttpUtil {
                                              Map<String, String> header,
                                              String url) {
 
-        HttpRequestBase request = null;
+        HttpRequestBase request ;
         if (MapUtils.isNotEmpty(requestParam)) {
             ArrayList<String> params = new ArrayList<>();
             requestParam.forEach((k, v) -> {

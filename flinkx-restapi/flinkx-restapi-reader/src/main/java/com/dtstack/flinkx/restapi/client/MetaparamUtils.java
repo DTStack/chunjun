@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.client;
 
 import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.MetaParam;

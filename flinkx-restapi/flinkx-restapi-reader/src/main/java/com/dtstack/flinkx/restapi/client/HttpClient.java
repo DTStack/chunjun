@@ -15,13 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.restapi.inputformat;
+package com.dtstack.flinkx.restapi.client;
 
 import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.HttpUtil;
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
-import com.dtstack.flinkx.restapi.reader.Strategy;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.types.Row;
@@ -34,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,42 +58,28 @@ public class HttpClient {
 
     private boolean first;
 
-    private RestHandler restHandler;
+    private final RestHandler restHandler;
 
-    /**
-     * 内部重试次数(返回的httpStatus 不是 200 就进行重试 默认2次)
-     **/
+    /** 内部重试次数(返回的httpStatus 不是 200 就进行重试) **/
     private int requestRetryTime;
 
-    /**
-     * 原始请求body
-     */
-    private List<MetaParam> originalBody;
+    /** 原始请求body */
+    private final List<MetaParam> originalBodyList;
 
-    /**
-     * 原始请求param
-     */
-    private List<MetaParam> originalParam;
+    /** 原始请求param */
+    private final List<MetaParam> originalParamList;
 
-    /**
-     * 原始请求header
-     */
-    private List<MetaParam> originalHeader;
+    /** 原始请求header */
+    private final List<MetaParam> originalHeaderList;
 
-    /**
-     * 当前请求参数
-     */
+    /** 当前请求参数 */
     private HttpRequestParam currentParam;
 
-    /**
-     * 上次请求参数
-     */
+    /** 上次请求参数 */
     private HttpRequestParam prevParam;
 
 
-    /**
-     * 上一次请求的返回值
-     */
+    /** 上一次请求的返回值 */
     private String prevResponse;
 
     private boolean reachEnd;
@@ -104,14 +87,14 @@ public class HttpClient {
     private boolean running;
 
 
-    public HttpClient(HttpRestConfig httpRestConfig, List<MetaParam> originalBody, List<MetaParam> originalParam, List<MetaParam> originalHeader) {
+    public HttpClient(HttpRestConfig httpRestConfig, List<MetaParam> originalBodyList, List<MetaParam> originalParamList, List<MetaParam> originalHeaderList) {
         this.restConfig = httpRestConfig;
-        this.originalHeader = originalHeader;
-        this.originalBody = originalBody;
-        this.originalParam = originalParam;
+        this.originalHeaderList = originalHeaderList;
+        this.originalBodyList = originalBodyList;
+        this.originalParamList = originalParamList;
 
 
-        this.queue = new LinkedBlockingQueue<Row>();
+        this.queue = new LinkedBlockingQueue<>();
         this.scheduledExecutorService = new ScheduledThreadPoolExecutor(1, r -> new Thread(r, THREAD_NAME));
         this.httpClient = HttpUtil.getHttpsClient();
         this.restHandler = new DefaultRestHandler();
@@ -135,9 +118,9 @@ public class HttpClient {
     }
 
     public void initPosition(HttpRequestParam requestParam, String response) {
-            this.prevParam = requestParam;
-            this.prevResponse = response;
-            this.first = false;
+        this.prevParam = requestParam;
+        this.prevResponse = response;
+        this.first = false;
     }
 
     public void execute() {
@@ -151,7 +134,7 @@ public class HttpClient {
 
         //参数构建
         try {
-            currentParam = restHandler.buildRequestParam(originalParam, originalBody, originalHeader, prevParam, restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(prevResponse, Map.class) : null, restConfig, first);
+            currentParam = restHandler.buildRequestParam(originalParamList, originalBodyList, originalHeaderList, prevParam, restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(prevResponse, GsonUtil.gsonMapTypeToken) : null, restConfig, first);
         } catch (Exception e) {
             //如果构建参数失败 任务结束,不需要重试 因为这里面没有网络波动等不可控异常
             ResponseValue value = new ResponseValue(-1, null, ExceptionUtil.getErrorMessage(e), null, null);
@@ -163,7 +146,7 @@ public class HttpClient {
         LOG.debug("currentParam is {}", currentParam);
         doExecute(com.dtstack.flinkx.restapi.common.ConstantValue.REQUEST_RETRY_TIME);
         first = false;
-        requestRetryTime = 2;
+        requestRetryTime = 3;
     }
 
     public void doExecute(int retryTime) {
@@ -181,14 +164,14 @@ public class HttpClient {
             HttpUriRequest request = HttpUtil.getRequest(restConfig.getRequestMode(), currentParam.getBody(), currentParam.getParam(), currentParam.getHeader(), restConfig.getUrl());
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                //默认重试2次
+                LOG.warn("httpStatus is {} and is not 200 ,try retry", httpResponse.getStatusLine().getStatusCode());
                 doExecute(--requestRetryTime);
                 return;
             }
 
             responseValue = EntityUtils.toString(httpResponse.getEntity());
         } catch (Throwable e) {
-            //只要本次请求中出现了异常 都会进行重试2次，如果重试次数达到了就真正结束任务
+            //只要本次请求中出现了异常 都会进行重试，如果重试次数达到了就真正结束任务
             LOG.warn("httpClient value is {}, error info is {}", this.toString(), ExceptionUtil.getErrorMessage(e));
             doExecute(--requestRetryTime);
             return;
@@ -196,13 +179,8 @@ public class HttpClient {
 
         // 业务处理
         try {
-            //下面方法不会捕捉异常，出现问题 直接结束，因为下面方法出现异常不会是网络抖动等不可控问题
-            Strategy strategy;
-            if (restConfig.isJsonDecode()) {
-                strategy = restHandler.chooseStrategy(restConfig.getStrategy(), GsonUtil.GSON.fromJson(responseValue, Map.class), restConfig, HttpRequestParam.copy(currentParam));
-            } else {
-                strategy = restHandler.chooseStrategy(restConfig.getStrategy(), null, restConfig, HttpRequestParam.copy(currentParam));
-            }
+            //下面方法不会捕捉异常并忽视，出现问题 直接结束，因为下面方法出现异常不会是网络抖动等不可控问题
+            Strategy strategy = restHandler.chooseStrategy(restConfig.getStrategy(), restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(responseValue, GsonUtil.gsonMapTypeToken) : null, restConfig, HttpRequestParam.copy(currentParam));
 
             if (strategy != null) {
                 //进行策略的执行
@@ -272,9 +250,9 @@ public class HttpClient {
                 ", restConfig=" + restConfig +
                 ", first=" + first +
                 ", requestRetryTime=" + requestRetryTime +
-                ", originalBody=" + originalBody +
-                ", originalParam=" + originalParam +
-                ", originalHeader=" + originalHeader +
+                ", originalBodyList=" + originalBodyList +
+                ", originalParamList=" + originalParamList +
+                ", originalHeaderList=" + originalHeaderList +
                 ", currentParam=" + currentParam +
                 ", prevParam=" + prevParam +
                 ", prevResponse='" + prevResponse + '\'' +

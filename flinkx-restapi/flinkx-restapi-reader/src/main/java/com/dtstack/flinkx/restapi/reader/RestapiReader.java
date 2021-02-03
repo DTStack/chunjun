@@ -24,14 +24,13 @@ import com.dtstack.flinkx.restapi.common.ConstantValue;
 import com.dtstack.flinkx.restapi.common.HttpMethod;
 import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.common.ParamType;
-import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
+import com.dtstack.flinkx.restapi.format.RestapiInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author : tiezhu

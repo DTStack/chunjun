@@ -50,7 +50,11 @@ public class MetaParam implements Serializable {
         this.paramType = paramType;
     }
 
-    /** metaparam设置各自类型 **/
+    /**
+     * metaparam设置各自类型
+     * @param params 参数
+     * @param paramType 类型
+     */
     public static void setMetaColumnsType(List<MetaParam> params, ParamType paramType) {
 
         if (CollectionUtils.isNotEmpty(params)) {
@@ -78,21 +82,26 @@ public class MetaParam implements Serializable {
     }
 
 
-    /**  获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name} **/
+    /**
+     * 获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name}
+     * @return metaparam的变量名
+     */
     public String getVariableName() {
         return new StringBuilder().append(com.dtstack.flinkx.restapi.common.ConstantValue.PREFIX).append(getAllName()).append(com.dtstack.flinkx.restapi.common.ConstantValue.SUFFIX).toString();
     }
 
 
-    /** 根据是否是第一次 获取真正的表达式 **/
+    /**
+     * 根据是否是第一次 获取真正的表达式
+     * @param isFirst 是否是第一次请求
+     * @return 参数对应的表达式
+     */
     public String getActualValue(boolean isFirst) {
         if (StringUtils.isEmpty(nextValue)) {
             return value;
         }
         return isFirst ? value : nextValue;
     }
-
-
 
     public String getNextValue() {
         return nextValue;
