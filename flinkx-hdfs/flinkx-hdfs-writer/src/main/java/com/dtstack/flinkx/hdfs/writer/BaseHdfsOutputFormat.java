@@ -53,9 +53,6 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     /** hdfs高可用配置 */
     protected Map<String,Object> hadoopConfig;
 
-    //hadoop是否是高可用
-    protected boolean isHa;
-
     protected String defaultFs;
 
     protected List<String> columnTypes;
