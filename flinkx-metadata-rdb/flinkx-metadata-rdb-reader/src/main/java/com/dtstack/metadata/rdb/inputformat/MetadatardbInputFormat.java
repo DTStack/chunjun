@@ -52,10 +52,13 @@ import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
+    /**连接对象*/
     protected Connection connection;
 
+    /**connection初始化的statement*/
     protected Statement statement;
 
+    /**连接信息*/
     public ConnectionInfo connectionInfo;
 
     @Override
@@ -126,6 +129,11 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     abstract public MetadatardbEntity createMetadatardbEntity() throws Exception;
 
 
+    /**
+     * 查询字段信息
+     * @return
+     * @throws SQLException
+     */
     public List<ColumnEntity> queryColumn() throws SQLException {
         List<ColumnEntity> columnEntities = new ArrayList<>();
         String currentTable = (String) currentObject;
@@ -164,6 +172,10 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
         return MetadataDbUtil.getConnection(connectionInfo);
     }
 
+    /**
+     * 关闭资源
+     * @throws IOException
+     */
     public void closeResource() throws IOException{
         try {
             MetadataDbUtil.close(statement,connection);
@@ -172,7 +184,12 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
         }
     }
 
-
+    /**
+     * 通过jdbc执行sql
+     * @param sql
+     * @param statement
+     * @return
+     */
     protected ResultSet executeQuery0(String sql, Statement statement){
         ResultSet resultSet = null;
         if(StringUtils.isNotBlank(sql)){

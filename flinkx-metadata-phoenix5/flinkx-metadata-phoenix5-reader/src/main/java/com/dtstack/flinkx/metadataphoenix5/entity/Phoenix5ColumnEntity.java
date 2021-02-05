@@ -11,6 +11,7 @@ import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
  */
 public class Phoenix5ColumnEntity extends ColumnEntity {
 
+    /**是否是主键*/
     private String isPrimaryKey;
 
     public void setIsPrimaryKey(String isPrimaryKey) {

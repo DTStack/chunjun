@@ -39,6 +39,7 @@ import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
  */
 public class Metadataphoenix5Reader extends MetadatardbReader {
 
+    /**phoenix zookeeper  znode*/
     protected String path;
 
     public Metadataphoenix5Reader(DataTransferConfig config, StreamExecutionEnvironment env) {

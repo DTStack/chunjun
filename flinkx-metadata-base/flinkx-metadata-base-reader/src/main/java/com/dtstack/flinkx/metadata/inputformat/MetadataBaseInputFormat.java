@@ -40,14 +40,19 @@ import static com.dtstack.flinkx.metadata.core.util.BaseCons.DEFAULT_OPERA_TYPE;
  */
 abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
+    /**库和对应的表集合*/
     protected List<Map<String, Object>> originalJob;
 
+    /**当前库*/
     protected String currentDatabase;
 
+    /**当前库对应的表集合*/
     protected List<Object> tableList;
 
+    /**表集合的迭代器*/
     protected Iterator<Object> iterator;
 
+    /**当前表对象*/
     protected Object currentObject;
 
 
@@ -67,6 +72,11 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
      */
     abstract protected void doOpenInternal() throws IOException;
 
+    /**
+     * 查询当前库所有表
+     * @return
+     * @throws Exception
+     */
     abstract protected List<Object> showTables() throws Exception;
 
     @SuppressWarnings("unchecked")

@@ -35,6 +35,7 @@ import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_URL;
  */
 abstract public class MetadatardbReader extends MetaDataBaseReader {
 
+    /**该rdb数据源连接信息*/
     protected ConnectionInfo connectionInfo;
 
     protected MetadatardbReader(DataTransferConfig config, StreamExecutionEnvironment env) {

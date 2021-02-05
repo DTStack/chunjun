@@ -35,8 +35,10 @@ import java.util.Map;
  */
 abstract public class MetaDataBaseReader extends BaseDataReader {
 
+    /**数据源配置参数*/
     protected ReaderConfig.ParameterConfig params;
 
+    /**同步任务对应库和表集合*/
     protected List<Map<String, Object>> originalJob;
 
     @SuppressWarnings("unchecked")

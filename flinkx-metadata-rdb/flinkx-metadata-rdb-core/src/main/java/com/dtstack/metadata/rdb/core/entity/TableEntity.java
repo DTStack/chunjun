@@ -23,14 +23,19 @@ package com.dtstack.metadata.rdb.core.entity;
  */
 public class TableEntity {
 
+    /**表名称*/
     protected String tableName;
 
+    /**创建时间*/
     protected String createTime;
 
+    /**表的描述*/
     protected String comment;
 
+    /**表大小*/
     protected Long totalSize;
 
+    /**表数据量数目*/
     protected Long rows;
 
     public void setTableName(String tableName) {

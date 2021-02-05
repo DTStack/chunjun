@@ -29,6 +29,7 @@ import java.util.Map;
  */
 public class MetadataBaseBuilder extends BaseRichInputFormatBuilder {
 
+
     protected MetadataBaseInputFormat format;
 
     public MetadataBaseBuilder(MetadataBaseInputFormat format){
@@ -39,6 +40,9 @@ public class MetadataBaseBuilder extends BaseRichInputFormatBuilder {
         format.setOriginalJob(originalJob);
     }
 
+    /**
+     * 校验不同插件所必须的参数
+     */
     @Override
     protected void checkFormat() {
 

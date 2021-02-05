@@ -27,12 +27,16 @@ public class MetadataEntity implements Serializable {
 
     protected static final long serialVersionUID = 1L;
 
+    /**任务返回体schema*/
     protected String schema;
 
+    /**当前对象是否同步成功*/
     protected boolean querySuccess;
 
+    /**失败报错信息*/
     protected String errorMsg;
 
+    /**操作类型*/
     protected String operaType;
 
     public void setOperaType(String operaType) {
