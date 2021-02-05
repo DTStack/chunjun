@@ -103,9 +103,9 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
         //如果是post请求 但是contentType不是application/json就直接报错
         if (HttpMethod.POST.name().equalsIgnoreCase(format.httpRestConfig.getRequestMode())) {
             format.metaHeaders.stream()
-                    .filter(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getName()) && !ConstantValue.CONTENT_TYPE_DEFAULT_VALUE.equals(i.getValue()))
+                    .filter(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()) && !ConstantValue.CONTENT_TYPE_DEFAULT_VALUE.equals(i.getValue()))
                     .findFirst().ifPresent(i -> {
-                errorMsg.append("header 【").append(i.getName()).append("】not support ").append(i.getValue()).append(" we just support application/json when requestMode is post \n");
+                errorMsg.append("header 【").append(i.getKey()).append("】not support ").append(i.getValue()).append(" we just support application/json when requestMode is post \n");
             });
 
 
@@ -166,7 +166,7 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
                         //如果这个变量是指向自己的 那么就直接跳过 不需要解析
                         if (!i1.getAllName().equals(metaParam.getAllName())) {
                             if (anallyIng.contains(i1.getAllName())) {
-                                errorMsg.append(metaParam.getName()).append(" and ").append(i1.getAllName()).append(" are cyclically dependent \n");
+                                errorMsg.append(metaParam.getAllName()).append(" and ").append(i1.getAllName()).append(" are cyclically dependent \n");
                                 //发生循环依赖就直接报错
                                 throw new IllegalArgumentException(errorMsg.toString());
                             } else if (!analyzed.contains(i1.getAllName())) {

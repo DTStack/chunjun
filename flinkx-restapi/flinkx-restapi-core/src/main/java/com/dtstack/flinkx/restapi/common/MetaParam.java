@@ -34,7 +34,7 @@ import java.util.Locale;
  */
 public class MetaParam implements Serializable {
 
-    private String name;
+    private String key;
     private String value;
     private String nextValue;
     private SimpleDateFormat timeFormat;
@@ -44,8 +44,8 @@ public class MetaParam implements Serializable {
     public MetaParam() {
     }
 
-    public MetaParam(String name, String value, ParamType paramType) {
-        this.name = name;
+    public MetaParam(String key, String value, ParamType paramType) {
+        this.key = key;
         this.value = value;
         this.paramType = paramType;
     }
@@ -69,15 +69,15 @@ public class MetaParam implements Serializable {
     public String getAllName() {
         switch (paramType) {
             case PARAM:
-                return ParamType.PARAM.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getName();
+                return ParamType.PARAM.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
             case BODY:
-                return ParamType.BODY.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getName();
+                return ParamType.BODY.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
             case HEADER:
-                return ParamType.HEADER.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getName();
+                return ParamType.HEADER.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
             case RESPONSE:
-                return ParamType.RESPONSE.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getName();
+                return ParamType.RESPONSE.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
             default:
-                return getName();
+                return getKey();
         }
     }
 
@@ -112,12 +112,12 @@ public class MetaParam implements Serializable {
     }
 
 
-    public String getName() {
-        return name;
+    public String getKey() {
+        return key;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getValue() {
@@ -148,7 +148,7 @@ public class MetaParam implements Serializable {
     @Override
     public String toString() {
         return "MetaParam{" +
-                "name='" + name + '\'' +
+                "name='" + key + '\'' +
                 ", value='" + value + '\'' +
                 ", nextValue='" + nextValue + '\'' +
                 ", timeFormat=" + timeFormat +

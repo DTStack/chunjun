@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +44,7 @@ import java.util.regex.Pattern;
  */
 public class MetaparamUtils {
     public static Pattern valueExpression =
-            Pattern.compile("(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[}]*))))}))");
+            Pattern.compile("(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[^${]*))))}))");
 
 
     /**
@@ -68,7 +69,7 @@ public class MetaparamUtils {
 
             if (StringUtils.isNotBlank(innerName)) {
                 MetaParam innerMetaParam = new MetaParam();
-                innerMetaParam.setName(innerName);
+                innerMetaParam.setKey(innerName);
                 innerMetaParam.setParamType(ParamType.INNER);
 
                 switch (innerName) {
@@ -94,10 +95,14 @@ public class MetaparamUtils {
                 if (variableType.equals(ParamType.RESPONSE)) {
                     MetaParam metaParam1 = new MetaParam();
                     metaParam1.setParamType(ParamType.RESPONSE);
-                    metaParam1.setName(name);
+                    metaParam1.setKey(name);
                     metaParams.add(metaParam1);
                 } else {
-                    metaParams.add(allMetaParams.get(variableName.substring(2, variableName.length() - 1)));
+                    MetaParam metaParam = allMetaParams.get(variableName.substring(2, variableName.length() - 1));
+                    if(metaParam == null){
+                      throw new RuntimeException(value + " has variable " + variableName.substring(2, variableName.length() - 1) + " but we not find this variable" );
+                    }
+                    metaParams.add(metaParam);
                 }
             }
         }

@@ -75,7 +75,7 @@ public class DefaultRestHandler implements RestHandler {
 
             HttpRequestParam copy = HttpRequestParam.copy(httpRequestParam);
 
-            metaParam.setName(snowflakeIdWorker.nextId() + "");
+            metaParam.setKey(snowflakeIdWorker.nextId() + "");
             metaParam.setValue(i.getKey());
             //指定一个类别
             metaParam.setParamType(ParamType.BODY);
@@ -85,7 +85,7 @@ public class DefaultRestHandler implements RestHandler {
             String value = i.getValue();
             //value可以是内置变量
             if (MetaparamUtils.isDynamic(i.getValue())) {
-                metaParam.setName(snowflakeIdWorker.nextId() + "");
+                metaParam.setKey(snowflakeIdWorker.nextId() + "");
                 metaParam.setValue(i.getValue());
                 value = getValue(metaParam, null, null, responseValue, restConfig, true, copy).toString();
             }
@@ -241,8 +241,8 @@ public class DefaultRestHandler implements RestHandler {
         String actualValue;
 
         //如果已经加载过了 直接获取返回即可
-        if (currentParam.containsParam(metaParam.getParamType(), metaParam.getName())) {
-            return currentParam.getValue(metaParam.getParamType(), metaParam.getName());
+        if (currentParam.containsParam(metaParam.getParamType(), metaParam.getKey())) {
+            return currentParam.getValue(metaParam.getParamType(), metaParam.getKey());
         }
 
         List<Pair<MetaParam, String>> variableValues = new ArrayList<>();
@@ -258,11 +258,11 @@ public class DefaultRestHandler implements RestHandler {
                     variableValue = i.getValue();
                 } else if (i.getParamType().equals(ParamType.RESPONSE)) {
                     //根据 返回值获取对应的值
-                    variableValue = getResponseValue(prevResponseValue, i.getName()).toString();
+                    variableValue = getResponseValue(prevResponseValue, i.getKey()).toString();
                 } else {
                     //如果变量指向的是自己，那么就获取当前变量在上一次请求的值
-                    if (i.getName().equals(metaParam.getName())) {
-                        variableValue = prevRequestParam.getValue(i.getParamType(), i.getName());
+                    if (i.getKey().equals(metaParam.getKey())) {
+                        variableValue = prevRequestParam.getValue(i.getParamType(), i.getKey());
                     } else {
                         //如果是其他变量 就进行递归查找
                         variableValue = getValue(i, map, prevRequestParam, prevResponseValue, restConfig, first, currentParam).toString();
@@ -278,7 +278,7 @@ public class DefaultRestHandler implements RestHandler {
             actualValue = getData(value, metaParam);
         }
 
-        currentParam.putValue(metaParam.getParamType(), metaParam.getName(), actualValue);
+        currentParam.putValue(metaParam.getParamType(), metaParam.getKey(), actualValue);
         return actualValue;
     }
 
