@@ -22,6 +22,8 @@ import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -29,9 +31,14 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_ASSIGNER_DEFAULT_RULE;
 
 /**
  * Date: 2019/11/21
@@ -42,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 public class KafkaOutputFormat extends KafkaBaseOutputFormat {
     private transient KafkaProducer<String, String> producer;
 
+
+
     @Override
     public void configure(Configuration parameters) {
         super.configure(parameters);
@@ -50,6 +59,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
         props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
+        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG,"com.dtstack.flinkx.kafka.PartitionAssigner");
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
@@ -60,7 +70,12 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
     protected void emit(Map event) throws IOException {
         heartBeatController.acquire();
         String tp = Formatter.format(event, topic, timezone);
-        producer.send(new ProducerRecord<>(tp, event.toString(), MapUtil.writeValueAsString(event)), (metadata, exception) -> {
+        String keyMessage = generateKey(event);
+        //key值没有命中如果强制保证有序的话，数据将打入一个分区,反之将随机打到任意分区
+        if (StringUtils.isEmpty(keyMessage)&&(!dataCompelOrder)) {
+            keyMessage = event.toString();
+        }
+        producer.send(new ProducerRecord<>(tp, keyMessage, MapUtil.writeValueAsString(event)), (metadata, exception) -> {
         if(Objects.nonNull(exception)){
             String errorMessage = String.format("send data failed,data 【%s】 ,error info  %s",event,ExceptionUtil.getErrorMessage(exception));
             LOG.warn(errorMessage);
@@ -69,6 +84,27 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
             heartBeatController.onSuccess();
         }
         });
+    }
+
+    /**
+     * 根据默认的字段和指定的字段生成key
+     * @param event
+     * @return
+     */
+    public String generateKey(Map event) {
+        List<String> keys = new ArrayList<>();
+        KEY_ASSIGNER_DEFAULT_RULE.forEach(rule -> {
+            keys.add(event.getOrDefault(rule, "").toString());
+        });
+        if (CollectionUtils.isNotEmpty(partitionAssignColumns)) {
+            partitionAssignColumns.forEach(s -> {
+                keys.add(event.getOrDefault(s, "").toString());
+            });
+        }
+        List<String> collect = keys.stream()
+                .filter(key -> StringUtils.isEmpty(key))
+                .collect(Collectors.toList());
+        return StringUtils.join(collect.toArray(), "-");
     }
 
     @Override

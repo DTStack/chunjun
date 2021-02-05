@@ -55,6 +55,10 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected String topic;
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
+    //用户指定kafka分区字段
+    protected List<String> partitionAssignColumns;
+    //是否保证强制有序
+    protected boolean dataCompelOrder;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
     //和kafkaBroker连通性控制器
     protected HeartBeatController heartBeatController;
@@ -157,5 +161,21 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
 
     public void setHeartBeatController(HeartBeatController heartBeatController) {
         this.heartBeatController = heartBeatController;
+    }
+
+    public List<String> getPartitionAssignColumns() {
+        return partitionAssignColumns;
+    }
+
+    public void setPartitionAssignColumns(List<String> partitionAssignColumns) {
+        this.partitionAssignColumns = partitionAssignColumns;
+    }
+
+    public boolean isDataCompelOrder() {
+        return dataCompelOrder;
+    }
+
+    public void setDataCompelOrder(boolean dataCompelOrder) {
+        this.dataCompelOrder = dataCompelOrder;
     }
 }
