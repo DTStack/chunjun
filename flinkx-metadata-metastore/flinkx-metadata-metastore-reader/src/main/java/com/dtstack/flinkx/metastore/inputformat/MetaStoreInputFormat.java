@@ -22,10 +22,10 @@ import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metastore.constants.MetaStoreClientUtil;
 import com.dtstack.flinkx.metastore.entity.MetaStoreClientInfo;
 import com.dtstack.flinkx.metastore.constants.MetaDataCons;
-import com.dtstack.flinkx.metatdata.hive2.core.entity.HiveColumnEntity;
 import com.dtstack.flinkx.metatdata.hive2.core.entity.HiveTableEntity;
 import com.dtstack.flinkx.metatdata.hive2.core.entity.MetadataHive2Entity;
 import com.dtstack.flinkx.metatdata.hive2.core.util.HiveOperatorUtils;
+import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -118,7 +118,7 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         //获取hive表相关信息
         LOG.info("current database is {},table is {}", currentDatabase, currentObject);
         Table table = hiveMetaStoreClient.getTable(currentDatabase, (String) currentObject);
-        List<HiveColumnEntity> hiveColumnEntities = transferColumn(table.getPartitionKeys());
+        List<ColumnEntity> hiveColumnEntities = transferColumn(table.getPartitionKeys());
         List<Partition> partitions = hiveMetaStoreClient.listPartitions(currentDatabase, (String) currentObject, Short.MAX_VALUE);
         metadataEntity.setPartitionColumns(hiveColumnEntities);
         metadataEntity.setColumns(transferColumn(table.getSd().getCols()));
@@ -130,7 +130,8 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         Long dataSize = 0L;
         for (Partition partition : partitions) {
             Map<String, String> paramMap = partition.getParameters();
-            rows += MapUtils.getLong(paramMap, MetaDataCons.NUM_ROWS);
+            Long row = MapUtils.getLong(paramMap, MetaDataCons.NUM_ROWS);
+            rows += (row == null ? 0 : row);
             dataSize += MapUtils.getLong(paramMap, KEY_TOTALSIZE);
         }
         hiveTableEntity.setTotalSize(dataSize);
@@ -165,14 +166,14 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
      * @param cols
      * @return
      */
-    private List<HiveColumnEntity> transferColumn(List<FieldSchema> cols) {
-        List<HiveColumnEntity> hiveColumnEntities = Lists.newArrayList();
+    private List<ColumnEntity> transferColumn(List<FieldSchema> cols) {
+        List<ColumnEntity> hiveColumnEntities = Lists.newArrayList();
         if (CollectionUtils.isEmpty(cols)) {
             return hiveColumnEntities;
         }
         int fieldIndex = 1;
         for (FieldSchema fieldSchema : cols) {
-            HiveColumnEntity hiveColumnEntity = new HiveColumnEntity();
+            ColumnEntity hiveColumnEntity = new ColumnEntity();
             hiveColumnEntity.setType(fieldSchema.getType());
             hiveColumnEntity.setName(fieldSchema.getName());
             hiveColumnEntity.setComment(fieldSchema.getComment());
@@ -183,7 +184,7 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         return hiveColumnEntities;
     }
 
-    private List<String> getPartitionDetail(List<HiveColumnEntity> hiveColumnEntities, List<Partition> partitions) {
+    private List<String> getPartitionDetail(List<ColumnEntity> hiveColumnEntities, List<Partition> partitions) {
         List<String> partitionLists = Lists.newArrayList();
         if (CollectionUtils.isEmpty(hiveColumnEntities)) {
             return partitionLists;
@@ -195,7 +196,7 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         return partitionLists;
     }
 
-    private String assemblePartition(List<String> partitionValues, List<HiveColumnEntity> hiveColumnEntities) {
+    private String assemblePartition(List<String> partitionValues, List<ColumnEntity> hiveColumnEntities) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < partitionValues.size(); i++) {
             str.append(hiveColumnEntities.get(i).getName()).append("=").append(partitionValues.get(i)).append(",");

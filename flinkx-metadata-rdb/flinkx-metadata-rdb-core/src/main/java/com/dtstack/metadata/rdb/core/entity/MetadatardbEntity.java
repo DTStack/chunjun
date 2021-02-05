@@ -28,10 +28,13 @@ import java.util.List;
  */
 public class MetadatardbEntity extends MetadataEntity {
 
+    /**表参数*/
     protected TableEntity tableProperties;
 
+    /**字段集合*/
     protected List<? extends ColumnEntity> columns;
 
+    /**表名称*/
     protected String tableName;
 
     public void setTableProperties(TableEntity tableProperties) {

@@ -30,13 +30,13 @@ public class MetadataBaseInputSplit  implements InputSplit {
 
     private static final long serialVersionUID = -4483633039887822171L;
 
+    /**分片编号*/
     private int splitNumber;
 
+    /**分片对应的库名，分片规则为一个库对应一个分片*/
     protected String dbName;
 
-    /**
-     * 为了兼容查询table或者schema table结构
-     */
+    /**为了兼容查询table或者schema table结构*/
     protected List<Object> tableList;
 
     public MetadataBaseInputSplit(int splitNumber, String dbName, List<Object> tableList) {

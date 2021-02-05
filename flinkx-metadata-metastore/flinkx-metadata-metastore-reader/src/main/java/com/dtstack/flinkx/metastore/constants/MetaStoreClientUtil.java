@@ -84,6 +84,7 @@ public final class MetaStoreClientUtil {
         try {
             ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
         } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
             throw new RuntimeException("Login kerberos error:", e);
         }
         LOG.info("current ugi:{}", ugi);

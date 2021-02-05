@@ -24,21 +24,28 @@ package com.dtstack.metadata.rdb.core.entity;
 
 public class ColumnEntity {
 
+    /**字段默认值*/
     protected String defaultValue;
 
-
+    /**字段类型*/
     protected String type;
 
+    /**字段名称*/
     protected String name;
 
+    /**字段描述*/
     protected String comment;
 
+    /**字段下标*/
     protected Integer index;
 
+    /**字段是否可以为空*/
     protected String nullAble;
 
+    /**字段长度*/
     protected Integer length;
 
+    /**小数点长度*/
     protected Integer digital;
 
     public void setIndex(Integer index) {

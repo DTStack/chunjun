@@ -10,14 +10,19 @@ import java.io.Serializable;
  */
 public class ConnectionInfo implements Serializable {
 
+    /**jdbcUrl*/
     private String jdbcUrl;
 
+    /**用户名*/
     private String username;
 
+    /**密码*/
     private String password;
 
+    /**驱动*/
     private String driver;
 
+    /**超时时间*/
     private int timeout ;
 
     public ConnectionInfo() {

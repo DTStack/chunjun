@@ -76,18 +76,25 @@ import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
 
+    /**表和创建时间集合*/
     private Map<String, Long> createTimeMap;
 
+    /**phoenix url固定前缀*/
     public static final String JDBC_PHOENIX_PREFIX = "jdbc:phoenix:";
 
+    /**默认schema名称*/
     public static final String DEFAULT_SCHEMA = "default";
 
+    /**phoenix 依赖的zookeeper集群信息*/
     protected ZooKeeper zooKeeper;
 
+    /**数据源配置参数，kerberos信息等*/
     protected Map<String, Object> hadoopConfig;
 
+    /**phoenix在zookeeper上表空间路径*/
     protected String path;
 
+    /**phoenix在zookeeper上znode*/
     protected String zooKeeperPath;
 
 
@@ -108,8 +115,6 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
         metadataPhoenix5Entity.setColumns(queryColumn(tableName));
         return metadataPhoenix5Entity;
     }
-
-
 
 
     public List<Object> showTables() {
