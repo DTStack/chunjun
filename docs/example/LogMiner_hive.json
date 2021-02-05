@@ -1,0 +1,51 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "schema" : "ROMA_LOGMINER",
+          "password" : "password",
+          "cat" : "insert,update,delete",
+          "jdbcUrl" : "jdbc:oracle:thin:@//localhost:1521/xib",
+          "readPosition" : "current",
+          "pavingData" : true,
+          "table" : [ "ROMA_LOGMINER.TEST" ],
+          "username" : "username"
+        },
+        "name" : "oraclelogminerreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "writeMode" : "append",
+          "partitionType" : "DAY",
+          "tablesColumn" : "{\"TEST\":[{\"type\":\"VARCHAR2\",\"key\":\"before_ID\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR2\",\"key\":\"after_ID\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+          "partition" : "pt",
+          "hadoopConfig" : {
+            "dfs.ha.namenodes.ns1" : "nn1,nn2",
+            "fs.defaultFS" : "hdfs://ns1",
+            "dfs.namenode.rpc-address.ns1.nn2" : "ip2:9000",
+            "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+            "dfs.namenode.rpc-address.ns1.nn1" : "ip1:9000",
+            "dfs.nameservices" : "ns1",
+            "fs.hdfs.impl.disable.cache" : "true",
+            "fs.hdfs.impl" : "org.apache.hadoop.hdfs.DistributedFileSystem"
+          },
+          "jdbcUrl" : "jdbc:hive2://ip3:8191/test",
+          "defaultFS" : "hdfs://ns1",
+          "fileType" : "parquet",
+          "charsetName" : "utf-8"
+        },
+        "name" : "hivewriter"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "isRestore" : true,
+        "isStream" : true
+      },
+      "speed" : {
+        "channel" : 1
+      }
+    }
+  }
+}

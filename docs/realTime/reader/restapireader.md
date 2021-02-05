@@ -11,21 +11,24 @@
    - 描述：连接的url
    - 必选：是
    - 默认值：无
-
+   - 字段类型：String
+<br>
 
 
 - **method**
    - 描述：request的类型，`post`、`get`
    - 必选：是
    - 默认值：无
+   - 字段类型：String
+<br>
 
 
-
-- header
+- **header**
    - 描述：需要添加的报头信息
    - 必选：否
    - 默认值：无
-
+   - 字段类型：Map
+<br>
 
 
 <a name="IBBub"></a>

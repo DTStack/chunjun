@@ -1,5 +1,20 @@
 # Kafka Writer
 
+<!-- TOC -->
+
+- [一、插件名称](#一插件名称)
+- [二、参数说明](#二参数说明)
+- [三、配置示例](#三配置示例)
+    - [1、kafka09](#1kafka09)
+    - [2、kafka10](#2kafka10)
+    - [3、kafka11](#3kafka11)
+    - [4、kafka](#4kafka)
+    - [5、MySQL->kafka](#5mysql-kafka)
+
+<!-- /TOC -->
+
+<br/>
+
 ## 一、插件名称
 kafka插件存在四个版本，根据kafka版本的不同，插件名称也略有不同。具体对应关系如下表所示：
 
@@ -10,7 +25,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 | kafka 0.11 | kafka11writer |
 | kafka 1.0及以后 | kafkawriter |
 
-
+<br/>
 
 ## 二、参数说明
 
@@ -66,9 +81,10 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
    - 默认值：无
 
 
+<br/>
 
 ## 三、配置示例
-#### 1、kafka09
+### 1、kafka09
 ```json
 {
   "job": {
@@ -115,7 +131,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 2、kafka10
+### 2、kafka10
 ```json
 {
   "job": {
@@ -163,7 +179,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 3、kafka11
+### 3、kafka11
 ```json
 {
   "job": {
@@ -212,7 +228,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 4、kafka
+### 4、kafka
 ```json
 {
   "job": {
@@ -260,7 +276,7 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 5、MySQL->kafka
+### 5、MySQL->kafka
 ```json
 {
   "job" : {

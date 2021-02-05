@@ -22,11 +22,18 @@ Flink开发工程师JD要求：<BR>
 
 - 我们使用[钉钉](https://www.dingtalk.com/)沟通交流，可以搜索群号[**30537511**]或者扫描下面的二维码进入钉钉群
   
-  <div align=center>
-     <img src=docs/images/ding.jpg width=300 />
-   </div>
+<div align=center>
+ <img src=docs/images/ding.jpg width=300 />
+</div>
 
 # 介绍
+* **FlinkX是在是袋鼠云内部广泛使用的基于flink的分布式离线和实时的数据同步框架，实现了多种异构数据源之间高效的数据迁移。**
+
+不同的数据源头被抽象成不同的Reader插件，不同的数据目标被抽象成不同的Writer插件。理论上，FlinkX框架可以支持任意数据源类型的数据同步工作。作为一套生态系统，每接入一套新数据源该新加入的数据源即可实现和现有的数据源互通。
+
+<div align=center>
+  <img src=docs/images/template.png width=300 />
+</div>
 
 FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。FlinkX目前包含下面这些特性：
 
@@ -82,6 +89,13 @@ FlinkX目前支持下面这些数据库：
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
+|                        | Oracle LogMiner  | [doc](docs/realTime/reader/LogMiner.md)      |                                                |
+
+# 基本原理
+在底层实现上，FlinkX依赖Flink，数据同步任务会被翻译成StreamGraph在Flink上执行，基本原理如下图：
+<div align=center>
+  <img src=docs/images/diagram.png width=700 />
+</div>
 
 # 快速开始
 

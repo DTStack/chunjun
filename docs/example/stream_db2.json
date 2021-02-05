@@ -1,0 +1,56 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "sliceRecordCount": ["1"],
+            "column": [
+              {
+                "name" : "id",
+                "type" : "int",
+                "value": "2"
+              },{
+                "name" : "name",
+                "type" : "String"
+              }
+            ]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "name": "db2writer",
+          "parameter": {
+            "connection": [{
+              "jdbcUrl": "jdbc:db2://localhost:50002/database",
+              "table": ["TEST"]
+            }],
+            "username": "username",
+            "password": "password",
+            "column": ["id","name"],
+            "writeMode": "insert",
+            "batchSize": 1024,
+            "preSql": [],
+            "postSql": [],
+            "updateKey": {}
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+    }
+  }
+}

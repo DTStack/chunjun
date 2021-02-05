@@ -33,19 +33,7 @@
           }],
           "username": "username",
           "password": "password",
-          "column": [
-            {
-              "name": "id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "user_id",
-              "type": "BIGINT"
-            },
-            {
-              "name": "name",
-              "type": "varchar"
-            }],
+          "column": ["id","user_id","name"],
           "writeMode": "insert",
           "batchSize": 1024,
           "preSql": [],

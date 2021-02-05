@@ -76,8 +76,11 @@ public class Launcher {
             temp.put(argList.get(i), argList.get(i + 1));
         }
         // 对json中的值进行修改
-        HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(temp.get("-p"));
-        temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
+        String p = temp.get("-p");
+        if(StringUtils.isNotBlank(p)){
+            HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(p);
+            temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
+        }
 
         // 清空list，填充修改后的参数值
         argList.clear();

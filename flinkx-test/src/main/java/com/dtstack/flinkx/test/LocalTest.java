@@ -66,6 +66,7 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -223,6 +224,7 @@ public class LocalTest {
             case PluginNameConstants.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstants.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstants.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
+            case PluginNameConstants.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 

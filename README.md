@@ -11,11 +11,19 @@ English | [中文](README_CH.md)
 
 - We use [DingTalk](https://www.dingtalk.com/) to communicate,You can search the group number [**30537511**] or scan the QR code below to join the communication group
   
-  <div align=center>
-     <img src=docs/images/ding.jpg width=300 />
-   </div>
+<div align=center>
+  <img src=docs/images/ding.jpg width=300 />
+</div>
 
 # Introduction
+
+* **FlinkX is a distributed offline and real-time data synchronization framework based on flink widely used in 袋鼠云, which realizes efficient data migration between multiple heterogeneous data sources.**
+
+Different data sources are abstracted into different Reader plugins, and different data targets are abstracted into different Writer plugins. In theory, the FlinkX framework can support data synchronization of any data source type. As a set of ecosystems, every time a set of new data sources is connected, the newly added data sources can realize intercommunication with existing data sources.
+
+<div align=center>
+  <img src=docs/images/template.png width=300 />
+</div>
 
 FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
 
@@ -71,6 +79,13 @@ The following databases are currently supported:
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
+|                        | Oracle LogMiner| [doc](docs/realTime/reader/LogMiner.md)      |                                                |
+
+# Fundamental
+In the underlying implementation, FlinkX relies on Flink, and the data synchronization task will be translated into StreamGraph and executed on Flink. The basic principle is as follows:
+<div align=center>
+  <img src=docs/images/diagram.png width=700 />
+</div>
 
 # Quick Start
 

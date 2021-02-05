@@ -1,0 +1,53 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [{
+              "jdbcUrl": ["jdbc:oracle:thin:@0.0.0.1:1521:oracle"],
+              "table": ["TABLE"]
+            }],
+            "column": ["*"],
+            "customSql": "",
+            "where": "ID < 10000",
+            "splitPk": "",
+            "fetchSize": 1024,
+            "queryTimeOut": 1000,
+            "requestAccumulatorInterval": 2
+          },
+          "name": "oraclereader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

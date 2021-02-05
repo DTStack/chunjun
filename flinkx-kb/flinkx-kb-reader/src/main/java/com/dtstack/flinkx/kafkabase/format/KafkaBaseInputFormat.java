@@ -33,7 +33,6 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new GenericInputSplit(i, minNumSplits);
+            splits[i] = new KafkaInputSplit(i, null);
         }
         return splits;
     }

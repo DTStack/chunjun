@@ -12,60 +12,73 @@
 - **url**
   - 描述：MongoDB数据库连接的URL字符串，详细请参考[MongoDB官方文档](https://docs.mongodb.com/manual/reference/connection-string/)
   - 必选：否
+  - 字段类型：String
   - 默认值：无
+  <br />
 
 
 
 - **hostPorts**
   - 描述：MongoDB的地址和端口，格式为 IP1:port，可填写多个地址，以英文逗号分隔
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **username**
   - 描述：数据源的用户名
   - 必选：否
+  - 字段类型：String  
   - 默认值：无
+  <br />
 
 
 
 - **password**
   - 描述：数据源指定用户名的密码
   - 必选：否
+  - 字段类型：String  
   - 默认值：无
+  <br />
 
 
 
 - **database**
   - 描述：数据库名称
   - 必选：否
+  - 字段类型：String  
   - 默认值：无
+  <br />
 
 
 
 - **collectionName**
   - 描述：集合名称
   - 必选：是
+  - 字段类型：String  
   - 默认值：无
-  - <br />
+  <br />
+  
 - **fetchSize**
   - 描述：每次读取的数据条数，通过调整此参数来优化读取速率
   - 必选：否
+  - 字段类型：int  
   - 默认值：100
-
+  <br />
 
 
 - **filter**
-  - 描述：过滤条件，通过该配置型来限制返回 MongoDB 数据范围，语法请参考[MongoDB查询语法](https://docs.mongodb.com/manual/crud/#read-operations)
+  - 描述：过滤条件，为json格式, 通过该配置型来限制返回 MongoDB 数据范围，语法请参考[MongoDB查询语法](https://docs.mongodb.com/manual/crud/#read-operations)
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **column**
   - 描述：需要读取的字段。
-  - 格式：支持3中格式
+  - 格式：支持三种格式
 <br />1.读取全部字段，如果字段数量很多，可以使用下面的写法：
 ```json
 {"column":["*"]}
@@ -92,7 +105,9 @@
     - value：如果数据库里不存在指定的字段，则会把value的值作为常量列返回，如果指定的字段存在，当指定字段的值为null时，会以此value值作为默认值返回
     - splitter：因为 MongoDB 支持数组类型，所以 MongoDB 读出来的数组类型要通过这个分隔符合并成字符串
   - 必选：是
+  - 字段类型： List
   - 默认值：无
+    <br />
 
 
 
