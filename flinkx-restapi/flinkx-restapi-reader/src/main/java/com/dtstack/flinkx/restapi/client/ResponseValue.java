@@ -62,6 +62,10 @@ public class ResponseValue {
         this(1, data, null, requestParam, originResponseValue);
     }
 
+    public boolean isNormal() {
+        return status != -1;
+    }
+
     public String getData() {
         return data;
     }
@@ -78,9 +82,10 @@ public class ResponseValue {
         return errorMsg;
     }
 
-    public boolean isNormal() {
-        return status != -1;
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
+
 
     public HttpRequestParam getRequestParam() {
         return requestParam;

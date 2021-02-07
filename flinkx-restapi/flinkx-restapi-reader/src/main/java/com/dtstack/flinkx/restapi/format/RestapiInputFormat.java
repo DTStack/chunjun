@@ -88,7 +88,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     @SuppressWarnings("unchecked")
     protected void openInternal(InputSplit inputSplit) {
         myHttpClient = new HttpClient(httpRestConfig, metaBodys, metaParams, metaHeaders);
-        if(state != null){
+        if (state != null) {
             myHttpClient.initPosition(state.getRequestParam(), state.getOriginResponseValue());
         }
 
@@ -112,12 +112,19 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         }
         ResponseValue value = (ResponseValue) row.getField(0);
         if (value.isNormal()) {
-            //如果status是0代表是最后一条数据，reachEnd更新为true
+            //如果status是0代表是触发了异常策略stop，reachEnd更新为true
             if (value.getStatus() == 0) {
-                reachEnd = true;
+                //实时没有结束  只有异常
+                if (isStream) {
+                    throw new RuntimeException("the strategy [" + value.getErrorMsg() + " ] is triggered ，and the request param is [" + value.getRequestParam().toString() + "]" + " and the response value is " + value.getOriginResponseValue() + " job end" );
+                } else {
+                    //离线就设置为true
+                    reachEnd = true;
+                }
+                //既然已经stop了 就直接返回null 本次请求的值不会发送出去
+                return null;
             }
-            //更新当前的最新请求和返回值 作为checkPoint使用
-            state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()),value.getOriginResponseValue());
+            state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()), value.getOriginResponseValue());
             return Row.of(value.getData());
         } else {
             throw new RuntimeException("request data error,msg is " + value.getErrorMsg());

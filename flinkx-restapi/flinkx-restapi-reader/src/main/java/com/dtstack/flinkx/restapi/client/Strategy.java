@@ -65,4 +65,13 @@ public class Strategy implements Serializable {
     public void setHandle(String handle) {
         this.handle = handle;
     }
+
+    @Override
+    public String toString() {
+        return "Strategy{" +
+                "key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                ", handle='" + handle + '\'' +
+                '}';
+    }
 }

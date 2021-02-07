@@ -201,6 +201,8 @@ public class HttpClient {
                 //如果结束了  需要告诉format 结束了
                 if (value.isNormal()) {
                     value.setStatus(0);
+                    //触发的策略信息返回上游
+                    value.setErrorMsg(strategy.toString());
                 }
             }
             processData(value);
