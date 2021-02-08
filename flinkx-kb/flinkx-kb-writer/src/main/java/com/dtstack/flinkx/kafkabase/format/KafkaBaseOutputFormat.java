@@ -144,7 +144,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
             });
         }
         List<String> collect = keys.stream()
-                .filter(key -> StringUtils.isEmpty(key))
+                .filter(key -> StringUtils.isNotEmpty(key))
                 .collect(Collectors.toList());
         return StringUtils.join(collect.toArray(), "-");
     }
