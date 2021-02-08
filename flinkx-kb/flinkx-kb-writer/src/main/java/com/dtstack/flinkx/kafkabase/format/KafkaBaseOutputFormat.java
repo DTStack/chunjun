@@ -26,17 +26,18 @@ import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_ASSIGNER_DEFAULT_RULE;
 
 /**
  * Date: 2019/11/21
@@ -119,6 +120,27 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
             }
             throw new WriteRecordException(errorMessage, e);
         }
+    }
+
+    /**
+     * 根据默认的字段和指定的字段生成key
+     * @param event
+     * @return
+     */
+    public String generateKey(Map event) {
+        List<String> keys = new ArrayList<>();
+        KEY_ASSIGNER_DEFAULT_RULE.forEach(rule -> {
+            keys.add(event.getOrDefault(rule, "").toString());
+        });
+        if (CollectionUtils.isNotEmpty(partitionAssignColumns)) {
+            partitionAssignColumns.forEach(s -> {
+                keys.add(event.getOrDefault(s, "").toString());
+            });
+        }
+        List<String> collect = keys.stream()
+                .filter(key -> StringUtils.isEmpty(key))
+                .collect(Collectors.toList());
+        return StringUtils.join(collect.toArray(), "-");
     }
 
     protected void emit(Map event) throws IOException {

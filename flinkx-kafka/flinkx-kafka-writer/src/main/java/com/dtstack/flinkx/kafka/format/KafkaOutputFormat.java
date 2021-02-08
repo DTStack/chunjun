@@ -86,26 +86,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         });
     }
 
-    /**
-     * 根据默认的字段和指定的字段生成key
-     * @param event
-     * @return
-     */
-    public String generateKey(Map event) {
-        List<String> keys = new ArrayList<>();
-        KEY_ASSIGNER_DEFAULT_RULE.forEach(rule -> {
-            keys.add(event.getOrDefault(rule, "").toString());
-        });
-        if (CollectionUtils.isNotEmpty(partitionAssignColumns)) {
-            partitionAssignColumns.forEach(s -> {
-                keys.add(event.getOrDefault(s, "").toString());
-            });
-        }
-        List<String> collect = keys.stream()
-                .filter(key -> StringUtils.isEmpty(key))
-                .collect(Collectors.toList());
-        return StringUtils.join(collect.toArray(), "-");
-    }
+
 
     @Override
     public void closeInternal() {
