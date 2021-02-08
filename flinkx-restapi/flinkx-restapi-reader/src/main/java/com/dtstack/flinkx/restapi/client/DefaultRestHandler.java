@@ -300,7 +300,8 @@ public class DefaultRestHandler implements RestHandler {
         AtomicReference<String> value = new AtomicReference<>(metaParam.getActualValue(first));
 
         //-------  简单校验表达式是否符合a+-b的格式 -------------
-        if (variableValues.size() == 1 && value.get().length() > variableValues.get(0).getRight().length()) {
+        //a+-b 则表达式的长度至少是变量的长度加上运算符以及另一个计算变量的长度 所以表达式长度 > 变量长度+运算符长度
+        if (variableValues.size() == 1 && value.get().length() > variableValues.get(0).getLeft().getVariableName().length() + 1) {
             HashSet<Character> characters = Sets.newHashSet('+', '-');
             String key = variableValues.get(0).getLeft().getVariableName();
             //不是a+-b的都不符合要求
@@ -327,14 +328,14 @@ public class DefaultRestHandler implements RestHandler {
                 String key = left.getVariableName();
                 String right = pair.getRight();
 
+                if (StringUtils.isEmpty(right)) {
+                    return null;
+                }
+
                 //如果是数字类型就直接替换
                 if (NumberUtils.isNumber(right)) {
                     value.set(value.get().replaceFirst(escapeExprSpecialWord(key), NumberUtils.createBigDecimal(right).toPlainString()));
                 } else {
-
-                    if (StringUtils.isEmpty(right)) {
-                        return null;
-                    }
 
                     //不是数字格式，就默认为是日期格式， 先是left解析  然后是 metaParam的去解析 然后是 默认的去解析，如果format解析失败 就直接返回null，当做字符串去拼接
                     if (Objects.nonNull(left.getTimeFormat())) {
