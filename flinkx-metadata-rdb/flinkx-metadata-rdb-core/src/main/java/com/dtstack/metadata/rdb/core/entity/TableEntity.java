@@ -18,10 +18,12 @@
 
 package com.dtstack.metadata.rdb.core.entity;
 
+import java.io.Serializable;
+
 /** 表层级的元数据
  * @author kunni@dtstack.com
  */
-public class TableEntity {
+public class TableEntity implements Serializable {
 
     /**表名称*/
     protected String tableName;

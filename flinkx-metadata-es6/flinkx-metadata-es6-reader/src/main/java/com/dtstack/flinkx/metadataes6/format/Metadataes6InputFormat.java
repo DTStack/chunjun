@@ -17,24 +17,19 @@
  */
 package com.dtstack.flinkx.metadataes6.format;
 
-import com.dtstack.flinkx.metadata.core.BaseCons;
-import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputSplit;
 import com.dtstack.flinkx.metadataes6.utils.Es6Util;
 import com.dtstack.flinkx.metadataes6.entity.AliasEntity;
 import com.dtstack.flinkx.metadataes6.entity.ColumnEntity;
 import com.dtstack.flinkx.metadataes6.entity.IndexProperties;
 import com.dtstack.flinkx.metadataes6.entity.MetaDataEs6Entity;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author : baiyu
@@ -52,31 +47,16 @@ public class Metadataes6InputFormat extends MetadataBaseInputFormat {
 
     private transient RestClient restClient;
 
+
     @Override
     protected void doOpenInternal() throws IOException {
-        restClient = Es6Util.getClient(url, username, password);
-        if(CollectionUtils.isEmpty(tableList)){
-            tableList = showIndices();
+        if (restClient == null) {
+            restClient = Es6Util.getClient(url, username, password);
         }
-
+        if (CollectionUtils.isEmpty(tableList)) {
+            tableList = showTables();
+        }
         LOG.debug("indicesSize = {}, indices = {}", tableList.size(), tableList);
-    }
-
-    /**
-     * 此处分片数为默认值1
-     * @param splitNumber
-     * @return
-     */
-    @Override
-    protected InputSplit[] createInputSplitsInternal(int splitNumber) {
-        InputSplit[] inputSplits = new MetadataBaseInputSplit[originalJob.size()];
-        for (int index = 0; index < originalJob.size(); index++) {
-            Map<String, Object> dbTables = originalJob.get(index);
-            String dbName = MapUtils.getString(dbTables, BaseCons.KEY_DB_NAME);
-            List<Object> tables = (List<Object>) dbTables.get(BaseCons.KEY_TABLE_LIST);
-            inputSplits[index] = new MetadataBaseInputSplit(splitNumber, dbName, tables);
-        }
-        return inputSplits;
     }
 
     @Override
@@ -96,7 +76,13 @@ public class Metadataes6InputFormat extends MetadataBaseInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if(restClient != null) {
+
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        super.closeInputFormat();
+        if (restClient != null) {
             restClient.close();
             restClient = null;
         }
@@ -107,7 +93,7 @@ public class Metadataes6InputFormat extends MetadataBaseInputFormat {
      * @return  索引列表
      * @throws IOException
      */
-    protected List<Object> showIndices() throws IOException {
+    protected List<Object> showTables() throws IOException {
 
         List<Object> indexNameList = new ArrayList<>();
         String[] indexArr = Es6Util.queryIndicesByCat(restClient);

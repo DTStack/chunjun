@@ -1,12 +1,14 @@
 package com.dtstack.flinkx.metadatahbase.entity;
 
+import java.io.Serializable;
+
 /**
  * @company:www.dtstack.com
  * @Author:shiFang
  * @Date:2021-01-18 19:35
  * @Description:
  */
-public class HbaseTableEntity {
+public class HbaseTableEntity implements Serializable {
 
     private Integer regionCount;
 

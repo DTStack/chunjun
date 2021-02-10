@@ -18,11 +18,13 @@
 
 package com.dtstack.metadata.rdb.core.entity;
 
+import java.io.Serializable;
+
 /** 列层级的元数据
  * @author kunni@dtstack.com
  */
 
-public class ColumnEntity {
+public class ColumnEntity implements Serializable {
 
     /**字段默认值*/
     protected String defaultValue;

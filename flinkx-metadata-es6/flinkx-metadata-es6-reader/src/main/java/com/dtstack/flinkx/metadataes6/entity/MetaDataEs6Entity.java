@@ -17,7 +17,8 @@
  */
 package com.dtstack.flinkx.metadataes6.entity;
 
-import com.dtstack.flinkx.metadata.entity.MetadataEntity;
+
+import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 
 import java.util.List;
 

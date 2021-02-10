@@ -1,12 +1,14 @@
 package com.dtstack.flinkx.metadataoracle.entity;
 
+import java.io.Serializable;
+
 /**
  * @company:www.dtstack.com
  * @Author:shiFang
  * @Date:2021-01-27 17:50
  * @Description:
  */
-public class OracleIndexEntity {
+public class OracleIndexEntity implements Serializable {
 
     private String name;
 

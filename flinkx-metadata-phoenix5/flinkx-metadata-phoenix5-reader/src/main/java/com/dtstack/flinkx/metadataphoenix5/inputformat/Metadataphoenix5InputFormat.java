@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.metadataphoenix5.entity.MetadataPhoenix5Entity;
 import com.dtstack.flinkx.metadataphoenix5.entity.Phoenix5ColumnEntity;
 import com.dtstack.flinkx.metadataphoenix5.entity.Phoenix5TableEntity;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
@@ -110,7 +109,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws Exception {
         String tableName = (String) currentObject;
-        MetadataPhoenix5Entity metadataPhoenix5Entity = new MetadataPhoenix5Entity();
+        MetadatardbEntity  metadataPhoenix5Entity = new MetadatardbEntity ();
         metadataPhoenix5Entity.setTableProperties(queryTableProp(tableName));
         metadataPhoenix5Entity.setColumns(queryColumn(tableName));
         return metadataPhoenix5Entity;

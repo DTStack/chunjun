@@ -1,12 +1,14 @@
 package com.dtstack.flinkx.metadatatidb.entity;
 
+import java.io.Serializable;
+
 /**
  * @company:www.dtstack.com
  * @Author:shiFang
  * @Date:2021-01-29 11:33
  * @Description:
  */
-public class TidbPartitionEntity {
+public class TidbPartitionEntity implements Serializable {
 
     private String columnName;
 

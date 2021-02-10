@@ -23,8 +23,6 @@ package com.dtstack.flinkx.metadataes6.constants;
  */
 public class MetaDataEs6Cons {
 
-    public static final String KEY_INDICES = "indices";
-
     public static final String KEY_URL = "url";
 
     public static final String KEY_USERNAME = "username";
