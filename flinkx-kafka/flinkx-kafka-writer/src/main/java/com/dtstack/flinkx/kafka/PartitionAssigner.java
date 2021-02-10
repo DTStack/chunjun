@@ -38,7 +38,7 @@ public class PartitionAssigner implements Partitioner {
             return 0;
         }
         Integer partitionCountForTopic = cluster.partitionCountForTopic(topic);
-        return key.toString().hashCode() % partitionCountForTopic;
+        return Math.abs(key.toString().hashCode() % partitionCountForTopic);
     }
 
     @Override
