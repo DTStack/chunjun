@@ -47,8 +47,6 @@ public class HdfsReader extends BaseDataReader {
     protected String fieldDelimiter;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> hadoopConfig;
-    //hadoop是否是高可用
-    protected boolean isHa;
     protected String filterRegex;
 
     public HdfsReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -66,7 +64,6 @@ public class HdfsReader extends BaseDataReader {
 
         fileType = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILE_TYPE);
         hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HdfsConfigKeys.KEY_HADOOP_CONFIG);
-        isHa = readerConfig.getParameter().getBooleanVal(HdfsConfigKeys.KEY_HADOOP_HA,true);
         filterRegex = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FILTER, "");
 
         fieldDelimiter = readerConfig.getParameter().getStringVal(HdfsConfigKeys.KEY_FIELD_DELIMITER);
@@ -87,7 +84,6 @@ public class HdfsReader extends BaseDataReader {
         builder.setInputPaths(path);
         builder.setMetaColumn(metaColumns);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setIsHa(isHa);
         builder.setFilterRegex(filterRegex);
         builder.setDefaultFs(defaultFs);
         builder.setDelimiter(fieldDelimiter);

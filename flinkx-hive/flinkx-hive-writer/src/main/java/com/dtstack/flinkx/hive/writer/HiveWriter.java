@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hive.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
@@ -35,10 +34,32 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import parquet.hadoop.ParquetWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_ANALYTICAL_RULES;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_BUFFER_SIZE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_CHARSET_NAME;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_COMPRESS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_DEFAULT_FS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_DISTRIBUTE_TABLE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FIELD_DELIMITER;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FILE_TYPE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_FS_DEFAULT_FS;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_HADOOP_CONFIG;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_JDBC_URL;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_MAX_FILE_SIZE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PARTITION;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PARTITION_TYPE;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_TABLE_COLUMN;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_USERNAME;
+import static com.dtstack.flinkx.hive.HiveConfigKeys.KEY_WRITE_MODE;
 import static com.dtstack.flinkx.util.GsonUtil.GSON;
 
 /**
@@ -68,9 +89,6 @@ public class HiveWriter extends BaseDataWriter {
 
     private Map<String, Object> hadoopConfig;
 
-    //hadoop是否是高可用
-    private boolean isHa;
-
     private String charSet;
 
     private long maxFileSize;
@@ -92,7 +110,6 @@ public class HiveWriter extends BaseDataWriter {
         readerName = config.getJob().getContent().get(0).getReader().getName();
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
-        isHa = writerConfig.getParameter().getBooleanVal(HdfsConfigKeys.KEY_HADOOP_HA,true);
         defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
         if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(KEY_FS_DEFAULT_FS)){
             defaultFs = MapUtils.getString(hadoopConfig, KEY_FS_DEFAULT_FS);
@@ -201,7 +218,6 @@ public class HiveWriter extends BaseDataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
         builder.setHadoopConfig(hadoopConfig);
-        builder.setIsHa(isHa);
         builder.setDefaultFs(defaultFs);
         builder.setWriteMode(mode);
         builder.setCompress(compress);

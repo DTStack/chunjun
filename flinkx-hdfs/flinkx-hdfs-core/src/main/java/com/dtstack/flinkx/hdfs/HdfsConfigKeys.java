@@ -34,9 +34,6 @@ public class HdfsConfigKeys {
 
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
 
-    //hadoop是否是ha环境
-    public static final String KEY_HADOOP_HA= "isHa";
-
     public static final String KEY_FILTER = "filterRegex";
 
     public static final String KEY_FILE_TYPE = "fileType";
