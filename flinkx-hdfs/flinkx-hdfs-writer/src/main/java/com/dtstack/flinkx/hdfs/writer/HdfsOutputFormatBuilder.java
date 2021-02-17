@@ -19,9 +19,7 @@
 package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.hdfs.HaConfigKeys;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -67,10 +65,6 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
         format.hadoopConfig = hadoopConfig;
     }
 
-    public void setIsHa(boolean isHa) {
-        format.isHa = isHa;
-    }
-
     public void setFullColumnNames(List<String> fullColumnNames) {
         format.fullColumnNames = fullColumnNames;
     }
@@ -109,34 +103,6 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
             errorMessage.append("No defaultFS supplied. \n");
         }else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
-        }
-
-        if (format.isHa) {
-            if (MapUtils.isEmpty(format.hadoopConfig)) {
-                errorMessage.append("hadoopConfig not allow null when hadoop environment is ha \n");
-            } else {
-                String template = " param 【%s】 in hadoopConfig not allow null when hadoop environment is ha \n";
-                if (StringUtils.isBlank((String) format.hadoopConfig.get(HaConfigKeys.KEY_NAME_SERVICES))) {
-                    errorMessage.append(String.format(template, HaConfigKeys.KEY_NAME_SERVICES));
-                }
-
-                if (StringUtils.isBlank((String) format.hadoopConfig.get(HaConfigKeys.KEY_NAME_NODES + format.hadoopConfig.get(HaConfigKeys.KEY_NAME_SERVICES)))) {
-                    errorMessage.append(String.format(template, HaConfigKeys.KEY_NAME_NODES + format.hadoopConfig.get(HaConfigKeys.KEY_NAME_SERVICES)));
-                }
-
-                if (StringUtils.isBlank((String) format.hadoopConfig.get(HaConfigKeys.KEY__PROXY_PROVIDER + format.hadoopConfig.get(HaConfigKeys.KEY_NAME_SERVICES)))) {
-                    errorMessage.append(String.format(template, HaConfigKeys.KEY__PROXY_PROVIDER + format.hadoopConfig.get(HaConfigKeys.KEY_NAME_SERVICES)));
-                }
-
-
-                if (format.hadoopConfig.keySet().stream().noneMatch(i->i.contains(HaConfigKeys.KEY_RPC_ADDRESS))) {
-                    errorMessage.append(String.format(template, HaConfigKeys.KEY_RPC_ADDRESS));
-                }
-
-                if (errorMessage.length() != 0) {
-                    throw new IllegalArgumentException(errorMessage.toString());
-                }
-            }
         }
     }
 
