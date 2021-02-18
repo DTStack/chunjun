@@ -59,7 +59,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
         props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
-        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG,"com.dtstack.flinkx.kafka.PartitionAssigner");
+        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "com.dtstack.flinkx.kafka.PartitionAssigner");
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
@@ -72,7 +72,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         String tp = Formatter.format(event, topic, timezone);
         String keyMessage = generateKey(event);
         //key值没有命中如果强制保证有序的话，数据将打入一个分区,反之将随机打到任意分区
-        if (StringUtils.isEmpty(keyMessage)&&(!dataCompelOrder)) {
+        if (StringUtils.isEmpty(keyMessage) && (!dataCompelOrder)) {
             keyMessage = event.toString();
         }
         producer.send(new ProducerRecord<>(tp, keyMessage, MapUtil.writeValueAsString(event)), (metadata, exception) -> {
