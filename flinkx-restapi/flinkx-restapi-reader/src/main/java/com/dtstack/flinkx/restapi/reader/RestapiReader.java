@@ -20,14 +20,17 @@ package com.dtstack.flinkx.restapi.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
-import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
-import com.google.common.collect.Maps;
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.HttpMethod;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.common.ParamType;
+import com.dtstack.flinkx.restapi.format.RestapiInputFormatBuilder;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.Collections;
 
 /**
  * @author : tiezhu
@@ -35,37 +38,58 @@ import java.util.Map;
  */
 public class RestapiReader extends BaseDataReader {
 
-    private String url;
+    /**
+     * http的请求参数
+     **/
+    private HttpRestConfig httpRestConfig;
 
-    private String method;
-
-    private Map<String, Object> header = Maps.newHashMap();
-
-    private ArrayList<Map<String, String>> temp;
 
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
 
-        url = readerConfig.getParameter().getStringVal("url");
-        method = readerConfig.getParameter().getStringVal("method");
-        temp = (ArrayList<Map<String, String>>) readerConfig.getParameter().getVal("header");
-        if (temp != null) {
-            for (Map<String, String> map : temp) {
-                header.putAll(map);
+        try {
+            this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
+        } catch (Exception e) {
+            throw new RuntimeException("analyze httpRest Config failed:", e);
+        }
+
+        MetaParam.setMetaColumnsType(httpRestConfig.getBody(), ParamType.BODY);
+        MetaParam.setMetaColumnsType(httpRestConfig.getParam(), ParamType.PARAM);
+        MetaParam.setMetaColumnsType(httpRestConfig.getHeader(), ParamType.HEADER);
+
+        MetaParam.initTimeFormat(httpRestConfig.getBody());
+        MetaParam.initTimeFormat(httpRestConfig.getParam());
+        MetaParam.initTimeFormat(httpRestConfig.getHeader());
+
+        //post请求 如果contentTy没有设置，则默认设置为 application/json
+        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig.getHeader().stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))){
+            if(CollectionUtils.isEmpty(httpRestConfig.getHeader())){
+                httpRestConfig.setHeader( Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER)));
+            }else{
+                httpRestConfig.getHeader().add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
             }
         }
+
     }
 
     @Override
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setHeader(header);
-        builder.setMethod(method);
-        builder.setUrl(url);
 
+        builder.setMetaHeaders(httpRestConfig.getHeader());
+        builder.setMetaParams(httpRestConfig.getParam());
+        builder.setMetaBodys(httpRestConfig.getBody());
+        builder.setHttpRestConfig(httpRestConfig);
+        builder.setStream(restoreConfig.isStream());
+
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setRestoreConfig(restoreConfig);
+
+        builder.setMonitorUrls(monitorUrls);
+        builder.setBytes(bytes);
         return createInput(builder.finish());
     }
 }

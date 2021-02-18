@@ -70,7 +70,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
             if (restoreConfig.isRestore()){
                 dbConn.setAutoCommit(false);
             }
-            // 查询主键时用table格式
+            // 查询主键时用jdbc的DatabaseMetaData，使用原始table作为表名
             if(CollectionUtils.isEmpty(fullColumn)) {
                 fullColumn = probeFullColumns(table, dbConn);
             }
@@ -80,7 +80,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
                     updateKey = probePrimaryKeys(table, dbConn);
                 }
             }
-            // 其他情况，使用schema.table作为表名
+            // 后续为执行sql查询主键和insert操作，使用schema.table作为表名
             table = schema + ConstantValue.POINT_SYMBOL + table;
             if(fullColumnType == null) {
                 fullColumnType = analyzeTable();

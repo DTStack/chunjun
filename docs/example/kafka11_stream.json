@@ -1,0 +1,36 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic": "kafka11",
+            "groupId": "default",
+            "codec": "text",
+            "encoding": "UTF-8",
+            "blankIgnore": false,
+            "consumerSettings": {
+              "bootstrap.servers": "localhost:9092"
+            }
+          },
+          "name": "kafka11reader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

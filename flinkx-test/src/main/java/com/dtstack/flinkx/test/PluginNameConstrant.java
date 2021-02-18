@@ -66,6 +66,7 @@ public class PluginNameConstrant {
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
     public static final String KINGBASE_READER = "kingbasereader";
+    public static final String RESTAPI_READER = "restapireader";
     public static final String SOCKET_READER = "socketreader";
 
     public static final String STREAM_WRITER = "streamwriter";

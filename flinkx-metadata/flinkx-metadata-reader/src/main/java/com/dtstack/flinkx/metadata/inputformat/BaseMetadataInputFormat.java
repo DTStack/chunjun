@@ -82,7 +82,9 @@ public abstract class  BaseMetadataInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         try {
-            connection.set(getConnection());
+            if(connection.get() == null){
+                connection.set(getConnection());
+            }
             statement.set(connection.get().createStatement());
             currentDb.set(((MetadataInputSplit) inputSplit).getDbName());
             switchDatabase(currentDb.get());

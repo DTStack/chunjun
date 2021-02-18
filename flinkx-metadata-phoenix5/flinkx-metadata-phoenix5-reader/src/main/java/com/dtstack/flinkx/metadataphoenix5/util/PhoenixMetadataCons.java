@@ -68,9 +68,7 @@ public class PhoenixMetadataCons extends RdbCons {
 
     public static final String AUTHENTICATION_TYPE = "kerberos";
 
-    public static final String HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
-
-    public static final String ZOOKEEPER_ZNODE_PARENT = "zookeeper.znode.parent";
+    public static final String KEYTAB_FILE = "keytabFileName";
 
     public static final String RESULT_SET_TABLE_NAME = "TABLE_NAME";
 
