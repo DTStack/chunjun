@@ -87,7 +87,7 @@ public class HttpRestConfig implements Serializable {
     /**
      * 返回结果的处理策略
      **/
-    protected List<Strategy> strategy;
+    protected List<Strategy> strategy = new ArrayList<>(2);
 
 
     public boolean isJsonDecode() {

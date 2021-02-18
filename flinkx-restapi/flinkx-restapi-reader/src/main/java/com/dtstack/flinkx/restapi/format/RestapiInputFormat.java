@@ -114,16 +114,9 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         if (value.isNormal()) {
             //如果status是0代表是触发了异常策略stop，reachEnd更新为true
             if (value.getStatus() == 0) {
-                //实时没有结束  只有异常
-                if (isStream) {
-                    throw new RuntimeException("the strategy [" + value.getErrorMsg() + " ] is triggered ，and the request param is [" + value.getRequestParam().toString() + "]" + " and the response value is " + value.getOriginResponseValue() + " job end" );
-                } else {
-                    //离线就设置为true
-                    reachEnd = true;
-                }
-                //既然已经stop了 就直接返回null 本次请求的值不会发送出去
-                return null;
+                throw new RuntimeException("the strategy [" + value.getErrorMsg() + " ] is triggered ，and the request param is [" + value.getRequestParam().toString() + "]" + " and the response value is " + value.getOriginResponseValue() + " job end" );
             }
+            //todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
             state = new ResponseValue("", HttpRequestParam.copy(value.getRequestParam()), value.getOriginResponseValue());
             return Row.of(value.getData());
         } else {

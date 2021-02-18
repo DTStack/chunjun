@@ -28,7 +28,7 @@ public class ResponseValue {
     /**
      * 本次请求状态
      * -1 不正常，代表出现了异常
-     * 0  代表结束任务 strategy 出现了exit
+     * 0  代表结束任务 strategy 出现了stop
      * 1  代表任务正常
      **/
     private int status;

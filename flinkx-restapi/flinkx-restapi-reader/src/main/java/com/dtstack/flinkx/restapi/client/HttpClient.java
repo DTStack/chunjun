@@ -153,7 +153,7 @@ public class HttpClient {
 
         //重试次数到了 就直接任务结束
         if (retryTime < 0) {
-            processData(new ResponseValue(-1, null, "the maximum number of retries has been reached，task closed", null, null));
+            processData(new ResponseValue(-1, null, "the maximum number of retries has been reached，task closed， httpClient value is " + this.toString(), null, null));
             running = false;
             return;
         }
@@ -190,6 +190,7 @@ public class HttpClient {
                         return;
                     case ConstantValue.STRATEGY_STOP:
                         reachEnd = true;
+                        running = false;
                         break;
                     default:
                         break;
