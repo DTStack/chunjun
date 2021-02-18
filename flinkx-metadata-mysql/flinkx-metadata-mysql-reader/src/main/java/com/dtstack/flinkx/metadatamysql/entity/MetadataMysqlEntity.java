@@ -27,6 +27,7 @@ import java.util.List;
  */
 public class MetadataMysqlEntity extends MetadatardbEntity {
 
+    /**索引集合*/
     protected List<IndexEntity> indexEntities;
 
     public void setIndexEntities(List<IndexEntity> indexEntities) {

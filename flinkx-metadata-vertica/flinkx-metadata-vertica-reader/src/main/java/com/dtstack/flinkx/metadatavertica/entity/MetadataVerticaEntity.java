@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class MetadataVerticaEntity extends MetadatardbEntity {
 
+    /**字段集合*/
     private List<ColumnEntity> partitionColumns;
 
     public List<ColumnEntity> getPartitionColumns() {

@@ -37,12 +37,16 @@ import java.util.List;
  */
 public class Metadataes6InputFormat extends MetadataBaseInputFormat {
 
+    /**es6 URL*/
     protected String url;
 
+    /**es6 用户名*/
     protected String username;
 
+    /**es6 密码*/
     protected String password;
 
+    /**es6  当前查询的索引*/
     protected String currentIndex;
 
     private transient RestClient restClient;

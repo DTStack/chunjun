@@ -27,12 +27,16 @@ import java.io.Serializable;
  */
 public class IndexEntity implements Serializable {
 
+    /**索引名称*/
     protected String indexName;
 
+    /**索引对应的字段名称*/
     protected String columnName;
 
+    /**索引描述*/
     protected String indexComment;
 
+    /**索引类型*/
     protected String indexType;
 
     public void setIndexName(String indexName) {

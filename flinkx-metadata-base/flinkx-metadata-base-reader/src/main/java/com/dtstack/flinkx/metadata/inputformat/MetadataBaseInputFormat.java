@@ -56,7 +56,6 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
     protected Object currentObject;
 
 
-
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit : {} ", inputSplit);
@@ -68,12 +67,14 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     /**
      * 建立连接，初始化设置
+     *
      * @throws IOException 异常
      */
     abstract protected void doOpenInternal() throws IOException;
 
     /**
      * 查询当前库所有表
+     *
      * @return
      * @throws Exception
      */
@@ -86,7 +87,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
         for (int index = 0; index < originalJob.size(); index++) {
             Map<String, Object> dbTables = originalJob.get(index);
             String dbName = MapUtils.getString(dbTables, BaseCons.KEY_DB_NAME);
-            if(StringUtils.isNotEmpty(dbName)){
+            if (StringUtils.isNotEmpty(dbName)) {
                 List<Object> tables = (List<Object>) dbTables.get(BaseCons.KEY_TABLE_LIST);
                 inputSplits[index] = new MetadataBaseInputSplit(splitNumber, dbName, tables);
             }
@@ -98,10 +99,10 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
     protected Row nextRecordInternal(Row row) {
         currentObject = iterator.next();
         MetadataEntity metadataEntity = new MetadataEntity();
-        try{
+        try {
             metadataEntity = createMetadataEntity();
             metadataEntity.setQuerySuccess(true);
-        }catch (Exception e){
+        } catch (Exception e) {
             metadataEntity.setQuerySuccess(false);
             metadataEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
         }
@@ -111,6 +112,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
 
     /**
      * 创建元数据实体类
+     *
      * @return metadataEntity 表的元数据
      * @throws IOException 异常
      */
@@ -121,7 +123,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
         return !iterator.hasNext();
     }
 
-    public void setOriginalJob(List<Map<String, Object>> originalJob){
+    public void setOriginalJob(List<Map<String, Object>> originalJob) {
         this.originalJob = originalJob;
     }
 

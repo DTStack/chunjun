@@ -109,7 +109,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws Exception {
         String tableName = (String) currentObject;
-        MetadatardbEntity  metadataPhoenix5Entity = new MetadatardbEntity ();
+        MetadatardbEntity metadataPhoenix5Entity = new MetadatardbEntity();
         metadataPhoenix5Entity.setTableProperties(queryTableProp(tableName));
         metadataPhoenix5Entity.setColumns(queryColumn(tableName));
         return metadataPhoenix5Entity;
@@ -118,7 +118,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
 
     public List<Object> showTables() {
         String sql;
-        if (StringUtils.isBlank(currentDatabase)||StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT)) {
+        if (StringUtils.isBlank(currentDatabase) || StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT)) {
             sql = SQL_DEFAULT_TABLE_NAME;
         } else {
             sql = String.format(SQL_TABLE_NAME, currentDatabase);
@@ -282,7 +282,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
      * @return 是否为默认schema
      */
     public boolean isDefaultSchema() {
-        return StringUtils.isBlank(currentDatabase)||StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT);
+        return StringUtils.isBlank(currentDatabase) || StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT);
     }
 
     /**

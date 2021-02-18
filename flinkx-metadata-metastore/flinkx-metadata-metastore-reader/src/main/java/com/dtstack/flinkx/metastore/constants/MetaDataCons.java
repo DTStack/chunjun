@@ -28,9 +28,9 @@ import com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons;
 @SuppressWarnings("all")
 public class MetaDataCons extends Hive2MetaDataCons {
 
-    public static final String META_STORE= "hive.metastore.uris";
+    public static final String META_STORE = "hive.metastore.uris";
 
-    public static final String NUM_ROWS= "numRows";
+    public static final String NUM_ROWS = "numRows";
 
 
 }

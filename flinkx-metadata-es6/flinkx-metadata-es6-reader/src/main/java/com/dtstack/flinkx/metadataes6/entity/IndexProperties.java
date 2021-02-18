@@ -25,51 +25,34 @@ import java.io.Serializable;
  */
 public class IndexProperties implements Serializable {
 
-    /**
-     *  索引存储的总容量
-     */
+    /**索引存储的总容量*/
     private String totalSize;
 
-    /**
-     * 分片数
-     */
+    /**分片数*/
     private String shards;
 
-    /**
-     *   索引创建时间
-     */
+    /**索引创建时间*/
     private String createTime;
 
+    /**副本数量*/
     private String replicas;
 
-    /**
-     * 已删除文档数
-     */
+    /**已删除文档数*/
     private String docsDeleted;
 
-    /**
-     * 文档数
-     */
+    /**文档数*/
     private String docsCount;
 
-    /**
-     *   主分片的总容量
-     */
+    /**主分片的总容量*/
     private String priSize;
 
-    /**
-     * green为正常，yellow表示索引不可靠（单节点），red索引不可用
-     */
+    /**green为正常，yellow表示索引不可靠（单节点），red索引不可用*/
     private String health;
 
-    /**
-     *  索引的唯一标识
-     */
+    /**索引的唯一标识*/
     private String uuid;
 
-    /**
-     *  表明索引是否打开
-     */
+    /**表明索引是否打开*/
     private String status;
 
     public String getTotalSize() {

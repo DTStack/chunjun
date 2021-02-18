@@ -57,12 +57,16 @@ import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.S
  */
 public class MetadataverticaInputFormat extends MetadatardbInputFormat {
 
+    /**创建时间集合*/
     protected Map<String, String> createTimeMap;
 
+    /**表的描述集合*/
     protected Map<String, String> commentMap;
 
+    /**表大小集合*/
     protected Map<String, String> totalSizeMap;
 
+    /**分区字段集合*/
     protected Map<String, String> ptColumnMap;
 
     List<ColumnEntity> ptColumns = new LinkedList<>();
@@ -83,17 +87,17 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
 
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws Exception {
-        return queryMetaData((String)currentObject);
+        return queryMetaData((String) currentObject);
     }
 
     @Override
     public List<Object> showTables() {
         List<Object> tables = new LinkedList<>();
-        try(ResultSet resultSet = connection.getMetaData().getTables(null, currentDatabase, null, null)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = connection.getMetaData().getTables(null, currentDatabase, null, null)) {
+            while (resultSet.next()) {
                 tables.add(resultSet.getString(RESULT_SET_TABLE_NAME));
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("query table lists failed, {}", ExceptionUtil.getErrorMessage(e));
         }
         return tables;
@@ -121,23 +125,24 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
 
     /**
      * 获取列级别的元数据信息
+     *
      * @param tableName 表名
      * @return 列的元数据
      */
     public List<ColumnEntity> queryColumn(String tableName) {
         List<ColumnEntity> columns = new LinkedList<>();
-        try(ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, tableName, null)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, tableName, null)) {
+            while (resultSet.next()) {
                 ColumnEntity verticaColumnEntity = new ColumnEntity();
                 String columnName = resultSet.getString(RESULT_SET_COLUMN_NAME);
                 verticaColumnEntity.setName(columnName);
                 String dataSize = resultSet.getString(RESULT_SET_COLUMN_SIZE);
                 String digits = resultSet.getString(RESULT_SET_DECIMAL_DIGITS);
                 String type = resultSet.getString(RESULT_SET_TYPE_NAME);
-                if(SINGLE_DIGITAL_TYPE.contains(type)){
+                if (SINGLE_DIGITAL_TYPE.contains(type)) {
                     type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
-                }else if(DOUBLE_DIGITAL_TYPE.contains(type)){
-                    type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits +  ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
+                } else if (DOUBLE_DIGITAL_TYPE.contains(type)) {
+                    type += ConstantValue.LEFT_PARENTHESIS_SYMBOL + dataSize + ConstantValue.COMMA_SYMBOL + digits + ConstantValue.RIGHT_PARENTHESIS_SYMBOL;
                 }
                 verticaColumnEntity.setType(type);
                 verticaColumnEntity.setComment(resultSet.getString(RESULT_SET_REMARKS));
@@ -149,18 +154,19 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
                 String partitionExpression = ptColumnMap.get(tableName);
                 if (StringUtils.isNotBlank(partitionExpression) && partitionExpression.contains(expressColumn)) {
                     ptColumns.add(verticaColumnEntity);
-                }else{
+                } else {
                     columns.add(verticaColumnEntity);
                 }
             }
-        } catch (SQLException e){
-            LOG.error("query columns failed, {}", ExceptionUtil.getErrorMessage(e) );
+        } catch (SQLException e) {
+            LOG.error("query columns failed, {}", ExceptionUtil.getErrorMessage(e));
         }
         return columns;
     }
 
     /**
      * 获取表级别的元数据信息
+     *
      * @param tableName 表名
      * @return 表的元数据
      */
@@ -181,11 +187,11 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
     public void queryCreateTime() {
         createTimeMap = new HashMap<>(16);
         String sql = String.format(SQL_CREATE_TIME, currentDatabase);
-        try(ResultSet resultSet = executeQuery0(sql, statement)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
+            while (resultSet.next()) {
                 createTimeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("query create time failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
@@ -196,11 +202,11 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
     public void queryComment() {
         commentMap = new HashMap<>(16);
         String sql = String.format(SQL_COMMENT, currentDatabase);
-        try(ResultSet resultSet = executeQuery0(sql, statement)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
+            while (resultSet.next()) {
                 commentMap.put(resultSet.getString(1), resultSet.getString(2));
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("query comment failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
@@ -211,11 +217,11 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
     public void queryTotalSizeMap() {
         totalSizeMap = new HashMap<>(16);
         String sql = String.format(SQL_TOTAL_SIZE, currentDatabase);
-        try(ResultSet resultSet = executeQuery0(sql, statement)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
+            while (resultSet.next()) {
                 totalSizeMap.put(resultSet.getString(1), resultSet.getString(2));
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("query totalSize failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }
@@ -226,12 +232,12 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
     public void queryPtColumnMap() {
         ptColumnMap = new HashMap<>(16);
         String sql = String.format(SQL_PT_COLUMN, currentDatabase);
-        try(ResultSet resultSet = executeQuery0(sql, statement)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = executeQuery0(sql, statement)) {
+            while (resultSet.next()) {
                 String expression = resultSet.getString(2);
                 ptColumnMap.put(resultSet.getString(1), expression);
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             LOG.error("query partition columns failed, {}", ExceptionUtil.getErrorMessage(e));
         }
     }

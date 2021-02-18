@@ -39,12 +39,14 @@ import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
  */
 public class MetadatahbaseReader extends MetaDataBaseReader {
 
+    /**用于连接hbase的配置*/
     private Map<String, Object> hadoopConfig;
 
+    /**hbase znode路径*/
     private String path;
 
+    /**zookeeper地址端口*/
     private String zooKeeperUrl;
-
 
 
     @SuppressWarnings("unchecked")

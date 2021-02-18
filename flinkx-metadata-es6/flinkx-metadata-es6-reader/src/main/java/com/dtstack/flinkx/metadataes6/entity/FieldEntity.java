@@ -25,8 +25,10 @@ import java.io.Serializable;
  */
 public class FieldEntity implements Serializable {
 
+    /**keyword or text*/
     private String fieldName;
 
+    /**参数比如字段索引长度*/
     private String fieldProp;
 
     public String getFieldName() {

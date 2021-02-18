@@ -26,15 +26,16 @@ import java.util.List;
  */
 public class ColumnEntity implements Serializable {
 
-    /**
-     * 表示是第n个被查出来的字段
-     */
+    /**表示是第n个被查出来的字段*/
     private int columnIndex;
 
+    /**字段名称*/
     private String name;
 
+    /**字段类型*/
     private String type;
 
+    /**字段名称*/
     private List<FieldEntity> fieldList;
 
     public int getColumnIndex() {

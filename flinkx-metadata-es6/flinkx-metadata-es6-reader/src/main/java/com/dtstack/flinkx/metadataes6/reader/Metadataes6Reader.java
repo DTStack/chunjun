@@ -35,10 +35,13 @@ import static com.dtstack.flinkx.metadataes6.constants.MetaDataEs6Cons.KEY_URL;
  */
 public class Metadataes6Reader extends MetaDataBaseReader {
 
+    /**es6地址*/
     private String url;
 
+    /**用户名*/
     private String username;
 
+    /**密码*/
     private String password;
 
     public Metadataes6Reader(DataTransferConfig config, StreamExecutionEnvironment env) {

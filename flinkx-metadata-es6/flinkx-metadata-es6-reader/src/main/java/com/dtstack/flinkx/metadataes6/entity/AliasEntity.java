@@ -25,8 +25,10 @@ import java.io.Serializable;
  */
 public class AliasEntity implements Serializable {
 
+    /**索引别名*/
     private String aliasName;
 
+    /**别名参数*/
     private String aliasProp;
 
     public String getAliasName() {

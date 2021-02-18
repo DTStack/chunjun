@@ -28,21 +28,16 @@ import java.util.List;
  */
 public class MetaDataEs6Entity extends MetadataEntity {
 
-    /**
-     * 索引配置参数
-     */
+    /**索引配置参数*/
     private IndexProperties indexProperties;
 
-    /**
-     * 字段列表
-     */
+    /**字段列表*/
     private List<ColumnEntity> column;
 
+    /**索引名称*/
     private String indexName;
 
-    /**
-     * 索引别名列表
-     */
+    /**索引别名列表*/
     private List<AliasEntity> aliasList;
 
     public IndexProperties getIndexProperties() {

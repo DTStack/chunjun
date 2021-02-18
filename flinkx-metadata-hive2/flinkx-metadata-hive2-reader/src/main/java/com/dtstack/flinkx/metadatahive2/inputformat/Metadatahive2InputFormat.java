@@ -68,6 +68,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
 
+    /**hive 配置信息*/
     protected Map<String, Object> hadoopConfig;
 
     String paraFirst = KEY_COL_NAME;

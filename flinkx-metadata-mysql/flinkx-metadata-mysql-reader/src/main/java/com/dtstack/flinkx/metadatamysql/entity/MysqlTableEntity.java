@@ -26,10 +26,13 @@ import com.dtstack.metadata.rdb.core.entity.TableEntity;
  */
 public class MysqlTableEntity extends TableEntity {
 
+    /**表的引擎*/
     protected String engine;
 
+    /**表row format*/
     protected String rowFormat;
 
+    /**表类型*/
     protected String tableType;
 
     public void setEngine(String engine) {

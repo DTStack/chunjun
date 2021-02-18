@@ -61,7 +61,7 @@ public final class MetaStoreClientUtil {
         try {
             return RetryUtil.executeWithRetry(() -> connect(hiveConf), 1, 1000L, false);
         } catch (Exception e1) {
-            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", metaStoreClientInfo.getMetaStoreUrl(), ExceptionUtil.getErrorMessage(e1)),e1);
+            throw new RuntimeException(String.format("连接：%s 时发生错误：%s.", metaStoreClientInfo.getMetaStoreUrl(), ExceptionUtil.getErrorMessage(e1)), e1);
         }
     }
 

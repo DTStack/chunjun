@@ -32,11 +32,11 @@ public class MetadataBaseBuilder extends BaseRichInputFormatBuilder {
 
     protected MetadataBaseInputFormat format;
 
-    public MetadataBaseBuilder(MetadataBaseInputFormat format){
+    public MetadataBaseBuilder(MetadataBaseInputFormat format) {
         super.format = this.format = format;
     }
 
-    public void setOriginalJob(List<Map<String, Object>> originalJob){
+    public void setOriginalJob(List<Map<String, Object>> originalJob) {
         format.setOriginalJob(originalJob);
     }
 

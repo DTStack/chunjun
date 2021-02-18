@@ -56,8 +56,10 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
 
     private static final long serialVersionUID = 1L;
 
+    /**集群配置信息*/
     protected Map<String, Object> hadoopConfig;
 
+    /**metastore客户端*/
     private HiveMetaStoreClient hiveMetaStoreClient;
 
     private static Logger LOG = LoggerFactory.getLogger(MetaStoreInputFormat.class);

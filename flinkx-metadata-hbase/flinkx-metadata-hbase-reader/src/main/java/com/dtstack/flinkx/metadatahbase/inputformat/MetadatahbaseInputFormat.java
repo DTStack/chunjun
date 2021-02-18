@@ -62,24 +62,25 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 用于连接hbase的配置
-     */
+    /**用于连接hbase的配置*/
     protected Map<String, Object> hadoopConfig;
 
-    /**
-     * hbase 连接
-     */
+    /**hbase 连接*/
     protected Connection hbaseConnection;
 
+    /**hbase admin*/
     protected Admin admin;
 
+    /**hbase 建表时间的集合*/
     protected Map<String, Long> createTimeMap;
 
+    /**hbase 表大小的集合*/
     protected Map<String, Integer> tableSizeMap;
 
+    /**hbase zookeeper信息*/
     protected ZooKeeper zooKeeper;
 
+    /**hbase znode路径*/
     protected String path;
 
     @Override
@@ -104,7 +105,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
     @Override
     public MetadataEntity createMetadataEntity() throws Exception {
         MetadataHbaseEntity entity = new MetadataHbaseEntity();
-        entity.setTableName((String)currentObject);
+        entity.setTableName((String) currentObject);
         entity.setSchema(currentDatabase);
         String tableName = String.format("%s:%s", currentDatabase, currentObject);
         entity.setColumns(queryColumnList(tableName));
@@ -114,6 +115,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 获取表的region大小的总和即为表饿的存储大小，误差最大为1M * regionSize
+     *
      * @return
      * @throws Exception
      */
@@ -170,6 +172,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 获取hbase表级别的元数据信息
+     *
      * @param tableName 表名
      * @return 表的元数据
      * @throws SQLException sql异常
@@ -199,6 +202,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 获取列族信息
+     *
      * @return 列族
      */
     protected List<HbaseColumnEntity> queryColumnList(String tableName) throws SQLException {
@@ -221,6 +225,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
     /**
      * 查询hbase表的创建时间
      * 如果zookeeper没有权限访问，返回空map
+     *
      * @param hadoopConfig hadoop配置
      * @return 表名与创建时间的映射
      */

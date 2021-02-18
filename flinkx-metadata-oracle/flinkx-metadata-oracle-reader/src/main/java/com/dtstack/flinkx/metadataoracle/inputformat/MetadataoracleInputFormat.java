@@ -68,34 +68,23 @@ import static com.dtstack.flinkx.metadataoracle.constants.OracleMetaDataCons.SQL
 public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
-    /**
-     * 表基本属性
-     */
+
+    /**表基本属性*/
     private Map<String, OracleTableEntity> tablePropertiesMap;
 
-    /**
-     * 列基本属性
-     */
+    /**列基本属性*/
     private Map<String, List<OracleColumnEntity>> columnListMap;
 
-    /**
-     * 索引基本属性
-     */
+    /**索引基本属性*/
     private Map<String, List<OracleIndexEntity>> indexListMap;
 
-    /**
-     * 主键信息
-     */
+    /**主键信息*/
     private Map<String, String> primaryKeyMap;
 
-    /**
-     * 表创建时间
-     */
+    /**表创建时间*/
     private Map<String, String> createdTimeMap;
 
-    /**
-     * 分区列
-     */
+    /**分区列*/
     private Map<String, String> partitionMap;
 
     private String allTable;

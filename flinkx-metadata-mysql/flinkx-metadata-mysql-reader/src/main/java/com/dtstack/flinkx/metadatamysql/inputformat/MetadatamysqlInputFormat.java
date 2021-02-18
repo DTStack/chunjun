@@ -79,12 +79,12 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws IOException {
         MetadataMysqlEntity metadataMysqlEntity = new MetadataMysqlEntity();
-        try{
+        try {
             metadataMysqlEntity.setIndexEntities(queryIndex());
             metadataMysqlEntity.setTableProperties(createTableEntity());
             metadataMysqlEntity.setColumns(queryColumn());
-        }catch (Exception e){
-          throw new IOException(e);
+        } catch (Exception e) {
+            throw new IOException(e);
         }
         return metadataMysqlEntity;
     }
@@ -92,7 +92,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
     public TableEntity createTableEntity() throws IOException {
         MysqlTableEntity entity = new MysqlTableEntity();
         String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
-        try(ResultSet rs = statement.executeQuery(sql)){
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
                 entity.setTableType(RESULT_TABLE_TYPE);
                 entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
@@ -102,7 +102,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
                 entity.setEngine(rs.getString(RESULT_ENGINE));
                 entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             throw new IOException(e);
         }
         return entity;

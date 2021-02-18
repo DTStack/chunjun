@@ -100,9 +100,9 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         List<TidbPartitionEntity> partitions = queryPartition(tableName);
         Map<String, String> updateTime = queryAddPartition(tableName);
         List<String> partitionColumns = queryPartitionColumn(tableName);
-        List<MysqlColumnEntity> partitionsColumnEntities= new ArrayList<>();
+        List<MysqlColumnEntity> partitionsColumnEntities = new ArrayList<>();
         columns.removeIf((MysqlColumnEntity perColumn) -> {
-            for (String partitionColumn: partitionColumns) {
+            for (String partitionColumn : partitionColumns) {
                 if (StringUtils.equals(partitionColumn, perColumn.getName())) {
                     //copy属性值
                     partitionsColumnEntities.add(perColumn);
