@@ -264,11 +264,12 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
             properties.setProperty(KEY_CONN_PASSWORD, connectionInfo.getPassword());
         }
         String jdbcUrl = connectionInfo.getJdbcUrl() + ConstantValue.COLON_SYMBOL + zooKeeperPath;
-        if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
-            jdbcUrl = Phoenix5Util.setKerberosParams(properties, hadoopConfig, jdbcUrl, zooKeeperPath);
-        }
         try {
             IPhoenix5Helper helper = Phoenix5Util.getHelper(childFirstClassLoader);
+            if (StringUtils.isNotEmpty(MapUtils.getString(hadoopConfig, HBASE_MASTER_KERBEROS_PRINCIPAL))) {
+                Phoenix5Util.setKerberosParams(properties, hadoopConfig);
+                return Phoenix5Util.getConnectionWithKerberos(hadoopConfig, properties, jdbcUrl, helper);
+            }
             return helper.getConn(jdbcUrl, properties);
         } catch (IOException | CompileException e) {
             String message = String.format("cannot get phoenix connection, dbUrl = %s, properties = %s, e = %s", connectionInfo.getJdbcUrl(), GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));
