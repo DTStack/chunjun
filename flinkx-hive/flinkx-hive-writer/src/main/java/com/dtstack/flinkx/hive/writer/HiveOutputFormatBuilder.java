@@ -85,15 +85,9 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     public void setDistributeTableMapping(Map<String, String> distributeTableMapping) {
         this.format.distributeTableMapping = distributeTableMapping;
     }
-    
-    
 
     public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
-    }
-
-    public void setIsHa(boolean isHa) {
-        format.isHa = isHa;
     }
 
     public void setDelimiter(String delimiter) {
