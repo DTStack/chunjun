@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.kafkabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,13 +44,7 @@ public class KafkaConfigKeys {
     //partition:0,offset:42;partition:1,offset:300
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_TIMESTAMP = "timestamp";
-    public static List<String> KEY_ASSIGNER_DEFAULT_RULE = new ArrayList<>();
-    static{
-        KEY_ASSIGNER_DEFAULT_RULE.add("database");
-        KEY_ASSIGNER_DEFAULT_RULE.add("schema");
-        KEY_ASSIGNER_DEFAULT_RULE.add("table");
-    }
-
+    public static List<String> KEY_ASSIGNER_DEFAULT_RULE = Arrays.asList("database","schema","table");
     /**
      * kafka 09
      */
