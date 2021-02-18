@@ -59,7 +59,7 @@ public class KafkaOutputFormat extends KafkaBaseOutputFormat {
         props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
         props.put(ProducerConfig.RETRIES_CONFIG, 1000000);
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
-        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "com.dtstack.flinkx.kafka.PartitionAssigner");
+        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "com.dtstack.flinkx.kafka.format.PartitionAssigner");
         if (producerSettings != null) {
             props.putAll(producerSettings);
         }
