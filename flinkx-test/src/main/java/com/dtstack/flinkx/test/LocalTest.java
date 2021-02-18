@@ -84,6 +84,7 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.reader.RestapiReader;
 import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.socket.reader.SocketReader;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
@@ -248,6 +249,7 @@ public class LocalTest {
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstrant.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
+            case PluginNameConstrant.RESTAPI_READER: reader = new RestapiReader(config, env); break;
             case PluginNameConstrant.SOCKET_READER : reader = new SocketReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
