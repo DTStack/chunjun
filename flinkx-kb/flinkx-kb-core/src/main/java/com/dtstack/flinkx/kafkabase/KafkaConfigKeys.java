@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.kafkabase;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,12 +38,12 @@ public class KafkaConfigKeys {
     public static final String KEY_PRODUCER_SETTINGS = "producerSettings";
     public static final String KEY_TABLE_FIELDS = "tableFields";
     public static final String KEY_ASSIGNER_FIELDS = "partitionAssignColumns";
-    public static final String DATA_COMPEL_ORDER ="dataCompelOrder";
+    public static final String DATA_COMPEL_ORDER = "dataCompelOrder";
     public static final String KEY_MODE = "mode";
     //partition:0,offset:42;partition:1,offset:300
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_TIMESTAMP = "timestamp";
-    public static List<String> KEY_ASSIGNER_DEFAULT_RULE = Arrays.asList("database","schema","table");
+    public static List<String> KEY_ASSIGNER_DEFAULT_RULE = Arrays.asList("database", "schema", "table");
     /**
      * kafka 09
      */

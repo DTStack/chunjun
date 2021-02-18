@@ -59,8 +59,8 @@ public class KafkaBaseWriter extends BaseDataWriter {
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
         tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLE_FIELDS);
-        partitionAssignColumns = (List<String>)writerConfig.getParameter().getVal(KEY_ASSIGNER_FIELDS);
-        dataCompelOrder = writerConfig.getParameter().getBooleanVal(DATA_COMPEL_ORDER,false);
+        partitionAssignColumns = (List<String>) writerConfig.getParameter().getVal(KEY_ASSIGNER_FIELDS);
+        dataCompelOrder = writerConfig.getParameter().getBooleanVal(DATA_COMPEL_ORDER, false);
     }
 
     @Override

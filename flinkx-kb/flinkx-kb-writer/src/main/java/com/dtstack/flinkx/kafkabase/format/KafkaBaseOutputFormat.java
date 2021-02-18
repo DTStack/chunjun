@@ -68,7 +68,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected List<String> partitionAssignColumns;
     //是否保证强制有序
     protected boolean dataCompelOrder;
-    protected Set keySet;
+    protected Set<String> keySet;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
     //和kafkaBroker连通性控制器
     protected HeartBeatController heartBeatController;
