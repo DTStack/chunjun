@@ -38,6 +38,7 @@ public class MetaParam implements Serializable {
     private String value;
     private String nextValue;
     private SimpleDateFormat timeFormat;
+    private String format;
     private ParamType paramType;
 
 
@@ -59,6 +60,21 @@ public class MetaParam implements Serializable {
 
         if (CollectionUtils.isNotEmpty(params)) {
             params.forEach(i -> i.setParamType(paramType));
+        }
+    }
+
+    /**
+     * 将json脚本里的format转为SimpleDateFormat
+     * @param params json配置信息
+     */
+    public static void initTimeFormat(List<MetaParam> params) {
+
+        if (CollectionUtils.isNotEmpty(params)) {
+            params.forEach(i -> {
+              if(StringUtils.isNotBlank(i.getFormat())){
+                  i.setTimeFormat(new SimpleDateFormat(i.getFormat()));
+              }
+            } );
         }
     }
 
@@ -145,13 +161,23 @@ public class MetaParam implements Serializable {
         this.paramType = paramType;
     }
 
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     @Override
     public String toString() {
         return "MetaParam{" +
-                "name='" + key + '\'' +
+                "key='" + key + '\'' +
                 ", value='" + value + '\'' +
                 ", nextValue='" + nextValue + '\'' +
                 ", timeFormat=" + timeFormat +
+                ", format='" + format + '\'' +
+                ", paramType=" + paramType +
                 '}';
     }
 }

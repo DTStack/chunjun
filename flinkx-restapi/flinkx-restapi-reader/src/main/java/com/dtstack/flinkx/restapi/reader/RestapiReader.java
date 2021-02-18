@@ -59,6 +59,10 @@ public class RestapiReader extends BaseDataReader {
         MetaParam.setMetaColumnsType(httpRestConfig.getParam(), ParamType.PARAM);
         MetaParam.setMetaColumnsType(httpRestConfig.getHeader(), ParamType.HEADER);
 
+        MetaParam.initTimeFormat(httpRestConfig.getBody());
+        MetaParam.initTimeFormat(httpRestConfig.getParam());
+        MetaParam.initTimeFormat(httpRestConfig.getHeader());
+
         //post请求 如果contentTy没有设置，则默认设置为 application/json
         if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig.getHeader().stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))){
             if(CollectionUtils.isEmpty(httpRestConfig.getHeader())){
