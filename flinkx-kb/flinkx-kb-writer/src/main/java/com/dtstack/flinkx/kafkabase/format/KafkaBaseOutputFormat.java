@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,6 +68,7 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
     protected List<String> partitionAssignColumns;
     //是否保证强制有序
     protected boolean dataCompelOrder;
+    protected Set keySet;
     protected static JsonDecoder jsonDecoder = new JsonDecoder();
     //和kafkaBroker连通性控制器
     protected HeartBeatController heartBeatController;
@@ -84,6 +86,11 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
             }catch (Exception e){
                 throw new RuntimeException("telnet error, brokerList = " + brokerList);
             }
+        }
+        keySet = new TreeSet<>();
+        keySet.addAll(KEY_ASSIGNER_DEFAULT_RULE);
+        if (CollectionUtils.isNotEmpty(partitionAssignColumns)) {
+            keySet.addAll(partitionAssignColumns);
         }
     }
 
@@ -135,17 +142,12 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
      * @return
      */
     public String generateKey(Map event) {
-        Set<String> keys = new TreeSet<>();
-        KEY_ASSIGNER_DEFAULT_RULE.forEach(rule -> {
-            keys.add(event.getOrDefault(rule, "").toString());
+        List<String> values = new ArrayList<>(keySet.size());
+        keySet.forEach(rule -> {
+            values.add(event.getOrDefault(rule, "").toString());
         });
-        if (CollectionUtils.isNotEmpty(partitionAssignColumns)) {
-            partitionAssignColumns.forEach(s -> {
-                keys.add(event.getOrDefault(s, "").toString());
-            });
-        }
-        List<String> collect = keys.stream()
-                .filter(key -> StringUtils.isNotEmpty(key))
+        List<String> collect = values.stream()
+                .filter(value -> StringUtils.isNotEmpty(value))
                 .collect(Collectors.toList());
         return StringUtils.join(collect.toArray(), "-");
     }

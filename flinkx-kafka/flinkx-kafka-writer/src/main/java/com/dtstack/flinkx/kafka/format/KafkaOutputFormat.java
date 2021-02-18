@@ -22,7 +22,6 @@ import com.dtstack.flinkx.kafkabase.util.Formatter;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MapUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -31,14 +30,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_ASSIGNER_DEFAULT_RULE;
 
 /**
  * Date: 2019/11/21
