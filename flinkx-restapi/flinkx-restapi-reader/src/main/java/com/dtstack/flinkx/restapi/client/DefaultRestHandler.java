@@ -137,7 +137,7 @@ public class DefaultRestHandler implements RestHandler {
         for (int i = 0; i < split.length; i++) {
             o = getValue(tempMap, split[i]);
             if (o == null) {
-                throw new RuntimeException(key + " not exist on responseValue [" + GsonUtil.GSON.toJson(map) + "] ");
+                throw new RuntimeException(key + " on responseValue [" + GsonUtil.GSON.toJson(map) + "]  is null");
             }
             if (i != split.length - 1) {
                 if (!(o instanceof Map)) {
