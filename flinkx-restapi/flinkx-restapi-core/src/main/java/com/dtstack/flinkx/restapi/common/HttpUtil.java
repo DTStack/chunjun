@@ -146,7 +146,7 @@ public class HttpUtil {
             requestParam.forEach((k, v) -> {
                 try {
                     //参数进行编码
-                    params.add(URLEncoder.encode(k,"UTF-8") + "=" + URLEncoder.encode(v,"UTF-8"));
+                    params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8.name()));
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException("URLEncoder.encode failed, "+e);
                 }
