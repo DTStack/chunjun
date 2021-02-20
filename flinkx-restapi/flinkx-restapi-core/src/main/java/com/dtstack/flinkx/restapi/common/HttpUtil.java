@@ -25,11 +25,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,6 @@ public class HttpUtil {
     public static CloseableHttpClient getHttpClient() {
 
         return getBaseBuilder().build();
-//        return HttpClientBuilder.create().build();
     }
 
 
@@ -77,7 +76,6 @@ public class HttpUtil {
                 .setSSLContext(sslContext)
                 .setSSLHostnameVerifier(new NoopHostnameVerifier())
                 .build();
-//        return HttpClientBuilder.create().build();
     }
 
     public static HttpClientBuilder getBaseBuilder() {
@@ -115,7 +113,7 @@ public class HttpUtil {
                                              Map<String, String> header,
                                              String url) {
         LOG.debug("current request url: {}  current method:{} \n", url, method);
-        HttpRequestBase request = null;
+        HttpRequestBase request ;
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
@@ -148,7 +146,7 @@ public class HttpUtil {
                     //参数进行编码
                     params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8.name()));
                 } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException("URLEncoder.encode failed, "+e);
+                    throw new RuntimeException("URLEncoder.encode k [" + k + "] or v ["+ v +"] failed ", e);
                 }
             });
             if (url.contains("?")) {
