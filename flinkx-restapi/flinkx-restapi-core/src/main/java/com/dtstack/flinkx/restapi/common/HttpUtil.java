@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,13 +138,18 @@ public class HttpUtil {
                                              Map<String, String> requestBody,
                                              Map<String, String> requestParam,
                                              Map<String, String> header,
-                                             String url) {
+                                             String url)  {
 
         HttpRequestBase request ;
         if (MapUtils.isNotEmpty(requestParam)) {
             ArrayList<String> params = new ArrayList<>();
             requestParam.forEach((k, v) -> {
-                params.add(k + "=" + v);
+                try {
+                    //参数进行编码
+                    params.add(URLEncoder.encode(k,"UTF-8") + "=" + URLEncoder.encode(v,"UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException("URLEncoder.encode failed, "+e);
+                }
             });
             if (url.contains("?")) {
                 url += "&" + String.join("&", params);
