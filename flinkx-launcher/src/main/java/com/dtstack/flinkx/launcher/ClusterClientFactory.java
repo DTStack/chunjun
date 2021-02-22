@@ -25,7 +25,6 @@ import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.deployment.StandaloneClusterId;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.HighAvailabilityOptions;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
@@ -65,9 +64,10 @@ public class ClusterClientFactory {
     public static ClusterClient createStandaloneClient(Options launcherOptions) throws Exception {
         Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
 
-        StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf);
-        ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
-        return clusterClient;
+        try(StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf)){
+            ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
+            return clusterClient;
+        }
     }
 
     public static ClusterClient createYarnClient(Options launcherOptions) {
@@ -82,31 +82,33 @@ public class ClusterClientFactory {
                 kerberosInfo.verify();
 
                 YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
-                YarnClient yarnClient = YarnClient.createYarnClient();
-                yarnClient.init(yarnConf);
-                yarnClient.start();
-                ApplicationId applicationId;
+                try (YarnClient yarnClient = YarnClient.createYarnClient()) {
+                    yarnClient.init(yarnConf);
+                    yarnClient.start();
+                    ApplicationId applicationId;
 
-                if (StringUtils.isEmpty(launcherOptions.getAppId())) {
-                    applicationId = getAppIdFromYarn(yarnClient, launcherOptions);
-                    if(applicationId == null || StringUtils.isEmpty(applicationId.toString())) {
-                        throw new RuntimeException("No flink session found on yarn cluster.");
+                    if (StringUtils.isEmpty(launcherOptions.getAppId())) {
+                        applicationId = getAppIdFromYarn(yarnClient, launcherOptions);
+                        if (applicationId == null || StringUtils.isEmpty(applicationId.toString())) {
+                            throw new RuntimeException("No flink session found on yarn cluster.");
+                        }
+                    } else {
+                        applicationId = ConverterUtils.toApplicationId(launcherOptions.getAppId());
                     }
-                } else {
-                    applicationId = ConverterUtils.toApplicationId(launcherOptions.getAppId());
-                }
 
-                HighAvailabilityMode highAvailabilityMode = HighAvailabilityMode.fromConfig(flinkConfig);
-                if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
-                    flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
+                    HighAvailabilityMode highAvailabilityMode = HighAvailabilityMode.fromConfig(flinkConfig);
+                    if (highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId != null) {
+                        flinkConfig.setString(HighAvailabilityOptions.HA_CLUSTER_ID, applicationId.toString());
+                    }
+                    try(YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
+                            flinkConfig,
+                            yarnConf,
+                            yarnClient,
+                            YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                            true)) {
+                        return yarnClusterDescriptor.retrieve(applicationId).getClusterClient();
+                    }
                 }
-                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(
-                        flinkConfig,
-                        yarnConf,
-                        yarnClient,
-                        YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                        true);
-                return yarnClusterDescriptor.retrieve(applicationId).getClusterClient();
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
