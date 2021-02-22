@@ -28,19 +28,8 @@ import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
  */
 public class MysqlColumnEntity extends ColumnEntity {
 
-    /**是否是主键*/
-    private String primaryKey;
-
     /**是否是分区字段*/
     private String partition;
-
-    public String getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(String primaryKey) {
-        this.primaryKey = primaryKey;
-    }
 
     public String getPartition() {
         return partition;

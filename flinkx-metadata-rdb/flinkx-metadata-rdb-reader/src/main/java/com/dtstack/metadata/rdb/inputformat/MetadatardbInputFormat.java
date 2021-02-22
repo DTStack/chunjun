@@ -27,6 +27,7 @@ import com.dtstack.metadata.rdb.core.util.MetadataDbUtil;
 import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -35,7 +36,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_FALSE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_TES;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_TRUE;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
 import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_SIZE;
@@ -134,20 +139,26 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      * @return
      * @throws SQLException
      */
-    public List<ColumnEntity> queryColumn() throws SQLException {
+    public List<? extends ColumnEntity> queryColumn(String schema) throws SQLException {
         List<ColumnEntity> columnEntities = new ArrayList<>();
         String currentTable = (String) currentObject;
-        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, null, currentTable, null)) {
+        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schema, currentTable, null);
+             ResultSet primaryResultSet = connection.getMetaData().getPrimaryKeys(currentDatabase, schema, currentTable)) {
+            Set<String> primaryColumns = Sets.newHashSet();
+            while(primaryResultSet.next()){
+                primaryColumns.add(primaryResultSet.getString(RESULT_COLUMN_NAME));
+            }
             while (resultSet.next()) {
                 ColumnEntity columnEntity = new ColumnEntity();
                 columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
                 columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
                 columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
                 columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
-                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
+                columnEntity.setNullAble(StringUtils.equals(resultSet.getString(RESULT_IS_NULLABLE), KEY_TES) ? KEY_TRUE : KEY_FALSE);
                 columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
                 columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
                 columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
+                columnEntity.setPrimaryKey(primaryColumns.contains(columnEntity.getName())?KEY_TRUE : KEY_FALSE);
                 columnEntities.add(columnEntity);
             }
         } catch (SQLException e) {

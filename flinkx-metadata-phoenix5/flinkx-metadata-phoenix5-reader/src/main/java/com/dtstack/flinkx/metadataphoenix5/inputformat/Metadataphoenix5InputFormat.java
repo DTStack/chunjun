@@ -111,7 +111,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
         String tableName = (String) currentObject;
         MetadatardbEntity metadataPhoenix5Entity = new MetadatardbEntity();
         metadataPhoenix5Entity.setTableProperties(queryTableProp(tableName));
-        metadataPhoenix5Entity.setColumns(queryColumn(tableName));
+        metadataPhoenix5Entity.setColumns(queryColumn(null));
         return metadataPhoenix5Entity;
     }
 
@@ -155,10 +155,10 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     /**
      * 获取列级别的元数据信息
      *
-     * @param tableName 表名
      * @return 列的元数据信息
      */
-    public List<ColumnEntity> queryColumn(String tableName) {
+    public List<ColumnEntity> queryColumn(String schema) {
+        String tableName = (String) currentObject;
         List<ColumnEntity> columns = new LinkedList<>();
         String sql;
         if (isDefaultSchema()) {

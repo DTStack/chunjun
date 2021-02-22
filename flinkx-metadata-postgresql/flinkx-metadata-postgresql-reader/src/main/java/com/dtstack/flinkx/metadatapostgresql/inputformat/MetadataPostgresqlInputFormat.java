@@ -104,7 +104,7 @@ public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws Exception {
         MetadataPostgresqlEntity postgresqlEntity = new MetadataPostgresqlEntity();
-        postgresqlEntity.setColumns(queryColumn());
+        postgresqlEntity.setColumns(queryColumn(schemaName));
         TableMetaData tableMetaData = new TableMetaData();
         tableMetaData.setTableName(tableName);
         tableMetaData.setRows(showTableDataCount());
@@ -142,29 +142,6 @@ public class MetadataPostgresqlInputFormat extends MetadatardbInputFormat {
             throw new SQLException("show tables error"+e.getMessage(),e);
         }
         return tables;
-    }
-
-    @Override
-    public List<ColumnEntity> queryColumn() throws SQLException {
-        List<ColumnEntity> columnEntities = new ArrayList<>();
-        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schemaName, tableName, null)) {
-            while (resultSet.next()) {
-                ColumnEntity columnEntity = new ColumnEntity();
-                columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
-                columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
-                columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
-                columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
-                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
-                columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
-                columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
-                columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
-                columnEntities.add(columnEntity);
-            }
-        } catch (SQLException e) {
-            LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
-            throw e;
-        }
-        return columnEntities;
     }
 
     /**

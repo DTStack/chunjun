@@ -86,20 +86,20 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
     @Override
     public MetadatardbEntity createMetadatardbEntity() throws IOException {
         try {
-            return queryMetaData((String) currentObject);
+            return queryMetaData();
         } catch (SQLException e) {
             throw new IOException(e.getMessage(), e);
         }
     }
 
 
-    protected MetadataTidbEntity queryMetaData(String tableName) throws SQLException {
+    protected MetadataTidbEntity queryMetaData() throws SQLException {
         MetadataTidbEntity metadataTidbEntity = new MetadataTidbEntity();
-        MysqlTableEntity tableProp = queryTableProp(tableName);
-        List<MysqlColumnEntity> columns = queryColumn(tableName);
-        List<TidbPartitionEntity> partitions = queryPartition(tableName);
-        Map<String, String> updateTime = queryAddPartition(tableName);
-        List<String> partitionColumns = queryPartitionColumn(tableName);
+        MysqlTableEntity tableProp = queryTableProp();
+        List<MysqlColumnEntity> columns = queryColumn(null);
+        List<TidbPartitionEntity> partitions = queryPartition();
+        Map<String, String> updateTime = queryAddPartition();
+        List<String> partitionColumns = queryPartitionColumn();
         List<MysqlColumnEntity> partitionsColumnEntities = new ArrayList<>();
         columns.removeIf((MysqlColumnEntity perColumn) -> {
             for (String partitionColumn : partitionColumns) {
@@ -124,7 +124,8 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return metadataTidbEntity;
     }
 
-    public MysqlTableEntity queryTableProp(String tableName) throws SQLException {
+    public MysqlTableEntity queryTableProp() throws SQLException {
+        String tableName = (String) currentObject;
         MysqlTableEntity mysqlTableEntity = new MysqlTableEntity();
         String sql = String.format(SQL_QUERY_TABLE_INFO, tableName);
         try (ResultSet rs = statement.executeQuery(sql)) {
@@ -138,7 +139,9 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return mysqlTableEntity;
     }
 
-    protected List<MysqlColumnEntity> queryColumn(String tableName) throws SQLException {
+    @Override
+    public List<MysqlColumnEntity> queryColumn(String schema) throws SQLException {
+        String tableName = (String) currentObject;
         List<MysqlColumnEntity> columns = new LinkedList<>();
         String sql = String.format(SQL_QUERY_COLUMN, tableName);
         try (ResultSet rs = statement.executeQuery(sql)) {
@@ -161,7 +164,8 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return columns;
     }
 
-    protected List<TidbPartitionEntity> queryPartition(String tableName) throws SQLException {
+    protected List<TidbPartitionEntity> queryPartition() throws SQLException {
+        String tableName = (String) currentObject;
         List<TidbPartitionEntity> partitions = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION, tableName);
         try (ResultSet rs = statement.executeQuery(sql)) {
@@ -178,7 +182,8 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
     }
 
 
-    protected Map<String, String> queryAddPartition(String tableName) throws SQLException {
+    protected Map<String, String> queryAddPartition() throws SQLException {
+        String tableName = (String) currentObject;
         Map<String, String> result = new HashMap<>(16);
         String sql = String.format(SQL_QUERY_UPDATE_TIME, tableName);
         try (ResultSet rs = statement.executeQuery(sql)) {
@@ -195,7 +200,8 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return result;
     }
 
-    protected List<String> queryPartitionColumn(String tableName) throws SQLException {
+    protected List<String> queryPartitionColumn() throws SQLException {
+        String tableName = (String) currentObject;
         List<String> partitionColumns = new LinkedList<>();
         String sql = String.format(SQL_QUERY_PARTITION_COLUMN, tableName);
         try (ResultSet rs = statement.executeQuery(sql)) {

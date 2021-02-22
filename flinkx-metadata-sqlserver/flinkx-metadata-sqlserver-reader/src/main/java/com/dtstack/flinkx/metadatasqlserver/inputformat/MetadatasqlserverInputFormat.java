@@ -129,7 +129,7 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         tableEntity.setPrimaryKey(queryTablePrimaryKey());
         tableEntity.setPartition(queryPartition());
 
-        List<ColumnEntity> columns = queryColumn();
+        List<ColumnEntity> columns = (List<ColumnEntity>) queryColumn(schema);
         String key = queryPartitionColumn();
         List<ColumnEntity> partitionColumn = distinctPartitionColumn(columns, key);
 
@@ -139,30 +139,6 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         return metadatasqlserverEntity;
     }
 
-
-
-    @Override
-    public List<ColumnEntity> queryColumn() throws SQLException {
-        List<ColumnEntity> columnEntities = new ArrayList<>();
-        try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schema, table, null)) {
-            while (resultSet.next()) {
-                ColumnEntity columnEntity = new ColumnEntity();
-                columnEntity.setName(resultSet.getString(RESULT_COLUMN_NAME));
-                columnEntity.setType(resultSet.getString(RESULT_TYPE_NAME));
-                columnEntity.setIndex(resultSet.getInt(RESULT_ORDINAL_POSITION));
-                columnEntity.setDefaultValue(resultSet.getString(RESULT_COLUMN_DEF));
-                columnEntity.setNullAble(resultSet.getString(RESULT_IS_NULLABLE));
-                columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
-                columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
-                columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
-                columnEntities.add(columnEntity);
-            }
-        } catch (SQLException e) {
-            LOG.error("queryColumn failed, cause: {} ", ExceptionUtil.getErrorMessage(e));
-            throw e;
-        }
-        return columnEntities;
-    }
 
     private void switchDatabase() throws SQLException {
         // database 以数字开头时，需要双引号

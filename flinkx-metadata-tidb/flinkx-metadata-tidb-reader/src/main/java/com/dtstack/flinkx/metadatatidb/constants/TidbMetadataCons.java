@@ -28,8 +28,7 @@ public class TidbMetadataCons extends RdbCons {
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
     public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_UPDATE_TIME = "updateTime";
-    public static final String KEY_TES = "YES";
-    public static final String KEY_PRI = "PRI";
+
 
     public static final String RESULT_ROWS = "Rows";
     public static final String RESULT_DATA_LENGTH = "Data_length";

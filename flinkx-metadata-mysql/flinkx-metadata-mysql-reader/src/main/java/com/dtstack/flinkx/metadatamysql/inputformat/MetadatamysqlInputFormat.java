@@ -82,7 +82,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
         try {
             metadataMysqlEntity.setIndexEntities(queryIndex());
             metadataMysqlEntity.setTableProperties(createTableEntity());
-            metadataMysqlEntity.setColumns(queryColumn());
+            metadataMysqlEntity.setColumns(queryColumn(null));
         } catch (Exception e) {
             throw new IOException(e);
         }

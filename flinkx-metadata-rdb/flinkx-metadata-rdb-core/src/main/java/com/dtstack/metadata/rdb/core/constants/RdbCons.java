@@ -59,4 +59,7 @@ public class RdbCons extends BaseCons {
     public static final String KEY_TRUE = "Y";
     public static final String KEY_FALSE = "N";
 
+    public static final String KEY_TES = "YES";
+    public static final String KEY_PRI = "PRI";
+
 }

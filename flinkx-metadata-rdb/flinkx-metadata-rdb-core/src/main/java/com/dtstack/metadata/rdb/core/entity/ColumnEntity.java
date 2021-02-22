@@ -26,6 +26,10 @@ import java.io.Serializable;
 
 public class ColumnEntity implements Serializable {
 
+
+    /**是否是主键*/
+    private String primaryKey;
+
     /**字段默认值*/
     protected String defaultValue;
 
@@ -86,4 +90,7 @@ public class ColumnEntity implements Serializable {
         return name;
     }
 
+    public void setPrimaryKey(String primaryKey) {
+        this.primaryKey = primaryKey;
+    }
 }

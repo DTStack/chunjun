@@ -123,14 +123,10 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
         queryPtColumnMap();
     }
 
-    /**
-     * 获取列级别的元数据信息
-     *
-     * @param tableName 表名
-     * @return 列的元数据
-     */
-    public List<ColumnEntity> queryColumn(String tableName) {
+    @Override
+    public List<ColumnEntity> queryColumn(String schema) {
         List<ColumnEntity> columns = new LinkedList<>();
+        String tableName = (String) currentObject;
         try (ResultSet resultSet = connection.getMetaData().getColumns(null, currentDatabase, tableName, null)) {
             while (resultSet.next()) {
                 ColumnEntity verticaColumnEntity = new ColumnEntity();
