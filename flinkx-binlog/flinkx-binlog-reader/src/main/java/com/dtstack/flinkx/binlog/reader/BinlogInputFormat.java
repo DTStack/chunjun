@@ -309,20 +309,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
      *               schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
      */
     private void checkSourceAuthority(String schema, Collection<String> tables) {
-        Connection connection = null;
+        Connection connection;
         try {
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConfig.getJdbcUrl(), binlogConfig.getUsername(), binlogConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false);
         } catch (Exception e) {
-            try {
-                connection.close();
-            } catch (Exception exception) {
-                String message = String.format(" closed connection error,params jdbcUrl【%s】user 【%s】, errorMessage %s",
-                        binlogConfig.getJdbcUrl(),
-                        binlogConfig.getUsername(),
-                        ExceptionUtil.getErrorMessage(e));
-                LOG.error(message);
-            }
-
             String message = String.format(" get connection failed,params jdbcUrl【%s】user 【%s】  make sure that the database configuration is  correct , errorMessage %s",
                     binlogConfig.getJdbcUrl(),
                     binlogConfig.getUsername(),

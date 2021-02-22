@@ -443,13 +443,7 @@ public class LogMinerConnection {
                 logFiles.add(logFile);
             }
         } finally {
-            if (null != rs) {
-                rs.close();
-            }
-
-            if (null != statement) {
-                statement.close();
-            }
+            closeResources(rs, statement, null);
         }
 
         lastQueryTime = System.currentTimeMillis();
