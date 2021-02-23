@@ -281,6 +281,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	 */
 	public void throwException(Exception e) throws Exception {
 		if(null != e) {
+			LOG.error("DtInputFormatSourceFunction error, info: {}",ExceptionUtil.getErrorMessage(e), e);
 			throw e;
 		}
 	}
