@@ -20,6 +20,7 @@ package com.dtstack.flinkx.cassandra;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.LocalDate;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -210,7 +211,7 @@ public class CassandraUtil {
             sOut.flush();
             bytes= out.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn("object convent byte[] failed, error info {}", ExceptionUtil.getErrorMessage(e), e);
         }
         return Optional.ofNullable(bytes);
     }
