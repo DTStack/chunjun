@@ -117,7 +117,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             }
             blockIndex++;
         } catch (Exception e){
-            throw new RuntimeException(e);
+            throw new RuntimeException(HdfsUtil.parseErrorMsg(null, e.getMessage()), e);
         }
     }
 
@@ -149,9 +149,13 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     public void flushDataInternal() throws IOException{
         LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
-        if (writer != null){
-            writer.close();
-            writer = null;
+        try {
+            if (writer != null){
+                writer.close();
+                writer = null;
+            }
+        } catch (IOException e) {
+            throw new IOException(HdfsUtil.parseErrorMsg(null, e.getMessage()), e);
         }
     }
 
@@ -198,7 +202,9 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 lastRow = row;
             }
         } catch (IOException e) {
-            throw new WriteRecordException(String.format("数据写入hdfs异常，row:{%s}", row), e);
+            String errorMessage = HdfsUtil.parseErrorMsg(String.format("数据写入hdfs异常，row:{%s}", row), e.getMessage());
+            LOG.error(errorMessage);
+            throw new WriteRecordException(errorMessage, e);
         }
     }
 
