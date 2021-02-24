@@ -209,7 +209,12 @@ public class HdfsUtil {
         }
     }
 
-
+    /**
+     * 封装hdfs操作常见的异常并给出解决方法
+     * @param customizeMessage
+     * @param errorMsg
+     * @return
+     */
     public static String parseErrorMsg(String customizeMessage, String errorMsg) {
         StringBuilder str = new StringBuilder();
         str.append(customizeMessage);

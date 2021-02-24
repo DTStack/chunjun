@@ -28,7 +28,6 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
