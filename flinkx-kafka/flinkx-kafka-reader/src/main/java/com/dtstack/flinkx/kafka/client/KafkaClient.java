@@ -96,7 +96,7 @@ public class KafkaClient implements IClient {
                     "| therefore, no data will be read in this channel! |\n" +
                     "****************************************************");
             return;
-        }if(StartupMode.TIMESTAMP.equals(mode)){
+        }else if(StartupMode.TIMESTAMP.equals(mode)){
             Map<TopicPartition, Long> timestampMap = new HashMap<>(Math.max((int) (stateList.size()/.75f) + 1, 16));
             for (kafkaState state : stateList) {
                 TopicPartition tp = new TopicPartition(state.getTopic(), state.getPartition());

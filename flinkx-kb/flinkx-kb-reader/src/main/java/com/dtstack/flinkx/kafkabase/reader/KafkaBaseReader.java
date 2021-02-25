@@ -24,11 +24,13 @@ import com.dtstack.flinkx.kafkabase.enums.StartupMode;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormat;
 import com.dtstack.flinkx.kafkabase.format.KafkaBaseInputFormatBuilder;
 import com.dtstack.flinkx.reader.BaseDataReader;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,6 +49,7 @@ public class KafkaBaseReader extends BaseDataReader {
     protected String offset;
     protected Long timestamp;
     protected Map<String, String> consumerSettings;
+    protected List<MetaColumn> metaColumns;
 
     @SuppressWarnings("unchecked")
     public KafkaBaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -61,6 +64,7 @@ public class KafkaBaseReader extends BaseDataReader {
         offset = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_OFFSET, "");
         timestamp = readerConfig.getParameter().getLongVal(KafkaConfigKeys.KEY_TIMESTAMP, -1L);
         consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KafkaConfigKeys.KEY_CONSUMER_SETTINGS);
+        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
     }
 
     @Override
@@ -77,6 +81,7 @@ public class KafkaBaseReader extends BaseDataReader {
         builder.setMode(StartupMode.getFromName(mode));
         builder.setOffset(offset);
         builder.setTimestamp(timestamp);
+        builder.setMetaColumns(metaColumns);
         return createInput(builder.finish());
     }
 
