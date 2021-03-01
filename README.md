@@ -7,9 +7,9 @@ English | [中文](README_CH.md)
 
 # Communication
 
-- We are recruiting **Big data platform development engineers**.If you want more information about the position, please add WeChat ID [**ysqwhiletrue**] or email your resume to [sishu@dtstack.com](mailto:sishu@dtstack.com).
+- We are recruiting **Big data platform development engineers**. If you want more information about the position, please add WeChat ID [**ysqwhiletrue**] or email your resume to [sishu@dtstack.com](mailto:sishu@dtstack.com).
 
-- We use [DingTalk](https://www.dingtalk.com/) to communicate,You can search the group number [**30537511**] or scan the QR code below to join the communication group
+- We use [DingTalk](https://www.dingtalk.com/) to communicate, you can search the group number [**30537511**] or scan the QR code below to join the communication group
   
 <div align=center>
   <img src=docs/images/ding.jpg width=300 />
