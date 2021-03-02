@@ -12,21 +12,14 @@ import java.util.List;
  */
 public class SqlserverTableEntity extends TableEntity {
 
-    /**
-     * 主键名
-     */
+    /**主键名*/
     private List<String> primaryKey;
 
-    /**
-     * 索引
-     */
+    /**索引*/
     private List<SqlserverIndexEntity> index;
 
-    /**
-     * 分区信息
-     */
+    /**分区信息*/
     private List<SqlserverPartitionEntity> partition;
-
 
     public List<String> getPrimaryKey() {
         return primaryKey;

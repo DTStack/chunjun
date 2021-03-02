@@ -232,6 +232,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
     }
 
 
+    /**
+     * 解析字段信息
+     * @param lineDataInternal
+     * @param index
+     * @return
+     */
     private ColumnEntity parseColumn(Map<String, String> lineDataInternal, int index){
         ColumnEntity hiveColumnEntity = new ColumnEntity();
         String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
@@ -244,6 +250,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
         return hiveColumnEntity;
     }
 
+    /**
+     * 查询表元数据
+     * @param table
+     * @return
+     * @throws SQLException
+     */
     private List<Map<String, String>> queryData(String table) throws SQLException {
         try (ResultSet rs = statement.executeQuery(String.format(SQL_QUERY_DATA, quote(table)))) {
             ResultSetMetaData metaData = rs.getMetaData();
@@ -264,6 +276,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
         }
     }
 
+    /**
+     * 解析表的参数
+     * @param lineDataInternal
+     * @param tableProperties
+     * @param it
+     */
     void parseTableProperties(Map<String, String> lineDataInternal, HiveTableEntity tableProperties, Iterator<Map<String, String>> it){
         String name = lineDataInternal.get(KEY_COL_NAME);
 

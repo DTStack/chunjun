@@ -118,6 +118,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     }
 
 
+    @Override
     public List<Object> showTables() {
         String sql;
         if (StringUtils.isBlank(currentDatabase) || StringUtils.endsWithIgnoreCase(currentDatabase, KEY_DEFAULT)) {

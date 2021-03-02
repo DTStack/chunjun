@@ -13,19 +13,13 @@ public class SqlserverIndexEntity implements Serializable {
 
     protected static final long serialVersionUID = 1L;
 
-    /**
-     * 索引名
-     */
+    /**索引名*/
     private String indexName;
 
-    /**
-     * 索引类型
-     */
+    /**索引类型*/
     private String indexType;
 
-    /**
-     * 索引字段
-     */
+    /**索引字段*/
     private List<String> indexColumn;
 
     public SqlserverIndexEntity() {

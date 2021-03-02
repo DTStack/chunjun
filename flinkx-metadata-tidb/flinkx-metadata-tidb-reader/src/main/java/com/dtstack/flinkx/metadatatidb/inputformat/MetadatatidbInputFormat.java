@@ -93,6 +93,11 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
     }
 
 
+    /**
+     * 查询元数据信息
+     * @return
+     * @throws SQLException
+     */
     protected MetadataTidbEntity queryMetaData() throws SQLException {
         MetadataTidbEntity metadataTidbEntity = new MetadataTidbEntity();
         MysqlTableEntity tableProp = queryTableProp();
@@ -124,6 +129,11 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return metadataTidbEntity;
     }
 
+    /**
+     * 查看表的元数据信息
+     * @return
+     * @throws SQLException
+     */
     public MysqlTableEntity queryTableProp() throws SQLException {
         String tableName = (String) currentObject;
         MysqlTableEntity mysqlTableEntity = new MysqlTableEntity();
@@ -164,6 +174,11 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return columns;
     }
 
+    /**
+     * 查看分区的元数据信息
+     * @return
+     * @throws SQLException
+     */
     protected List<TidbPartitionEntity> queryPartition() throws SQLException {
         String tableName = (String) currentObject;
         List<TidbPartitionEntity> partitions = new LinkedList<>();
@@ -182,6 +197,11 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
     }
 
 
+    /**
+     * 查看分区的创建时间
+     * @return
+     * @throws SQLException
+     */
     protected Map<String, String> queryAddPartition() throws SQLException {
         String tableName = (String) currentObject;
         Map<String, String> result = new HashMap<>(16);
@@ -200,6 +220,11 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
         return result;
     }
 
+    /**
+     * 查询分区字段集合
+     * @return
+     * @throws SQLException
+     */
     protected List<String> queryPartitionColumn() throws SQLException {
         String tableName = (String) currentObject;
         List<String> partitionColumns = new LinkedList<>();

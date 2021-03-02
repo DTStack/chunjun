@@ -59,8 +59,10 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
 
+    /**当前schema*/
     protected String schema;
 
+    /**当前表*/
     protected String table;
 
 

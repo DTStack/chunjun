@@ -12,24 +12,16 @@ public class SqlserverPartitionEntity implements Serializable {
 
     protected static final long serialVersionUID = 1L;
 
-    /**
-     * 分区字段
-     */
+    /**分区字段*/
     private String columnName;
 
-    /**
-     * 分区表的数据量
-     */
+    /**分区表的数据量*/
     private long rows;
 
-    /**
-     * 创建时间
-     */
+    /**创建时间*/
     private String createTime;
 
-    /**
-     *文件组名
-     */
+    /**文件组名*/
     private String fileGroupName;
 
     public String getColumnName() {

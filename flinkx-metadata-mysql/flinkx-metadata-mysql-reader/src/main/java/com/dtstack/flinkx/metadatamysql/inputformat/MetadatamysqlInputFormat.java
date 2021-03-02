@@ -55,6 +55,11 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 查询索引
+     * @return
+     * @throws SQLException
+     */
     protected List<IndexEntity> queryIndex() throws SQLException {
         List<IndexEntity> indexEntities = new LinkedList<>();
         String sql = String.format(SQL_QUERY_INDEX, currentObject);
@@ -89,6 +94,11 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
         return metadataMysqlEntity;
     }
 
+    /**
+     * 查询表元数据实体信息
+     * @return
+     * @throws IOException
+     */
     public TableEntity createTableEntity() throws IOException {
         MysqlTableEntity entity = new MysqlTableEntity();
         String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);

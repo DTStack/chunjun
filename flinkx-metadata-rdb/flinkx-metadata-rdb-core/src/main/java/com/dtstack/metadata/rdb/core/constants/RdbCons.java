@@ -53,7 +53,6 @@ public class RdbCons extends BaseCons {
 
     public static final String KEY_USER = "user";
 
-    public static final String KEY_CONN_USERNAME = "username";
     public static final String KEY_CONN_PASSWORD = "password";
 
     public static final String KEY_TRUE = "Y";

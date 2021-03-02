@@ -53,6 +53,11 @@ public class HbaseHelper {
     private HbaseHelper() {
     }
 
+    /**
+     * 获取hbase connection
+     * @param hbaseConfigMap
+     * @return
+     */
     public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "[hadoopConfig] couldn't be empty!");
 
@@ -69,6 +74,11 @@ public class HbaseHelper {
         }
     }
 
+    /**
+     * 获取kerberos认证的连接
+     * @param hbaseConfigMap
+     * @return
+     */
     private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String, Object> hbaseConfigMap) {
         try {
             setKerberosConf(hbaseConfigMap);
@@ -87,6 +97,12 @@ public class HbaseHelper {
         }
     }
 
+    /**
+     * 获取kerberos ugi
+     * @param hbaseConfigMap
+     * @return
+     * @throws IOException
+     */
     public static UserGroupInformation getUgi(Map<String, Object> hbaseConfigMap) throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
@@ -100,6 +116,11 @@ public class HbaseHelper {
         return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
     }
 
+    /**
+     * 获取hbase 配置信息
+     * @param hbaseConfigMap
+     * @return
+     */
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
         Configuration hConfiguration = HBaseConfiguration.create();
         if (MapUtils.isEmpty(hbaseConfigMap)) {
@@ -115,6 +136,11 @@ public class HbaseHelper {
         return hConfiguration;
     }
 
+    /**
+     * 判断是否开启kerberos
+     * @param hbaseConfigMap
+     * @return
+     */
     public static boolean openKerberos(Map<String, Object> hbaseConfigMap) {
         if (AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
                 || AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION))
@@ -138,6 +164,10 @@ public class HbaseHelper {
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
+    /**
+     *  资源关闭
+     * @param hConnection
+     */
     public static void closeConnection(Connection hConnection) {
         try {
             if (null != hConnection) {
@@ -148,6 +178,10 @@ public class HbaseHelper {
         }
     }
 
+    /**
+     * hbase admin 关闭
+     * @param admin
+     */
     public static void closeAdmin(Admin admin) {
         try {
             if (null != admin) {

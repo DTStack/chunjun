@@ -100,6 +100,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
     }
 
 
+    @Override
     public List<Object> showTables() throws SQLException {
         List<Object> tableNameList = new LinkedList<>();
         sql = String.format(SQL_SHOW_TABLES, quote(currentDatabase));
@@ -117,6 +118,12 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
     }
 
 
+    /**
+     * 查询表元数据
+     * @param tableName
+     * @return
+     * @throws SQLException
+     */
     protected MetadataOracleEntity queryMetaData(String tableName) throws SQLException {
         MetadataOracleEntity metadataOracleEntity = new MetadataOracleEntity();
         // 如果当前map中没有，说明要重新取值
@@ -147,6 +154,11 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
         return metadataOracleEntity;
     }
 
+    /**
+     * 查询表的配置信息
+     * @return
+     * @throws SQLException
+     */
     protected Map<String, OracleTableEntity> queryTableProperties() throws SQLException {
         Map<String, OracleTableEntity> tablePropertiesMap = new HashMap<>(16);
         sql = String.format(SQL_QUERY_TABLE_PROPERTIES_TOTAL, quote(currentDatabase));
@@ -167,6 +179,11 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
         return tablePropertiesMap;
     }
 
+    /**
+     * 获取表以及表索引集合，批量查询
+     * @return
+     * @throws SQLException
+     */
     protected Map<String, List<OracleIndexEntity>> queryIndexList() throws SQLException {
         Map<String, List<OracleIndexEntity>> indexListMap = new HashMap<>(16);
         sql = String.format(SQL_QUERY_INDEX_TOTAL, quote(currentDatabase));
@@ -193,6 +210,11 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
         return indexListMap;
     }
 
+    /**
+     * 获取表和表字段集合
+     * @return
+     * @throws SQLException
+     */
     protected Map<String, List<OracleColumnEntity>> queryColumnList() throws SQLException {
         Map<String, List<OracleColumnEntity>> columnListMap = new HashMap<>(16);
         sql = String.format(SQL_QUERY_COLUMN_TOTAL, quote(currentDatabase));
@@ -269,6 +291,12 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
         }
     }
 
+    /**
+     * 根据sql查询集合集
+     * @param sql
+     * @return
+     * @throws SQLException
+     */
     private Map<String, String> getResultByMap(String sql) throws SQLException {
         Map<String, String> resultMap = Maps.newHashMap();
         LOG.info("querySQL: {}", sql);

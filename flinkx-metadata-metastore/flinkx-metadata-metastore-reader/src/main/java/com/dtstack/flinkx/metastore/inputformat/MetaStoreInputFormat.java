@@ -186,6 +186,12 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         return hiveColumnEntities;
     }
 
+    /**
+     * 获取分区详情
+     * @param hiveColumnEntities
+     * @param partitions
+     * @return
+     */
     private List<String> getPartitionDetail(List<ColumnEntity> hiveColumnEntities, List<Partition> partitions) {
         List<String> partitionLists = Lists.newArrayList();
         if (CollectionUtils.isEmpty(hiveColumnEntities)) {
@@ -198,6 +204,12 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         return partitionLists;
     }
 
+    /**
+     * 组装分区信息
+     * @param partitionValues
+     * @param hiveColumnEntities
+     * @return
+     */
     private String assemblePartition(List<String> partitionValues, List<ColumnEntity> hiveColumnEntities) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < partitionValues.size(); i++) {
