@@ -24,4 +24,18 @@ public class MetadataPostgresqlEntity extends MetadatardbEntity {
     public void setDataBaseName(String dataBaseName) {
         this.dataBaseName = dataBaseName;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataPostgresqlEntity{" +
+                "dataBaseName='" + dataBaseName + '\'' +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

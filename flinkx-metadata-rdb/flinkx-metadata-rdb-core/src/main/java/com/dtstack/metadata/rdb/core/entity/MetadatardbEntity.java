@@ -48,4 +48,15 @@ public class MetadatardbEntity extends MetadataEntity {
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
+
+    @Override
+    public String toString() {
+        return "MetadatardbEntity{" +
+                "tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

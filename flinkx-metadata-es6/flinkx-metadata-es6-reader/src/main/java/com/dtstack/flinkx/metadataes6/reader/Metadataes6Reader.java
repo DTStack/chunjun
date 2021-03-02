@@ -21,7 +21,7 @@ package com.dtstack.flinkx.metadataes6.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.metadata.reader.MetaDataBaseReader;
 import com.dtstack.flinkx.metadataes6.builder.Metadataes6Builder;
-import com.dtstack.flinkx.metadataes6.format.Metadataes6InputFormat;
+import com.dtstack.flinkx.metadataes6.inputformat.Metadataes6InputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;

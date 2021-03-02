@@ -55,5 +55,13 @@ public class MetadataEntity implements Serializable {
         this.errorMsg = errorMsg;
     }
 
-
+    @Override
+    public String toString() {
+        return "MetadataEntity{" +
+                "schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

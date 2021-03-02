@@ -42,4 +42,16 @@ public class TableMetaData extends TableEntity {
         this.primaryKey = primaryKey;
     }
 
+    @Override
+    public String toString() {
+        return "TableMetaData{" +
+                "indexes=" + indexes +
+                ", primaryKey=" + primaryKey +
+                ", tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

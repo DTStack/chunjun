@@ -25,6 +25,8 @@ import java.io.Serializable;
  */
 public class TableEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**表名称*/
     protected String tableName;
 
@@ -60,4 +62,14 @@ public class TableEntity implements Serializable {
         this.comment = comment;
     }
 
+    @Override
+    public String toString() {
+        return "TableEntity{" +
+                "tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

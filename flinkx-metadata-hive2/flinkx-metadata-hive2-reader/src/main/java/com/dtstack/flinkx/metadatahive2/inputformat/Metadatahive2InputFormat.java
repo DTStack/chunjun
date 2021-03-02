@@ -66,7 +66,7 @@ import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.TAB
  */
 public class Metadatahive2InputFormat extends MetadatardbInputFormat {
 
-    private static final long serialVersionUID = 1L;
+    protected static final long serialVersionUID = 1L;
 
     /**hive 配置信息*/
     protected Map<String, Object> hadoopConfig;

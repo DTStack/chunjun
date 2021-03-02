@@ -23,4 +23,18 @@ public class MetadataVerticaEntity extends MetadatardbEntity {
     public void setPartitionColumns(List<ColumnEntity> partitionColumns) {
         this.partitionColumns = partitionColumns;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataVerticaEntity{" +
+                "partitionColumns=" + partitionColumns +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

@@ -37,4 +37,16 @@ public class OracleTableEntity extends TableEntity {
     public void setTableType(String tableType) {
         this.tableType = tableType;
     }
+
+    @Override
+    public String toString() {
+        return "OracleTableEntity{" +
+                "tableType='" + tableType + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

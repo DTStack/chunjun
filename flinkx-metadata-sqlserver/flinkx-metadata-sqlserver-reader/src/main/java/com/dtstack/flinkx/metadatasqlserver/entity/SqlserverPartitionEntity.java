@@ -10,6 +10,8 @@ import java.io.Serializable;
  */
 public class SqlserverPartitionEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**
      * 分区字段
      */
@@ -60,5 +62,15 @@ public class SqlserverPartitionEntity implements Serializable {
 
     public void setFileGroupName(String fileGroupName) {
         this.fileGroupName = fileGroupName;
+    }
+
+    @Override
+    public String toString() {
+        return "SqlserverPartitionEntity{" +
+                "columnName='" + columnName + '\'' +
+                ", rows=" + rows +
+                ", createTime='" + createTime + '\'' +
+                ", fileGroupName='" + fileGroupName + '\'' +
+                '}';
     }
 }

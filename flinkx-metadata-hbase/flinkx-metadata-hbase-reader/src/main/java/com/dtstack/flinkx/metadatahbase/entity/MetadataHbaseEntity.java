@@ -50,4 +50,13 @@ public class MetadataHbaseEntity extends MetadataEntity {
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataHbaseEntity{" +
+                "tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                '}';
+    }
 }

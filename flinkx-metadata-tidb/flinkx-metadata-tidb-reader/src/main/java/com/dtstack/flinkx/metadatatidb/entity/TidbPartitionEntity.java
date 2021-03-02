@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 public class TidbPartitionEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**字段名称*/
     private String columnName;
 
@@ -81,5 +83,16 @@ public class TidbPartitionEntity implements Serializable {
 
     public void setPartitionRows(Long partitionRows) {
         this.partitionRows = partitionRows;
+    }
+
+    @Override
+    public String toString() {
+        return "TidbPartitionEntity{" +
+                "columnName='" + columnName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", partitionSize=" + partitionSize +
+                ", partitionRows=" + partitionRows +
+                ", updateTime='" + updateTime + '\'' +
+                '}';
     }
 }

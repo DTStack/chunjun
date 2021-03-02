@@ -38,4 +38,18 @@ public class MetadatasqlserverEntity extends MetadatardbEntity {
     public void setPartionColumn(List<ColumnEntity> partionColumn) {
         this.partionColumn = partionColumn;
     }
+
+    @Override
+    public String toString() {
+        return "MetadatasqlserverEntity{" +
+                "partionColumn=" + partionColumn +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

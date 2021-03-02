@@ -61,4 +61,13 @@ public class IndexMetaData implements Serializable {
     public void setIndexType(String indexType) {
         this.indexType = indexType;
     }
+
+    @Override
+    public String toString() {
+        return "IndexMetaData{" +
+                "indexName='" + indexName + '\'' +
+                ", columns=" + columns +
+                ", indexType='" + indexType + '\'' +
+                '}';
+    }
 }

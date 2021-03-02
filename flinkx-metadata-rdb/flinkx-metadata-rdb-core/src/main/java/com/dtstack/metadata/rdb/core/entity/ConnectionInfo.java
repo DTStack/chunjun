@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 public class ConnectionInfo implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**jdbcUrl*/
     private String jdbcUrl;
 
@@ -92,5 +94,16 @@ public class ConnectionInfo implements Serializable {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    @Override
+    public String toString() {
+        return "ConnectionInfo{" +
+                "jdbcUrl='" + jdbcUrl + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", driver='" + driver + '\'' +
+                ", timeout=" + timeout +
+                '}';
     }
 }

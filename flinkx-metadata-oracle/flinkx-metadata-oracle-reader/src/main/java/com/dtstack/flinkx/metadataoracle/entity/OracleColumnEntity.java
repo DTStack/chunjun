@@ -37,4 +37,19 @@ public class OracleColumnEntity extends ColumnEntity {
     public void setPrimaryKey(String primaryKey) {
         this.primaryKey = primaryKey;
     }
+
+    @Override
+    public String toString() {
+        return "OracleColumnEntity{" +
+                "primaryKey='" + primaryKey + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", index=" + index +
+                ", nullAble='" + nullAble + '\'' +
+                ", length=" + length +
+                ", digital=" + digital +
+                '}';
+    }
 }

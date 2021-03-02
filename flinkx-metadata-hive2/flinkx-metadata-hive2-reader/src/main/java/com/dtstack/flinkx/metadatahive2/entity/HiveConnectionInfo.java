@@ -44,4 +44,11 @@ public class HiveConnectionInfo extends ConnectionInfo {
     public void setHiveConf(Map<String, Object> hiveConf) {
         this.hiveConf = hiveConf;
     }
+
+    @Override
+    public String toString() {
+        return "HiveConnectionInfo{" +
+                "hiveConf=" + hiveConf +
+                '}';
+    }
 }

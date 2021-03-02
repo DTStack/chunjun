@@ -52,4 +52,20 @@ public class MetadataTidbEntity extends MetadataMysqlEntity {
     public void setPartitions(List<TidbPartitionEntity> partitions) {
         this.partitions = partitions;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataTidbEntity{" +
+                "partitionColumnEntities=" + partitionColumnEntities +
+                ", partitions=" + partitions +
+                ", indexEntities=" + indexEntities +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

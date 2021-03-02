@@ -26,7 +26,6 @@ import com.dtstack.metadata.rdb.core.constants.RdbCons;
 public class TidbMetadataCons extends RdbCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
-    public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_UPDATE_TIME = "updateTime";
 
 
@@ -48,7 +47,6 @@ public class TidbMetadataCons extends RdbCons {
     public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
-    public static final String SQL_SWITCH_DATABASE = "USE `%s`";
     public static final String SQL_SHOW_TABLES = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM `%s`";

@@ -26,6 +26,8 @@ import java.util.List;
  */
 public class ColumnEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**表示是第n个被查出来的字段*/
     private int columnIndex;
 
@@ -68,5 +70,15 @@ public class ColumnEntity implements Serializable {
 
     public void setFieldList(List<FieldEntity> fieldList) {
         this.fieldList = fieldList;
+    }
+
+    @Override
+    public String toString() {
+        return "ColumnEntity{" +
+                "columnIndex=" + columnIndex +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", fieldList=" + fieldList +
+                '}';
     }
 }

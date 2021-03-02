@@ -47,4 +47,15 @@ public class MysqlTableEntity extends TableEntity {
         this.tableType = tableType;
     }
 
+    @Override
+    public String toString() {
+        return "MysqlTableEntity{" +
+                "tableType='" + tableType + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

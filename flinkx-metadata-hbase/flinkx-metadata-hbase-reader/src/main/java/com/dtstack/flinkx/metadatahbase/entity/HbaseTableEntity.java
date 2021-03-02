@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 public class HbaseTableEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**region的数量*/
     private Integer regionCount;
 
@@ -61,5 +63,16 @@ public class HbaseTableEntity implements Serializable {
 
     public void setTotalSize(Long totalSize) {
         this.totalSize = totalSize;
+    }
+
+    @Override
+    public String toString() {
+        return "HbaseTableEntity{" +
+                "regionCount=" + regionCount +
+                ", tableName='" + tableName + '\'' +
+                ", nameSpace='" + nameSpace + '\'' +
+                ", createTime=" + createTime +
+                ", totalSize=" + totalSize +
+                '}';
     }
 }

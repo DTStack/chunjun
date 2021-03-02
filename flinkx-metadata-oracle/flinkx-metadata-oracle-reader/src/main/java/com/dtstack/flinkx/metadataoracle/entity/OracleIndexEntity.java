@@ -27,6 +27,8 @@ import java.io.Serializable;
  */
 public class OracleIndexEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**索引名称*/
     private String name;
 
@@ -58,5 +60,14 @@ public class OracleIndexEntity implements Serializable {
 
     public void setColumnName(String columnName) {
         this.columnName = columnName;
+    }
+
+    @Override
+    public String toString() {
+        return "OracleIndexEntity{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", columnName='" + columnName + '\'' +
+                '}';
     }
 }

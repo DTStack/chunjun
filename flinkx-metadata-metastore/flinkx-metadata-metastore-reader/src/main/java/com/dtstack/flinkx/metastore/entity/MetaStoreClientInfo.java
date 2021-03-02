@@ -54,4 +54,12 @@ public class MetaStoreClientInfo {
         this.metaStoreUrl = metaStoreUrl;
         this.hiveConf = hiveConf;
     }
+
+    @Override
+    public String toString() {
+        return "MetaStoreClientInfo{" +
+                "metaStoreUrl='" + metaStoreUrl + '\'' +
+                ", hiveConf=" + hiveConf +
+                '}';
+    }
 }

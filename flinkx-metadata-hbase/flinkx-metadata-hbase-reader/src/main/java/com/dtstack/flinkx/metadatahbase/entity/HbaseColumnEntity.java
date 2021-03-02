@@ -28,10 +28,19 @@ import java.io.Serializable;
  */
 public class HbaseColumnEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**hbase 列族名称*/
     private String columnFamily;
 
     public void setColumnFamily(String columnFamily) {
         this.columnFamily = columnFamily;
+    }
+
+    @Override
+    public String toString() {
+        return "HbaseColumnEntity{" +
+                "columnFamily='" + columnFamily + '\'' +
+                '}';
     }
 }

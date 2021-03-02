@@ -34,4 +34,19 @@ public class Phoenix5ColumnEntity extends ColumnEntity {
     public void setIsPrimaryKey(String isPrimaryKey) {
         this.isPrimaryKey = isPrimaryKey;
     }
+
+    @Override
+    public String toString() {
+        return "Phoenix5ColumnEntity{" +
+                "isPrimaryKey='" + isPrimaryKey + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", index=" + index +
+                ", nullAble='" + nullAble + '\'' +
+                ", length=" + length +
+                ", digital=" + digital +
+                '}';
+    }
 }

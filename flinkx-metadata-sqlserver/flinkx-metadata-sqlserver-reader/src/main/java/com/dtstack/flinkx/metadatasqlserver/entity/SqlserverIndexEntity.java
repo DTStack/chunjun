@@ -11,6 +11,8 @@ import java.util.List;
  */
 public class SqlserverIndexEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**
      * 索引名
      */
@@ -57,5 +59,14 @@ public class SqlserverIndexEntity implements Serializable {
 
     public void setIndexColumn(List<String> indexColumn) {
         this.indexColumn = indexColumn;
+    }
+
+    @Override
+    public String toString() {
+        return "SqlserverIndexEntity{" +
+                "indexName='" + indexName + '\'' +
+                ", indexType='" + indexType + '\'' +
+                ", indexColumn=" + indexColumn +
+                '}';
     }
 }

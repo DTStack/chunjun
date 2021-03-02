@@ -26,6 +26,7 @@ import java.io.Serializable;
 
 public class ColumnEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
 
     /**是否是主键*/
     private String primaryKey;
@@ -92,5 +93,20 @@ public class ColumnEntity implements Serializable {
 
     public void setPrimaryKey(String primaryKey) {
         this.primaryKey = primaryKey;
+    }
+
+    @Override
+    public String toString() {
+        return "ColumnEntity{" +
+                "primaryKey='" + primaryKey + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", index=" + index +
+                ", nullAble='" + nullAble + '\'' +
+                ", length=" + length +
+                ", digital=" + digital +
+                '}';
     }
 }

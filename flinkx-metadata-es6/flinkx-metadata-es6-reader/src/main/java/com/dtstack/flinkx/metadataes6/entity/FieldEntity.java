@@ -25,6 +25,8 @@ import java.io.Serializable;
  */
 public class FieldEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**keyword or text*/
     private String fieldName;
 
@@ -45,5 +47,13 @@ public class FieldEntity implements Serializable {
 
     public void setFieldProp(String fieldProp) {
         this.fieldProp = fieldProp;
+    }
+
+    @Override
+    public String toString() {
+        return "FieldEntity{" +
+                "fieldName='" + fieldName + '\'' +
+                ", fieldProp='" + fieldProp + '\'' +
+                '}';
     }
 }

@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class MetadataBaseInputSplit  implements InputSplit {
 
-    private static final long serialVersionUID = -4483633039887822171L;
+    protected static final long serialVersionUID = 1L;
 
     /**分片编号*/
     private int splitNumber;

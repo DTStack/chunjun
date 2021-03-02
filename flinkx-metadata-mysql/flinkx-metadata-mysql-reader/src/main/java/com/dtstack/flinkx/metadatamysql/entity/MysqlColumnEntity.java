@@ -38,4 +38,19 @@ public class MysqlColumnEntity extends ColumnEntity {
     public void setPartition(String partition) {
         this.partition = partition;
     }
+
+    @Override
+    public String toString() {
+        return "MysqlColumnEntity{" +
+                "partition='" + partition + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", index=" + index +
+                ", nullAble='" + nullAble + '\'' +
+                ", length=" + length +
+                ", digital=" + digital +
+                '}';
+    }
 }

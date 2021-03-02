@@ -38,4 +38,16 @@ public class Phoenix5TableEntity extends TableEntity {
     public void setNameSpace(String nameSpace) {
         this.nameSpace = nameSpace;
     }
+
+    @Override
+    public String toString() {
+        return "Phoenix5TableEntity{" +
+                "nameSpace='" + nameSpace + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

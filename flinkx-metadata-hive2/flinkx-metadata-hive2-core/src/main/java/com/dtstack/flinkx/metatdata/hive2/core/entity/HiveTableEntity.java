@@ -55,4 +55,14 @@ public class HiveTableEntity extends TableEntity {
     public void setLocation(String location) {
         this.location = location;
     }
+
+    @Override
+    public String toString() {
+        return "HiveTableEntity{" +
+                "lastAccessTime='" + lastAccessTime + '\'' +
+                ", transientLastDdlTime='" + transientLastDdlTime + '\'' +
+                ", location='" + location + '\'' +
+                ", storeType='" + storeType + '\'' +
+                '}';
+    }
 }

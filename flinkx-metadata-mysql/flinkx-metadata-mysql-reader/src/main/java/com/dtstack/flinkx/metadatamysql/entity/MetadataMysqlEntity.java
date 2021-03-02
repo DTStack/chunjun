@@ -34,4 +34,17 @@ public class MetadataMysqlEntity extends MetadatardbEntity {
         this.indexEntities = indexEntities;
     }
 
+    @Override
+    public String toString() {
+        return "MetadataMysqlEntity{" +
+                "indexEntities=" + indexEntities +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

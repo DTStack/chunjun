@@ -61,7 +61,6 @@
         <module>flinkx-websocket</module>
 
         <!--******元数据******-->
-        <module>flinkx-metadata</module>
         <module>flinkx-metadata-hive2</module>
         <module>flinkx-metadata-hive1</module>
         <module>flinkx-metadata-tidb</module>
@@ -74,9 +73,7 @@
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
 <!--        <module>flinkx-metadata-es6</module>-->
-
-        <module>flinkx-metadata-es6</module>
-
+<!--        <module>flinkx-metadata-metastore</module>-->
         <module>flinkx-restapi</module>
         <module>flinkx-websocket</module>
         <module>flinkx-socket</module>

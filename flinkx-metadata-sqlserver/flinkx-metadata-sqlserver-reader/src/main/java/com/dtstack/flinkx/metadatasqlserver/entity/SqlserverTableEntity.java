@@ -51,4 +51,18 @@ public class SqlserverTableEntity extends TableEntity {
     public void setPartition(List<SqlserverPartitionEntity> partition) {
         this.partition = partition;
     }
+
+    @Override
+    public String toString() {
+        return "SqlserverTableEntity{" +
+                "primaryKey=" + primaryKey +
+                ", index=" + index +
+                ", partition=" + partition +
+                ", tableName='" + tableName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", comment='" + comment + '\'' +
+                ", totalSize=" + totalSize +
+                ", rows=" + rows +
+                '}';
+    }
 }

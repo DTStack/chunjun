@@ -57,6 +57,8 @@ import static com.dtstack.flinkx.metadatavertica.constants.VerticaMetaDataCons.S
  */
 public class MetadataverticaInputFormat extends MetadatardbInputFormat {
 
+    protected static final long serialVersionUID = 1L;
+
     /**创建时间集合*/
     protected Map<String, String> createTimeMap;
 

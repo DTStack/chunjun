@@ -25,6 +25,8 @@ import java.io.Serializable;
  */
 public class IndexProperties implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**索引存储的总容量*/
     private String totalSize;
 
@@ -133,5 +135,21 @@ public class IndexProperties implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "IndexProperties{" +
+                "totalSize='" + totalSize + '\'' +
+                ", shards='" + shards + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", replicas='" + replicas + '\'' +
+                ", docsDeleted='" + docsDeleted + '\'' +
+                ", docsCount='" + docsCount + '\'' +
+                ", priSize='" + priSize + '\'' +
+                ", health='" + health + '\'' +
+                ", uuid='" + uuid + '\'' +
+                ", status='" + status + '\'' +
+                '}';
     }
 }

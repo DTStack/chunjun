@@ -50,4 +50,19 @@ public class MetadataOracleEntity extends MetadatardbEntity {
     public void setPartitionColumns(List<OracleColumnEntity> partitionColumns) {
         this.partitionColumns = partitionColumns;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataOracleEntity{" +
+                "oracleIndexEntityList=" + oracleIndexEntityList +
+                ", partitionColumns=" + partitionColumns +
+                ", tableProperties=" + tableProperties +
+                ", columns=" + columns +
+                ", tableName='" + tableName + '\'' +
+                ", schema='" + schema + '\'' +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
+                ", operaType='" + operaType + '\'' +
+                '}';
+    }
 }

@@ -75,6 +75,8 @@ import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
 
+    protected static final long serialVersionUID = 1L;
+
     /**表和创建时间集合*/
     private Map<String, Long> createTimeMap;
 

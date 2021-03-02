@@ -71,4 +71,14 @@ public class MetaDataEs6Entity extends MetadataEntity {
     public void setAlias(List<AliasEntity> aliasList) {
         this.aliasList = aliasList;
     }
+
+    @Override
+    public String toString() {
+        return "MetaDataEs6Entity{" +
+                "indexProperties=" + indexProperties +
+                ", column=" + column +
+                ", indexName='" + indexName + '\'' +
+                ", aliasList=" + aliasList +
+                '}';
+    }
 }

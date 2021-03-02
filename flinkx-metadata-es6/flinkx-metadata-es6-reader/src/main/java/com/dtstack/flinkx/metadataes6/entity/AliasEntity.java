@@ -25,6 +25,8 @@ import java.io.Serializable;
  */
 public class AliasEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**索引别名*/
     private String aliasName;
 
@@ -45,5 +47,13 @@ public class AliasEntity implements Serializable {
 
     public void setAliasProp(String aliasProp) {
         this.aliasProp = aliasProp;
+    }
+
+    @Override
+    public String toString() {
+        return "AliasEntity{" +
+                "aliasName='" + aliasName + '\'' +
+                ", aliasProp='" + aliasProp + '\'' +
+                '}';
     }
 }

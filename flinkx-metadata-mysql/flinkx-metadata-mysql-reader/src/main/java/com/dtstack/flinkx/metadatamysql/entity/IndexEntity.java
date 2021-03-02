@@ -27,6 +27,8 @@ import java.io.Serializable;
  */
 public class IndexEntity implements Serializable {
 
+    protected static final long serialVersionUID = 1L;
+
     /**索引名称*/
     protected String indexName;
 
@@ -55,4 +57,13 @@ public class IndexEntity implements Serializable {
         this.indexType = indexType;
     }
 
+    @Override
+    public String toString() {
+        return "IndexEntity{" +
+                "indexName='" + indexName + '\'' +
+                ", columnName='" + columnName + '\'' +
+                ", indexComment='" + indexComment + '\'' +
+                ", indexType='" + indexType + '\'' +
+                '}';
+    }
 }

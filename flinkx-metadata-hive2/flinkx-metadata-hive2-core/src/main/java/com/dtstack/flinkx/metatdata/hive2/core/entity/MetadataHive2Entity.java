@@ -53,4 +53,11 @@ public class MetadataHive2Entity extends MetadatardbEntity {
         this.partitionColumns = partitionColumns;
     }
 
+    @Override
+    public String toString() {
+        return "MetadataHive2Entity{" +
+                "partitions=" + partitions +
+                ", partitionColumns=" + partitionColumns +
+                '}';
+    }
 }

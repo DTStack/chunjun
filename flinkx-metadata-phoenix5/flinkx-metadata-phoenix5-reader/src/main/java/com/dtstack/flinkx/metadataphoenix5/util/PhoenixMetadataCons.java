@@ -27,17 +27,9 @@ import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 public class PhoenixMetadataCons extends RdbCons {
 
-    public static final String KEY_PRIMARY_KEY = "is_primary_key";
-
     public static final String KEY_PATH = "path";
 
     public static final String KEY_DEFAULT = "default";
-
-    public static final String KEY_TABLE_NAME = "table_name";
-
-    public static final String KEY_NAMESPACE = "namespace";
-
-    public static final String KEY_CREATE_TIME = "createTime";
 
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 

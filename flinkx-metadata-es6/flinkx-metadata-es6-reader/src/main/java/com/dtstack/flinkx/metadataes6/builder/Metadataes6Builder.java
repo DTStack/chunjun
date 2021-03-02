@@ -19,7 +19,7 @@ package com.dtstack.flinkx.metadataes6.builder;
 
 
 import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.flinkx.metadataes6.format.Metadataes6InputFormat;
+import com.dtstack.flinkx.metadataes6.inputformat.Metadataes6InputFormat;
 
 /**
  * @author : baiyu
