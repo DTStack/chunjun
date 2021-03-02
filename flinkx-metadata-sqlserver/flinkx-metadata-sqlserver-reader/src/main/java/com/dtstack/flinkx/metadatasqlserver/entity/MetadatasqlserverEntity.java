@@ -13,14 +13,10 @@ import java.util.List;
  */
 public class MetadatasqlserverEntity extends MetadatardbEntity {
 
-    /**
-     * 数据库名
-     */
+    /**数据库名*/
     private String dataBaseName;
 
-    /**
-     * 分区字段
-     */
+    /**分区字段*/
     private List<ColumnEntity> partionColumn;
 
     public String getDataBaseName() {

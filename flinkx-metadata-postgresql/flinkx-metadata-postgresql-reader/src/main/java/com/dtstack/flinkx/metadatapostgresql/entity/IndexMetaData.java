@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- *
  * 定义索引的元数据
  *
  * @author shitou
@@ -13,19 +12,13 @@ import java.util.List;
  */
 public class IndexMetaData implements Serializable {
 
-    /**
-     * 索引名
-     */
+    /**索引名*/
     private String indexName;
 
-    /**
-     * 索引列名
-     */
+    /**索引列*/
     private List<String> columns;
 
-    /**
-     * 索引类型
-     */
+    /**索引类型*/
     private String indexType;
 
 

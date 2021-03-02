@@ -2,6 +2,7 @@ package com.dtstack.flinkx.metadatapostgresql.entity;
 
 
 import com.dtstack.metadata.rdb.core.entity.TableEntity;
+
 import java.util.List;
 
 /**
@@ -11,14 +12,10 @@ import java.util.List;
  */
 public class TableMetaData extends TableEntity {
 
-    /**
-     * 表中的索引
-     */
+    /**表中的索引*/
     private List<IndexMetaData> indexes;
 
-    /**
-     * 主键
-     */
+    /**主键*/
     private List<String> primaryKey;
 
 

@@ -12,9 +12,7 @@ import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 public class MetadataPostgresqlEntity extends MetadatardbEntity {
 
 
-    /**
-     * 数据库名
-     */
+    /**数据库名*/
     private String dataBaseName;
 
     public String getDataBaseName() {

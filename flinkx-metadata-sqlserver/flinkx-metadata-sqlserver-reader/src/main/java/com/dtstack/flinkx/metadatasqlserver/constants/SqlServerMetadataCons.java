@@ -34,9 +34,8 @@ public class SqlServerMetadataCons extends RdbCons {
     public static final String KEY_TABLE_NAME = "tableName";
 
     public static final String SQL_SWITCH_DATABASE = "USE \"%s\"";
-    /**
-     * 拼接成schema.table
-     */
+
+    /**拼接成schema.table*/
     public static final String SQL_SHOW_TABLES = "SELECT OBJECT_SCHEMA_NAME(object_id, DB_ID()) as SCHEMA_NAME, name FROM sys.tables";
 
     public static final String SQL_SHOW_TABLE_PROPERTIES = "SELECT a.crdate, b.rows, rtrim(8*dpages) used, ep.value \n" +

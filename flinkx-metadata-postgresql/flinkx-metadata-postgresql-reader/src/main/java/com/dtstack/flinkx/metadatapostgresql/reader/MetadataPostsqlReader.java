@@ -8,11 +8,11 @@ import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- *
  * @author shitou
  * @date 2020/12/9 16:21
  */
 public class MetadataPostsqlReader extends MetadatardbReader {
+
 
     public MetadataPostsqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
