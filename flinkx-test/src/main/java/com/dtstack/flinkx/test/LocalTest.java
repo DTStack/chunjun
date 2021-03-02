@@ -127,7 +127,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "/Users/yanghuai/Library/Application Support/JetBrains/IntelliJIdea2020.3/scratches/实时/sqlservercdc_stream.json";
+        String jobPath = "your json file's absolute path";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
         System.exit(0);
