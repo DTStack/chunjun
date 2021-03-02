@@ -45,6 +45,9 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     protected Map<String,Object> hadoopConfig;
 
+    //hadoop是否是高可用
+    protected boolean isHa;
+
     protected List<MetaColumn> metaColumns;
 
     protected String inputPath;

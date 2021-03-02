@@ -17,20 +17,29 @@
  */
 package com.dtstack.flinkx.restapi.common;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.gson.Gson;
+import org.apache.commons.collections.MapUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -47,6 +56,29 @@ public class HttpUtil {
     public static Gson gson = new Gson();
 
     public static CloseableHttpClient getHttpClient() {
+
+        return getBaseBuilder().build();
+    }
+
+
+    public static CloseableHttpClient getHttpsClient() {
+
+        // 设置Http连接池
+        SSLContext sslContext;
+        try {
+            sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (certificate, authType) -> true).build();
+        } catch (Exception e) {
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(e);
+        }
+        return getBaseBuilder()
+                .setSSLContext(sslContext)
+                .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                .build();
+    }
+
+    public static HttpClientBuilder getBaseBuilder() {
         // 设置自定义的重试策略
         MyServiceUnavailableRetryStrategy strategy = new MyServiceUnavailableRetryStrategy
                 .Builder()
@@ -73,9 +105,7 @@ public class HttpUtil {
                 .setServiceUnavailableRetryStrategy(strategy)
                 .setRetryHandler(retryHandler)
                 .setDefaultRequestConfig(requestConfig)
-                .setConnectionManager(pcm)
-                .build();
-//        return HttpClientBuilder.create().build();
+                .setConnectionManager(pcm);
     }
 
     public static HttpRequestBase getRequest(String method,
@@ -83,7 +113,7 @@ public class HttpUtil {
                                              Map<String, String> header,
                                              String url) {
         LOG.debug("current request url: {}  current method:{} \n", url, method);
-        HttpRequestBase request = null;
+        HttpRequestBase request ;
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
@@ -100,6 +130,51 @@ public class HttpUtil {
         }
         return request;
     }
+
+
+    public static HttpRequestBase getRequest(String method,
+                                             Map<String, String> requestBody,
+                                             Map<String, String> requestParam,
+                                             Map<String, String> header,
+                                             String url)  {
+
+        HttpRequestBase request ;
+        if (MapUtils.isNotEmpty(requestParam)) {
+            ArrayList<String> params = new ArrayList<>();
+            requestParam.forEach((k, v) -> {
+                try {
+                    //参数进行编码
+                    params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8.name()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException("URLEncoder.encode k [" + k + "] or v ["+ v +"] failed ", e);
+                }
+            });
+            if (url.contains("?")) {
+                url += "&" + String.join("&", params);
+            } else {
+                url += "?" + String.join("&", params);
+            }
+        }
+
+        LOG.debug("current request url: {}  current method:{} \n", url, method);
+        if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
+            request = new HttpGet(url);
+        } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
+            HttpPost post = new HttpPost(url);
+            HashMap<String, Object> tmp = new HashMap<>();
+            requestBody.forEach(tmp::put);
+            post.setEntity(getEntityData(tmp));
+            request = post;
+        } else {
+            throw new UnsupportedOperationException("Unsupported method:" + method);
+        }
+
+        for (Map.Entry<String, String> entry : header.entrySet()) {
+            request.addHeader(entry.getKey(), entry.getValue());
+        }
+        return request;
+    }
+
 
     public static void closeClient(CloseableHttpClient httpClient) {
         try {

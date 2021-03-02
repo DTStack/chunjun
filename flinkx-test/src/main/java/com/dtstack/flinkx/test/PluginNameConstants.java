@@ -40,6 +40,7 @@ public class PluginNameConstants {
     public static final String GBASE_READER = "gbasereader";
     public static final String KUDU_READER = "kudureader";
     public static final String BINLOG_READER = "binlogreader";
+    public static final String SQLSERVER_CDC_READER = "sqlservercdcreader";
     public static final String KAFKA09_READER = "kafka09reader";
     public static final String KAFKA10_READER = "kafka10reader";
     public static final String KAFKA11_READER = "kafka11reader";
@@ -53,6 +54,8 @@ public class PluginNameConstants {
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
     public static final String KINGBASE_READER = "kingbasereader";
+    public static final String RESTAPI_READER = "restapireader";
+
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";

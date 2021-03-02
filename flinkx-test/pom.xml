@@ -401,6 +401,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-sqlservercdc-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
@@ -432,10 +438,14 @@
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-restapi-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-restapi-writer</artifactId>
             <version>1.6</version>
         </dependency>
-
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-dm-reader</artifactId>

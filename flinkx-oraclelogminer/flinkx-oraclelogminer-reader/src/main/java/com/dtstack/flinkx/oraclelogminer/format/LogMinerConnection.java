@@ -54,22 +54,37 @@ import java.util.Map;
  */
 public class LogMinerConnection {
 
+    public static Logger LOG = LoggerFactory.getLogger(LogMinerConnection.class);
+
     public static final String KEY_PRIVILEGE = "PRIVILEGE";
     public static final String KEY_GRANTED_ROLE = "GRANTED_ROLE";
+
     public static final String DBA_ROLE = "DBA";
     public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
+
     public static final int ORACLE_11_VERSION = 11;
+    public int oracleVersion;
+    //oracle10数据库字符编码是否设置为GBK
+    public boolean isGBK = false;
+    boolean isOracle10;
+
+    public static final long MAX_SCN = 281474976710655L;
+
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
             "LOGMINING",
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
+
     public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
+
     public static final int RETRY_TIMES = 3;
+
     public static final int SLEEP_TIME = 2000;
+
     public final static String KEY_SEG_OWNER = "SEG_OWNER";
     public final static String KEY_TABLE_NAME = "TABLE_NAME";
     public final static String KEY_OPERATION = "OPERATION";
@@ -79,20 +94,25 @@ public class LogMinerConnection {
     public final static String KEY_SCN = "SCN";
     public final static String KEY_CURRENT_SCN = "CURRENT_SCN";
     public final static String KEY_FIRST_CHANGE = "FIRST_CHANGE#";
-    private static final long QUERY_LOG_INTERVAL = 10000;
-    public static Logger LOG = LoggerFactory.getLogger(LogMinerConnection.class);
-    public int oracleVersion;
-    //oracle10数据库字符编码是否设置为GBK
-    public boolean isGBK = false;
-    boolean isOracle10;
+
     private LogMinerConfig logMinerConfig;
+
     private Connection connection;
+
     private CallableStatement logMinerStartStmt;
+
     private PreparedStatement logMinerSelectStmt;
+
     private ResultSet logMinerData;
+
     private QueueData result;
+
     private List<LogFile> addedLogFiles = new ArrayList<>();
+
     private long lastQueryTime;
+
+    private static final long QUERY_LOG_INTERVAL = 10000;
+
     private boolean logMinerStarted = false;
 
     /**
@@ -105,7 +125,6 @@ public class LogMinerConnection {
     }
 
     public void connect() {
-        PreparedStatement preparedStatement = null;
         try {
             ClassUtil.forName(logMinerConfig.getDriverName(), getClass().getClassLoader());
 
@@ -116,17 +135,20 @@ public class LogMinerConnection {
 
             if(isOracle10){
                 //oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
-                preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT);
-                preparedStatement.execute();
-                preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT);
-                preparedStatement.execute();
+                try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
+                    preparedStatement.execute();
+                }
+                try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT)) {
+                    preparedStatement.execute();
+                }
             }
 
            LOG.info("get connection successfully, url:{}, username:{}, Oracle version：{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), oracleVersion);
         } catch (Exception e){
             String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
-            closeResources(null, preparedStatement, connection);
+            //出现异常 需要关闭connection,保证connection 和 session日期配置 生命周期一致
+            closeResources(null, null, connection);
             throw new RuntimeException(message, e);
         }
     }
@@ -423,13 +445,7 @@ public class LogMinerConnection {
                 logFiles.add(logFile);
             }
         } finally {
-            if (null != rs) {
-                rs.close();
-            }
-
-            if (null != statement) {
-                statement.close();
-            }
+            closeResources(rs, statement, null);
         }
 
         lastQueryTime = System.currentTimeMillis();
@@ -551,6 +567,7 @@ public class LogMinerConnection {
         }
     }
 
+
     private boolean containsNeededPrivileges(Statement statement) {
         try (ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES)) {
             List<String> privileges = new ArrayList<>();
@@ -651,11 +668,11 @@ public class LogMinerConnection {
         }
     }
 
-    public void setPreScn(Long preScn) {
-        this.preScn = preScn;
-    }
-
     public enum ReadPosition{
         ALL, CURRENT, TIME, SCN
+    }
+
+    public void setPreScn(Long preScn) {
+        this.preScn = preScn;
     }
 }

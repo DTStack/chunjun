@@ -209,7 +209,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                 case VARCHAR:
                 case CHAR:
                     if (column instanceof Timestamp){
-                        SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                        SimpleDateFormat fm = DateUtil.getDateTimeFormatterForMillisencond();
                         sb.append(fm.format(column));
                     }else if (column instanceof Map || column instanceof List){
                         sb.append(gson.toJson(column));
