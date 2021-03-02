@@ -11,6 +11,8 @@
   - [4、采集原理](#4采集原理)
   - [1、insert/delete](#1insertdelete)
   - [2、update](#2update)
+  - [3、流程图](#3流程图)
+  - [4、数据格式](#4数据格式)
 
 <!-- /TOC -->
 # 一、基础
@@ -252,4 +254,24 @@ UPDATE [dbo].[kudu] SET [user_id] = '3', [name] = 'c' WHERE [id] = 2;
 <br/>
 
 
+#### 3、流程图
+
+
+<div align=center>
+<img src="../../images/SqlserverCDC/Sqlserver15.png" />
+</div>
+<br/>
 对于FlinkX SqlServer CDC实时采集插件，其基本原理便是以轮询的方式，循环调用fn_cdc_get_all_changes_函数，获取上次结束时的lsn与当前数据库最大lsn值之间的数据。对于insert/delete类型的数据获取并解析一行，对于update类型获取并解析两行。解析完成后把数据传递到下游并记录当前解析到的数据的lsn，为下次轮询做准备。
+
+#### 4、数据格式
+```json
+{
+    "type":"update",
+    "schema":"dbo",
+    "table":"tb1",
+    "lsn":"00000032:00002038:0005",
+    "ts": 6760525407742726144,
+    "before_id":1,
+    "after_id":2
+}
+```
