@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.ftp.reader;
 
+import com.dtstack.flinkx.ftp.FtpConfig;
+import com.dtstack.flinkx.ftp.FtpHandlerFactory;
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
 import org.slf4j.Logger;
@@ -49,9 +51,13 @@ public class FtpSeqBufferedReader {
 
     private String fileEncoding;
 
-    public FtpSeqBufferedReader(IFtpHandler ftpHandler, Iterator<String> iter) {
+    //ftp配置信息
+    private FtpConfig ftpConfig;
+
+    public FtpSeqBufferedReader(IFtpHandler ftpHandler, Iterator<String> iter, FtpConfig ftpConfig) {
         this.ftpHandler = ftpHandler;
         this.iter = iter;
+        this.ftpConfig = ftpConfig;
     }
 
     public String readLine() throws IOException{
@@ -97,7 +103,19 @@ public class FtpSeqBufferedReader {
             br = null;
 
             if (ftpHandler instanceof FtpHandler){
-                ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
+                try {
+                    ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
+                } catch (Exception e) {
+                    //如果出现了超时异常，就直接获取一个新的ftpHandler
+                    LOG.warn("FTPClient completePendingCommand has error ->",e);
+                    try{
+                        ftpHandler.logoutFtpServer();
+                    }catch (Exception exception){
+                        LOG.warn("FTPClient logout has error ->",exception);
+                    }
+                    ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
+                    ftpHandler.loginFtpServer(ftpConfig);
+                }
             }
         }
     }

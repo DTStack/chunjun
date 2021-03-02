@@ -155,21 +155,24 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 
 <br/>
 
+
+<a name="ftKiS"></a>
 ## 三、配置示例
 ### 1、kafka09
 ```json
 {
-  "job" : {
-    "content" : [ {
+  "job": {
+    "content": [{
       "reader" : {
         "parameter" : {
           "topic" : "kafka09",
-          "groupId" : "default",
-          "codec" : "text",
+          "codec": "plain",
           "encoding": "UTF-8",
-          "blankIgnore": false,
           "consumerSettings" : {
-            "zookeeper.connect" : "localhost:2181/kafka09"
+            "zookeeper.connect" : "0.0.0.1:2182/kafka09",
+            "group.id" : "default",
+            "auto.commit.interval.ms" : "1000",
+            "auto.offset.reset" : "smallest"
           }
         },
         "name" : "kafka09reader"

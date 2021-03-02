@@ -404,6 +404,12 @@ public class DbUtil {
         String[] splits = DB_PATTERN.split(dbUrl);
 
         Map<String,String> paramMap = new HashMap<>(16);
+        if(!CollectionUtil.isNullOrEmpty(extParamMap)){
+            paramMap.putAll(extParamMap);
+        }
+        paramMap.put("useCursorFetch", "true");
+        paramMap.put("rewriteBatchedStatements", "true");
+
         if(splits.length > 1) {
             String[] pairs = splits[1].split("&");
             for(String pair : pairs) {
@@ -411,12 +417,6 @@ public class DbUtil {
                 paramMap.put(leftRight[0], leftRight[1]);
             }
         }
-
-        if(!CollectionUtil.isNullOrEmpty(extParamMap)){
-            paramMap.putAll(extParamMap);
-        }
-        paramMap.put("useCursorFetch", "true");
-        paramMap.put("rewriteBatchedStatements", "true");
 
         StringBuffer sb = new StringBuffer(dbUrl.length() + 128);
         sb.append(splits[0]).append("?");

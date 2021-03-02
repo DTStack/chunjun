@@ -69,6 +69,8 @@ public class FtpHandler implements IFtpHandler {
             // 不需要写死ftp server的OS TYPE,FTPClient getSystemType()方法会自动识别
             ftpClient.setConnectTimeout(ftpConfig.getTimeout());
             ftpClient.setDataTimeout(ftpConfig.getTimeout());
+            //设置控制连接超时
+            ftpClient.setSoTimeout(ftpConfig.getTimeout());
             if (EFtpMode.PASV.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterRemotePassiveMode();
                 ftpClient.enterLocalPassiveMode();
