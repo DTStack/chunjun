@@ -20,6 +20,8 @@ package com.dtstack.flinkx.hdfs.writer;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -89,14 +91,18 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        super.checkFormat();
 
-        if (format.defaultFs == null || format.defaultFs.length() == 0) {
-            throw new IllegalArgumentException("No defaultFS supplied.");
+
+        StringBuilder errorMessage = new StringBuilder(256);
+
+        if (format.getPath() == null || format.getPath().length() == 0) {
+            errorMessage.append("No path supplied. \n");
         }
 
-        if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
-            throw new IllegalArgumentException("defaultFS should start with hdfs://");
+        if (StringUtils.isBlank(format.defaultFs)) {
+            errorMessage.append("No defaultFS supplied. \n");
+        }else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
+            errorMessage.append("defaultFS should start with hdfs:// \n");
         }
     }
 

@@ -83,6 +83,21 @@ kafka插件存在四个版本，根据kafka版本的不同，插件名称也略�
 
 <br/>
 
+
+- **partitionAssignColumns**
+  - 描述：根据用户自定义的字段值来将相同key值的数据发向同一个 topic partition(目前只支持kafka 1.0以后的版本)
+  - 必选：否
+  - 字段类型：List
+  - 默认值：无
+
+<br />
+
+- **dataCompelOrder**
+  - 描述：是否强制要求kafka topic接受数据保证顺序一致性(目前只支持kafka 1.0以后的版本)
+  - 必选：否
+  - 字段类型：Boolean
+  - 默认值：false
+
 ## 三、配置示例
 ### 1、kafka09
 ```json

@@ -17,9 +17,13 @@
  */
 package com.dtstack.flinkx.restapi.reader;
 
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.client.Strategy;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * HttpRestConfig
@@ -28,71 +32,75 @@ import java.util.Map;
  * @Date 2020/9/28
  */
 public class HttpRestConfig implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * http协议 https/http
+     **/
+    private String protocol = "https";
+
+    /**
+     * http请求地址
+     **/
     private String url;
-    private String type;
+
+    /**
+     * http请求方式 post/get
+     **/
+    private String requestMode;
+
+
+    /**
+     * 对返回值的处理 text/json
+     **/
+    private String decode = "text";
+
+    /**
+     * decode为json时，指定解析的key
+     */
+    private String fields;
+
+
+    /**
+     * 请求的间隔时间 单位毫秒
+     **/
     private Long intervalTime;
-    private List columns;
-    private String format;
-    private Map<String, Map<String,String>> header;
-    private Map<String, Map<String,String>> body;
-    private Map<String, Map<String,String>> param;
-    protected List handlers;
 
 
-    public String getType() {
-        return type;
+    /**
+     * 请求的header头
+     **/
+    private List<MetaParam> header = new ArrayList<>(2);
+
+    /**
+     * 请求的param
+     **/
+    private List<MetaParam> param = new ArrayList<>(2);
+
+
+    /**
+     * 请求的body
+     **/
+    private List<MetaParam> body = new ArrayList<>(2);
+
+    /**
+     * 返回结果的处理策略
+     **/
+    protected List<Strategy> strategy = new ArrayList<>(2);
+
+
+    public boolean isJsonDecode() {
+        return getDecode().equalsIgnoreCase(ConstantValue.DEFAULT_DECODE);
     }
 
-    public void setType(String type) {
-        this.type = type;
+
+    public String getProtocol() {
+        return protocol;
     }
 
-    public List getColumns() {
-        return columns;
-    }
-
-    public void setColumns(List columns) {
-        this.columns = columns;
-    }
-
-    public Map<String, Map<String, String>> getHeader() {
-        return header;
-    }
-
-    public void setHeader(Map<String, Map<String, String>> header) {
-        this.header = header;
-    }
-
-    public Map<String, Map<String, String>> getBody() {
-        return body;
-    }
-
-    public void setBody(Map<String, Map<String, String>> body) {
-        this.body = body;
-    }
-
-    public Map<String, Map<String, String>> getParam() {
-        return param;
-    }
-
-    public void setParam(Map<String, Map<String, String>> param) {
-        this.param = param;
-    }
-
-    public Long getIntervalTime() {
-        return intervalTime;
-    }
-
-    public void setIntervalTime(Long intervalTime) {
-        this.intervalTime = intervalTime;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public String getUrl() {
@@ -103,11 +111,84 @@ public class HttpRestConfig implements Serializable {
         this.url = url;
     }
 
-    public List getHandlers() {
-        return handlers;
+    public String getRequestMode() {
+        return requestMode;
     }
 
-    public void setHandlers(List handlers) {
-        this.handlers = handlers;
+    public void setRequestMode(String requestMode) {
+        this.requestMode = requestMode;
+    }
+
+    public String getDecode() {
+        return decode;
+    }
+
+    public void setDecode(String decode) {
+        this.decode = decode;
+    }
+
+    public Long getIntervalTime() {
+        return intervalTime;
+    }
+
+    public void setIntervalTime(Long intervalTime) {
+        this.intervalTime = intervalTime;
+    }
+
+
+    public List<Strategy> getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(List<Strategy> strategy) {
+        this.strategy = strategy;
+    }
+
+    public String getFields() {
+        return fields;
+    }
+
+    public void setFields(String fields) {
+        this.fields = fields;
+    }
+
+    public List<MetaParam> getHeader() {
+        return header;
+    }
+
+    public void setHeader(List<MetaParam> header) {
+        this.header = header;
+    }
+
+    public List<MetaParam> getParam() {
+        return param;
+    }
+
+    public void setParam(List<MetaParam> param) {
+        this.param = param;
+    }
+
+    public List<MetaParam> getBody() {
+        return body;
+    }
+
+    public void setBody(List<MetaParam> body) {
+        this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        return "HttpRestConfig{" +
+                "protocol='" + protocol + '\'' +
+                ", url='" + url + '\'' +
+                ", requestMode='" + requestMode + '\'' +
+                ", decode='" + decode + '\'' +
+                ", fields='" + fields + '\'' +
+                ", intervalTime=" + intervalTime +
+                ", header=" + header +
+                ", param=" + param +
+                ", body=" + body +
+                ", strategy=" + strategy +
+                '}';
     }
 }
