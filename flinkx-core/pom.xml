@@ -141,12 +141,6 @@
             <artifactId>simpleclient</artifactId>
             <version>0.5.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-metrics-prometheus_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.curator</groupId>
@@ -233,7 +227,7 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <!--<delete dir = "${basedir}/../syncplugins"/>-->
+                                <delete dir = "${basedir}/../syncplugins"/>
                                 <copy todir="${basedir}/../syncplugins/">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
