@@ -23,14 +23,14 @@
         <module>flinkx-oracle</module>
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
-        <module>flinkx-db2</module>
-        <module>flinkx-dm</module>
-        <module>flinkx-gbase</module>
+        <!--<module>flinkx-db2</module>-->
+        <!--<module>flinkx-dm</module>-->
+        <!--<module>flinkx-gbase</module>-->
         <module>flinkx-clickhouse</module>
         <module>flinkx-saphana</module>
         <module>flinkx-teradata</module>
         <module>flinkx-greenplum</module>
-        <module>flinkx-kingbase</module>
+        <!--<module>flinkx-kingbase</module>-->
 
         <module>flinkx-hdfs</module>
         <module>flinkx-hive</module>
@@ -39,7 +39,7 @@
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
 <!--        <module>flinkx-phoenix</module>-->
-        <module>flinkx-phoenix5</module>
+        <!--<module>flinkx-phoenix5</module>-->
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
         <module>flinkx-cassandra</module>
@@ -82,6 +82,12 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-math3</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>provided</scope>
         </dependency>
 

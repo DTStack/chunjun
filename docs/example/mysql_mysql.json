@@ -1,0 +1,74 @@
+
+{
+	"job": {
+		"content": [{
+			"reader": {
+				"parameter": {
+					"username": "root",
+					"password": "root@1298",
+					"connection": [{
+						"jdbcUrl": ["jdbc:mysql://192.168.90.145:3306/china?useSSL=false&useUnicode=true&characterEncoding=utf8"],
+						"table": ["pipeline_source"]
+					}],
+					"column": [{
+						"name": "id",
+						"type": "bigint"
+					}, {
+						"name": "user_id",
+						"type": "bigint"
+					}, {
+						"name": "name",
+						"type": "varchar"
+					}],
+					"customSql": "",
+					"where": "id > 2",
+					"splitPk": "id",
+					"increColumn": "id",
+					"startLocation": "",
+					"polling": true,
+					"pollingInterval": 5000,
+					"queryTimeOut": 1000,
+					"requestAccumulatorInterval": 2
+				},
+				"name": "mysqlreader"
+			},
+			"writer": {
+				"name": "mysqlwriter",
+				"parameter": {
+					"username": "root",
+					"password": "root@1298",
+					"connection": [{
+						"jdbcUrl": "jdbc:mysql://192.168.90.145:3306/china?useSSL=false&useUnicode=true&characterEncoding=utf8",
+						"table": ["pipeline_sink"]
+					}],
+					"preSql": ["truncate table pipeline_sink;"],
+					"postSql": [],
+					"writeMode": "insert",
+					"column": ["id", "user_id", "name"],
+					"batchSize": 2
+				}
+			}
+		}],
+		"setting": {
+			"speed": {
+				"channel": 1,
+				"bytes": 0
+			},
+			"errorLimit": {
+				"record": 100
+			},
+			"restore": {
+				"maxRowNumForCheckpoint": 0,
+				"isRestore": true,
+				"restoreColumnName": "id",
+				"restoreColumnIndex": 1
+			},
+			"log": {
+				"isLogger": false,
+				"level": "debug",
+				"path": "",
+				"pattern": ""
+			}
+		}
+	}
+}
