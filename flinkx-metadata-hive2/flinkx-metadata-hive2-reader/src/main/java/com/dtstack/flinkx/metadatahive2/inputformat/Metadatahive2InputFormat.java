@@ -78,7 +78,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
     public List<Object> showTables() throws SQLException {
         List<Object> tables = new ArrayList<>();
         try (ResultSet rs = statement.executeQuery(SQL_SHOW_TABLES)) {
-            int pos = rs.getMetaData().getColumnCount()==1?1:2;
+            int pos = rs.getMetaData().getColumnCount() == 1 ? 1 : 2;
             while (rs.next()) {
                 tables.add(rs.getString(pos));
             }
@@ -99,7 +99,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
         List<ColumnEntity> columnList = new ArrayList<>();
         List<ColumnEntity> partitionColumnList = new ArrayList<>();
         HiveTableEntity tableProperties = new HiveTableEntity();
-        String tableName = (String)currentObject;
+        String tableName = (String) currentObject;
         List<Map<String, String>> metaData;
         try {
             metaData = queryData(tableName);
@@ -108,15 +108,15 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
         }
         Iterator<Map<String, String>> it = metaData.iterator();
         int metaDataFlag = 0;
-        while(it.hasNext()){
+        while (it.hasNext()) {
             Map<String, String> lineDataInternal = it.next();
             String colNameInternal = lineDataInternal.get(KEY_COL_NAME);
             if (StringUtils.isBlank(colNameInternal)) {
                 continue;
             }
-            if(colNameInternal.startsWith("#")){
+            if (colNameInternal.startsWith("#")) {
                 colNameInternal = StringUtils.trim(colNameInternal);
-                switch (colNameInternal){
+                switch (colNameInternal) {
                     case PARTITION_INFORMATION:
                         metaDataFlag = 1;
                         break;
@@ -132,12 +132,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
                 }
                 continue;
             }
-            switch (metaDataFlag){
+            switch (metaDataFlag) {
                 case 0:
-                    columnList.add(parseColumn(lineDataInternal, columnList.size()+1));
+                    columnList.add(parseColumn(lineDataInternal, columnList.size() + 1));
                     break;
                 case 1:
-                    partitionColumnList.add(parseColumn(lineDataInternal, partitionColumnList.size()+1));
+                    partitionColumnList.add(parseColumn(lineDataInternal, partitionColumnList.size() + 1));
                     break;
                 case 2:
                     parseTableProperties(lineDataInternal, tableProperties, it);
@@ -234,11 +234,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
 
     /**
      * 解析字段信息
+     *
      * @param lineDataInternal
      * @param index
      * @return
      */
-    private ColumnEntity parseColumn(Map<String, String> lineDataInternal, int index){
+    private ColumnEntity parseColumn(Map<String, String> lineDataInternal, int index) {
         ColumnEntity hiveColumnEntity = new ColumnEntity();
         String dataTypeInternal = lineDataInternal.get(KEY_COLUMN_DATA_TYPE);
         String commentInternal = lineDataInternal.get(KEY_COMMENT);
@@ -252,6 +253,7 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
 
     /**
      * 查询表元数据
+     *
      * @param table
      * @return
      * @throws SQLException
@@ -278,11 +280,12 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
 
     /**
      * 解析表的参数
+     *
      * @param lineDataInternal
      * @param tableProperties
      * @param it
      */
-    void parseTableProperties(Map<String, String> lineDataInternal, HiveTableEntity tableProperties, Iterator<Map<String, String>> it){
+    void parseTableProperties(Map<String, String> lineDataInternal, HiveTableEntity tableProperties, Iterator<Map<String, String>> it) {
         String name = lineDataInternal.get(KEY_COL_NAME);
 
         if (name.contains(KEY_COL_LOCATION)) {
@@ -312,11 +315,11 @@ public class Metadatahive2InputFormat extends MetadatardbInputFormat {
                 }
 
                 if (nameInternal.contains(KEY_TOTALSIZE)) {
-                    tableProperties.setTotalSize(MapUtils.getLong(lineDataInternal,paraSecond));
+                    tableProperties.setTotalSize(MapUtils.getLong(lineDataInternal, paraSecond));
                 }
 
                 if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
-                    tableProperties.setTransientLastDdlTime(MapUtils.getString(lineDataInternal,paraSecond));
+                    tableProperties.setTransientLastDdlTime(MapUtils.getString(lineDataInternal, paraSecond));
                 }
             }
         }

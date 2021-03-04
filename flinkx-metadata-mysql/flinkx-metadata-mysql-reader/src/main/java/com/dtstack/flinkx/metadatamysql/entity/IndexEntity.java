@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.metadatamysql.entity;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
 
 /**

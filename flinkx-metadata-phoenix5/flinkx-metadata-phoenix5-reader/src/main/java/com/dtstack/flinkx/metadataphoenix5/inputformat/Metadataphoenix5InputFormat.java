@@ -109,7 +109,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
     }
 
     @Override
-    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+    public MetadatardbEntity createMetadatardbEntity() {
         String tableName = (String) currentObject;
         MetadatardbEntity metadataPhoenix5Entity = new MetadatardbEntity();
         metadataPhoenix5Entity.setTableProperties(queryTableProp(tableName));

@@ -96,6 +96,7 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
 
     /**
      * 查询表元数据实体信息
+     *
      * @return
      * @throws IOException
      */

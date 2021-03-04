@@ -120,6 +120,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     /**
      * 查询表元数据
+     *
      * @param tableName
      * @return
      * @throws SQLException
@@ -156,6 +157,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     /**
      * 查询表的配置信息
+     *
      * @return
      * @throws SQLException
      */
@@ -181,6 +183,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     /**
      * 获取表以及表索引集合，批量查询
+     *
      * @return
      * @throws SQLException
      */
@@ -212,6 +215,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     /**
      * 获取表和表字段集合
+     *
      * @return
      * @throws SQLException
      */
@@ -293,6 +297,7 @@ public class MetadataoracleInputFormat extends MetadatardbInputFormat {
 
     /**
      * 根据sql查询集合集
+     *
      * @param sql
      * @return
      * @throws SQLException

@@ -104,7 +104,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
      *
      * @return 表名
      */
-    public List<Object> showTables() throws SQLException{
+    public List<Object> showTables() throws SQLException {
         List<Object> tables = new ArrayList<>();
         try (ResultSet resultSet = connection.getMetaData().getTables(currentDatabase, null, null, null)) {
             while (resultSet.next()) {
@@ -112,7 +112,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
             }
         } catch (SQLException e) {
             LOG.error("failed to query table, currentDb = {} ", currentDatabase);
-            throw new SQLException("show tables error"+e.getMessage(),e);
+            throw new SQLException("show tables error" + e.getMessage(), e);
         }
         return tables;
     }
@@ -121,7 +121,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
     public MetadataEntity createMetadataEntity() throws Exception {
         MetadatardbEntity entity = createMetadatardbEntity();
         entity.setSchema(currentDatabase);
-        entity.setTableName((String)currentObject);
+        entity.setTableName((String) currentObject);
         return entity;
     }
 
@@ -136,6 +136,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     /**
      * 查询字段信息
+     *
      * @return
      * @throws SQLException
      */
@@ -145,7 +146,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
         try (ResultSet resultSet = connection.getMetaData().getColumns(currentDatabase, schema, currentTable, null);
              ResultSet primaryResultSet = connection.getMetaData().getPrimaryKeys(currentDatabase, schema, currentTable)) {
             Set<String> primaryColumns = Sets.newHashSet();
-            while(primaryResultSet.next()){
+            while (primaryResultSet.next()) {
                 primaryColumns.add(primaryResultSet.getString(RESULT_COLUMN_NAME));
             }
             while (resultSet.next()) {
@@ -158,7 +159,7 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
                 columnEntity.setComment(resultSet.getString(RESULT_REMARKS));
                 columnEntity.setDigital(resultSet.getInt(RESULT_DECIMAL_DIGITS));
                 columnEntity.setLength(resultSet.getInt(RESULT_COLUMN_SIZE));
-                columnEntity.setPrimaryKey(primaryColumns.contains(columnEntity.getName())?KEY_TRUE : KEY_FALSE);
+                columnEntity.setPrimaryKey(primaryColumns.contains(columnEntity.getName()) ? KEY_TRUE : KEY_FALSE);
                 columnEntities.add(columnEntity);
             }
         } catch (SQLException e) {
@@ -176,40 +177,43 @@ abstract public class MetadatardbInputFormat extends MetadataBaseInputFormat {
 
     /**
      * jdbc数据源获取连接
+     *
      * @return
      * @throws SQLException
      */
-    public Connection getConnection() throws SQLException{
+    public Connection getConnection() throws SQLException {
         return MetadataDbUtil.getConnection(connectionInfo);
     }
 
     /**
      * 关闭资源
+     *
      * @throws IOException
      */
-    public void closeResource() throws IOException{
+    public void closeResource() throws IOException {
         try {
-            MetadataDbUtil.close(statement,connection);
+            MetadataDbUtil.close(statement, connection);
         } catch (Exception e) {
-            throw new IOException("close resource error"+e.getMessage(),e);
+            throw new IOException("close resource error" + e.getMessage(), e);
         }
     }
 
     /**
      * 通过jdbc执行sql
+     *
      * @param sql
      * @param statement
      * @return
      */
-    protected ResultSet executeQuery0(String sql, Statement statement){
+    protected ResultSet executeQuery0(String sql, Statement statement) {
         ResultSet resultSet = null;
-        if(StringUtils.isNotBlank(sql)){
+        if (StringUtils.isNotBlank(sql)) {
             LOG.info("execute SQL : {}", sql);
-            try{
-                if(statement!=null){
+            try {
+                if (statement != null) {
                     resultSet = statement.executeQuery(sql);
                 }
-            }catch (SQLException e){
+            } catch (SQLException e) {
                 LOG.error("execute SQL failed : {}", ExceptionUtil.getErrorMessage(e));
             }
 

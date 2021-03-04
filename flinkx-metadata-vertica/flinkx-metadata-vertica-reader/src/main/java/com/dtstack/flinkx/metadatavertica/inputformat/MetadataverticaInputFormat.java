@@ -88,7 +88,7 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
     }
 
     @Override
-    public MetadatardbEntity createMetadatardbEntity() throws Exception {
+    public MetadatardbEntity createMetadatardbEntity()  {
         return queryMetaData((String) currentObject);
     }
 
@@ -112,10 +112,6 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
         metadataVerticaEntity.setTableProperties(queryTableProp(tableName));
         metadataVerticaEntity.setColumns(queryColumn(tableName));
         return metadataVerticaEntity;
-    }
-
-    protected String quote(String name) {
-        return name;
     }
 
     protected void init() {

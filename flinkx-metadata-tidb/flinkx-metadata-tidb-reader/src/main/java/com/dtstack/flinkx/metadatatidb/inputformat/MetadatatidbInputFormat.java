@@ -95,6 +95,7 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     /**
      * 查询元数据信息
+     *
      * @return
      * @throws SQLException
      */
@@ -131,6 +132,7 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     /**
      * 查看表的元数据信息
+     *
      * @return
      * @throws SQLException
      */
@@ -176,6 +178,7 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     /**
      * 查看分区的元数据信息
+     *
      * @return
      * @throws SQLException
      */
@@ -199,6 +202,7 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     /**
      * 查看分区的创建时间
+     *
      * @return
      * @throws SQLException
      */
@@ -222,6 +226,7 @@ public class MetadatatidbInputFormat extends MetadatamysqlInputFormat {
 
     /**
      * 查询分区字段集合
+     *
      * @return
      * @throws SQLException
      */

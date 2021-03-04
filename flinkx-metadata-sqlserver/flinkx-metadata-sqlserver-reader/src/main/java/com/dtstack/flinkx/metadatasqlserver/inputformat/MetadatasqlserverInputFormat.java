@@ -84,14 +84,14 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row){
+    protected Row nextRecordInternal(Row row) {
 
         MetadatasqlserverEntity metadatasqlserverEntity = new MetadatasqlserverEntity();
 
         currentObject = iterator.next();
-        Map<String,String> map = (Map<String,String>) currentObject;
+        Map<String, String> map = (Map<String, String>) currentObject;
         schema = map.get(SqlServerMetadataCons.KEY_SCHEMA_NAME);
-        table  = map.get(SqlServerMetadataCons.KEY_TABLE_NAME);
+        table = map.get(SqlServerMetadataCons.KEY_TABLE_NAME);
 
         try {
             metadatasqlserverEntity = (MetadatasqlserverEntity) createMetadatardbEntity();
@@ -114,8 +114,8 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         try (ResultSet rs = statement.executeQuery(SqlServerMetadataCons.SQL_SHOW_TABLES)) {
             while (rs.next()) {
                 HashMap<String, String> map = new HashMap<>();
-                map.put(SqlServerMetadataCons.KEY_SCHEMA_NAME,rs.getString(1));
-                map.put(SqlServerMetadataCons.KEY_TABLE_NAME,rs.getString(2));
+                map.put(SqlServerMetadataCons.KEY_SCHEMA_NAME, rs.getString(1));
+                map.put(SqlServerMetadataCons.KEY_TABLE_NAME, rs.getString(2));
                 tableNameList.add(map);
             }
         }
@@ -147,11 +147,11 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         statement.execute(String.format(SqlServerMetadataCons.SQL_SWITCH_DATABASE, currentDatabase));
     }
 
-    private List<SqlserverPartitionEntity> queryPartition() throws SQLException{
+    private List<SqlserverPartitionEntity> queryPartition() throws SQLException {
         List<SqlserverPartitionEntity> partitions = new ArrayList<>();
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_PARTITION, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.executeQuery(sql)){
-            while (resultSet.next()){
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
                 SqlserverPartitionEntity partitionEntity = new SqlserverPartitionEntity();
                 partitionEntity.setColumnName(resultSet.getString(1));
                 partitionEntity.setRows(resultSet.getLong(2));
@@ -176,18 +176,19 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
 
     /**
      * 区分分区字段和非分区字段
+     *
      * @param columns 所有字段
-     * @param key  分区字段
-    */
-    private List<ColumnEntity> distinctPartitionColumn(List<ColumnEntity> columns, String key){
+     * @param key     分区字段
+     */
+    private List<ColumnEntity> distinctPartitionColumn(List<ColumnEntity> columns, String key) {
         List<ColumnEntity> partitionColumn = new ArrayList<>();
-        if(StringUtils.isNotEmpty(key)){
-            columns.removeIf(columnEntity->
+        if (StringUtils.isNotEmpty(key)) {
+            columns.removeIf(columnEntity ->
             {
-                if(StringUtils.equals(key, columnEntity.getName())){
+                if (StringUtils.equals(key, columnEntity.getName())) {
                     partitionColumn.add(columnEntity);
                     return true;
-                }else {
+                } else {
                     return false;
                 }
             });
@@ -195,33 +196,33 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         return partitionColumn;
     }
 
-    private List<SqlserverIndexEntity> queryIndexes() throws SQLException{
+    private List<SqlserverIndexEntity> queryIndexes() throws SQLException {
         List<SqlserverIndexEntity> result = new ArrayList<>();
         //索引名对columnName的映射
-        HashMap<String,ArrayList<String>> indexColumns = new HashMap<>(16);
+        HashMap<String, ArrayList<String>> indexColumns = new HashMap<>(16);
         //索引名对索引类型的映射
-        HashMap<String,String> indexType = new HashMap<>(16);
+        HashMap<String, String> indexType = new HashMap<>(16);
 
         ResultSet resultSet = connection.getMetaData().getIndexInfo(currentDatabase, schema, table, false, false);
-        while(resultSet.next()){
+        while (resultSet.next()) {
             ArrayList<String> columns = indexColumns.get(resultSet.getString("INDEX_NAME"));
-            if(columns != null){
+            if (columns != null) {
                 columns.add(resultSet.getString("COLUMN_NAME"));
-            }else if(resultSet.getString("COLUMN_NAME") != null){
+            } else if (resultSet.getString("COLUMN_NAME") != null) {
                 ArrayList<String> list = new ArrayList<>();
                 list.add(resultSet.getString("COLUMN_NAME"));
-                indexColumns.put(resultSet.getString("INDEX_NAME"),list);
+                indexColumns.put(resultSet.getString("INDEX_NAME"), list);
             }
         }
 
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_INDEX, quote(table), quote(schema));
         ResultSet indexResultSet = statement.executeQuery(sql);
-        while (indexResultSet.next()){
+        while (indexResultSet.next()) {
             indexType.put(indexResultSet.getString(1)
                     , indexResultSet.getString(3));
         }
 
-        for(String key : indexColumns.keySet()){
+        for (String key : indexColumns.keySet()) {
             result.add(new SqlserverIndexEntity(key, indexType.get(key), indexColumns.get(key)));
         }
 
@@ -229,21 +230,21 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
     }
 
 
-    private List<String> queryTablePrimaryKey() throws SQLException{
+    private List<String> queryTablePrimaryKey() throws SQLException {
         List<String> primaryKey = new ArrayList<>();
         ResultSet resultSet = connection.getMetaData().getPrimaryKeys(currentDatabase, schema, table);
-        while(resultSet.next()){
+        while (resultSet.next()) {
             primaryKey.add(resultSet.getString("COLUMN_NAME"));
         }
         return primaryKey;
     }
 
 
-    private SqlserverTableEntity queryTableProp() throws SQLException{
+    private SqlserverTableEntity queryTableProp() throws SQLException {
         SqlserverTableEntity tableEntity = new SqlserverTableEntity();
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_PROPERTIES, quote(table), quote(schema));
-        try(ResultSet resultSet = statement.executeQuery(sql)){
-            while(resultSet.next()){
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
                 tableEntity.setCreateTime(resultSet.getString(1));
                 tableEntity.setRows(resultSet.getLong(2));
                 tableEntity.setTotalSize(resultSet.getLong(3));
