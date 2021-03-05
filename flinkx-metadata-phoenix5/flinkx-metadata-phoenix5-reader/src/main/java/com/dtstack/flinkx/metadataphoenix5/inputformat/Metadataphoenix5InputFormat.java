@@ -20,21 +20,19 @@ package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputSplit;
 import com.dtstack.flinkx.metadataphoenix5.util.IPhoenix5Helper;
 import com.dtstack.flinkx.metadataphoenix5.util.Phoenix5Util;
-import com.dtstack.flinkx.util.ZkHelper;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+import com.dtstack.flinkx.util.ZkHelper;
 import com.google.common.collect.Lists;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
+import org.apache.flink.util.FlinkUserCodeClassLoader;
 import org.apache.zookeeper.ZooKeeper;
 import org.codehaus.commons.compiler.CompileException;
 import sun.misc.URLClassPath;
@@ -296,7 +294,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         list.add("org.apache.flink");
         list.add("com.dtstack.flinkx");
 
-        URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
+        URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]), FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER);
         Properties properties = new Properties();
         ClassUtil.forName(driverName, childFirstClassLoader);
         if (StringUtils.isNotEmpty(username)) {

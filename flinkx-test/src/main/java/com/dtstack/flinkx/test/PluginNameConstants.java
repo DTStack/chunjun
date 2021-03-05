@@ -21,7 +21,7 @@ package com.dtstack.flinkx.test;
 /**
  * @author jiangbo
  */
-public class PluginNameConstrant {
+public class PluginNameConstants {
 
     public static final String STREAM_READER = "streamreader";
     public static final String CARBONDATA_READER = "carbondatareader";

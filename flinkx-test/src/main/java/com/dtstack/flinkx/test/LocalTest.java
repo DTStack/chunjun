@@ -58,11 +58,9 @@ import com.dtstack.flinkx.kingbase.writer.KingbaseWriter;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahbase.reader.MetadatahbaseReader;
-//import com.dtstack.flinkx.metadataes6.reader.Metadataes6Reader;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
-import com.dtstack.flinkx.metadataphoenix5.reader.MetadataphoenixReader;
 import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.metadatavertica.reader.MetadataverticaReader;
@@ -85,7 +83,6 @@ import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
-import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.socket.reader.SocketReader;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
@@ -97,7 +94,6 @@ import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -114,15 +110,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+
 /**
  * @author jiangbo
  */
 public class LocalTest {
 
-    private static final int FAILURE_RATE = 3;
-    private static final int FAILURE_INTERVAL = 6;
-    private static final int DELAY_INTERVAL = 10;
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
     public static Configuration conf = new Configuration();
 
@@ -138,7 +131,7 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "D:\\daishu\\metaes.json";
+        String jobPath = "your json file's absolute path";
         JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
         System.exit(0);
@@ -161,12 +154,7 @@ public class LocalTest {
 
         env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
 
-        if (needRestart(config)) {
-            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-                    10,
-                    Time.of(10, TimeUnit.SECONDS)
-            ));
-        }
+        env.setRestartStrategy(RestartStrategies.noRestart());
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
         BaseDataReader reader = buildDataReader(config, env);
         DataStream<Row> dataStream = reader.readData();
@@ -209,48 +197,45 @@ public class LocalTest {
         String readerName = config.getJob().getContent().get(0).getReader().getName();
         BaseDataReader reader ;
         switch (readerName){
-            case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
-            case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
-            case PluginNameConstrant.ORACLE_READER : reader = new OracleReader(config, env); break;
-            case PluginNameConstrant.POSTGRESQL_READER : reader = new PostgresqlReader(config, env); break;
-            case PluginNameConstrant.SQLSERVER_READER : reader = new SqlserverReader(config, env); break;
-            case PluginNameConstrant.MYSQLD_READER : reader = new MysqldReader(config, env); break;
-            case PluginNameConstrant.MYSQL_READER : reader = new MysqlReader(config, env); break;
-            case PluginNameConstrant.DB2_READER : reader = new Db2Reader(config, env); break;
-            case PluginNameConstrant.GBASE_READER : reader = new GbaseReader(config, env); break;
-            case PluginNameConstrant.ES_READER : reader = new EsReader(config, env); break;
-            case PluginNameConstrant.FTP_READER : reader = new FtpReader(config, env); break;
-            case PluginNameConstrant.HBASE_READER : reader = new HbaseReader(config, env); break;
-            case PluginNameConstrant.HDFS_READER : reader = new HdfsReader(config, env); break;
-            case PluginNameConstrant.MONGODB_READER : reader = new MongodbReader(config, env); break;
-            case PluginNameConstrant.ODPS_READER : reader = new OdpsReader(config, env); break;
-            case PluginNameConstrant.BINLOG_READER : reader = new BinlogReader(config, env); break;
-            case PluginNameConstrant.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
-            case PluginNameConstrant.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
-            case PluginNameConstrant.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
-            case PluginNameConstrant.KAFKA_READER : reader = new KafkaReader(config, env); break;
-            case PluginNameConstrant.KUDU_READER : reader = new KuduReader(config, env); break;
-            case PluginNameConstrant.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
-            case PluginNameConstrant.POLARDB_READER : reader = new PolardbReader(config, env); break;
-            case PluginNameConstrant.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
-//            case PluginNameConstrant.PHOENIX_READER : reader = new PhoenixReader(config, env); break;
-            case PluginNameConstrant.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
-            case PluginNameConstrant.EMQX_READER : reader = new EmqxReader(config, env); break;
-            case PluginNameConstrant.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
-            case PluginNameConstrant.DM_READER : reader = new DmReader(config, env); break;
-            case PluginNameConstrant.METADATAMYSQL_READER : reader = new MetadatamysqlReader(config, env); break;
-            case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
-            case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
-            case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
-            case PluginNameConstrant.METADATAPHOENIX_READER : reader = new MetadataphoenixReader(config, env); break;
-            case PluginNameConstrant.METADATAHBASE_READER : reader = new MetadatahbaseReader(config, env); break;
-//            case PluginNameConstrant.METADATAES6_READER : reader = new Metadataes6Reader(config, env); break;
-            case PluginNameConstrant.METADATAVERTICA_READER : reader = new MetadataverticaReader(config, env); break;
-            case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
-            case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
-            case PluginNameConstrant.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
-            case PluginNameConstrant.RESTAPI_READER: reader = new RestapiReader(config, env); break;
-            case PluginNameConstrant.SOCKET_READER : reader = new SocketReader(config, env); break;
+            case PluginNameConstants.STREAM_READER : reader = new StreamReader(config, env); break;
+            case PluginNameConstants.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
+            case PluginNameConstants.ORACLE_READER : reader = new OracleReader(config, env); break;
+            case PluginNameConstants.POSTGRESQL_READER : reader = new PostgresqlReader(config, env); break;
+            case PluginNameConstants.SQLSERVER_READER : reader = new SqlserverReader(config, env); break;
+            case PluginNameConstants.MYSQLD_READER : reader = new MysqldReader(config, env); break;
+            case PluginNameConstants.MYSQL_READER : reader = new MysqlReader(config, env); break;
+            case PluginNameConstants.DB2_READER : reader = new Db2Reader(config, env); break;
+            case PluginNameConstants.GBASE_READER : reader = new GbaseReader(config, env); break;
+            case PluginNameConstants.ES_READER : reader = new EsReader(config, env); break;
+            case PluginNameConstants.FTP_READER : reader = new FtpReader(config, env); break;
+            case PluginNameConstants.HBASE_READER : reader = new HbaseReader(config, env); break;
+            case PluginNameConstants.HDFS_READER : reader = new HdfsReader(config, env); break;
+            case PluginNameConstants.MONGODB_READER : reader = new MongodbReader(config, env); break;
+            case PluginNameConstants.ODPS_READER : reader = new OdpsReader(config, env); break;
+            case PluginNameConstants.BINLOG_READER : reader = new BinlogReader(config, env); break;
+            case PluginNameConstants.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
+            case PluginNameConstants.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
+            case PluginNameConstants.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
+            case PluginNameConstants.KAFKA_READER : reader = new KafkaReader(config, env); break;
+            case PluginNameConstants.KUDU_READER : reader = new KuduReader(config, env); break;
+            case PluginNameConstants.CLICKHOUSE_READER : reader = new ClickhouseReader(config, env); break;
+            case PluginNameConstants.POLARDB_READER : reader = new PolardbReader(config, env); break;
+            case PluginNameConstants.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
+            case PluginNameConstants.SQLSERVER_CDC_READER : reader = new SqlservercdcReader(config, env); break;
+            case PluginNameConstants.EMQX_READER : reader = new EmqxReader(config, env); break;
+            case PluginNameConstants.METADATAHIVE2_READER : reader = new Metadatahive2Reader(config, env);break;
+            case PluginNameConstants.DM_READER : reader = new DmReader(config, env); break;
+            case PluginNameConstants.METADATAMYSQL_READER : reader = new MetadatamysqlReader(config, env); break;
+            case PluginNameConstants.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
+            case PluginNameConstants.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
+            case PluginNameConstants.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
+            case PluginNameConstants.METADATAHBASE_READER : reader = new MetadatahbaseReader(config, env); break;
+            case PluginNameConstants.METADATAVERTICA_READER : reader = new MetadataverticaReader(config, env); break;
+            case PluginNameConstants.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
+            case PluginNameConstants.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
+            case PluginNameConstants.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
+            case PluginNameConstants.RESTAPI_READER: reader = new RestapiReader(config, env); break;
+            case PluginNameConstants.SOCKET_READER : reader = new SocketReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -261,36 +246,34 @@ public class LocalTest {
         String writerName = config.getJob().getContent().get(0).getWriter().getName();
         BaseDataWriter writer;
         switch (writerName){
-            case PluginNameConstrant.STREAM_WRITER : writer = new StreamWriter(config); break;
-            case PluginNameConstrant.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;
-            case PluginNameConstrant.MYSQL_WRITER : writer = new MysqlWriter(config); break;
-            case PluginNameConstrant.SQLSERVER_WRITER : writer = new SqlserverWriter(config); break;
-            case PluginNameConstrant.ORACLE_WRITER : writer = new OracleWriter(config); break;
-            case PluginNameConstrant.POSTGRESQL_WRITER : writer = new PostgresqlWriter(config); break;
-            case PluginNameConstrant.DB2_WRITER : writer = new Db2Writer(config); break;
-            case PluginNameConstrant.GBASE_WRITER : writer = new GbaseWriter(config); break;
-            case PluginNameConstrant.ES_WRITER : writer = new EsWriter(config); break;
-            case PluginNameConstrant.FTP_WRITER : writer = new FtpWriter(config); break;
-            case PluginNameConstrant.HBASE_WRITER : writer = new HbaseWriter(config); break;
-            case PluginNameConstrant.HDFS_WRITER : writer = new HdfsWriter(config); break;
-            case PluginNameConstrant.MONGODB_WRITER : writer = new MongodbWriter(config); break;
-            case PluginNameConstrant.ODPS_WRITER : writer = new OdpsWriter(config); break;
-            case PluginNameConstrant.REDIS_WRITER : writer = new RedisWriter(config); break;
-            case PluginNameConstrant.HIVE_WRITER : writer = new HiveWriter(config); break;
-            case PluginNameConstrant.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
-            case PluginNameConstrant.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
-            case PluginNameConstrant.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
-            case PluginNameConstrant.KUDU_WRITER : writer = new KuduWriter(config); break;
-            case PluginNameConstrant.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
-            case PluginNameConstrant.POLARDB_WRITER : writer = new PolardbWriter(config); break;
-            case PluginNameConstrant.KAFKA_WRITER : writer = new KafkaWriter(config); break;
-//            case PluginNameConstrant.PHOENIX_WRITER : writer = new PhoenixWriter(config); break;
-            case PluginNameConstrant.EMQX_WRITER : writer = new EmqxWriter(config); break;
-//            case PluginNameConstrant.RESTAPI_WRITER : writer = new RestapiWriter(config);break;
-            case PluginNameConstrant.DM_WRITER : writer = new DmWriter(config); break;
-            case PluginNameConstrant.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
-            case PluginNameConstrant.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
-            case PluginNameConstrant.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
+            case PluginNameConstants.STREAM_WRITER : writer = new StreamWriter(config); break;
+            case PluginNameConstants.CARBONDATA_WRITER : writer = new CarbondataWriter(config); break;
+            case PluginNameConstants.MYSQL_WRITER : writer = new MysqlWriter(config); break;
+            case PluginNameConstants.SQLSERVER_WRITER : writer = new SqlserverWriter(config); break;
+            case PluginNameConstants.ORACLE_WRITER : writer = new OracleWriter(config); break;
+            case PluginNameConstants.POSTGRESQL_WRITER : writer = new PostgresqlWriter(config); break;
+            case PluginNameConstants.DB2_WRITER : writer = new Db2Writer(config); break;
+            case PluginNameConstants.GBASE_WRITER : writer = new GbaseWriter(config); break;
+            case PluginNameConstants.ES_WRITER : writer = new EsWriter(config); break;
+            case PluginNameConstants.FTP_WRITER : writer = new FtpWriter(config); break;
+            case PluginNameConstants.HBASE_WRITER : writer = new HbaseWriter(config); break;
+            case PluginNameConstants.HDFS_WRITER : writer = new HdfsWriter(config); break;
+            case PluginNameConstants.MONGODB_WRITER : writer = new MongodbWriter(config); break;
+            case PluginNameConstants.ODPS_WRITER : writer = new OdpsWriter(config); break;
+            case PluginNameConstants.REDIS_WRITER : writer = new RedisWriter(config); break;
+            case PluginNameConstants.HIVE_WRITER : writer = new HiveWriter(config); break;
+            case PluginNameConstants.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
+            case PluginNameConstants.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
+            case PluginNameConstants.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
+            case PluginNameConstants.KUDU_WRITER : writer = new KuduWriter(config); break;
+            case PluginNameConstants.CLICKHOUSE_WRITER : writer = new ClickhouseWriter(config); break;
+            case PluginNameConstants.POLARDB_WRITER : writer = new PolardbWriter(config); break;
+            case PluginNameConstants.KAFKA_WRITER : writer = new KafkaWriter(config); break;
+            case PluginNameConstants.EMQX_WRITER : writer = new EmqxWriter(config); break;
+            case PluginNameConstants.DM_WRITER : writer = new DmWriter(config); break;
+            case PluginNameConstants.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
+            case PluginNameConstants.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
+            case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
