@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -123,7 +124,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             "AND t.table_name = '%s'";
 
     protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
-    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR","TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
+    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
 
     protected PreparedStatement prepareTemplates() throws SQLException {
         if(CollectionUtils.isEmpty(fullColumn)) {
@@ -358,7 +359,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
         if(field instanceof String
                 && StringUtils.isBlank((String) field)
-                &&!STRING_TYPES.contains(type)){
+                &&!STRING_TYPES.contains(type.toUpperCase(Locale.ENGLISH))){
             return null;
         }
 

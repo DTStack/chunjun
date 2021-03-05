@@ -20,7 +20,6 @@ package com.dtstack.flinkx.hdfs.reader;
 
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
-
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +53,11 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.hadoopConfig = hadoopConfig;
     }
 
-    public void setFilterRegex(String filterRegex){
+    public void setIsHa(boolean isHa) {
+        format.isHa = isHa;
+    }
+
+    public void setFilterRegex(String filterRegex) {
         format.filterRegex = filterRegex;
     }
 
@@ -79,8 +82,12 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+
+        StringBuilder errorMessage = new StringBuilder(256);
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()) {
+            errorMessage.append("This plugin not support restore from failed state\n");
         }
+
     }
 }

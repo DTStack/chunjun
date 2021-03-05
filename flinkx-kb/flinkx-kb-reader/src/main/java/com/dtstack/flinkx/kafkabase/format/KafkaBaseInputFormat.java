@@ -27,10 +27,12 @@ import com.dtstack.flinkx.kafkabase.client.KafkaBaseConsumer;
 import com.dtstack.flinkx.kafkabase.entity.kafkaState;
 import com.dtstack.flinkx.kafkabase.enums.KafkaVersion;
 import com.dtstack.flinkx.kafkabase.enums.StartupMode;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
@@ -61,6 +64,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected String offset;
     protected Long timestamp;
     protected Map<String, String> consumerSettings;
+    protected List<MetaColumn> metaColumns;
     protected Map<String, kafkaState> stateMap;
     protected volatile boolean running = false;
     protected transient BlockingQueue<Row> queue;
@@ -72,7 +76,7 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new GenericInputSplit(i, minNumSplits);
+            splits[i] = new KafkaInputSplit(i, null);
         }
         return splits;
     }
@@ -108,7 +112,20 @@ public class KafkaBaseInputFormat extends BaseRichInputFormat {
 
     public void processEvent(Pair<Map<String, Object>, kafkaState> pair) {
         try {
-            queue.put(Row.of(pair.getLeft()));
+            Row row;
+            if(CollectionUtils.isEmpty(metaColumns)){
+                row = Row.of(pair.getLeft());
+            }else{
+                row = new Row(metaColumns.size());
+                for (int i = 0; i < metaColumns.size(); i++) {
+                    MetaColumn metaColumn = metaColumns.get(i);
+                    Object value = pair.getLeft().get(metaColumn.getName());
+                    Object obj = StringUtil.string2col(String.valueOf(value), metaColumn.getType(), metaColumn.getTimeFormat());
+                    row.setField(i , obj);
+                }
+            }
+            queue.put(row);
+
             kafkaState state = pair.getRight();
             stateMap.put(String.format("%s-%s", state.getTopic(), state.getPartition()), state);
         } catch (InterruptedException e) {

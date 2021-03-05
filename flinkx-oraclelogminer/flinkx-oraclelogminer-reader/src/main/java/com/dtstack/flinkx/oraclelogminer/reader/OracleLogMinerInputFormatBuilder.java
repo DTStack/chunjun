@@ -226,7 +226,16 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                 throw new IllegalArgumentException(sb.toString());
             }
         }catch (SQLException e){
-            throw new RuntimeException("error to check logMiner config, e = " + ExceptionUtil.getErrorMessage(e), e);
+
+            StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
+
+            if(sb.length() > 0){
+                detailsInfo.append(" logMiner config not right，details is  ").append(sb.toString());
+            }
+
+            detailsInfo.append(" \n error to check logMiner config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+
+            throw new RuntimeException(detailsInfo.toString(), e);
         }
     }
 }

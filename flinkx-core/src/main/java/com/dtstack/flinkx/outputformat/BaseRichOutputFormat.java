@@ -33,17 +33,15 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -456,7 +454,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
         updateDuration();
         if(bytesWriteCounter!=null){
-            bytesWriteCounter.add(row.toString().length());
+            bytesWriteCounter.add(row.toString().getBytes().length);
         }
     }
 

@@ -29,6 +29,7 @@ import com.dtstack.flinkx.sqlservercdc.format.SqlserverCdcInputFormat;
 import com.dtstack.flinkx.util.Clock;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.Metronome;
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,7 @@ public class SqlServerCdcListener implements Runnable{
     private Set<Integer> cat;
     private boolean pavingData;
     private Duration pollInterval;
+    private SnowflakeIdWorker idWorker;
 
     public SqlServerCdcListener(SqlserverCdcInputFormat format) throws SQLException {
         this.format = format;
@@ -75,6 +77,7 @@ public class SqlServerCdcListener implements Runnable{
         this.pavingData = format.isPavingData();
         this.tablesSlot = SqlServerCdcUtil.getCdcTablesToQuery(conn, format.getDatabaseName(), tableList);
         this.pollInterval = Duration.of(format.getPollInterval(), ChronoUnit.MILLIS);
+        idWorker = new SnowflakeIdWorker(1, 1);
     }
 
     @Override
@@ -182,7 +185,7 @@ public class SqlServerCdcListener implements Runnable{
         map.put("schema", tableId.getSchemaName());
         map.put("table", tableId.getTableName());
         map.put("lsn", tableWithSmallestLsn.getChangePosition().getCommitLsn().toString());
-        map.put("ingestion", System.nanoTime());
+        map.put("ts", idWorker.nextId());
         if(pavingData){
             int i = 0;
             for (String column : changeTable.getColumnList()) {

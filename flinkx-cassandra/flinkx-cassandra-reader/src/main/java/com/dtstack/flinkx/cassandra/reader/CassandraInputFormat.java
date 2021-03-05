@@ -144,7 +144,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
                     .divide(BigDecimal.valueOf(minNumSplits),2, BigDecimal.ROUND_HALF_EVEN);
             for ( int i = 0; i < minNumSplits; i++ ) {
                 BigInteger l = minToken.add(step.multiply(BigDecimal.valueOf(i))).toBigInteger();
-                BigInteger r = minToken.add(step.multiply(BigDecimal.valueOf(i+1))).toBigInteger();
+                BigInteger r = minToken.add(step.multiply(BigDecimal.valueOf(i+1L))).toBigInteger();
                 if( i == minNumSplits - 1 ) {
                     r = maxToken.toBigInteger();
                 }
@@ -157,7 +157,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
                     .divide(BigDecimal.valueOf(minNumSplits),2, BigDecimal.ROUND_HALF_EVEN);
             for ( int i = 0; i < minNumSplits; i++ ) {
                 long l = minToken.add(step.multiply(BigDecimal.valueOf(i))).longValue();
-                long r = minToken.add(step.multiply(BigDecimal.valueOf(i+1))).longValue();
+                long r = minToken.add(step.multiply(BigDecimal.valueOf(i+1L))).longValue();
                 if( i == minNumSplits - 1 ) {
                     r = maxToken.longValue();
                 }

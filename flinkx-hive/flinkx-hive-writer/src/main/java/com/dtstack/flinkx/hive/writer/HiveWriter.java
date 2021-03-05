@@ -20,6 +20,8 @@ package com.dtstack.flinkx.hive.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.hdfs.HdfsConfigKeys;
+import com.dtstack.flinkx.hive.HiveConfigKeys;
 import com.dtstack.flinkx.hive.TableInfo;
 import com.dtstack.flinkx.hive.TimePartitionFormat;
 import com.dtstack.flinkx.hive.util.HiveUtil;
@@ -34,10 +36,13 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import parquet.hadoop.ParquetWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import static com.dtstack.flinkx.hdfs.HdfsConfigKeys.KEY_ROW_GROUP_SIZE;
-import static com.dtstack.flinkx.hive.HiveConfigKeys.*;
 import static com.dtstack.flinkx.util.GsonUtil.GSON;
 
 /**
@@ -89,34 +94,34 @@ public class HiveWriter extends BaseDataWriter {
         super(config);
         readerName = config.getJob().getContent().get(0).getReader().getName();
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
-        defaultFs = writerConfig.getParameter().getStringVal(KEY_DEFAULT_FS);
-        if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(KEY_FS_DEFAULT_FS)){
-            defaultFs = MapUtils.getString(hadoopConfig, KEY_FS_DEFAULT_FS);
+        hadoopConfig = (Map<String, Object>) writerConfig.getParameter().getVal(HiveConfigKeys.KEY_HADOOP_CONFIG);
+        defaultFs = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_DEFAULT_FS);
+        if (StringUtils.isBlank(defaultFs) && hadoopConfig.containsKey(HiveConfigKeys.KEY_FS_DEFAULT_FS)){
+            defaultFs = MapUtils.getString(hadoopConfig, HiveConfigKeys.KEY_FS_DEFAULT_FS);
         }
-        fileType = writerConfig.getParameter().getStringVal(KEY_FILE_TYPE);
-        partitionType = writerConfig.getParameter().getStringVal(KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
-        partition = writerConfig.getParameter().getStringVal(KEY_PARTITION, "pt");
-        delimiter = writerConfig.getParameter().getStringVal(KEY_FIELD_DELIMITER, "\u0001");
-        charSet = writerConfig.getParameter().getStringVal(KEY_CHARSET_NAME);
-        maxFileSize = writerConfig.getParameter().getLongVal(KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
-        compress = writerConfig.getParameter().getStringVal(KEY_COMPRESS);
-        bufferSize = writerConfig.getParameter().getLongVal(KEY_BUFFER_SIZE, 128 * ConstantValue.STORE_SIZE_M);
-        rowGroupSize = writerConfig.getParameter().getIntVal(KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
+        fileType = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_FILE_TYPE);
+        partitionType = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PARTITION_TYPE, TimePartitionFormat.PartitionEnum.DAY.name());
+        partition = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PARTITION, "pt");
+        delimiter = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_FIELD_DELIMITER, "\u0001");
+        charSet = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_CHARSET_NAME);
+        maxFileSize = writerConfig.getParameter().getLongVal(HiveConfigKeys.KEY_MAX_FILE_SIZE, ConstantValue.STORE_SIZE_G);
+        compress = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_COMPRESS);
+        bufferSize = writerConfig.getParameter().getLongVal(HiveConfigKeys.KEY_BUFFER_SIZE, 128 * ConstantValue.STORE_SIZE_M);
+        rowGroupSize = writerConfig.getParameter().getIntVal(HdfsConfigKeys.KEY_ROW_GROUP_SIZE, ParquetWriter.DEFAULT_BLOCK_SIZE);
 
-        mode = writerConfig.getParameter().getStringVal(KEY_WRITE_MODE, WriteMode.APPEND.name());
-        jdbcUrl = writerConfig.getParameter().getStringVal(KEY_JDBC_URL);
-        username = writerConfig.getParameter().getStringVal(KEY_USERNAME);
-        password = writerConfig.getParameter().getStringVal(KEY_PASSWORD);
-        schema = writerConfig.getParameter().getStringVal(KEY_SCHEMA);
+        mode = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_WRITE_MODE, WriteMode.APPEND.name());
+        jdbcUrl = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_JDBC_URL);
+        username = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_USERNAME);
+        password = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_PASSWORD);
+        schema = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_SCHEMA);
 
-        String distributeTable = writerConfig.getParameter().getStringVal(KEY_DISTRIBUTE_TABLE);
+        String distributeTable = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_DISTRIBUTE_TABLE);
         formatHiveDistributeInfo(distributeTable);
 
-        String tablesColumn = writerConfig.getParameter().getStringVal(KEY_TABLE_COLUMN);
+        String tablesColumn = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_TABLE_COLUMN);
         formatHiveTableInfo(tablesColumn);
 
-        String analyticalRules = writerConfig.getParameter().getStringVal(KEY_ANALYTICAL_RULES);
+        String analyticalRules = writerConfig.getParameter().getStringVal(HiveConfigKeys.KEY_ANALYTICAL_RULES);
         if (StringUtils.isBlank(analyticalRules)) {
             tableBasePath = tableInfos.entrySet().iterator().next().getValue().getTableName();
         } else {

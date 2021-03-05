@@ -35,6 +35,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -162,6 +163,12 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 sb.append(format.databaseName).append(" is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable databaseCDC：\nUSE ").append(format.databaseName).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
+
+            //如果数据库没有开启cdc 则直接抛出异常 不需要进行后续cdc相关配置校验(否则部分sql查询会报错 如查询最大LSN)
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException(sb.toString());
+            }
+
             //效验表是否开启cdc
             Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.tableList);
             if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
@@ -188,14 +195,20 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 }
             }
 
-
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
 
+        } catch (SQLException e) {
+            StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
-        } catch (Exception e) {
-            throw new RuntimeException("error to check sqlServerCDC config, e = " + ExceptionUtil.getErrorMessage(e), e);
+            if(sb.length() > 0 ){
+                detailsInfo.append("sqlserverCDC config not right，details is ").append(sb.toString());
+            }
+
+            detailsInfo.append(" \n error to check sqlServerCDC config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+
+            throw new RuntimeException(detailsInfo.toString() , e);
         }
     }
 }
