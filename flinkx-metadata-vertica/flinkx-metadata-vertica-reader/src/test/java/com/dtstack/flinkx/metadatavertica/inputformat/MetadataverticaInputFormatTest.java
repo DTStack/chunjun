@@ -38,9 +38,5 @@ public class MetadataverticaInputFormatTest {
     public void testShowTable() {
         Assert.assertEquals(inputFormat.showTables().size(), 1);
     }
-
-    @Test
-    public void testQuote() {
-        Assert.assertEquals(inputFormat.quote("test"), "test");
-    }
+    
 }
