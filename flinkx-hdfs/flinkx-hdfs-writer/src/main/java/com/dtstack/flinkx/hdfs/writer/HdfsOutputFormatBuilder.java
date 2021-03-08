@@ -41,7 +41,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
                 format = new HdfsTextOutputFormat();
                 break;
             case "ORC":
-                format = new HdfsCombineOrcOutputFormat();
+                format = new HdfsOrcOutputFormat();
                 break;
             case "PARQUET":
                 format = new HdfsParquetOutputFormat();
