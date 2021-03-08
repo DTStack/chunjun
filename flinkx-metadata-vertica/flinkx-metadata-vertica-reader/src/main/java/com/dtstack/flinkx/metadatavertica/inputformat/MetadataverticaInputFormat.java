@@ -110,7 +110,7 @@ public class MetadataverticaInputFormat extends MetadatardbInputFormat {
         metadataVerticaEntity.setPartitionColumns(ptColumns);
         ptColumns.clear();
         metadataVerticaEntity.setTableProperties(queryTableProp(tableName));
-        metadataVerticaEntity.setColumns(queryColumn(tableName));
+        metadataVerticaEntity.setColumns(queryColumn(null));
         return metadataVerticaEntity;
     }
 

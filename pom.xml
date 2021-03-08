@@ -74,8 +74,6 @@
         <module>flinkx-metadata-vertica</module>
 <!--        <module>flinkx-metadata-es6</module>-->
 <!--        <module>flinkx-metadata-metastore</module>-->
-        <module>flinkx-restapi</module>
-        <module>flinkx-websocket</module>
         <module>flinkx-socket</module>
 <!--        <module>flinkx-metadata-postgresql</module>-->
     </modules>
@@ -100,13 +98,6 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
             <scope>provided</scope>
         </dependency>
