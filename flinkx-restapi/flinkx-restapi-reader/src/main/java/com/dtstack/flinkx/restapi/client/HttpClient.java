@@ -62,42 +62,28 @@ public class HttpClient {
 
     private final RestHandler restHandler;
 
-    /**
-     * 内部重试次数(返回的httpStatus 不是 200 就进行重试)
-     **/
+    /** 内部重试次数(返回的httpStatus 不是 200 就进行重试) **/
     private int requestRetryTime;
 
-    /**
-     * 原始请求body
-     */
+    /** 原始请求body */
     private final List<MetaParam> originalBodyList;
 
-    /**
-     * 原始请求param
-     */
+    /** 原始请求param */
     private final List<MetaParam> originalParamList;
 
-    /**
-     * 原始请求header
-     */
+    /** 原始请求header */
     private final List<MetaParam> originalHeaderList;
 
     private final List<MetaParam> allMetaParam = new ArrayList<>(32);
 
-    /**
-     * 当前请求参数
-     */
+    /** 当前请求参数*/
     private HttpRequestParam currentParam;
 
-    /**
-     * 上次请求参数
-     */
+    /** 上次请求参数 */
     private HttpRequestParam prevParam;
 
 
-    /**
-     * 上一次请求的返回值
-     */
+    /** 上一次请求的返回值 */
     private String prevResponse;
 
     private boolean reachEnd;

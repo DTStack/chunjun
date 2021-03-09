@@ -105,31 +105,26 @@ public class HttpRequestParam {
         }else{
             fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
         }
-        switch (metaParam.getParamType()) {
-            case BODY:
-                try {
+        try {
+            switch (metaParam.getParamType()) {
+                case BODY:
                     MapUtil.getValueByKey(getBody(), metaParam.getKey(), fieldDelimiter);
                     return true;
-                } catch (Exception e) {
-                    return false;
-                }
-            case HEADER:
-                try {
+                case HEADER:
                     MapUtil.getValueByKey(getHeader(), metaParam.getKey(), fieldDelimiter);
                     return true;
-                } catch (Exception e) {
-                    return false;
-                }
-
-            case PARAM:
-                try {
+                case PARAM:
                     MapUtil.getValueByKey(getParam(), metaParam.getKey(), fieldDelimiter);
                     return true;
-                } catch (Exception e) {
-                    return false;
-                }
-            default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
+                default:
+                    throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
+            }
+        }catch (RuntimeException e){
+            if(e instanceof UnsupportedOperationException){
+                throw e;
+            }else{
+                return false;
+            }
         }
 
     }
