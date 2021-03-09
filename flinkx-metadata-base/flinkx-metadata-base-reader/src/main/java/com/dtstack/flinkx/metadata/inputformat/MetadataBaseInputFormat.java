@@ -22,7 +22,6 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metadata.core.util.BaseCons;
 import com.dtstack.flinkx.metadata.core.entity.MetadataEntity;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
@@ -107,7 +106,7 @@ abstract public class MetadataBaseInputFormat extends BaseRichInputFormat {
             metadataEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
         }
         metadataEntity.setOperaType(DEFAULT_OPERA_TYPE);
-        return Row.of(GsonUtil.GSON.toJson(metadataEntity));
+        return Row.of(metadataEntity);
     }
 
     /**
