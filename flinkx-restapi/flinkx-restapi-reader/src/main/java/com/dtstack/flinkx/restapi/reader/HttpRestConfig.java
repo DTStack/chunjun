@@ -50,6 +50,8 @@ public class HttpRestConfig implements Serializable {
      **/
     private String requestMode;
 
+    /** 请求参数是嵌套key的切割键 **/
+    private String fieldDelimiter = com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
     /**
      * 对返回值的处理 text/json
@@ -176,6 +178,14 @@ public class HttpRestConfig implements Serializable {
         this.body = body;
     }
 
+    public String getFieldDelimiter() {
+        return fieldDelimiter;
+    }
+
+    public void setFieldDelimiter(String fieldDelimiter) {
+        this.fieldDelimiter = fieldDelimiter;
+    }
+
     @Override
     public String toString() {
         return "HttpRestConfig{" +
@@ -185,6 +195,7 @@ public class HttpRestConfig implements Serializable {
                 ", decode='" + decode + '\'' +
                 ", fields='" + fields + '\'' +
                 ", intervalTime=" + intervalTime +
+                ", fieldDelimiter=" + fieldDelimiter +
                 ", header=" + header +
                 ", param=" + param +
                 ", body=" + body +
