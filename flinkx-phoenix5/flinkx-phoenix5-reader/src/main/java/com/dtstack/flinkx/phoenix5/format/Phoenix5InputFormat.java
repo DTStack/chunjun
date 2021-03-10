@@ -177,8 +177,9 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
                     hConfiguration.set(HConstants.ZOOKEEPER_ZNODE_PARENT, (String) rootNode);
                 }
                 hConfiguration.setBoolean(HConstants.CLUSTER_DISTRIBUTED, true);
-                org.apache.hadoop.hbase.client.Connection hConn = ConnectionFactory.createConnection(hConfiguration);
-                hTable = hConn.getTable(TableName.valueOf(table));
+                try (org.apache.hadoop.hbase.client.Connection hConn = ConnectionFactory.createConnection(hConfiguration)) {
+                    hTable = hConn.getTable(TableName.valueOf(table));
+                }
                 resultIterator = hTable.getScanner(scan).iterator();
             } catch (Exception e) {
                 String message = String.format("openInputFormat() failed, dbUrl = %s, properties = %s, e = %s", dbUrl, GsonUtil.GSON.toJson(properties), ExceptionUtil.getErrorMessage(e));

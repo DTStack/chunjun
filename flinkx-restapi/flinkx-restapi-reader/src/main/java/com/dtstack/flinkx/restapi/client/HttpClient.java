@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -134,7 +135,17 @@ public class HttpClient {
 
         //参数构建
         try {
-            currentParam = restHandler.buildRequestParam(originalParamList, originalBodyList, originalHeaderList, prevParam, restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(prevResponse, GsonUtil.gsonMapTypeToken) : null, restConfig, first);
+            // 将返回值尝试转为json 如果decode是json 转换失败了 就直接抛出异常 如果decode是text 就不报错正常走下去
+            // 因为动态变量有${response.}格式时，在构建请求参数时，需要传递responseValue，和decode是不是json无关
+            Map<String, Object> responseValue = null;
+            try {
+                responseValue = GsonUtil.GSON.fromJson(prevResponse, GsonUtil.gsonMapTypeToken);
+            } catch (Exception e) {
+                if (restConfig.isJsonDecode()) {
+                    throw e;
+                }
+            }
+            currentParam = restHandler.buildRequestParam(originalParamList, originalBodyList, originalHeaderList, prevParam, responseValue, restConfig, first);
         } catch (Exception e) {
             //如果构建参数失败 任务结束,不需要重试 因为这里面没有网络波动等不可控异常
             ResponseValue value = new ResponseValue(-1, null, ExceptionUtil.getErrorMessage(e), null, null);
