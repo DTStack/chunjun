@@ -92,6 +92,7 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         Map<String, String> map = (Map<String, String>) currentObject;
         schema = map.get(SqlServerMetadataCons.KEY_SCHEMA_NAME);
         table = map.get(SqlServerMetadataCons.KEY_TABLE_NAME);
+        currentObject = table;
 
         try {
             metadatasqlserverEntity = (MetadatasqlserverEntity) createMetadatardbEntity();
