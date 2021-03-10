@@ -15,40 +15,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.flinkx.metastore.reader;
+package com.dtstack.flinkx.metadatahive.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
-import com.dtstack.flinkx.metastore.builder.MetaStoreInputFormatBuilder;
-import com.dtstack.flinkx.metastore.inputformat.MetaStoreInputFormat;
-import com.dtstack.flinkx.metadata.reader.MetaDataBaseReader;
-import com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons;
+import com.dtstack.flinkx.metadatahive.inputformat.MetadatahiveInputFormat;
+import com.dtstack.flinkx.metadatahive.inputformat.MetadatehiveInputFormatBuilder;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+import com.dtstack.metadata.rdb.reader.MetadatardbReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.Map;
 
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.DRIVER_NAME;
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.KEY_HADOOP_CONFIG;
+
 /**
- * @company:www.dtstack.com
- * @Author:shiFang
- * @Date:2021-01-04 14:30
- * @Description:
+ * @author : tiezhu
+ * @date : 2020/3/9
  */
-public class MetastoreReader extends MetaDataBaseReader {
+public class MetadatahiveReader extends MetadatardbReader {
 
-
-    public MetastoreReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public MetadatahiveReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(HiveMetaDataCons.KEY_HADOOP_CONFIG);
+        hadoopConfig = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_HADOOP_CONFIG);
     }
 
 
+
     @Override
-    public MetadataBaseBuilder createBuilder() {
-        MetaStoreInputFormatBuilder metadataBuilder = new MetaStoreInputFormatBuilder(new MetaStoreInputFormat());
-        metadataBuilder.setHadoopConfig(hadoopConfig);
-        return metadataBuilder;
+    public MetadatardbBuilder createBuilder() {
+        MetadatehiveInputFormatBuilder builder = new MetadatehiveInputFormatBuilder(new MetadatahiveInputFormat());
+        builder.setHadoopConfig(hadoopConfig);
+        return builder;
+    }
+
+    @Override
+    public String getDriverName() {
+        return DRIVER_NAME;
     }
 }

@@ -15,22 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.metastore.constants;
+
+package com.dtstack.flinkx.metadatahive.entity;
 
 
-import com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons;
+import com.dtstack.metadata.rdb.core.entity.ConnectionInfo;
+
+import java.util.Map;
 
 /**
- * @author : tiezhu
- * @date : 2020/3/9
- * @description :
+ * @company:www.dtstack.com
+ * @Author:shiFang
+ * @Date:2021-01-20 14:57
+ * @Description:
  */
-@SuppressWarnings("all")
-public class MetaDataCons extends HiveMetaDataCons {
+public class HiveConnectionInfo extends ConnectionInfo {
 
-    public static final String META_STORE = "hive.metastore.uris";
+    public HiveConnectionInfo(ConnectionInfo connectionInfo) {
+        super(connectionInfo);
+    }
 
-    public static final String NUM_ROWS = "numRows";
+    private Map<String, Object> hiveConf;
 
+    public Map<String, Object> getHiveConf() {
+        return hiveConf;
+    }
 
+    public void setHiveConf(Map<String, Object> hiveConf) {
+        this.hiveConf = hiveConf;
+    }
+
+    @Override
+    public String toString() {
+        return "HiveConnectionInfo{" +
+                "hiveConf=" + hiveConf +
+                '}';
+    }
 }

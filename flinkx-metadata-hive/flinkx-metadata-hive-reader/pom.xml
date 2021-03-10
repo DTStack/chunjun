@@ -3,18 +3,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-metadata-metastore</artifactId>
+        <artifactId>flinkx-metadata-hive</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-metadata-metastore-reader</artifactId>
-
+    <artifactId>flinkx-metadata-hive-reader</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-base-reader</artifactId>
+            <artifactId>flinkx-metadata-rdb-reader</artifactId>
             <version>1.6</version>
         </dependency>
         <dependency>
@@ -22,11 +21,24 @@
             <artifactId>flinkx-metadata-hive-core</artifactId>
             <version>1.6</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hive</groupId>
-            <artifactId>hive-metastore</artifactId>
-            <version>1.2.2</version>
+            <artifactId>hive-exec</artifactId>
+            <version>1.1.1</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>calcite-core</artifactId>
+                    <groupId>org.apache.calcite</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>calcite-avatica</artifactId>
+                    <groupId>org.apache.calcite</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
                 <exclusion>
                     <artifactId>jsr305</artifactId>
                     <groupId>com.google.code.findbugs</groupId>
@@ -48,6 +60,10 @@
                     <groupId>commons-collections</groupId>
                 </exclusion>
                 <exclusion>
+                    <artifactId>commons-httpclient</artifactId>
+                    <groupId>commons-httpclient</groupId>
+                </exclusion>
+                <exclusion>
                     <artifactId>commons-lang</artifactId>
                     <groupId>commons-lang</groupId>
                 </exclusion>
@@ -56,8 +72,24 @@
                     <groupId>commons-logging</groupId>
                 </exclusion>
                 <exclusion>
+                    <artifactId>netty</artifactId>
+                    <groupId>io.netty</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jline</artifactId>
+                    <groupId>jline</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>junit</artifactId>
+                    <groupId>junit</groupId>
+                </exclusion>
+                <exclusion>
                     <artifactId>log4j</artifactId>
                     <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>antlr-runtime</artifactId>
+                    <groupId>org.antlr</groupId>
                 </exclusion>
                 <exclusion>
                     <artifactId>avro</artifactId>
@@ -66,6 +98,10 @@
                 <exclusion>
                     <artifactId>commons-compress</artifactId>
                     <groupId>org.apache.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>curator-client</artifactId>
+                    <groupId>org.apache.curator</groupId>
                 </exclusion>
                 <exclusion>
                     <artifactId>curator-framework</artifactId>
@@ -103,86 +139,11 @@
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>xz</artifactId>
+                    <groupId>org.tukaani</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.slf4j:slf4j-api</exclude>
-                                    <exclude>log4j:log4j</exclude>
-                                    <exclude>ch.qos.logback:*</exclude>
-                                </excludes>
-                            </artifactSet>
-
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <!-- here the phase you need -->
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${basedir}/../../syncplugins/metadatametastorereader">
-                                    <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar"/>
-                                    </fileset>
-                                </copy>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/metadatametastorereader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/metadatametastorereader/${project.name}-${git.branch}.jar"/>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-
-
 </project>

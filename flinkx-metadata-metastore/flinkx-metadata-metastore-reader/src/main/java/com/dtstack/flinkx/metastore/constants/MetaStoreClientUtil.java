@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.PrivilegedAction;
 
-import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.KEY_PRINCIPAL;
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.KEY_PRINCIPAL;
 
 
 /**

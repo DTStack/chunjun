@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,16 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metadatahive2.reader;
+package com.dtstack.flinkx.metadatahive.inputformat;
 
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatahive.reader.MetadatahiveReader;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
 
-public class Metadatahive2Reader extends MetadatahiveReader {
+import java.util.Map;
 
-    public Metadatahive2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
-        super(config, env);
+/**
+ * Date: 2020/05/26
+ * Company: www.dtstack.com
+ *
+ * @author tudou
+ */
+public class MetadatehiveInputFormatBuilder extends MetadatardbBuilder {
+    private MetadatahiveInputFormat format;
+
+
+    public MetadatehiveInputFormatBuilder(MetadatahiveInputFormat format) {
+        super(format);
+        this.format = format;
+    }
+
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.hadoopConfig = hadoopConfig;
     }
 
 }

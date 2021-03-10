@@ -9,12 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-metadata-hive2</artifactId>
+    <artifactId>flinkx-metadata-hive</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>flinkx-metadata-hive2-reader</module>
+        <module>flinkx-metadata-hive-reader</module>
+        <module>flinkx-metadata-hive-core</module>
     </modules>
-
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -23,6 +23,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-
 </project>

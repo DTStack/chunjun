@@ -22,9 +22,9 @@ import com.dtstack.flinkx.metadata.inputformat.MetadataBaseInputFormat;
 import com.dtstack.flinkx.metastore.constants.MetaStoreClientUtil;
 import com.dtstack.flinkx.metastore.entity.MetaStoreClientInfo;
 import com.dtstack.flinkx.metastore.constants.MetaDataCons;
-import com.dtstack.flinkx.metatdata.hive2.core.entity.HiveTableEntity;
-import com.dtstack.flinkx.metatdata.hive2.core.entity.MetadataHive2Entity;
-import com.dtstack.flinkx.metatdata.hive2.core.util.HiveOperatorUtils;
+import com.dtstack.flinkx.metatdata.hive.core.entity.HiveTableEntity;
+import com.dtstack.flinkx.metatdata.hive.core.entity.MetadataHiveEntity;
+import com.dtstack.flinkx.metatdata.hive.core.util.HiveOperatorUtils;
 import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,11 +40,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 
-import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.KEY_COMMENT;
-import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.KEY_TOTALSIZE;
-import static com.dtstack.flinkx.metatdata.hive2.core.util.Hive2MetaDataCons.KEY_TRANSIENT_LASTDDLTIME;
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.KEY_COMMENT;
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.KEY_TOTALSIZE;
+import static com.dtstack.flinkx.metatdata.hive.core.util.HiveMetaDataCons.KEY_TRANSIENT_LASTDDLTIME;
 
 
 /**
@@ -68,6 +70,23 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
         this.hadoopConfig = hadoopConfig;
     }
 
+    private Long currentEventId;
+
+    private Long pollingInterval;
+
+    private Boolean isStream;
+
+    private BlockingQueue<Map<String,Object>> queue;
+
+
+    @Override
+    public boolean reachedEnd() {
+        if (isStream) {
+            return false;
+        }
+        return super.reachedEnd();
+    }
+
     @Override
     protected void doOpenInternal() throws IOException {
         if(hiveMetaStoreClient == null){
@@ -75,10 +94,19 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
             String metaStoreUrl = String.valueOf(hadoopConfig.get(MetaDataCons.META_STORE));
             hiveMetaStoreClient = MetaStoreClientUtil.getClient(new MetaStoreClientInfo(metaStoreUrl, hadoopConfig));
         }
-        if(CollectionUtils.isEmpty(tableList)){
-            tableList = showTables();
-        }
         LOG.info("finish init hive metaStore client");
+        if (isStream) {
+            queue = new SynchronousQueue<>(false);
+            try {
+                currentEventId = hiveMetaStoreClient.getCurrentNotificationEventId().getEventId();
+            } catch (TException e) {
+                throw new IOException("init currentEventId error", e);
+            }
+        } else {
+            if (CollectionUtils.isEmpty(tableList)) {
+                tableList = showTables();
+            }
+        }
     }
 
 
@@ -114,7 +142,7 @@ public class MetaStoreInputFormat extends MetadataBaseInputFormat {
 
     @Override
     public MetadataEntity createMetadataEntity() throws Exception {
-        MetadataHive2Entity metadataEntity = new MetadataHive2Entity();
+        MetadataHiveEntity metadataEntity = new MetadataHiveEntity();
         metadataEntity.setSchema(currentDatabase);
         metadataEntity.setTableName((String) currentObject);
         //获取hive表相关信息
