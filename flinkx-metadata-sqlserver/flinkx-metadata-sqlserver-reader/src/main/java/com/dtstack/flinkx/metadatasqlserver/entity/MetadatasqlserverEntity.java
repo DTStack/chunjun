@@ -14,31 +14,31 @@ import java.util.List;
 public class MetadatasqlserverEntity extends MetadatardbEntity {
 
     /**数据库名*/
-    private String dataBaseName;
+    private String databaseName;
 
     /**分区字段*/
-    private List<ColumnEntity> partionColumn;
+    private List<ColumnEntity> partionColumns;
 
-    public String getDataBaseName() {
-        return dataBaseName;
+    public String getDatabaseName() {
+        return databaseName;
     }
 
-    public void setDataBaseName(String dataBaseName) {
-        this.dataBaseName = dataBaseName;
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
-    public List<ColumnEntity> getPartionColumn() {
-        return partionColumn;
+    public List<ColumnEntity> getPartionColumns() {
+        return partionColumns;
     }
 
-    public void setPartionColumn(List<ColumnEntity> partionColumn) {
-        this.partionColumn = partionColumn;
+    public void setPartionColumns(List<ColumnEntity> partionColumns) {
+        this.partionColumns = partionColumns;
     }
 
     @Override
     public String toString() {
         return "MetadatasqlserverEntity{" +
-                "partionColumn=" + partionColumn +
+                "partionColumn=" + partionColumns +
                 ", tableProperties=" + tableProperties +
                 ", columns=" + columns +
                 ", tableName='" + tableName + '\'' +

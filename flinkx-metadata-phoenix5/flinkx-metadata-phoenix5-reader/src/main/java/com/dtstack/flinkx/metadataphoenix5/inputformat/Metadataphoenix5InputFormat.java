@@ -150,7 +150,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
         } else {
             phoenix5TableEntity.setCreateTime(String.valueOf(createTimeMap.get(currentDatabase + ConstantValue.POINT_SYMBOL + tableName)));
         }
-        phoenix5TableEntity.setNameSpace(currentDatabase);
+        phoenix5TableEntity.setNamespace(currentDatabase);
         phoenix5TableEntity.setTableName(tableName);
         return phoenix5TableEntity;
     }

@@ -25,7 +25,6 @@ import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverIndexEntity;
 import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverPartitionEntity;
 import com.dtstack.flinkx.metadatasqlserver.entity.SqlserverTableEntity;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
 import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
@@ -40,15 +39,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_DEF;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_NAME;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_COLUMN_SIZE;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_DECIMAL_DIGITS;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_IS_NULLABLE;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_ORDINAL_POSITION;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_REMARKS;
-import static com.dtstack.metadata.rdb.core.constants.RdbCons.RESULT_TYPE_NAME;
 
 /**
  * @author : kunni@dtstack.com
@@ -96,7 +86,7 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
 
         try {
             metadatasqlserverEntity = (MetadatasqlserverEntity) createMetadatardbEntity();
-            metadatasqlserverEntity.setDataBaseName(currentDatabase);
+            metadatasqlserverEntity.setDatabaseName(currentDatabase);
             metadatasqlserverEntity.setSchema(schema);
             metadatasqlserverEntity.setTableName(table);
             metadatasqlserverEntity.setQuerySuccess(true);
@@ -137,7 +127,7 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         List<ColumnEntity> partitionColumn = distinctPartitionColumn(columns, key);
 
         metadatasqlserverEntity.setColumns(columns);
-        metadatasqlserverEntity.setPartionColumn(partitionColumn);
+        metadatasqlserverEntity.setPartionColumns(partitionColumn);
         metadatasqlserverEntity.setTableProperties(tableEntity);
         return metadatasqlserverEntity;
     }

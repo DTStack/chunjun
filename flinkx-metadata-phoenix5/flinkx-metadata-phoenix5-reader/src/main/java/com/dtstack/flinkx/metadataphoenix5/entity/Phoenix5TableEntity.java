@@ -29,20 +29,20 @@ import com.dtstack.metadata.rdb.core.entity.TableEntity;
 public class Phoenix5TableEntity extends TableEntity {
 
     /**表空间*/
-    private String nameSpace;
+    private String namespace;
 
-    public String getNameSpace() {
-        return nameSpace;
+    public String getNamespace() {
+        return namespace;
     }
 
-    public void setNameSpace(String nameSpace) {
-        this.nameSpace = nameSpace;
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
     @Override
     public String toString() {
         return "Phoenix5TableEntity{" +
-                "nameSpace='" + nameSpace + '\'' +
+                "nameSpace='" + namespace + '\'' +
                 ", tableName='" + tableName + '\'' +
                 ", createTime='" + createTime + '\'' +
                 ", comment='" + comment + '\'' +
