@@ -120,7 +120,14 @@ public class LogMinerConnection {
     private boolean logMinerStarted = false;
 
 
-    private Long endScn = null;
+    /**
+     * minScn 和maxScn 其实保证了此范围内的数据一定都加载到了logminer中
+     */
+
+    /** 加载到logminer里的日志文件中 最小的firstChange **/
+    private Long minScn = null;
+    /** 保证比maxScn小的日志文件都加载到logminer，在rac场景下，不一定和logminer里日志文件的最大的nextChange相等  **/
+    private Long maxScn = null;
 
 
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
@@ -200,16 +207,23 @@ public class LogMinerConnection {
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
-                //第一次加载 endSCN为空
-                startScn = null == endScn ? startScn : endScn;
-                List<LogFile> newLogFiles = queryLogFiles(startScn);
+                //第一次加载或者已经没有归档日志加载 只有online日志加载 此时maxScn为空
+                if(null == maxScn){
+                    if(null != minScn && startScn < minScn){
+                        maxScn = minScn;
+                    }else{
+                        maxScn = startScn;
+                    }
+                }
+
+                List<LogFile> newLogFiles = queryLogFiles(maxScn);
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
                     LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
 //                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
-                    startSql = SqlUtil.SQL_START_LOGMINER;
+                    startSql =null==maxScn? SqlUtil.SQL_START_LOGMINER_NO_MAX_LIMIT:SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT;
                 }
             }
 
@@ -220,9 +234,10 @@ public class LogMinerConnection {
             if (logMinerConfig.getSupportAutoAddLog()) {
                 logMinerStartStmt.setLong(1, startScn);
             } else {
-                logMinerStartStmt.setLong(1, startScn);
-                logMinerStartStmt.setLong(2, endScn);
-
+                logMinerStartStmt.setLong(1, minScn);
+               if(null != maxScn){
+                   logMinerStartStmt.setLong(2, maxScn);
+               }
             }
 
             logMinerStartStmt.execute();
@@ -243,12 +258,17 @@ public class LogMinerConnection {
      */
     public void queryData(Long startScn, String logMinerSelectSql) {
         try {
+            if(null != maxScn){
+                logMinerSelectSql+= "AND scn < ?";
+            }
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setLong(1, startScn);
-            logMinerSelectStmt.setLong(2, endScn);
+           if(null != maxScn){
+               logMinerSelectStmt.setLong(2, maxScn);
+           }
             logMinerData = logMinerSelectStmt.executeQuery();
 
             LOG.debug("query Log miner data, offset:{}", startScn);
@@ -456,6 +476,7 @@ public class LogMinerConnection {
         List<LogFile> logFileLists = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
+        Long onlineNextChange = null;
         try {
             statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setLong(1, scn);
@@ -469,6 +490,10 @@ public class LogMinerConnection {
                 logFile.setThread(rs.getLong("thread#"));
                 logFile.setBytes(rs.getLong("BYTES"));
                 logFileLists.add(logFile);
+                //最大的nextChange一定是online的nextChange
+                if(onlineNextChange ==null || onlineNextChange < logFile.getNextChange()) {
+                    onlineNextChange = logFile.getNextChange();
+                }
             }
         } finally {
             closeResources(rs, statement, null);
@@ -483,8 +508,7 @@ public class LogMinerConnection {
         map.forEach((k, v) -> {
             v = v.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList());
         });
-
-        long tempSCN = scn;
+        Long tempSCN = scn;
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
 
@@ -507,6 +531,9 @@ public class LogMinerConnection {
             Long minFirstScn = tempList.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()).get(0).getFirstChange();
             Long minNextScn = tempList.stream().sorted(Comparator.comparing(LogFile::getNextChange)).collect(Collectors.toList()).get(0).getNextChange();
 
+            if(null == minScn || minScn < minFirstScn){
+                minScn = minFirstScn;
+            }
             for (LogFile logFile1 : tempList) {
                 if (logFile1.getFirstChange() < minNextScn) {
                     logFiles.add(logFile1);
@@ -515,7 +542,11 @@ public class LogMinerConnection {
             }
             tempSCN = minNextScn;
         }
-        endScn = tempSCN;
+        //如果最小的nextScn都是onlineNextChange，就代表加载的日志文件都是online日志，此时maxScn就为空
+        if(tempSCN.equals(onlineNextChange) ){
+            tempSCN = null;
+        }
+        maxScn = tempSCN;
         lastQueryTime = System.currentTimeMillis();
         return logFiles;
     }
