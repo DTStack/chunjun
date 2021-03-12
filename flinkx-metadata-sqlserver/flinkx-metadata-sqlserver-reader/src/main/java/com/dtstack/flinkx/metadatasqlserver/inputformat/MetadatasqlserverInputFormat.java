@@ -106,7 +106,7 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
             metadatasqlserverEntity.setErrorMsg(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         }
-        return Row.of(GsonUtil.GSON.toJson(metadatasqlserverEntity));
+        return Row.of(metadatasqlserverEntity);
     }
 
     @Override

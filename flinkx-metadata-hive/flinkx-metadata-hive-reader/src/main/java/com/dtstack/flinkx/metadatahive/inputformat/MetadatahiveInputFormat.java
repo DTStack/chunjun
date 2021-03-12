@@ -319,7 +319,7 @@ public class MetadatahiveInputFormat extends MetadatardbInputFormat {
                 }
 
                 if (nameInternal.contains(KEY_TRANSIENT_LASTDDLTIME)) {
-                    tableProperties.setTransientLastDdlTime(MapUtils.getString(lineDataInternal, paraSecond));
+                    tableProperties.setTransientLastDdlTime(MapUtils.getString(lineDataInternal, paraSecond).trim());
                 }
             }
         }

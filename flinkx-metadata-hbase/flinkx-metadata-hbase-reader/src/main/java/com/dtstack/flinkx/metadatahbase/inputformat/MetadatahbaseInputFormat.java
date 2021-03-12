@@ -192,7 +192,7 @@ public class MetadatahbaseInputFormat extends MetadataBaseInputFormat {
                 tableName = tableName.split(ConstantValue.COLON_SYMBOL)[1];
             }
             hbaseTableEntity.setTableName(tableName);
-            hbaseTableEntity.setNameSpace(currentDatabase);
+            hbaseTableEntity.setNamespace(currentDatabase);
         } catch (IOException e) {
             LOG.error("query tableProperties failed. {}", ExceptionUtil.getErrorMessage(e));
             throw new SQLException(e);

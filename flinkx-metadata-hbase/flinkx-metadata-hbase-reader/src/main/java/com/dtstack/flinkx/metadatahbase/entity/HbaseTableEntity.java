@@ -37,7 +37,7 @@ public class HbaseTableEntity implements Serializable {
     private String tableName;
 
     /**hbase namespace*/
-    private String nameSpace;
+    private String namespace;
 
     /**hbase 建表时间*/
     private Long createTime;
@@ -53,8 +53,8 @@ public class HbaseTableEntity implements Serializable {
         this.tableName = tableName;
     }
 
-    public void setNameSpace(String nameSpace) {
-        this.nameSpace = nameSpace;
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
     public void setCreateTime(Long createTime) {
@@ -70,7 +70,7 @@ public class HbaseTableEntity implements Serializable {
         return "HbaseTableEntity{" +
                 "regionCount=" + regionCount +
                 ", tableName='" + tableName + '\'' +
-                ", nameSpace='" + nameSpace + '\'' +
+                ", nameSpace='" + namespace + '\'' +
                 ", createTime=" + createTime +
                 ", totalSize=" + totalSize +
                 '}';
