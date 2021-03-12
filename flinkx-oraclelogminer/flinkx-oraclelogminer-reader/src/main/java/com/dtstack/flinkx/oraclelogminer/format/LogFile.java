@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -27,9 +28,9 @@ public class LogFile {
 
     private String fileName;
 
-    private Long firstChange;
+    private BigDecimal firstChange;
 
-    private Long nextChange;
+    private BigDecimal nextChange;
 
     private Long thread;
 
@@ -44,19 +45,19 @@ public class LogFile {
         this.fileName = fileName;
     }
 
-    public Long getFirstChange() {
+    public BigDecimal getFirstChange() {
         return firstChange;
     }
 
-    public void setFirstChange(Long firstChange) {
+    public void setFirstChange(BigDecimal firstChange) {
         this.firstChange = firstChange;
     }
 
-    public Long getNextChange() {
+    public BigDecimal getNextChange() {
         return nextChange;
     }
 
-    public void setNextChange(Long nextChange) {
+    public void setNextChange(BigDecimal nextChange) {
         this.nextChange = nextChange;
     }
 

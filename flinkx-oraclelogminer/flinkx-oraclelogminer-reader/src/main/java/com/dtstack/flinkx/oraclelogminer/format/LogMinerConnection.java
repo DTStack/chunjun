@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -125,9 +126,9 @@ public class LogMinerConnection {
      */
 
     /** 加载到logminer里的日志文件中 最小的firstChange **/
-    private Long minScn = null;
-    /** 保证比maxScn小的日志文件都加载到logminer，在rac场景下，不一定和logminer里日志文件的最大的nextChange相等  **/
-    private Long maxScn = null;
+    private BigDecimal minScn = null;
+    /** 保证比maxScn小的日志文件都加载到logminer，在rac场景下，不一定和logminer里日志文件的最大的nextChange相等 **/
+    private BigDecimal maxScn = null;
 
 
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
@@ -188,7 +189,7 @@ public class LogMinerConnection {
      *
      * @param startScn
      */
-    public void startOrUpdateLogMiner(Long startScn) {
+    public void startOrUpdateLogMiner(BigDecimal startScn) {
         String startSql = null;
         try {
             // 防止没有数据更新的时候频繁查询数据库，限定查询的最小时间间隔 QUERY_LOG_INTERVAL
@@ -208,10 +209,10 @@ public class LogMinerConnection {
                 startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 //第一次加载或者已经没有归档日志加载 只有online日志加载 此时maxScn为空
-                if(null == maxScn){
-                    if(null != minScn && startScn < minScn){
+                if (null == maxScn) {
+                    if (null != minScn && startScn.compareTo(minScn) < 0) {
                         maxScn = minScn;
-                    }else{
+                    } else {
                         maxScn = startScn;
                     }
                 }
@@ -223,7 +224,7 @@ public class LogMinerConnection {
                     LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
 //                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
-                    startSql =null==maxScn? SqlUtil.SQL_START_LOGMINER_NO_MAX_LIMIT:SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT;
+                    startSql = null == maxScn ? SqlUtil.SQL_START_LOGMINER_NO_MAX_LIMIT : SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT;
                 }
             }
 
@@ -232,12 +233,12 @@ public class LogMinerConnection {
             logMinerStartStmt = connection.prepareCall(startSql);
             configStatement(logMinerStartStmt);
             if (logMinerConfig.getSupportAutoAddLog()) {
-                logMinerStartStmt.setLong(1, startScn);
+                logMinerStartStmt.setBigDecimal(1, startScn);
             } else {
-                logMinerStartStmt.setLong(1, minScn);
-               if(null != maxScn){
-                   logMinerStartStmt.setLong(2, maxScn);
-               }
+                logMinerStartStmt.setBigDecimal(1, minScn);
+                if (null != maxScn) {
+                    logMinerStartStmt.setBigDecimal(2, maxScn);
+                }
             }
 
             logMinerStartStmt.execute();
@@ -256,19 +257,19 @@ public class LogMinerConnection {
      * @param startScn
      * @param logMinerSelectSql
      */
-    public void queryData(Long startScn, String logMinerSelectSql) {
+    public void queryData(BigDecimal startScn, String logMinerSelectSql) {
         try {
-            if(null != maxScn){
-                logMinerSelectSql+= "AND scn < ?";
+            if (null != maxScn) {
+                logMinerSelectSql += "AND scn < ?";
             }
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
-            logMinerSelectStmt.setLong(1, startScn);
-           if(null != maxScn){
-               logMinerSelectStmt.setLong(2, maxScn);
-           }
+            logMinerSelectStmt.setBigDecimal(1, startScn);
+            if (null != maxScn) {
+                logMinerSelectStmt.setBigDecimal(2, maxScn);
+            }
             logMinerData = logMinerSelectStmt.executeQuery();
 
             LOG.debug("query Log miner data, offset:{}", startScn);
@@ -279,9 +280,9 @@ public class LogMinerConnection {
         }
     }
 
-    public Long getStartScn(Long startScn) {
+    public BigDecimal getStartScn(BigDecimal startScn) {
         // 恢复位置不为0，则获取上一次读取的日志文件的起始位置开始读取
-        if (null != startScn && startScn != 0L) {
+        if (null != startScn && startScn.compareTo(BigDecimal.ZERO) != 0) {
             startScn = getLogFileStartPositionByScn(startScn);
             return startScn;
         }
@@ -305,7 +306,7 @@ public class LogMinerConnection {
                 throw new IllegalArgumentException("[startSCN] must not be null or empty when readMode is [scn]");
             }
 
-            startScn = Long.parseLong(logMinerConfig.getStartScn());
+            startScn = new BigDecimal(logMinerConfig.getStartScn());
         } else {
             throw new IllegalArgumentException("unsupported readMode : " + logMinerConfig.getReadPosition());
         }
@@ -322,8 +323,8 @@ public class LogMinerConnection {
      * v$archived_log 视图存储已经归档的日志文件
      * v$log 视图存储未归档的日志文件
      */
-    private Long getLogFileStartPositionByScn(Long scn) {
-        Long logFileFirstChange = null;
+    private BigDecimal getLogFileStartPositionByScn(BigDecimal scn) {
+        BigDecimal logFileFirstChange = null;
         PreparedStatement lastLogFileStmt = null;
         ResultSet lastLogFileResultSet = null;
 
@@ -331,11 +332,11 @@ public class LogMinerConnection {
             lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
             configStatement(lastLogFileStmt);
 
-            lastLogFileStmt.setLong(1, scn);
-            lastLogFileStmt.setLong(2, scn);
+            lastLogFileStmt.setBigDecimal(1, scn);
+            lastLogFileStmt.setBigDecimal(2, scn);
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while (lastLogFileResultSet.next()) {
-                logFileFirstChange = lastLogFileResultSet.getLong(KEY_FIRST_CHANGE);
+                logFileFirstChange = lastLogFileResultSet.getBigDecimal(KEY_FIRST_CHANGE);
             }
 
             return logFileFirstChange;
@@ -347,8 +348,8 @@ public class LogMinerConnection {
         }
     }
 
-    private Long getMinScn() {
-        Long minScn = null;
+    private BigDecimal getMinScn() {
+        BigDecimal minScn = null;
         PreparedStatement minScnStmt = null;
         ResultSet minScnResultSet = null;
 
@@ -358,7 +359,7 @@ public class LogMinerConnection {
 
             minScnResultSet = minScnStmt.executeQuery();
             while (minScnResultSet.next()) {
-                minScn = minScnResultSet.getLong(KEY_FIRST_CHANGE);
+                minScn = minScnResultSet.getBigDecimal(KEY_FIRST_CHANGE);
             }
 
             return minScn;
@@ -370,8 +371,8 @@ public class LogMinerConnection {
         }
     }
 
-    private Long getCurrentScn() {
-        Long currentScn = null;
+    private BigDecimal getCurrentScn() {
+        BigDecimal currentScn = null;
         CallableStatement currentScnStmt = null;
         ResultSet currentScnResultSet = null;
 
@@ -381,7 +382,7 @@ public class LogMinerConnection {
 
             currentScnResultSet = currentScnStmt.executeQuery();
             while (currentScnResultSet.next()) {
-                currentScn = currentScnResultSet.getLong(KEY_CURRENT_SCN);
+                currentScn = currentScnResultSet.getBigDecimal(KEY_CURRENT_SCN);
             }
 
             return currentScn;
@@ -393,8 +394,8 @@ public class LogMinerConnection {
         }
     }
 
-    private Long getLogFileStartPositionByTime(Long time) {
-        Long logFileFirstChange = null;
+    private BigDecimal getLogFileStartPositionByTime(Long time) {
+        BigDecimal logFileFirstChange = null;
 
         PreparedStatement lastLogFileStmt = null;
         ResultSet lastLogFileResultSet = null;
@@ -414,7 +415,7 @@ public class LogMinerConnection {
             }
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while (lastLogFileResultSet.next()) {
-                logFileFirstChange = lastLogFileResultSet.getLong(KEY_FIRST_CHANGE);
+                logFileFirstChange = lastLogFileResultSet.getBigDecimal(KEY_FIRST_CHANGE);
             }
 
             return logFileFirstChange;
@@ -472,26 +473,26 @@ public class LogMinerConnection {
      * @return
      * @throws SQLException
      */
-    private List<LogFile> queryLogFiles(Long scn) throws SQLException {
+    private List<LogFile> queryLogFiles(BigDecimal scn) throws SQLException {
         List<LogFile> logFileLists = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
-        Long onlineNextChange = null;
+        BigDecimal onlineNextChange = null;
         try {
             statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
-            statement.setLong(1, scn);
-            statement.setLong(2, scn);
+            statement.setBigDecimal(1, scn);
+            statement.setBigDecimal(2, scn);
             rs = statement.executeQuery();
             while (rs.next()) {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
-                logFile.setFirstChange(rs.getLong("first_change#"));
-                logFile.setNextChange(rs.getLong("next_change#"));
+                logFile.setFirstChange(rs.getBigDecimal("first_change#"));
+                logFile.setNextChange(rs.getBigDecimal("next_change#"));
                 logFile.setThread(rs.getLong("thread#"));
                 logFile.setBytes(rs.getLong("BYTES"));
                 logFileLists.add(logFile);
                 //最大的nextChange一定是online的nextChange
-                if(onlineNextChange ==null || onlineNextChange < logFile.getNextChange()) {
+                if (onlineNextChange == null || onlineNextChange.compareTo(logFile.getNextChange()) < 0) {
                     onlineNextChange = logFile.getNextChange();
                 }
             }
@@ -508,7 +509,7 @@ public class LogMinerConnection {
         map.forEach((k, v) -> {
             v = v.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList());
         });
-        Long tempSCN = scn;
+        BigDecimal tempSCN = scn;
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
 
@@ -528,14 +529,14 @@ public class LogMinerConnection {
                 break;
             }
             //找到最小的firstSCN和最小的nextSCN 需要排除掉线上日志
-            Long minFirstScn = tempList.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()).get(0).getFirstChange();
-            Long minNextScn = tempList.stream().sorted(Comparator.comparing(LogFile::getNextChange)).collect(Collectors.toList()).get(0).getNextChange();
+            BigDecimal minFirstScn = tempList.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()).get(0).getFirstChange();
+            BigDecimal minNextScn = tempList.stream().sorted(Comparator.comparing(LogFile::getNextChange)).collect(Collectors.toList()).get(0).getNextChange();
 
-            if(null == minScn || minScn < minFirstScn){
+            if (null == minScn || minScn.compareTo(minFirstScn) < 0) {
                 minScn = minFirstScn;
             }
             for (LogFile logFile1 : tempList) {
-                if (logFile1.getFirstChange() < minNextScn) {
+                if (logFile1.getFirstChange().compareTo(minNextScn) < 0) {
                     logFiles.add(logFile1);
                     fileSize += logFile1.getBytes();
                 }
@@ -543,7 +544,7 @@ public class LogMinerConnection {
             tempSCN = minNextScn;
         }
         //如果最小的nextScn都是onlineNextChange，就代表加载的日志文件都是online日志，此时maxScn就为空
-        if(tempSCN.equals(onlineNextChange) ){
+        if (tempSCN.equals(onlineNextChange)) {
             tempSCN = null;
         }
         maxScn = tempSCN;
@@ -566,7 +567,7 @@ public class LogMinerConnection {
             if (SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())) {
                 continue;
             }
-            long scn = logMinerData.getLong(KEY_SCN);
+            BigDecimal scn = logMinerData.getBigDecimal(KEY_SCN);
             String operation = logMinerData.getString(KEY_OPERATION);
 
             // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
