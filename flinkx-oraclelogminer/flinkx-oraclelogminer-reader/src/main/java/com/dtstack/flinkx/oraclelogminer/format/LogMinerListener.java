@@ -96,7 +96,6 @@ public class LogMinerListener implements Runnable {
         logMinerConnection.checkPrivileges();
 
         Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
-        logMinerConnection.setPreScn(startScn);
         positionManager.updatePosition(startScn);
 
         logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());

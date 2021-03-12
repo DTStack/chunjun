@@ -31,6 +31,11 @@ public class LogFile {
 
     private Long nextChange;
 
+    private Long thread;
+
+    /** 文件大小  **/
+    private Long bytes;
+
     public String getFileName() {
         return fileName;
     }
@@ -55,12 +60,30 @@ public class LogFile {
         this.nextChange = nextChange;
     }
 
+    public long getThread() {
+        return thread;
+    }
+
+    public void setThread(Long thread) {
+        this.thread = thread;
+    }
+
+    public Long getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(Long bytes) {
+        this.bytes = bytes;
+    }
+
     @Override
     public String toString() {
         return "LogFile{" +
                 "fileName='" + fileName + '\'' +
                 ", firstChange=" + firstChange +
                 ", nextChange=" + nextChange +
+                ", thread=" + thread +
+                ", bytes=" + bytes +
                 '}';
     }
 
@@ -77,11 +100,13 @@ public class LogFile {
         LogFile logFile = (LogFile) o;
         return Objects.equals(fileName, logFile.fileName) &&
                 Objects.equals(firstChange, logFile.firstChange) &&
+                Objects.equals(thread, logFile.thread) &&
+                Objects.equals(bytes, logFile.bytes) &&
                 Objects.equals(nextChange, logFile.nextChange);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileName, firstChange, nextChange);
+        return Objects.hash(fileName, firstChange, nextChange, thread, bytes);
     }
 }
