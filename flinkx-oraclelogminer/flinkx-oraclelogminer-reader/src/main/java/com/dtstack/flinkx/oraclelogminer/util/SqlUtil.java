@@ -321,41 +321,6 @@ public class SqlUtil {
        "+ SYS.DBMS_LOGMNR.dict_from_online_catalog    );\n"+
     "end;";
 
-
-    public final static String SQL_ONLINE_LOG =   "SELECT\n" +
-            "                    member AS name,\n" +
-            "                    first_change#,\n" +
-            "                     next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n";
-
-
-    public final static String SQL_ONLINE_LOG_10 =   "                SELECT\n" +
-            "                    member AS name,\n" +
-            "                    first_change#,\n" +
-            "                    281474976710655 AS next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n";
-
-
-    public final static String SQL_ARCHIVE_LOG = "SELECT\n" +
-            "            name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
-            "        FROM\n" +
-            "            v$archived_log\n" +
-            "        WHERE\n" +
-            "            name IS NOT NULL\n" +
-            "            AND STANDBY_DEST='NO' \n";
-
-    public final static String SQL_BEGIN = "BEGIN ";
-
-    public final static String SQL_END = "end;";
-
     public final static String SQL_STOP_LOG_MINER = "BEGIN SYS.DBMS_LOGMNR.END_LOGMNR; end;";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
@@ -383,8 +348,6 @@ public class SqlUtil {
     public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
 
     public final static String SQL_QUERY_ENCODING = "SELECT USERENV('LANGUAGE') FROM DUAL";
-
-    private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
 
@@ -420,14 +383,26 @@ public class SqlUtil {
 
         String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
         for (String operation : operations) {
-            if (!SUPPORTED_OPERATIONS.contains(operation.toUpperCase())) {
-                throw new RuntimeException("Unsupported operation type:" + operation);
+
+            int operationCode;
+            switch (operation.toUpperCase()) {
+                case "INSERT":
+                    operationCode = 1;
+                    break;
+                case "DELETE":
+                    operationCode = 2;
+                    break;
+                case "UPDATE":
+                    operationCode = 3;
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported operation type:" + operation);
             }
 
-            standardOperations.add(String.format("'%s'", operation.toUpperCase()));
+            standardOperations.add(String.format("'%s'", operationCode));
         }
 
-        return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
+        return String.format("OPERATION_CODE in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
     }
 
     /**
