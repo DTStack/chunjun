@@ -10,6 +10,24 @@
 1. 如何合理且正确地使用框架；
 1. 配置文件的规范；
 
+
+## PR规范
+1. 建立issue,描述相关问题信息
+1. 基于对应的release分支拉取开发分支
+1. commit 信息：[type-issueid] [module] msg
+  1. type 类别 
+     1. feat：表示是一个新功能（feature)
+     1. hotfix：hotfix，修补bug
+     1. docs：改动、增加文档
+     1. opt：修改代码风格及opt imports这些，不改动原有执行的代码
+     1. test：增加测试
+1. 多次提交使用rebase 合并成一个。
+1. pr 名称：[flinkx-issueid][module名称] 标题
+
+eg:
+- [hotfix-31280][core] 修复bigdecimal转decimal运行失败问题   
+- [feat-31372][rdb] RDB结果表Upsert模式支持选择更新策略
+
 <a name="29c80db5"></a>
 ## 开发环境
 
@@ -211,43 +229,43 @@ public class SomeInputFormat extends BaseRichInputFormat {
 - 调用位置：configure方法会在JobManager里构建执行计划的时候和在TaskManager里初始化并发实例后各调用一次；
 - 作用：用于配置task的实例；
 - 注意事项：不要在这个方法里写耗时的逻辑，比如获取连接，运行sql等，否则可能会导致akka超
-<a name="P6eAb"></a>
+  <a name="P6eAb"></a>
 #### createInputSplits
 
 - 调用位置：在构建执行计划时调用；
 - 作用：调用子类的逻辑生成数据分片；
 - 注意事项：分片的数量和并发数没有严格对应关系，不要在这个方法里做耗时的操作，否则会导致akka超时异常；
-<a name="Oas9f"></a>
+  <a name="Oas9f"></a>
 #### getInputSplitAssigner
 
 - 调用位置：创建分片后调用；
 - 作用：获取分片分配器，同步插件里使用的是DefaultInputSplitAssigner，按顺序返回分配给各个并发实例；
 - 注意事项：无；
-<a name="TTNYz"></a>
+  <a name="TTNYz"></a>
 #### openInternal
 
 - 调用位置：开始读取分片时调用；
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：这个方法必须是可以重复调用的，因为同一个并发实例可能会处理多个分片；
-<a name="hxlFZ"></a>
+  <a name="hxlFZ"></a>
 #### reachEnd和nextRecordInternal
 
 - 调用位置：任务运行时，读取每条数据时调用；
 - 作用：返回结束标识和下一条记录；
 - 注意事项：无
-<a name="bMWCr"></a>
+  <a name="bMWCr"></a>
 #### closeInternal
 
 - 调用位置：读取完一个分片后调用，至少调用一次；
 - 作用：关闭资源；
 - 注意事项：可重复调用，关闭资源做非null检查，因为程序遇到异常情况可能直接跳转到closeInternal；
-<a name="FcsIE"></a>
+  <a name="FcsIE"></a>
 #### openInputFormat
 
 - 调用位置：创建分片之后调用；
 - 作用：对整个InpurFormat资源做初始化；
 - 注意事项：无；
-<a name="1CyCJ"></a>
+  <a name="1CyCJ"></a>
 #### closeInputFormat
 
 - 调用位置：当所有切片都执行完之后调用；
@@ -312,13 +330,13 @@ openInternal -> writeSingleRecordInternal / writeMultipleRecordsInternal
 - 调用位置：开始写入使用
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：无；
-<a name="Zbwct"></a>
+  <a name="Zbwct"></a>
 #### writerSingleRecordInternal
 
 - 调用位置：openInernal之后调用，开始写入数据
 - 作用：向数据源写入一条数据
 - 注意事项：无；
-<a name="biBzT"></a>
+  <a name="biBzT"></a>
 #### writerMultipleRecordsInternal
 
 - 调用位置：openInternal之后调用，开始写入多条数据
@@ -464,25 +482,25 @@ public class Row implements Serializable{
 ```
 ${Flinkx_HOME}
 |-- bin       
-|   -- flinkx.sh 
+|   -- flinkx.sh
 |
 |-- flinkx-somePlugin
-    |-- flinkx-somePlugin-core
-		|-- common 一些插件共用的类
-		|-- exception 异常处理类
-		|-- pom.xml 插件公用依赖
-    |-- flinkx-somePlugin-reader
-		|-- InputFormat
-			|-- SomePluginInputFormat
-			|-- SomePluginInputFormatBuiler
-		|-- reader
-			|-- SomePluginReader
-	|-- flinkx-somePlugin-writer
-		|-- OutputFormat
-			|-- SomePluginOutputFormat
-			|-- SomePluginOutputFormatBuiler
-		|-- reader
-			|-- SomePluginWriter
+|-- flinkx-somePlugin-core
+|-- common 一些插件共用的类
+|-- exception 异常处理类
+|-- pom.xml 插件公用依赖
+|-- flinkx-somePlugin-reader
+|-- InputFormat
+|-- SomePluginInputFormat
+|-- SomePluginInputFormatBuiler
+|-- reader
+|-- SomePluginReader
+|-- flinkx-somePlugin-writer
+|-- OutputFormat
+|-- SomePluginOutputFormat
+|-- SomePluginOutputFormatBuiler
+|-- reader
+|-- SomePluginWriter
 ```
 ```
 <a name="NMw2H"></a>
@@ -510,3 +528,7 @@ mvn clean package -DskipTests -Prelease -DscriptType=sh
 ```
 
 打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，syncplugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+
+
+
+
