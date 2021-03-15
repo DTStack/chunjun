@@ -102,7 +102,6 @@ public class LogFile {
         return Objects.equals(fileName, logFile.fileName) &&
                 Objects.equals(firstChange, logFile.firstChange) &&
                 Objects.equals(thread, logFile.thread) &&
-                Objects.equals(bytes, logFile.bytes) &&
                 Objects.equals(nextChange, logFile.nextChange);
     }
 

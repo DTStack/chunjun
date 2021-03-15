@@ -243,7 +243,7 @@ public class LogMinerConnection {
 
             logMinerStartStmt.execute();
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, preScn:{}, startScn:{}", startScn, startScn);
+            LOG.info("start logMiner successfully, startScn:{}, minScn:{}, maxScn:{}", startScn, minScn, maxScn);
         } catch (SQLException e) {
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -499,8 +499,7 @@ public class LogMinerConnection {
         } finally {
             closeResources(rs, statement, null);
         }
-        //拿到所有符合要求的文件之后 进行过滤  如果在添加文件到logminer的时候 发生了日志切换 那么此时就会丢失这部分数据 因为我只添加了线上日志
-        //所以在外面查询的时候 一定要根据startScn过滤条件 而endScn则是没有  就相当于只查询大于startScn的所有日志文件
+        //拿到所有符合要求的文件之后 进行过滤
         List<LogFile> logFiles = new ArrayList<>(32);
 
         Map<Long, List<LogFile>> map = logFileLists.stream().collect(Collectors.groupingBy(LogFile::getThread));
@@ -543,9 +542,10 @@ public class LogMinerConnection {
             }
             tempSCN = minNextScn;
         }
-        //如果最小的nextScn都是onlineNextChange，就代表加载的日志文件都是online日志，此时maxScn就为空
+        //如果最小的nextScn都是onlineNextChange，就代表加载所有的日志文件
         if (tempSCN.equals(onlineNextChange)) {
             tempSCN = null;
+            logFiles = logFileLists;
         }
         maxScn = tempSCN;
         lastQueryTime = System.currentTimeMillis();

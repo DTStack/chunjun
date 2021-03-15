@@ -68,133 +68,14 @@ public class SqlUtil {
             ");" +
             "END;";
 
-    /**
-     * 启动logminer
-     * 视图说明：
-     * v$log：存储未归档的日志
-     * v$archived_log：存储已归档的日志文件
-     * v$logfile：
-     */
-    public final static String SQL_START_LOG_MINER = "" +
-            "DECLARE\n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#\n" +
-            "        FROM\n" +
-            "            (\n" +
-            "                SELECT\n" +
-            "                    MIN(member) AS name,\n" +
-            "                    first_change#,\n" +
-            "                    281474976710655 AS next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "                GROUP BY\n" +
-            "                    first_change#\n" +
-            "                UNION\n" +
-            "                SELECT\n" +
-            "                    name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$archived_log\n" +
-            "                WHERE\n" +
-            "                    name IS NOT NULL\n" +
-            "                    AND STANDBY_DEST='NO' \n" +
-            "            )\n" +
-            "        WHERE\n" +
-            "            first_change# >= start_scn\n" +
-            "            OR start_scn < next_change#\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        ORDER BY\n" +
-            "            first_change#\n" +
-            "    ) LOOP IF st THEN\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
-            "        st := false;\n" +
-            "    ELSE\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
-            "    END IF;\n" +
-            "    END LOOP;\n" +
-            "\n" +
-            "    SYS.DBMS_LOGMNR.start_logmnr(" +
-            "       options => " +
-            "         SYS.DBMS_LOGMNR.skip_corruption " +
-            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
-            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
-            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
-            "       + SYS.DBMS_LOGMNR.string_literals_in_stmt" +
-            "   );\n" +
-            "END;";
-
-    public final static String SQL_START_LOG_MINER_10 = "" +
-            "DECLARE\n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#\n" +
-            "        FROM\n" +
-            "            (\n" +
-            "                SELECT\n" +
-            "                    MIN(member) AS name,\n" +
-            "                    first_change#,\n" +
-            "                    281474976710655 AS next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "                GROUP BY\n" +
-            "                    first_change#\n" +
-            "                UNION\n" +
-            "                SELECT\n" +
-            "                    name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$archived_log\n" +
-            "                WHERE\n" +
-            "                    name IS NOT NULL\n" +
-            "                    AND STANDBY_DEST='NO' \n" +
-            "            )\n" +
-            "        WHERE\n" +
-            "            first_change# >= start_scn\n" +
-            "            OR start_scn < next_change#\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        ORDER BY\n" +
-            "            first_change#\n" +
-            "    ) LOOP IF st THEN\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
-            "        st := false;\n" +
-            "    ELSE\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
-            "    END IF;\n" +
-            "    END LOOP;\n" +
-            "\n" +
-            "    SYS.DBMS_LOGMNR.start_logmnr(" +
-            "       options => " +
-            "         SYS.DBMS_LOGMNR.skip_corruption " +
-            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
-            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
-            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
-            "   );\n" +
-            "END;";
 
     public final static String SQL_QUERY_LOG_FILE =
             "SELECT\n" +
-                    "    name,\n" +
-                    "    thread#,\n" +
+                    "    MIN(name) as name,\n" +
+                    "    MIN(thread#) as thread#,\n" +
                     "    first_change#,\n" +
-                    "    next_change#,\n" +
-                    "    BYTES\n" +
+                    "    MIN(next_change#) as next_change#,\n" +
+                    "    MIN(BYTES) as BYTES\n" +
             "FROM\n" +
             "    (\n" +
             "        SELECT\n" +
@@ -223,23 +104,26 @@ public class SqlUtil {
             "WHERE\n" +
             "    first_change# >= ?\n" +
             "    OR ? < next_change#\n" +
+            "        GROUP BY\n" +
+            "            first_change#\n" +
             "ORDER BY\n" +
             "    first_change#";
 
     public final static String SQL_QUERY_LOG_FILE_10 =
             "SELECT\n" +
-            "    MIN(name) name,\n" +
-            "    thread#,\n" +
-            "    first_change#,\n" +
-            "    next_change#,\n" +
-            "    BYTES\n" +
+                    "    MIN(name) as name,\n" +
+                    "    MIN(thread#) as thread#,\n" +
+                    "    first_change#,\n" +
+                    "    MIN(next_change#) as next_change#,\n" +
+                    "    MIN(BYTES) as BYTES\n" +
             "FROM\n" +
             "    (\n" +
             "        SELECT\n" +
-            "            MIN(member) AS name,\n" +
+            "            member as  name,\n" +
             "            thread#,\n" +
             "            first_change#,\n" +
-            "            281474976710655 AS next_change#\n" +
+            "            281474976710655 AS next_change#,\n" +
+            "            BYTES\n" +
             "        FROM\n" +
             "            v$log       l\n" +
             "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
@@ -256,11 +140,12 @@ public class SqlUtil {
             "        WHERE\n" +
             "            name IS NOT NULL\n" +
             "            AND STANDBY_DEST='NO' \n" +
-            "            %s"+
             "    )\n" +
             "WHERE\n" +
             "    first_change# >= ?\n" +
             "    OR ? < next_change#\n" +
+            "        GROUP BY\n" +
+            "            first_change#\n" +
             "ORDER BY\n" +
             "    first_change#";
 
@@ -282,8 +167,9 @@ public class SqlUtil {
             "    scn > ? \n";
 
 
-
-
+    /**
+     * 加载包含startSCN和endSCN之间日志的日志文件
+     */
     public final static  String SQL_START_LOGMINER_HAS_MAX_LIMIT =  "DECLARE \n" +
             "    st          BOOLEAN := true;\n" +
             "    start_scn   NUMBER := ?;\n" +
@@ -324,6 +210,9 @@ public class SqlUtil {
             "   end;";
 
 
+    /**
+     * 加载比startSCN大的日志，即nextChange比startSCN大的日志文件都需要加载
+     */
     public final static  String SQL_START_LOGMINER_NO_MAX_LIMIT =  "DECLARE \n" +
             "    st          BOOLEAN := true;\n" +
             "    start_scn   NUMBER := ?;\n" +
@@ -341,7 +230,6 @@ public class SqlUtil {
             "              v$log   l \n"+
             "           INNER JOIN v$logfile   f ON l.group# = f.group# \n"+
             "           WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' \n"+
-            "           AND first_change# <= start_scn \n"+
             "           UNION \n"+
             "           SELECT  \n"+
             "              name, \n"+
