@@ -198,11 +198,11 @@ under the License.
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common.hdfswriter</shadedPattern>
+                                    <shadedPattern>shade.hdfswriter.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty.hdfswriter</shadedPattern>
+                                    <shadedPattern>shade.hdfswriter.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
