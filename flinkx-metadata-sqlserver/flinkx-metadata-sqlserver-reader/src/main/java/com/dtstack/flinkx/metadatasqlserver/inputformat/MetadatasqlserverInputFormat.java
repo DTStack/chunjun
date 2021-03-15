@@ -40,6 +40,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.metadatasqlserver.constants.SqlServerMetadataCons.KEY_ZERO;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_FALSE;
+import static com.dtstack.metadata.rdb.core.constants.RdbCons.KEY_TRUE;
+
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/08/06
@@ -251,4 +255,34 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         return "'" + name + "'";
     }
 
+
+    @Override
+    public List<ColumnEntity> queryColumn(String schema) throws SQLException {
+        List<ColumnEntity> columnEntities = new ArrayList<>();
+        String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_COLUMN, quote(table), quote(schema));
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
+                ColumnEntity perColumn = new ColumnEntity();
+                perColumn.setName(resultSet.getString(1));
+                perColumn.setType(resultSet.getString(2));
+                perColumn.setComment(resultSet.getString(3));
+                perColumn.setNullAble(StringUtils.equals(resultSet.getString(4), KEY_ZERO) ? KEY_FALSE : KEY_TRUE);
+                perColumn.setLength(resultSet.getInt(5));
+                perColumn.setDefaultValue(resultSet.getString(6));
+                perColumn.setIndex(resultSet.getInt(7));
+                columnEntities.add(perColumn);
+            }
+        }
+        sql = String.format(SqlServerMetadataCons.SQL_QUERY_PRIMARY_KEY, quote(table), quote(schema));
+        String primaryKey = null;
+        try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
+                primaryKey = resultSet.getString(1);
+            }
+        }
+        for (ColumnEntity columnEntity : columnEntities) {
+            columnEntity.setPrimaryKey(StringUtils.equals(columnEntity.getName(), primaryKey) ? KEY_TRUE : KEY_FALSE);
+        }
+        return columnEntities;
+    }
 }
