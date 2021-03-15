@@ -22,7 +22,6 @@ import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
