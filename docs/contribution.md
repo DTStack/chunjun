@@ -10,6 +10,24 @@
 1. 如何合理且正确地使用框架；
 1. 配置文件的规范；
 
+
+## PR规范
+1. 建立issue,描述相关问题信息
+1. 基于对应的release分支拉取开发分支
+1. commit 信息：[type-issueid] [module] msg
+   1. type 类别
+	  1. feat：表示是一个新功能（feature)
+	  1. hotfix：hotfix，修补bug
+	  1. docs：改动、增加文档
+	  1. opt：修改代码风格及opt imports这些，不改动原有执行的代码
+	  1. test：增加测试
+<br/>	
+eg:
+	[hotfix-31280][core] 修复bigdecimal转decimal运行失败问题               
+	[feat-31372][rdb] RDB结果表Upsert模式支持选择更新策略
+1. 多次提交使用rebase 合并成一个。
+1. pr 名称：[flinkx-issueid][module名称] 标题
+
 <a name="29c80db5"></a>
 ## 开发环境
 
@@ -32,8 +50,7 @@
 <a name="209c6aed"></a>
 ## 任务执行模式
 
-- 单机模式：对应Flink集群的单机模式
-- standalone模式：对应Flink集群的分布式模式
+- 单机模式：对应Flink集群的单机模式- standalone模式：对应Flink集群的分布式模式
 - yarn模式：对应Flink集群的yarn模式
 - yarnPer模式: 对应Flink集群的Per-job模式
 
@@ -510,3 +527,4 @@ mvn clean package -DskipTests -Prelease -DscriptType=sh
 ```
 
 打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，syncplugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+
