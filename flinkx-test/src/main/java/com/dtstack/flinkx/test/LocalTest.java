@@ -179,10 +179,6 @@ public class LocalTest {
         return env.execute();
     }
 
-    private static boolean needRestart(DataTransferConfig config){
-        return config.getJob().getSetting().getRestoreConfig().isRestore();
-    }
-
     private static String readJob(File file) {
         try(FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];

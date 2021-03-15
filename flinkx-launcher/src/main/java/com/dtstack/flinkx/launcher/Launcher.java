@@ -26,7 +26,7 @@ import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.JsonModifyUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.client.ClientUtils;
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
@@ -34,6 +34,8 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,6 +56,7 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public class Launcher {
+    private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
 
     public static final String KEY_FLINKX_HOME = "FLINKX_HOME";
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
@@ -98,7 +101,8 @@ public class Launcher {
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
                 argList.add("-monitor");
                 argList.add(clusterClient.getWebInterfaceURL());
-                ClientUtils.submitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                JobID jobID = (JobID)clusterClient.submitJob(buildJobGraph(launcherOptions, argList.toArray(new String[0]))).get();
+                LOG.info("submit job successfully, jobID = {}", jobID);
                 break;
             case yarnPer:
                 String confProp = launcherOptions.getConfProp();

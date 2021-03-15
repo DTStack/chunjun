@@ -37,6 +37,10 @@
                     <artifactId>hbase-zookeeper</artifactId>
                     <groupId>org.apache.hbase</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -51,6 +55,10 @@
                 <exclusion>
                     <artifactId>hadoop-mapreduce-client-core</artifactId>
                     <groupId>org.apache.hadoop</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

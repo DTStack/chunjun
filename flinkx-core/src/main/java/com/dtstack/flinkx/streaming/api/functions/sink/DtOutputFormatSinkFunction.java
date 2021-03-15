@@ -35,7 +35,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +48,10 @@ import java.util.Map;
  *
  * @param <IN> Input type
  *
- * @deprecated Please use the {@code BucketingSink} for writing to files from a streaming program.
- *
  * @author jiangbo
  */
 @PublicEvolving
-@Deprecated
-public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction {
+public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implements CheckpointedFunction, InputTypeConfigurable {
 
     private static final long serialVersionUID = 1L;
 
@@ -70,7 +67,6 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
     private Map<Integer,FormatState> formatStateMap;
 
     public DtOutputFormatSinkFunction(OutputFormat<IN> format) {
-        super(format);
         this.format = format;
     }
 
@@ -105,7 +101,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
     }
 
     @Override
-    public void invoke(IN record) throws Exception {
+    public void invoke(IN record, Context context) throws Exception {
         try {
             format.writeRecord(record);
         } catch (Exception ex) {

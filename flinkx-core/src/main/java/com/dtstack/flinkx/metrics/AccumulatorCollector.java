@@ -28,9 +28,9 @@ import com.google.gson.internal.LinkedTreeMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.util.Preconditions;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,7 +161,7 @@ public class AccumulatorCollector {
         scheduledExecutorService.scheduleAtFixedRate(
                 this::collectAccumulator,
                 0,
-                (long) (period * 1000),
+                period * 1000,
                 TimeUnit.MILLISECONDS
         );
     }

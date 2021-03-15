@@ -91,7 +91,7 @@ public class EsInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
+    public void openInternal(InputSplit inputSplit) {
         GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
 
         client = EsUtil.getClient(address, username, password, clientConfig);
@@ -115,7 +115,7 @@ public class EsInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public InputSplit[] createInputSplitsInternal(int splitNum) throws IOException {
+    public InputSplit[] createInputSplitsInternal(int splitNum) {
         InputSplit[] splits = new InputSplit[splitNum];
         for (int i = 0; i < splitNum; i++) {
             splits[i] = new GenericInputSplit(i,splitNum);
@@ -133,7 +133,7 @@ public class EsInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private boolean searchScroll() throws IOException{
+    private boolean searchScroll() throws IOException {
         SearchHit[] searchHits;
         if(scrollId == null){
             SearchResponse searchResponse = client.search(searchRequest);
@@ -158,7 +158,7 @@ public class EsInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public Row nextRecordInternal(Row row) throws IOException {
+    public Row nextRecordInternal(Row row) {
         return EsUtil.jsonMapToRow(iterator.next(), columnNames, columnTypes, columnValues);
     }
 

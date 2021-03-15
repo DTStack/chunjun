@@ -294,7 +294,7 @@ public class Metadataphoenix5InputFormat extends BaseMetadataInputFormat {
         list.add("org.apache.flink");
         list.add("com.dtstack.flinkx");
 
-        URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]), FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER);
+        URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]), FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER, true);
         Properties properties = new Properties();
         ClassUtil.forName(driverName, childFirstClassLoader);
         if (StringUtils.isNotEmpty(username)) {

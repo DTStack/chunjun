@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class OptionParser {
         initOptions(addOptions(args));
     }
 
-    private CommandLine addOptions(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
+    private CommandLine addOptions(String[] args) throws ParseException {
         Class cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
         for(Field field:fields){
@@ -67,7 +67,7 @@ public class OptionParser {
         return cl;
     }
 
-    private void initOptions(CommandLine cl) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
+    private void initOptions(CommandLine cl) throws IllegalAccessException {
         Class cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
         for(Field field:fields){
@@ -103,7 +103,7 @@ public class OptionParser {
                 try (FileInputStream in = new FileInputStream(file)) {
                     byte[] filecontent = new byte[(int) file.length()];
                     in.read(filecontent);
-                    value = new String(filecontent, Charsets.UTF_8.name());
+                    value = new String(filecontent, StandardCharsets.UTF_8);
                 }
             }
             args.add("-" + key);

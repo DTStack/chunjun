@@ -77,7 +77,7 @@ public class MetricLatch extends BaseLatch {
         try(InputStream inputStream = UrlUtil.open(requestUrl)) {
             try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
-                LOG.info("requestUrl = {}, and return map = {}", requestUrl, GsonUtil.GSON.toJson(map));
+                LOG.debug("requestUrl = {}, and return map = {}", requestUrl, GsonUtil.GSON.toJson(map));
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     if(metricName != null && metricName.equals(accumulator.get("name"))) {

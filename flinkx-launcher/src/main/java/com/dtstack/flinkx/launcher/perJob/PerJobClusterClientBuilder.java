@@ -26,6 +26,7 @@ import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
+import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 import org.apache.hadoop.fs.Path;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -91,48 +93,56 @@ public class PerJobClusterClientBuilder {
      */
     public YarnClusterDescriptor createPerJobClusterDescriptor(Options launcherOptions) throws MalformedURLException {
         String flinkJarPath = launcherOptions.getFlinkLibJar();
-        if (StringUtils.isNotBlank(flinkJarPath)) {
-            if (!new File(flinkJarPath).exists()) {
-                throw new IllegalArgumentException("The Flink jar path is not exist");
-            }
-        } else {
+        boolean hdfsPath = false;
+        if (StringUtils.isBlank(flinkJarPath)) {
             throw new IllegalArgumentException("The Flink jar path is null");
-        }
-
-        File log4j = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        if(log4j.exists()){
-            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        } else{
-            File logback = new File(launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
-            if(logback.exists()){
-                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf()+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
-            }
-
-        }
-
-        YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
-                flinkConfig,
-                yarnConf,
-                yarnClient,
-                YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                false);
-
-        List<File> shipFiles = new ArrayList<>();
-        File[] jars = new File(flinkJarPath).listFiles();
-        if (jars != null) {
-            for (File jar : jars) {
-                if (jar.toURI().toURL().toString().contains("flink-dist")) {
-                    descriptor.setLocalJarPath(new Path(jar.toURI().toURL().toString()));
-                } else {
-                    shipFiles.add(jar);
+        } else {
+            if (flinkJarPath.startsWith("hdfs://")) {
+                hdfsPath = true;
+                flinkConfig.set(YarnConfigOptions.PROVIDED_LIB_DIRS, Collections.singletonList(flinkJarPath));
+            } else {
+                if (!new File(flinkJarPath).exists()) {
+                    throw new IllegalArgumentException("The Flink jar path is not exist");
                 }
             }
+
+            File log4j = new File(launcherOptions.getFlinkconf() + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+            if (log4j.exists()) {
+                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf() + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+            } else {
+                File logback = new File(launcherOptions.getFlinkconf() + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+                if (logback.exists()) {
+                    flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, launcherOptions.getFlinkconf() + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+                }
+
+            }
+
+            YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
+                    flinkConfig,
+                    yarnConf,
+                    yarnClient,
+                    YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                    false);
+
+            if(hdfsPath){
+                descriptor.setLocalJarPath(new Path(flinkJarPath + "/flink-dist_2.12-1.12.2.jar"));
+            }else{
+                List<File> shipFiles = new ArrayList<>();
+                File[] jars = new File(flinkJarPath).listFiles();
+                if (jars != null) {
+                    for (File jar : jars) {
+                        if (jar.toURI().toURL().toString().contains("flink-dist")) {
+                            descriptor.setLocalJarPath(new Path(jar.toURI().toURL().toString()));
+                        } else {
+                            shipFiles.add(jar);
+                        }
+                    }
+                }
+                descriptor.addShipFiles(shipFiles);
+            }
+            return descriptor;
         }
-
-        descriptor.addShipFiles(shipFiles);
-        return descriptor;
     }
-
 
     public KerberosInfo getKerberosInfo() {
         return kerberosInfo;

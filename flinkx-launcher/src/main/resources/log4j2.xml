@@ -3,7 +3,7 @@
 
     <!--全局参数-->
     <Properties>
-        <Property name="pattern">%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Property>
+        <Property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n</Property>
     </Properties>
 
     <Loggers>

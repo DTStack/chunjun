@@ -73,7 +73,7 @@ public class PhoenixInputFormat extends JdbcInputFormat {
             String[] alwaysParentFirstPatterns = new String[2];
             alwaysParentFirstPatterns[0] = "org.apache.flink";
             alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
-            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns, FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER);
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns, FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER, true);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
 
