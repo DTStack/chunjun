@@ -62,6 +62,30 @@ public class TableEntity implements Serializable {
         this.comment = comment;
     }
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public Long getTotalSize() {
+        return totalSize;
+    }
+
+    public Long getRows() {
+        return rows;
+    }
+
     @Override
     public String toString() {
         return "TableEntity{" +

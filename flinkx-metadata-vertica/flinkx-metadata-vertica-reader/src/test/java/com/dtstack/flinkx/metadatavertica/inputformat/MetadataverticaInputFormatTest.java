@@ -22,21 +22,59 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 public class MetadataverticaInputFormatTest {
 
 
     private MetadataverticaInputFormat inputFormat;
+    private Connection c;
+    private Statement stmt;
+    private ResultSet rs;
+    private ResultSetMetaData rd;
+    private DatabaseMetaData dm;
+    private Object currentObject;
+
+    @Before
+    public void setup(){
+        inputFormat = new MetadataverticaInputFormat();
+        c = mock(Connection.class);
+        stmt = mock(Statement.class);
+        rs = mock(ResultSet.class);
+        dm = mock(DatabaseMetaData.class);
+        rd = mock(ResultSetMetaData.class);
+
+    }
+
+
+
 
     @Test
-    public void testShowTable() {
-        Assert.assertEquals(inputFormat.showTables().size(), 1);
+    public void testShowTable() throws SQLException{
+        Whitebox.setInternalState(inputFormat, "connection", c);
+        Whitebox.setInternalState(inputFormat, "statement", stmt);
+        when(c.createStatement()).thenReturn(stmt);
+        when(stmt.executeQuery(any(String.class))).thenReturn(rs);
+        when(rs.next()).thenReturn(false);
+        when(rs.getMetaData()).thenReturn(rd);
+        when(c.getMetaData()).thenReturn(dm);
+        when(dm.getTables(null,null,null,null)).thenReturn(rs);
+        List<Object> objectList = inputFormat.showTables();
+        assertEquals(objectList.size(),0);
     }
     
 }
