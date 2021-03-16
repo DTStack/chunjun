@@ -32,6 +32,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -73,7 +74,9 @@ public class HttpClient {
     /** 原始请求header */
     private final List<MetaParam> originalHeaderList;
 
-    /** 当前请求参数 */
+    private final List<MetaParam> allMetaParam = new ArrayList<>(32);
+
+    /** 当前请求参数*/
     private HttpRequestParam currentParam;
 
     /** 上次请求参数 */
@@ -93,6 +96,9 @@ public class HttpClient {
         this.originalHeaderList = originalHeaderList;
         this.originalBodyList = originalBodyList;
         this.originalParamList = originalParamList;
+        allMetaParam.addAll(originalHeaderList);
+        allMetaParam.addAll(originalBodyList);
+        allMetaParam.addAll(originalParamList);
 
 
         this.queue = new LinkedBlockingQueue<>();
@@ -170,8 +176,9 @@ public class HttpClient {
         }
 
         //执行请求
-        String responseValue;
+        String responseValue = null;
         try {
+
             HttpUriRequest request = HttpUtil.getRequest(restConfig.getRequestMode(), currentParam.getBody(), currentParam.getParam(), currentParam.getHeader(), restConfig.getUrl());
             CloseableHttpResponse httpResponse = httpClient.execute(request);
             if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -191,7 +198,7 @@ public class HttpClient {
         // 业务处理
         try {
             //下面方法不会捕捉异常并忽视，出现问题 直接结束，因为下面方法出现异常不会是网络抖动等不可控问题
-            Strategy strategy = restHandler.chooseStrategy(restConfig.getStrategy(), restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(responseValue, GsonUtil.gsonMapTypeToken) : null, restConfig, HttpRequestParam.copy(currentParam));
+            Strategy strategy = restHandler.chooseStrategy(restConfig.getStrategy(), restConfig.isJsonDecode() ? GsonUtil.GSON.fromJson(responseValue, GsonUtil.gsonMapTypeToken) : null, restConfig, HttpRequestParam.copy(currentParam),allMetaParam);
 
             if (strategy != null) {
                 //进行策略的执行
@@ -223,7 +230,7 @@ public class HttpClient {
             prevResponse = responseValue;
         } catch (Throwable e) {
             //只要出现了异常 就任务结束了
-            LOG.warn("httpClient value is {}, error info is {}", this.toString(), ExceptionUtil.getErrorMessage(e));
+            LOG.warn("httpClient value is {},responseValue is {}, error info is {}", this.toString(), responseValue, ExceptionUtil.getErrorMessage(e));
             processData(new ResponseValue(-1, null, "prevResponse value is " + prevResponse + " exception " + ExceptionUtil.getErrorMessage(e), null, null));
             running = false;
         }
