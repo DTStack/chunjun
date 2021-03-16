@@ -63,16 +63,16 @@ public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
     protected List<IndexEntity> queryIndex() throws SQLException {
         List<IndexEntity> indexEntities = new LinkedList<>();
         String sql = String.format(SQL_QUERY_INDEX, currentObject);
-        ResultSet rs = statement.executeQuery(sql);
-        while (rs.next()) {
-            IndexEntity entity = new IndexEntity();
-            entity.setIndexName(rs.getString(RESULT_KEY_NAME));
-            entity.setColumnName(rs.getString(RESULT_COLUMN_NAME));
-            entity.setIndexType(rs.getString(RESULT_INDEX_TYPE));
-            entity.setIndexComment(rs.getString(RESULT_INDEX_COMMENT));
-            indexEntities.add(entity);
+        try (ResultSet rs = statement.executeQuery(sql)) {
+            while (rs.next()) {
+                IndexEntity entity = new IndexEntity();
+                entity.setIndexName(rs.getString(RESULT_KEY_NAME));
+                entity.setColumnName(rs.getString(RESULT_COLUMN_NAME));
+                entity.setIndexType(rs.getString(RESULT_INDEX_TYPE));
+                entity.setIndexComment(rs.getString(RESULT_INDEX_COMMENT));
+                indexEntities.add(entity);
+            }
         }
-        rs.close();
         return indexEntities;
     }
 

@@ -18,13 +18,10 @@
 package com.dtstack.flinkx.metadatatidb.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadatamysql.inputformat.MetadatamysqlInputFormat;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
 import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
 
-
-import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_NAME;
 
 /**
  * @author : kunni@dtstack.com

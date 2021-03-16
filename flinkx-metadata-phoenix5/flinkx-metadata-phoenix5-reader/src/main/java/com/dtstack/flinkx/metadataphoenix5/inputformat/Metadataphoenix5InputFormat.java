@@ -160,6 +160,7 @@ public class Metadataphoenix5InputFormat extends MetadatardbInputFormat {
      *
      * @return 列的元数据信息
      */
+    @Override
     public List<ColumnEntity> queryColumn(String schema) {
         String tableName = (String) currentObject;
         List<ColumnEntity> columns = new LinkedList<>();
