@@ -27,22 +27,10 @@ import com.dtstack.metadata.rdb.core.entity.ColumnEntity;
  */
 public class OracleColumnEntity extends ColumnEntity {
 
-    /**是否是主键*/
-    private String primaryKey;
-
-    public String getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(String primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
     @Override
     public String toString() {
         return "OracleColumnEntity{" +
-                "primaryKey='" + primaryKey + '\'' +
-                ", defaultValue='" + defaultValue + '\'' +
+                "defaultValue='" + defaultValue + '\'' +
                 ", type='" + type + '\'' +
                 ", name='" + name + '\'' +
                 ", comment='" + comment + '\'' +

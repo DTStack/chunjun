@@ -211,12 +211,12 @@ public class MetadatasqlserverInputFormat extends MetadatardbInputFormat {
         }
 
         String sql = String.format(SqlServerMetadataCons.SQL_SHOW_TABLE_INDEX, quote(table), quote(schema));
-        ResultSet indexResultSet = statement.executeQuery(sql);
-        while (indexResultSet.next()) {
-            indexType.put(indexResultSet.getString(1)
-                    , indexResultSet.getString(3));
+        try (ResultSet indexResultSet = statement.executeQuery(sql)) {
+            while (indexResultSet.next()) {
+                indexType.put(indexResultSet.getString(1)
+                        , indexResultSet.getString(3));
+            }
         }
-
         for (String key : indexColumns.keySet()) {
             result.add(new SqlserverIndexEntity(key, indexType.get(key), indexColumns.get(key)));
         }
