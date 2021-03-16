@@ -18,30 +18,23 @@
 
 package com.dtstack.flinkx.metadatahbase.util;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+
+import com.dtstack.flinkx.metadata.core.util.BaseCons;
 
 /**
  * 属性定义
+ *
  * @author kunni@dtstack.com
  */
-public class HbaseCons extends MetaDataCons {
+public class HbaseCons extends BaseCons {
 
     public static final String KEY_PATH = "path";
-
-    public static final String KEY_TABLE_NAME = "table_name";
-
-    public static final String KEY_NAMESPACE = "namespace";
-
-    public static final String KEY_COLUMN_FAMILY = "column_family";
-
-    public static final String KEY_CREATE_TIME = "createTime";
-
-    public static final String KEY_REGION_COUNT = "regionCount";
-
-    public static final String KEY_STORAGE_SIZE = "totalSize";
 
     /**
      * 以下为reader需要的参数
      */
     public static final String KEY_HADOOP_CONFIG = "hadoopConfig";
+
+
+    public static final String ZOOKEEPER_URL = "jdbcUrl";
 }

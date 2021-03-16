@@ -1,10 +1,30 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.metadataes6.utils;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.metadataes6.constants.MetaDataEs6Cons;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-import org.apache.commons.collections.MapUtils;
+import com.dtstack.flinkx.metadataes6.entity.AliasEntity;
+import com.dtstack.flinkx.metadataes6.entity.ColumnEntity;
+import com.dtstack.flinkx.metadataes6.entity.FieldEntity;
+import com.dtstack.flinkx.metadataes6.entity.IndexProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Response;
@@ -17,39 +37,35 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * @author : baiyu
+ * @date : 2020/12/3
+ */
 public class Es6Util {
 
     /**
      * 建立LowLevelRestClient连接
-     * @param address   es服务端地址，"ip:port"
+     * @param url   es服务端地址，"ip:port"
      * @param username  用户名
      * @param password  密码
-     * @param config    配置
      * @return  LowLevelRestClient
      */
-    public static RestClient getClient(String address, String username, String password, Map<String,Object> config) {
+    public static RestClient getClient(String url, String username, String password) {
         List<HttpHost> httpHostList = new ArrayList<>();
-        String[] addr = address.split(",");
+        String[] addr = url.split(ConstantValue.COMMA_SYMBOL);
         for(String add : addr) {
-            String[] pair = add.split(":");
+            String[] pair = add.split(ConstantValue.COLON_SYMBOL);
             TelnetUtil.telnet(pair[0], Integer.parseInt(pair[1]));
-            httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), "http"));
+            httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), ConstantValue.KEY_HTTP));
         }
 
         RestClientBuilder builder = RestClient.builder(httpHostList.toArray(new HttpHost[0]));
 
-        Integer timeout = MapUtils.getInteger(config, MetaDataEs6Cons.KEY_TIMEOUT);
-        if (timeout != null){
-            builder.setMaxRetryTimeoutMillis(timeout * 1000);
-        }
-
-        String pathPrefix = MapUtils.getString(config, MetaDataEs6Cons.KEY_PATH_PREFIX);
-        if (StringUtils.isNotEmpty(pathPrefix)){
-            builder.setPathPrefix(pathPrefix);
-        }
         if(StringUtils.isNotBlank(username)){
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
@@ -69,28 +85,37 @@ public class Es6Util {
      * @return  索引的配置信息
      * @throws IOException
      */
-    public static Map<String, Object> queryIndexProp(String indexName,RestClient restClient) throws IOException {
-        Map<String, Object> indexProp = new HashMap<>(16);
+    @SuppressWarnings("unchecked")
+    public static IndexProperties queryIndexProp(String indexName, RestClient restClient) throws IOException {
 
-        String [] prop_1 = queryIndexByCat(indexName,restClient);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_UUID,prop_1[3]);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_SIZE,prop_1[8]);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_DOCS_COUNT,prop_1[6]);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_DOCS_DELETED,prop_1[7]);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_PRI_SIZE,prop_1[9]);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_STATUS,prop_1[1]);
+        IndexProperties indexProperties = new IndexProperties();
 
-        Map<String,Object> index = queryIndex(indexName,restClient);
-        Map<String,Object> settings = ( Map<String,Object>) (( Map<String,Object>) index.get(indexName)).get("settings");
-        settings = ( Map<String,Object>) settings.get(MetaDataEs6Cons.KEY_INDEX);
-        Object creation_date = formatDate(settings.get("creation_date"));
-        Object shards = settings.get("number_of_shards");
-        Object replicas = settings.get("number_of_replicas");
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_CREATE_TIME,creation_date);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_SHARDS,shards);
-        indexProp.put(MetaDataEs6Cons.KEY_INDEX_REP,replicas);
+        /*
+         * 字符串数组indexByCat的数据结构如下，数字下标对于具体变量位置
+         * 0      1      2        3                      4   5   6          7            8          9
+         * health status index    uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+         * yellow open   megacorp LYXJZVslTaiTOtQzVFqfLg   5   1          0            0      1.2kb          1.2kb
+         */
+        String [] indexByCat = queryIndexByCat(indexName, restClient);
 
-        return indexProp;
+        indexProperties.setHealth(indexByCat[0]);
+        indexProperties.setStatus(indexByCat[1]);
+        indexProperties.setUuid(indexByCat[3]);
+        indexProperties.setDocsCount(indexByCat[6]);
+        indexProperties.setDocsDeleted(indexByCat[7]);
+        indexProperties.setTotalSize(indexByCat[8]);
+        indexProperties.setPriSize( indexByCat[9]);
+
+        Map<String, Object> index = queryIndex(indexName, restClient);
+        Map<String, Object> settings = getMap(getMap(index, indexName), MetaDataEs6Cons.MAP_SETTINGS);
+        Map<String, String> indexSetting = ( Map<String, String>) settings.get(MetaDataEs6Cons.KEY_INDEX);
+
+        indexProperties.setCreateTime(indexSetting.get(MetaDataEs6Cons.MAP_CREATION_DATE));
+        indexProperties.setShards(indexSetting.get(MetaDataEs6Cons.MAP_NUMBER_OF_SHARDS));
+        indexProperties.setReplicas(indexSetting.get(MetaDataEs6Cons.MAP_NUMBER_OF_REPLICAS));
+
+        return indexProperties;
+
     }
 
     /**
@@ -100,22 +125,24 @@ public class Es6Util {
      * @return  字段信息
      * @throws IOException
      */
-    public static List<Map<String, Object>> queryColumns(String indexName,RestClient restClient) throws IOException {
+    public static List<ColumnEntity> queryColumns(String indexName, RestClient restClient) throws IOException {
 
-        List<Map<String, Object>> columnList = new ArrayList<>();
-        Map<String,Object> index = queryIndex(indexName,restClient);
-        Map<String,Object> mappings = (Map<String, Object>) ((Map<String,Object>) index.get(indexName)).get("mappings");
+        Map<String, Object> index = queryIndex(indexName, restClient);
+        Map<String, Object> mappings = getMap(getMap(index, indexName), MetaDataEs6Cons.MAP_MAPPINGS);
 
         if (mappings.isEmpty()){
-            return columnList;
+            return new ArrayList<>();
         }
 
-        for (int i = 0; i < 2; i++) {
-            List<String> keys = new ArrayList(mappings.keySet());
-            mappings = (Map<String, Object>) mappings.get(keys.get(0));
+        //这里level表示map需向下读取两次
+        int level = 2;
+        for (int i = 0; i < level; i++) {
+            List<String> keys = new ArrayList<>(mappings.keySet());
+            mappings = getMap(mappings, keys.get(0));
         }
 
-        return getColumn(mappings,new StringBuilder(),new ArrayList<>());
+        return getColumn(mappings, new StringBuilder(), new ArrayList<>(16));
+
     }
 
     /**
@@ -125,33 +152,32 @@ public class Es6Util {
      * @param columnList    处理后的字段列表
      * @return  字段列表
      */
-    public static List<Map<String, Object>> getColumn(Map<String,Object> docs,StringBuilder columnName,List<Map<String, Object>> columnList){
+    public static List<ColumnEntity> getColumn(Map<String, Object> docs, StringBuilder columnName, List<ColumnEntity> columnList){
         for(String key : docs.keySet()){
-            if (key.equals("properties")){
-                getColumn((Map<String, Object>) docs.get(key),columnName,columnList);
+            if (MetaDataEs6Cons.MAP_PROPERTIES.equals(key)){
+                getColumn(getMap(docs, key), columnName, columnList);
                 break;
-            }else if(key.equals("type")){
-                Map<String,Object> column = new HashMap<>();
-                StringBuilder column_name = new StringBuilder(columnName);
-                column.put(MetaDataEs6Cons.KEY_COLUMN_NAME,column_name);
-                column.put(MetaDataEs6Cons.KEY_DATA_TYPE,docs.get(key));
+            }else if(MetaDataEs6Cons.MAP_TYPE.equals(key)){
+                ColumnEntity column = new ColumnEntity();
+                String columnTempName = columnName.toString();
+                column.setColumnName(columnTempName);
+                column.setDateType(docs.get(key).toString());
                 if (docs.get(MetaDataEs6Cons.KEY_FIELDS) != null){
-                    column.put(MetaDataEs6Cons.KEY_FIELDS,getFieldList(docs));
+                    column.setFieldList(getFieldList(docs));
                 }
-                int cursor = columnList.size() + 1;
-                column.put("cursor",cursor);
+                int columnIndex = columnList.size() + 1;
+                column.setColumnIndex(columnIndex);
                 columnList.add(column);
                 break;
             } else {
-                StringBuilder temp = new StringBuilder(columnName);
-                if (columnName.toString().equals("")){
+                String temp = columnName.toString();
+                if (temp.length() == 0){
                     columnName.append(key);
                 }else {
-                    columnName.append(".").append(key);
+                    columnName.append(ConstantValue.POINT_SYMBOL).append(key);
                 }
-                getColumn((Map<String, Object>) docs.get(key),columnName,columnList);
-                columnName.delete(0,columnName.length());
-                columnName.append(temp);
+                getColumn(getMap(docs, key), columnName, columnList);
+                columnName = new StringBuilder(temp);
             }
         }
 
@@ -161,17 +187,16 @@ public class Es6Util {
     /**
      * 返回字段映射参数
      * @param docs  该字段属性map
-     * @return
+     * @return 字段映射参数
      */
-    public static List<Map<String, Object>> getFieldList(Map<String,Object> docs){
-        Map<String,Object> fields = (Map<String, Object>) docs.get("fields");
-        Iterator<Map.Entry<String,Object>> it = fields.entrySet().iterator();
-        List<Map<String,Object>> fieldsList = new ArrayList<>();
-        Map<String,Object> field = new HashMap();
-        while (it.hasNext()){
-            Map.Entry<String,Object> entry = it.next();
-            field.put(MetaDataEs6Cons.KEY_FIELD_NAME,entry.getKey());
-            field.put(MetaDataEs6Cons.KEY_FIELD_PROP,entry.getValue());
+    @SuppressWarnings("unchecked")
+    public static List<FieldEntity> getFieldList(Map<String, Object> docs) {
+        Map<String, Map<String, String>> fields = (Map<String, Map<String, String>>) docs.get(MetaDataEs6Cons.KEY_FIELDS);
+        List<FieldEntity> fieldsList = new ArrayList<>(16);
+        FieldEntity field = new FieldEntity();
+        for (String key: fields.keySet()) {
+            field.setFieldName(key);
+            field.setFieldProp(fields.get(key).toString());
             fieldsList.add(field);
         }
 
@@ -182,22 +207,22 @@ public class Es6Util {
      * 查询索引别名
      * @param indexName 索引名称
      * @param restClient     ES6 LowLevelRestClient
-     * @return
+     * @return 索引别名
      * @throws IOException
      */
-    public static List<Map<String, Object>> queryAliases(String indexName,RestClient restClient) throws IOException {
-        List<Map<String, Object>> aliasList = new ArrayList<>();
-        Map<String,Object> alias = new HashMap<String, Object>();
-        Map<String,Object> index = queryIndex(indexName,restClient);
-        Map<String,Object> aliases = (Map<String, Object>) ((Map<String,Object>) index.get(indexName)).get("aliases");
-        Iterator<Map.Entry<String,Object>> it = aliases.entrySet().iterator();
+    public static List<AliasEntity> queryAliases(String indexName, RestClient restClient) throws IOException {
 
-        while (it.hasNext()){
-            Map.Entry<String,Object> entry = it.next();
-            alias.put("aliase_name",entry.getKey());
-            alias.put("aliase_prop",entry.getValue());
+        List<AliasEntity> aliasList = new ArrayList<>();
+        AliasEntity alias = new AliasEntity();
+        Map<String, Object> index = queryIndex(indexName, restClient);
+        Map<String, Object> aliases = getMap(getMap(index, indexName), MetaDataEs6Cons.MAP_ALIASES);
+
+        for (String key: aliases.keySet()) {
+            alias.setAliasName(key);
+            alias.setAliasProp(aliases.get(key).toString());
             aliasList.add(alias);
         }
+
         return aliasList;
     }
 
@@ -205,16 +230,16 @@ public class Es6Util {
      * 使用/_cat/indices{index}的方式查询指定index
      * @param restClient     ES6 LowLevelRestClient
      * @param indexName     索引名称
-     * @return
+     * @return index
      * @throws IOException
      */
-    public static String[] queryIndexByCat(String indexName,RestClient restClient) throws IOException {
-        String endpoint = "/_cat/indices";
+    public static String[] queryIndexByCat(String indexName, RestClient restClient) throws IOException {
+
         Map<String, String> params = Collections.singletonMap(MetaDataEs6Cons.KEY_INDEX, indexName);
-        Response response = restClient.performRequest(MetaDataEs6Cons.API_METHOD_GET,endpoint,params);
+        Response response = restClient.performRequest(MetaDataEs6Cons.API_METHOD_GET, MetaDataEs6Cons.API_ENDPOINT_CAT_INDEX, params);
         String resBody = EntityUtils.toString(response.getEntity());
-        String [] indices = resBody.split("\\s+");
-        return indices;
+
+        return  resBody.split("\\s+");
     }
 
     /**
@@ -224,7 +249,7 @@ public class Es6Util {
      * @throws IOException
      */
     public static String[] queryIndicesByCat(RestClient restClient) throws IOException {
-        return queryIndexByCat("*",restClient);
+        return queryIndexByCat(ConstantValue.STAR_SYMBOL, restClient);
     }
 
     /**
@@ -234,24 +259,28 @@ public class Es6Util {
      * @return
      * @throws IOException
      */
-    public static Map<String,Object> queryIndex(String indexName,RestClient restClient) throws IOException {
-        String endpoint = "/"+indexName;
-        Response response = restClient.performRequest(MetaDataEs6Cons.API_METHOD_GET,endpoint);
+    public static Map<String, Object> queryIndex(String indexName, RestClient restClient) throws IOException {
+
+        String endpoint = ConstantValue.SINGLE_SLASH_SYMBOL + indexName;
+        Response response = restClient.performRequest(MetaDataEs6Cons.API_METHOD_GET, endpoint);
         String resBody = EntityUtils.toString(response.getEntity());
-        Map<String,Object> index = GsonUtil.GSON.fromJson(resBody, GsonUtil.gsonMapTypeToken);
-        return index;
+
+        return GsonUtil.GSON.fromJson(resBody, GsonUtil.gsonMapTypeToken);
+
     }
 
     /**
-     * 格式化日期
-     * @param date
-     * @return
+     *  将map中key对应的value值转换成Map<String, Object>并返回
+     * @param map
+     * @param key
+     * @return 强转后的value值
      */
-    public static Object formatDate (Object date){
-        long long_time =Long.parseLong(date.toString());
-        Date date_time = new Date(long_time);
-        SimpleDateFormat format = DateUtil.getDateTimeFormatter();
-        date = format.format(date_time);
-        return date;
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getMap(Map<String, Object> map, String key){
+        try {
+            return (Map<String, Object>) map.get(key);
+        }catch (Exception e){
+            throw new RuntimeException("Map类型强转失败.", e);
+        }
     }
 }

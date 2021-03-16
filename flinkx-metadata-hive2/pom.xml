@@ -14,6 +14,7 @@
     <modules>
         <module>flinkx-metadata-hive2-reader</module>
     </modules>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
@@ -22,4 +23,6 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+
 </project>

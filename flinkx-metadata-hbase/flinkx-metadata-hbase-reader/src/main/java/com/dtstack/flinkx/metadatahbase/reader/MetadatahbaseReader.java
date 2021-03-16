@@ -19,10 +19,11 @@
 package com.dtstack.flinkx.metadatahbase.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
+import com.dtstack.flinkx.metadata.builder.MetadataBaseBuilder;
+import com.dtstack.flinkx.metadata.reader.MetaDataBaseReader;
 import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputFormat;
 import com.dtstack.flinkx.metadatahbase.inputformat.MetadatahbaseInputFormatBuilder;
+import com.dtstack.flinkx.metadatahbase.util.HbaseCons;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.hadoop.hbase.HConstants;
 
@@ -36,34 +37,44 @@ import static com.dtstack.flinkx.util.ZkHelper.DEFAULT_PATH;
  * 读取hbase config并进行配置
  * @author kunni@dtstack.com
  */
-public class MetadatahbaseReader extends MetadataReader {
+public class MetadatahbaseReader extends MetaDataBaseReader {
 
+    /**用于连接hbase的配置*/
     private Map<String, Object> hadoopConfig;
 
+    /**hbase znode路径*/
     private String path;
+
+    /**zookeeper地址端口*/
+    private String zooKeeperUrl;
+
 
     @SuppressWarnings("unchecked")
     public MetadatahbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
+        zooKeeperUrl = config.getJob().getContent()
+                .get(0).getReader().getParameter().getStringVal(HbaseCons.ZOOKEEPER_URL);
         hadoopConfig = (Map<String, Object>) config.getJob().getContent()
                 .get(0).getReader().getParameter().getVal(KEY_HADOOP_CONFIG);
-        if(!hadoopConfig.containsKey(HConstants.ZOOKEEPER_QUORUM)){
-            hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, jdbcUrl);
+        if (!hadoopConfig.containsKey(HConstants.ZOOKEEPER_QUORUM)) {
+            hadoopConfig.put(HConstants.ZOOKEEPER_QUORUM, zooKeeperUrl);
         }
         path = config.getJob().getContent().get(0).getReader()
                 .getParameter().getStringVal(KEY_PATH, DEFAULT_PATH);
-        if(!hadoopConfig.containsKey(HConstants.ZOOKEEPER_ZNODE_PARENT)){
+        if (!hadoopConfig.containsKey(HConstants.ZOOKEEPER_ZNODE_PARENT)) {
             hadoopConfig.put(HConstants.ZOOKEEPER_ZNODE_PARENT, path);
         }
+
     }
 
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
+    public MetadataBaseBuilder createBuilder() {
         MetadatahbaseInputFormatBuilder builder = new MetadatahbaseInputFormatBuilder(new MetadatahbaseInputFormat());
         builder.setHadoopConfig(hadoopConfig);
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setPath(path);
         return builder;
     }
+
 
 }

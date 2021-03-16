@@ -18,80 +18,105 @@
 
 package com.dtstack.flinkx.metadatamysql.inputformat;
 
-import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.dtstack.flinkx.metadatamysql.entity.IndexEntity;
+import com.dtstack.flinkx.metadatamysql.entity.MetadataMysqlEntity;
+import com.dtstack.flinkx.metadatamysql.entity.MysqlTableEntity;
+import com.dtstack.metadata.rdb.core.entity.MetadatardbEntity;
 
+import com.dtstack.metadata.rdb.core.entity.TableEntity;
+import com.dtstack.metadata.rdb.inputformat.MetadatardbInputFormat;
+
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
-import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.*;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_COLUMN_NAME;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_CREATE_TIME;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_DATA_LENGTH;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ENGINE;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_INDEX_COMMENT;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_INDEX_TYPE;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_KEY_NAME;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROWS;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_ROW_FORMAT;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_COMMENT;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.RESULT_TABLE_TYPE;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_INDEX;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_QUERY_TABLE_INFO;
+import static com.dtstack.flinkx.metadatamysql.constants.MysqlMetadataCons.SQL_SWITCH_DATABASE;
 
 /**
  * @author : kunni@dtstack.com
- * @date : 2020/6/8
  */
 
-public class MetadatamysqlInputFormat extends MetadatatidbInputFormat {
+public class MetadatamysqlInputFormat extends MetadatardbInputFormat {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 查询索引
+     * @return
+     * @throws SQLException
+     */
+    protected List<IndexEntity> queryIndex() throws SQLException {
+        List<IndexEntity> indexEntities = new LinkedList<>();
+        String sql = String.format(SQL_QUERY_INDEX, currentObject);
+        ResultSet rs = statement.executeQuery(sql);
+        while (rs.next()) {
+            IndexEntity entity = new IndexEntity();
+            entity.setIndexName(rs.getString(RESULT_KEY_NAME));
+            entity.setColumnName(rs.getString(RESULT_COLUMN_NAME));
+            entity.setIndexType(rs.getString(RESULT_INDEX_TYPE));
+            entity.setIndexComment(rs.getString(RESULT_INDEX_COMMENT));
+            indexEntities.add(entity);
+        }
+        rs.close();
+        return indexEntities;
+    }
+
     @Override
-    protected Map<String, Object> queryMetaData(String tableName) throws SQLException {
-        Map<String, Object> result = new HashMap<>(16);
-        Map<String, String> tableProp = queryTableProp(tableName);
-        List<Map<String, Object>> column = queryColumn(tableName);
-        List<Map<String, String>> index = queryIndex(tableName);
-        result.put(KEY_TABLE_PROPERTIES, tableProp);
-        result.put(KEY_COLUMN, column);
-        result.put(KEY_COLUMN_INDEX, index);
-        return result;
+    public void switchDataBase() throws SQLException {
+        statement.execute(String.format(SQL_SWITCH_DATABASE, currentDatabase));
+    }
+
+    @Override
+    public MetadatardbEntity createMetadatardbEntity() throws IOException {
+        MetadataMysqlEntity metadataMysqlEntity = new MetadataMysqlEntity();
+        try {
+            metadataMysqlEntity.setIndexEntities(queryIndex());
+            metadataMysqlEntity.setTableProperties(createTableEntity());
+            metadataMysqlEntity.setColumns(queryColumn(null));
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+        return metadataMysqlEntity;
     }
 
     /**
-     * @description add engine、table_type、row_format
+     * 查询表元数据实体信息
+     *
+     * @return
+     * @throws IOException
      */
-    @Override
-    public Map<String, String> queryTableProp(String tableName) throws SQLException {
-        Map<String, String> tableProp = new HashMap<>(16);
-        String sql = String.format(SQL_QUERY_TABLE_INFO, quote(currentDb.get()), quote(tableName));
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+    public TableEntity createTableEntity() throws IOException {
+        MysqlTableEntity entity = new MysqlTableEntity();
+        String sql = String.format(SQL_QUERY_TABLE_INFO, currentDatabase, currentObject);
+        try (ResultSet rs = statement.executeQuery(sql)) {
             while (rs.next()) {
-                tableProp.put(KEY_TABLE_TYPE, RESULT_TABLE_TYPE);
-                tableProp.put(KEY_ENGINE, rs.getString(RESULT_ENGINE));
-                tableProp.put(KEY_ROW_FORMAT, rs.getString(RESULT_ROW_FORMAT));
-                tableProp.put(KEY_TABLE_ROWS, rs.getString(RESULT_ROWS));
-                tableProp.put(KEY_TABLE_TOTAL_SIZE, rs.getString(RESULT_DATA_LENGTH));
-                tableProp.put(KEY_TABLE_CREATE_TIME, rs.getString(RESULT_CREATE_TIME));
-                tableProp.put(KEY_TABLE_COMMENT, rs.getString(RESULT_TABLE_COMMENT));
+                entity.setTableType(RESULT_TABLE_TYPE);
+                entity.setComment(rs.getString(RESULT_TABLE_COMMENT));
+                entity.setCreateTime(rs.getString(RESULT_CREATE_TIME));
+                entity.setTotalSize(rs.getLong(RESULT_DATA_LENGTH));
+                entity.setRows(rs.getLong(RESULT_ROWS));
+                entity.setEngine(rs.getString(RESULT_ENGINE));
+                entity.setRowFormat(rs.getString(RESULT_ROW_FORMAT));
             }
         } catch (SQLException e) {
-            throw new SQLException(ExceptionUtils.getMessage(e));
+            throw new IOException(e);
         }
-        return tableProp;
+        return entity;
     }
 
-    protected List<Map<String, String>> queryIndex(String tableName) throws SQLException {
-        List<Map<String, String>> index = new LinkedList<>();
-        String sql = String.format(SQL_QUERY_INDEX, tableName);
-        try(Statement st = connection.get().createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) {
-                Map<String, String> perIndex = new HashMap<>(16);
-                perIndex.put(KEY_INDEX_NAME, rs.getString(RESULT_KEY_NAME));
-                perIndex.put(KEY_COLUMN_NAME, rs.getString(RESULT_COLUMN_NAME));
-                perIndex.put(KEY_COLUMN_TYPE, rs.getString(RESULT_INDEX_TYPE));
-                perIndex.put(KEY_INDEX_COMMENT, rs.getString(RESULT_INDEX_COMMENT));
-                index.add(perIndex);
-            }
-        } catch (SQLException e) {
-            throw new SQLException(ExceptionUtils.getMessage(e));
-        }
-        return index;
-    }
 }

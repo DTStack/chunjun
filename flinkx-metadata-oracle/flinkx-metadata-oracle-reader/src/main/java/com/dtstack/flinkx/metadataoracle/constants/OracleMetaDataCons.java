@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.metadataoracle.constants;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * @author : kunni@dtstack.com
@@ -26,11 +26,9 @@ import com.dtstack.flinkx.metadata.MetaDataCons;
  * @description : sql语句将"select *"替换为"select 具体属性"
  */
 
-public class OracleMetaDataCons extends MetaDataCons {
+public class OracleMetaDataCons extends RdbCons {
 
     public static final String DRIVER_NAME = "oracle.jdbc.driver.OracleDriver";
-
-    public static final String KEY_TABLE_TYPE = "tableType";
 
     public static final String KEY_NUMBER = "NUMBER";
 
@@ -43,6 +41,9 @@ public class OracleMetaDataCons extends MetaDataCons {
     public static final String KEY_CREATE_TIME = "createTime";
 
     public static final String KEY_PARTITION_KEY = "partitionKey";
+
+    public static final int MAX_TABLE_SIZE = 2;
+
 
     /**
      * 通过in语法，减少内存占用

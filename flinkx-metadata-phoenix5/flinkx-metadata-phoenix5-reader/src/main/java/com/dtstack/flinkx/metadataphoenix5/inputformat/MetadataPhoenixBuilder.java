@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.metadataphoenix5.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * @author kunni@dtstack.com
  */
-public class MetadataPhoenixBuilder extends MetadataInputFormatBuilder {
+public class MetadataPhoenixBuilder extends MetadatardbBuilder {
 
     protected Metadataphoenix5InputFormat format;
 

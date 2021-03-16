@@ -18,9 +18,11 @@
 package com.dtstack.flinkx.metadatatidb.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.metadata.inputformat.MetadataInputFormatBuilder;
-import com.dtstack.flinkx.metadata.reader.MetadataReader;
+import com.dtstack.flinkx.metadatamysql.inputformat.MetadatamysqlInputFormat;
+import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadatatidb.inputformat.MetadatatidbInputFormat;
+import com.dtstack.metadata.rdb.builder.MetadatardbBuilder;
+
 
 import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_NAME;
 
@@ -28,15 +30,14 @@ import static com.dtstack.flinkx.metadatatidb.constants.TidbMetadataCons.DRIVER_
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class MetadatatidbReader extends MetadataReader {
+public class MetadatatidbReader extends MetadatamysqlReader {
 
     public MetadatatidbReader(DataTransferConfig config, org.apache.flink.streaming.api.environment.StreamExecutionEnvironment env) {
         super(config, env);
-        driverName = DRIVER_NAME;
     }
 
     @Override
-    protected MetadataInputFormatBuilder getBuilder(){
-        return new MetadataInputFormatBuilder(new MetadatatidbInputFormat());
+    public MetadatardbBuilder createBuilder() {
+        return new MetadatardbBuilder(new MetadatatidbInputFormat());
     }
 }

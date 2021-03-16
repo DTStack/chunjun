@@ -31,9 +31,5 @@ public class Metadataphoenix5InputFormatTest {
         Assert.assertEquals(inputFormat.path, "/hbase/table");
     }
 
-    @Test
-    public void testQuote(){
-        Assert.assertEquals(inputFormat.quote("test"), "Test");
-    }
 
 }

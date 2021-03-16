@@ -18,25 +18,18 @@
 
 package com.dtstack.flinkx.metadataphoenix5.util;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * @author kunni@dtstack.com
  */
 
-public class PhoenixMetadataCons extends MetaDataCons {
-
-    public static final String KEY_PRIMARY_KEY = "is_primary_key";
+public class PhoenixMetadataCons extends RdbCons {
 
     public static final String KEY_PATH = "path";
 
     public static final String KEY_DEFAULT = "default";
-
-    public static final String KEY_TABLE_NAME = "table_name";
-
-    public static final String KEY_NAMESPACE = "namespace";
-
-    public static final String KEY_CREATE_TIME = "createTime";
 
     public static final String DRIVER_NAME = "org.apache.phoenix.jdbc.PhoenixDriver";
 
@@ -68,6 +61,10 @@ public class PhoenixMetadataCons extends MetaDataCons {
     public static final String AUTHENTICATION_TYPE = "kerberos";
 
     public static final String KEYTAB_FILE = "keytabFileName";
+
+    public static final String RESULT_SET_TABLE_NAME = "TABLE_NAME";
+
+
 
 
 }

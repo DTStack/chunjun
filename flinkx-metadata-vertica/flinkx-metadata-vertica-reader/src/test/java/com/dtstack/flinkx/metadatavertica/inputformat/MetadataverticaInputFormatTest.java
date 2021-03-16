@@ -18,49 +18,63 @@
 
 package com.dtstack.flinkx.metadatavertica.inputformat;
 
-import com.dtstack.flinkx.metadata.inputformat.BaseMetadataInputFormat;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 public class MetadataverticaInputFormatTest {
 
 
     private MetadataverticaInputFormat inputFormat;
+    private Connection c;
+    private Statement stmt;
+    private ResultSet rs;
+    private ResultSetMetaData rd;
+    private DatabaseMetaData dm;
+    private Object currentObject;
 
     @Before
-    public void beforeMethod() throws NoSuchFieldException, IllegalAccessException, SQLException {
+    public void setup(){
         inputFormat = new MetadataverticaInputFormat();
-        inputFormat.switchDatabase("testDb");
-        ThreadLocal<Connection> connectionTL = Mockito.mock(ThreadLocal.class);
-        Connection connection = Mockito.mock(Connection.class);
-        DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
-        Mockito.when(connection.getMetaData()).thenReturn(metaData);
-        ResultSet resultSet = Mockito.mock(ResultSet.class);
-        Mockito.when(resultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.when(resultSet.getString(Mockito.anyString())).thenReturn("test");
-        Mockito.when(metaData.getTables(null, "testDb", null, null)).thenReturn(resultSet);
-        Mockito.when(connectionTL.get()).thenReturn(connection);
-        Field connectionField = BaseMetadataInputFormat.class.getDeclaredField("connection");
-        connectionField.setAccessible(true);
-        connectionField.set(inputFormat, connectionTL);
+        c = mock(Connection.class);
+        stmt = mock(Statement.class);
+        rs = mock(ResultSet.class);
+        dm = mock(DatabaseMetaData.class);
+        rd = mock(ResultSetMetaData.class);
+
     }
+
+
 
 
     @Test
-    public void testShowTable() {
-        Assert.assertEquals(inputFormat.showTables().size(), 1);
+    public void testShowTable() throws SQLException{
+        Whitebox.setInternalState(inputFormat, "connection", c);
+        Whitebox.setInternalState(inputFormat, "statement", stmt);
+        when(c.createStatement()).thenReturn(stmt);
+        when(stmt.executeQuery(any(String.class))).thenReturn(rs);
+        when(rs.next()).thenReturn(false);
+        when(rs.getMetaData()).thenReturn(rd);
+        when(c.getMetaData()).thenReturn(dm);
+        when(dm.getTables(null,null,null,null)).thenReturn(rs);
+        List<Object> objectList = inputFormat.showTables();
+        assertEquals(objectList.size(),0);
     }
-
-    @Test
-    public void testQuote() {
-        Assert.assertEquals(inputFormat.quote("test"), "test");
-    }
+    
 }

@@ -12,14 +12,14 @@
     <artifactId>flinkx-metadata-mysql-reader</artifactId>
     <dependencies>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-tidb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.46</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metadata-rdb-reader</artifactId>
+            <version>1.6</version>
         </dependency>
     </dependencies>
 

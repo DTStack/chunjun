@@ -10,11 +10,26 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-metadata-hive2-reader</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-reader</artifactId>
+            <artifactId>flinkx-metadata-hive-reader</artifactId>
             <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hive</groupId>
+                    <artifactId>hive-serde</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>derby</artifactId>
+                    <groupId>org.apache.derby</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
@@ -121,28 +136,13 @@
                     <artifactId>hbase-hadoop-compat</artifactId>
                     <groupId>org.apache.hbase</groupId>
                 </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-exec</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
                 <exclusion>
-                    <artifactId>calcite-core</artifactId>
-                    <groupId>org.apache.calcite</groupId>
+                    <artifactId>jsr305</artifactId>
+                    <groupId>com.google.code.findbugs</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>calcite-avatica</artifactId>
-                    <groupId>org.apache.calcite</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>derby</artifactId>
-                    <groupId>org.apache.derby</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.xerial.snappy</groupId>
-                    <artifactId>snappy-java</artifactId>
+                    <artifactId>commons-codec</artifactId>
+                    <groupId>commons-codec</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -182,24 +182,24 @@
                             </filters>
                             <relocations>
                                 <relocation>
-                                    <pattern>org.apache.hive.jdbc</pattern>
-                                    <shadedPattern>shade.hive2.jdbc</shadedPattern>
+                                    <pattern>org.apache.derby</pattern>
+                                    <shadedPattern>shade.metadatahive2reader.derby</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.apache.hive.service</pattern>
-                                    <shadedPattern>shade.hive2.service</shadedPattern>
+                                    <pattern>org.apache.hive</pattern>
+                                    <shadedPattern>shade.metadatahive2reader.hive</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org/apache/hadoop/hive</pattern>
+                                    <shadedPattern>shade.metadatahive2reader.hadoop.hive</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.metadatahive2reader.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.http</pattern>
-                                    <shadedPattern>shade.metadatahive1.org.apache.http</shadedPattern>
+                                    <shadedPattern>shade.metadatahive2reader.com.google.thirdparty</shadedPattern>
                                 </relocation>
                             </relocations>
 
@@ -247,5 +247,8 @@
             </plugin>
         </plugins>
     </build>
+
+
+
 
 </project>

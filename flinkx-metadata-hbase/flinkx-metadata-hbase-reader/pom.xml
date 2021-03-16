@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-reader</artifactId>
+            <artifactId>flinkx-metadata-base-reader</artifactId>
             <version>1.6</version>
         </dependency>
 

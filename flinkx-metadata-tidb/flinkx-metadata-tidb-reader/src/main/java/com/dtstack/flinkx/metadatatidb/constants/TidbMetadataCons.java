@@ -17,19 +17,17 @@
  */
 package com.dtstack.flinkx.metadatatidb.constants;
 
-import com.dtstack.flinkx.metadata.MetaDataCons;
+import com.dtstack.metadata.rdb.core.constants.RdbCons;
 
 /**
  * @author : kunni@dtstack.com
  * @date : 2020/5/26
  */
-public class TidbMetadataCons extends MetaDataCons {
+public class TidbMetadataCons extends RdbCons {
 
     public static final String DRIVER_NAME = "com.mysql.jdbc.Driver";
-    public static final String KEY_PARTITION_COLUMN = "partitionColumn";
     public static final String KEY_UPDATE_TIME = "updateTime";
-    public static final String KEY_TES = "YES";
-    public static final String KEY_PRI = "PRI";
+
 
     public static final String RESULT_ROWS = "Rows";
     public static final String RESULT_DATA_LENGTH = "Data_length";
@@ -49,7 +47,6 @@ public class TidbMetadataCons extends MetaDataCons {
     public static final String RESULT_COMMENT = "Comment";
 
     /** sql语句 */
-    public static final String SQL_SWITCH_DATABASE = "USE `%s`";
     public static final String SQL_SHOW_TABLES = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     public static final String SQL_QUERY_TABLE_INFO = "SHOW TABLE STATUS LIKE '%s'";
     public static final String SQL_QUERY_COLUMN = "SHOW FULL COLUMNS FROM `%s`";

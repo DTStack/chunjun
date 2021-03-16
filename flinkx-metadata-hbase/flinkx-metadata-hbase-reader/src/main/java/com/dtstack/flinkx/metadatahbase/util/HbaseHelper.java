@@ -50,13 +50,18 @@ public class HbaseHelper {
     private final static String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private final static String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
-    private HbaseHelper(){
+    private HbaseHelper() {
     }
 
-    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String,Object> hbaseConfigMap) {
+    /**
+     * 获取hbase connection
+     * @param hbaseConfigMap
+     * @return
+     */
+    public static org.apache.hadoop.hbase.client.Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "[hadoopConfig] couldn't be empty!");
 
-        if(openKerberos(hbaseConfigMap)){
+        if (openKerberos(hbaseConfigMap)) {
             return getConnectionWithKerberos(hbaseConfigMap);
         }
 
@@ -69,7 +74,12 @@ public class HbaseHelper {
         }
     }
 
-    private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String,Object> hbaseConfigMap){
+    /**
+     * 获取kerberos认证的连接
+     * @param hbaseConfigMap
+     * @return
+     */
+    private static org.apache.hadoop.hbase.client.Connection getConnectionWithKerberos(Map<String, Object> hbaseConfigMap) {
         try {
             setKerberosConf(hbaseConfigMap);
             UserGroupInformation ugi = getUgi(hbaseConfigMap);
@@ -82,12 +92,18 @@ public class HbaseHelper {
                     throw new RuntimeException(e);
                 }
             });
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Login kerberos error", e);
         }
     }
 
-    public static UserGroupInformation getUgi(Map<String,Object> hbaseConfigMap) throws IOException{
+    /**
+     * 获取kerberos ugi
+     * @param hbaseConfigMap
+     * @return
+     * @throws IOException
+     */
+    public static UserGroupInformation getUgi(Map<String, Object> hbaseConfigMap) throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
         keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
@@ -100,14 +116,19 @@ public class HbaseHelper {
         return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
     }
 
-    public static Configuration getConfig(Map<String,Object> hbaseConfigMap){
+    /**
+     * 获取hbase 配置信息
+     * @param hbaseConfigMap
+     * @return
+     */
+    public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
         Configuration hConfiguration = HBaseConfiguration.create();
         if (MapUtils.isEmpty(hbaseConfigMap)) {
             return hConfiguration;
         }
 
         for (Map.Entry<String, Object> entry : hbaseConfigMap.entrySet()) {
-            if(entry.getValue() != null && !(entry.getValue() instanceof Map)){
+            if (entry.getValue() != null && !(entry.getValue() instanceof Map)) {
                 hConfiguration.set(entry.getKey(), entry.getValue().toString());
             }
         }
@@ -115,10 +136,15 @@ public class HbaseHelper {
         return hConfiguration;
     }
 
-    public static boolean openKerberos(Map<String,Object> hbaseConfigMap){
-        if(AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
+    /**
+     * 判断是否开启kerberos
+     * @param hbaseConfigMap
+     * @return
+     */
+    public static boolean openKerberos(Map<String, Object> hbaseConfigMap) {
+        if (AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
                 || AUTHENTICATION_TYPE.equalsIgnoreCase(MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION))
-                || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE)){
+                || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE)) {
             LOG.info("open kerberos for hbase.");
             return true;
         }
@@ -129,17 +155,22 @@ public class HbaseHelper {
 
     /**
      * 设置hbase 开启kerberos 连接必要的固定参数
+     *
      * @param hbaseConfigMap 参数
      */
-    public static void setKerberosConf(Map<String,Object> hbaseConfigMap){
+    public static void setKerberosConf(Map<String, Object> hbaseConfigMap) {
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, AUTHENTICATION_TYPE);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
-    public static void closeConnection(Connection hConnection){
+    /**
+     *  资源关闭
+     * @param hConnection
+     */
+    public static void closeConnection(Connection hConnection) {
         try {
-            if(null != hConnection) {
+            if (null != hConnection) {
                 hConnection.close();
             }
         } catch (IOException e) {
@@ -147,9 +178,13 @@ public class HbaseHelper {
         }
     }
 
-    public static void closeAdmin(Admin admin){
+    /**
+     * hbase admin 关闭
+     * @param admin
+     */
+    public static void closeAdmin(Admin admin) {
         try {
-            if( null != admin) {
+            if (null != admin) {
                 admin.close();
             }
         } catch (IOException e) {
