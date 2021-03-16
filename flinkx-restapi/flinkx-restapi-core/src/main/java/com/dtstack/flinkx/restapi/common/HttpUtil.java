@@ -133,9 +133,9 @@ public class HttpUtil {
 
 
     public static HttpRequestBase getRequest(String method,
-                                             Map<String, String> requestBody,
-                                             Map<String, String> requestParam,
-                                             Map<String, String> header,
+                                             Map<String, Object> requestBody,
+                                             Map<String, Object> requestParam,
+                                             Map<String, Object> header,
                                              String url)  {
 
         HttpRequestBase request ;
@@ -144,7 +144,7 @@ public class HttpUtil {
             requestParam.forEach((k, v) -> {
                 try {
                     //参数进行编码
-                    params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v, StandardCharsets.UTF_8.name()));
+                    params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v instanceof Map?gson.toJson(v):v.toString(), StandardCharsets.UTF_8.name()));
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException("URLEncoder.encode k [" + k + "] or v ["+ v +"] failed ", e);
                 }
@@ -161,16 +161,14 @@ public class HttpUtil {
             request = new HttpGet(url);
         } else if (HttpMethod.POST.name().equalsIgnoreCase(method)) {
             HttpPost post = new HttpPost(url);
-            HashMap<String, Object> tmp = new HashMap<>();
-            requestBody.forEach(tmp::put);
-            post.setEntity(getEntityData(tmp));
+            post.setEntity(getEntityData(requestBody));
             request = post;
         } else {
             throw new UnsupportedOperationException("Unsupported method:" + method);
         }
 
-        for (Map.Entry<String, String> entry : header.entrySet()) {
-            request.addHeader(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : header.entrySet()) {
+            request.addHeader(entry.getKey(), entry.getValue().toString());
         }
         return request;
     }

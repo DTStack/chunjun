@@ -37,10 +37,11 @@ public interface RestHandler {
      * @param strategies 策略
      * @param responseValue 返回值
      * @param restConfig http配置
-     * @param httpRequestParam 请求参数
+     * @param httpRequestParam 本次实际请求参数
+     * @param metaParams 原始的所有请求参数
      * @return 返回的策略
      */
-    Strategy chooseStrategy(List<Strategy> strategies, Map<String, Object> responseValue, HttpRestConfig restConfig, HttpRequestParam httpRequestParam);
+    Strategy chooseStrategy(List<Strategy> strategies, Map<String, Object> responseValue, HttpRestConfig restConfig, HttpRequestParam httpRequestParam,List<MetaParam> metaParams);
 
 
     /**
