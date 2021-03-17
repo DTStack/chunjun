@@ -19,19 +19,21 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import java.math.BigDecimal;
+
 /**
  * @author jiangbo
  * @date 2020/3/27
  */
 public class PositionManager {
 
-    private Long scn;
+    private BigDecimal scn;
 
-    public void updatePosition(Long scn) {
+    public void updatePosition(BigDecimal scn) {
         this.scn = scn;
     }
 
-    public Long getPosition() {
+    public BigDecimal getPosition() {
         return this.scn;
     }
 }
