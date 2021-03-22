@@ -82,7 +82,7 @@ public class kafkaState implements Serializable {
                 timestamp.equals(that.timestamp) &&
                 partition.equals(that.partition) &&
                 topic.equals(that.topic);
-    }q
+    }
 
     @Override
     public kafkaState clone() {
