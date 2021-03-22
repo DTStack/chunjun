@@ -88,7 +88,41 @@ supports_net_changes：是否为捕获实例生成一个净更改函数，0：�
 
 至此，表`test`启动CDC(变更数据捕获)功能配置完成。
 
-#### 7 数据库配置
-@supports_net_changes 需要配置
+#### 7、确认CDC agent 是否正常启动
+```sql
+EXEC master.dbo.xp_servicecontrol N'QUERYSTATE', N'SQLSERVERAGENT'
+```
+<div align=center>
+<img src="../../images/SqlserverCDC/Sqlserver16.png" />
+</div>
+如显示上图状态，需要启动对应的agent.
+
+**Windows 环境操作开启 CDC agent**
+点击 下图位置代理开启
+<div align=center>
+<img src="../../images/SqlserverCDC/Sqlserver17.png" />
+</div>
+
+**重新启动数据库**
+<div align=center>
+<img src="../../images/SqlserverCDC/Sqlserver18.png" />
+</div>
+
+**再次查询agent 状态，确认状态变更为running**
+<div align=center>
+<img src="../../images/SqlserverCDC/Sqlserver19.png" />
+</div>
+
+至此，表`test`启动CDC(变更数据捕获)功能配置完成。
+
+**docker 环境操作开启 CDC agent**
+
+**开启mssql-server的代理服务**_
+```shell
+docker exec -it sqlserver bash
+/opt/mssql/bin/mssql-conf set sqlagent.enabled true
+docker stop sqlserver
+docker start sqlserver
+```
 
 参考阅读：[https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/enable-and-disable-change-data-capture-sql-server?view=sql-server-2017](https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/enable-and-disable-change-data-capture-sql-server?view=sql-server-2017)
