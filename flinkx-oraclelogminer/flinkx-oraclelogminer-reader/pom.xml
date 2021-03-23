@@ -95,7 +95,7 @@
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/oraclelogminerreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/oraclelogminerreader/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../syncplugins/oraclelogminerreader/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
