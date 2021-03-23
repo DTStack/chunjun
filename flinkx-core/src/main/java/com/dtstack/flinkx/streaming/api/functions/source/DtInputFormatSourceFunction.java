@@ -148,8 +148,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 					isRunning = splitIterator.hasNext();
 				}
 			}
-		} catch (Exception exception){
-				tryException = exception;
 		} finally {
 			isRunning = false;
 			try {
@@ -161,14 +159,11 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				if(null != tryException){
 					LOG.error(ExceptionUtil.getErrorMessage(finallyException));
 					tryException.addSuppressed(finallyException);
-					throw tryException;
 				}else {
-					throw finallyException;
+					tryException = finallyException;
 				}
 			}
-			if(null != tryException) {
-				throw tryException;
-			}
+			throwException(tryException);
 		}
 	}
 
@@ -275,5 +270,17 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 		}
 
         LOG.info("End initialize input format state");
+	}
+
+	/**
+	 * 抛出异常
+	 * @param e 需要抛出的异常
+	 * @throws Exception 异常
+	 */
+	public void throwException(Exception e) throws Exception {
+		if(null != e) {
+			LOG.error("DtInputFormatSourceFunction error, info: {}",ExceptionUtil.getErrorMessage(e), e);
+			throw e;
+		}
 	}
 }

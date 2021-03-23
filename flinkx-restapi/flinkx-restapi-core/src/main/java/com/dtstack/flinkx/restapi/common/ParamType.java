@@ -21,12 +21,17 @@ package com.dtstack.flinkx.restapi.common;
  * ParamType
  *
  * @author by dujie@dtstack.com
- * @Date 2020/9/26
  */
 public enum  ParamType {
 
+    /** request请求的header标识 **/
     HEADER,
+    /** request请求的body标识  **/
     BODY,
+    /** request请求的param标识 **/
     PARAM,
-    RESPONSE;
+    /** request请求的返回值标识 **/
+    RESPONSE,
+    /** 内部变量标识 **/
+    INNER
 }

@@ -4,12 +4,12 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:kingbase8://localhost:54321/test"],
-              "table": ["kudu"],
-              "schema":"test"
+              "jdbcUrl": ["jdbc:kingbase8://localhost:54321/database"],
+              "table": ["table"],
+              "schema":"schema"
             }],
             "column": ["*"],
             "customSql": "",

@@ -1,0 +1,104 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "streamreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "id"
+            },
+            {
+              "name": "string",
+              "type": "string",
+              "value": "2020-01-01 01:01:02"
+            },
+            {
+              "name": "boolean",
+              "type": "boolean"
+            },
+            {
+              "name": "long",
+              "type": "long"
+            },
+            {
+              "name": "double",
+              "type": "double"
+            },
+            {
+              "name": "timestamp",
+              "type": "timestamp"
+            }
+          ],
+          "sliceRecordCount" : ["100"]
+        }
+      },
+      "writer": {
+        "name": "hbasewriter",
+        "parameter": {
+          "hbaseConfig": {
+            "hbase.zookeeper.property.clientPort": "2181",
+            "hbase.rootdir": "hdfs://ns1/hbase",
+            "hbase.cluster.distributed": "true",
+            "hbase.zookeeper.quorum": "node01,node02,node03",
+            "zookeeper.znode.parent": "/hbase"
+          },
+          "table": "t1",
+          "rowkeyColumn":"$(f1:col1)",
+          "versionColumn":{
+            "value":"1610509763849"
+          },
+          "column": [
+            {
+              "name": "f1:col1",
+              "type": "int"
+            },
+            {
+              "name": "f1:col2",
+              "type": "string"
+            },
+            {
+              "name": "f1:col3",
+              "type": "boolean"
+            },
+            {
+              "name": "f1:col4",
+              "type": "long"
+            },
+            {
+              "name": "f1:col5",
+              "type": "double"
+            },
+            {
+              "name": "f1:col6",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    } ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 0
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "isStream" : false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

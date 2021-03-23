@@ -30,6 +30,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
@@ -109,6 +110,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     private Map<String, FormatState> formatStateMap = new HashMap<>();
 
+    private transient Gson gson;
+
     @Override
     public void configure(org.apache.flink.configuration.Configuration parameters) {
         this.parameters = parameters;
@@ -116,6 +119,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         partitionFormat = TimePartitionFormat.getInstance(partitionType);
         tableCache = new HashMap<>(16);
         outputFormats = new HashMap<>(16);
+        gson = GsonUtil.setTypeAdapter(new Gson());
     }
 
     @Override
@@ -248,6 +252,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     }
 
     private Row setChannelInformation(Map<String, Object> event, Object channel, List<String> columns) {
+        //如果写入字段只有一个且名称为message 同时 kafka原始数据里没有message字段  默认将kafka原始数据全部写入message里
+        if(columns.size() == 1 && "message".equals(columns.get(0)) && !event.containsKey("message")){
+            return Row.of(gson.toJson(event),channel);
+        }
         Row rowData = new Row(columns.size() + 1);
         //防止kafka column和 hive column大小写不一致，获取不到值 ，全部转为小写进行获取
         HashMap<Object, Object> newEvent = new HashMap<>(event.size() * 2);

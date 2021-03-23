@@ -28,6 +28,8 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.DATA_COMPEL_ORDER;
+import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_ASSIGNER_FIELDS;
 import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_PRODUCER_SETTINGS;
 import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TABLE_FIELDS;
 import static com.dtstack.flinkx.kafkabase.KafkaConfigKeys.KEY_TIMEZONE;
@@ -44,6 +46,10 @@ public class KafkaBaseWriter extends BaseDataWriter {
     protected String topic;
     protected Map<String, String> producerSettings;
     protected List<String> tableFields;
+    //是否保证强制有序
+    protected boolean dataCompelOrder;
+    //用户指定kafka分区字段
+    protected List<String> partitionAssignColumns;
 
     @SuppressWarnings("unchecked")
     public KafkaBaseWriter(DataTransferConfig config) {
@@ -53,6 +59,8 @@ public class KafkaBaseWriter extends BaseDataWriter {
         topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
         producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
         tableFields = (List<String>)writerConfig.getParameter().getVal(KEY_TABLE_FIELDS);
+        partitionAssignColumns = (List<String>) writerConfig.getParameter().getVal(KEY_ASSIGNER_FIELDS);
+        dataCompelOrder = writerConfig.getParameter().getBooleanVal(DATA_COMPEL_ORDER, false);
     }
 
     @Override

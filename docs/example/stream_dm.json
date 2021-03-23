@@ -1,0 +1,56 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "sliceRecordCount": ["100"],
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "age",
+                "type": "int"
+              }
+            ]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "name": "dmwriter",
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:dm://localhost:5236",
+                "table": ["TABLE"]
+              }
+            ],
+            "preSql": [],
+            "postSql": [],
+            "writeMode": "insert",
+            "column": ["ID","AGE"]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+    }
+  }
+}

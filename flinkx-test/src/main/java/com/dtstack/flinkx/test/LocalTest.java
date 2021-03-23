@@ -64,6 +64,7 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -72,8 +73,10 @@ import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
+import com.dtstack.flinkx.restapi.reader.RestapiReader;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
+import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
 import com.dtstack.flinkx.stream.reader.StreamReader;
 import com.dtstack.flinkx.stream.writer.StreamWriter;
 import com.dtstack.flinkx.util.ResultPrintUtil;
@@ -220,6 +223,9 @@ public class LocalTest {
             case PluginNameConstants.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstants.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstants.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
+            case PluginNameConstants.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
+            case PluginNameConstants.RESTAPI_READER:  reader = new RestapiReader(config, env); break;
+            case PluginNameConstants.SQLSERVER_CDC_READER:  reader = new SqlservercdcReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -257,6 +263,7 @@ public class LocalTest {
             case PluginNameConstants.GREENPLUM_WRITER : writer = new GreenplumWriter(config); break;
             case PluginNameConstants.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
+            case PluginNameConstants.RESTAPI_WRITER: writer = new RedisWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

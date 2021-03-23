@@ -1,0 +1,48 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "type" : "bigint"
+          }, {
+            "name" : "user_id",
+            "type" : "bigint"
+          }, {
+            "name" : "name",
+            "type" : "varchar"
+          } ],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:gbase://0.0.0.1:5258/database" ],
+            "table" : [ "tableTest" ]
+          } ],
+          "where": "id > 1",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "gbasereader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

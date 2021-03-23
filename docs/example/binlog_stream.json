@@ -1,0 +1,41 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "filter": "schema\\.table",
+            "password": "passwd",
+            "database": "database",
+            "port": 3306,
+            "start" : {
+              "journalName": "binlog.000031",
+              "timestamp": 1610525946000,
+              "position": 4
+            },
+            "cat": "DELETE,INSERT,UPDATE",
+            "host": "localhost",
+            "jdbcUrl": "jdbc:mysql://localhost:3306/schema",
+            "pavingData": true,
+            "username": "username"
+          },
+          "name": "binlogreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

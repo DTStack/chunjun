@@ -57,6 +57,8 @@
         <module>flinkx-pulsar</module>
         <module>flinkx-pgwal</module>
         <module>flinkx-restapi</module>
+        <module>flinkx-sqlservercdc</module>
+        <module>flinkx-oraclelogminer</module>
     </modules>
 
     <properties>

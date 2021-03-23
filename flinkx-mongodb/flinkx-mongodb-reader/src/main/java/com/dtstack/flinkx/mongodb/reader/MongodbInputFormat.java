@@ -74,6 +74,7 @@ public class MongodbInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
+        LOG.info("inputSplit = {}", inputSplit);
         MongodbInputSplit split = (MongodbInputSplit) inputSplit;
         FindIterable<Document> findIterable;
 
@@ -145,7 +146,8 @@ public class MongodbInputFormat extends BaseRichInputFormat {
             MongoDatabase db = client.getDatabase(mongodbConfig.getDatabase());
             MongoCollection<Document> collection = db.getCollection(mongodbConfig.getCollectionName());
 
-            long docNum = filter == null ? collection.countDocuments() : collection.countDocuments(filter);
+            //不使用 collection.countDocuments() 获取总数是因为这个方法在大数据量时超时，导致出现超时异常结束任务
+            long docNum = collection.estimatedDocumentCount();
             if(docNum <= minNumSplits){
                 splits.add(new MongodbInputSplit(0,(int)docNum));
                 return splits.toArray(new MongodbInputSplit[splits.size()]);

@@ -12,36 +12,42 @@
 - **address**
   - 描述：Elasticsearch地址，单个节点地址采用host:port形式，多个节点的地址用逗号连接
   - 必选：是
+  - 字段类型：String
   - 默认值：无
+<br />
 
 
 
 - **username**
   - 描述：Elasticsearch认证用户名
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+<br />
 
 
 - **password**
   - 描述：Elasticsearch认证密码
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+<br />
 
 
 - **index**
   - 描述：Elasticsearch 索引值
   - 必选：是
+  - 字段类型：String
   - 默认值：无
-
+<br />
 
 
 - **type**
   - 描述：Elasticsearch 索引类型
   - 必选：是
+  - 字段类型：String
   - 默认值：无
-
+<br />
 
 
 - **column**
@@ -54,6 +60,7 @@
 ```
 
   - 必选：是
+  - 字段类型：List
   - 默认值：无
 
 
@@ -80,22 +87,25 @@
   - 注意：
     - 如果不指定idColumns属性，则会随机产生文档id
     - 如果指定的字段值存在重复或者指定了常数，按照es的逻辑，同样值的doc只会保留一份
+    - 字段类型：List
   - 默认值：无
-
+<br />
 
 
 - **bulkAction**
   - 描述：批量写入的记录条数
   - 必选：是
+  - 字段类型：int
   - 默认值：100
-
+<br />
 
 
 - **timeout**
   - 描述：连接超时时间，如果bulkAction指定的数值过大，写入数据可能会超时，这时可以配置超时时间
   - 必选：否
+  - 字段类型：int
   - 默认值：无
-
+<br />
 
 
 <a name="1LBc2"></a>
@@ -128,7 +138,7 @@
         "writer": {
           "name": "eswriter",
           "parameter": {
-            "address": "172.16.8.193:9200",
+            "address": "localhost:9200",
             "username": "elastic",
             "password": "abc123",
             "index": "tudou",
