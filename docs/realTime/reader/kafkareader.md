@@ -6,10 +6,10 @@
     - [一、插件名称](#一插件名称)
     - [二、参数说明](#二参数说明)
     - [三、配置示例](#三配置示例)
-        - [1、kafka10](#2kafka10)
-        - [2、kafka11](#3kafka11)
-        - [3、kafka](#4kafka)
-        - [4、kafka->Hive](#5kafka-hive)
+        - [1、kafka10](#1kafka10)
+        - [2、kafka11](#2kafka11)
+        - [3、kafka](#3kafka)
+        - [4、kafka->Hive](#4kafka-hive)
 
 <!-- /TOC -->
 
