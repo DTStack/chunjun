@@ -26,7 +26,6 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-import com.dtstack.flinkx.util.ValueUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -35,9 +34,8 @@ import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Arrays;
+import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -157,15 +155,24 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
             String database = BinlogUtil.getDataBaseByUrl(binlogConfig.jdbcUrl);
             List<String> failedTable = BinlogUtil.checkTablesPrivilege(conn, database, binlogConfig.filter, binlogConfig.table);
             if (CollectionUtils.isNotEmpty(failedTable)) {
-                sb.append("user has not select privilege on " + GsonUtil.GSON.toJson(failedTable));
+                sb.append("user has not select privilege on ").append(GsonUtil.GSON.toJson(failedTable));
             }
 
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException("error to check binlog config, e = " + ExceptionUtil.getErrorMessage(e), e);
+        } catch (SQLException e) {
+
+            StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
+
+            if(sb.length() > 0){
+                detailsInfo.append(" binlog config not right，details is  ").append(sb.toString());
+            }
+
+            detailsInfo.append(" \n error to check binlog config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+
+            throw new RuntimeException(detailsInfo.toString(), e);
         }
     }
 }

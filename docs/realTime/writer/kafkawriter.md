@@ -1,5 +1,19 @@
 # Kafka Writer
 
+<!-- TOC -->
+
+- [一、插件名称](#一插件名称)
+- [二、参数说明](#二参数说明)
+- [三、配置示例](#三配置示例)
+    - [1、kafka10](#1kafka10)
+    - [2、kafka11](#2kafka11)
+    - [3、kafka](#3kafka)
+    - [4、MySQL->kafka](#4mysql-kafka)
+
+<!-- /TOC -->
+
+<br/>
+
 ## 一、插件名称
 kafka插件存在三个版本，根据kafka版本的不同，插件名称也略有不同。具体对应关系如下表所示：
 
@@ -10,6 +24,7 @@ kafka插件存在三个版本，根据kafka版本的不同，插件名称也略�
 | kafka 1.0及以后 | kafkawriter |
 注：从FlinkX1.11版本开始不再支持kafka 0.9
 
+<br/>
 
 ## 二、参数说明
 
@@ -48,9 +63,25 @@ kafka插件存在三个版本，根据kafka版本的不同，插件名称也略�
    - 默认值：无
 
 
+<br/>
+
+
+- **partitionAssignColumns**
+  - 描述：根据用户自定义的字段值来将相同key值的数据发向同一个 topic partition(目前只支持kafka 1.0以后的版本)
+  - 必选：否
+  - 字段类型：List
+  - 默认值：无
+
+<br />
+
+- **dataCompelOrder**
+  - 描述：是否强制要求kafka topic接受数据保证顺序一致性(目前只支持kafka 1.0以后的版本)
+  - 必选：否
+  - 字段类型：Boolean
+  - 默认值：false
 
 ## 三、配置示例
-#### 1、kafka10
+### 1、kafka10
 ```json
 {
   "job": {
@@ -98,7 +129,7 @@ kafka插件存在三个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 2、kafka11
+### 2、kafka11
 ```json
 {
   "job": {
@@ -147,7 +178,7 @@ kafka插件存在三个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 3、kafka
+### 3、kafka
 ```json
 {
   "job": {
@@ -195,7 +226,7 @@ kafka插件存在三个版本，根据kafka版本的不同，插件名称也略�
   }
 }
 ```
-#### 4、MySQL->kafka
+### 4、MySQL->kafka
 ```json
 {
   "job" : {

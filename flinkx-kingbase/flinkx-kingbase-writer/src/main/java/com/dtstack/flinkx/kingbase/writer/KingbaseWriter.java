@@ -41,6 +41,7 @@ import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
 
 public class KingbaseWriter extends JdbcDataWriter {
 
+    /** {@link KingbaseOutputFormat} openInternal方法中需要使用schema进行表名拼接 */
     public String schema;
 
     public KingbaseWriter(DataTransferConfig config) {

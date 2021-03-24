@@ -1,0 +1,48 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter": {
+          "sliceRecordCount": ["100"],
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            },
+            {
+              "name": "age",
+              "type": "int"
+            }
+          ]
+        },
+        "name": "streamreader"
+      },
+      "writer": {
+        "name": "gbasewriter",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:gbase://0.0.0.1:5258/database",
+            "table": ["tableTest"]
+          }],
+          "username": "username",
+          "password": "password",
+          "column": ["id","age"],
+          "writeMode": "insert",
+          "batchSize": 1024,
+          "preSql": [],
+          "postSql": [],
+          "updateKey": {}
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

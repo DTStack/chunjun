@@ -1,0 +1,67 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "streamreader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "user_id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount" : [ "100"]
+          }
+        },
+        "writer": {
+          "name": "polarwriter",
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:polardb://0.0.0.1:3306/database",
+                "table": ["table"]
+              }
+            ],
+            "preSql": ["truncate table table;"],
+            "postSql": ["update table set user_id = 1;"],
+            "writeMode": "insert",
+            "column": ["id","user_id","name"],
+            "batchSize": 1024
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

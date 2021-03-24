@@ -1,12 +1,29 @@
 # MongoDB Oplog Reader
+<!-- TOC -->
+
+- [MongoDB Oplog Reader](#mongodb-oplog-reader)
+    - [一、插件名称](#一插件名称)
+    - [二、数据源版本](#二数据源版本)
+    - [三、数据源配置](#三数据源配置)
+    - [四、参数说明](#四参数说明)
+    - [五、使用示例](#五使用示例)
+            - [采集test库下的所有集合](#采集test库下的所有集合)
+
+<!-- /TOC -->
+
+<br/>
 
 <a name="QMYmg"></a>
 ## 一、插件名称
 名称：**mongodboplogreader**<br />
 
+<br/>
+
 <a name="UaR1L"></a>
 ## 二、数据源版本
 **MongoDB 4.0及以上**<br />
+
+<br/>
 
 <a name="oVYPr"></a>
 ## 三、数据源配置
@@ -20,63 +37,63 @@
   - 必选：是
   - 默认值：无
 
-
+<br/>
 
 - **username**
   - 描述： 用户名
   - 必选：是
   - 默认值：无
 
-
+<br/>
 
 - **password**
   - 描述： 密码
   - 必选：是
   - 默认值：无
 
-
+<br/>
 
 - **authenticationMechanism**
   - 描述： 认证机制，可选：GSSAPI、PLAIN、MONGODB-X509、MONGODB-CR、SCRAM-SHA-1、SCRAM-SHA-256
   - 必选：否
   - 默认值：无
 
-
+<br/>
 
 - **clusterMode**
   - 描述： 集群模式，可选：REPLICA_SET、MASTER_SLAVE
   - 必选：是
   - 默认值：无
 
-
+<br/>
 
 - **monitorDatabases**
   - 描述： 要监听的库
   - 必选：否
   - 默认值：无
 
-
+<br/>
 
 - **monitorCollections**
   - 描述：要监听的集合
   - 必选：否
   - 默认值：无
 
-
+<br/>
 
 - **operateType**
   - 描述：要监听的操作类型，可选：insert、update、delete
   - 必选：否
   - 默认值：无
 
-
+<br/>
 
 - **excludeDocId**
   - 描述：是否排除_id字段
   - 必选：否
   - 默认值：false
 
-
+<br/>
 
 - **pavingData**
   - 描述：是否将解析出的json数据拍平

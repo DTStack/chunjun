@@ -54,10 +54,15 @@ public class GsonUtil {
                 .disableHtmlEscaping()
                 .setPrettyPrinting()
                 .create();
+
+        return setTypeAdapter(GSON);
+    }
+
+    public static Gson setTypeAdapter(Gson gson) {
         try {
             Field factories = Gson.class.getDeclaredField("factories");
             factories.setAccessible(true);
-            Object o = factories.get(GSON);
+            Object o = factories.get(gson);
             Class<?>[] declaredClasses = Collections.class.getDeclaredClasses();
             for (Class c : declaredClasses) {
                 if ("java.util.Collections$UnmodifiableList".equals(c.getName())) {
@@ -141,6 +146,6 @@ public class GsonUtil {
         } catch (Exception e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
-        return GSON;
+        return gson;
     }
 }

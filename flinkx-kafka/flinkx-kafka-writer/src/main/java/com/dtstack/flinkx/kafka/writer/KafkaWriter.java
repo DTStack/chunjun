@@ -53,6 +53,8 @@ public class KafkaWriter extends KafkaBaseWriter {
         format.setDirtyHadoopConfig(dirtyHadoopConfig);
         format.setSrcFieldNames(srcCols);
         format.setHeartBeatController(new HeartBeatController());
+        format.setDataCompelOrder(dataCompelOrder);
+        format.setPartitionAssignColumns(partitionAssignColumns);
 
         return createOutput(dataSet, format);
     }

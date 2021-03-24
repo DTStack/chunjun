@@ -1,0 +1,52 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "table": ["schema.table"],
+            "password": "passwd",
+            "database": "schema",
+            "port": 3306,
+            "cat": "insert,update,delete",
+            "host": "host",
+            "jdbcUrl": "jdbc:mysql://host:3306/schema",
+            "pavingData": true,
+            "username": "user"
+          },
+          "name": "binlogreader"
+        },
+        "writer": {
+          "parameter": {
+            "writeMode": "overwrite",
+            "partitionType": "DAY",
+            "tablesColumn" : "{\"CDC\":[{\"type\":\"VARCHAR2\",\"key\":\"before_ID\",\"comment\":\"\"},{\"comment\":\"\",\"type\":\"VARCHAR2\",\"key\":\"after_ID\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"type\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"schema\"},{\"comment\":\"\",\"type\":\"varchar\",\"key\":\"table\"},{\"comment\":\"\",\"type\":\"bigint\",\"key\":\"ts\"}]}",
+            "partition": "pt",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn2": "host1:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1": "host2:9000",
+              "dfs.nameservices": "ns1"
+            },
+            "jdbcUrl": "jdbc:hive2://host1:10000/dev",
+            "defaultFS": "hdfs://ns1",
+            "fileType": "orc",
+            "charsetName": "utf-8",
+            "username": "admin"
+          },
+          "name": "hivewriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

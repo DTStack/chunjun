@@ -1,0 +1,64 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter": {
+          "sliceRecordCount": ["100"],
+          "column": [
+            {
+              "name": "id",
+              "type": "int"
+            },
+            {
+              "name": "user_id",
+              "type": "int"
+            },
+            {
+              "name":"name",
+              "type":"string"
+            }
+          ]
+        },
+        "name": "streamreader"
+      },
+      "writer": {
+        "name": "sqlserverwriter",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:jtds:sqlserver://0.0.0.1:1433;DatabaseName=database",
+            "table": ["tableTest"]
+          }],
+          "username": "username",
+          "password": "password",
+          "column": [
+            {
+              "name": "id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "user_id",
+              "type": "BIGINT"
+            },
+            {
+              "name": "name",
+              "type": "varchar"
+            }],
+          "writeMode": "insert",
+          "batchSize": 1024,
+          "preSql": [],
+          "postSql": [],
+          "updateKey": {}
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

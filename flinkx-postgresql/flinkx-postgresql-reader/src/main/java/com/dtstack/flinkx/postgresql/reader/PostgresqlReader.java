@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.postgresql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
@@ -27,6 +28,7 @@ import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -44,6 +46,11 @@ public class PostgresqlReader extends JdbcDataReader {
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
         dbUrl = DbUtil.formatJdbcUrl(dbUrl, null);
+
+        String schema = config.getJob().getContent().get(0).getReader().getParameter().getConnection().get(0).getSchema();
+        if (StringUtils.isNotEmpty(schema)){
+            table = schema + ConstantValue.POINT_SYMBOL + table;
+        }
     }
 
     @Override
