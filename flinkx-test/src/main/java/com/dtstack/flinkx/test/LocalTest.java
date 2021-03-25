@@ -58,11 +58,9 @@ import com.dtstack.flinkx.kingbase.writer.KingbaseWriter;
 import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahbase.reader.MetadatahbaseReader;
-//import com.dtstack.flinkx.metadataes6.reader.Metadataes6Reader;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
-import com.dtstack.flinkx.metadataphoenix5.reader.MetadataphoenixReader;
 import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
 import com.dtstack.flinkx.metadatatidb.reader.MetadatatidbReader;
 import com.dtstack.flinkx.metadatavertica.reader.MetadataverticaReader;
@@ -85,7 +83,6 @@ import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
-import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.socket.reader.SocketReader;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
@@ -115,6 +112,7 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
 /**
  * @author jiangbo
  */
@@ -242,9 +240,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATATIDB_READER : reader = new MetadatatidbReader(config, env); break;
             case PluginNameConstrant.METADATAORACLE_READER : reader = new MetadataoracleReader(config, env); break;
             case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
-            case PluginNameConstrant.METADATAPHOENIX_READER : reader = new MetadataphoenixReader(config, env); break;
             case PluginNameConstrant.METADATAHBASE_READER : reader = new MetadatahbaseReader(config, env); break;
-//            case PluginNameConstrant.METADATAES6_READER : reader = new Metadataes6Reader(config, env); break;
             case PluginNameConstrant.METADATAVERTICA_READER : reader = new MetadataverticaReader(config, env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
