@@ -122,4 +122,28 @@ public interface IFtpHandler {
      * @throws IOException 文件句柄操作异常
      */
     void completePendingCommand() throws IOException;
+
+    /**
+     * 递归获取指定路线下的所有目录和文件
+     * @param superPath  指定路径
+     * @param directoryList 路径下的目录列表
+     * @param fileList   路径下的文件列表
+     */
+    default void getFileRecursiveList(String superPath, List<String> directoryList, List<String > fileList){
+
+        try {
+            List<String> filePathLis = getFiles(superPath);
+            for (String filePath:  filePathLis  ) {
+                if (isDirExist(filePath) ==true){
+                    directoryList.add(filePath);
+                    getFileRecursiveList(filePath,directoryList,fileList);
+                }else {
+                    fileList.add(filePath);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 }

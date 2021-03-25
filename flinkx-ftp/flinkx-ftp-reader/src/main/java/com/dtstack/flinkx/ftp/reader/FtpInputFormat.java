@@ -26,12 +26,16 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * The InputFormat class of Ftp
@@ -64,16 +68,34 @@ public class FtpInputFormat extends BaseRichInputFormat {
         IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
         ftpHandler.loginFtpServer(ftpConfig);
 
-        List<String> files = new ArrayList<>();
+        HashSet<String> files = new HashSet<>();
+
+        List<String> directoryList = new ArrayList<>();
+        List<String> filePathList = new ArrayList<>();
 
         String path = ftpConfig.getPath();
+        ftpHandler.getFileRecursiveList(File.separator,directoryList,filePathList);
+
+        Pattern pattern = null;
         if(path != null && path.length() > 0){
             path = path.replace("\n","").replace("\r","");
-            String[] pathArray = path.split(",");
+            String[] pathArray = StringUtils.split(path, ",");
             for (String p : pathArray) {
-                files.addAll(ftpHandler.getFiles(p.trim()));
+                pattern =Pattern.compile(p);
+                for (String filePath:filePathList) {
+                    if (pattern.matcher(filePath).find()){
+                        files.add(filePath);
+                    }
+                }
+                for (String filePath:directoryList) {
+                    if (pattern.matcher(filePath).find()){
+                        files.addAll(ftpHandler.getFiles(filePath));
+                    }
+                }
             }
         }
+
+
         LOG.info("FTP files = {}", GsonUtil.GSON.toJson(files));
         int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
@@ -81,7 +103,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
             ftpInputSplits[index] = new FtpInputSplit();
         }
         for(int i = 0; i < files.size(); ++i) {
-            ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
+            ftpInputSplits[i % numSplits].getPaths().add((String) files.toArray()[i]);
         }
 
         ftpHandler.logoutFtpServer();
