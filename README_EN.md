@@ -3,57 +3,47 @@ FlinkX
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-[English](README.md) | 中文
+English | [中文](README.md)
 
-# 技术交流
+# Communication
 
-- 招聘**Flink研发工程师**，如果有兴趣可以联系思枢（微信号：ysqwhiletrue）<BR>
-Flink开发工程师JD要求：<BR>
-1.负责袋鼠云基于Flink的衍生框架数据同步flinkx和实时计算flinkstreamsql框架的开发；<BR>
-2.调研和把握当前最新大数据实时计算技术，将其中的合适技术引入到平台中，改善产品，提升竞争力；<BR>
-职位要求：<BR>
-1、本科及以上学历，3年及以上的Flink开发经验，精通Java，熟悉Scala、Python优先考虑；<BR>
-2、熟悉Flink原理，有基于Flink做过二次源码的开发，在github上贡献者Flink源码者优先；<BR>
-3、有机器学习、数据挖掘相关经验者优先；<BR>
-4、对新技术有快速学习和上手能力，对代码有一定的洁癖；<BR>
-加分项：<BR>
-1.在GitHub或其他平台上有过开源项目<BR>
-可以添加本人微信号ysqwhiletrue，注明招聘，如有意者发送简历至[sishu@dtstack.com](mailto:sishu@dtstack.com)
+- We are recruiting **Big data platform development engineers**. If you want more information about the position, please add WeChat ID [**ysqwhiletrue**] or email your resume to [sishu@dtstack.com](mailto:sishu@dtstack.com).
 
-- 我们使用[钉钉](https://www.dingtalk.com/)沟通交流，可以搜索群号[**30537511**]或者扫描下面的二维码进入钉钉群
+- We use [DingTalk](https://www.dingtalk.com/) to communicate, you can search the group number [**30537511**] or scan the QR code below to join the communication group
   
 <div align=center>
- <img src=docs/images/ding.jpg width=300 />
+  <img src=docs/images/ding.jpg width=300 />
 </div>
 
-# 介绍
-* **FlinkX是在是袋鼠云内部广泛使用的基于flink的分布式离线和实时的数据同步框架，实现了多种异构数据源之间高效的数据迁移。**
+# Introduction
 
-不同的数据源头被抽象成不同的Reader插件，不同的数据目标被抽象成不同的Writer插件。理论上，FlinkX框架可以支持任意数据源类型的数据同步工作。作为一套生态系统，每接入一套新数据源该新加入的数据源即可实现和现有的数据源互通。
+* **FlinkX is a distributed offline and real-time data synchronization framework based on flink widely used in 袋鼠云, which realizes efficient data migration between multiple heterogeneous data sources.**
+
+Different data sources are abstracted into different Reader plugins, and different data targets are abstracted into different Writer plugins. In theory, the FlinkX framework can support data synchronization of any data source type. As a set of ecosystems, every time a set of new data sources is connected, the newly added data sources can realize intercommunication with existing data sources.
 
 <div align=center>
   <img src=docs/images/template.png width=300 />
 </div>
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。FlinkX目前包含下面这些特性：
+FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
 
-- 大部分插件支持并发读写数据，可以大幅度提高读写速度；
+- Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 
-- 部分插件支持失败恢复的功能，可以从失败的位置恢复任务，节约运行时间；[失败恢复](docs/restore.md)
+- Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [Failure Recovery](docs/restore.md)
 
-- 关系数据库的Reader插件支持间隔轮询功能，可以持续不断的采集变化的数据；[间隔轮询](docs/offline/reader/mysqlreader.md)
+- The Reader plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/offline/reader/mysqlreader.md)
 
-- 部分数据库支持开启Kerberos安全认证；[Kerberos](docs/kerberos.md)
+- Some databases support opening Kerberos security authentication;  [Kerberos](docs/kerberos.md)
 
-- 可以限制reader的读取速度，降低对业务数据库的影响；
+- Limit the reading speed of Reader plugins and reduce the impact on business databases;
 
-- 可以记录writer插件写数据时产生的脏数据；
+- Save the dirty data when writing data;
 
-- 可以限制脏数据的最大数量；
+- Limit the maximum number of dirty data;
 
-- 支持多种运行模式；
+- Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
 
-FlinkX目前支持下面这些数据库：
+The following databases are currently supported:
 
 |                        | Database Type  | Reader                          | Writer                          |
 |:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|
@@ -85,42 +75,42 @@ FlinkX目前支持下面这些数据库：
 |                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
-|                        | RestApi        |[doc](docs/realTime/reader/restapireader.md)  | [doc](docs/realTime/writer/restapiwriter.md)   |
+|                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-|                        | Oracle LogMiner  | [doc](docs/realTime/reader/LogMiner.md)      |                                                |
-|                        | Sqlserver CDC  | [doc](docs/realTime/reader/sqlservercdc.md)      |                                                |
+|                        | Oracle LogMiner| [doc](docs/realTime/reader/LogMiner.md)      |                                                |
+|                        | Sqlserver CDC| [doc](docs/realTime/reader/sqlservercdc.md)      |                                                |
 
-# 基本原理
-在底层实现上，FlinkX依赖Flink，数据同步任务会被翻译成StreamGraph在Flink上执行，基本原理如下图：
+# Fundamental
+In the underlying implementation, FlinkX relies on Flink, and the data synchronization task will be translated into StreamGraph and executed on Flink. The basic principle is as follows:
 <div align=center>
   <img src=docs/images/diagram.png width=700 />
 </div>
 
-# 快速开始
+# Quick Start
 
-请点击[快速开始](docs/quickstart.md)
+Please click [Quick Start](docs/quickstart.md)
 
-# 通用配置
+# General Configuration
 
-请点击[插件通用配置](docs/generalconfig.md)
+Please click [General Configuration](docs/generalconfig.md)
 
-# 统计指标
+# Statistics Metric
 
-请点击[统计指标](docs/statistics.md)
+Please click [Statistics Metric](docs/statistics.md)
 
 # Kerberos
 
-请点击[Kerberos](docs/kerberos.md)
+Please click [Kerberos](docs/kerberos.md)
 
 # Questions
 
-请点击[Questions](docs/questions.md)
+Please click [Questions](docs/questions.md)
 
-# 如何贡献FlinkX
+# How to contribute FlinkX
 
-请点击[如何贡献FlinkX](docs/contribution.md)
+Please click [Contribution](docs/contribution.md)
 
 # License
 
