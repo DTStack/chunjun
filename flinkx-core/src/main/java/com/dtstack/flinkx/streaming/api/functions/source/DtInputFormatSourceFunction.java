@@ -148,6 +148,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 					isRunning = splitIterator.hasNext();
 				}
 			}
+		} catch (Exception exception){
+				tryException = exception;
 		} finally {
 			isRunning = false;
 			try {

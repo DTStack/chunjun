@@ -443,11 +443,6 @@
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-restapi-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-dm-reader</artifactId>
             <version>1.6</version>
         </dependency>
