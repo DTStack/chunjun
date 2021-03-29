@@ -198,7 +198,7 @@ public class SqlUtil {
             "           WHERE \n"+
             "              name IS NOT NULL \n"+
             "           AND STANDBY_DEST='NO'\n"+
-            "           AND  first_change# < endScn  AND next_change# >= start_scn )group by first_change# order by first_change#  )LOOP IF st THEN \n"+
+            "           AND  first_change# < endScn  AND next_change# > start_scn )group by first_change# order by first_change#  )LOOP IF st THEN \n"+
             "  SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new); \n"+
             "      st := false; \n"+
             "  ELSE \n"+
