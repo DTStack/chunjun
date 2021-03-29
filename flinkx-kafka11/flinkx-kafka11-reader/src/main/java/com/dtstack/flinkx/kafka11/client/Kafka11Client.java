@@ -25,7 +25,7 @@ import java.util.Properties;
  * @author tudou
  */
 public class Kafka11Client implements IClient {
-    private static Logger LOG = LoggerFactory.getLogger(Kafka11Consumer.class);
+    private static Logger LOG = LoggerFactory.getLogger(Kafka11Client.class);
     private volatile boolean running = true;
     private long pollTimeout;
     private boolean blankIgnore;
