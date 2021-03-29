@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
  * @date 2020/3/27
  */
 public class LogMinerConnection {
-
     public static Logger LOG = LoggerFactory.getLogger(LogMinerConnection.class);
 
     public static final String KEY_PRIVILEGE = "PRIVILEGE";
@@ -506,9 +505,12 @@ public class LogMinerConnection {
 
         //对每一个thread的文件进行排序
         map.forEach((k, v) -> {
-            v = v.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList());
+           map.put(k,v.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()));
         });
-        BigDecimal tempSCN = scn;
+
+        BigDecimal tempMinFirstScn = null;
+        BigDecimal tempMinNextScn = scn;
+
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
 
@@ -531,23 +533,25 @@ public class LogMinerConnection {
             BigDecimal minFirstScn = tempList.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()).get(0).getFirstChange();
             BigDecimal minNextScn = tempList.stream().sorted(Comparator.comparing(LogFile::getNextChange)).collect(Collectors.toList()).get(0).getNextChange();
 
-            if (null == minScn || minScn.compareTo(minFirstScn) < 0) {
-                minScn = minFirstScn;
-            }
             for (LogFile logFile1 : tempList) {
                 if (logFile1.getFirstChange().compareTo(minNextScn) < 0) {
                     logFiles.add(logFile1);
                     fileSize += logFile1.getBytes();
                 }
             }
-            tempSCN = minNextScn;
+
+            if (tempMinFirstScn == null) {
+                tempMinFirstScn = minFirstScn;
+            }
+            tempMinNextScn = minNextScn;
         }
         //如果最小的nextScn都是onlineNextChange，就代表加载所有的日志文件
-        if (tempSCN.equals(onlineNextChange)) {
-            tempSCN = null;
+        if (tempMinNextScn.equals(onlineNextChange)) {
+            tempMinNextScn = null;
             logFiles = logFileLists;
         }
-        maxScn = tempSCN;
+        maxScn = tempMinNextScn;
+        minScn = tempMinFirstScn;
         lastQueryTime = System.currentTimeMillis();
         return logFiles;
     }
