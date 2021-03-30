@@ -95,6 +95,7 @@ public class StringUtil {
                 break;
             case MEDIUMINT:
             case BIGINT:
+            case LONG:
                 ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
