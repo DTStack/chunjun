@@ -169,7 +169,7 @@ public abstract class BaseDatabaseMeta implements DatabaseInterface, Serializabl
         String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
         List<String> list = new ArrayList<>();
         for(String col : column) {
-            list.add(prefixLeft + col + "=" + prefixRight + col);
+            list.add(prefixLeft + quoteColumn(col) + "=" + prefixRight + quoteColumn(col));
         }
         return StringUtils.join(list, ",");
     }

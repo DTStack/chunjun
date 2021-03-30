@@ -73,6 +73,9 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
+    @OptionRequired(description = "json modify")
+    private String p = "";
+
     @OptionRequired(description = "savepoint path")
     private String s;
 
@@ -246,6 +249,14 @@ public class Options {
         this.remotePluginPath = remotePluginPath;
     }
 
+    public String getP() {
+        return p;
+    }
+
+    public void setP(String p) {
+        this.p = p;
+    }
+
     public String getKrb5conf() {
         return krb5conf;
     }
@@ -285,6 +296,7 @@ public class Options {
                 ", queue='" + queue + '\'' +
                 ", flinkLibJar='" + flinkLibJar + '\'' +
                 ", confProp='" + confProp + '\'' +
+                ", p='" + p + '\'' +
                 ", s='" + s + '\'' +
                 ", pluginLoadMode='" + pluginLoadMode + '\'' +
                 ", appId='" + appId + '\'' +
