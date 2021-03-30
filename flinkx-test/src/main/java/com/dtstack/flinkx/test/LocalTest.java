@@ -84,7 +84,6 @@ import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
 import com.dtstack.flinkx.socket.reader.SocketReader;
-import com.dtstack.flinkx.restapi.writer.RestapiWriter;
 import com.dtstack.flinkx.sqlserver.reader.SqlserverReader;
 import com.dtstack.flinkx.sqlserver.writer.SqlserverWriter;
 import com.dtstack.flinkx.sqlservercdc.reader.SqlservercdcReader;
@@ -243,8 +242,8 @@ public class LocalTest {
             case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
             case PluginNameConstrant.METADATAHBASE_READER : reader = new MetadatahbaseReader(config, env); break;
             case PluginNameConstrant.METADATAVERTICA_READER : reader = new MetadataverticaReader(config, env); break;
-            case PluginNameConstrant.METADATAES6_READER : reader = new Metadataes6Reader(config, env); break;
-            case PluginNameConstrant.METADATAPGSQL_READER : reader =new MetadataPostsqlReader(config,env); break;
+//            case PluginNameConstrant.METADATAES6_READER : reader = new Metadataes6Reader(config, env); break;
+//            case PluginNameConstrant.METADATAPGSQL_READER : reader =new MetadataPostsqlReader(config,env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
             case PluginNameConstrant.PHOENIX5_READER : reader = new Phoenix5Reader(config, env); break;
             case PluginNameConstrant.KINGBASE_READER : reader = new KingbaseReader(config, env); break;
