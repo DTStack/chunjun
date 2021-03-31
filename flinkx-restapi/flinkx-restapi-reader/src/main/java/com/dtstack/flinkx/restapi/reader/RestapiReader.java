@@ -20,19 +20,17 @@ package com.dtstack.flinkx.restapi.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.reader.BaseDataReader;
-import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.restapi.common.InnerVaribleFactory;
-import com.dtstack.flinkx.restapi.common.IntervalTimeVarible;
-import com.dtstack.flinkx.restapi.common.handler.DataHandlerFactory;
-import com.dtstack.flinkx.restapi.inputformat.RestapiInputFormatBuilder;
+import com.dtstack.flinkx.restapi.common.ConstantValue;
+import com.dtstack.flinkx.restapi.common.HttpMethod;
+import com.dtstack.flinkx.restapi.common.MetaParam;
+import com.dtstack.flinkx.restapi.common.ParamType;
+import com.dtstack.flinkx.restapi.format.RestapiInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 
 /**
  * @author : tiezhu
@@ -40,13 +38,11 @@ import java.util.Map;
  */
 public class RestapiReader extends BaseDataReader {
 
+    /**
+     * http的请求参数
+     **/
     private HttpRestConfig httpRestConfig;
 
-    private List<MetaColumn> metaColumns;
-
-    protected Long intervalTime;
-
-    protected List handlers;
 
     @SuppressWarnings("unchecked")
     public RestapiReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -56,24 +52,25 @@ public class RestapiReader extends BaseDataReader {
         try {
             this.httpRestConfig = objectMapper.readValue(objectMapper.writeValueAsString(readerConfig.getParameter().getAll()), HttpRestConfig.class);
         } catch (Exception e) {
-            throw new RuntimeException("解析httpRest Config配置出错:", e);
-        }
-        metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
-        List handlers = httpRestConfig.getHandlers();
-        if (CollectionUtils.isNotEmpty(handlers)) {
-            handlers = new ArrayList(handlers.size() * 2);
-            for (Object handlerParam : handlers) {
-                try {
-                    handlers.add(DataHandlerFactory.getDataHandler((Map) handlerParam));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("dataHandler param error" + httpRestConfig.getHandlers());
-                }
-            }
-            DataHandlerFactory.destroy();
+            throw new RuntimeException("analyze httpRest Config failed:", e);
         }
 
-        InnerVaribleFactory.addVarible("intervalTime", new IntervalTimeVarible(httpRestConfig.getIntervalTime()));
-        intervalTime = httpRestConfig.getIntervalTime();
+        MetaParam.setMetaColumnsType(httpRestConfig.getBody(), ParamType.BODY);
+        MetaParam.setMetaColumnsType(httpRestConfig.getParam(), ParamType.PARAM);
+        MetaParam.setMetaColumnsType(httpRestConfig.getHeader(), ParamType.HEADER);
+
+        MetaParam.initTimeFormat(httpRestConfig.getBody());
+        MetaParam.initTimeFormat(httpRestConfig.getParam());
+        MetaParam.initTimeFormat(httpRestConfig.getHeader());
+
+        //post请求 如果contentTy没有设置，则默认设置为 application/json
+        if(HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig.getHeader().stream().noneMatch(i->ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))){
+            if(CollectionUtils.isEmpty(httpRestConfig.getHeader())){
+                httpRestConfig.setHeader( Collections.singletonList(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER)));
+            }else{
+                httpRestConfig.getHeader().add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME, ConstantValue.CONTENT_TYPE_DEFAULT_VALUE, ParamType.HEADER));
+            }
+        }
 
     }
 
@@ -81,12 +78,18 @@ public class RestapiReader extends BaseDataReader {
     public DataStream<Row> readData() {
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setIntervalTime(intervalTime);
-        builder.setMetaColumns(metaColumns);
-        builder.setHandlers(handlers);
+
+        builder.setMetaHeaders(httpRestConfig.getHeader());
+        builder.setMetaParams(httpRestConfig.getParam());
+        builder.setMetaBodys(httpRestConfig.getBody());
         builder.setHttpRestConfig(httpRestConfig);
+        builder.setStream(restoreConfig.isStream());
 
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setRestoreConfig(restoreConfig);
 
+        builder.setMonitorUrls(monitorUrls);
+        builder.setBytes(bytes);
         return createInput(builder.finish());
     }
 }

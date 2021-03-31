@@ -1,0 +1,36 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {"name" : "id", "type": "int"}],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : ["jdbc:pivotal:greenplum://localhost:5432;DatabaseName=database"],
+            "table" : ["table"]
+          } ],
+          "where": "",
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "greenplumreader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

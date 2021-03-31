@@ -1,0 +1,52 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "type" : "bigint"
+          },{
+            "name" : "name",
+            "type" : "varchar"
+          } ],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:db2://localhost:50002/database" ],
+            "table" : [ "TEST" ]
+          } ],
+          "where": "",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "db2reader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+    }
+  }
+}

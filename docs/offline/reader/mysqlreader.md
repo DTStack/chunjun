@@ -2,7 +2,7 @@
 
 <a name="c6v6n"></a>
 ## 一、插件名称
-名称：**mysqlreader**<br />**
+名称：**mysqlreader**<br />
 <a name="jVb3v"></a>
 ## 二、支持的数据源版本
 **MySQL 5.X**<br />
@@ -10,35 +10,80 @@
 <a name="2lzA4"></a>
 ## 三、参数说明<br />
 
+- **connection**
+  - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
+  - 必选：是
+  - 字段类型：List
+    - 示例：指定jdbcUrl、schema、table
+  ```json
+  "connection": [{
+       "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+       "table": ["table"],
+       "schema":"public"
+      }] 
+   ```
+  - 默认值：无
+
+<br/>
+
 - **jdbcUrl**
   - 描述：针对关系型数据库的jdbc连接字符串
 <br />jdbcUrl参考文档：[MySQL官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
   - 必选：是
+  - 字段类型：List
   - 默认值：无
 
+<br/>
 
+- **schema**
+  - 描述：数据库schema名
+  - 必选：否
+  - 字段类型：String
+  - 默认值：无
+
+<br/>
+
+- **table**
+  - 描述：目的表的表名称。目前只支持配置单个表，后续会支持多表
+  - 必选：是 
+  - 字段类型：List 
+  - 默认值：无
+  
+<br/>
 
 - **username**
   - 描述：数据源的用户名
   - 必选：是
+  - 字段类型：String
   - 默认值：无
 
-
+<br/>
 
 - **password**
   - 描述：数据源指定用户名的密码
   - 必选：是
+  - 字段类型：String
   - 默认值：无
 
+<br/>
 
+- **fetchSize**
+  - 描述：一次性从数据库中读取多少条数据，jdbc默认一次将所有结果都读取到内存中，在数据量很大时可能会造成OOM，设置这个参数可以控制每次读取fetchSize条数据；开启fetchSize需要满足：数据库版本要高于5.0.2、连接参数useCursorFetch=true。
+  - 注意：此参数的值不可设置过大，否则会读取超时，导致任务失败。
+  - 必选：否
+  - 字段类型：int
+  - 默认值：Integer.MIN_VALUE
+
+<br/>
 
 - **where**
   - 描述：筛选条件，reader插件根据指定的column、table、where条件拼接SQL，并根据这个SQL进行数据抽取。在实际业务场景中，往往会选择当天的数据进行同步，可以将where条件指定为gmt_create > time。
   - 注意：不可以将where条件指定为limit 10，limit不是SQL的合法where子句。
   - 必选：否
+  - 字段类型：String
   - 默认值：无
 
-
+<br/>
 
 - **splitPk**
   - 描述：当speed配置中的channel大于1时指定此参数，Reader插件根据并发数和此参数指定的字段拼接sql，使每个并发读取不同的数据，提升读取速率。
@@ -47,17 +92,19 @@
     - 目前splitPk仅支持整形数据切分，`不支持浮点、字符串、日期等其他类型`。如果用户指定其他非支持类型，FlinkX将报错！
     - 如果channel大于1但是没有配置此参数，任务将置为失败。
   - 必选：否
+  - 字段类型：String
   - 默认值：无
 
-
+<br/>
 
 - **queryTimeOut**
   - 描述：查询超时时间，单位秒。
   - 注意：当数据量很大，或者从视图查询，或者自定义sql查询时，可通过此参数指定超时时间。
   - 必选：否
+  - 字段类型：int
   - 默认值：1000
 
-
+<br/>
 
 - **customSql**
   - 描述：自定义的查询语句，如果只指定字段不能满足需求时，可通过此参数指定查询的sql，可以是任意复杂的查询语句。
@@ -67,9 +114,10 @@
     - 当指定了此参数时，connection里指定的table无效；
     - 当指定此参数时，column必须指定具体字段信息，不能以*号代替；
   - 必选：否
+  - 字段类型：String
   - 默认值：无
 
-
+<br/>
 
 - **column**
   - 描述：需要读取的字段。
@@ -98,27 +146,55 @@
     - format：如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回
     - value：如果数据库里不存在指定的字段，则会把value的值作为常量列返回，如果指定的字段存在，当指定字段的值为null时，会以此value值作为默认值返回
   - 必选：是
+  - 字段类型：List
   - 默认值：无
 
-
+<br/>
 
 - **polling**
   - 描述：是否开启间隔轮询，开启后会根据`pollingInterval`轮询间隔时间周期性的从数据库拉取数据。开启间隔轮询还需配置参数`pollingInterval`，`increColumn`，可以选择配置参数`startLocation`。若不配置参数`startLocation`，任务启动时将会从数据库中查询增量字段最大值作为轮询的开始位置。
   - 必选：否
+  - 字段类型：Boolean
   - 默认值：false
 
+<br/>
 
-
+- **increColumn**
+  - 增量字段，可以是对应的增量字段名，也可以是纯数字，表示增量字段在column中的顺序位置（从0开始）
+  - 必选：否
+  - 字段类型：String或int
+  - 默认值：无
+  
+<br/>  
+  
 - **pollingInterval**
   - 描述：轮询间隔时间，从数据库中拉取数据的间隔时间，默认为5000毫秒。
   - 必选：否
+  - 字段类型：long
   - 默认值：5000
 
+<br/>
 
+- **startLocation**
+  - 描述：增量查询起始位置
+  - 必选：否
+  - 字段类型：String
+  - 默认值：无
+  
+<br/>  
+
+- **useMaxFunc**
+  - 描述：用于标记是否保存endLocation位置的一条或多条数据，true：不保存，false(默认)：保存， 某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true
+  - 必选：否
+  - 字段类型：Boolean
+  - 默认值：false
+
+<br/>
 
 - **requestAccumulatorInterval**
   - 描述：发送查询累加器请求的间隔时间。
   - 必选：否
+  - 字段类型：int
   - 默认值：2
 
 
@@ -134,11 +210,11 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:mysql://kudu3:3306/tudou?useUnicode=true&characterEncoding=utf8"],
-              "table": ["kudu"]
+              "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+              "table": ["table"]
             }],
             "column": ["*"],
             "customSql": "",
@@ -190,11 +266,11 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:mysql://kudu3:3306/tudou?useUnicode=true&characterEncoding=utf8"],
-              "table": ["kudu"]
+              "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+              "table": ["table"]
             }],
             "column": ["*"],
             "customSql": "",
@@ -246,14 +322,14 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:mysql://kudu3:3306/tudou?useUnicode=true&characterEncoding=utf8"],
-              "table": ["kudu"]
+              "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+              "table": ["table"]
             }],
             "column": ["id","user_id","name"],
-            "customSql": "select * from kudu where id > 20",
+            "customSql": "select * from table where id > 20",
             "where": "id < 100",
             "splitPk": "",
             "queryTimeOut": 1000,
@@ -302,11 +378,11 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:mysql://kudu3:3306/tudou?useUnicode=true&characterEncoding=utf8"],
-              "table": ["kudu"]
+              "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+              "table": ["table"]
             }],
             "column": [{
               "name": "id",
@@ -369,11 +445,11 @@
       {
         "reader": {
           "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
+            "username": "username",
+            "password": "password",
             "connection": [{
-              "jdbcUrl": ["jdbc:mysql://kudu3:3306/tudou?useUnicode=true&characterEncoding=utf8"],
-              "table": ["kudu"]
+              "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useUnicode=true&characterEncoding=utf8"],
+              "table": ["table"]
             }],
             "column": [{
               "name": "id",

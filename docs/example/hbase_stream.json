@@ -1,0 +1,65 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "hbasereader",
+          "parameter": {
+            "hbaseConfig": {
+              "hbase.zookeeper.property.clientPort": "2181",
+              "hbase.rootdir": "hdfs://ns1/hbase",
+              "hbase.cluster.distributed": "true",
+              "hbase.zookeeper.quorum": "node01,node02,node03",
+              "zookeeper.znode.parent": "/hbase"
+            },
+            "table": "sb5",
+            "encodig": "utf-8",
+            "column": [
+              {
+                "name": "rowkey",
+                "type": "string"
+              },
+              {
+                "name": "cf1:id",
+                "type": "string"
+              }
+            ],
+            "range": {
+              "startRowkey": "",
+              "endRowkey": "",
+              "isBinaryRowkey": false
+            }
+          }
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "isStream": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

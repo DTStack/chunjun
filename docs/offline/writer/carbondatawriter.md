@@ -2,7 +2,7 @@
 
 <a name="c6v6n"></a>
 ## 一、插件名称
-名称：**carbondatawriter**<br />**
+名称：**carbondatawriter**<br />
 <a name="jVb3v"></a>
 ## 二、支持的数据源版本
 **Carbondata 1.5及以上**<br />
@@ -13,34 +13,50 @@
 - **path**
   - 描述：carbondata表的存储路径
   - 必选：是
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **table**
   - 描述：carbondata表名
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **database**
   - 描述：carbondata库名
   - 必选：否
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **column**
   - 描述：所配置的表中需要同步的字段名列表
-  - 必选：是
+  - 必选：是  
+    字段包括表字段和常量字段,  
+    表字段的格式:  
+    - name：字段名称
+    - type：字段类型
+ ```
+{
+	"name": "col1",
+	"type": "string"
+}
+```  
+  - 必选：是  
+  - 字段类型：List
   - 默认值：无
-
+  <br />
 
 
 - **hadoopConfig**
   - 描述：集群HA模式时需要填写的namespace配置及其它配置
   - 必选：是
+  - 字段类型：Map
   - 默认值：无
 
 <br />
@@ -48,29 +64,33 @@
 - **defaultFS**
   - 描述：Hadoop hdfs文件系统namenode节点地址
   - 必选：是
+  - 字段类型：String
   - 默认值：无
-
+  <br />
 
 
 - **writeMode**
   - 描述：写入模式，支持append和overwrite
   - 必填：否
+  - 字段类型：String
   - 默认值：append
-
+  <br />
 
 
 - **partition**
   - 描述：carbondata分区
   - 必填：否
-  - 默认值：append
-
+  - 字段类型：String
+  - 默认值：无
+  <br />
 
 
 - **batchSize**
   - 描述：批量提交条数
   - 必填：否
+  - 字段类型：int
   - 默认值：204800
-
+  <br />
 
 
 <a name="1LBc2"></a>

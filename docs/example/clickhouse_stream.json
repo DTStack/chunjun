@@ -1,0 +1,52 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "column" : [ {
+            "name" : "id",
+            "type" : "int"
+          }, {
+            "name" : "user_id",
+            "type" : "int"
+          }, {
+            "name" : "name",
+            "type" : "string"
+          },{
+            "name" : "eventDate",
+            "type" : "date"
+          }
+          ],
+          "username" : "username",
+          "password" : "password",
+          "connection" : [ {
+            "jdbcUrl" : [ "jdbc:clickhouse://localhost:8123/database" ],
+            "table" : [ "test" ]
+          } ],
+          "where": "id > 1",
+          "splitPk": "id",
+          "fetchSize": 1000,
+          "queryTimeOut": 1000,
+          "customSql": "",
+          "requestAccumulatorInterval": 2
+        },
+        "name" : "clickhousereader"
+      },
+      "writer": {
+        "name": "streamwriter",
+        "parameter": {
+          "print": true
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}

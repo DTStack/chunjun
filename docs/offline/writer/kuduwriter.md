@@ -1,38 +1,49 @@
 # Kudu Writer
 
-<a name="c6v6n"></a>
 ## 一、插件名称
-名称：**kuduwriter**<br />
-<a name="jVb3v"></a>
+名称：**kuduwriter**
+
 ## 二、支持的数据源版本
-**kudu 1.10及以上**<br />
+**kudu 1.10及以上**
 
-<a name="2lzA4"></a>
+
 ## 三、参数说明
-
-- **column**
-  - 描述：需要生成的字段
-  - 属性说明:
-    - name：字段名称；
-    - type：字段类型；
-  - 必选：是
-  - 默认值：无
-
 
 
 - **masterAddresses**
   - 描述： master节点地址:端口，多个以,隔开
   - 必选：是
+  - 参数类型：string
   - 默认值：无
 
-
+<br/>
 
 - **table**
   - 描述： kudu表名
   - 必选：是
+  - 参数类型：string
   - 默认值：无
 
+<br/>
 
+- **column**
+  - 描述：需要生成的字段
+  - 格式
+```json
+"column": [{
+    "name": "col",
+    "type": "string"
+}]
+```
+
+- 属性说明:
+  - name：字段名称
+  - type：字段类型
+- 必选：是
+- 参数类型：数组
+- 默认值：无
+
+<br/>
 
 - **writeMode**
   - 描述： kudu数据写入模式：
@@ -40,153 +51,139 @@
     - 2、update
     - 3、upsert
   - 必选：是
+  - 参数类型：string
   - 默认值：无
 
-
+<br/>
 
 - **flushMode**
   - 描述： kudu session刷新模式：
-    - 1、auto_flush_sync
-    - 2、auto_flush_background
-    - 3、manual_flush
+    - 1、auto_flush_sync 同步刷新
+    - 2、auto_flush_background  后台自动刷新
+    - 3、manual_flush 手动刷新
   - 必选：否
+  - 参数类型：string
   - 默认值：auto_flush_sync
 
-
+<br/>
 
 - **batchInterval**
   - 描述： 单次批量写入数据条数
   - 必选：否
+  - 参数类型：int
   - 默认值：1
 
-
+<br/>
 
 - **authentication**
-  - 描述： 认证方式，如:Kerberos
+  - 描述：认证方式，kudu开启kerberos时需要配置authentication为Kerberos
   - 必选：否
+  - 参数类型：string
   - 默认值：无
 
-
-
-- **principal**
-  - 描述： 用户名。
-  - 必选：否
-  - 默认值：无
-
-
-
-- **keytabFile**
-  - 描述： keytab文件路径
-  - 必选：否
-  - 默认值：无
-
-
+<br/>
 
 - **workerCount**
-  - 描述： worker线程数
+  - 描述：worker线程数
   - 必选：否
-  - 默认值：默认为cpu*2
+  - 字段类型：int
+  - 默认值：默认为cpu核心数*2
 
-
+<br/>
 
 - **bossCount**
-  - 描述： boss线程数
+  - 描述：boss线程数
   - 必选：否
+  - 字段类型：int
   - 默认值：1
 
-
+<br/>
 
 - **operationTimeout**
-  - 描述： 普通操作超时时间
+  - 描述：普通操作超时时间，单位毫秒
   - 必选：否
+  - 字段类型：long
   - 默认值：30000
 
-
+<br/>
 
 - **adminOperationTimeout**
-  - 描述： 管理员操作(建表，删表)超时时间
+  - 描述： 管理员操作(建表，删表)超时时间，单位毫秒
   - 必选：否
-  - 默认值：30000
+  - 字段类型：long
+  - 默认值：15000
 
+<br/>
 
-
-- **queryTimeout**
-  - 描述： 连接scan token的超时时间
+- **hadoopConfig**
+  - 描述： kudu开启kerberos，需要配置kerberos相关参数
   - 必选：否
-  - 默认值：与operationTimeout一致
+  - 字段类型：map
+  - 默认值：无
 
 
 
-- **batchSizeBytes**
-  - 描述： kudu scan一次性最大读取字节数
-  - 必选：否
-  - 默认值：1048576
-
-
-
-<a name="1Pix9"></a>
 ## 四、配置示例
 ```json
 {
   "job" : {
     "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "column" : [ {
-            "name" : "id",
-            "type" : "id"
-          }, {
-            "name" : "data",
-            "type" : "string"
-          } ],
-          "sliceRecordCount" : [ "100"]
-        },
-        "name" : "streamreader"
+      "reader": {
+        "name": "streamreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "string"
+            }, {
+              "name": "name",
+              "type": "string"
+            }, {
+              "name": "age",
+              "type": "int"
+            }, {
+              "name": "sex",
+              "type": "int"
+            }
+          ],
+          "sliceRecordCount" : [100]
+        }
       },
       "writer" : {
         "parameter": {
           "column": [
             {
               "name": "id",
-              "type": "long"
+              "type": "string"
+            }, {
+              "name": "name",
+              "type": "string"
+            }, {
+              "name": "age",
+              "type": "int"
+            }, {
+              "name": "sex",
+              "type": "int"
             }
           ],
-          "masterAddresses": "kudu1:7051,kudu2:7051,kudu3:7051",
-          "table": "kudu",
+          "masterAddresses": "host:7051",
+          "table": "student",
           "writeMode": "insert",
           "flushMode": "manual_flush",
           "batchInterval": 10000,
-          "authentication": "",
-          "principal": "",
-          "keytabFile": "",
           "workerCount": 2,
-          "bossCount": 1,
-          "operationTimeout": 30000,
-          "adminOperationTimeout": 30000,
-          "queryTimeout": 30000,
-          "batchSizeBytes": 1048576
-        }
+          "bossCount": 1
+        },
+        "name": "kuduwriter"
       }
     } ],
-    "setting" : {
-      "restore" : {
-        "maxRowNumForCheckpoint" : 0,
-        "isRestore" : false,
-        "restoreColumnName" : "",
-        "restoreColumnIndex" : 0
+    "setting": {
+      "speed": {
+        "channel": 1
       },
-      "errorLimit" : {
-        "record" : 100
-      },
-      "speed" : {
-        "bytes" : 0,
-        "channel" : 1
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+      "restore": {
+        "isRestore": false,
+        "isStream" : false
       }
     }
   }

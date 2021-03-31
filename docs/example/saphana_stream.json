@@ -1,0 +1,87 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:sap://0.0.0.1:39017"
+                ],
+                "table": [
+                  "SYS.P_DPAPI_KEY_"
+                ]
+              }
+            ],
+            "column": [
+              {
+                "name": "OID",
+                "type": "BIGINT"
+              },
+              {
+                "name": "CALLER",
+                "type": "NVARCHAR"
+              },
+              {
+                "name": "RECORD_ID",
+                "type": "NVARCHAR"
+              },
+              {
+                "name": "KEY_ID",
+                "type": "INTEGER"
+              },
+              {
+                "name": "KEY",
+                "type": "VARBINARY"
+              },
+              {
+                "name": "CREATE_USER",
+                "type": "NVARCHAR"
+              },
+              {
+                "name": "CREATE_TIME",
+                "type": "BIGINT"
+              },
+              {
+                "name": "DATA_ENCRYPTION_ALGORITHM",
+                "type": "TINYINT"
+              },
+              {
+                "name": "IS_CURRENT_KEY",
+                "type": "TINYINT"
+              }
+            ]
+          },
+          "name": "saphanareader"
+        },
+
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": false
+      },
+      "errorLimit": {},
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      },
+      "log": {
+        "isLogger": false,
+        "level": "trace",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

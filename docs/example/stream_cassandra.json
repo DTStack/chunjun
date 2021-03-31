@@ -1,0 +1,64 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader": {
+        "name": "streamreader",
+        "parameter": {
+          "column": [
+            {
+              "name": "rowkey",
+              "type": "string"
+            },
+            {
+              "name": "id",
+              "type": "string"
+            }
+          ],
+          "sliceRecordCount" : ["100"]
+        }
+      },
+      "writer": {
+        "name": "cassandrawriterer",
+        "parameter": {
+          "host": "localhost",
+          "port": 9042,
+          "username":"",
+          "password":"",
+          "useSSL":false,
+          "column": [
+            {
+              "name": "rowkey",
+              "type": "string"
+            },
+            {
+              "name": "cf1:id",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    } ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "isStream" : false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}

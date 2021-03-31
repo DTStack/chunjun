@@ -10,11 +10,29 @@
 1. 如何合理且正确地使用框架；
 1. 配置文件的规范；
 
+
+## PR规范
+1. 建立issue,描述相关问题信息
+1. 基于对应的release分支拉取开发分支
+1. commit 信息：[type-issueid] [module] msg
+  1. type 类别 
+     1. feat：表示是一个新功能（feature)
+     1. hotfix：hotfix，修补bug
+     1. docs：改动、增加文档
+     1. opt：修改代码风格及opt imports这些，不改动原有执行的代码
+     1. test：增加测试
+1. 多次提交使用rebase 合并成一个。
+1. pr 名称：[flinkx-issueid][module名称] 标题
+
+eg:
+- [hotfix-31280][core] 修复bigdecimal转decimal运行失败问题   
+- [feat-31372][rdb] RDB结果表Upsert模式支持选择更新策略
+
 <a name="29c80db5"></a>
 ## 开发环境
 
-- Flink集群: 1.4及以上(单机模式不需要安装Flink集群）
-- Java: JDK8及以上
+- Flink集群: 版本与FlinkX版本对应(单机模式不需要安装Flink集群）
+- Java: JDK8
 - 操作系统：理论上不限，但是目前只编写了shell启动脚本，用户可以可以参考shell脚本编写适合特定操作系统的启动脚本。
 
 开发之前，需要理解以下概念：
@@ -41,13 +59,13 @@
 
 <a name="92411f2e"></a>
 ## 插件入口类
-插件的入口类需继承**DataReader**和**DataWriter**，在内部获取任务json传来的参数，通过相应的**Builder**构建对应**InputFormat**和**OutputFormat**实例
+插件的入口类需继承**BaseDataReader**和**BaseDataWriter**，在内部获取任务json传来的参数，通过相应的**Builder**构建对应**InputFormat**和**OutputFormat**实例
 
 <a name="DataReader"></a>
 ### DataReader
 
 ```java
-public class SomeReader extends DataReader {
+public class SomeReader extends BaseDataReader {
     protected String oneParameter;
     public SomeReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -59,7 +77,7 @@ public class SomeReader extends DataReader {
 }
 ```
 
-reader类需继承DataReader，同时重写readData方法。在构造函数中获取任务json中构建InputFormat所需要的参数，代码案例如下：
+reader类需继承BaseDataReader，同时重写readData方法。在构造函数中获取任务json中构建InputFormat所需要的参数，代码案例如下：
 
 构造方法
 
@@ -92,7 +110,7 @@ public DataStream<Record> readData() {
 ### DataWriter
 
 ```java
-public class SomeWriter extends DataWriter {
+public class SomeWriter extends BaseDataWriter {
     protected String oneParameter;
     public SomeWriter(DataTransferConfig config) {
         super(config);
@@ -105,7 +123,7 @@ public class SomeWriter extends DataWriter {
 }
 ```
 
-和DataReader类似，writer需继承DataWriter，同时重写writeData方法。通常会创建一个ConfigKeys类，包含reader和writer所有需要的使用的任务json中参数的key。
+和DataReader类似，writer需继承BaseDataWriter，同时重写writeData方法。通常会创建一个ConfigKeys类，包含reader和writer所有需要的使用的任务json中参数的key。
 
 构造方法
 
@@ -136,10 +154,10 @@ public DataStreamSink<?> writeData(DataStream<Record> dataSet) {
 <a name="e3fa8e04"></a>
 ### InputFormatBuilder的设计
 
-需继承**RichInputFormatBuilder**
+需继承**BaseRichInputFormatBuilder**
 
 ```java
-public class SomeInputFormatBuilder extends RichInputFormatBuilder {
+public class SomeInputFormatBuilder extends BaseRichInputFormatBuilder {
     /**
     * 首先实例化一个InputFormat实例，通过构造函数传递，通过set方法设置参数
     */
@@ -161,10 +179,10 @@ public class SomeInputFormatBuilder extends RichInputFormatBuilder {
 <a name="debbb760"></a>
 ### InputFormat的设计
 
-需继承**RichInputFormat**，根据任务逻辑分别实现
+需继承**BaseRichInputFormat**，根据任务逻辑分别实现
 
 ```java
-public class SomeInputFormat extends RichInputFormat {
+public class SomeInputFormat extends BaseRichInputFormat {
     @override
     public void openInputFormat() {
         
@@ -211,43 +229,43 @@ public class SomeInputFormat extends RichInputFormat {
 - 调用位置：configure方法会在JobManager里构建执行计划的时候和在TaskManager里初始化并发实例后各调用一次；
 - 作用：用于配置task的实例；
 - 注意事项：不要在这个方法里写耗时的逻辑，比如获取连接，运行sql等，否则可能会导致akka超
-<a name="P6eAb"></a>
+  <a name="P6eAb"></a>
 #### createInputSplits
 
 - 调用位置：在构建执行计划时调用；
 - 作用：调用子类的逻辑生成数据分片；
 - 注意事项：分片的数量和并发数没有严格对应关系，不要在这个方法里做耗时的操作，否则会导致akka超时异常；
-<a name="Oas9f"></a>
+  <a name="Oas9f"></a>
 #### getInputSplitAssigner
 
 - 调用位置：创建分片后调用；
 - 作用：获取分片分配器，同步插件里使用的是DefaultInputSplitAssigner，按顺序返回分配给各个并发实例；
 - 注意事项：无；
-<a name="TTNYz"></a>
+  <a name="TTNYz"></a>
 #### openInternal
 
 - 调用位置：开始读取分片时调用；
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：这个方法必须是可以重复调用的，因为同一个并发实例可能会处理多个分片；
-<a name="hxlFZ"></a>
+  <a name="hxlFZ"></a>
 #### reachEnd和nextRecordInternal
 
 - 调用位置：任务运行时，读取每条数据时调用；
 - 作用：返回结束标识和下一条记录；
 - 注意事项：无
-<a name="bMWCr"></a>
+  <a name="bMWCr"></a>
 #### closeInternal
 
 - 调用位置：读取完一个分片后调用，至少调用一次；
 - 作用：关闭资源；
 - 注意事项：可重复调用，关闭资源做非null检查，因为程序遇到异常情况可能直接跳转到closeInternal；
-<a name="FcsIE"></a>
+  <a name="FcsIE"></a>
 #### openInputFormat
 
 - 调用位置：创建分片之后调用；
 - 作用：对整个InpurFormat资源做初始化；
 - 注意事项：无；
-<a name="1CyCJ"></a>
+  <a name="1CyCJ"></a>
 #### closeInputFormat
 
 - 调用位置：当所有切片都执行完之后调用；
@@ -256,10 +274,10 @@ public class SomeInputFormat extends RichInputFormat {
 
 <a name="OutputFormatBuilder"></a>
 ### OutputFormatBuilder
-需继承**RichOutputFormatBuilder**，和**InputFormatBuilder**相似
+需继承**BaseRichOutputFormatBuilder**，和**InputFormatBuilder**相似
 
 ```java
-public class SomeOutputFormatBuilder extends RichOutputFormatBuilder {
+public class SomeOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     /**
     * 首先实例化一个OutputFormat实例，通过构造函数传递，通过设计set方法设置参数
     * 如下演示
@@ -282,10 +300,10 @@ public class SomeOutputFormatBuilder extends RichOutputFormatBuilder {
 
 <a name="OutputFormat"></a>
 ### OutputFormat
-需继承**RichOutputFormat**
+需继承**BaseRichOutputFormat**
 
 ```java
-public class SomeOutputFormat extends RichOutputFormat {
+public class SomeOutputFormat extends BaseRichOutputFormat {
  	@Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {}
     
@@ -312,13 +330,13 @@ openInternal -> writeSingleRecordInternal / writeMultipleRecordsInternal
 - 调用位置：开始写入使用
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：无；
-<a name="Zbwct"></a>
+  <a name="Zbwct"></a>
 #### writerSingleRecordInternal
 
 - 调用位置：openInernal之后调用，开始写入数据
 - 作用：向数据源写入一条数据
 - 注意事项：无；
-<a name="biBzT"></a>
+  <a name="biBzT"></a>
 #### writerMultipleRecordsInternal
 
 - 调用位置：openInternal之后调用，开始写入多条数据
@@ -451,10 +469,9 @@ public class Row implements Serializable{
 <a name="605265ae"></a>
 ## 加载原理
 
-1. 框架扫描`plugin/reader`和`plugin/writer`目录，加载每个插件的`plugin.json`文件。
-1. 以`plugin.json`文件中`name`为key，索引所有的插件配置。如果发现重名的插件或者不存在的插件，框架会异常退出。
-1. 用户在插件中在`reader`/`writer`配置的`name`字段指定插件名字。框架根据插件的类型（`reader`/`writer`）和插件名称去插件的路径下扫描所有的jar，加入`classpath`。
-1. 根据插件配置中定义的入口类，框架通过反射实例化对应的`Job`对象。
+1. 用户在插件中在`reader`/`writer`配置的`name`字段指定插件名字。
+2. 框架根据插件的类型（`reader`/`writer`）和插件名称去插件的路径下扫描所有的jar，加入`classpath`。
+3. 根据插件配置中定义的入口类，框架通过反射实例化对应的`Job`对象。
 
 <a name="8e3d16c4"></a>
 ## 统一的目录结构
@@ -465,26 +482,25 @@ public class Row implements Serializable{
 ```
 ${Flinkx_HOME}
 |-- bin       
-|   -- flink
-|   -- flinkx.sh 
+|   -- flinkx.sh
 |
 |-- flinkx-somePlugin
-    |-- flinkx-somePlugin-core
-		|-- common 一些插件共用的类
-		|-- exception 异常处理类
-		|-- pom.xml 插件公用依赖
-    |-- flinkx-somePlugin-reader
-		|-- InputFormat
-			|-- SomePluginInputFormat
-			|-- SomePluginInputFormatBuiler
-		|-- reader
-			|-- SomePluginReader
-	|-- flinkx-somePlugin-writer
-		|-- OutputFormat
-			|-- SomePluginOutputFormat
-			|-- SomePluginOutputFormatBuiler
-		|-- reader
-			|-- SomePluginWriter
+|-- flinkx-somePlugin-core
+|-- common 一些插件共用的类
+|-- exception 异常处理类
+|-- pom.xml 插件公用依赖
+|-- flinkx-somePlugin-reader
+|-- InputFormat
+|-- SomePluginInputFormat
+|-- SomePluginInputFormatBuiler
+|-- reader
+|-- SomePluginReader
+|-- flinkx-somePlugin-writer
+|-- OutputFormat
+|-- SomePluginOutputFormat
+|-- SomePluginOutputFormatBuiler
+|-- reader
+|-- SomePluginWriter
 ```
 ```
 <a name="NMw2H"></a>
@@ -511,4 +527,8 @@ unix平台
 mvn clean package -DskipTests -Prelease -DscriptType=sh
 ```
 
-打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，syncplugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+
+
+
+

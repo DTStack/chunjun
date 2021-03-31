@@ -13,91 +13,104 @@
   - 描述：数据库地址
   - 必选：是
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 - **port**
   - 描述：端口
   - 必选：否
   - 默认值：9042
-
+  - 字段类型：Integer
+<br>
 
 
 - **username**
   - 描述：用户名
   - 必选：否
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 - **password**
   - 描述：密码
   - 必选：否
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 - **useSSL**
   - 描述：数字证书
   - 必选：否
   - 默认值：false
-
+  - 字段类型：Boolean
+<br>
 
 
 - **column**
   - 描述：查询结果中被select出来的属性集合，为空则select *
   - 必选：否
   - 默认值：无
-
+  - 字段类型：List
+<br>
 
 
 - **keyspace**
   - 描述：需要同步的表所在的keyspace
   - 必选：是
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 - **table**
   - 描述：要查询的表
   - 必选：是
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 - **batchSize**
   - 描述：异步写入的批次大小
   - 必选：否
   - 默认值：1
-
+  - 字段类型：Integer
+<br>
 
 
 - **asyncWrite**
   - 描述：是否异步写入
   - 必选：否
   - 默认值：false
-
+  - 字段类型：Boolean
+<br>
 
 
 - **connecttionsPerHost**
   - 描述：分配给每个host的连接数
   - 必选：否
   - 默认值：8
-
+  - 字段类型：Integer
+<br>
 
 
 - **maxPendingPerConnection**
   - 描述：最多能建立的连接数
   - 必选：否
   - 默认值：128
-
+  - 字段类型：Integer
+<br>
 
 
 - **consistancyLevel**
   - 描述：数据一致性级别。可选`ONE`、`QUORUM`、`LOCAL_QUORUM`、`EACH_QUORUM`、`ALL`、`ANY`、`TWO`、`THREE`、`LOCAL_ONE`
   - 必选：否
   - 默认值：无
-
+  - 字段类型：String
+<br>
 
 
 <a name="yDoBj"></a>

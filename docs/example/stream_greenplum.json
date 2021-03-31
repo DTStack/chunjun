@@ -1,0 +1,45 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter": {
+          "column": [
+            {
+              "name": "id",
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "sliceRecordCount": ["100"]
+        },
+        "name" : "streamreader"
+      },
+      "writer": {
+        "name": "greenplumwriter",
+        "parameter": {
+          "connection": [{
+            "jdbcUrl": "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=database",
+            "table": ["tbl_pay_log_copy"]
+          }],
+          "username": "username",
+          "password": "password",
+          "column": ["id"],
+          "writeMode": "insert",
+          "insertSqlMode": "copy",
+          "batchSize": 100,
+          "preSql": ["TRUNCATE tbl_pay_log_copy"],
+          "postSql": []
+        }
+      }
+    }],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      }
+    }
+  }
+}
