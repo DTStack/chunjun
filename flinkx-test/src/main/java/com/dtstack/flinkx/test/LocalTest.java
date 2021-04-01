@@ -71,6 +71,7 @@ import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
+import com.dtstack.flinkx.pulsar.reader.PulsarReader;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
@@ -226,6 +227,7 @@ public class LocalTest {
             case PluginNameConstants.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
             case PluginNameConstants.RESTAPI_READER:  reader = new RestapiReader(config, env); break;
             case PluginNameConstants.SQLSERVER_CDC_READER:  reader = new SqlservercdcReader(config, env); break;
+            case PluginNameConstants.PULSAR_READER : reader = new PulsarReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
