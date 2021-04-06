@@ -72,6 +72,7 @@ public class ExecuteProcessHelper {
         String remoteSqlPluginPath = options.getRemotePluginPath();
         String pluginLoadMode = options.getPluginLoadMode();
         String deployMode = options.getMode();
+        String connectorLoadMode = options.getConnectorLoadMode();
 
         Preconditions.checkArgument(checkRemoteSqlPluginPath(remoteSqlPluginPath, deployMode, pluginLoadMode),
                 "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
@@ -89,6 +90,7 @@ public class ExecuteProcessHelper {
                 .setDeployMode(deployMode)
                 .setConfProp(confProperties)
                 .setJarUrlList(jarUrlList)
+                .setConnectorLoadMode(connectorLoadMode)
                 .build();
 
     }

@@ -40,6 +40,7 @@ public class ParamsInfo {
     private final String pluginLoadMode;
     private final String deployMode;
     private final Properties confProp;
+    private final String connectorLoadMode ;
 
     public ParamsInfo(
             String sql,
@@ -49,7 +50,8 @@ public class ParamsInfo {
             String remoteSqlPluginPath,
             String pluginLoadMode,
             String deployMode,
-            Properties confProp
+            Properties confProp,
+            String connectorLoadMode
     ) {
 
         this.sql = sql;
@@ -60,6 +62,7 @@ public class ParamsInfo {
         this.pluginLoadMode = pluginLoadMode;
         this.deployMode = deployMode;
         this.confProp = confProp;
+        this.connectorLoadMode = connectorLoadMode;
     }
 
     public static Builder builder() {
@@ -98,6 +101,10 @@ public class ParamsInfo {
         return confProp;
     }
 
+    public String getConnectorLoadMode() {
+        return connectorLoadMode;
+    }
+
     @Override
     public String toString() {
         return "ParamsInfo{" +
@@ -109,6 +116,7 @@ public class ParamsInfo {
                 ", pluginLoadMode='" + pluginLoadMode + '\'' +
                 ", deployMode='" + deployMode + '\'' +
                 ", confProp=" + confProp +
+                ", connectorLoadMode=" + connectorLoadMode +
                 '}';
     }
 
@@ -122,6 +130,7 @@ public class ParamsInfo {
         private String pluginLoadMode;
         private String deployMode;
         private Properties confProp;
+        private String connectorLoadMode;
 
         public Builder setSql(String sql) {
             this.sql = sql;
@@ -164,6 +173,11 @@ public class ParamsInfo {
             return this;
         }
 
+        public Builder setConnectorLoadMode(String connectorLoadMode) {
+            this.connectorLoadMode = connectorLoadMode;
+            return this;
+        }
+
         public ParamsInfo build() {
             return new ParamsInfo(
                     sql,
@@ -173,7 +187,8 @@ public class ParamsInfo {
                     remoteSqlPluginPath,
                     pluginLoadMode,
                     deployMode,
-                    confProp
+                    confProp,
+                    connectorLoadMode
             );
         }
     }

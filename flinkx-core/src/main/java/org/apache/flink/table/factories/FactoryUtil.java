@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.factories;
 
+import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import com.dtstack.flinkx.util.PluginUtil;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
@@ -25,6 +26,7 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DelegatingConfiguration;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.Catalog;
@@ -43,6 +45,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -53,13 +56,39 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Utility for working with {@link Factory}s. */
+/**
+ * Utility for working with {@link Factory}s.
+ */
 @PublicEvolving
 public final class FactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
+    /**插件路径 */
     private static String pluginPath = null;
+
+    /**上下文环境 */
+    private static StreamExecutionEnvironment env = null;
+
+    /**插件加载方式，默认走CLASSLOADER方式 */
+    private static String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
+
+    /**数据格式序列化、反序列化方式 */
+    private static List<String> formatList = Arrays.asList("DeserializationFormatFactory", "SerializationFormatFactory");
+
+    /**shipfile需要的jar */
+    private static List<URL> classPathSet = new ArrayList<>();
+
+    /**shipfile需要的jar */
+    private static int CLASS_FILE_NAME_INDEX = 0;
+
+    /**shipfile需要的jar */
+    public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
+            ConfigOptions.key("class-file-name-fmt")
+                    .stringType()
+                    .defaultValue("class_path_%d")
+                    .withDescription("");
+
 
     public static final ConfigOption<Integer> PROPERTY_VERSION =
             ConfigOptions.key("property-version")
@@ -93,10 +122,6 @@ public final class FactoryUtil {
                                     + "By default, if this option is not defined, the planner will derive the parallelism "
                                     + "for each statement individually by also considering the global configuration.");
 
-    public static void setPluginPath(String pluginPath) {
-        FactoryUtil.pluginPath = pluginPath;
-    }
-
     /**
      * Suffix for keys of {@link ConfigOption} in case a connector requires multiple formats (e.g.
      * for both key and value).
@@ -105,6 +130,18 @@ public final class FactoryUtil {
      * for more information.
      */
     public static final String FORMAT_SUFFIX = ".format";
+
+    public static void setPluginPath(String pluginPath) {
+        FactoryUtil.pluginPath = pluginPath;
+    }
+
+    public static void setEnv(StreamExecutionEnvironment env) {
+        FactoryUtil.env = env;
+    }
+
+    public static void setConnectorLoadMode(String connectorLoadMode) {
+        FactoryUtil.connectorLoadMode = connectorLoadMode;
+    }
 
     /**
      * Creates a {@link DynamicTableSource} from a {@link CatalogTable}.
@@ -220,12 +257,11 @@ public final class FactoryUtil {
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
-        if (factoryClass.getName().equals("org.apache.flink.table.factories.DeserializationFormatFactory")) {
-            factories = discoverFactories(classLoader);
+        if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
+            factories = loadFactories(classLoader, factoryIdentifier, factoryClass.getSimpleName());
         } else {
-            factories = loadFactories(classLoader, factoryIdentifier);
+            factories = discoverFactories(classLoader);
         }
-        // final List<Factory> factories = loadFactories(classLoader, factoryIdentifier);
 
         final List<Factory> foundFactories =
                 factories.stream()
@@ -315,7 +351,9 @@ public final class FactoryUtil {
         optionalOptions.forEach(option -> readOption(options, option));
     }
 
-    /** Validates unconsumed option keys. */
+    /**
+     * Validates unconsumed option keys.
+     */
     public static void validateUnconsumedKeys(
             String factoryIdentifier, Set<String> allOptionKeys, Set<String> consumedOptionKeys) {
         final Set<String> remainingOptionKeys = new HashSet<>(allOptionKeys);
@@ -422,24 +460,40 @@ public final class FactoryUtil {
         }
     }
 
-    private static List<Factory> loadFactories(ClassLoader classLoader, String factoryIdentifier) {
+    private static List<Factory> loadFactories(ClassLoader classLoader, String factoryIdentifier, String factoryClass) {
         try {
             final List<Factory> result = new LinkedList<>();
 
-            String pluginJarPath = PluginUtil.getJarFileDirPath(factoryIdentifier, pluginPath);
-            URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath);
-            String className = PluginUtil.getSqlParserClassName(factoryIdentifier);
+            // 1.通过factoryIdentifier查找jar路径
+            String pluginJarPath;
+            // format都放到sqlplugins下的format目录下
+            if (formatList.contains(factoryClass)) {
+                pluginJarPath = PluginUtil.getJarFileDirPath(FORMAT.key(), pluginPath);
+            } else {
+                pluginJarPath = PluginUtil.getJarFileDirPath(factoryIdentifier, pluginPath);
+            }
+            URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
+            String className = PluginUtil.getSqlParserClassName(pluginJarPath, factoryIdentifier);
 
+            // 2.反射创建对象
             Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             add.setAccessible(true);
             add.invoke(classLoader, pluginJarUrls);
-
             Factory factory = (Factory) classLoader.loadClass(className).newInstance();
             result.add(factory);
 
+            // 3.registerCachedFile 为了添加到shipfile中
+            for (URL pluginJarUrl : pluginJarUrls) {
+                if (!classPathSet.contains(pluginJarUrl)) {
+                    classPathSet.add(pluginJarUrl);
+                    String classFileName = String.format(CLASS_FILE_NAME_FMT.defaultValue(), CLASS_FILE_NAME_INDEX);
+                    env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
+                    CLASS_FILE_NAME_INDEX++;
+                }
+            }
+
             return result;
         } catch (Exception e) {
-            LOG.error("Could not load service provider for factories.", e);
             throw new TableException("Could not load service provider for factories.", e);
         }
     }
@@ -517,8 +571,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends DecodingFormatFactory<I>>
-                Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
-                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+        Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
+                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -557,8 +611,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends EncodingFormatFactory<I>>
-                Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
-                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+        Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
+                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -607,7 +661,9 @@ public final class FactoryUtil {
             validate();
         }
 
-        /** Returns all options of the table. */
+        /**
+         * Returns all options of the table.
+         */
         public ReadableConfig getOptions() {
             return allOptions;
         }

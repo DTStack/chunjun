@@ -40,8 +40,9 @@ public class SqlMain {
     public static void main(String[] args) throws Exception {
         ParamsInfo paramsInfo = ExecuteProcessHelper.parseParams(args);
 
-        FactoryUtil.setPluginPath(paramsInfo.getLocalSqlPluginPath());
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        FactoryUtil.setPluginPath(paramsInfo.getLocalSqlPluginPath());
+        FactoryUtil.setEnv(env);
         // ds 原来的配置
         StreamEnvConfigManager.streamExecutionEnvironmentConfig(env, paramsInfo.getConfProp());
         StreamTableEnvironment tableEnv = StreamEnvConfigManager.getStreamTableEnv(env,paramsInfo);

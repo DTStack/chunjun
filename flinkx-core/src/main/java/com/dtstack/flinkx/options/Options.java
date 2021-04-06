@@ -20,6 +20,7 @@ package com.dtstack.flinkx.options;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
@@ -101,6 +102,9 @@ public class Options {
 
     @OptionRequired(description = "file add to ship file")
     private String addShipfile;
+
+    @OptionRequired(description = "connectorLoadMode spi or reflect")
+    private String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
 
     private Configuration flinkConfiguration = null;
 
@@ -300,5 +304,13 @@ public class Options {
 
     public void setJobName(String jobName) {
         this.jobName = jobName;
+    }
+
+    public String getConnectorLoadMode() {
+        return connectorLoadMode;
+    }
+
+    public void setConnectorLoadMode(String connectorLoadMode) {
+        this.connectorLoadMode = connectorLoadMode;
     }
 }

@@ -22,6 +22,7 @@ package com.dtstack.flinkx.util;
 import com.dtstack.flinkx.enums.EPluginLoadMode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.table.factories.FactoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,14 +129,17 @@ public class PluginUtil {
         return CLASS_PRE_STR + "." + type.toLowerCase() + "." + pluginTypeName + "." + pluginClassName;
     }
 
-    public static String getSqlParserClassName(String type) {
+    public static String getSqlParserClassName(String pluginJarPath, String type) {
         StringBuilder sb = new StringBuilder();
         String[] split = type.split("-");
         for (int i = 0; i < split.length; i++) {
             String tmp = split[i];
             sb.append(tmp.substring(0, 1).toUpperCase() + tmp.substring(1));
         }
-        return "com.dtstack.flink.connector."+split[1]+".table." + sb.toString() + "DynamicTableFactory";
+        if (pluginJarPath.endsWith(FactoryUtil.FORMAT.key())) {
+            return "com.dtstack.flink.formats." + type + "." + sb.toString() + "FormatFactory";
+        }
+        return "com.dtstack.flink.connector." + split[1] + ".table." + sb.toString() + "DynamicTableFactory";
     }
 
 
@@ -206,7 +210,7 @@ public class PluginUtil {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    public static URL[] getPluginJarUrls(String pluginDir) throws MalformedURLException {
+    public static URL[] getPluginJarUrls(String pluginDir, String factoryIdentifier) throws MalformedURLException {
         List<URL> urlList = new ArrayList<>();
 
         File dirFile = new File(pluginDir);
@@ -226,7 +230,18 @@ public class PluginUtil {
 
         for (File file : files) {
             URL pluginJarUrl = file.toURI().toURL();
-            urlList.add(pluginJarUrl);
+            // format只加载一个jar
+            if(pluginDir.endsWith(FactoryUtil.FORMAT.key())){
+                if(file.getName().contains(factoryIdentifier)){
+                    urlList.add(pluginJarUrl);
+                }
+            }else {
+                urlList.add(pluginJarUrl);
+            }
+        }
+
+        if (urlList == null || urlList.size() == 0) {
+            throw new RuntimeException("no match jar in :" + pluginDir + " directory ，factoryIdentifier is :"+factoryIdentifier);
         }
 
         return urlList.toArray(new URL[0]);
