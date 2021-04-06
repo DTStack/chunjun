@@ -130,6 +130,15 @@ public class MetaColumn implements Serializable {
         return null;
     }
 
+    public static MetaColumn getSameNameMetaColumn(List<MetaColumn> metaColumns , String name){
+        for (MetaColumn metaColumn : metaColumns) {
+            if(StringUtils.isNotEmpty(metaColumn.getName()) && metaColumn.getName().equals(name)){
+                return metaColumn;
+            }
+        }
+        return null;
+    }
+
     public String getSplitter() {
         return splitter;
     }

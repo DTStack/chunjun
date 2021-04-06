@@ -34,17 +34,19 @@ public class ConfigConstant {
 
     public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
 
-    public static final String KEY_READER = "reader";
-
-    public static final String KEY_WRITER = "writer";
-
-    public static final String KEY_PARAMETER = "parameter";
-
-    public static final String KEY_CONTENT = "content";
-
     public static final String KEY_PASSWORD = "password";
-
     public static final String KEY_CONFUSED_PASSWORD = "******";
+    public static final String KEY_COLUMN = "column";
+    public static final String KEY_BATCH_SIZE = "batchSize";
+
+    //FlinkX Restart strategy
+    public static final String STRATEGY_FIXED_DELAY = "fixedDelay";
+    public static final String STRATEGY_FAILURE_RATE = "failureRate";
+    public static final String STRATEGY_NO_RESTART = "NoRestart";
+
+    //FlinkX log pattern
+    public static final String DEFAULT_LOG4J_PATTERN = "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n";
+    public static final String DEFAULT_LOGBACK_PATTERN = "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n";
 
 
 
