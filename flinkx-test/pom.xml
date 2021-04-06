@@ -20,31 +20,41 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>19.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.7</version>
-        </dependency>
-
-        <dependency>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-cli</artifactId>
+                    <groupId>commons-cli</groupId>
+                </exclusion>
+            </exclusions>
             <groupId>org.apache.hadoop</groupId>
             <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
             <artifactId>hadoop-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>gson</artifactId>
+                    <groupId>com.google.code.gson</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-cli</artifactId>
+                    <groupId>commons-cli</groupId>
+                </exclusion>
+            </exclusions>
             <groupId>org.apache.hadoop</groupId>
             <version>${hadoop.version}</version>
         </dependency>
 
         <dependency>
             <artifactId>hadoop-hdfs</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-cli</artifactId>
+                    <groupId>commons-cli</groupId>
+                </exclusion>
+            </exclusions>
             <groupId>org.apache.hadoop</groupId>
             <version>${hadoop.version}</version>
         </dependency>
@@ -56,492 +66,20 @@
         </dependency>
 
         <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_httpserver</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_pushgateway</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
             <version>1.6</version>
         </dependency>
+
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-stream-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-stream-writer</artifactId>
-            <version>1.6</version>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-json</artifactId>
+            <version>${flink.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-carbondata-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-carbondata-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-db2-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-db2-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-es-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-es-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-ftp-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-ftp-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hbase-reader</artifactId>
-            <version>1.6</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hbase-client</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hbase-common</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hbase-writer</artifactId>
-            <version>1.6</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hbase-client</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hbase-common</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hdfs-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-mongodb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-mongodb-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-mysql-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-mysql-dreader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-mysql-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-odps-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-odps-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-oracle-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-oracle-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-postgresql-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-postgresql-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-sqlserver-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-sqlserver-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-redis-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-gbase-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-gbase-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-binlog-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-hive-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-serde</artifactId>
-            <version>2.1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka11-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka11-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka10-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka10-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka09-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kudu-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kudu-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kafka-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-clickhouse-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-clickhouse-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-polardb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-polardb-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-oraclelogminer-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-sqlservercdc-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>${hadoop.version}</version>
-            <type>test-jar</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <type>test-jar</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <version>10.14.2.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-emqx-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-emqx-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-hive2-reader</artifactId>
-            <version>1.6</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hbase-client</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hbase-common</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-hive2-reader</artifactId>
-            <version>1.6</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hbase-client</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hbase-common</artifactId>
-                    <groupId>org.apache.hbase</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-restapi-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-restapi-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-dm-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-dm-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-greenplum-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-greenplum-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-tidb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-oracle-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-mysql-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix5-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-phoenix5-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-sqlserver-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kingbase-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kingbase-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-hbase-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-vertica-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-socket-reader</artifactId>
+            <artifactId>flinkx-connector-kafka</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

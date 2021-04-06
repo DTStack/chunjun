@@ -37,9 +37,6 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
  */
 public class Options {
 
-    @OptionRequired(required = true, description = "sync or sql")
-    private String jobType;
-
     @OptionRequired(description = "Running mode")
     private String mode = ClusterMode.local.name();
 
@@ -128,14 +125,6 @@ public class Options {
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
         }
         return flinkConfiguration;
-    }
-
-    public String getJobType() {
-        return jobType;
-    }
-
-    public void setJobType(String jobType) {
-        this.jobType = jobType;
     }
 
     public String getMode() {
