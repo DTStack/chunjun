@@ -17,8 +17,19 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Date: 2021/04/06
@@ -49,6 +60,90 @@ public class FieldConf implements Serializable {
     private Integer length;
     /** 字段类型class */
     private Class fieldClass;
+
+    /**
+     * 获取fieldList
+     * @param fieldList
+     * @return
+     */
+    public static List<FieldConf> getFieldList(List fieldList) {
+        List<FieldConf> list;
+        if (CollectionUtils.isNotEmpty(fieldList)) {
+            list = new ArrayList<>(fieldList.size());
+            if (fieldList.get(0) instanceof Map) {
+                for (int i = 0; i < fieldList.size(); i++) {
+                    Map map = (Map) fieldList.get(i);
+                    list.add(getField(map, i));
+                }
+            } else if (fieldList.get(0) instanceof String) {
+                if(fieldList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldList.get(0))){
+                    FieldConf field = new FieldConf();
+                    field.setName(ConstantValue.STAR_SYMBOL);
+                    field.setIndex(0);
+                    list.add(field);
+                } else {
+                    for (int i = 0; i < fieldList.size(); i++) {
+                        FieldConf field = new FieldConf();
+                        field.setName(String.valueOf(fieldList.get(i)));
+                        field.setIndex(i);
+                        list.add(field);
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("column argument error, fieldList = " + GsonUtil.GSON.toJson(fieldList));
+            }
+        } else {
+            list = Collections.emptyList();
+        }
+        return list;
+    }
+
+    /**
+     * 构造field
+     * @param map 属性map
+     * @param index 字段索引
+     * @return
+     */
+    public static FieldConf getField(Map map, int index){
+        FieldConf field = new FieldConf();
+
+        Object name = map.get("name");
+        field.setName(name != null ? String.valueOf(name) : null);
+
+        Object type = map.get("type");
+        field.setType(type != null ? String.valueOf(type) : null);
+
+        Object colIndex = map.get("index");
+        if(Objects.nonNull(colIndex)){
+            field.setIndex((Integer)colIndex);
+        }else{
+            field.setIndex(index);
+        }
+
+        Object value = map.get("value");
+        field.setValue(value != null ? String.valueOf(value) : null);
+
+        Object format = map.get("format");
+        if(format != null && String.valueOf(format).trim().length() > 0){
+            field.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(format)));
+        }
+
+        Object splitter = map.get("splitter");
+        field.setSplitter(splitter != null ? String.valueOf(splitter) : null);
+
+        Object isPart = map.get("isPart");
+        field.setPart(isPart != null ? (Boolean) isPart : false);
+
+        Object notNull = map.get("notNull");
+        field.setNotNull(notNull != null ? (Boolean) notNull : false);
+
+        Object length = map.get("length");
+        field.setLength(length != null ? (Integer) length : null);
+
+        field.setFieldClass(ClassUtil.typeToClass(field.getType()));
+
+        return field;
+    }
 
     public String getName() {
         return name;

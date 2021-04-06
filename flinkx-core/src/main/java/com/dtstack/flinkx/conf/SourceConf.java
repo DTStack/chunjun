@@ -23,6 +23,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,9 +43,45 @@ public class SourceConf implements Serializable {
     private Map<String, Object> parameter;
     /** table设置 */
     private TableConf table;
+    /** fieldList */
+    private List<FieldConf> fieldList;
+    /** fieldNameList */
+    private List<String> fieldNameList;
+    /** fieldTypeList */
+    private List<String> fieldTypeList;
+    /** fieldClassList */
+    private List<Class> fieldClassList;
+
+    public List<FieldConf> getFieldList(){
+        if(fieldList == null){
+            List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
+            fieldList = FieldConf.getFieldList(list);
+            fieldNameList = new ArrayList<>(fieldList.size());
+            fieldTypeList = new ArrayList<>(fieldList.size());
+            fieldClassList = new ArrayList<>(fieldList.size());
+            for (FieldConf field : fieldList) {
+                fieldNameList.add(field.getName());
+                fieldTypeList.add(field.getType());
+                fieldClassList.add(field.getFieldClass());
+            }
+        }
+        return fieldList;
+    }
 
     public List getMetaColumn(){
         return (List) parameter.get(ConfigConstant.KEY_COLUMN);
+    }
+
+    public List<String> getFieldNameList() {
+        return fieldNameList;
+    }
+
+    public List<String> getFieldTypeList() {
+        return fieldTypeList;
+    }
+
+    public List<Class> getFieldClassList() {
+        return fieldClassList;
     }
 
     public String getName() {

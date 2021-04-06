@@ -121,6 +121,10 @@ public class FlinkxConf implements Serializable {
         return job.getWriter();
     }
 
+    public TransformerConf getTransformer(){
+        return job.getTransformer();
+    }
+
     public SpeedConf getSpeed(){
         return job.getSetting().getSpeed();
     }

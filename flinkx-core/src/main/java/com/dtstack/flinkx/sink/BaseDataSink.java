@@ -65,22 +65,22 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
      * @param dataSet read data flow
      * @return write data flow
      */
-    public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
+    public abstract DataStreamSink<Tuple2<Boolean, Row>> writeData(DataStream<Tuple2<Boolean, Row>> dataSet);
 
     @SuppressWarnings("unchecked")
-    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
+    protected DataStreamSink<Tuple2<Boolean, Row>> createOutput(DataStream<Tuple2<Boolean, Row>> dataSet, OutputFormat outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        DataStreamSink<Tuple2<Boolean, Row>> dataStreamSink = dataSet.addSink(sinkFunction);
         dataStreamSink.name(sinkName);
 
         return dataStreamSink;
     }
 
-    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat) {
+    protected DataStreamSink<Tuple2<Boolean, Row>> createOutput(DataStream<Tuple2<Boolean, Row>> dataSet, OutputFormat outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 

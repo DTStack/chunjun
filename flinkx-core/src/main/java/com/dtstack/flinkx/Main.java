@@ -25,16 +25,18 @@ import com.dtstack.flinkx.conf.RestoreConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.DataWriterFactory;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.source.DataSourceFactory;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.sink.BaseDataSink;
-import com.dtstack.flinkx.sink.DataWriterFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -44,6 +46,10 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableConfig;
+import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,18 +78,18 @@ public class Main {
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
-        FlinkxConf flinkxConf = FlinkxConf.parseJob(job);
+        FlinkxConf config = FlinkxConf.parseJob(job);
 
         if(org.apache.commons.lang3.StringUtils.isNotEmpty(monitor)) {
-            flinkxConf.setMonitorUrls(monitor);
+            config.setMonitorUrls(monitor);
         }
 
         if(org.apache.commons.lang3.StringUtils.isNotEmpty(pluginRoot)) {
-            flinkxConf.setPluginRoot(pluginRoot);
+            config.setPluginRoot(pluginRoot);
         }
 
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(remotePluginPath)) {
-            flinkxConf.setRemotePluginPath(remotePluginPath);
+            config.setRemotePluginPath(remotePluginPath);
         }
 
         Configuration flinkConf = new Configuration();
@@ -96,23 +102,34 @@ public class Main {
                 new MyLocalStreamEnvironment(flinkConf);
 
         env = openCheckpointConf(env, confProperties);
-        configRestartStrategy(env, flinkxConf);
-        PluginUtil.registerPluginUrlToCachedFile(flinkxConf, env);
+        configRestartStrategy(env, config);
+        PluginUtil.registerPluginUrlToCachedFile(config, env);
 
-        SpeedConf speed = flinkxConf.getSpeed();
+        SpeedConf speed = config.getSpeed();
 
         env.setParallelism(speed.getChannel());
-        BaseDataSource dataReader = DataSourceFactory.getDataSource(flinkxConf, env);
-        DataStream<Row> dataStream = dataReader.readData();
+        BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
+        DataStream<Row> sourceDataStream = dataReader.readData();
         if(speed.getReaderChannel() > 0){
-            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speed.getReaderChannel());
+            sourceDataStream = ((DataStreamSource<Row>) sourceDataStream).setParallelism(speed.getReaderChannel());
         }
+
+        EnvironmentSettings settings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
+        TableConfig tableConfig = new TableConfig();
+        StreamTableEnvironmentImpl tableEnv = (StreamTableEnvironmentImpl) StreamTableEnvironmentImpl.create(env, settings, tableConfig);
+        Table sourceTable = tableEnv.fromDataStream(sourceDataStream, String.join(",", config.getReader().getFieldNameList()));
+        tableEnv.registerTable(config.getReader().getTable().getTableName(), sourceTable);
+
+        Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
+        RowTypeInfo typeInfo = new RowTypeInfo(adaptTable.getSchema().getFieldTypes(), adaptTable.getSchema().getFieldNames());
+        DataStream<Tuple2<Boolean, Row>> dataStream = tableEnv.toRetractStream(adaptTable, typeInfo);
 
         if (speed.isRebalance()) {
             dataStream = dataStream.rebalance();
         }
 
-        BaseDataSink dataWriter = DataWriterFactory.getDataWriter(flinkxConf);
+        BaseDataSink dataWriter = DataWriterFactory.getDataWriter(config);
+        tableEnv.registerTableSinkInternal(config.getWriter().getTable().getTableName(), dataWriter);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
         if(speed.getWriterChannel() > 0){
             dataStreamSink.setParallelism(speed.getWriterChannel());

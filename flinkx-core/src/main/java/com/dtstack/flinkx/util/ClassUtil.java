@@ -21,7 +21,14 @@ package com.dtstack.flinkx.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class Utility
@@ -54,5 +61,82 @@ public class ClassUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 根据字段类型查找对应的基本类型
+     * @param type
+     * @return
+     */
+    public static Class<?> typeToClass(String type) {
+
+        // 这部分主要是告诉Class转TypeInformation的方法，字段是Array类型
+        String lowerStr = type.toLowerCase().trim();
+        if (lowerStr.startsWith("array")) {
+            return Array.newInstance(Integer.class, 0).getClass();
+        }
+        if (lowerStr.startsWith("map")) {
+            Map m = new HashMap();
+            return m.getClass();
+        }
+
+        switch (lowerStr) {
+            case "boolean":
+            case "bit":
+                return Boolean.class;
+
+            case "smallint":
+            case "smallintunsigned":
+            case "tinyint":
+            case "tinyintunsigned":
+            case "mediumint":
+            case "mediumintunsigned":
+            case "integer":
+            case "int":
+                return Integer.class;
+
+            case "blob":
+                return Byte.class;
+
+            case "bigint":
+            case "intunsigned":
+            case "integerunsigned":
+            case "bigintunsigned":
+                return Long.class;
+
+            case "varchar":
+            case "char":
+            case "text":
+            case "string":
+                return String.class;
+
+            case "real":
+            case "float":
+            case "realunsigned":
+            case "floatunsigned":
+                return Float.class;
+
+            case "double":
+            case "doubleunsigned":
+                return Double.class;
+
+            case "date":
+                return Date.class;
+
+            case "datetime":
+            case "timestamp":
+                return Timestamp.class;
+
+            case "time":
+                return Time.class;
+
+            case "decimal":
+            case "decimalunsigned":
+                return BigDecimal.class;
+            default:
+                break;
+        }
+
+        throw new RuntimeException("不支持 " + type + " 类型");
     }
 }

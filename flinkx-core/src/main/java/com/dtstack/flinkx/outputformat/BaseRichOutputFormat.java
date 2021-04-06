@@ -41,6 +41,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
@@ -63,7 +64,7 @@ import java.util.Objects;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
+public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Tuple2<Boolean, Row>> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -78,9 +79,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     /** Dirty data manager */
     protected DirtyDataManager dirtyDataManager;
 
-    /**
-     * todo 将变量batchInterval 更名为batchSize，影响插件es 和restapi writer
-     * 批量提交条数 */
+    /** 批量提交条数 */
     protected int batchSize = 1;
 
     /** 存储用于批量写入的数据 */
@@ -407,12 +406,17 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     }
 
     @Override
-    public void writeRecord(Row row) throws IOException {
-        Row internalRow = setChannelInfo(row);
+    public void writeRecord(Tuple2<Boolean, Row> rowData) {
+        Boolean change = rowData.f0;
+        if (!change) {
+            return;
+        }
+        Row row = rowData.f1;
+//        Row internalRow = setChannelInfo(row);
         if(batchSize <= 1) {
-            writeSingleRecord(internalRow);
+            writeSingleRecord(row);
         } else {
-            rows.add(internalRow);
+            rows.add(row);
             if(rows.size() == batchSize) {
                 writeRecordInternal();
             }
