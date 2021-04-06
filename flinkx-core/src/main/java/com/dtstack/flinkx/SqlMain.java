@@ -23,7 +23,6 @@ import com.dtstack.flinkx.exec.ExecuteProcessHelper;
 import com.dtstack.flinkx.exec.ParamsInfo;
 import com.dtstack.flinkx.parser.SqlParser;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.factories.FactoryUtil;
@@ -45,17 +44,7 @@ public class SqlMain {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // ds 原来的配置
         StreamEnvConfigManager.streamExecutionEnvironmentConfig(env, paramsInfo.getConfProp());
-        EnvironmentSettings settings = EnvironmentSettings.newInstance()
-                .useBlinkPlanner()
-                .inStreamingMode()
-                .build();
-
-        // other config
-        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, settings);
-        StreamEnvConfigManager.streamTableEnvironmentStateTTLConfig(tableEnv, paramsInfo.getConfProp());
-        StreamEnvConfigManager.streamTableEnvironmentEarlyTriggerConfig(tableEnv, paramsInfo.getConfProp());
-        StreamEnvConfigManager.streamTableEnvironmentName(tableEnv, paramsInfo.getName());
-
+        StreamTableEnvironment tableEnv = StreamEnvConfigManager.getStreamTableEnv(env,paramsInfo);
         StatementSet statementSet = SqlParser.parseSql(paramsInfo, tableEnv);
         statementSet.execute();
 

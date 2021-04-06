@@ -20,6 +20,7 @@ package com.dtstack.flinkx.environment;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.EStateBackend;
+import com.dtstack.flinkx.exec.ParamsInfo;
 import com.dtstack.flinkx.util.MathUtil;
 import com.dtstack.flinkx.util.PropertiesUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -38,8 +39,11 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -62,6 +66,28 @@ import java.util.regex.Pattern;
 public final class StreamEnvConfigManager {
     private StreamEnvConfigManager() {
         throw new AssertionError("Singleton class.");
+    }
+
+    /**
+     * 生成StreamTableEnvironment并设置参数
+     * @param env
+     * @param paramsInfo
+     * @return
+     */
+    public static StreamTableEnvironment getStreamTableEnv(StreamExecutionEnvironment env, ParamsInfo paramsInfo) {
+        // use blink and streammode
+        EnvironmentSettings settings = EnvironmentSettings.newInstance()
+                .useBlinkPlanner()
+                .inStreamingMode()
+                .build();
+
+        TableConfig tableConfig = new TableConfig();
+
+        StreamTableEnvironment tableEnv = StreamTableEnvironmentImpl.create(env, settings, tableConfig);
+        StreamEnvConfigManager.streamTableEnvironmentStateTTLConfig(tableEnv, paramsInfo.getConfProp());
+        StreamEnvConfigManager.streamTableEnvironmentEarlyTriggerConfig(tableEnv, paramsInfo.getConfProp());
+        StreamEnvConfigManager.streamTableEnvironmentName(tableEnv, paramsInfo.getName());
+        return tableEnv;
     }
 
     /**
