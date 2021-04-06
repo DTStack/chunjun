@@ -24,9 +24,11 @@ import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunc
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
@@ -43,6 +45,12 @@ public abstract class BaseDataSource {
     protected StreamExecutionEnvironment env;
     protected FlinkxConf config;
 
+    protected BaseDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
+        this.env = env;
+        initColumn(config);
+        this.config = config;
+    }
+
     /**
      * Build the read data flow object
      *
@@ -56,6 +64,12 @@ public abstract class BaseDataSource {
         Preconditions.checkNotNull(inputFormat);
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
         DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
+        return env.addSource(function, sourceName, typeInfo);
+    }
+
+    protected DataStream<Row> createInput(RichParallelSourceFunction<Row> function, String sourceName) {
+        Preconditions.checkNotNull(sourceName);
+        TypeInformation<Row> typeInfo = new GenericTypeInfo<>(Row.class);
         return env.addSource(function, sourceName, typeInfo);
     }
 

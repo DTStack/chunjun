@@ -170,7 +170,7 @@ public class KafkaDynamicSource extends org.apache.flink.streaming.connectors.ka
     }
 
     private @Nullable DeserializationSchema<RowData> createDeserialization(
-            DynamicTableSource.Context context,
+            Context context,
             @Nullable DecodingFormat<DeserializationSchema<RowData>> format,
             int[] projection,
             @Nullable String prefix) {
