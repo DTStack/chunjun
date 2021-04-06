@@ -19,20 +19,19 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.PluginUtil;
-import com.dtstack.flinkx.config.ContentConfig;
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.RestartConfig;
-import com.dtstack.flinkx.config.SpeedConfig;
-import com.dtstack.flinkx.config.TestConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.conf.RestartConf;
+import com.dtstack.flinkx.conf.RestoreConf;
+import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
-import com.dtstack.flinkx.util.ResultPrintUtil;
+import com.dtstack.flinkx.util.PrintUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -50,8 +49,6 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URLDecoder;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -65,98 +62,93 @@ public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    public static final String READER = "reader";
-    public static final String WRITER = "writer";
-    public static final String STREAM_READER = "streamreader";
-    public static final String STREAM_WRITER = "streamwriter";
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
         com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
         String job = options.getJob();
-        String jobIdString = options.getJobid();
+        String jobIdString = options.getJobName();
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
         String savepointPath = options.getS();
         String remotePluginPath = options.getRemotePluginPath();
-        Properties confProperties = parseConf(options.getConfProp());
+        Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
-        DataTransferConfig config = DataTransferConfig.parse(job);
-        speedTest(config);
+        FlinkxConf flinkxConf = FlinkxConf.parseJob(job);
 
-        if(StringUtils.isNotEmpty(monitor)) {
-            config.setMonitorUrls(monitor);
+        if(org.apache.commons.lang3.StringUtils.isNotEmpty(monitor)) {
+            flinkxConf.setMonitorUrls(monitor);
         }
 
-        if(StringUtils.isNotEmpty(pluginRoot)) {
-            config.setPluginRoot(pluginRoot);
+        if(org.apache.commons.lang3.StringUtils.isNotEmpty(pluginRoot)) {
+            flinkxConf.setPluginRoot(pluginRoot);
         }
 
-        if (StringUtils.isNotEmpty(remotePluginPath)) {
-            config.setRemotePluginPath(remotePluginPath);
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(remotePluginPath)) {
+            flinkxConf.setRemotePluginPath(remotePluginPath);
         }
 
         Configuration flinkConf = new Configuration();
-        if (StringUtils.isNotEmpty(options.getFlinkconf())) {
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(options.getFlinkconf())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         }
 
-        StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
+        StreamExecutionEnvironment env = (org.apache.commons.lang3.StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment(flinkConf);
 
         env = openCheckpointConf(env, confProperties);
-        configRestartStrategy(env, config);
+        configRestartStrategy(env, flinkxConf);
+        PluginUtil.registerPluginUrlToCachedFile(flinkxConf, env);
 
-        SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
+        SpeedConf speed = flinkxConf.getSpeed();
 
-        PluginUtil.registerPluginUrlToCachedFile(config, env);
-
-        env.setParallelism(speedConfig.getChannel());
+        env.setParallelism(speed.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
-        BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
+        BaseDataReader dataReader = DataReaderFactory.getDataReader(flinkxConf, env);
         DataStream<Row> dataStream = dataReader.readData();
-        if(speedConfig.getReaderChannel() > 0){
-            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
+        if(speed.getReaderChannel() > 0){
+            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speed.getReaderChannel());
         }
 
-        if (speedConfig.isRebalance()) {
+        if (speed.isRebalance()) {
             dataStream = dataStream.rebalance();
         }
 
-        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
+        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(flinkxConf);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
-        if(speedConfig.getWriterChannel() > 0){
-            dataStreamSink.setParallelism(speedConfig.getWriterChannel());
+        if(speed.getWriterChannel() > 0){
+            dataStreamSink.setParallelism(speed.getWriterChannel());
         }
 
         if(env instanceof MyLocalStreamEnvironment) {
-            if(StringUtils.isNotEmpty(savepointPath)){
+            if(org.apache.commons.lang3.StringUtils.isNotEmpty(savepointPath)){
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));
             }
         }
 
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
-            ResultPrintUtil.printResult(result);
+            PrintUtil.printResult(result);
         }
     }
 
-    private static void configRestartStrategy(StreamExecutionEnvironment env, DataTransferConfig config){
-        if (needRestart(config)) {
-            RestartConfig restartConfig = findRestartConfig(config);
-            if (RestartConfig.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restartConfig.getStrategy())) {
+    private static void configRestartStrategy(StreamExecutionEnvironment env, FlinkxConf config){
+        RestoreConf restore = config.getRestore();
+        if (restore.isStream()) {
+            RestartConf restart = config.getRestart();
+
+            if (ConfigConstant.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restart.getStrategy())) {
                 env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-                        restartConfig.getRestartAttempts(),
-                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                        restart.getRestartAttempts(),
+                        Time.of(restart.getDelayInterval(), TimeUnit.SECONDS)
                 ));
-            } else if (RestartConfig.STRATEGY_FAILURE_RATE.equalsIgnoreCase(restartConfig.getStrategy())) {
+            } else if (ConfigConstant.STRATEGY_FAILURE_RATE.equalsIgnoreCase(restart.getStrategy())) {
                 env.setRestartStrategy(RestartStrategies.failureRateRestart(
-                        restartConfig.getFailureRate(),
-                        Time.of(restartConfig.getFailureInterval(), TimeUnit.SECONDS),
-                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                        restart.getFailureRate(),
+                        Time.of(restart.getFailureInterval(), TimeUnit.SECONDS),
+                        Time.of(restart.getDelayInterval(), TimeUnit.SECONDS)
                 ));
             } else {
                 env.setRestartStrategy(RestartStrategies.noRestart());
@@ -164,53 +156,6 @@ public class Main {
         } else {
             env.setRestartStrategy(RestartStrategies.noRestart());
         }
-    }
-
-    private static RestartConfig findRestartConfig(DataTransferConfig config) {
-        RestartConfig restartConfig = config.getJob().getSetting().getRestartConfig();
-        if (null != restartConfig) {
-            return restartConfig;
-        }
-
-        Object restartConfigObj = config.getJob().getContent().get(0).getReader().getParameter().getVal(RestartConfig.KEY_STRATEGY);
-        if (null != restartConfigObj) {
-            return new RestartConfig((Map<String, Object>)restartConfigObj);
-        }
-
-        restartConfigObj = config.getJob().getContent().get(0).getWriter().getParameter().getVal(RestartConfig.KEY_STRATEGY);
-        if (null != restartConfigObj) {
-            return new RestartConfig((Map<String, Object>)restartConfigObj);
-        }
-
-        return RestartConfig.defaultConfig();
-    }
-
-    private static boolean needRestart(DataTransferConfig config){
-        return config.getJob().getSetting().getRestoreConfig().isStream();
-    }
-
-    private static void speedTest(DataTransferConfig config) {
-        TestConfig testConfig = config.getJob().getSetting().getTestConfig();
-        if (READER.equalsIgnoreCase(testConfig.getSpeedTest())) {
-            ContentConfig contentConfig = config.getJob().getContent().get(0);
-            contentConfig.getWriter().setName(STREAM_WRITER);
-        } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
-            ContentConfig contentConfig = config.getJob().getContent().get(0);
-            contentConfig.getReader().setName(STREAM_READER);
-        }else {
-            return;
-        }
-
-        config.getJob().getSetting().getSpeed().setBytes(-1);
-    }
-
-    private static Properties parseConf(String confStr) throws Exception{
-        if(StringUtils.isEmpty(confStr)){
-            return new Properties();
-        }
-
-        confStr = URLDecoder.decode(confStr, Charsets.UTF_8.toString());
-        return objectMapper.readValue(confStr, Properties.class);
     }
 
     private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){

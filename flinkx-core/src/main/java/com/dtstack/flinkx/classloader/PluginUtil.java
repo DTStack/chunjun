@@ -20,7 +20,7 @@
 package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
@@ -117,11 +117,11 @@ public class PluginUtil {
         return sb.toString();
     }
 
-    public static void registerPluginUrlToCachedFile(DataTransferConfig config, StreamExecutionEnvironment env) {
-        String readerPluginName = config.getJob().getContent().get(0).getReader().getName();
+    public static void registerPluginUrlToCachedFile(FlinkxConf config, StreamExecutionEnvironment env) {
+        String readerPluginName = config.getReader().getName();
         Set<URL> readerUrlList = PluginUtil.getJarFileDirPath(readerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
-        String writerPluginName = config.getJob().getContent().get(0).getWriter().getName();
+        String writerPluginName = config.getWriter().getName();
         Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
         Set<URL> urlSet = new HashSet<>();

@@ -17,7 +17,7 @@
 
 package com.dtstack.flinkx.streaming.api.functions.source;
 
-import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.conf.RestoreConf;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -94,8 +94,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 		}
 
         if (format instanceof BaseRichInputFormat){
-			RestoreConfig restoreConfig = ((BaseRichInputFormat) format).getRestoreConfig();
-			isStream = restoreConfig != null && restoreConfig.isStream();
+			RestoreConf restore = ((BaseRichInputFormat) format).getConfig().getRestore();
+			isStream = restore.isStream();
             if(formatStateMap != null){
                 ((BaseRichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }

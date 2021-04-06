@@ -18,10 +18,7 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.LogConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.config.TestConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,28 +35,10 @@ public abstract class BaseRichInputFormatBuilder {
 
     protected BaseRichInputFormat format;
 
-    public void setMonitorUrls(String monitorUrls) {
-        format.monitorUrls = monitorUrls;
+    public void setConfig(FlinkxConf config) {
+        format.setConfig(config);
     }
 
-    public void setBytes(long bytes) {
-        format.bytes = bytes;
-    }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig){
-        format.restoreConfig = restoreConfig;
-    }
-    public void setLogConfig(LogConfig logConfig){
-        format.logConfig = logConfig;
-    }
-
-    public void setTestConfig(TestConfig testConfig) {
-        format.testConfig = testConfig;
-    }
-
-    public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
-        format.setDataTransferConfig(dataTransferConfig);
-    }
     /**
      * Check the value of parameters
      */
@@ -67,11 +46,16 @@ public abstract class BaseRichInputFormatBuilder {
 
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
-        boolean check = format.getDataTransferConfig().getJob().getContent().get(0).getReader().getParameter().getBooleanVal("check", true);
+        boolean check = true;
+        try {
+            check = (boolean) format.getConfig().getReader().getParameter().getOrDefault(("check"), true);
+        }catch (ClassCastException e){
+            LOG.warn("[{}] can not cast to boolean", format.getConfig().getReader().getParameter().get("check"), e);
+        }
+
         if(check){
             checkFormat();
         }
         return format;
     }
-
 }

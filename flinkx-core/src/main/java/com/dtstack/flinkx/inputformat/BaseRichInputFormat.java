@@ -18,10 +18,7 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.LogConfig;
-import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.config.TestConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
@@ -30,7 +27,7 @@ import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.PrintUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -43,16 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_CONFUSED_PASSWORD;
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_CONTENT;
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_PARAMETER;
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_PASSWORD;
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_READER;
-import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
 
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
@@ -71,17 +60,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     protected LongCounter numReadCounter;
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
-    protected String monitorUrls;
-    protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
-    protected RestoreConfig restoreConfig;
-    protected LogConfig logConfig;
-    protected DataTransferConfig dataTransferConfig;
+    protected FlinkxConf config;
 
     protected FormatState formatState;
-
-    protected TestConfig testConfig = TestConfig.defaultConfig();
 
     protected transient BaseMetric inputMetric;
 
@@ -96,8 +79,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     private AtomicBoolean isClosed = new AtomicBoolean(false);
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
-
-    protected long numReadeForTest;
 
     /**
      * 有子类实现，打开数据连接
@@ -118,8 +99,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         initPrometheusReporter();
 
         startTime = System.currentTimeMillis();
-        DtLogger.config(logConfig, jobId);
-        showConfig();
+        DtLogger.config(config.getLog(), jobId);
+        PrintUtil.printJobConfig(config);
     }
 
     @Override
@@ -161,7 +142,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
             openByteRateLimiter();
             initRestoreInfo();
 
-            if(restoreConfig.isRestore()){
+            if(config.getRestore().isRestore()){
                 formatState.setNumOfSubTask(indexOfSubTask);
             }
 
@@ -169,26 +150,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
 
         openInternal(inputSplit);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void showConfig(){
-        Map<String, Object> map = dataTransferConfig.getJob().getAll();
-        List<Map<String,Object>> contentList = (List<Map<String,Object>>) map.get(KEY_CONTENT);
-        for(Map<String,Object> contentMap : contentList) {
-            //隐藏密码信息
-            Map<String, Object> readerConfig = (Map<String, Object>)contentMap.get(KEY_READER);
-            Map<String, Object> readerParameter = (Map<String, Object>)readerConfig.get(KEY_PARAMETER);
-            if(readerParameter.containsKey(KEY_PASSWORD)){
-                readerParameter.put(KEY_PASSWORD, KEY_CONFUSED_PASSWORD);
-            }
-            Map<String, Object> writerConfig = (Map<String, Object>)contentMap.get(KEY_WRITER);
-            Map<String, Object> writerParameter = (Map<String, Object>)writerConfig.get(KEY_PARAMETER);
-            if(writerParameter.containsKey(KEY_PASSWORD)){
-                writerParameter.put(KEY_PASSWORD, KEY_CONFUSED_PASSWORD);
-            }
-        }
-        LOG.info("configInfo : \n{}", GsonUtil.GSON.toJson(map));
     }
 
     private void checkIfCreateSplitFailed(InputSplit inputSplit){
@@ -216,7 +177,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
         String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
-        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrls, getRuntimeContext(), 2,
+        accumulatorCollector = new AccumulatorCollector(jobId, config.getMonitorUrls(), getRuntimeContext(), 2,
                 Arrays.asList(Metrics.NUM_READS,
                         Metrics.READ_BYTES,
                         Metrics.READ_DURATION,
@@ -243,8 +204,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     private void openByteRateLimiter(){
-        if (this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, this.bytes);
+        if (config.getSpeed().getBytes() > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeed().getBytes());
             this.byteRateLimiter.start();
         }
     }
@@ -261,9 +222,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     private void initRestoreInfo(){
-        if(restoreConfig == null){
-            restoreConfig = RestoreConfig.defaultConfig();
-        } else if(restoreConfig.isRestore()){
+        if(config.getRestore().isRestore()){
             if(formatState == null){
                 formatState = new FormatState(indexOfSubTask, null);
             } else {
@@ -289,13 +248,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
             }
             if(bytesReadCounter!=null){
                 bytesReadCounter.add(internalRow.toString().getBytes().length);
-            }
-        }
-
-        if (testConfig.errorTest() && testConfig.getFailedPerRecord() > 0) {
-            numReadeForTest++;
-            if (numReadeForTest > testConfig.getFailedPerRecord()) {
-                throw new RuntimeException(testConfig.getErrorMsg());
             }
         }
 
@@ -333,7 +285,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     protected abstract Row nextRecordInternal(Row row) throws IOException;
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try{
             closeInternal();
         }catch (Exception e){
@@ -342,7 +294,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     @Override
-    public void closeInputFormat() throws IOException {
+    public void closeInputFormat() {
         if (isClosed.get()) {
             return;
         }
@@ -403,27 +355,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         this.formatState = formatState;
     }
 
-    public RestoreConfig getRestoreConfig() {
-        return restoreConfig;
+    public FlinkxConf getConfig() {
+        return config;
     }
 
-    public void setRestoreConfig(RestoreConfig restoreConfig) {
-        this.restoreConfig = restoreConfig;
-    }
-
-    public void setLogConfig(LogConfig logConfig) {
-        this.logConfig = logConfig;
-    }
-
-    public void setTestConfig(TestConfig testConfig) {
-        this.testConfig = testConfig;
-    }
-
-    public void setDataTransferConfig(DataTransferConfig dataTransferConfig){
-        this.dataTransferConfig = dataTransferConfig;
-    }
-
-    public DataTransferConfig getDataTransferConfig() {
-        return dataTransferConfig;
+    public void setConfig(FlinkxConf config) {
+        this.config = config;
     }
 }

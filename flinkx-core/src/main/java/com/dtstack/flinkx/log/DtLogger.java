@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.log;
 
+import com.dtstack.flinkx.conf.LogConf;
 import com.dtstack.flinkx.config.LogConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -51,13 +52,13 @@ public class DtLogger {
     public static final String LOGBACK = "ch.qos.logback.classic.util.ContextSelectorStaticBinder";
     public static int LEVEL_INT = Integer.MAX_VALUE;
 
-    public static void config(LogConfig logConfig, String jobId) {
-        if (logConfig == null || !logConfig.isLogger() || init) {
+    public static void config(LogConf logConf, String jobId) {
+        if (logConf == null || !logConf.isLogger() || init) {
             return;
         }
         synchronized (DtLogger.class) {
             if (!init) {
-                String path = logConfig.getPath();
+                String path = logConf.getPath();
                 File file = new File(path);
                 if (!file.exists() && !file.mkdirs()) {
                     LOG.warn("cannot create directory [{}]", path);
@@ -67,7 +68,7 @@ public class DtLogger {
                 String type = StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr();
                 LOG.info("current log type is {}", type);
                 if (LOG4J.equalsIgnoreCase(type)) {
-                    configLog4j(logConfig, jobId);
+                    configLog4j(logConf, jobId);
                 } else if (LOGBACK.equalsIgnoreCase(type)) {
                     LOG.warn("log type {} is [ch.qos.logback.classic.util.ContextSelectorStaticBinder], DtLogger do not support [logback] in FlinkX 1.12", type);
                 }else{
@@ -79,15 +80,15 @@ public class DtLogger {
         }
      }
 
-    private static void configLog4j(LogConfig logConfig, String jobId) {
+    private static void configLog4j(LogConf logConf, String jobId) {
         LOG.info("start to config log4j...");
         LoggerContext loggerContext = (LoggerContext) LogManager.getContext();
         Configuration config = loggerContext.getConfiguration();
 
-        org.apache.logging.log4j.Level level = org.apache.logging.log4j.Level.toLevel(logConfig.getLevel());
+        org.apache.logging.log4j.Level level = org.apache.logging.log4j.Level.toLevel(logConf.getLevel());
         LEVEL_INT = level.intLevel();
-        String pattern = logConfig.getPattern();
-        String path = logConfig.getPath();
+        String pattern = logConf.getPattern();
+        String path = logConf.getPath();
 
         if (StringUtils.isBlank(pattern)) {
             pattern = LogConfig.DEFAULT_LOG4J_PATTERN;

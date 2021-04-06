@@ -20,8 +20,9 @@ package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
-import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
@@ -37,7 +38,7 @@ public class DataReaderFactory {
     private DataReaderFactory() {
     }
 
-    public static BaseDataReader getDataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
+    public static BaseDataReader getDataReader(FlinkxConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getContent().get(0).getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
@@ -45,7 +46,7 @@ public class DataReaderFactory {
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
-                Constructor constructor = clazz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
+                Constructor constructor = clazz.getConstructor(FlinkxConf.class, StreamExecutionEnvironment.class);
                 return (BaseDataReader)constructor.newInstance(config, env);
             });
         } catch (Exception e) {
