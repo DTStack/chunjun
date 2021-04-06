@@ -88,6 +88,26 @@
             </exclusions>
         </dependency>
 
+        <!-- flink sql -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-table-api-java-bridge_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+        <!-- flink sql -->
+
         <!--flink与Hadoop mapReduce兼容包-->
         <!--https://ci.apache.org/projects/flink/flink-docs-stable/dev/batch/hadoop_compatibility.html-->
         <dependency>

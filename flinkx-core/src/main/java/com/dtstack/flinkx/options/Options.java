@@ -6,19 +6,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.options;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ClusterMode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
@@ -27,27 +27,29 @@ import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
-import static com.dtstack.flinkx.constants.ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE;
 
 /**
- * This class define commandline options for the Launcher program
- *
+ * Date: 2021/03/18
  * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ *
+ * @author tudou
  */
 public class Options {
+
+    @OptionRequired(required = true, description = "sync or sql")
+    private String jobType;
 
     @OptionRequired(description = "Running mode")
     private String mode = ClusterMode.local.name();
 
-    @OptionRequired(required = true, description = "Job config")
+    @OptionRequired(description = "Job config")
     private String job;
 
     @OptionRequired(description = "Monitor Addresses")
     private String monitor;
 
-    @OptionRequired(description = "Job unique id")
-    private String jobid = "Flink Job";
+    @OptionRequired(description = "Flink Job Name")
+    private String jobName = "Flink Job";
 
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
@@ -80,13 +82,13 @@ public class Options {
     private String pluginLoadMode = "shipfile";
 
     @OptionRequired(description = "kerberos krb5conf")
-    private String krb5conf ;
+    private String krb5conf;
 
     @OptionRequired(description = "kerberos keytabPath")
-    private String keytab ;
+    private String keytab;
 
     @OptionRequired(description = "kerberos principal")
-    private String principal ;
+    private String principal;
 
     @OptionRequired(description = "applicationId on yarn cluster")
     private String appId;
@@ -94,23 +96,29 @@ public class Options {
     @OptionRequired(description = "Sync remote plugin root path")
     private String remotePluginPath;
 
+    @OptionRequired(description = "sql ext jar,eg udf jar")
+    private String addjar;
+
+    @OptionRequired(description = "file add to ship file")
+    private String addShipfile;
+
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
-        if(flinkConfiguration == null){
+        if (flinkConfiguration == null) {
             flinkConfiguration = StringUtils.isEmpty(flinkconf) ? new Configuration() : GlobalConfiguration.loadConfiguration(flinkconf);
             if (StringUtils.isNotBlank(queue)) {
                 flinkConfiguration.setString(YarnConfigOptions.APPLICATION_QUEUE, queue);
             }
-            if (StringUtils.isNotBlank(jobid)) {
-                flinkConfiguration.setString(YarnConfigOptions.APPLICATION_NAME, jobid);
+            if (StringUtils.isNotBlank(jobName)) {
+                flinkConfiguration.setString(YarnConfigOptions.APPLICATION_NAME, jobName);
             }
-            if(StringUtils.isNotBlank(yarnconf)){
+            if (StringUtils.isNotBlank(yarnconf)) {
                 flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
             }
-            if(CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)){
+            if (ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)) {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
-            }else{
+            } else {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
@@ -118,36 +126,12 @@ public class Options {
         return flinkConfiguration;
     }
 
-    public String getAppId() {
-        return appId;
+    public String getJobType() {
+        return jobType;
     }
 
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public String getS() {
-        return s;
-    }
-
-    public void setS(String s) {
-        this.s = s;
-    }
-
-    public String getConfProp() {
-        return confProp;
-    }
-
-    public void setConfProp(String confProp) {
-        this.confProp = confProp;
-    }
-
-    public String getParallelism() {
-        return parallelism;
-    }
-
-    public void setParallelism(String parallelism) {
-        this.parallelism = parallelism;
+    public void setJobType(String jobType) {
+        this.jobType = jobType;
     }
 
     public String getMode() {
@@ -174,14 +158,6 @@ public class Options {
         this.monitor = monitor;
     }
 
-    public String getJobid() {
-        return jobid;
-    }
-
-    public void setJobid(String jobid) {
-        this.jobid = jobid;
-    }
-
     public String getFlinkconf() {
         return flinkconf;
     }
@@ -204,6 +180,14 @@ public class Options {
 
     public void setYarnconf(String yarnconf) {
         this.yarnconf = yarnconf;
+    }
+
+    public String getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(String parallelism) {
+        this.parallelism = parallelism;
     }
 
     public String getPriority() {
@@ -230,20 +214,28 @@ public class Options {
         this.flinkLibJar = flinkLibJar;
     }
 
+    public String getConfProp() {
+        return confProp;
+    }
+
+    public void setConfProp(String confProp) {
+        this.confProp = confProp;
+    }
+
+    public String getS() {
+        return s;
+    }
+
+    public void setS(String s) {
+        this.s = s;
+    }
+
     public String getPluginLoadMode() {
         return pluginLoadMode;
     }
 
     public void setPluginLoadMode(String pluginLoadMode) {
         this.pluginLoadMode = pluginLoadMode;
-    }
-
-    public String getRemotePluginPath() {
-        return remotePluginPath;
-    }
-
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
     }
 
     public String getKrb5conf() {
@@ -270,28 +262,43 @@ public class Options {
         this.principal = principal;
     }
 
-    @Override
-    public String toString() {
-        return "Options{" +
-                "mode='" + mode + '\'' +
-                ", job='" + job + '\'' +
-                ", monitor='" + monitor + '\'' +
-                ", jobid='" + jobid + '\'' +
-                ", flinkconf='" + flinkconf + '\'' +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", yarnconf='" + yarnconf + '\'' +
-                ", parallelism='" + parallelism + '\'' +
-                ", priority='" + priority + '\'' +
-                ", queue='" + queue + '\'' +
-                ", flinkLibJar='" + flinkLibJar + '\'' +
-                ", confProp='" + confProp + '\'' +
-                ", s='" + s + '\'' +
-                ", pluginLoadMode='" + pluginLoadMode + '\'' +
-                ", appId='" + appId + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", krb5conf='" + krb5conf + '\'' +
-                ", keytab='" + keytab + '\'' +
-                ", principal='" + principal + '\'' +
-                '}';
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
+    public String getAddjar() {
+        return addjar;
+    }
+
+    public void setAddjar(String addjar) {
+        this.addjar = addjar;
+    }
+
+    public String getAddShipfile() {
+        return addShipfile;
+    }
+
+    public void setAddShipfile(String addShipfile) {
+        this.addShipfile = addShipfile;
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 }

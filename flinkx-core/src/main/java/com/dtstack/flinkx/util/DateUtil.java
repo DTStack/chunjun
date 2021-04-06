@@ -23,12 +23,22 @@ import org.apache.commons.lang3.StringUtils;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 /**
  * Date Utilities
@@ -64,6 +74,16 @@ public class DateUtil {
     public final static int LENGTH_MILLISECOND = 13;
     public final static int LENGTH_MICROSECOND = 16;
     public final static int LENGTH_NANOSECOND = 19;
+
+    static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private static final Pattern DATETIME = Pattern.compile("^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
+    private static final Pattern DATE = Pattern.compile("^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}$");
+    private static final Pattern TIME = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
+    private static final int MILLIS_PER_SECOND = 1000;
+
 
     public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);
@@ -326,4 +346,64 @@ public class DateUtil {
         return sb.toString();
     }
 
+    public static Timestamp getTimestampFromStr(String timeStr) {
+        if (DATETIME.matcher(timeStr).matches()) {
+            Instant instant = Instant.from(ISO_INSTANT.parse(timeStr));
+            return new Timestamp(instant.getEpochSecond() * MILLIS_PER_SECOND);
+        }
+        Date date = stringToDate(timeStr);
+        return null == date ? null : new Timestamp(date.getTime());
+    }
+
+    public static Date stringToDate(String strDate) {
+        if (strDate == null) {
+            return null;
+        }
+        try {
+            return localDateTimetoDate(LocalDateTime.parse(strDate, DATE_TIME_FORMATTER));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return localDateTimetoDate(LocalDate.parse(strDate, DATE_FORMATTER).atStartOfDay());
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return localDateTimetoDate(LocalDateTime.of(LocalDate.now(), LocalTime.parse(strDate, TIME_FORMATTER)));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        throw new RuntimeException("can't parse date");
+    }
+
+    public static Date localDateTimetoDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    public static java.sql.Time getTimeFromStr(String dateStr) {
+        if (TIME.matcher(dateStr).matches()) {
+            dateStr = dateStr.substring(0, dateStr.length() - 1);
+            Instant instant = LocalTime.parse(dateStr).atDate(LocalDate.now()).toInstant(ZoneOffset.UTC);
+            return new java.sql.Time(instant.toEpochMilli());
+        } else if (DATETIME.matcher(dateStr).matches()) {
+            Instant instant = Instant.from(ISO_INSTANT.parse(dateStr));
+            return new java.sql.Time(instant.toEpochMilli());
+        }
+        Date date = stringToDate(dateStr);
+        return null == date ? null : new java.sql.Time(date.getTime());
+    }
+
+    public static java.sql.Date getDateFromStr(String dateStr) {
+        if (DATE.matcher(dateStr).matches()) {
+            Instant instant = LocalDate.parse(dateStr).atTime(LocalTime.of(0, 0, 0, 0)).toInstant(ZoneOffset.UTC);
+            int offset = TimeZone.getDefault().getOffset(instant.toEpochMilli());
+            return new java.sql.Date(instant.toEpochMilli() - offset);
+        } else if (DATETIME.matcher(dateStr).matches()) {
+            Instant instant = Instant.from(ISO_INSTANT.parse(dateStr));
+            return new java.sql.Date(instant.toEpochMilli());
+        }
+        Date date = stringToDate(dateStr);
+        return null == date ? null : new java.sql.Date(date.getTime());
+    }
 }

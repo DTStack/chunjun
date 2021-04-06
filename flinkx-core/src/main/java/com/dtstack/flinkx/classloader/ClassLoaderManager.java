@@ -19,19 +19,22 @@
 package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -73,5 +76,25 @@ public class ClassLoaderManager {
             classPaths.addAll(Arrays.asList(entry.getValue().getURLs()));
         }
         return classPaths;
+    }
+
+    public static URLClassLoader loadExtraJar(List<URL> jarUrlList, URLClassLoader classLoader)
+            throws IllegalAccessException, InvocationTargetException {
+        for (URL url : jarUrlList) {
+            if (url.toString().endsWith(".jar")) {
+                urlClassLoaderAddUrl(classLoader, url);
+            }
+        }
+        return classLoader;
+    }
+
+    private static void urlClassLoaderAddUrl(URLClassLoader classLoader, URL url) throws InvocationTargetException, IllegalAccessException {
+        Method method = ReflectionUtils.getDeclaredMethod(classLoader, "addURL", URL.class);
+
+        if (method == null) {
+            throw new RuntimeException("can't not find declared method addURL, curr classLoader is " + classLoader.getClass());
+        }
+        method.setAccessible(true);
+        method.invoke(classLoader, url);
     }
 }
