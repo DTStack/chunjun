@@ -146,7 +146,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             }
 
             // 处理上次任务因异常失败产生的脏数据
-            if (restoreConfig.isRestore() && formatState != null) {
+            if (config.getRestore().isRestore() && formatState != null) {
                 cleanDirtyData();
             }
         } catch (Exception e){
@@ -166,10 +166,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        if (restoreConfig.isRestore() && !restoreConfig.isStream()){
+        if (config.getRestore().isRestore() && !config.getRestore().isStream()){
             if(lastRow != null){
-                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(restoreConfig.getRestoreColumnIndex()),
-                        row.getField(restoreConfig.getRestoreColumnIndex()));
+                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(config.getRestore().getRestoreColumnIndex()),
+                        row.getField(config.getRestore().getRestoreColumnIndex()));
             }
         }
 
@@ -216,7 +216,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     protected void nextBlock(){
-        if (restoreConfig.isRestore()){
+        if (config.getRestore().isRestore()){
             currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
         } else {
             currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
@@ -225,11 +225,11 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public FormatState getFormatState() {
-        if (!restoreConfig.isRestore() || lastRow == null){
+        if (!config.getRestore().isRestore() || lastRow == null){
             return null;
         }
 
-        if (restoreConfig.isStream() || readyCheckpoint){
+        if (config.getRestore().isStream() || readyCheckpoint){
             try{
                 flushData();
                 lastWriteSize = bytesWriteCounter.getLocalValue();
@@ -248,8 +248,8 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             snapshotWriteCounter.add(sumRowsOfBlock);
             numWriteCounter.add(sumRowsOfBlock);
             formatState.setNumberWrite(numWriteCounter.getLocalValue());
-            if (!restoreConfig.isStream()){
-                formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
+            if (!config.getRestore().isStream()){
+                formatState.setState(lastRow.getField(config.getRestore().getRestoreColumnIndex()));
             }
             sumRowsOfBlock = 0;
             formatState.setJobId(jobId);
@@ -270,7 +270,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         if(isTaskEndsNormally()){
             flushData();
             //restore == false 需要主动执行
-            if (!restoreConfig.isRestore()) {
+            if (!config.getRestore().isRestore()) {
                 moveTemporaryDataBlockFileToDirectory();
             }
         }
@@ -284,7 +284,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
                 return;
             }
 
-            if (!restoreConfig.isStream()) {
+            if (!config.getRestore().isStream()) {
                 createFinishedTag();
 
                 if(taskNumber == 0) {
@@ -309,7 +309,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         String state = getTaskState();
         LOG.info("State of current task is:[{}]", state);
         if(!RUNNING_STATE.equals(state)){
-            if (!restoreConfig.isRestore()){
+            if (!config.getRestore().isRestore()){
                 LOG.info("The task does not end normally, clear the temporary data file");
                 clearTemporaryDataFiles();
             }
@@ -323,7 +323,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void tryCleanupOnError() throws Exception {
-        if(!restoreConfig.isRestore()) {
+        if(!config.getRestore().isRestore()) {
             LOG.info("Clean temporary data in method tryCleanupOnError");
             clearTemporaryDataFiles();
         }
@@ -341,7 +341,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     public void flushData() throws IOException{
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
-            if (restoreConfig.isRestore()) {
+            if (config.getRestore().isRestore()) {
                 moveTemporaryDataBlockFileToDirectory();
                 sumRowsOfBlock += rowsOfCurrentBlock;
                 LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);

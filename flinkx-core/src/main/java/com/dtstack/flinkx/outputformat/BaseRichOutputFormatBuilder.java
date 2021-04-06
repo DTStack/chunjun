@@ -18,12 +18,10 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The builder of RichOutputFormat
@@ -36,44 +34,20 @@ public abstract class BaseRichOutputFormatBuilder {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected BaseRichOutputFormat format;
 
-    public void setDirtyPath(String dirtyPath) {
-        format.setDirtyPath(dirtyPath);
-    }
-
-    public void setDirtyHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
-        format.setDirtyHadoopConfig(dirtyHadoopConfig);
-    }
-
-    public void setSrcCols(List<String> srcCols) {
-        format.setSrcFieldNames(srcCols);
-    }
-
-    public void setErrors(Integer errors) {
-        format.errors = errors;
-    }
-
-    public void setErrorRatio(Double errorRatio) {
-        format.errorRatio = errorRatio;
-    }
-
-    public void setMonitorUrls(String monitorUrl) {
-        format.monitorUrl = monitorUrl;
-    }
-
-    public void setBatchInterval(int batchInterval) {
-        format.batchInterval = batchInterval;
-    }
-
-    public void setRestoreConfig(RestoreConfig restoreConfig){
-        format.restoreConfig = restoreConfig;
+    public void setConfig(FlinkxConf config) {
+        format.setConfig(config);
     }
 
     public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {
         this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
+    public void setBatchSize(int batchSize) {
+        format.batchSize = batchSize;
+    }
+
     protected void notSupportBatchWrite(String writerName) {
-        if (this.format.getBatchInterval() > 1) {
+        if (this.format.getBatchSize() > 1) {
             throw new IllegalArgumentException(writerName + "不支持批量写入");
         }
     }
@@ -92,7 +66,7 @@ public abstract class BaseRichOutputFormatBuilder {
          * 在不考虑各插件批量写入对内存特殊要求并且只考虑插件缓存这么多条数据的情况下，batchInterval为400000条时出现fullGC，
          * 为了避免fullGC以及OOM，并且保证batchInterval有足够的配置空间，取最大值的一半200000。
          */
-        if (this.format.getBatchInterval() > ConstantValue.MAX_BATCH_SIZE) {
+        if (this.format.getBatchSize() > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量写入条数必须小于[200000]条");
         }
 

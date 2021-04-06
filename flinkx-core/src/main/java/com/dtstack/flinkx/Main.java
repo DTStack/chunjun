@@ -25,13 +25,12 @@ import com.dtstack.flinkx.conf.RestoreConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.reader.BaseDataReader;
-import com.dtstack.flinkx.reader.DataReaderFactory;
+import com.dtstack.flinkx.source.BaseDataSource;
+import com.dtstack.flinkx.source.DataSourceFactory;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.writer.BaseDataWriter;
-import com.dtstack.flinkx.writer.DataWriterFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.DataWriterFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -61,8 +60,6 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
         com.dtstack.flinkx.options.Options options = new OptionParser(args).getOptions();
@@ -105,8 +102,7 @@ public class Main {
         SpeedConf speed = flinkxConf.getSpeed();
 
         env.setParallelism(speed.getChannel());
-        env.setRestartStrategy(RestartStrategies.noRestart());
-        BaseDataReader dataReader = DataReaderFactory.getDataReader(flinkxConf, env);
+        BaseDataSource dataReader = DataSourceFactory.getDataSource(flinkxConf, env);
         DataStream<Row> dataStream = dataReader.readData();
         if(speed.getReaderChannel() > 0){
             dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speed.getReaderChannel());
@@ -116,7 +112,7 @@ public class Main {
             dataStream = dataStream.rebalance();
         }
 
-        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(flinkxConf);
+        BaseDataSink dataWriter = DataWriterFactory.getDataWriter(flinkxConf);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
         if(speed.getWriterChannel() > 0){
             dataStreamSink.setParallelism(speed.getWriterChannel());

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.reader;
+package com.dtstack.flinkx.source;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
@@ -33,21 +33,20 @@ import java.util.Set;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class DataReaderFactory {
+public class DataSourceFactory {
 
-    private DataReaderFactory() {
-    }
+    private DataSourceFactory() {}
 
-    public static BaseDataReader getDataReader(FlinkxConf config, StreamExecutionEnvironment env) {
+    public static BaseDataSource getDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
         try {
-            String pluginName = config.getJob().getContent().get(0).getReader().getName();
+            String pluginName = config.getJob().getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
             Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
                 Constructor constructor = clazz.getConstructor(FlinkxConf.class, StreamExecutionEnvironment.class);
-                return (BaseDataReader)constructor.newInstance(config, env);
+                return (BaseDataSource)constructor.newInstance(config, env);
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,39 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.flinkx.config;
-
-import java.util.Map;
+package com.dtstack.flinkx.sink;
 
 /**
- * The configuration of dirty data management
+ * This Class defined several types of errors when writing record
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class DirtyConfig extends AbstractConfig {
+public class WriteErrorTypes {
 
-    public static final String KEY_DIRTY_PATH = "path";
-    public static final String KEY_DIRTY_HADOOP_CONFIG = "hadoopConfig";
+    public static final String ERR_NULL_POINTER= "npe";
 
-    public DirtyConfig(Map<String, Object> map) {
-        super(map);
-    }
+    public static final String ERR_PRIMARY_CONFLICT = "duplicate";
 
-    public String getPath() {
-        return getStringVal(KEY_DIRTY_PATH);
-    }
+    public static final String ERR_FORMAT_TRANSFORM = "conversion";
 
-    public void setPath(String path) {
-        setStringVal(KEY_DIRTY_PATH, path);
-    }
+    public static final String ERR_OTHERS = "other";
 
-    public Map<String, Object> getHadoopConfig() {
-        return (Map<String, Object>) getVal(KEY_DIRTY_HADOOP_CONFIG);
-    }
-
-    public void setHadoopConfig(Map<String, String> hadoopConfig) {
-        setVal(KEY_DIRTY_HADOOP_CONFIG, hadoopConfig);
-    }
 }

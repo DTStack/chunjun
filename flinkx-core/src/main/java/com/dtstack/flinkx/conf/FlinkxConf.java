@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.util.Preconditions;
 

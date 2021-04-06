@@ -24,7 +24,7 @@ import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
+import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.PrintUtil;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.writer;
+package com.dtstack.flinkx.sink;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
@@ -36,7 +36,7 @@ public class DataWriterFactory {
 
     private DataWriterFactory() {}
 
-    public static BaseDataWriter getDataWriter(FlinkxConf config) {
+    public static BaseDataSink getDataWriter(FlinkxConf config) {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName);
@@ -45,7 +45,7 @@ public class DataWriterFactory {
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
                 Constructor constructor = clazz.getConstructor(FlinkxConf.class);
-                return (BaseDataWriter)constructor.newInstance(config);
+                return (BaseDataSink)constructor.newInstance(config);
             });
         } catch (Exception e) {
             throw new RuntimeException(e);

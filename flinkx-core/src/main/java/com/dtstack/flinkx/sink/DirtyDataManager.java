@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.writer;
+package com.dtstack.flinkx.sink;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
@@ -41,9 +41,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
-import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_NULL_POINTER;
-import static com.dtstack.flinkx.writer.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
+import static com.dtstack.flinkx.sink.WriteErrorTypes.ERR_FORMAT_TRANSFORM;
+import static com.dtstack.flinkx.sink.WriteErrorTypes.ERR_NULL_POINTER;
+import static com.dtstack.flinkx.sink.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 
 /**
  * The class handles dirty data management

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.reader;
+package com.dtstack.flinkx.source;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.DateUtil;
@@ -137,6 +137,21 @@ public class MetaColumn implements Serializable {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取字段名称列表
+     * @param columnList List<MetaColumn>
+     * @return 字段名称列表
+     */
+    public static List<String> getColumnNameList(List<MetaColumn> columnList){
+        List<String> columnNameList = new ArrayList<>(columnList.size());
+
+        for (MetaColumn metaColumn : columnList) {
+            columnNameList.add(metaColumn.getName());
+        }
+
+        return columnNameList;
     }
 
     public String getSplitter() {

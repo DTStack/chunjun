@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.log;
 
 import com.dtstack.flinkx.conf.LogConf;
-import com.dtstack.flinkx.config.LogConfig;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -91,7 +91,7 @@ public class DtLogger {
         String path = logConf.getPath();
 
         if (StringUtils.isBlank(pattern)) {
-            pattern = LogConfig.DEFAULT_LOG4J_PATTERN;
+            pattern = ConfigConstant.DEFAULT_LOG4J_PATTERN;
         }
 
         PatternLayout layout = PatternLayout.newBuilder()
