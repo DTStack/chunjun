@@ -73,18 +73,22 @@ public final class FactoryUtil {
     /**插件加载方式，默认走CLASSLOADER方式 */
     private static String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
 
-    /**数据格式序列化、反序列化方式 */
-    private static List<String> formatList = Arrays.asList("DeserializationFormatFactory", "SerializationFormatFactory");
-
     /**shipfile需要的jar */
     private static List<URL> classPathSet = new ArrayList<>();
 
-    /**shipfile需要的jar */
+    /**shipfile需要的jar的classPath index */
     private static int CLASS_FILE_NAME_INDEX = 0;
 
-    /**shipfile需要的jar */
+    /**数据格式序列化、反序列化方式 */
+    public static final ConfigOption<List<String>> FORMATLIST =
+            ConfigOptions.key("formatlist")
+                    .stringType()
+                    .asList()
+                    .defaultValues("DeserializationFormatFactory", "SerializationFormatFactory");
+
+    /**shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
-            ConfigOptions.key("class-file-name-fmt")
+            ConfigOptions.key("class_file_name_fmt")
                     .stringType()
                     .defaultValue("class_path_%d")
                     .withDescription("");
@@ -467,7 +471,7 @@ public final class FactoryUtil {
             // 1.通过factoryIdentifier查找jar路径
             String pluginJarPath;
             // format都放到sqlplugins下的format目录下
-            if (formatList.contains(factoryClass)) {
+            if (FORMATLIST.defaultValue().contains(factoryClass)) {
                 pluginJarPath = PluginUtil.getJarFileDirPath(FORMAT.key(), pluginPath);
             } else {
                 pluginJarPath = PluginUtil.getJarFileDirPath(factoryIdentifier, pluginPath);
