@@ -40,18 +40,16 @@ public class ParamsInfo {
     private final String pluginLoadMode;
     private final String deployMode;
     private final Properties confProp;
-    private final String planner;
 
     public ParamsInfo(
-        String sql,
-        String name,
-        List<URL> jarUrlList,
-        String localSqlPluginPath,
-        String remoteSqlPluginPath,
-        String pluginLoadMode,
-        String deployMode,
-        Properties confProp,
-        String planner
+            String sql,
+            String name,
+            List<URL> jarUrlList,
+            String localSqlPluginPath,
+            String remoteSqlPluginPath,
+            String pluginLoadMode,
+            String deployMode,
+            Properties confProp
     ) {
 
         this.sql = sql;
@@ -62,7 +60,6 @@ public class ParamsInfo {
         this.pluginLoadMode = pluginLoadMode;
         this.deployMode = deployMode;
         this.confProp = confProp;
-        this.planner = planner;
     }
 
     public static Builder builder() {
@@ -101,23 +98,18 @@ public class ParamsInfo {
         return confProp;
     }
 
-    public String getPlanner() {
-        return planner;
-    }
-
     @Override
     public String toString() {
         return "ParamsInfo{" +
-            "sql='" + sql + '\'' +
-            ", name='" + name + '\'' +
-            ", jarUrlList=" + jarUrlList +
-            ", localSqlPluginPath='" + localSqlPluginPath + '\'' +
-            ", remoteSqlPluginPath='" + remoteSqlPluginPath + '\'' +
-            ", pluginLoadMode='" + pluginLoadMode + '\'' +
-            ", deployMode='" + deployMode + '\'' +
-            ", confProp=" + confProp +
-            ", planner=" + planner +
-            '}';
+                "sql='" + sql + '\'' +
+                ", name='" + name + '\'' +
+                ", jarUrlList=" + jarUrlList +
+                ", localSqlPluginPath='" + localSqlPluginPath + '\'' +
+                ", remoteSqlPluginPath='" + remoteSqlPluginPath + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", deployMode='" + deployMode + '\'' +
+                ", confProp=" + confProp +
+                '}';
     }
 
     public static class Builder {
@@ -130,7 +122,6 @@ public class ParamsInfo {
         private String pluginLoadMode;
         private String deployMode;
         private Properties confProp;
-        private String planner;
 
         public Builder setSql(String sql) {
             this.sql = sql;
@@ -173,22 +164,16 @@ public class ParamsInfo {
             return this;
         }
 
-        public Builder setPlanner(String planner) {
-            this.planner = planner;
-            return this;
-        }
-
         public ParamsInfo build() {
             return new ParamsInfo(
-                sql,
-                name,
-                jarUrlList,
-                localSqlPluginPath,
-                remoteSqlPluginPath,
-                pluginLoadMode,
-                deployMode,
-                confProp,
-                planner
+                    sql,
+                    name,
+                    jarUrlList,
+                    localSqlPluginPath,
+                    remoteSqlPluginPath,
+                    pluginLoadMode,
+                    deployMode,
+                    confProp
             );
         }
     }
