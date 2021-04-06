@@ -19,7 +19,6 @@
 
 package com.dtstack.flinkx.parser;
 
-import com.dtstack.flinkx.exec.ParamsInfo;
 import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -29,6 +28,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,9 +61,8 @@ public class SqlParser {
      *
      * @param
      */
-    public static StatementSet parseSql(ParamsInfo paramsInfo, StreamTableEnvironment tableEnvironment) throws Exception {
+    public static StatementSet parseSql(String sql, List<URL> urlList, StreamTableEnvironment tableEnvironment) throws Exception {
 
-        String sql = paramsInfo.getSql();
         if (StringUtils.isBlank(sql)) {
             throw new IllegalArgumentException("SQL must be not empty!");
         }
@@ -86,7 +85,7 @@ public class SqlParser {
                 if (!sqlParser.verify(childSql)) {
                     continue;
                 }
-                sqlParser.execSql(childSql, tableEnvironment, statement, paramsInfo.getJarUrlList());
+                sqlParser.execSql(childSql, tableEnvironment, statement, urlList);
             }
         }
 

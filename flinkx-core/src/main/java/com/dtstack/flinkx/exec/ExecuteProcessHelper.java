@@ -20,12 +20,8 @@ package com.dtstack.flinkx.exec;
 
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.enums.EPluginLoadMode;
-import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.SampleUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.Charsets;
@@ -37,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -57,44 +52,6 @@ public class ExecuteProcessHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ExecuteProcessHelper.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @SuppressWarnings("unchecked")
-    public static ParamsInfo parseParams(String[] args) throws Exception {
-        LOG.info("------------program params-------------------------");
-        Arrays.stream(args).forEach(arg -> LOG.info("{}", arg));
-        LOG.info("-------------------------------------------");
-
-        OptionParser optionParser = new OptionParser(args);
-        Options options = optionParser.getOptions();
-
-        String sql = URLDecoder.decode(options.getJob(), Charsets.UTF_8.name());
-        String name = options.getJobName();
-        String localSqlPluginPath = options.getPluginRoot();
-        String remoteSqlPluginPath = options.getRemotePluginPath();
-        String pluginLoadMode = options.getPluginLoadMode();
-        String deployMode = options.getMode();
-        String connectorLoadMode = options.getConnectorLoadMode();
-
-        Preconditions.checkArgument(checkRemoteSqlPluginPath(remoteSqlPluginPath, deployMode, pluginLoadMode),
-                "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
-        String confProp = URLDecoder.decode(options.getConfProp(), Charsets.UTF_8.toString());
-        Properties confProperties = PluginUtil.jsonStrToObject(confProp, Properties.class);
-
-        List<URL> jarUrlList = getExternalJarUrls(options.getAddjar());
-
-        return ParamsInfo.builder()
-                .setSql(sql)
-                .setName(name)
-                .setLocalSqlPluginPath(localSqlPluginPath)
-                .setRemoteSqlPluginPath(remoteSqlPluginPath)
-                .setPluginLoadMode(pluginLoadMode)
-                .setDeployMode(deployMode)
-                .setConfProp(confProperties)
-                .setJarUrlList(jarUrlList)
-                .setConnectorLoadMode(connectorLoadMode)
-                .build();
-
-    }
-
     /**
      * 非local模式或者shipfile部署模式，remoteSqlPluginPath必填
      *
@@ -111,10 +68,10 @@ public class ExecuteProcessHelper {
         return true;
     }
 
-    private static void setSamplingIntervalCount(ParamsInfo paramsInfo) {
+    private static void setSamplingIntervalCount(Properties properties) {
         SampleUtils.setSamplingIntervalCount(
                 Integer.parseInt(
-                        paramsInfo.getConfProp().getProperty(SAMPLE_INTERVAL_COUNT, "0")
+                        properties.getProperty(SAMPLE_INTERVAL_COUNT, "0")
                 )
         );
     }

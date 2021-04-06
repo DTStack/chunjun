@@ -20,7 +20,6 @@ package com.dtstack.flinkx.environment;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.EStateBackend;
-import com.dtstack.flinkx.exec.ParamsInfo;
 import com.dtstack.flinkx.util.MathUtil;
 import com.dtstack.flinkx.util.PropertiesUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -71,10 +70,11 @@ public final class StreamEnvConfigManager {
     /**
      * 生成StreamTableEnvironment并设置参数
      * @param env
-     * @param paramsInfo
+     * @param confProperties
+     * @param jobName
      * @return
      */
-    public static StreamTableEnvironment getStreamTableEnv(StreamExecutionEnvironment env, ParamsInfo paramsInfo) {
+    public static StreamTableEnvironment getStreamTableEnv(StreamExecutionEnvironment env, Properties confProperties, String jobName) {
         // use blink and streammode
         EnvironmentSettings settings = EnvironmentSettings.newInstance()
                 .useBlinkPlanner()
@@ -84,9 +84,9 @@ public final class StreamEnvConfigManager {
         TableConfig tableConfig = new TableConfig();
 
         StreamTableEnvironment tableEnv = StreamTableEnvironmentImpl.create(env, settings, tableConfig);
-        StreamEnvConfigManager.streamTableEnvironmentStateTTLConfig(tableEnv, paramsInfo.getConfProp());
-        StreamEnvConfigManager.streamTableEnvironmentEarlyTriggerConfig(tableEnv, paramsInfo.getConfProp());
-        StreamEnvConfigManager.streamTableEnvironmentName(tableEnv, paramsInfo.getName());
+        StreamEnvConfigManager.streamTableEnvironmentStateTTLConfig(tableEnv, confProperties);
+        StreamEnvConfigManager.streamTableEnvironmentEarlyTriggerConfig(tableEnv, confProperties);
+        StreamEnvConfigManager.streamTableEnvironmentName(tableEnv, jobName);
         return tableEnv;
     }
 

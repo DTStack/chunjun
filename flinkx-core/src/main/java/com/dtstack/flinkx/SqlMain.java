@@ -19,15 +19,28 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.environment.StreamEnvConfigManager;
-import com.dtstack.flinkx.exec.ExecuteProcessHelper;
-import com.dtstack.flinkx.exec.ParamsInfo;
+import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.parser.SqlParser;
+import com.dtstack.flinkx.util.PluginUtil;
+import com.google.common.base.Preconditions;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
+import static com.dtstack.flinkx.exec.ExecuteProcessHelper.checkRemoteSqlPluginPath;
+import static com.dtstack.flinkx.exec.ExecuteProcessHelper.getExternalJarUrls;
 
 /**
  * @author chuixue
@@ -38,17 +51,41 @@ public class SqlMain {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        ParamsInfo paramsInfo = ExecuteProcessHelper.parseParams(args);
+        LOG.info("------------program params-------------------------");
+        Arrays.stream(args).forEach(arg -> LOG.info("{}", arg));
+        LOG.info("-------------------------------------------");
+
+        OptionParser optionParser = new OptionParser(args);
+        Options options = optionParser.getOptions();
+
+        String sql = URLDecoder.decode(options.getJob(), Charsets.UTF_8.name());
+        String name = options.getJobName();
+        String localSqlPluginPath = options.getPluginRoot();
+        String remoteSqlPluginPath = options.getRemotePluginPath();
+        String pluginLoadMode = options.getPluginLoadMode();
+        String deployMode = options.getMode();
+        String connectorLoadMode = options.getConnectorLoadMode();
+
+        Preconditions.checkArgument(checkRemoteSqlPluginPath(remoteSqlPluginPath, deployMode, pluginLoadMode),
+                "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
+        String confProp = URLDecoder.decode(options.getConfProp(), Charsets.UTF_8.toString());
+        Properties confProperties = PluginUtil.jsonStrToObject(confProp, Properties.class);
+
+        List<URL> jarUrlList = getExternalJarUrls(options.getAddjar());
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        FactoryUtil.setPluginPath(paramsInfo.getLocalSqlPluginPath());
-        FactoryUtil.setEnv(env);
         // ds 原来的配置
-        StreamEnvConfigManager.streamExecutionEnvironmentConfig(env, paramsInfo.getConfProp());
-        StreamTableEnvironment tableEnv = StreamEnvConfigManager.getStreamTableEnv(env,paramsInfo);
-        StatementSet statementSet = SqlParser.parseSql(paramsInfo, tableEnv);
+        StreamEnvConfigManager.streamExecutionEnvironmentConfig(env, confProperties);
+
+        FactoryUtil.setPluginPath(StringUtils.isNotEmpty(localSqlPluginPath) ? localSqlPluginPath : remoteSqlPluginPath);
+        FactoryUtil.setEnv(env);
+        FactoryUtil.setConnectorLoadMode(connectorLoadMode);
+
+
+        StreamTableEnvironment tableEnv = StreamEnvConfigManager.getStreamTableEnv(env, confProperties, name);
+        StatementSet statementSet = SqlParser.parseSql(sql, jarUrlList, tableEnv);
         statementSet.execute();
 
-        LOG.info("program {} execution success", paramsInfo.getName());
+        LOG.info("program {} execution success", name);
     }
 }
