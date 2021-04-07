@@ -80,7 +80,6 @@ public class PluginUtil {
     }
 
     public static String getJarFileDirPath(String type, String sqlRootDir) {
-        type = type.replace("dt-", "");
         String jarPath = sqlRootDir + SP + type;
 
         checkJarFileDirPath(sqlRootDir, jarPath);
@@ -130,16 +129,11 @@ public class PluginUtil {
     }
 
     public static String getSqlParserClassName(String pluginJarPath, String type) {
-        StringBuilder sb = new StringBuilder();
-        String[] split = type.split("-");
-        for (int i = 0; i < split.length; i++) {
-            String tmp = split[i];
-            sb.append(tmp.substring(0, 1).toUpperCase() + tmp.substring(1));
+        String ClassPrefix = type.substring(0, 1).toUpperCase() + type.substring(1);
+        if (pluginJarPath.endsWith(FactoryUtil.FORMATS.key())) {
+            return "org.apache.flink.formats." + type + "." + ClassPrefix + "FormatFactory";
         }
-        if (pluginJarPath.endsWith(FactoryUtil.FORMAT.key())) {
-            return "com.dtstack.flink.formats." + type + "." + sb.toString() + "FormatFactory";
-        }
-        return "com.dtstack.flink.connector." + split[1] + ".table." + sb.toString() + "DynamicTableFactory";
+        return "com.dtstack.flinkx.connectors." + type + ".table." + ClassPrefix + "DynamicTableFactory";
     }
 
 
@@ -231,7 +225,7 @@ public class PluginUtil {
         for (File file : files) {
             URL pluginJarUrl = file.toURI().toURL();
             // format只加载一个jar
-            if(pluginDir.endsWith(FactoryUtil.FORMAT.key())){
+            if(pluginDir.endsWith(FactoryUtil.FORMATS.key())){
                 if(file.getName().contains(factoryIdentifier)){
                     urlList.add(pluginJarUrl);
                 }

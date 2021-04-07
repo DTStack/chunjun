@@ -59,15 +59,15 @@ public class LocalTest {
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){
             argsList.add("-connectorLoadMode");
-            argsList.add("spi");
+            argsList.add("classloader");
             argsList.add("-job");
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
             argsList.add("-pluginRoot");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkStreamSQL/sqlplugins");
+            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
             argsList.add("-remotePluginPath");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkStreamSQL/sqlplugins");
+            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
             argsList.add("-confProp");
