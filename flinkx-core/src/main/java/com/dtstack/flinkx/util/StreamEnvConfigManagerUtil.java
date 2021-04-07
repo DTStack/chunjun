@@ -16,12 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.environment;
+package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.EStateBackend;
-import com.dtstack.flinkx.util.MathUtil;
-import com.dtstack.flinkx.util.PropertiesUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -62,13 +60,11 @@ import java.util.regex.Pattern;
  *
  * @author maqi
  */
-public final class StreamEnvConfigManager {
-    private StreamEnvConfigManager() {
-        throw new AssertionError("Singleton class.");
-    }
+public final class StreamEnvConfigManagerUtil {
 
     /**
      * 生成StreamTableEnvironment并设置参数
+     *
      * @param env
      * @param confProperties
      * @param jobName
@@ -84,9 +80,9 @@ public final class StreamEnvConfigManager {
         TableConfig tableConfig = new TableConfig();
 
         StreamTableEnvironment tableEnv = StreamTableEnvironmentImpl.create(env, settings, tableConfig);
-        StreamEnvConfigManager.streamTableEnvironmentStateTTLConfig(tableEnv, confProperties);
-        StreamEnvConfigManager.streamTableEnvironmentEarlyTriggerConfig(tableEnv, confProperties);
-        StreamEnvConfigManager.streamTableEnvironmentName(tableEnv, jobName);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig(tableEnv, confProperties);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig(tableEnv, confProperties);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentName(tableEnv, jobName);
         return tableEnv;
     }
 
@@ -278,7 +274,7 @@ public final class StreamEnvConfigManager {
         if (!StringUtils.isEmpty(checkpointingModeStr)) {
             checkpointingMode = CheckpointingMode.valueOf(checkpointingModeStr.toUpperCase());
         }
-        return checkpointingMode == null ? Optional.empty() : Optional.of(checkpointingMode);
+        return checkpointingMode == null ? Optional.of(CheckpointingMode.EXACTLY_ONCE) : Optional.of(checkpointingMode);
     }
 
     public static Optional<Long> getCheckpointTimeout(Properties properties) {
@@ -411,7 +407,7 @@ public final class StreamEnvConfigManager {
         }
     }
 
-    private static void disableChainOperator(StreamExecutionEnvironment env, Configuration configuration) {
+    public static void disableChainOperator(StreamExecutionEnvironment env, Configuration configuration) {
         if (configuration.getBoolean("disableChainOperator", false)) {
             env.disableOperatorChaining();
         }

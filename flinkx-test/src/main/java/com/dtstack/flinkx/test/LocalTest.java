@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.test;
 
 import com.dtstack.flinkx.Main;
-import com.dtstack.flinkx.SqlMain;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
@@ -60,19 +59,24 @@ public class LocalTest {
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){
             argsList.add("-connectorLoadMode");
-            argsList.add("spi");
+            argsList.add("classloader");
             argsList.add("-job");
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
+            argsList.add("-pluginRoot");
+            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+            argsList.add("-remotePluginPath");
+            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
             argsList.add("-confProp");
-            argsList.add("{\"time.characteristic\":\"eventTime\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+//            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
         }
 
         // Main.main(argsList.toArray(new String[0]));
-        SqlMain.main(argsList.toArray(new String[0]));
+        Main.main(argsList.toArray(new String[0]));
 
     }
 

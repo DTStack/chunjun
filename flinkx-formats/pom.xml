@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>flinkx-all</artifactId>
@@ -9,12 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-connectors</artifactId>
+    <artifactId>flinkx-formats</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>flinkx-connector-kafka</module>
-        <module>flink-connector-print</module>
+        <module>flinkx-json</module>
+        <module>flinkx-csv</module>
     </modules>
 
     <dependencies>
@@ -35,5 +35,4 @@
             </exclusions>
         </dependency>
     </dependencies>
-
 </project>

@@ -117,6 +117,14 @@ public final class FactoryUtil {
                             "Defines the format identifier for encoding data. "
                                     + "The identifier is used to discover a suitable format factory.");
 
+    public static final ConfigOption<String> FORMATS =
+            ConfigOptions.key("formats")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Defines the format identifier for encoding data. "
+                                    + "The identifier is used to discover a suitable format factory.");
+
     public static final ConfigOption<Integer> SINK_PARALLELISM =
             ConfigOptions.key("sink.parallelism")
                     .intType()
@@ -472,7 +480,7 @@ public final class FactoryUtil {
             String pluginJarPath;
             // format都放到sqlplugins下的format目录下
             if (FORMATLIST.defaultValue().contains(factoryClass)) {
-                pluginJarPath = PluginUtil.getJarFileDirPath(FORMAT.key(), pluginPath);
+                pluginJarPath = PluginUtil.getJarFileDirPath(FORMATS.key(), pluginPath);
             } else {
                 pluginJarPath = PluginUtil.getJarFileDirPath(factoryIdentifier, pluginPath);
             }

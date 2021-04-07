@@ -15,7 +15,8 @@
 
 <!--        <module>flinkx-launcher</module>-->
         <module>flinkx-test</module>
-<!--        <module>flinkx-stream</module>-->
+        <module>flinkx-formats</module>
+        <!--        <module>flinkx-stream</module>-->
 
 <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
 <!--        <module>flinkx-rdb</module>-->
