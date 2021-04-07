@@ -21,6 +21,7 @@ import com.dtstack.flinkx.connectors.kafka.enums.StartupMode;
 import com.dtstack.flinkx.connectors.kafka.enums.FormatType;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +60,18 @@ public class KafkaConf implements Serializable {
     private String schemaInfo;
     /** csv字段默认分隔符 */
     private String fieldDelimiter = ",";
+    /**kafka地址*/
+    private String brokerList;
+    /**是否开启按照key分区写入partition*/
+    private String enableKeyPartition;
+    /**对应的enableKeyPartition的key*/
+    private String partitionKeys;
+    /**kafka其他原生参数*/
+    private Map<String, String> producerSettings;
+    /**字段映射配置。从reader插件传递到writer插件的的数据只包含其value属性，配置该参数后可将其还原成键值对类型json字符串输出。*/
+    private List<String> tableFields;
+    /**结果数据的写入方式*/
+    private String sinkDataType = FormatType.JSON.name();
 
     public String getBootstrapServers() {
         return bootstrapServers;
@@ -156,6 +169,54 @@ public class KafkaConf implements Serializable {
         this.fieldDelimiter = fieldDelimiter;
     }
 
+    public String getBrokerList() {
+        return brokerList;
+    }
+
+    public void setBrokerList(String brokerList) {
+        this.brokerList = brokerList;
+    }
+
+    public String getEnableKeyPartition() {
+        return enableKeyPartition;
+    }
+
+    public void setEnableKeyPartition(String enableKeyPartition) {
+        this.enableKeyPartition = enableKeyPartition;
+    }
+
+    public String getPartitionKeys() {
+        return partitionKeys;
+    }
+
+    public void setPartitionKeys(String partitionKeys) {
+        this.partitionKeys = partitionKeys;
+    }
+
+    public Map<String, String> getProducerSettings() {
+        return producerSettings;
+    }
+
+    public void setProducerSettings(Map<String, String> producerSettings) {
+        this.producerSettings = producerSettings;
+    }
+
+    public List<String> getTableFields() {
+        return tableFields;
+    }
+
+    public void setTableFields(List<String> tableFields) {
+        this.tableFields = tableFields;
+    }
+
+    public String getSinkDataType() {
+        return sinkDataType;
+    }
+
+    public void setSinkDataType(String sinkDataType) {
+        this.sinkDataType = sinkDataType;
+    }
+
     @Override
     public String toString() {
         return "KafkaConf{" +
@@ -171,6 +232,12 @@ public class KafkaConf implements Serializable {
                 ", sourceDataType='" + sourceDataType + '\'' +
                 ", schemaInfo='" + schemaInfo + '\'' +
                 ", fieldDelimiter='" + fieldDelimiter + '\'' +
+                ", brokerList='" + brokerList + '\'' +
+                ", enableKeyPartition='" + enableKeyPartition + '\'' +
+                ", partitionKeys='" + partitionKeys + '\'' +
+                ", producerSettings=" + producerSettings +
+                ", tableFields=" + tableFields +
+                ", sinkDataType='" + sinkDataType + '\'' +
                 '}';
     }
 }

@@ -22,7 +22,10 @@ import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.util.DataTypeUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -35,6 +38,7 @@ import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +51,7 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
 
     protected TableSchema tableSchema;
     protected FlinkxConf config;
+    protected TypeInformation<Row> typeInformation;
 
     @SuppressWarnings("unchecked")
     public BaseDataSink(FlinkxConf config) {
@@ -57,6 +62,20 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
         }
         initColumn(config);
         this.config = config;
+
+        if(config.getTransformer() == null || StringUtils.isBlank(config.getTransformer().getTransformSql())){
+            typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
+        }else{
+            typeInformation = TableUtil.getRowTypeInformation(config.getReader().getFieldList());
+            tableSchema = TableSchema.builder()
+                    .fields(config.getReader().getFieldNameList().toArray(new String[0]), DataTypeUtil.getFieldTypes(config.getReader().getFieldClassList()))
+                    .build();
+        }
+    }
+
+    @Override
+    public DataStreamSink<?> consumeDataStream(DataStream<Tuple2<Boolean, Row>> dataStream) {
+        return writeData(dataStream);
     }
 
     /**

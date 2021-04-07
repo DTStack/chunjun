@@ -18,8 +18,10 @@
 package com.dtstack.flinkx.connectors.kafka.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,5 +72,20 @@ public class KafkaUtil {
             }
         }
         return map;
+    }
+
+    /**
+     * 获取partition key
+     * @param partitionKeys
+     * @return
+     */
+    public static String[] getPartitionKeys(String partitionKeys) {
+        if (StringUtils.isNotBlank(partitionKeys)) {
+            String[] keys = StringUtils.split(partitionKeys, ",");
+            return Arrays.stream(keys)
+                    .map(String::trim)
+                    .toArray(String[]::new);
+        }
+        return null;
     }
 }

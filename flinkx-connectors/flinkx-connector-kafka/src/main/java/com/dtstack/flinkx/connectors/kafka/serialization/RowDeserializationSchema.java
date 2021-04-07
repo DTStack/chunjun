@@ -21,9 +21,8 @@ import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
-import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.types.Row;
 
 import java.nio.charset.StandardCharsets;
@@ -34,12 +33,13 @@ import java.nio.charset.StandardCharsets;
  *
  * @author tudou
  */
-public class RowDeserializationSchema implements DeserializationSchema<Row> {
+public class RowDeserializationSchema extends AbstractDeserializationSchema<Row> {
     private static final long serialVersionUID = 1L;
     private String codec;
     private transient IDecode decode;
 
-    public RowDeserializationSchema(String codec) {
+    public RowDeserializationSchema(String codec, TypeInformation<Row> typeInfo) {
+        super(typeInfo);
         this.codec = codec;
     }
 
@@ -53,15 +53,5 @@ public class RowDeserializationSchema implements DeserializationSchema<Row> {
             }
         }
         return Row.of(this.decode.decode(new String(message, StandardCharsets.UTF_8)));
-    }
-
-    @Override
-    public boolean isEndOfStream(Row nextElement) {
-        return false;
-    }
-
-    @Override
-    public TypeInformation<Row> getProducedType() {
-        return new GenericTypeInfo<>(Row.class);
     }
 }

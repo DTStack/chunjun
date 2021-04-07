@@ -56,7 +56,7 @@ public class KafkaSource extends BaseDataSource {
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
-        FlinkKafkaConsumer<Row> consumer = new FlinkKafkaConsumer<>(kafkaConf.getTopic(), new RowDeserializationSchema(kafkaConf.getCodec()), props);
+        FlinkKafkaConsumer<Row> consumer = new FlinkKafkaConsumer<>(kafkaConf.getTopic(), new RowDeserializationSchema(kafkaConf.getCodec(), typeInformation), props);
         switch (kafkaConf.getMode()){
             case EARLIEST:
                 consumer.setStartFromEarliest();

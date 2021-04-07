@@ -21,7 +21,9 @@ package com.dtstack.flinkx.source;
 import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
@@ -32,6 +34,7 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,11 +47,18 @@ public abstract class BaseDataSource {
 
     protected StreamExecutionEnvironment env;
     protected FlinkxConf config;
+    protected TypeInformation<Row> typeInformation;
 
     protected BaseDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
         this.env = env;
         initColumn(config);
         this.config = config;
+
+        if(config.getTransformer() == null || StringUtils.isBlank(config.getTransformer().getTransformSql())){
+            typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
+        }else{
+            typeInformation = TableUtil.getRowTypeInformation(config.getReader().getFieldList());
+        }
     }
 
     /**
