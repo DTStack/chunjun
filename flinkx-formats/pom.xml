@@ -12,7 +12,27 @@
     <artifactId>flinkx-formats</artifactId>
     <packaging>pom</packaging>
 
-    <modules></modules>
+    <modules>
+        <module>flinkx-json</module>
+        <module>flinkx-csv</module>
+    </modules>
 
-    <dependencies></dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-core</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 </project>
