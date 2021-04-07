@@ -21,6 +21,7 @@ package com.dtstack.flinkx.source;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.enums.OperatorType;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.lang.reflect.Constructor;
@@ -40,7 +41,7 @@ public class DataSourceFactory {
     public static BaseDataSource getDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
-            String pluginClassName = PluginUtil.getPluginClassName(pluginName);
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
             Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
 
             return ClassLoaderManager.newInstance(urlList, cl -> {

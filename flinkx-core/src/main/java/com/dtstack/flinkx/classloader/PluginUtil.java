@@ -21,6 +21,7 @@ package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.enums.OperatorType;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
@@ -39,13 +40,12 @@ import java.util.Set;
  */
 public class PluginUtil {
 
-    private static final String COMMON_DIR = "common";
-
     private static final String READER_SUFFIX = "reader";
-
+    private static final String SOURCE_SUFFIX = "source";
     private static final String WRITER_SUFFIX = "writer";
+    private static final String SINK_SUFFIX = "sink";
 
-    private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.";
+    private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connectors.";
 
     private static final String JAR_PREFIX = "flinkx";
 
@@ -55,6 +55,13 @@ public class PluginUtil {
 
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
+    /**
+     * 根据插件名称查找插件路径
+     * @param pluginName kafka、stream等
+     * @param pluginRoot
+     * @param remotePluginPath
+     * @return
+     */
     public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
         Set<URL> urlList = new HashSet<>();
 
@@ -62,17 +69,10 @@ public class PluginUtil {
 
         try {
             String pluginJarPath = pluginRoot + SP + pluginName;
-            String commonJarPath = pluginRoot + SP + COMMON_DIR;
             // 获取jar包名字，构建对应的URL地址
             for (String jarName : getJarNames(new File(pluginJarPath))) {
                 urlList.add(new URL(FILE_PREFIX + pluginPath + SP + pluginName + SP + jarName));
             }
-
-            // 获取common jar包名字，构建对应的URL地址
-            for (String jarName : getJarNames(new File(commonJarPath))) {
-                urlList.add(new URL(FILE_PREFIX + pluginPath + SP + COMMON_DIR + SP + jarName));
-            }
-
             return urlList;
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -92,14 +92,25 @@ public class PluginUtil {
         return jarNames;
     }
 
-    public static String getPluginClassName(String pluginName) {
+    /**
+     * 根据插件名称查找插件入口类
+     * @param pluginName 如：kafkareader
+     * @param operatorType 算子类型
+     * @return
+     */
+    public static String getPluginClassName(String pluginName, OperatorType operatorType) {
         String pluginClassName;
-        if (pluginName.toLowerCase().endsWith(READER_SUFFIX)) {
-            pluginClassName = PACKAGE_PREFIX + camelize(pluginName, READER_SUFFIX);
-        } else if (pluginName.toLowerCase().endsWith(WRITER_SUFFIX)) {
-            pluginClassName = PACKAGE_PREFIX + camelize(pluginName, WRITER_SUFFIX);
-        } else {
-            throw new IllegalArgumentException("Plugin Name should end with reader, writer or database");
+        switch (operatorType){
+            case source:
+                String sourceName = pluginName.replace(READER_SUFFIX, SOURCE_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sourceName, SOURCE_SUFFIX);
+                break;
+            case sink:
+                String sinkName = pluginName.replace(WRITER_SUFFIX, SINK_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sinkName, SINK_SUFFIX);
+                break;
+            default:
+                throw new IllegalArgumentException("Plugin Name should end with reader, writer, current plugin name is: " + pluginName);
         }
 
         return pluginClassName;
@@ -111,17 +122,17 @@ public class PluginUtil {
         left = left.toLowerCase();
         suffix = suffix.toLowerCase();
         StringBuffer sb = new StringBuffer();
-        sb.append(left + "." + suffix + ".");
-        sb.append(left.substring(0, 1).toUpperCase() + left.substring(1));
-        sb.append(suffix.substring(0, 1).toUpperCase() + suffix.substring(1));
+        sb.append(left).append(".").append(suffix).append(".");
+        sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
+        sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
         return sb.toString();
     }
 
     public static void registerPluginUrlToCachedFile(FlinkxConf config, StreamExecutionEnvironment env) {
-        String readerPluginName = config.getReader().getName();
+        String readerPluginName = config.getReader().getName().replace(READER_SUFFIX, "").replace(SOURCE_SUFFIX, "");
         Set<URL> readerUrlList = PluginUtil.getJarFileDirPath(readerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
-        String writerPluginName = config.getWriter().getName();
+        String writerPluginName = config.getWriter().getName().replace(WRITER_SUFFIX, "").replace(SINK_SUFFIX, "");
         Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
         Set<URL> urlSet = new HashSet<>();

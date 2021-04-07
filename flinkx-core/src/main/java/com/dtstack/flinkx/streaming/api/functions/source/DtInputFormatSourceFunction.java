@@ -150,6 +150,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 			}
 		} catch (Exception exception){
 				tryException = exception;
+				LOG.error("", exception);
 		} finally {
 			isRunning = false;
 			try {

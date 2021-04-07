@@ -23,11 +23,12 @@ import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.conf.RestartConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.parser.SqlParser;
 import com.dtstack.flinkx.sink.BaseDataSink;
-import com.dtstack.flinkx.sink.DataWriterFactory;
+import com.dtstack.flinkx.sink.DataSinkFactory;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.source.DataSourceFactory;
 import com.dtstack.flinkx.util.PrintUtil;
@@ -38,6 +39,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,6 +51,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
@@ -73,6 +76,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.flinkx.exec.ExecuteProcessHelper.checkRemoteSqlPluginPath;
+import static com.dtstack.flinkx.exec.ExecuteProcessHelper.getExternalJarUrls;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.disableChainOperator;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.enableUnalignedCheckpoints;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getAutoWatermarkInterval;
@@ -93,8 +98,6 @@ import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.isRestore;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentName;
 import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig;
-import static com.dtstack.flinkx.exec.ExecuteProcessHelper.checkRemoteSqlPluginPath;
-import static com.dtstack.flinkx.exec.ExecuteProcessHelper.getExternalJarUrls;
 
 /**
  * The main class entry
@@ -131,27 +134,39 @@ public class Main {
             if(speed.getReaderChannel() > 0){
                 sourceDataStream = ((DataStreamSource<Row>) sourceDataStream).setParallelism(speed.getReaderChannel());
             }
+            DataStream<Tuple2<Boolean, Row>> dataStream;
+            boolean transformer = config.getTransformer() != null && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
+            if(transformer){
+                Table sourceTable = tableEnv.fromDataStream(sourceDataStream, String.join(",", config.getReader().getFieldNameList()));
+                tableEnv.registerTable(config.getReader().getTable().getTableName(), sourceTable);
 
-            Table sourceTable = tableEnv.fromDataStream(sourceDataStream, String.join(",", config.getReader().getFieldNameList()));
-            tableEnv.registerTable(config.getReader().getTable().getTableName(), sourceTable);
-
-            Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
-            RowTypeInfo typeInfo = new RowTypeInfo(adaptTable.getSchema().getFieldTypes(), adaptTable.getSchema().getFieldNames());
-            DataStream<Tuple2<Boolean, Row>> dataStream = tableEnv.toRetractStream(adaptTable, typeInfo);
+                Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
+                RowTypeInfo typeInfo = new RowTypeInfo(adaptTable.getSchema().getFieldTypes(), adaptTable.getSchema().getFieldNames());
+                dataStream = tableEnv.toRetractStream(adaptTable, typeInfo);
+            }else{
+                dataStream = sourceDataStream.map(new MapFunction<Row, Tuple2<Boolean, Row>>() {
+                            @Override
+                            public Tuple2<Boolean, Row> map(Row value) {
+                                return new Tuple2<>(true,value);
+                            }
+                        });
+            }
 
             if (speed.isRebalance()) {
                 dataStream = dataStream.rebalance();
             }
 
-            BaseDataSink dataWriter = DataWriterFactory.getDataWriter(config);
-            ((StreamTableEnvironmentImpl)tableEnv).registerTableSinkInternal(config.getWriter().getTable().getTableName(), dataWriter);
+            BaseDataSink dataWriter = DataSinkFactory.getDataSink(config);
+            if(transformer){
+                ((StreamTableEnvironmentImpl)tableEnv).registerTableSinkInternal(config.getWriter().getTable().getTableName(), dataWriter);
+            }
             DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
             if(speed.getWriterChannel() > 0){
                 dataStreamSink.setParallelism(speed.getWriterChannel());
             }
 
             JobExecutionResult result = env.execute(options.getJobName());
-            if(env instanceof MyLocalStreamEnvironment){
+            if(env instanceof LocalStreamEnvironment){
                 PrintUtil.printResult(result);
             }
         }else{
@@ -199,7 +214,13 @@ public class Main {
         if (StringUtils.isNotEmpty(options.getFlinkconf())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         }
-        return StreamExecutionEnvironment.getExecutionEnvironment(flinkConf);
+        StreamExecutionEnvironment env;
+        if(StringUtils.equalsIgnoreCase(ClusterMode.local.name(), options.getMode())){
+            env = new MyLocalStreamEnvironment(flinkConf);
+        }else{
+            env =StreamExecutionEnvironment.getExecutionEnvironment();
+        }
+        return env;
     }
 
     /**

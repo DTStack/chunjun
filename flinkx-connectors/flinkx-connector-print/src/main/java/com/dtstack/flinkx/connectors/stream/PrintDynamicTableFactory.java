@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connectors.print.table;
+package com.dtstack.flinkx.connectors.stream;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;

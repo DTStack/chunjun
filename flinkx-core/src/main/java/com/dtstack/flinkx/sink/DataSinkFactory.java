@@ -21,6 +21,7 @@ package com.dtstack.flinkx.sink;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.enums.OperatorType;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -32,14 +33,14 @@ import java.util.Set;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class DataWriterFactory {
+public class DataSinkFactory {
 
-    private DataWriterFactory() {}
+    private DataSinkFactory() {}
 
-    public static BaseDataSink getDataWriter(FlinkxConf config) {
+    public static BaseDataSink getDataSink(FlinkxConf config) {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
-            String pluginClassName = PluginUtil.getPluginClassName(pluginName);
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
             Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
 
             return ClassLoaderManager.newInstance(urlList, cl -> {

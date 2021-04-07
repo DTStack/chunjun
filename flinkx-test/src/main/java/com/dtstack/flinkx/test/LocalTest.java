@@ -43,8 +43,8 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/chuixue/Desktop/tmp/demoflinkx/kafka2stream.json";
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/stream/stream.json";
+//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
@@ -55,6 +55,8 @@ public class LocalTest {
             argsList.add(content);
             argsList.add("-flinkconf");
             argsList.add(System.getProperty("user.dir") + "/flinkconf/");
+//            argsList.add("-pluginRoot");
+//            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){

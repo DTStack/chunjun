@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>flinkx-connectors</artifactId>
@@ -9,7 +9,15 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flink-connector-print</artifactId>
+    <artifactId>flinkx-connector-stream</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.jsonzou</groupId>
+            <artifactId>jmockdata</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -43,14 +51,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../syncplugins/print">
+                                <copy todir="${basedir}/../../syncplugins/stream">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/print/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/print/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/stream/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/stream/${project.name}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

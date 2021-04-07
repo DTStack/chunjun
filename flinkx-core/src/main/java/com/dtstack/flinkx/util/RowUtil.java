@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -46,5 +47,26 @@ public class RowUtil {
         }
 
         return gson.toJson(map);
+    }
+
+    /**
+     * row转字符串
+     * @param row row
+     * @param writeDelimiter 分隔符
+     * @return 字符串
+     */
+    public static String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        if(row == null){
+            return "";
+        }else{
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < row.getArity(); i++) {
+                if (i > 0) {
+                    sb.append(writeDelimiter);
+                }
+                sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+            }
+            return sb.toString();
+        }
     }
 }
