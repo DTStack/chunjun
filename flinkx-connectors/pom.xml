@@ -14,6 +14,7 @@
 
     <modules>
         <module>flinkx-connector-kafka</module>
+        <module>flink-connector-print</module>
     </modules>
 
     <dependencies>
