@@ -26,5 +26,5 @@ package com.dtstack.tmp;
 public class SyncJdbcOutput extends SyncBaseOutput {
     JdbcOutput jdbcOutput;
 
-    class JdbcOutput{}
+    class JdbcOutput extends BaseOutput{}
 }
