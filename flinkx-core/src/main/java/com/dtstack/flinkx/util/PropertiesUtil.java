@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,5 +46,39 @@ public class PropertiesUtil {
 
         confStr = URLDecoder.decode(confStr, Charsets.UTF_8.toString());
         return GsonUtil.GSON.fromJson(confStr, Properties.class);
+    }
+
+    /**
+     * Properties key value去空格
+     * @param confProperties
+     * @return
+     */
+    public static Properties propertiesTrim(Properties confProperties) {
+        Properties properties = new Properties();
+        confProperties.forEach(
+                (k, v) -> {
+                    properties.put(k.toString().trim(), v.toString().trim());
+                }
+        );
+        return properties;
+    }
+
+    /**
+     * 初始化FlinkxCommonConf
+     * @param flinkxCommonConf
+     * @param syncConf
+     */
+    public static void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf, SyncConf syncConf){
+        flinkxCommonConf.setBytes(syncConf.getSpeed().getBytes());
+        flinkxCommonConf.setRecord(syncConf.getErrorLimit().getRecord());
+        flinkxCommonConf.setPercentage(syncConf.getErrorLimit().getPercentage());
+        flinkxCommonConf.setLogger(syncConf.getLog().isLogger());
+        flinkxCommonConf.setLogLevel(syncConf.getLog().getLevel());
+        flinkxCommonConf.setLogPath(syncConf.getLog().getPath());
+        flinkxCommonConf.setLogPattern(syncConf.getLog().getPattern());
+        flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
+        flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
+        flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
+
     }
 }

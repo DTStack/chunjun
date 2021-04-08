@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,6 +25,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.TableUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,18 +47,18 @@ import java.util.List;
 public abstract class BaseDataSource {
 
     protected StreamExecutionEnvironment env;
-    protected FlinkxConf config;
+    protected SyncConf syncConf;
     protected TypeInformation<Row> typeInformation;
 
-    protected BaseDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
+    protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
-        initColumn(config);
-        this.config = config;
+        initColumn(syncConf);
+        this.syncConf = syncConf;
 
-        if(config.getTransformer() == null || StringUtils.isBlank(config.getTransformer().getTransformSql())){
+        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getRowTypeInformation(config.getReader().getFieldList());
+            typeInformation = TableUtil.getRowTypeInformation(syncConf.getReader().getFieldList());
         }
     }
 
@@ -90,18 +93,27 @@ public abstract class BaseDataSource {
      * 如果index为-1是有特殊逻辑 需要覆盖此方法使用 getMetaColumns(List columns, false) 代替
      * @param config 配置信息
      */
-    protected void initColumn(FlinkxConf config){
+    protected void initColumn(SyncConf config){
         List<MetaColumn> readerColumnList = MetaColumn.getMetaColumns(config.getReader().getMetaColumn());
         if(CollectionUtils.isNotEmpty(readerColumnList)){
             config.getReader().getParameter().put(ConfigConstant.KEY_COLUMN, readerColumnList);
         }
     }
 
-    public FlinkxConf getConfig() {
-        return config;
+    /**
+     * 初始化FlinkxCommonConf
+     * @param flinkxCommonConf
+     */
+    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
+        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
+        flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
     }
 
-    public void setConfig(FlinkxConf config) {
-        this.config = config;
+    public SyncConf getSyncConf() {
+        return syncConf;
+    }
+
+    public void setSyncConf(SyncConf syncConf) {
+        this.syncConf = syncConf;
     }
 }

@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.log;
 
-import com.dtstack.flinkx.conf.LogConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,13 +52,13 @@ public class DtLogger {
     public static final String LOGBACK = "ch.qos.logback.classic.util.ContextSelectorStaticBinder";
     public static int LEVEL_INT = Integer.MAX_VALUE;
 
-    public static void config(LogConf logConf, String jobId) {
-        if (logConf == null || !logConf.isLogger() || init) {
+    public static void config(FlinkxCommonConf config, String jobId) {
+        if (config.isLogger() || init) {
             return;
         }
         synchronized (DtLogger.class) {
             if (!init) {
-                String path = logConf.getPath();
+                String path = config.getLogPath();
                 File file = new File(path);
                 if (!file.exists() && !file.mkdirs()) {
                     LOG.warn("cannot create directory [{}]", path);
@@ -68,7 +68,7 @@ public class DtLogger {
                 String type = StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr();
                 LOG.info("current log type is {}", type);
                 if (LOG4J.equalsIgnoreCase(type)) {
-                    configLog4j(logConf, jobId);
+                    configLog4j(config, jobId);
                 } else if (LOGBACK.equalsIgnoreCase(type)) {
                     LOG.warn("log type {} is [ch.qos.logback.classic.util.ContextSelectorStaticBinder], DtLogger do not support [logback] in FlinkX 1.12", type);
                 }else{
@@ -80,15 +80,15 @@ public class DtLogger {
         }
      }
 
-    private static void configLog4j(LogConf logConf, String jobId) {
+    private static void configLog4j(FlinkxCommonConf config, String jobId) {
         LOG.info("start to config log4j...");
         LoggerContext loggerContext = (LoggerContext) LogManager.getContext();
-        Configuration config = loggerContext.getConfiguration();
+        Configuration configuration = loggerContext.getConfiguration();
 
-        org.apache.logging.log4j.Level level = org.apache.logging.log4j.Level.toLevel(logConf.getLevel());
+        org.apache.logging.log4j.Level level = org.apache.logging.log4j.Level.toLevel(config.getLogLevel());
         LEVEL_INT = level.intLevel();
-        String pattern = logConf.getPattern();
-        String path = logConf.getPath();
+        String pattern = config.getLogPattern();
+        String path = config.getLogPath();
 
         if (StringUtils.isBlank(pattern)) {
             pattern = ConfigConstant.DEFAULT_LOG4J_PATTERN;
@@ -96,7 +96,7 @@ public class DtLogger {
 
         PatternLayout layout = PatternLayout.newBuilder()
                 .withCharset(StandardCharsets.UTF_8)
-                .withConfiguration(config)
+                .withConfiguration(configuration)
                 .withPattern(pattern)
                 .build();
 
@@ -113,17 +113,17 @@ public class DtLogger {
                 .setName(APPEND_NAME)
                 .withPolicy(SizeBasedTriggeringPolicy.createPolicy("1GB"))
                 .setLayout(layout)
-                .setConfiguration(config)
+                .setConfiguration(configuration)
                 .build();
         appender.start();
 
-        for (final LoggerConfig loggerConfig : config.getLoggers().values()) {
+        for (final LoggerConfig loggerConfig : configuration.getLoggers().values()) {
             loggerConfig.addAppender(appender, level, filter);
             loggerConfig.setAdditive(false);
             loggerConfig.setLevel(level);
         }
 
-        LOG.info("DtLogger config successfully, current log is [log4j]");
+        LOG.info("DtLogger configuration successfully, current log is [log4j]");
     }
 
     public static boolean isEnableTrace(){

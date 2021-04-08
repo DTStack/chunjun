@@ -35,6 +35,7 @@ public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
     public void setStreamConf(StreamConf streamConf) {
+        super.setConfig(streamConf);
         format.setStreamConf(streamConf);
     }
 

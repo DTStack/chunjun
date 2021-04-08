@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.connector.stream.inputFormat;
 
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.types.Row;
+
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.MockDataUtil;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.types.Row;
 
 /**
  * @Company: www.dtstack.com

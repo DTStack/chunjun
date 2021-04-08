@@ -28,23 +28,23 @@ import java.io.Serializable;
 public class ContentConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private SourceConf reader;
-    private SinkConf writer;
+    private OperatorConf reader;
+    private OperatorConf writer;
     private TransformerConf transformer;
 
-    public SourceConf getReader() {
+    public OperatorConf getReader() {
         return reader;
     }
 
-    public void setReader(SourceConf reader) {
+    public void setReader(OperatorConf reader) {
         this.reader = reader;
     }
 
-    public SinkConf getWriter() {
+    public OperatorConf getWriter() {
         return writer;
     }
 
-    public void setWriter(SinkConf writer) {
+    public void setWriter(OperatorConf writer) {
         this.writer = writer;
     }
 

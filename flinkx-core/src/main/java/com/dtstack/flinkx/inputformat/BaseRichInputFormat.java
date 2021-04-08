@@ -18,16 +18,6 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.log.DtLogger;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
-import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
-import com.dtstack.flinkx.source.ByteRateLimiter;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.PrintUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
@@ -35,6 +25,16 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.log.DtLogger;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.ByteRateLimiter;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     protected LongCounter durationCounter;
     protected ByteRateLimiter byteRateLimiter;
 
-    protected FlinkxConf config;
+    protected FlinkxCommonConf config;
 
     protected FormatState formatState;
 
@@ -99,8 +99,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         initPrometheusReporter();
 
         startTime = System.currentTimeMillis();
-        DtLogger.config(config.getLog(), jobId);
-        PrintUtil.printJobConfig(config);
+        DtLogger.config(config, jobId);
     }
 
     @Override
@@ -141,11 +140,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
             initStatisticsAccumulator();
             openByteRateLimiter();
             initRestoreInfo();
-
-            if(config.getRestore().isRestore()){
-                formatState.setNumOfSubTask(indexOfSubTask);
-            }
-
             inited = true;
         }
 
@@ -177,7 +171,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
         String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
-        accumulatorCollector = new AccumulatorCollector(jobId, config.getMonitorUrls(), getRuntimeContext(), 2,
+        accumulatorCollector = new AccumulatorCollector(jobId, "", getRuntimeContext(), 2,
                 Arrays.asList(Metrics.NUM_READS,
                         Metrics.READ_BYTES,
                         Metrics.READ_DURATION,
@@ -204,8 +198,8 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     private void openByteRateLimiter(){
-        if (config.getSpeed().getBytes() > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeed().getBytes());
+        if (config.getBytes() > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getBytes());
             this.byteRateLimiter.start();
         }
     }
@@ -222,14 +216,12 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     private void initRestoreInfo(){
-        if(config.getRestore().isRestore()){
-            if(formatState == null){
-                formatState = new FormatState(indexOfSubTask, null);
-            } else {
-                numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
-                bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
-                durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
-            }
+        if(formatState == null){
+            formatState = new FormatState(indexOfSubTask, null);
+        } else {
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
         }
     }
 
@@ -343,11 +335,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         this.formatState = formatState;
     }
 
-    public FlinkxConf getConfig() {
+    public FlinkxCommonConf getConfig() {
         return config;
     }
 
-    public void setConfig(FlinkxConf config) {
+    public void setConfig(FlinkxCommonConf config) {
         this.config = config;
     }
 }

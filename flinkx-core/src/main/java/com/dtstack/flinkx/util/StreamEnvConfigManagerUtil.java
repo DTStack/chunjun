@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.enums.EStateBackend;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
@@ -41,6 +37,11 @@ import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
+
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.enums.EStateBackend;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -95,7 +96,7 @@ public final class StreamEnvConfigManagerUtil {
     public static void streamExecutionEnvironmentConfig(StreamExecutionEnvironment streamEnv, Properties confProperties)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
 
-        confProperties = PropertiesUtils.propertiesTrim(confProperties);
+        confProperties = PropertiesUtil.propertiesTrim(confProperties);
         streamEnv.getConfig().disableClosureCleaner();
 
         Configuration globalJobParameters = new Configuration();
@@ -155,7 +156,7 @@ public final class StreamEnvConfigManagerUtil {
      * @param confProperties
      */
     public static void streamTableEnvironmentEarlyTriggerConfig(TableEnvironment tableEnv, Properties confProperties) {
-        confProperties = PropertiesUtils.propertiesTrim(confProperties);
+        confProperties = PropertiesUtil.propertiesTrim(confProperties);
         String triggerTime = confProperties.getProperty(ConfigConstant.EARLY_TRIGGER);
         if (StringUtils.isNumeric(triggerTime)) {
             TableConfig qConfig = tableEnv.getConfig();
@@ -181,7 +182,7 @@ public final class StreamEnvConfigManagerUtil {
      * @param confProperties
      */
     public static void streamTableEnvironmentStateTTLConfig(TableEnvironment tableEnv, Properties confProperties) {
-        confProperties = PropertiesUtils.propertiesTrim(confProperties);
+        confProperties = PropertiesUtil.propertiesTrim(confProperties);
         Optional<Tuple2<Time, Time>> tableEnvTTL = getTableEnvTTL(confProperties);
         if (tableEnvTTL.isPresent()) {
             Tuple2<Time, Time> timeRange = tableEnvTTL.get();

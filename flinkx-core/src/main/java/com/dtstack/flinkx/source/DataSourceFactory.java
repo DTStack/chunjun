@@ -20,7 +20,7 @@ package com.dtstack.flinkx.source;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.classloader.PluginUtil;
-import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -38,7 +38,7 @@ public class DataSourceFactory {
 
     private DataSourceFactory() {}
 
-    public static BaseDataSource getDataSource(FlinkxConf config, StreamExecutionEnvironment env) {
+    public static BaseDataSource getDataSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
@@ -46,7 +46,7 @@ public class DataSourceFactory {
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
-                Constructor constructor = clazz.getConstructor(FlinkxConf.class, StreamExecutionEnvironment.class);
+                Constructor constructor = clazz.getConstructor(SyncConf.class, StreamExecutionEnvironment.class);
                 return (BaseDataSource)constructor.newInstance(config, env);
             });
         } catch (Exception e) {

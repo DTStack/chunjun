@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.connector.stream.source;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.types.Row;
+
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.Row;
 
 /**
  * Date: 2021/04/07
@@ -35,15 +36,15 @@ import org.apache.flink.types.Row;
 public class StreamSource extends BaseDataSource {
     private StreamConf streamConf;
 
-    public StreamSource(FlinkxConf config, StreamExecutionEnvironment env) {
+    public StreamSource(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
+        super.initFlinkxCommonConf(streamConf);
     }
 
     @Override
     public DataStream<Row> readData() {
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        builder.setConfig(config);
         builder.setStreamConf(streamConf);
 
         return createInput(builder.finish());

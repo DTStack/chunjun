@@ -17,7 +17,12 @@
  */
 package com.dtstack.flinkx.connector.kafka.sink;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.types.Row;
+
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
@@ -25,10 +30,6 @@ import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.types.Row;
 
 import java.util.Properties;
 
@@ -41,7 +42,7 @@ import java.util.Properties;
 public class KafkaSink extends BaseDataSink {
     protected KafkaConf kafkaConf;
 
-    public KafkaSink(FlinkxConf config) {
+    public KafkaSink(SyncConf config) {
         super(config);
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);

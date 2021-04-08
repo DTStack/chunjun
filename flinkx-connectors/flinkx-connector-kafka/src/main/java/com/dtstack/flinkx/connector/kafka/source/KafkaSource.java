@@ -17,7 +17,12 @@
  */
 package com.dtstack.flinkx.connector.kafka.source;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.types.Row;
+
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
@@ -27,10 +32,6 @@ import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
-import org.apache.flink.types.Row;
 
 import java.util.Properties;
 
@@ -44,7 +45,7 @@ public class KafkaSource extends BaseDataSource {
 
     protected KafkaConf kafkaConf;
 
-    public KafkaSource(FlinkxConf config, StreamExecutionEnvironment env) {
+    public KafkaSource(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
@@ -74,6 +75,6 @@ public class KafkaSource extends BaseDataSource {
                 break;
         }
         consumer.setCommitOffsetsOnCheckpoints(kafkaConf.getGroupId() != null);
-        return createInput(consumer, config.getReader().getName());
+        return createInput(consumer, syncConf.getReader().getName());
     }
 }

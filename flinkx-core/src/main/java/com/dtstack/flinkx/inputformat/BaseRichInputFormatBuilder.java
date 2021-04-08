@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public abstract class BaseRichInputFormatBuilder {
 
     protected BaseRichInputFormat format;
 
-    public void setConfig(FlinkxConf config) {
+    public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
     }
 
@@ -46,14 +46,7 @@ public abstract class BaseRichInputFormatBuilder {
 
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
-        boolean check = true;
-        try {
-            check = (boolean) format.getConfig().getReader().getParameter().getOrDefault(("check"), true);
-        }catch (ClassCastException e){
-            LOG.warn("[{}] can not cast to boolean", format.getConfig().getReader().getParameter().get("check"), e);
-        }
-
-        if(check){
+        if(format.getConfig().isCheckFormat()){
             checkFormat();
         }
         return format;

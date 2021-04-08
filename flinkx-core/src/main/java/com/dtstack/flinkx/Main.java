@@ -17,26 +17,6 @@
  */
 package com.dtstack.flinkx;
 
-import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.classloader.PluginUtil;
-import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.conf.RestartConf;
-import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.parser.SqlParser;
-import com.dtstack.flinkx.sink.BaseDataSink;
-import com.dtstack.flinkx.sink.DataSinkFactory;
-import com.dtstack.flinkx.source.BaseDataSource;
-import com.dtstack.flinkx.source.DataSourceFactory;
-import com.dtstack.flinkx.util.PrintUtil;
-import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.PropertiesUtils;
-import com.google.common.base.Preconditions;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -61,6 +41,26 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.types.Row;
+
+import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.classloader.PluginUtil;
+import com.dtstack.flinkx.conf.RestartConf;
+import com.dtstack.flinkx.conf.SpeedConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.parser.SqlParser;
+import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.DataSinkFactory;
+import com.dtstack.flinkx.source.BaseDataSource;
+import com.dtstack.flinkx.source.DataSourceFactory;
+import com.dtstack.flinkx.util.PrintUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.google.common.base.Preconditions;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +119,7 @@ public class Main {
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
-        FlinkxConf config = parseFlinkxConf(job, options);
+        SyncConf config = parseFlinkxConf(job, options);
 
         StreamExecutionEnvironment env = createStreamExecutionEnvironment(options);
         configStreamExecutionEnvironment(env, options, config, confProperties);
@@ -183,10 +183,10 @@ public class Main {
      * @param options
      * @return
      */
-    public static FlinkxConf parseFlinkxConf(String job, Options options){
-        FlinkxConf config = null;
+    public static SyncConf parseFlinkxConf(String job, Options options){
+        SyncConf config = null;
         try {
-            config = FlinkxConf.parseJob(job);
+            config = SyncConf.parseJob(job);
             if(StringUtils.isNotEmpty(options.getMonitor())) {
                 config.setMonitorUrls(options.getMonitor());
             }
@@ -246,7 +246,7 @@ public class Main {
      * @param config FlinkxConf
      * @param properties confProperties
      */
-    private static void configStreamExecutionEnvironment(StreamExecutionEnvironment env, Options options, FlinkxConf config, Properties properties) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
+    private static void configStreamExecutionEnvironment(StreamExecutionEnvironment env, Options options, SyncConf config, Properties properties) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         configRestartStrategy(env, config, properties);
         configCheckpoint(env, properties);
         configEnvironment(env, properties);
@@ -286,7 +286,7 @@ public class Main {
          * @param config
          * @param properties
          */
-    private static void configRestartStrategy(StreamExecutionEnvironment env, FlinkxConf config, Properties properties){
+    private static void configRestartStrategy(StreamExecutionEnvironment env, SyncConf config, Properties properties){
         if(config != null){
             RestartConf restart = config.getRestart();
             if (ConfigConstant.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restart.getStrategy())) {
@@ -325,7 +325,7 @@ public class Main {
      * @throws IllegalAccessException
      */
     private static void configEnvironment(StreamExecutionEnvironment streamEnv, Properties confProperties) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        confProperties = PropertiesUtils.propertiesTrim(confProperties);
+        confProperties = PropertiesUtil.propertiesTrim(confProperties);
         streamEnv.getConfig().disableClosureCleaner();
 
         Configuration globalJobParameters = new Configuration();

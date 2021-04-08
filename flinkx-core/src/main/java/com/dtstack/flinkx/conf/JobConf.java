@@ -32,11 +32,11 @@ public class JobConf implements Serializable {
     private LinkedList<ContentConf> content;
     private SettingConf setting = new SettingConf();
 
-    public SourceConf getReader(){
+    public OperatorConf getReader(){
         return content.get(0).getReader();
     }
 
-    public SinkConf getWriter(){
+    public OperatorConf getWriter(){
         return content.get(0).getWriter();
     }
 

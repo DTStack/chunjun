@@ -17,8 +17,9 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.util.GsonUtil;
 
 import java.io.Serializable;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class FlinkxConf implements Serializable {
+public class SyncConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** FlinkX job */
@@ -50,8 +51,8 @@ public class FlinkxConf implements Serializable {
      * @param jobJson job json字符串
      * @return FlinkxJobConfig
      */
-    public static FlinkxConf parseJob(String jobJson){
-        FlinkxConf config = GsonUtil.GSON.fromJson(jobJson, FlinkxConf.class);
+    public static SyncConf parseJob(String jobJson){
+        SyncConf config = GsonUtil.GSON.fromJson(jobJson, SyncConf.class);
         checkJob(config);
         return config;
     }
@@ -60,14 +61,14 @@ public class FlinkxConf implements Serializable {
      * 校验Job配置
      * @param config FlinkxJobConfig
      */
-    private static void checkJob(FlinkxConf config) {
+    private static void checkJob(SyncConf config) {
         List<ContentConf> content = config.getJob().getContent();
 
         Preconditions.checkNotNull(content, "[content] in the task script is empty, please check the task script configuration.");
         Preconditions.checkArgument(content.size() != 0, "[content] in the task script is empty, please check the task script configuration.");
 
         // 检查reader配置
-        SourceConf reader = config.getReader();
+        OperatorConf reader = config.getReader();
         Preconditions.checkNotNull(reader, "[reader] in the task script is empty, please check the task script configuration.");
         String readerName = reader.getName();
         Preconditions.checkNotNull(readerName, "[name] under [reader] in task script is empty, please check task script configuration.");
@@ -76,7 +77,7 @@ public class FlinkxConf implements Serializable {
 
 
         // 检查writer配置
-        SinkConf writer = config.getWriter();
+        OperatorConf writer = config.getWriter();
         Preconditions.checkNotNull(writer, "[writer] in the task script is empty, please check the task script configuration.");
         String writerName = writer.getName();
         Preconditions.checkNotNull(writerName, "[name] under [writer] in the task script is empty, please check the configuration of the task script.");
@@ -112,11 +113,11 @@ public class FlinkxConf implements Serializable {
         }
     }
 
-    public SourceConf getReader(){
+    public OperatorConf getReader(){
         return job.getReader();
     }
 
-    public SinkConf getWriter(){
+    public OperatorConf getWriter(){
         return job.getWriter();
     }
 

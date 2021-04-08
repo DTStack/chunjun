@@ -34,7 +34,7 @@ import java.util.Properties;
  *
  * @author tudou
  */
-public class SourceConf implements Serializable {
+public class OperatorConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** source插件名称 */
@@ -183,7 +183,7 @@ public class SourceConf implements Serializable {
 
     @Override
     public String toString() {
-        return "SourceConf{" +
+        return "OperatorConf{" +
                 "name='" + name + '\'' +
                 ", parameter=" + parameter +
                 ", table=" + table +

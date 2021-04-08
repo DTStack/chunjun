@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public abstract class BaseRichOutputFormatBuilder {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected BaseRichOutputFormat format;
 
-    public void setConfig(FlinkxConf config) {
+    public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
     }
 

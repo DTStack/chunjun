@@ -18,15 +18,6 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.source.MetaColumn;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-import com.dtstack.flinkx.util.DataTypeUtil;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -38,6 +29,18 @@ import org.apache.flink.table.sinks.RetractStreamTableSink;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.source.MetaColumn;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.util.DataTypeUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.TableUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,25 +54,26 @@ import java.util.List;
 public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
 
     protected TableSchema tableSchema;
-    protected FlinkxConf config;
+    protected SyncConf syncConf;
     protected TypeInformation<Row> typeInformation;
 
     @SuppressWarnings("unchecked")
-    public BaseDataSink(FlinkxConf config) {
+    public BaseDataSink(SyncConf syncConf) {
         //脏数据记录reader中的字段信息
-        List metaColumn = config.getReader().getMetaColumn();
+        List metaColumn = syncConf.getReader().getMetaColumn();
         if(CollectionUtils.isNotEmpty(metaColumn)){
-            config.getDirty().setReaderColumnNameList(MetaColumn.getColumnNameList(metaColumn));
+            syncConf.getDirty().setReaderColumnNameList(MetaColumn.getColumnNameList(metaColumn));
         }
-        initColumn(config);
-        this.config = config;
+        initColumn(syncConf);
+        this.syncConf = syncConf;
 
-        if(config.getTransformer() == null || StringUtils.isBlank(config.getTransformer().getTransformSql())){
+        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getRowTypeInformation(config.getReader().getFieldList());
+            typeInformation = TableUtil.getRowTypeInformation(syncConf.getReader().getFieldList());
             tableSchema = TableSchema.builder()
-                    .fields(config.getReader().getFieldNameList().toArray(new String[0]), DataTypeUtil.getFieldTypes(config.getReader().getFieldClassList()))
+                    .fields(syncConf.getReader().getFieldNameList().toArray(new String[0]), DataTypeUtil.getFieldTypes(
+                            syncConf.getReader().getFieldClassList()))
                     .build();
         }
     }
@@ -93,7 +97,8 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
 
-        ((BaseRichOutputFormat)outputFormat).setBatchSize((int)config.getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1));
+        ((BaseRichOutputFormat)outputFormat).setBatchSize((int) syncConf
+                .getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1));
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
         DataStreamSink<Tuple2<Boolean, Row>> dataStreamSink = dataSet.addSink(sinkFunction);
@@ -112,11 +117,20 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
      * 如果index为-1是有特殊逻辑 需要覆盖此方法使用 getMetaColumns(List columns, false) 代替
      * @param config 配置信息
      */
-    protected void initColumn(FlinkxConf config){
+    protected void initColumn(SyncConf config){
         List<MetaColumn> writerColumnList = MetaColumn.getMetaColumns(config.getWriter().getMetaColumn());
         if(CollectionUtils.isNotEmpty(writerColumnList)){
             config.getWriter().getParameter().put(ConfigConstant.KEY_COLUMN, writerColumnList);
         }
+    }
+
+    /**
+     * 初始化FlinkxCommonConf
+     * @param flinkxCommonConf
+     */
+    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
+        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
+        flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
     }
 
     @Override
