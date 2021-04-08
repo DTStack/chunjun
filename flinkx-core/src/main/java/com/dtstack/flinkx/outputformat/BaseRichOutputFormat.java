@@ -21,7 +21,6 @@ package com.dtstack.flinkx.outputformat;
 import com.dtstack.flinkx.conf.DirtyConf;
 import com.dtstack.flinkx.conf.ErrorLimitConf;
 import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.BaseLatch;
@@ -165,12 +164,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
-
-        try {
-            batchSize = (int)config.getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1);
-        }catch (ClassCastException e){
-            LOG.warn("[{}] can not cast to int", config.getWriter().getParameter().get(ConfigConstant.KEY_BATCH_SIZE), e);
-        }
 
         initStatisticsAccumulator();
         initJobInfo();
