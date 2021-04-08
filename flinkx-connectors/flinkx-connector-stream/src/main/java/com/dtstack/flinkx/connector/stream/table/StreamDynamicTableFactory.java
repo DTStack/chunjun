@@ -18,15 +18,17 @@
 
 package com.dtstack.flinkx.connector.stream.table;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
-import org.apache.flink.table.connector.sink.OutputFormatProvider;
+import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,10 +61,10 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
         helper.validate();
         ReadableConfig options = helper.getOptions();
-        return new StreamSink();
+        return new StreamDynamicTableSink();
     }
 
-    private static class StreamSink implements DynamicTableSink {
+    private static class StreamDynamicTableSink implements DynamicTableSink {
 
         @Override
         public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
@@ -70,17 +72,19 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory {
         }
 
         @Override
-        public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
+        public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
             StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
             StreamConf streamConf = new StreamConf();
             streamConf.setPrint(true);
             builder.setStreamConf(streamConf);
-            return OutputFormatProvider.of(builder.finish());
+
+            DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
+            return SinkFunctionProvider.of(sinkFunction, 1);
         }
 
         @Override
         public DynamicTableSink copy() {
-            return new StreamSink();
+            return new StreamDynamicTableSink();
         }
 
         @Override

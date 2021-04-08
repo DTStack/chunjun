@@ -91,7 +91,7 @@ public final class FactoryUtil {
     public static final ConfigOption<String> CONNECTORS_PACKAGE_PREFIX =
             ConfigOptions.key("CONNECTORS_PACKAGE_PREFIX")
                     .stringType()
-                    .defaultValue("com.dtstack.flinkx.connectors.")
+                    .defaultValue("com.dtstack.flinkx.connector.")
                     .withDescription("");
 
     /**format包名前缀 */
