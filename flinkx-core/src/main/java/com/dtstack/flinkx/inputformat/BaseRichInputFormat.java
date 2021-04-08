@@ -94,7 +94,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     @Override
-    public void openInputFormat() throws IOException {
+    public void openInputFormat() {
         initJobInfo();
         initPrometheusReporter();
 
@@ -104,7 +104,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     @Override
-    public final InputSplit[] createInputSplits(int i) throws IOException {
+    public final InputSplit[] createInputSplits(int i) {
         try {
             return createInputSplitsInternal(i);
         } catch (Exception e){
@@ -240,8 +240,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
         Row internalRow = nextRecordInternal(row);
         if(internalRow != null){
-            internalRow = setChannelInformation(internalRow);
-
             updateDuration();
             if(numReadCounter !=null ){
                 numReadCounter.add(1);
@@ -252,16 +250,6 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
         }
 
         return internalRow;
-    }
-
-    private Row setChannelInformation(Row internalRow){
-        Row rowWithChannel = new Row(internalRow.getArity() + 1);
-        for (int i = 0; i < internalRow.getArity(); i++) {
-            rowWithChannel.setField(i, internalRow.getField(i));
-        }
-
-        rowWithChannel.setField(internalRow.getArity(), indexOfSubTask);
-        return rowWithChannel;
     }
 
     /**
@@ -342,7 +330,7 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     protected abstract  void closeInternal() throws IOException;
 
     @Override
-    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) throws IOException {
+    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) {
         return null;
     }
 

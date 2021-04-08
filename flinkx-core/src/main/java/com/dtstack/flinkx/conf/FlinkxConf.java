@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.util.Preconditions;
 
@@ -84,32 +83,32 @@ public class FlinkxConf implements Serializable {
         Map<String, Object> writerParameter = reader.getParameter();
         Preconditions.checkNotNull(writerParameter, "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
 
-        List<MetaColumn> readerColumnList = MetaColumn.getMetaColumns(config.getReader().getMetaColumn());
+        List<FieldConf> readerFieldList = config.getReader().getFieldList();
         //检查并设置restore
         RestoreConf restore = config.getRestore();
         if(restore.isStream()){
             //实时任务restore必须设置为true，用于数据ck恢复
             restore.setRestore(true);
         }else if(restore.isRestore()){  //离线任务开启断点续传
-            MetaColumn metaColumnByName = MetaColumn.getSameNameMetaColumn(readerColumnList, restore.getRestoreColumnName());
-            MetaColumn metaColumnByIndex = null;
+            FieldConf fieldColumnByName = FieldConf.getSameNameMetaColumn(readerFieldList, restore.getRestoreColumnName());
+            FieldConf fieldColumnByIndex = null;
             if(restore.getRestoreColumnIndex() >= 0){
-                metaColumnByIndex = readerColumnList.get(restore.getRestoreColumnIndex());
+                fieldColumnByIndex = readerFieldList.get(restore.getRestoreColumnIndex());
             }
 
-            MetaColumn metaColumn;
+            FieldConf fieldColumn;
 
-            if(metaColumnByName == null && metaColumnByIndex == null){
+            if(fieldColumnByName == null && fieldColumnByIndex == null){
                 throw new IllegalArgumentException("Can not find restore column from json with column name:" + restore.getRestoreColumnName());
-            }else if(metaColumnByName != null && metaColumnByIndex != null && metaColumnByName != metaColumnByIndex){
+            }else if(fieldColumnByName != null && fieldColumnByIndex != null && fieldColumnByName != fieldColumnByIndex){
                 throw new IllegalArgumentException(String.format("The column name and column index point to different columns, column name = [%s]，point to [%s]; column index = [%s], point to [%s].",
-                        restore.getRestoreColumnName(), metaColumnByName, restore.getRestoreColumnIndex(), metaColumnByIndex));
+                        restore.getRestoreColumnName(), fieldColumnByName, restore.getRestoreColumnIndex(), fieldColumnByIndex));
             }else{
-                metaColumn = metaColumnByName != null ? metaColumnByName : metaColumnByIndex;
+                fieldColumn = fieldColumnByName != null ? fieldColumnByName : fieldColumnByIndex;
             }
 
-            restore.setRestoreColumnIndex(metaColumn.getIndex());
-            restore.setRestoreColumnType(metaColumn.getType());
+            restore.setRestoreColumnIndex(fieldColumn.getIndex());
+            restore.setRestoreColumnType(fieldColumn.getType());
         }
     }
 

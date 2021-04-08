@@ -22,6 +22,7 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -143,6 +144,21 @@ public class FieldConf implements Serializable {
         field.setFieldClass(ClassUtil.typeToClass(field.getType()));
 
         return field;
+    }
+
+    /**
+     * 根据name查找对应FieldConf
+     * @param fieldList
+     * @param name
+     * @return
+     */
+    public static FieldConf getSameNameMetaColumn(List<FieldConf> fieldList , String name){
+        for (FieldConf field : fieldList) {
+            if(StringUtils.isNotEmpty(field.getName()) && field.getName().equals(name)){
+                return field;
+            }
+        }
+        return null;
     }
 
     public String getName() {

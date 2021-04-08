@@ -26,8 +26,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.GenericTypeInfo;
-import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
@@ -72,15 +70,14 @@ public abstract class BaseDataSource {
     protected DataStream<Row> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
-        return env.addSource(function, sourceName, typeInfo);
+//        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
+        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        return env.addSource(function, sourceName, typeInformation);
     }
 
     protected DataStream<Row> createInput(RichParallelSourceFunction<Row> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
-        TypeInformation<Row> typeInfo = new GenericTypeInfo<>(Row.class);
-        return env.addSource(function, sourceName, typeInfo);
+        return env.addSource(function, sourceName, typeInformation);
     }
 
     protected DataStream<Row> createInput(InputFormat inputFormat) {

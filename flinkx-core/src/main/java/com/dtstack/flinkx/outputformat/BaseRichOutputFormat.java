@@ -43,7 +43,6 @@ import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -421,14 +420,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         if(bytesWriteCounter!=null){
             bytesWriteCounter.add(rowData.toString().getBytes().length);
         }
-    }
-
-    private RowData setChannelInfo(RowData row){
-        GenericRowData internalRow = new GenericRowData(row.getArity() - 1);
-        for (int i = 0; i < internalRow.getArity(); i++) {
-            internalRow.setField(i, ((GenericRowData)row).getField(i));
-        }
-        return internalRow;
     }
 
     @Override
