@@ -17,8 +17,6 @@
 
 package com.dtstack.flinkx.streaming.api.functions.sink;
 
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -36,12 +34,16 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.restore.FormatState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 /**
  * Simple implementation of the SinkFunction writing tuples in the specified
  * OutputFormat format.
@@ -57,14 +59,14 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
 
     private static final Logger LOG = LoggerFactory.getLogger(DtOutputFormatSinkFunction.class);
 
-    private OutputFormat<IN> format;
-    private boolean cleanupCalled = false;
+    protected OutputFormat<IN> format;
+    protected boolean cleanupCalled = false;
 
-    private static final String LOCATION_STATE_NAME = "data-sync-location-states";
+    protected static final String LOCATION_STATE_NAME = "data-sync-location-states";
 
-    private transient ListState<FormatState> unionOffsetStates;
+    protected transient ListState<FormatState> unionOffsetStates;
 
-    private Map<Integer,FormatState> formatStateMap;
+    protected Map<Integer, FormatState> formatStateMap;
 
     public DtOutputFormatSinkFunction(OutputFormat<IN> format) {
         this.format = format;
@@ -75,7 +77,7 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
         RuntimeContext context = getRuntimeContext();
         format.configure(parameters);
 
-        if (format instanceof BaseRichOutputFormat && formatStateMap != null){
+        if (format instanceof BaseRichOutputFormat && formatStateMap != null) {
             ((BaseRichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
         }
 
@@ -120,7 +122,7 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
         }
     }
 
-    private void cleanup() {
+    protected void cleanup() {
         try {
             if (!cleanupCalled && format instanceof CleanupWhenUnsuccessful) {
                 cleanupCalled = true;
@@ -134,7 +136,7 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((BaseRichOutputFormat) format).getFormatState();
-        if (formatState != null){
+        if (formatState != null) {
             LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
@@ -148,14 +150,15 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
         OperatorStateStore stateStore = context.getOperatorStateStore();
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
                 LOCATION_STATE_NAME,
-                TypeInformation.of(new TypeHint<FormatState>() {})));
+                TypeInformation.of(new TypeHint<FormatState>() {
+                })));
 
         LOG.info("Is restored:{}", context.isRestored());
-        if (context.isRestored()){
+        if (context.isRestored()) {
             formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-                LOG.info("Output format state into:{}" ,formatState.toString());
+                LOG.info("Output format state into:{}", formatState.toString());
             }
         }
 

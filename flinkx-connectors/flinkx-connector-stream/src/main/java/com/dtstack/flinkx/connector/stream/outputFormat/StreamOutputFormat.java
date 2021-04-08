@@ -18,11 +18,14 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
+import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;
+import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.RowUtil;
-import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
 
@@ -37,9 +40,13 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     private StreamConf streamConf;
     protected RowData lastRow;
 
+    private DynamicTableSink.DataStructureConverter converter;
+    private PrintSinkOutputWriter<String> writer;
+
+
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-
+        writer.open(taskNumber, numTasks);
     }
 
     @Override
@@ -53,11 +60,14 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData row) {
+    protected void writeSingleRecordInternal(RowData value) {
+        String rowKind = value.getRowKind().shortString();
+        Object data = converter.toExternal(value);
+        writer.write(rowKind + "(" + data + ")");
         if (streamConf.isPrint()) {
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, RowUtil.rowToStringWithDelimiter(row, streamConf.getWriteDelimiter()));
+            // LOG.info("subTaskIndex[{}]:{}", taskNumber, RowUtil.rowToStringWithDelimiter(value, streamConf.getWriteDelimiter()));
         }
-        lastRow = row;
+        lastRow = value;
     }
 
     @Override
@@ -65,15 +75,18 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         for (RowData row : rows) {
             writeSingleRecordInternal(row);
         }
-        if(rows.size() > 1){
+        if (rows.size() > 1) {
             lastRow = rows.get(rows.size() - 1);
         }
     }
 
     @Override
-    public FormatState getFormatState(){
-        if(lastRow != null){
-            LOG.info("subTaskIndex[{}]:{}", taskNumber, RowUtil.rowToStringWithDelimiter(lastRow, streamConf.getWriteDelimiter()));
+    public FormatState getFormatState() {
+        if (lastRow != null) {
+            LOG.info(
+                    "subTaskIndex[{}]:{}",
+                    taskNumber,
+                    RowUtil.rowToStringWithDelimiter(lastRow, streamConf.getWriteDelimiter()));
         }
         return super.getFormatState();
     }
@@ -84,5 +97,21 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     public void setStreamConf(StreamConf streamConf) {
         this.streamConf = streamConf;
+    }
+
+    public DynamicTableSink.DataStructureConverter getConverter() {
+        return converter;
+    }
+
+    public void setConverter(DynamicTableSink.DataStructureConverter converter) {
+        this.converter = converter;
+    }
+
+    public PrintSinkOutputWriter<String> getWriter() {
+        return writer;
+    }
+
+    public void setWriter(PrintSinkOutputWriter<String> writer) {
+        this.writer = writer;
     }
 }

@@ -18,14 +18,17 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
+import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;
+import org.apache.flink.table.connector.sink.DynamicTableSink;
+
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 /**
  * The builder of StreamOutputFormat
  *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
 public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
@@ -35,11 +38,23 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
-    public void setStreamConf(StreamConf streamConf) {
+    public StreamOutputFormatBuilder setStreamConf(StreamConf streamConf) {
         super.setConfig(streamConf);
         format.setStreamConf(streamConf);
+        return this;
+    }
+
+    public StreamOutputFormatBuilder setConverter(DynamicTableSink.DataStructureConverter converter) {
+        format.setConverter(converter);
+        return this;
+    }
+
+    public StreamOutputFormatBuilder setWriter(PrintSinkOutputWriter<String> writer) {
+        format.setWriter(writer);
+        return this;
     }
 
     @Override
-    protected void checkFormat() {}
+    protected void checkFormat() {
+    }
 }
