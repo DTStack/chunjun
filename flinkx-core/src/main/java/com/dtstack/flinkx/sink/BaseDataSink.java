@@ -20,6 +20,7 @@ package com.dtstack.flinkx.sink;
 
 import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.DataTypeUtil;
@@ -91,6 +92,8 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
+
+        ((BaseRichOutputFormat)outputFormat).setBatchSize((int)config.getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1));
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
         DataStreamSink<Tuple2<Boolean, Row>> dataStreamSink = dataSet.addSink(sinkFunction);

@@ -17,7 +17,6 @@
 
 package com.dtstack.flinkx.streaming.api.functions.source;
 
-import com.dtstack.flinkx.conf.RestoreConf;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -39,6 +38,7 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,8 +75,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private transient ListState<FormatState> unionOffsetStates;
 
-    private boolean isStream;
-
 	@SuppressWarnings("unchecked")
 	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
 		super(format, typeInfo);
@@ -85,8 +83,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public void open(Configuration parameters) throws Exception {
+	public void open(Configuration parameters) {
 		StreamingRuntimeContext context = (StreamingRuntimeContext) getRuntimeContext();
 
 		if (format instanceof RichInputFormat) {
@@ -94,8 +91,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 		}
 
         if (format instanceof BaseRichInputFormat){
-			RestoreConf restore = ((BaseRichInputFormat) format).getConfig().getRestore();
-			isStream = restore.isStream();
             if(formatStateMap != null){
                 ((BaseRichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
@@ -127,19 +122,12 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				// was called by checking the isRunning flag
 
 				while (isRunning && !format.reachedEnd()) {
-				    if(isStream){
-                        nextElement = format.nextRecord(nextElement);
-                        if (nextElement != null) {
-                            ctx.collect(nextElement);
-                        }
-                    } else {
-                        synchronized (ctx.getCheckpointLock()){
-                            nextElement = format.nextRecord(nextElement);
-                            if (nextElement != null) {
-                                ctx.collect(nextElement);
-                            }
-                        }
-                    }
+					synchronized (ctx.getCheckpointLock()){
+						nextElement = format.nextRecord(nextElement);
+						if (nextElement != null) {
+							ctx.collect(nextElement);
+						}
+					}
 				}
 				format.close();
 				completedSplitsCounter.inc();
@@ -282,7 +270,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	 */
 	public void throwException(Exception e) throws Exception {
 		if(null != e) {
-			LOG.error("DtInputFormatSourceFunction error, info: {}",ExceptionUtil.getErrorMessage(e), e);
+			LOG.error("DtInputFormatSourceFunction error, info: {}", ExceptionUtil.getErrorMessage(e), e);
 			throw e;
 		}
 	}

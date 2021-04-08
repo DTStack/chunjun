@@ -21,7 +21,6 @@ package com.dtstack.flinkx.outputformat;
 import com.dtstack.flinkx.conf.DirtyConf;
 import com.dtstack.flinkx.conf.ErrorLimitConf;
 import com.dtstack.flinkx.conf.FlinkxConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.BaseLatch;
@@ -43,7 +42,6 @@ import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -166,12 +164,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
-
-        try {
-            batchSize = (int)config.getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1);
-        }catch (ClassCastException e){
-            LOG.warn("[{}] can not cast to int", config.getWriter().getParameter().get(ConfigConstant.KEY_BATCH_SIZE), e);
-        }
 
         initStatisticsAccumulator();
         initJobInfo();
@@ -421,14 +413,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         if(bytesWriteCounter!=null){
             bytesWriteCounter.add(rowData.toString().getBytes().length);
         }
-    }
-
-    private RowData setChannelInfo(RowData row){
-        GenericRowData internalRow = new GenericRowData(row.getArity() - 1);
-        for (int i = 0; i < internalRow.getArity(); i++) {
-            internalRow.setField(i, ((GenericRowData)row).getField(i));
-        }
-        return internalRow;
     }
 
     @Override

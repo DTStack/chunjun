@@ -74,7 +74,7 @@ public class PrintUtil {
     public static void printJobConfig(FlinkxConf config){
 
         //深拷贝对象
-        JobConf job = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getJob()), JobConf.class);
+        JobConf job = JsonUtil.toObject(JsonUtil.toJson(config.getJob()), JobConf.class);
 
         //隐藏密码信息
         Map<String, Object> readerParameter = job.getReader().getParameter();
@@ -87,6 +87,6 @@ public class PrintUtil {
             writerParameter.put(ConfigConstant.KEY_PASSWORD, ConfigConstant.KEY_CONFUSED_PASSWORD);
         }
         LOG.info(config.asString());
-        LOG.info("configInfo : \n{}", GsonUtil.GSON.toJson(job));
+        LOG.info("configInfo : \n{}", JsonUtil.toPrintJson(job));
     }
 }
