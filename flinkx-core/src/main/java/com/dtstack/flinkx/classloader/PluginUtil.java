@@ -19,10 +19,11 @@
 
 package com.dtstack.flinkx.classloader;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.conf.FlinkxConf;
 import com.dtstack.flinkx.enums.OperatorType;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -45,7 +46,7 @@ public class PluginUtil {
     private static final String WRITER_SUFFIX = "writer";
     private static final String SINK_SUFFIX = "sink";
 
-    private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connectors.";
+    private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
 
     private static final String JAR_PREFIX = "flinkx";
 
