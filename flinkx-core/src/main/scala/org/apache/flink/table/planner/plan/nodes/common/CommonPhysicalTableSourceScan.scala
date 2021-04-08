@@ -28,11 +28,12 @@ import org.apache.flink.table.planner.calcite.FlinkTypeFactory
 import org.apache.flink.table.planner.plan.schema.TableSourceTable
 import org.apache.flink.table.runtime.connector.source.ScanRuntimeProviderContext
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo
-
 import org.apache.calcite.plan.{RelOptCluster, RelTraitSet}
 import org.apache.calcite.rel.RelWriter
 import org.apache.calcite.rel.`type`.RelDataType
 import org.apache.calcite.rel.core.TableScan
+import org.apache.flink.table.api.TableException
+import org.apache.flink.table.connector.ParallelismProvider
 
 import scala.collection.JavaConverters._
 
@@ -71,7 +72,8 @@ abstract class CommonPhysicalTableSourceScan(
     val outRowType = FlinkTypeFactory.toLogicalRowType(tableSourceTable.getRowType)
     val outTypeInfo = InternalTypeInfo.of(outRowType)
 
-    runtimeProvider match {
+    // DTStack fixed customized parallelism
+    val transformation = runtimeProvider match {
       case provider: SourceFunctionProvider =>
         val sourceFunction = provider.createSourceFunction()
         env
@@ -87,6 +89,20 @@ abstract class CommonPhysicalTableSourceScan(
       case provider: DataStreamScanProvider =>
         provider.produceDataStream(env).getTransformation
     }
+
+    // DTStack fixed customized parallelism
+    if (runtimeProvider.isInstanceOf[ParallelismProvider]) {
+      val parallelismOptional = runtimeProvider.asInstanceOf[ParallelismProvider].getParallelism
+      if (parallelismOptional.isPresent) {
+        val parallelismPassedIn = parallelismOptional.get().intValue()
+        if (parallelismPassedIn <= 0) {
+          throw new TableException(s"Table: ${tableSourceTable.tableIdentifier} configured sink parallelism: " +
+            s"$parallelismPassedIn should not be less than zero or equal to zero")
+        }
+        transformation.setParallelism(parallelismPassedIn)
+      }
+    }
+    transformation
   }
 
   /**
