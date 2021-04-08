@@ -25,4 +25,6 @@ package com.dtstack.tmp;
  **/
 public class SyncBaseOutput {
     BaseOutput baseOutput;
+
+    class BaseOutput{}
 }
