@@ -3,21 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-kafka09</artifactId>
+        <artifactId>flinkx-pulsar</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
         <version>1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-kafka09-reader</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-kb-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-    </dependencies>
+    <artifactId>flinkx-pulsar-reader</artifactId>
 
     <build>
         <plugins>
@@ -33,16 +25,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.thirdparty</pattern>
-                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
-                                </relocation>
-                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -60,14 +52,13 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../syncplugins/kafka09reader">
+                                <copy todir="${basedir}/../../syncplugins/pulsarreader">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/kafka09reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/kafka09reader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/pulsarreader/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/pulsarreader/${project.name}-${package.name}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>
@@ -75,5 +66,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

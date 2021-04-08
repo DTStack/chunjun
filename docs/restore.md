@@ -111,7 +111,7 @@ checkpoint触发后，两个reader先生成Snapshot记录读取状态，通道0�
 > 
 > Writer_1：id=无法确定
 
-任务状态会记录到配置的HDFS目录/flinkx/checkpoint/abc123下。因为每个Writer会接收两个Reader的数据，以及各个通道的数据读写速率可能不一样，所以导致writer接收到的数据顺序是不确定的，但是这不影响数据的准确性，因为读取数据时只需要Reader记录的状态就可以构造查询sql，我们只要确保这些数据真的写到HDF就行了。在Writer生成Snapshot之前，会做一系列操作保证接收到的数据全部写入HDFS：
+任务状态会记录到配置的HDFS目录/flinkx/checkpoint/abc123下。因为每个Writer会接收两个Reader的数据，以及各个通道的数据读写速率可能不一样，所以导致writer接收到的数据顺序是不确定的，但是这不影响数据的准确性，因为读取数据时只需要Reader记录的状态就可以构造查询sql，我们只要确保这些数据真的写到HDFS就行了。在Writer生成Snapshot之前，会做一系列操作保证接收到的数据全部写入HDFS：
 
 - close写入HDFS文件的数据流，这时候会在/data_test/.data目录下生成两个两个文件:
   

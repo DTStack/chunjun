@@ -44,11 +44,6 @@ public class KafkaConfigKeys {
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_TIMESTAMP = "timestamp";
     public static List<String> KEY_ASSIGNER_DEFAULT_RULE = Arrays.asList("database", "schema", "table");
-    /**
-     * kafka 09
-     */
-    public static final String KEY_ENCODING = "encoding";
-    public static final String KEY_BROKER_LIST = "brokerList";
 
     public static final String GROUP_ID = "group.id";
 

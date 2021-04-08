@@ -29,7 +29,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +58,6 @@ public class KafkaBaseReader extends BaseDataReader {
         groupId = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_GROUP_ID, "default");
         codec = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_CODEC, "text");
         blankIgnore = readerConfig.getParameter().getBooleanVal(KafkaConfigKeys.KEY_BLANK_IGNORE, false);
-        encoding = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_ENCODING, StandardCharsets.UTF_8.name());
         mode = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_MODE, StartupMode.GROUP_OFFSETS.name);
         offset = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_OFFSET, "");
         timestamp = readerConfig.getParameter().getLongVal(KafkaConfigKeys.KEY_TIMESTAMP, -1L);
@@ -76,7 +74,6 @@ public class KafkaBaseReader extends BaseDataReader {
         builder.setGroupId(groupId);
         builder.setCodec(codec);
         builder.setBlankIgnore(blankIgnore);
-        builder.setEncoding(encoding);
         builder.setConsumerSettings(consumerSettings);
         builder.setMode(StartupMode.getFromName(mode));
         builder.setOffset(offset);

@@ -114,12 +114,12 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
 
     @Override
     public void openInputFormat() throws IOException {
-        showConfig();
         initJobInfo();
         initPrometheusReporter();
 
         startTime = System.currentTimeMillis();
         DtLogger.config(logConfig, jobId);
+        showConfig();
     }
 
     @Override

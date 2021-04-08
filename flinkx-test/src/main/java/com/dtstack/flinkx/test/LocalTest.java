@@ -47,8 +47,6 @@ import com.dtstack.flinkx.hdfs.writer.HdfsWriter;
 import com.dtstack.flinkx.hive.writer.HiveWriter;
 import com.dtstack.flinkx.kafka.reader.KafkaReader;
 import com.dtstack.flinkx.kafka.writer.KafkaWriter;
-import com.dtstack.flinkx.kafka09.reader.Kafka09Reader;
-import com.dtstack.flinkx.kafka09.writer.Kafka09Writer;
 import com.dtstack.flinkx.kafka10.reader.Kafka10Reader;
 import com.dtstack.flinkx.kafka10.writer.Kafka10Writer;
 import com.dtstack.flinkx.kafka11.reader.Kafka11Reader;
@@ -73,6 +71,7 @@ import com.dtstack.flinkx.polardb.reader.PolardbReader;
 import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
+import com.dtstack.flinkx.pulsar.reader.PulsarReader;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
@@ -214,7 +213,6 @@ public class LocalTest {
             case PluginNameConstants.MONGODB_READER : reader = new MongodbReader(config, env); break;
             case PluginNameConstants.ODPS_READER : reader = new OdpsReader(config, env); break;
             case PluginNameConstants.BINLOG_READER : reader = new BinlogReader(config, env); break;
-            case PluginNameConstants.KAFKA09_READER : reader = new Kafka09Reader(config, env); break;
             case PluginNameConstants.KAFKA10_READER : reader = new Kafka10Reader(config, env); break;
             case PluginNameConstants.KAFKA11_READER : reader = new Kafka11Reader(config, env); break;
             case PluginNameConstants.KAFKA_READER : reader = new KafkaReader(config, env); break;
@@ -229,6 +227,7 @@ public class LocalTest {
             case PluginNameConstants.ORACLE_LOG_MINER_READER : reader = new OraclelogminerReader(config, env); break;
             case PluginNameConstants.RESTAPI_READER:  reader = new RestapiReader(config, env); break;
             case PluginNameConstants.SQLSERVER_CDC_READER:  reader = new SqlservercdcReader(config, env); break;
+            case PluginNameConstants.PULSAR_READER : reader = new PulsarReader(config, env); break;
             default:throw new IllegalArgumentException("Can not find reader by name:" + readerName);
         }
 
@@ -255,7 +254,6 @@ public class LocalTest {
             case PluginNameConstants.ODPS_WRITER : writer = new OdpsWriter(config); break;
             case PluginNameConstants.REDIS_WRITER : writer = new RedisWriter(config); break;
             case PluginNameConstants.HIVE_WRITER : writer = new HiveWriter(config); break;
-            case PluginNameConstants.KAFKA09_WRITER : writer = new Kafka09Writer(config); break;
             case PluginNameConstants.KAFKA10_WRITER : writer = new Kafka10Writer(config); break;
             case PluginNameConstants.KAFKA11_WRITER : writer = new Kafka11Writer(config); break;
             case PluginNameConstants.KUDU_WRITER : writer = new KuduWriter(config); break;

@@ -55,7 +55,7 @@ public class PluginNameConstants {
     public static final String PHOENIX5_READER = "phoenix5reader";
     public static final String KINGBASE_READER = "kingbasereader";
     public static final String RESTAPI_READER = "restapireader";
-
+    public static final String PULSAR_READER = "pulsarreader";
 
     public static final String STREAM_WRITER = "streamwriter";
     public static final String CARBONDATA_WRITER = "carbondatawriter";

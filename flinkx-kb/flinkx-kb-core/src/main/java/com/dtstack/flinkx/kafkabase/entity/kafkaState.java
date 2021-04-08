@@ -78,9 +78,9 @@ public class kafkaState implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         kafkaState that = (kafkaState) o;
-        return partition == that.partition &&
-                offset == that.offset &&
-                timestamp == that.timestamp &&
+        return offset.equals(that.offset) &&
+                timestamp.equals(that.timestamp) &&
+                partition.equals(that.partition) &&
                 topic.equals(that.topic);
     }
 
