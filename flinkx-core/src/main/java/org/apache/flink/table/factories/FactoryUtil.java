@@ -20,6 +20,7 @@ package org.apache.flink.table.factories;
 
 import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import com.dtstack.flinkx.util.PluginUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -79,18 +80,39 @@ public final class FactoryUtil {
     /**shipfile需要的jar的classPath index */
     private static int CLASS_FILE_NAME_INDEX = 0;
 
-    /**数据格式序列化、反序列化方式 */
-    public static final ConfigOption<List<String>> FORMATLIST =
-            ConfigOptions.key("formatlist")
-                    .stringType()
-                    .asList()
-                    .defaultValues("DeserializationFormatFactory", "SerializationFormatFactory");
-
     /**shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
             ConfigOptions.key("class_file_name_fmt")
                     .stringType()
                     .defaultValue("class_path_%d")
+                    .withDescription("");
+
+    /**factory包名前缀 */
+    public static final ConfigOption<String> CONNECTORS_PACKAGE_PREFIX =
+            ConfigOptions.key("CONNECTORS_PACKAGE_PREFIX")
+                    .stringType()
+                    .defaultValue("com.dtstack.flinkx.connectors.")
+                    .withDescription("");
+
+    /**format包名前缀 */
+    public static final ConfigOption<String> FORMAT_PACKAGE_PREFIX =
+            ConfigOptions.key("FORMAT_PACKAGE_PREFIX")
+                    .stringType()
+                    .defaultValue("org.apache.flink.formats.")
+                    .withDescription("");
+
+    /**factory包名后缀 */
+    public static final ConfigOption<String> CONNECTORS_PACKAGE_SUFFIX =
+            ConfigOptions.key("CONNECTORS_PACKAGE_SUFFIX")
+                    .stringType()
+                    .defaultValue("DynamicTableFactory")
+                    .withDescription("");
+
+    /**format包名后缀 */
+    public static final ConfigOption<String> FORMAT_PACKAGE_SUFFIX =
+            ConfigOptions.key("FORMAT_PACKAGE_SUFFIX")
+                    .stringType()
+                    .defaultValue("FormatFactory")
                     .withDescription("");
 
 
@@ -121,9 +143,7 @@ public final class FactoryUtil {
             ConfigOptions.key("formats")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription(
-                            "Defines the format identifier for encoding data. "
-                                    + "The identifier is used to discover a suitable format factory.");
+                    .withDescription("format jar path Suffix");
 
     public static final ConfigOption<Integer> SINK_PARALLELISM =
             ConfigOptions.key("sink.parallelism")
@@ -270,7 +290,18 @@ public final class FactoryUtil {
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
         if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
-            factories = loadFactories(classLoader, factoryIdentifier, factoryClass.getSimpleName());
+            String jarDirectorySuffix = factoryIdentifier;
+            String fullClassName;
+            if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass) || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
+                fullClassName = CONNECTORS_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + ".table." + StringUtils.capitalize(factoryIdentifier) + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
+            } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass) || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+                // format都放到sqlplugins下的format目录下
+                fullClassName = FORMAT_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + "." + StringUtils.capitalize(factoryIdentifier) + FORMAT_PACKAGE_SUFFIX.defaultValue();
+                jarDirectorySuffix = FORMATS.key();
+            } else {
+                throw new RuntimeException(factoryClass + " can not Identify");
+            }
+            factories = loadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
         } else {
             factories = discoverFactories(classLoader);
         }
@@ -472,26 +503,19 @@ public final class FactoryUtil {
         }
     }
 
-    private static List<Factory> loadFactories(ClassLoader classLoader, String factoryIdentifier, String factoryClass) {
+    private static List<Factory> loadFactories(ClassLoader classLoader, String jarDircetoySuffix,String factoryIdentifier, String fullClassName) {
         try {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
-            String pluginJarPath;
-            // format都放到sqlplugins下的format目录下
-            if (FORMATLIST.defaultValue().contains(factoryClass)) {
-                pluginJarPath = PluginUtil.getJarFileDirPath(FORMATS.key(), pluginPath);
-            } else {
-                pluginJarPath = PluginUtil.getJarFileDirPath(factoryIdentifier, pluginPath);
-            }
+            String pluginJarPath = PluginUtil.getJarFileDirPath(jarDircetoySuffix, pluginPath);
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-            String className = PluginUtil.getSqlParserClassName(pluginJarPath, factoryIdentifier);
 
             // 2.反射创建对象
             Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             add.setAccessible(true);
             add.invoke(classLoader, pluginJarUrls);
-            Factory factory = (Factory) classLoader.loadClass(className).newInstance();
+            Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
             result.add(factory);
 
             // 3.registerCachedFile 为了添加到shipfile中
