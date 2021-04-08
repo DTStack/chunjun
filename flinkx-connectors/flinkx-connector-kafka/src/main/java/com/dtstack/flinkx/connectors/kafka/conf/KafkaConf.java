@@ -17,10 +17,10 @@
  */
 package com.dtstack.flinkx.connectors.kafka.conf;
 
-import com.dtstack.flinkx.connectors.kafka.enums.StartupMode;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connectors.kafka.enums.FormatType;
+import com.dtstack.flinkx.connectors.kafka.enums.StartupMode;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,8 +33,7 @@ import java.util.UUID;
  * @author sishu.yss
  */
 
-public class KafkaConf implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class KafkaConf extends FlinkxCommonConf {
 
     /** kafka地址 */
     private String bootstrapServers;

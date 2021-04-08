@@ -18,8 +18,8 @@
 package com.dtstack.flinkx.connectors.stream.conf;
 
 import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,8 +28,7 @@ import java.util.List;
  *
  * @author tudou
  */
-public class StreamConf implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class StreamConf extends FlinkxCommonConf {
 
     //reader
     private List<Long> sliceRecordCount;
