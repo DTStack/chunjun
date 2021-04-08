@@ -24,6 +24,8 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
@@ -165,11 +167,11 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    public void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         if (config.getRestore().isRestore() && !config.getRestore().isStream()){
             if(lastRow != null){
                 readyCheckpoint = !ObjectUtils.equals(lastRow.getField(config.getRestore().getRestoreColumnIndex()),
-                        row.getField(config.getRestore().getRestoreColumnIndex()));
+                        ((GenericRowData)row).getField(config.getRestore().getRestoreColumnIndex()));
             }
         }
 
@@ -382,7 +384,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      * @param row 要写入的数据
      * @throws WriteRecordException 脏数据异常
      */
-    protected abstract void writeSingleRecordToFile(Row row) throws WriteRecordException;
+    protected abstract void writeSingleRecordToFile(RowData row) throws WriteRecordException;
 
     /**
      * 每个通道写完数据后关闭资源前创建结束标制

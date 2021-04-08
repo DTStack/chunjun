@@ -20,7 +20,8 @@ package com.dtstack.flinkx.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.StringUtils;
 
@@ -36,10 +37,11 @@ import java.util.Map;
 public class RowUtil {
     static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-    public static String rowToJson(Row row, String[] colName) {
+    public static String rowToJson(RowData rowData, String[] colName) {
         Preconditions.checkNotNull(colName);
         Map<String,Object> map = new LinkedHashMap<>(colName.length);
 
+        GenericRowData row = (GenericRowData)rowData;
         for(int i = 0; i < colName.length; ++i) {
             String key = colName[i];
             Object value = row.getField(i);
@@ -55,7 +57,7 @@ public class RowUtil {
      * @param writeDelimiter 分隔符
      * @return 字符串
      */
-    public static String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+    public static String rowToStringWithDelimiter(RowData row, String writeDelimiter) {
         if(row == null){
             return "";
         }else{
@@ -64,7 +66,7 @@ public class RowUtil {
                 if (i > 0) {
                     sb.append(writeDelimiter);
                 }
-                sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+                sb.append(StringUtils.arrayAwareToString(((GenericRowData)row).getField(i)));
             }
             return sb.toString();
         }

@@ -23,6 +23,7 @@ import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.DeploymentOptions;
 import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
@@ -39,6 +40,8 @@ import javax.annotation.Nonnull;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+
+import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
  * The LocalStreamEnvironment is a StreamExecutionEnvironment that runs the program locally,
@@ -86,6 +89,7 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
      * @param configuration The configuration used to configure the local executor.
      */
     public MyLocalStreamEnvironment(@Nonnull Configuration configuration) {
+        super(validateAndGetConfiguration(configuration));
         if (!ExecutionEnvironment.areExplicitEnvironmentsAllowed()) {
             throw new InvalidProgramException(
                     "The LocalStreamEnvironment cannot be used when submitting a program through a client, " +
@@ -93,6 +97,18 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         }
         this.configuration = configuration;
         setParallelism(1);
+    }
+
+    private static Configuration validateAndGetConfiguration(final Configuration configuration) {
+        if (!ExecutionEnvironment.areExplicitEnvironmentsAllowed()) {
+            throw new InvalidProgramException(
+                    "The LocalStreamEnvironment cannot be used when submitting a program through a client, "
+                            + "or running in a TestEnvironment context.");
+        }
+        final Configuration effectiveConfiguration = new Configuration(checkNotNull(configuration));
+        effectiveConfiguration.set(DeploymentOptions.TARGET, "local");
+        effectiveConfiguration.set(DeploymentOptions.ATTACHED, true);
+        return effectiveConfiguration;
     }
 
     @Override

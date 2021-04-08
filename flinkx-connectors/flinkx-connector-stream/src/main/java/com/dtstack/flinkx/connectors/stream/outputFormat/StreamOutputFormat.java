@@ -22,7 +22,9 @@ import com.dtstack.flinkx.connectors.stream.conf.StreamConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.RowUtil;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
+
+import java.io.IOException;
 
 /**
  * OutputFormat for stream writer
@@ -33,7 +35,12 @@ import org.apache.flink.types.Row;
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
     private StreamConf streamConf;
-    protected Row lastRow;
+    protected RowData lastRow;
+
+    @Override
+    public void open(int taskNumber, int numTasks) throws IOException {
+
+    }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -41,7 +48,12 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) {
+    public void writeRecord(RowData rowData) {
+        writeSingleRecordInternal(rowData);
+    }
+
+    @Override
+    protected void writeSingleRecordInternal(RowData row) {
         if (streamConf.isPrint()) {
             LOG.info("subTaskIndex[{}]:{}", taskNumber, RowUtil.rowToStringWithDelimiter(row, streamConf.getWriteDelimiter()));
         }
@@ -50,7 +62,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() {
-        for (Row row : rows) {
+        for (RowData row : rows) {
             writeSingleRecordInternal(row);
         }
         if(rows.size() > 1){

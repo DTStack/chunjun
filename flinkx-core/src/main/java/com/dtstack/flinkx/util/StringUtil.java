@@ -23,7 +23,8 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -199,7 +200,7 @@ public class StringUtil {
     }
 
 
-    public static String row2string(Row row, List<String> columnTypes, String delimiter) throws WriteRecordException {
+    public static String row2string(RowData row, List<String> columnTypes, String delimiter) throws WriteRecordException {
         // convert row to string
         int cnt = row.getArity();
         StringBuilder sb = new StringBuilder(128);
@@ -211,7 +212,7 @@ public class StringUtil {
                     sb.append(delimiter);
                 }
 
-                Object column = row.getField(i);
+                Object column = ((GenericRowData)row).getField(i);
 
                 if(column == null) {
                     continue;

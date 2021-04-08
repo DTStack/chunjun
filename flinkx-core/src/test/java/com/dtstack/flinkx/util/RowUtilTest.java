@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.GenericRowData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,7 +30,7 @@ public class RowUtilTest {
 
     @Test
     public void testRowToJson() {
-        Row row = new Row(2);
+        GenericRowData row = new GenericRowData(2);
         row.setField(0, 1);
         row.setField(1, "val");
         String result = RowUtil.rowToJson(row, new String[]{"col1", "col2"});

@@ -41,10 +41,10 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -64,7 +64,7 @@ import java.util.Objects;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Tuple2<Boolean, Row>> implements CleanupWhenUnsuccessful {
+public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<RowData> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -83,7 +83,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     protected int batchSize = 1;
 
     /** 存储用于批量写入的数据 */
-    protected List<Row> rows = new ArrayList<>();
+    protected List<RowData> rows = new ArrayList<>();
 
     /** 总记录数 */
     protected LongCounter numWriteCounter;
@@ -298,7 +298,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
     }
 
-    protected void writeSingleRecord(Row row) {
+    protected void writeSingleRecord(RowData row) {
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
@@ -330,7 +330,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         return false;
     }
 
-    private void saveErrorData(Row row, WriteRecordException e){
+    private void saveErrorData(RowData row, WriteRecordException e){
         errCounter.add(1);
 
         String errMsg = ExceptionUtil.getErrorMessage(e);
@@ -345,7 +345,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
     }
 
-    private void updateStatisticsOfDirtyData(Row row, WriteRecordException e){
+    private void updateStatisticsOfDirtyData(RowData row, WriteRecordException e){
         if(dirtyDataManager != null) {
             String errorType = dirtyDataManager.writeData(row, e);
             if (WriteErrorTypes.ERR_NULL_POINTER.equals(errorType)){
@@ -360,7 +360,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
     }
 
-    protected String recordConvertDetailErrorMessage(int pos, Row row) {
+    protected String recordConvertDetailErrorMessage(int pos, RowData row) {
         return getClass().getName() + " WriteRecord error: when converting field[" + pos + "] in Row(" + row + ")";
     }
 
@@ -370,7 +370,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
      * @param row 数据
      * @throws WriteRecordException
      */
-    protected abstract void writeSingleRecordInternal(Row row) throws WriteRecordException;
+    protected abstract void writeSingleRecordInternal(RowData row) throws WriteRecordException;
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
@@ -406,17 +406,12 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     }
 
     @Override
-    public void writeRecord(Tuple2<Boolean, Row> rowData) {
-        Boolean change = rowData.f0;
-        if (!change) {
-            return;
-        }
-        Row row = rowData.f1;
+    public void writeRecord(RowData rowData) {
 //        Row internalRow = setChannelInfo(row);
         if(batchSize <= 1) {
-            writeSingleRecord(row);
+            writeSingleRecord(rowData);
         } else {
-            rows.add(row);
+            rows.add(rowData);
             if(rows.size() == batchSize) {
                 writeRecordInternal();
             }
@@ -424,14 +419,14 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
         updateDuration();
         if(bytesWriteCounter!=null){
-            bytesWriteCounter.add(row.toString().getBytes().length);
+            bytesWriteCounter.add(rowData.toString().getBytes().length);
         }
     }
 
-    private Row setChannelInfo(Row row){
-        Row internalRow = new Row(row.getArity() - 1);
+    private RowData setChannelInfo(RowData row){
+        GenericRowData internalRow = new GenericRowData(row.getArity() - 1);
         for (int i = 0; i < internalRow.getArity(); i++) {
-            internalRow.setField(i, row.getField(i));
+            internalRow.setField(i, ((GenericRowData)row).getField(i));
         }
         return internalRow;
     }
