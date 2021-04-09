@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.stream.table;
 
 import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -28,13 +27,13 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
-import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
+import com.dtstack.flinkx.constants.LookupConstant;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -61,7 +60,9 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        return new HashSet<>();
+        Set<ConfigOption<?>> optionalOptions = new HashSet<>();
+        optionalOptions.add(LookupConstant.CACHE);
+        return optionalOptions;
     }
 
     @Override
@@ -75,27 +76,38 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         validateConfigOptions(config);
 
         // 3.封装参数
-        StreamSinkConf streamSinkConf = StreamSinkConf
+        StreamSinkConf sinkConf = StreamSinkConf
                 .builder()
-                .setType(context.getCatalogTable().getSchema().toPhysicalRowDataType())
                 .setPrintIdentifier(config.get(PRINT_IDENTIFIER))
                 .setStdErr(config.get(STANDARD_ERROR));
 
-        return new StreamDynamicTableSink(streamSinkConf);
+        return new StreamDynamicTableSink(
+                sinkConf,
+                context.getCatalogTable().getSchema().toPhysicalRowDataType());
     }
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
+        // 2.参数校验
         helper.validate();
         validateConfigOptions(config);
+
+        // 3.封装参数
+        StreamLookupConf lookupConf = (StreamLookupConf) StreamLookupConf
+                .build()
+                .setTableName(context.getObjectIdentifier().getObjectName())
+                .setCache(config.get(LookupConstant.CACHE))
+                .setCacheSize(1000L)
+                .setPeriod(3600 * 1000L);
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new StreamDynamicTableSource(physicalSchema);
+        return new StreamDynamicTableSource(lookupConf, physicalSchema);
     }
 
     /**
@@ -104,28 +116,6 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
      * @param config
      */
     private void validateConfigOptions(ReadableConfig config) {
-        checkAllOrNone(config, new ConfigOption[]{
-                ConfigOptions.key("username")
-                        .stringType()
-                        .noDefaultValue(),
-                ConfigOptions.key("password")
-                        .stringType()
-                        .noDefaultValue()
-        });
-    }
-
-    private void checkAllOrNone(ReadableConfig config, ConfigOption<?>[] configOptions) {
-        int presentCount = 0;
-        for (ConfigOption configOption : configOptions) {
-            if (config.getOptional(configOption).isPresent()) {
-                presentCount++;
-            }
-        }
-        String[] propertyNames =
-                Arrays.stream(configOptions).map(ConfigOption::key).toArray(String[]::new);
-        Preconditions.checkArgument(
-                configOptions.length == presentCount || presentCount == 0,
-                "Either all or none of the following options should be provided:\n"
-                        + String.join("\n", propertyNames));
+        // 抽出一个工具类，和BaseRichInputFormatBuilder中的finish都是校验参数
     }
 }

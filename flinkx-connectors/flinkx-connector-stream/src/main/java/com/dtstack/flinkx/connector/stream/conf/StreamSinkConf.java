@@ -18,27 +18,14 @@
 
 package com.dtstack.flinkx.connector.stream.conf;
 
-import org.apache.flink.table.types.DataType;
-
 /**
  * @author chuixue
  * @create 2021-04-09 10:08
  * @description 这里是StreamSink特有的参数
  **/
 public class StreamSinkConf extends StreamConf {
-    // todo 所有sink都需要，就是结果表的字段名称和类型。需要放到最上层的sink中
-    private DataType type;
     private String printIdentifier;
     private boolean stdErr;
-
-    public DataType getType() {
-        return type;
-    }
-
-    public StreamSinkConf setType(DataType type) {
-        this.type = type;
-        return this;
-    }
 
     public String getPrintIdentifier() {
         return printIdentifier;
@@ -65,7 +52,6 @@ public class StreamSinkConf extends StreamConf {
     @Override
     public String toString() {
         return "StreamSinkConf{" +
-                "type=" + type +
                 ", printIdentifier='" + printIdentifier + '\'' +
                 ", stdErr=" + stdErr +
                 '}';

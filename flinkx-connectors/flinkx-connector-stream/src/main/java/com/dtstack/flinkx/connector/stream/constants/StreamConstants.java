@@ -41,4 +41,5 @@ public class StreamConstants {
                     .defaultValue(false)
                     .withDescription(
                             "True, if the format should print to standard error instead of standard out.");
+
 }

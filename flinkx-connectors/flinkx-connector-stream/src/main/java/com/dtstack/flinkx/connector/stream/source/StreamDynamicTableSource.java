@@ -26,10 +26,14 @@ import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.stream.lookup.StreamAllLookupFunction;
+import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
+import com.dtstack.flinkx.connector.stream.lookup.StreamAllLookupFunctionAll;
 import com.dtstack.flinkx.connector.stream.lookup.StreamLruLookupFunction;
+import com.dtstack.flinkx.enums.CacheType;
 
 /**
  * @author chuixue
@@ -40,23 +44,43 @@ import com.dtstack.flinkx.connector.stream.lookup.StreamLruLookupFunction;
 public class StreamDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private TableSchema physicalSchema;
-    private String cache = "LRU";
+    private StreamLookupConf lookupConf;
 
-    public StreamDynamicTableSource(TableSchema physicalSchema) {
+    public StreamDynamicTableSource(StreamLookupConf lookupConf, TableSchema physicalSchema) {
+        this.lookupConf = lookupConf;
         this.physicalSchema = physicalSchema;
     }
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        if("LRU".equalsIgnoreCase(cache)){
-            return AsyncTableFunctionProvider.of(new StreamLruLookupFunction());
+
+        String[] keyNames = new String[context.getKeys().length];
+        for (int i = 0; i < keyNames.length; i++) {
+            int[] innerKeyArr = context.getKeys()[i];
+            Preconditions.checkArgument(
+                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
+            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
         }
-        return TableFunctionProvider.of(new StreamAllLookupFunction());
+        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
+            return AsyncTableFunctionProvider.of(new StreamLruLookupFunction(
+                    lookupConf,
+                    physicalSchema.getFieldNames(),
+                    physicalSchema.getFieldDataTypes(),
+                    keyNames
+            ));
+        }
+        return TableFunctionProvider.of(new StreamAllLookupFunctionAll(
+                lookupConf,
+                physicalSchema.getFieldNames(),
+                physicalSchema.getFieldDataTypes(),
+                keyNames));
     }
 
     @Override
     public ChangelogMode getChangelogMode() {
-        return null;
+        return ChangelogMode.insertOnly();
     }
 
     @Override
@@ -67,7 +91,7 @@ public class StreamDynamicTableSource implements ScanTableSource, LookupTableSou
 
     @Override
     public DynamicTableSource copy() {
-        return new StreamDynamicTableSource(this.physicalSchema);
+        return new StreamDynamicTableSource(this.lookupConf, this.physicalSchema);
     }
 
     @Override

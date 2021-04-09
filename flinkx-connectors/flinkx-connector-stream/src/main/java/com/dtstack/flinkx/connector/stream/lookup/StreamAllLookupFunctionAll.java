@@ -18,23 +18,19 @@
 
 package com.dtstack.flinkx.connector.stream.lookup;
 
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
-import com.dtstack.flinkx.lookup.BaseLruTableFunction;
-
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import com.dtstack.flinkx.lookup.BaseAllTableFunction;
 
 /**
  * @author chuixue
- * @create 2021-04-09 09:40
- * @description 异步lru维表
+ * @create 2021-04-09 09:38
+ * @description todo 参考flinkStreamSql v1.12的lookup模块
  **/
-public class StreamLruLookupFunction extends BaseLruTableFunction {
+public class StreamAllLookupFunctionAll extends BaseAllTableFunction {
 
-    public StreamLruLookupFunction(
+    public StreamAllLookupFunctionAll(
             StreamLookupConf lookupConf,
             String[] fieldNames,
             DataType[] fieldTypes,
@@ -43,18 +39,7 @@ public class StreamLruLookupFunction extends BaseLruTableFunction {
     }
 
     @Override
-    public void handleAsyncInvoke(
-            CompletableFuture<Collection<RowData>> future,
-            Object... keys) throws Exception {
-        System.out.println(keys);
-    }
-
-    @Override
-    protected void fillDataWapper(
-            Object sideInput,
-            String[] sideFieldNames,
-            String[] sideFieldTypes,
-            RowData row) {
-
+    protected void loadData(Object cacheRef) {
+        // 具体的数据库加载数据
     }
 }

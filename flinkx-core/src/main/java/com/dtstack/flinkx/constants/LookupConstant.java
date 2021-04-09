@@ -16,30 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.lookup;
+package com.dtstack.flinkx.constants;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.functions.TableFunction;
+import org.apache.flink.configuration.ConfigOption;
+
+import static org.apache.flink.configuration.ConfigOptions.key;
 
 /**
  * @author chuixue
- * @create 2021-04-09 09:38
- * @description 全量维表
+ * @create 2021-04-09 13:31
+ * @description
  **/
-public class StreamAllLookupFunction extends TableFunction<RowData> {
+public class LookupConstant {
+    public static final ConfigOption<String> CACHE =
+            key("cache")
+                    .stringType()
+                    .defaultValue("LRU")
+                    .withDescription("lookup table cache type");
 
-    @Override
-    public void open(FunctionContext context) throws Exception {
-
-    }
-
-    public void eval(Object... keys) {
-
-    }
-
-    @Override
-    public void close() throws Exception {
-
-    }
+    public static final ConfigOption<Integer> CACHE_SIZE =
+            key("cacheSize")
+                    .intType()
+                    .defaultValue(10000)
+                    .withDescription("lookup table cache size");
 }

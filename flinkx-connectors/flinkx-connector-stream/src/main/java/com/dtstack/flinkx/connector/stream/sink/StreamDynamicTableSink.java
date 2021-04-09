@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.stream.sink;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.types.DataType;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
@@ -32,10 +33,13 @@ import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilde
  **/
 
 public class StreamDynamicTableSink implements DynamicTableSink {
-    private final StreamSinkConf streamSinkConf;
 
-    public StreamDynamicTableSink(StreamSinkConf streamSinkConf) {
-        this.streamSinkConf = streamSinkConf;
+    private StreamSinkConf sinkConf;
+    private DataType type;
+
+    public StreamDynamicTableSink(StreamSinkConf sinkConf, DataType type) {
+        this.sinkConf = sinkConf;
+        this.type = type;
     }
 
     @Override
@@ -46,20 +50,20 @@ public class StreamDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
 
-        // 一些其他参数的封装
-        streamSinkConf.setPrint(false);
+        // 一些其他参数的封装,如果有
+        sinkConf.setPrint(false);
 
         StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
                 .builder()
-                .setStreamSinkConf(streamSinkConf)
-                .setConverter(context.createDataStructureConverter(streamSinkConf.getType()));
+                .setStreamSinkConf(sinkConf)
+                .setConverter(context.createDataStructureConverter(type));
 
         return SinkFunctionProvider.of(new StreamSinkFunction(builder.finish()), 1);
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new StreamDynamicTableSink(streamSinkConf);
+        return new StreamDynamicTableSink(sinkConf, type);
     }
 
     @Override
