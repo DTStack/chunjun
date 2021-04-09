@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.stream.util;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -79,7 +80,7 @@ public class MockDataUtil {
             case "binary":
                 String str = JMockData.mock(String.class, mockConfig);
                 mockData = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));break;
-            default: mockData = JMockData.mock(String.class);break;
+            default: mockData = StringData.fromString(JMockData.mock(String.class));break;
         }
 
         return mockData;
@@ -87,6 +88,7 @@ public class MockDataUtil {
 
     public static RowData getMockRow(List<FieldConf> columns){
         GenericRowData mockRow = new GenericRowData(RowKind.INSERT, columns.size());
+        mockRow.setRowKind(RowKind.INSERT);
         for (int i = 0; i < columns.size(); i++) {
             if(columns.get(i).getValue() != null){
                 if("null".equalsIgnoreCase(columns.get(i).getValue())){
@@ -95,7 +97,7 @@ public class MockDataUtil {
                     mockRow.setField(i,getField(columns.get(i).getValue(), columns.get(i).getType()));
                 }
             } else {
-                mockRow.setField(i,mockData(columns.get(i).getType()));
+                mockRow.setField(i, mockData(columns.get(i).getType()));
             }
         }
 
