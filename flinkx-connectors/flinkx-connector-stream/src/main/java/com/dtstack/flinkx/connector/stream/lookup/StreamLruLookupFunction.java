@@ -16,36 +16,30 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.outputFormat;
+package com.dtstack.flinkx.connector.stream.lookup;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.AsyncTableFunction;
+import org.apache.flink.table.functions.FunctionContext;
+
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * The builder of StreamOutputFormat
- *
- * @author jiangbo
- * @Company: www.dtstack.com
- */
-public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private StreamOutputFormat format;
-
-    public StreamOutputFormatBuilder() {
-        super.format = format = new StreamOutputFormat();
+ * @author chuixue
+ * @create 2021-04-09 09:40
+ * @description 异步lru维表
+ **/
+public class StreamLruLookupFunction extends AsyncTableFunction<RowData> {
+    @Override
+    public void open(FunctionContext context) throws Exception {
+        super.open(context);
     }
 
-    public StreamOutputFormatBuilder setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
-        return this;
-    }
-
-    public static StreamOutputFormatBuilder builder(){
-        return new StreamOutputFormatBuilder();
+    public void eval(CompletableFuture<Collection<RowData>> resultFuture, Object... inputs) {
     }
 
     @Override
-    protected void checkFormat() {
+    public void close() throws Exception {
     }
 }

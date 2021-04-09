@@ -18,46 +18,37 @@
 
 package com.dtstack.flinkx.connector.stream.table;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
-import com.dtstack.flinkx.connector.stream.sink.StreamSinkFunction;
-
 import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;
 import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
-import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
+import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
+import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.apache.flink.configuration.ConfigOptions.key;
+import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.PRINT_IDENTIFIER;
+import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.STANDARD_ERROR;
 
 /**
  * @author chuixue
  * @create 2021-04-08 11:56
  * @description
  **/
-public class StreamDynamicTableFactory implements DynamicTableSinkFactory {
+public class StreamDynamicTableFactory implements DynamicTableSinkFactory, DynamicTableSourceFactory {
     public static final String IDENTIFIER = "stream";
-
-    public static final ConfigOption<String> PRINT_IDENTIFIER =
-            key("print-identifier")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription(
-                            "Message that identify print and is prefixed to the output of the value.");
-
-    public static final ConfigOption<Boolean> STANDARD_ERROR =
-            key("standard-error")
-                    .booleanType()
-                    .defaultValue(false)
-                    .withDescription(
-                            "True, if the format should print to standard error instead of standard out.");
 
     @Override
     public String factoryIdentifier() {
@@ -77,53 +68,66 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory {
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
         FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
         helper.validate();
-        ReadableConfig options = helper.getOptions();
-        return new StreamDynamicTableSink(
-                context.getCatalogTable().getSchema().toPhysicalRowDataType(),
-                options.get(PRINT_IDENTIFIER),
-                options.get(STANDARD_ERROR)
-        );
+        validateConfigOptions(config);
+
+        // 3.封装参数
+        StreamSinkConf streamSinkConf = StreamSinkConf
+                .builder()
+                .setType(context.getCatalogTable().getSchema().toPhysicalRowDataType())
+                .setPrintIdentifier(config.get(PRINT_IDENTIFIER))
+                .setStdErr(config.get(STANDARD_ERROR))
+                .setWriter(new PrintSinkOutputWriter<>());
+
+        return new StreamDynamicTableSink(streamSinkConf);
     }
 
-    private static class StreamDynamicTableSink implements DynamicTableSink {
-        private final DataType type;
-        private final String printIdentifier;
-        private final boolean stdErr;
+    @Override
+    public DynamicTableSource createDynamicTableSource(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        final ReadableConfig config = helper.getOptions();
 
-        private StreamDynamicTableSink(DataType type, String printIdentifier, boolean stdErr) {
-            this.type = type;
-            this.printIdentifier = printIdentifier;
-            this.stdErr = stdErr;
+        helper.validate();
+        validateConfigOptions(config);
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
+        return new StreamDynamicTableSource(physicalSchema);
+    }
+
+    /**
+     * 参数校验，如：必填参数不能空、格式必须对，可选参数如果填了格式必须对、大小范围不能越界等
+     *
+     * @param config
+     */
+    private void validateConfigOptions(ReadableConfig config) {
+        checkAllOrNone(config, new ConfigOption[]{
+                ConfigOptions.key("username")
+                        .stringType()
+                        .noDefaultValue(),
+                ConfigOptions.key("password")
+                        .stringType()
+                        .noDefaultValue()
+        });
+    }
+
+    private void checkAllOrNone(ReadableConfig config, ConfigOption<?>[] configOptions) {
+        int presentCount = 0;
+        for (ConfigOption configOption : configOptions) {
+            if (config.getOptional(configOption).isPresent()) {
+                presentCount++;
+            }
         }
-
-        @Override
-        public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
-            return requestedMode;
-        }
-
-        @Override
-        public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-            DataStructureConverter converter = context.createDataStructureConverter(type);
-            StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-            StreamConf streamConf = new StreamConf();
-            streamConf.setPrint(true);
-            builder.setStreamConf(streamConf)
-                    .setConverter(converter)
-                    .setWriter(new PrintSinkOutputWriter<>(printIdentifier, stdErr));
-
-            StreamSinkFunction sinkFunction = new StreamSinkFunction(builder.finish());
-            return SinkFunctionProvider.of(sinkFunction, 1);
-        }
-
-        @Override
-        public DynamicTableSink copy() {
-            return new StreamDynamicTableSink(type, printIdentifier, stdErr);
-        }
-
-        @Override
-        public String asSummaryString() {
-            return "Stream to ";
-        }
+        String[] propertyNames =
+                Arrays.stream(configOptions).map(ConfigOption::key).toArray(String[]::new);
+        Preconditions.checkArgument(
+                configOptions.length == presentCount || presentCount == 0,
+                "Either all or none of the following options should be provided:\n"
+                        + String.join("\n", propertyNames));
     }
 }

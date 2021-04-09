@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.stream.sink;
 
 import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
@@ -27,19 +26,13 @@ import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunctio
 /**
  * @author chuixue
  * @create 2021-04-08 20:27
- * @description
+ * @description 包含数据的处理逻辑、数据的cp逻辑都抽到父类中，如果父类满足所有需求，则没必要写该类
  **/
 public class StreamSinkFunction extends DtOutputFormatSinkFunction<RowData> {
     private static final long serialVersionUID = 1L;
 
-    public StreamSinkFunction(
-            OutputFormat format) {
+    public StreamSinkFunction(OutputFormat<RowData> format) {
         super(format);
-    }
-
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        super.open(parameters);
     }
 
     @Override

@@ -27,6 +27,7 @@ import java.util.List;
  * Company: www.dtstack.com
  *
  * @author tudou
+ * 这里是Stream公共的参数
  */
 public class StreamConf extends FlinkxCommonConf {
 
@@ -54,7 +55,7 @@ public class StreamConf extends FlinkxCommonConf {
         this.column = column;
     }
 
-    public boolean isPrint() {
+    public boolean getPrint() {
         return print;
     }
 

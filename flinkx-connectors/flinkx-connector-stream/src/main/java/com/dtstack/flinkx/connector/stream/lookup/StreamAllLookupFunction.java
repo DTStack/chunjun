@@ -16,36 +16,30 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.outputFormat;
+package com.dtstack.flinkx.connector.stream.lookup;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.functions.TableFunction;
 
 /**
- * The builder of StreamOutputFormat
- *
- * @author jiangbo
- * @Company: www.dtstack.com
- */
-public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+ * @author chuixue
+ * @create 2021-04-09 09:38
+ * @description 全量维表
+ **/
+public class StreamAllLookupFunction extends TableFunction<RowData> {
 
-    private StreamOutputFormat format;
+    @Override
+    public void open(FunctionContext context) throws Exception {
 
-    public StreamOutputFormatBuilder() {
-        super.format = format = new StreamOutputFormat();
     }
 
-    public StreamOutputFormatBuilder setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
-        return this;
-    }
+    public void eval(Object... keys) {
 
-    public static StreamOutputFormatBuilder builder(){
-        return new StreamOutputFormatBuilder();
     }
 
     @Override
-    protected void checkFormat() {
+    public void close() throws Exception {
+
     }
 }
