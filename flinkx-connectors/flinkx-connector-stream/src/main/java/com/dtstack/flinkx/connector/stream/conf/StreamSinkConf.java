@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.conf;
 
-import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;
-import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.types.DataType;
 
 /**
@@ -30,11 +28,8 @@ import org.apache.flink.table.types.DataType;
 public class StreamSinkConf extends StreamConf {
     // todo 所有sink都需要，就是结果表的字段名称和类型。需要放到最上层的sink中
     private DataType type;
-    // todo 根据DataType将BinaryRowData转成GenericRowData。需要放到最上层的sink中
-    private DynamicTableSink.DataStructureConverter converter;
     private String printIdentifier;
     private boolean stdErr;
-    private PrintSinkOutputWriter<String> writer;
 
     public DataType getType() {
         return type;
@@ -63,24 +58,6 @@ public class StreamSinkConf extends StreamConf {
         return this;
     }
 
-    public DynamicTableSink.DataStructureConverter getConverter() {
-        return converter;
-    }
-
-    public StreamSinkConf setConverter(DynamicTableSink.DataStructureConverter converter) {
-        this.converter = converter;
-        return this;
-    }
-
-    public PrintSinkOutputWriter<String> getWriter() {
-        return writer;
-    }
-
-    public StreamSinkConf setWriter(PrintSinkOutputWriter<String> writer) {
-        this.writer = writer;
-        return this;
-    }
-
     public static StreamSinkConf builder() {
         return new StreamSinkConf();
     }
@@ -91,8 +68,6 @@ public class StreamSinkConf extends StreamConf {
                 "type=" + type +
                 ", printIdentifier='" + printIdentifier + '\'' +
                 ", stdErr=" + stdErr +
-                ", converter=" + converter +
-                ", writer=" + writer +
                 '}';
     }
 }

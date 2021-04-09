@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
+import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
@@ -27,6 +28,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.RowUtil;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * OutputFormat for stream writer
@@ -40,11 +42,12 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     // sinkconf属性
     private StreamSinkConf streamSinkConf;
     // 该类内部自己的需要的变量
+    private DynamicTableSink.DataStructureConverter converter;
     private RowData lastRow;
 
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        streamSinkConf.getWriter().open(taskNumber, numTasks);
+
     }
 
     @Override
@@ -60,9 +63,9 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData value) {
         String rowKind = value.getRowKind().shortString();
-        Object data = streamSinkConf.getConverter().toExternal(value);
-        LOG.info(rowKind + "(" + data + ")");
-        // streamSinkConf.getWriter().write(rowKind + "(" + data + ")");
+        if (Objects.nonNull(converter)) {
+            LOG.info(rowKind + "(" + converter.toExternal(value) + ")");
+        }
         if (streamSinkConf.getPrint()) {
             LOG.info(
                     "subTaskIndex[{}]:{}",
@@ -95,5 +98,9 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     public void setStreamConf(StreamConf streamConf) {
         this.streamSinkConf = (StreamSinkConf) streamConf;
+    }
+
+    public void setConverter(DynamicTableSink.DataStructureConverter converter) {
+        this.converter = converter;
     }
 }

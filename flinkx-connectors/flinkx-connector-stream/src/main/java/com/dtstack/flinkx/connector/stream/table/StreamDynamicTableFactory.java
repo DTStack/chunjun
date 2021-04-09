@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.table;
 
-import org.apache.flink.api.common.functions.util.PrintSinkOutputWriter;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.ReadableConfig;
@@ -80,8 +79,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
                 .builder()
                 .setType(context.getCatalogTable().getSchema().toPhysicalRowDataType())
                 .setPrintIdentifier(config.get(PRINT_IDENTIFIER))
-                .setStdErr(config.get(STANDARD_ERROR))
-                .setWriter(new PrintSinkOutputWriter<>());
+                .setStdErr(config.get(STANDARD_ERROR));
 
         return new StreamDynamicTableSink(streamSinkConf);
     }

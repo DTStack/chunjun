@@ -45,15 +45,14 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        DataStructureConverter converter = context.createDataStructureConverter(streamSinkConf.getType());
 
         // 一些其他参数的封装
-        streamSinkConf.setConverter(converter)
-                .setPrint(false);
+        streamSinkConf.setPrint(false);
 
         StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
                 .builder()
-                .setStreamConf(streamSinkConf);
+                .setStreamConf(streamSinkConf)
+                .setConverter(context.createDataStructureConverter(streamSinkConf.getType()));
 
         return SinkFunctionProvider.of(new StreamSinkFunction(builder.finish()), 1);
     }
