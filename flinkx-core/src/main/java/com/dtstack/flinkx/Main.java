@@ -190,7 +190,7 @@ public class Main {
                 config.setRemotePluginPath(options.getRemotePluginPath());
             }
         }catch (Exception e){
-           LOG.error(e.getMessage());
+           LOG.info("parse json failed, current job is sql.");
         }
         return config;
     }

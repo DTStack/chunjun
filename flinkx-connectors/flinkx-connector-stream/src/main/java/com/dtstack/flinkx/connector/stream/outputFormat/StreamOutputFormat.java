@@ -26,7 +26,6 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.RowUtil;
 
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -38,25 +37,15 @@ import java.util.Objects;
  */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
-    // sinkconf属性
+    // streamSinkConf属性
     private StreamSinkConf streamSinkConf;
     // 该类内部自己的需要的变量
     private DynamicTableSink.DataStructureConverter converter;
     private RowData lastRow;
 
     @Override
-    public void open(int taskNumber, int numTasks) {
-
-    }
-
-    @Override
     protected void openInternal(int taskNumber, int numTasks) {
         // do nothing
-    }
-
-    @Override
-    public void writeRecord(RowData rowData) {
-        writeSingleRecordInternal(rowData);
     }
 
     @Override
@@ -78,9 +67,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() {
         for (RowData row : rows) {
             writeSingleRecordInternal(row);
-        }
-        if (rows.size() > 1) {
-            lastRow = rows.get(rows.size() - 1);
         }
     }
 

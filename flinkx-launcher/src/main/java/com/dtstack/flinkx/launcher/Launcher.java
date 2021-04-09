@@ -17,15 +17,6 @@
  */
 package com.dtstack.flinkx.launcher;
 
-import com.dtstack.flinkx.config.ContentConfig;
-import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
-import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.JsonModifyUtil;
-import com.dtstack.flinkx.util.SysUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
@@ -33,7 +24,15 @@ import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.classloader.PluginUtil;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
+import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.util.JsonModifyUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +40,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * FlinkX commandline Launcher
@@ -144,24 +143,18 @@ public class Launcher {
         List<URL> urlList = new ArrayList<>();
 
         String jobJson = readJob(content);
-        DataTransferConfig config = DataTransferConfig.parse(jobJson);
-
-        Preconditions.checkNotNull(pluginRoot);
-
-        ContentConfig contentConfig = config.getJob().getContent().get(0);
-        String readerName = contentConfig.getReader().getName().toLowerCase();
-        File readerDir = new File(pluginRoot + File.separator + readerName);
-        String writerName = contentConfig.getWriter().getName().toLowerCase();
-        File writerDir = new File(pluginRoot + File.separator + writerName);
-        File commonDir = new File(pluginRoot + File.separator + "common");
-
+        SyncConf config;
         try {
-            urlList.addAll(SysUtil.findJarsInDir(readerDir));
-            urlList.addAll(SysUtil.findJarsInDir(writerDir));
-            urlList.addAll(SysUtil.findJarsInDir(commonDir));
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            config = SyncConf.parseJob(jobJson);
+        }catch (Exception e){
+            return urlList;
         }
+
+        Set<URL> sourceUrlList = PluginUtil.getJarFileDirPath(config.getReader().getName(), pluginRoot, null);
+        Set<URL> sinkUrlList = PluginUtil.getJarFileDirPath(config.getWriter().getName(), pluginRoot, null);
+
+        urlList.addAll(sourceUrlList);
+        urlList.addAll(sinkUrlList);
 
         return urlList;
     }

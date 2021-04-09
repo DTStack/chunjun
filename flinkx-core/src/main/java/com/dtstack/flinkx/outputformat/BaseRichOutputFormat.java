@@ -389,7 +389,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
 
         updateDuration();
-        if(bytesWriteCounter!=null){
+        if(bytesWriteCounter != null){
             bytesWriteCounter.add(rowData.toString().getBytes().length);
         }
     }
@@ -451,7 +451,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     }
 
     private void updateDuration(){
-        if(durationCounter!=null){
+        if(durationCounter != null){
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }

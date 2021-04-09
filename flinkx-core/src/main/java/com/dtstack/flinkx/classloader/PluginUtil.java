@@ -41,10 +41,10 @@ import java.util.Set;
  */
 public class PluginUtil {
 
-    private static final String READER_SUFFIX = "reader";
-    private static final String SOURCE_SUFFIX = "source";
-    private static final String WRITER_SUFFIX = "writer";
-    private static final String SINK_SUFFIX = "sink";
+    public static final String READER_SUFFIX = "reader";
+    public static final String SOURCE_SUFFIX = "source";
+    public static final String WRITER_SUFFIX = "writer";
+    public static final String SINK_SUFFIX = "sink";
 
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
 
@@ -58,7 +58,7 @@ public class PluginUtil {
 
     /**
      * 根据插件名称查找插件路径
-     * @param pluginName kafka、stream等
+     * @param pluginName 插件名称，如: kafkareader、kafkasource等
      * @param pluginRoot
      * @param remotePluginPath
      * @return
@@ -67,12 +67,16 @@ public class PluginUtil {
         Set<URL> urlList = new HashSet<>();
 
         String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
+        String name = pluginName.replace(READER_SUFFIX, "")
+                .replace(SOURCE_SUFFIX, "")
+                .replace(WRITER_SUFFIX, "")
+                .replace(SINK_SUFFIX, "");
 
         try {
-            String pluginJarPath = pluginRoot + SP + pluginName;
+            String pluginJarPath = pluginRoot + SP + name;
             // 获取jar包名字，构建对应的URL地址
             for (String jarName : getJarNames(new File(pluginJarPath))) {
-                urlList.add(new URL(FILE_PREFIX + pluginPath + SP + pluginName + SP + jarName));
+                urlList.add(new URL(FILE_PREFIX + pluginPath + SP + name + SP + jarName));
             }
             return urlList;
         } catch (MalformedURLException e) {
@@ -130,16 +134,13 @@ public class PluginUtil {
     }
 
     public static void registerPluginUrlToCachedFile(SyncConf config, StreamExecutionEnvironment env) {
-        String readerPluginName = config.getReader().getName().replace(READER_SUFFIX, "").replace(SOURCE_SUFFIX, "");
-        Set<URL> readerUrlList = PluginUtil.getJarFileDirPath(readerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
-
-        String writerPluginName = config.getWriter().getName().replace(WRITER_SUFFIX, "").replace(SINK_SUFFIX, "");
-        Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
-
         Set<URL> urlSet = new HashSet<>();
 
-        urlSet.addAll(readerUrlList);
-        urlSet.addAll(writerUrlList);
+        Set<URL> sourceUrlList = PluginUtil.getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> sinkUrlList = PluginUtil.getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
+
+        urlSet.addAll(sourceUrlList);
+        urlSet.addAll(sinkUrlList);
 
         int i = 0;
         for (URL url : urlSet) {
