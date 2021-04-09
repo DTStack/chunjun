@@ -20,7 +20,6 @@
 package com.dtstack.flinkx.outputformat;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.restore.FormatState;
@@ -35,7 +34,7 @@ import java.io.IOException;
  */
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
-    protected Row lastRow;
+    protected RowData lastRowData;
 
     protected String currentBlockFileNamePrefix;
 
@@ -166,17 +165,17 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void writeSingleRecordInternal(RowData row) throws WriteRecordException {
+    public void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
 //        if (config.getRestore().isRestore() && !config.getRestore().isStream()){
 //            if(lastRow != null){
 //                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(config.getRestore().getRestoreColumnIndex()),
-//                        ((GenericRowData)row).getField(config.getRestore().getRestoreColumnIndex()));
+//                        ((GenericRowData)rowData).getField(config.getRestore().getRestoreColumnIndex()));
 //            }
 //        }
 
         checkSize();
 
-        writeSingleRecordToFile(row);
+        writeSingleRecordToFile(rowData);
 
         lastWriteTime = System.currentTimeMillis();
     }
@@ -381,10 +380,10 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     /**
      * 单条数据写入文件
      *
-     * @param row 要写入的数据
+     * @param rowData 要写入的数据
      * @throws WriteRecordException 脏数据异常
      */
-    protected abstract void writeSingleRecordToFile(RowData row) throws WriteRecordException;
+    protected abstract void writeSingleRecordToFile(RowData rowData) throws WriteRecordException;
 
     /**
      * 每个通道写完数据后关闭资源前创建结束标制

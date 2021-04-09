@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.stream.inputFormat;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.MockDataUtil;
@@ -50,7 +50,7 @@ public class StreamInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public Row nextRecordInternal(Row row) {
+    public RowData nextRecordInternal(RowData rowData) {
         return MockDataUtil.getMockRow(streamConf.getColumn());
     }
 

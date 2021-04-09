@@ -18,18 +18,19 @@
 
 package com.dtstack.flinkx.util;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
-import org.apache.flink.shaded.guava18.com.google.common.base.Splitter;
 import org.apache.flink.table.api.Types;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.utils.TypeConversions;
-import org.apache.flink.types.Row;
+
+import org.apache.flink.shaded.guava18.com.google.common.base.Splitter;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 import static org.apache.flink.table.api.DataTypes.DECIMAL;
 import static org.apache.flink.table.api.DataTypes.TIMESTAMP;
@@ -166,25 +166,6 @@ public class DataTypeUtil {
         }
 
         return types;
-    }
-
-    /**
-     * class 转成 TypeInformation<Row>
-     *
-     * @param fieldTypes
-     * @param fieldClasses
-     * @return
-     */
-    public static TypeInformation<Row> getRowTypeInformation(String[] fieldTypes, Class<?>[] fieldClasses) {
-        TypeInformation[] types =
-            IntStream.range(0, fieldClasses.length)
-                .mapToObj(i -> {
-                    return TypeInformation.of(fieldClasses[i]);
-                })
-                .toArray(TypeInformation[]::new);
-
-
-        return new RowTypeInfo(types, fieldTypes);
     }
 
 

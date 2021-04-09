@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -200,9 +201,9 @@ public class StringUtil {
     }
 
 
-    public static String row2string(RowData row, List<String> columnTypes, String delimiter) throws WriteRecordException {
-        // convert row to string
-        int cnt = row.getArity();
+    public static String row2string(RowData rowData, List<String> columnTypes, String delimiter) throws WriteRecordException {
+        // convert rowData to string
+        int cnt = rowData.getArity();
         StringBuilder sb = new StringBuilder(128);
 
         int i = 0;
@@ -212,7 +213,7 @@ public class StringUtil {
                     sb.append(delimiter);
                 }
 
-                Object column = ((GenericRowData)row).getField(i);
+                Object column = ((GenericRowData)rowData).getField(i);
 
                 if(column == null) {
                     continue;
@@ -221,8 +222,8 @@ public class StringUtil {
                 sb.append(col2string(column, columnTypes.get(i)));
             }
         } catch(Exception ex) {
-            String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + row + ")";
-            throw new WriteRecordException(msg, ex, i, row);
+            String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + rowData + ")";
+            throw new WriteRecordException(msg, ex, i, rowData);
         }
 
         return sb.toString();

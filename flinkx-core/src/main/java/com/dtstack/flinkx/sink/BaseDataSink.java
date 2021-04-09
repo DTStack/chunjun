@@ -20,14 +20,9 @@ package com.dtstack.flinkx.sink;
 
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.sinks.RetractStreamTableSink;
-import org.apache.flink.table.sinks.TableSink;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -36,7 +31,6 @@ import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-import com.dtstack.flinkx.util.DataTypeUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,11 +45,10 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
+public abstract class BaseDataSink {
 
-    protected TableSchema tableSchema;
     protected SyncConf syncConf;
-    protected TypeInformation<Row> typeInformation;
+    protected TypeInformation<RowData> typeInformation;
 
     @SuppressWarnings("unchecked")
     public BaseDataSink(SyncConf syncConf) {
@@ -68,19 +61,10 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
         this.syncConf = syncConf;
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
-            typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
+            typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getRowTypeInformation(syncConf.getReader().getFieldList());
-            tableSchema = TableSchema.builder()
-                    .fields(syncConf.getReader().getFieldNameList().toArray(new String[0]), DataTypeUtil.getFieldTypes(
-                            syncConf.getReader().getFieldClassList()))
-                    .build();
+            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
         }
-    }
-
-    @Override
-    public DataStreamSink<?> consumeDataStream(DataStream<Tuple2<Boolean, Row>> dataStream) {
-        return writeData(dataStream);
     }
 
     /**
@@ -89,10 +73,10 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
      * @param dataSet read data flow
      * @return write data flow
      */
-    public abstract DataStreamSink<Tuple2<Boolean, Row>> writeData(DataStream<Tuple2<Boolean, Row>> dataSet);
+    public abstract DataStreamSink<RowData> writeData(DataStream<RowData> dataSet);
 
     @SuppressWarnings("unchecked")
-    protected DataStreamSink<Tuple2<Boolean, Row>> createOutput(DataStream<Tuple2<Boolean, Row>> dataSet, OutputFormat outputFormat, String sinkName) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
@@ -101,13 +85,13 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
                 .getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1));
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
-        DataStreamSink<Tuple2<Boolean, Row>> dataStreamSink = dataSet.addSink(sinkFunction);
+        DataStreamSink<RowData> dataStreamSink = dataSet.addSink(sinkFunction);
         dataStreamSink.name(sinkName);
 
         return dataStreamSink;
     }
 
-    protected DataStreamSink<Tuple2<Boolean, Row>> createOutput(DataStream<Tuple2<Boolean, Row>> dataSet, OutputFormat outputFormat) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
@@ -131,25 +115,5 @@ public abstract class BaseDataSink implements RetractStreamTableSink<Row> {
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
-    }
-
-    @Override
-    public TableSchema getTableSchema() {
-        return this.tableSchema;
-    }
-
-    @Override
-    public TableSink<Tuple2<Boolean, Row>> configure(String[] fieldNames, TypeInformation<?>[] fieldTypes) {
-        return this;
-    }
-
-    @Override
-    public TupleTypeInfo<Tuple2<Boolean, Row>> getOutputType() {
-        return new TupleTypeInfo(org.apache.flink.table.api.Types.BOOLEAN(), getRecordType());
-    }
-
-    @Override
-    public TypeInformation<Row> getRecordType() {
-        return getTableSchema().toRowType();
     }
 }

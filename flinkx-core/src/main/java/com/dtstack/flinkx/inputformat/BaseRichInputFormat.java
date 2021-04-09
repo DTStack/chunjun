@@ -20,11 +20,12 @@ package com.dtstack.flinkx.inputformat;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
+import org.apache.flink.api.common.io.RichInputFormat;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
@@ -52,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author jiangbo
  */
-public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
+public abstract class BaseRichInputFormat extends RichInputFormat<RowData, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -226,11 +227,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     }
 
     @Override
-    public Row nextRecord(Row row) throws IOException {
+    public RowData nextRecord(RowData rowData) throws IOException {
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
-        Row internalRow = nextRecordInternal(row);
+        RowData internalRow = nextRecordInternal(rowData);
         if(internalRow != null){
             updateDuration();
             if(numReadCounter !=null ){
@@ -258,11 +259,11 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     /**
      * 由子类实现，读取一条数据
      *
-     * @param row 需要创建和填充的数据
+     * @param rowData 需要创建和填充的数据
      * @return 读取的数据
      * @throws IOException 读取异常
      */
-    protected abstract Row nextRecordInternal(Row row) throws IOException;
+    protected abstract RowData nextRecordInternal(RowData rowData) throws IOException;
 
     @Override
     public void close() {

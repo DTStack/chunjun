@@ -21,7 +21,6 @@ package com.dtstack.flinkx.connector.stream.outputFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
@@ -46,7 +45,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     private RowData lastRow;
 
     @Override
-    public void open(int taskNumber, int numTasks) throws IOException {
+    public void open(int taskNumber, int numTasks) {
 
     }
 
@@ -61,18 +60,18 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData value) {
-        String rowKind = value.getRowKind().shortString();
+    protected void writeSingleRecordInternal(RowData rowData) {
+        String rowKind = rowData.getRowKind().shortString();
         if (Objects.nonNull(converter)) {
-            LOG.info(rowKind + "(" + converter.toExternal(value) + ")");
+            LOG.info(rowKind + "(" + converter.toExternal(rowData) + ")");
         }
         if (streamSinkConf.getPrint()) {
             LOG.info(
                     "subTaskIndex[{}]:{}",
                     taskNumber,
-                    RowUtil.rowToStringWithDelimiter(value, streamSinkConf.getWriteDelimiter()));
+                    RowUtil.rowToStringWithDelimiter(rowData, streamSinkConf.getWriteDelimiter()));
         }
-        lastRow = value;
+        lastRow = rowData;
     }
 
     @Override
@@ -96,8 +95,8 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         return super.getFormatState();
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        this.streamSinkConf = (StreamSinkConf) streamConf;
+    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
+        this.streamSinkConf = streamSinkConf;
     }
 
     public void setConverter(DynamicTableSink.DataStructureConverter converter) {

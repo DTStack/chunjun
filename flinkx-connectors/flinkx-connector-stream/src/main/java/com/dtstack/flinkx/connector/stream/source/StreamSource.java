@@ -19,7 +19,7 @@ package com.dtstack.flinkx.connector.stream.source;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
@@ -43,7 +43,7 @@ public class StreamSource extends BaseDataSource {
     }
 
     @Override
-    public DataStream<Row> readData() {
+    public DataStream<RowData> readData() {
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
         builder.setStreamConf(streamConf);
 

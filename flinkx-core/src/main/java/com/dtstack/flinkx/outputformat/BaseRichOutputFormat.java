@@ -277,19 +277,19 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
     }
 
-    protected void writeSingleRecord(RowData row) {
+    protected void writeSingleRecord(RowData rowData) {
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
 
         try {
-            writeSingleRecordInternal(row);
+            writeSingleRecordInternal(rowData);
 
             numWriteCounter.add(1);
 //            snapshotWriteCounter.add(1);
         } catch(WriteRecordException e) {
-            saveErrorData(row, e);
-            updateStatisticsOfDirtyData(row, e);
+            saveErrorData(rowData, e);
+            updateStatisticsOfDirtyData(rowData, e);
             // 总记录数加1
             numWriteCounter.add(1);
             snapshotWriteCounter.add(1);
@@ -298,7 +298,7 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
                 LOG.error(e.getMessage());
             }
             if(DtLogger.isEnableTrace()){
-                LOG.trace("write error row, row = {}, e = {}", row.toString(), ExceptionUtil.getErrorMessage(e));
+                LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
             }
         }
     }
@@ -307,24 +307,24 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         return false;
     }
 
-    private void saveErrorData(RowData row, WriteRecordException e){
+    private void saveErrorData(RowData rowData, WriteRecordException e){
         errCounter.add(1);
 
         String errMsg = ExceptionUtil.getErrorMessage(e);
         int pos = e.getColIndex();
         if (pos != -1) {
-            errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
+            errMsg += recordConvertDetailErrorMessage(pos, e.getRowData());
         }
 
         if(errorLimiter != null) {
             errorLimiter.setErrMsg(errMsg);
-            errorLimiter.setErrorData(row);
+            errorLimiter.setErrorData(rowData);
         }
     }
 
-    private void updateStatisticsOfDirtyData(RowData row, WriteRecordException e){
+    private void updateStatisticsOfDirtyData(RowData rowData, WriteRecordException e){
         if(dirtyDataManager != null) {
-            String errorType = dirtyDataManager.writeData(row, e);
+            String errorType = dirtyDataManager.writeData(rowData, e);
             if (WriteErrorTypes.ERR_NULL_POINTER.equals(errorType)){
                 nullErrCounter.add(1);
             } else if(WriteErrorTypes.ERR_FORMAT_TRANSFORM.equals(errorType)){
@@ -337,17 +337,17 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
     }
 
-    protected String recordConvertDetailErrorMessage(int pos, RowData row) {
-        return getClass().getName() + " WriteRecord error: when converting field[" + pos + "] in Row(" + row + ")";
+    protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
+        return getClass().getName() + " WriteRecord error: when converting field[" + pos + "] in Row(" + rowData + ")";
     }
 
     /**
      * 写出单条数据
      *
-     * @param row 数据
+     * @param rowData 数据
      * @throws WriteRecordException
      */
-    protected abstract void writeSingleRecordInternal(RowData row) throws WriteRecordException;
+    protected abstract void writeSingleRecordInternal(RowData rowData) throws WriteRecordException;
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();

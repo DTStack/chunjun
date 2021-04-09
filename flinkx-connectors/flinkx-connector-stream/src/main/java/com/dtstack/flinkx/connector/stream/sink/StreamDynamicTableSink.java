@@ -51,7 +51,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
         StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
                 .builder()
-                .setStreamConf(streamSinkConf)
+                .setStreamSinkConf(streamSinkConf)
                 .setConverter(context.createDataStructureConverter(streamSinkConf.getType()));
 
         return SinkFunctionProvider.of(new StreamSinkFunction(builder.finish()), 1);

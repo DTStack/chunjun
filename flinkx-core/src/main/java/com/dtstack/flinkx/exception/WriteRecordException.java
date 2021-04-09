@@ -29,20 +29,20 @@ import org.apache.flink.table.data.RowData;
 public class WriteRecordException extends Exception {
 
     private int colIndex = -1;
-    private RowData row;
+    private RowData rowData;
 
     public int getColIndex() {
         return colIndex;
     }
 
-    public RowData getRow() {
-        return row;
-    }
-
-    public WriteRecordException(String message, Throwable cause, int colIndex, RowData row) {
+    public WriteRecordException(String message, Throwable cause, int colIndex, RowData rowData) {
         super(message, cause);
         this.colIndex = colIndex;
-        this.row = row;
+        this.rowData = rowData;
+    }
+
+    public RowData getRowData() {
+        return rowData;
     }
 
     public WriteRecordException(String message, Throwable cause) {

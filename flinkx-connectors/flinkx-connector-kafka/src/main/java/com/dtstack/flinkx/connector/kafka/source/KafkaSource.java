@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.kafka.source;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
@@ -53,11 +53,14 @@ public class KafkaSource extends BaseDataSource {
     }
 
     @Override
-    public DataStream<Row> readData() {
+    public DataStream<RowData> readData() {
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
-        FlinkKafkaConsumer<Row> consumer = new FlinkKafkaConsumer<>(kafkaConf.getTopic(), new RowDeserializationSchema(kafkaConf.getCodec(), typeInformation), props);
+        FlinkKafkaConsumer<RowData> consumer = new FlinkKafkaConsumer<>(
+                kafkaConf.getTopic(),
+                new RowDeserializationSchema(kafkaConf.getCodec(), typeInformation),
+                props);
         switch (kafkaConf.getMode()){
             case EARLIEST:
                 consumer.setStartFromEarliest();

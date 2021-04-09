@@ -23,7 +23,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -48,7 +48,7 @@ public abstract class BaseDataSource {
 
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
-    protected TypeInformation<Row> typeInformation;
+    protected TypeInformation<RowData> typeInformation;
 
     protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
@@ -56,9 +56,9 @@ public abstract class BaseDataSource {
         this.syncConf = syncConf;
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
-            typeInformation = TableUtil.getRowTypeInformation(Collections.emptyList());
+            typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getRowTypeInformation(syncConf.getReader().getFieldList());
+            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
         }
     }
 
@@ -67,10 +67,10 @@ public abstract class BaseDataSource {
      *
      * @return DataStream
      */
-    public abstract DataStream<Row> readData();
+    public abstract DataStream<RowData> readData();
 
     @SuppressWarnings("unchecked")
-    protected DataStream<Row> createInput(InputFormat inputFormat, String sourceName) {
+    protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
 //        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
@@ -78,12 +78,12 @@ public abstract class BaseDataSource {
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<Row> createInput(RichParallelSourceFunction<Row> function, String sourceName) {
+    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<Row> createInput(InputFormat inputFormat) {
+    protected DataStream<RowData> createInput(InputFormat inputFormat) {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 

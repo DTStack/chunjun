@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
+import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 /**
@@ -37,9 +38,9 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
-    public StreamOutputFormatBuilder setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
+    public StreamOutputFormatBuilder setStreamSinkConf(StreamSinkConf streamSinkConf) {
+        super.setConfig(streamSinkConf);
+        format.setStreamSinkConf(streamSinkConf);
         return this;
     }
 

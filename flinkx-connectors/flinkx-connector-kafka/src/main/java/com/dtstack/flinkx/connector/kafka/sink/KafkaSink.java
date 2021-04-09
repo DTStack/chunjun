@@ -17,10 +17,9 @@
  */
 package com.dtstack.flinkx.connector.kafka.sink;
 
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
@@ -50,7 +49,7 @@ public class KafkaSink extends BaseDataSink {
     }
 
     @Override
-    public DataStreamSink<Tuple2<Boolean, Row>> writeData(DataStream<Tuple2<Boolean, Row>> dataSet) {
+    public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
         Properties props = new Properties();
         props.putAll(kafkaConf.getProducerSettings());
 //        FlinkKafkaProducer kafkaProducer = new FlinkKafkaProducer(kafkaConf.getTopic(), serializationMetricWrapper, props, Optional.of(new CustomerFlinkPartition<>()), KafkaUtil.getPartitionKeys(kafkaConf.getPartitionKeys()));

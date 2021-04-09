@@ -19,11 +19,9 @@ package com.dtstack.flinkx;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.typeutils.RowTypeInfo;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -31,7 +29,6 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.environment.LocalStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
@@ -39,8 +36,8 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.types.Row;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.PluginUtil;
@@ -58,6 +55,7 @@ import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.source.DataSourceFactory;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
@@ -130,26 +128,22 @@ public class Main {
         if(config != null){
             SpeedConf speed = config.getSpeed();
             BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
-            DataStream<Row> sourceDataStream = dataReader.readData();
+            DataStream<RowData> sourceDataStream = dataReader.readData();
             if(speed.getReaderChannel() > 0){
-                sourceDataStream = ((DataStreamSource<Row>) sourceDataStream).setParallelism(speed.getReaderChannel());
+                sourceDataStream = ((DataStreamSource<RowData>) sourceDataStream).setParallelism(speed.getReaderChannel());
             }
-            DataStream<Tuple2<Boolean, Row>> dataStream;
+            DataStream<RowData> dataStream;
             boolean transformer = config.getTransformer() != null && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
             if(transformer){
                 Table sourceTable = tableEnv.fromDataStream(sourceDataStream, String.join(",", config.getReader().getFieldNameList()));
                 tableEnv.registerTable(config.getReader().getTable().getTableName(), sourceTable);
 
                 Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
-                RowTypeInfo typeInfo = new RowTypeInfo(adaptTable.getSchema().getFieldTypes(), adaptTable.getSchema().getFieldNames());
-                dataStream = tableEnv.toRetractStream(adaptTable, typeInfo);
+                TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(adaptTable.getSchema().getFieldDataTypes(), adaptTable.getSchema().getFieldNames());
+                dataStream = tableEnv.toRetractStream(adaptTable, typeInformation).map(f->f.f1);
+                tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
             }else{
-                dataStream = sourceDataStream.map(new MapFunction<Row, Tuple2<Boolean, Row>>() {
-                            @Override
-                            public Tuple2<Boolean, Row> map(Row value) {
-                                return new Tuple2<>(true,value);
-                            }
-                        });
+                dataStream = sourceDataStream;
             }
 
             if (speed.isRebalance()) {
@@ -157,16 +151,13 @@ public class Main {
             }
 
             BaseDataSink dataWriter = DataSinkFactory.getDataSink(config);
-            if(transformer){
-                ((StreamTableEnvironmentImpl)tableEnv).registerTableSinkInternal(config.getWriter().getTable().getTableName(), dataWriter);
-            }
-            DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
+            DataStreamSink<RowData> dataStreamSink = dataWriter.writeData(dataStream);
             if(speed.getWriterChannel() > 0){
                 dataStreamSink.setParallelism(speed.getWriterChannel());
             }
 
             JobExecutionResult result = env.execute(options.getJobName());
-            if(env instanceof LocalStreamEnvironment){
+            if(env instanceof MyLocalStreamEnvironment){
                 PrintUtil.printResult(result);
             }
         }else{

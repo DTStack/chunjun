@@ -18,12 +18,15 @@
 
 package com.dtstack.flinkx.connector.stream.util;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.github.jsonzou.jmockdata.JMockData;
 import com.github.jsonzou.jmockdata.MockConfig;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.flink.types.Row;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -82,8 +85,8 @@ public class MockDataUtil {
         return mockData;
     }
 
-    public static Row getMockRow(List<FieldConf> columns){
-        Row mockRow = new Row(columns.size());
+    public static RowData getMockRow(List<FieldConf> columns){
+        GenericRowData mockRow = new GenericRowData(RowKind.INSERT, columns.size());
         for (int i = 0; i < columns.size(); i++) {
             if(columns.get(i).getValue() != null){
                 if("null".equalsIgnoreCase(columns.get(i).getValue())){

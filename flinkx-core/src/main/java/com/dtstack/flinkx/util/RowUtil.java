@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.StringUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -53,20 +54,20 @@ public class RowUtil {
 
     /**
      * row转字符串
-     * @param row row
+     * @param rowData rowData
      * @param writeDelimiter 分隔符
      * @return 字符串
      */
-    public static String rowToStringWithDelimiter(RowData row, String writeDelimiter) {
-        if(row == null){
+    public static String rowToStringWithDelimiter(RowData rowData, String writeDelimiter) {
+        if(rowData == null){
             return "";
         }else{
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < row.getArity(); i++) {
+            for (int i = 0; i < rowData.getArity(); i++) {
                 if (i > 0) {
                     sb.append(writeDelimiter);
                 }
-                sb.append(StringUtils.arrayAwareToString(((GenericRowData)row).getField(i)));
+                sb.append(StringUtils.arrayAwareToString(((GenericRowData)rowData).getField(i)));
             }
             return sb.toString();
         }

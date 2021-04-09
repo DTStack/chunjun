@@ -17,15 +17,19 @@
  */
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
-import org.apache.flink.api.java.typeutils.RowTypeInfo;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Date: 2021/04/07
@@ -40,31 +44,30 @@ public class TableUtil {
      * @param fieldList 任务参数实体类
      * @return TypeInformation
      */
-    public static TypeInformation<Row> getRowTypeInformation(List<FieldConf> fieldList) {
+    public static TypeInformation<RowData> getTypeInformation(List<FieldConf> fieldList) {
         List<String> fieldName = fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
         if (fieldName.size() == 0) {
-            return new GenericTypeInfo<>(Row.class);
+            return new GenericTypeInfo<>(RowData.class);
         }
-        return new RowTypeInfo(getTypeInformation(fieldList), fieldName.toArray(new String[0]));
+        Class<?>[] fieldClasses = fieldList.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
+        DataType[] dataTypes = DataTypeUtil.getFieldTypes(Arrays.asList(fieldClasses));
+        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
+
+        return getTypeInformation(dataTypes, fieldNames);
     }
 
     /**
      * 获取TypeInformation
-     * @param fieldList 任务参数实体类
-     * @return TypeInformation
+     * @param dataTypes
+     * @param fieldNames
+     * @return
      */
-    public static TypeInformation[] getTypeInformation(List<FieldConf> fieldList){
-        Class<?>[] fieldClasses = fieldList.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
-        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
-
-        return IntStream.range(0, fieldClasses.length)
-                .mapToObj(i -> {
-                    if (fieldClasses[i].isArray()) {
-                        return DataTypeUtil.convertToArray(fieldTypes[i]);
-                    }
-                    return TypeInformation.of(fieldClasses[i]);
-                })
-                .toArray(TypeInformation[]::new);
+    public static TypeInformation<RowData> getTypeInformation(DataType[] dataTypes, String[] fieldNames){
+        return InternalTypeInfo.of(RowType.of(
+                Arrays.stream(dataTypes)
+                        .map(DataType::getLogicalType)
+                        .toArray(LogicalType[]::new),
+                fieldNames));
     }
 
 }

@@ -17,10 +17,11 @@
  */
 package com.dtstack.flinkx.test;
 
+import org.apache.flink.configuration.Configuration;
+
 import com.dtstack.flinkx.Main;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +44,8 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/stream/stream.json";
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream.json";
+//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
@@ -67,9 +68,9 @@ public class LocalTest {
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
             argsList.add("-pluginRoot");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
             argsList.add("-remotePluginPath");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
             argsList.add("-confProp");

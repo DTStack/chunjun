@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.sink;
 
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
@@ -25,7 +27,6 @@ import com.dtstack.flinkx.util.RowUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.table.data.RowData;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -80,8 +81,8 @@ public class DirtyDataManager {
         this.jobId = jobId;
     }
 
-    public String writeData(RowData row, WriteRecordException ex) {
-        String content = RowUtil.rowToJson(row, fieldNames);
+    public String writeData(RowData rowData, WriteRecordException ex) {
+        String content = RowUtil.rowToJson(rowData, fieldNames);
         String errorType = retrieveCategory(ex);
         String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
         try {

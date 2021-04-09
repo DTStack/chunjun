@@ -30,10 +30,10 @@ public class RowUtilTest {
 
     @Test
     public void testRowToJson() {
-        GenericRowData row = new GenericRowData(2);
-        row.setField(0, 1);
-        row.setField(1, "val");
-        String result = RowUtil.rowToJson(row, new String[]{"col1", "col2"});
+        GenericRowData rowData = new GenericRowData(2);
+        rowData.setField(0, 1);
+        rowData.setField(1, "val");
+        String result = RowUtil.rowToJson(rowData, new String[]{"col1", "col2"});
         Assert.assertEquals(result, "{\"col1\":1,\"col2\":\"val\"}");
     }
 }

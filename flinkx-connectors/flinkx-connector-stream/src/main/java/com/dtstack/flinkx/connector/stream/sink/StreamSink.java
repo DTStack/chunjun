@@ -17,13 +17,12 @@
  */
 package com.dtstack.flinkx.connector.stream.sink;
 
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -35,18 +34,18 @@ import com.dtstack.flinkx.util.GsonUtil;
  * @author tudou
  */
 public class StreamSink extends BaseDataSink {
-    private StreamConf streamConf;
+    private StreamSinkConf streamSinkConf;
 
     public StreamSink(SyncConf config) {
         super(config);
-        streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamConf.class);
-        super.initFlinkxCommonConf(streamConf);
+        streamSinkConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamSinkConf.class);
+        super.initFlinkxCommonConf(streamSinkConf);
     }
 
     @Override
-    public DataStreamSink<Tuple2<Boolean, Row>> writeData(DataStream<Tuple2<Boolean, Row>> dataSet) {
+    public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-        builder.setStreamConf(streamConf);
+        builder.setStreamSinkConf(streamSinkConf);
 
         return createOutput(dataSet, builder.finish());
     }

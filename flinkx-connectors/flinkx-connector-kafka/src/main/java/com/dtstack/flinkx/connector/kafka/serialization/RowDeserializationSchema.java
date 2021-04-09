@@ -17,13 +17,16 @@
  */
 package com.dtstack.flinkx.connector.kafka.serialization;
 
+import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
 import com.dtstack.flinkx.decoder.DecodeEnum;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
-import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.types.Row;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,18 +36,18 @@ import java.nio.charset.StandardCharsets;
  *
  * @author tudou
  */
-public class RowDeserializationSchema extends AbstractDeserializationSchema<Row> {
+public class RowDeserializationSchema extends AbstractDeserializationSchema<RowData> {
     private static final long serialVersionUID = 1L;
     private String codec;
     private transient IDecode decode;
 
-    public RowDeserializationSchema(String codec, TypeInformation<Row> typeInfo) {
+    public RowDeserializationSchema(String codec, TypeInformation<RowData> typeInfo) {
         super(typeInfo);
         this.codec = codec;
     }
 
     @Override
-    public Row deserialize(byte[] message) {
+    public RowData deserialize(byte[] message) {
         if(decode == null){
             if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
                 decode = new JsonDecoder();
@@ -52,6 +55,8 @@ public class RowDeserializationSchema extends AbstractDeserializationSchema<Row>
                 decode = new TextDecoder();
             }
         }
-        return Row.of(this.decode.decode(new String(message, StandardCharsets.UTF_8)));
+        GenericRowData row = new GenericRowData(RowKind.INSERT, 1);
+        row.setField(0, this.decode.decode(new String(message, StandardCharsets.UTF_8)));
+        return row;
     }
 }
