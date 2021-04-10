@@ -35,11 +35,11 @@ import java.util.concurrent.CompletableFuture;
 public class StreamLruLookupFunction extends BaseLruTableFunction {
 
     public StreamLruLookupFunction(
-            StreamLookupOptions lookupConf,
+            StreamLookupOptions lookupOptions,
             String[] fieldNames,
             DataType[] fieldTypes,
             String[] keyNames) {
-        super(fieldNames, fieldTypes, keyNames, lookupConf);
+        super(fieldNames, fieldTypes, keyNames, lookupOptions);
     }
 
     @Override

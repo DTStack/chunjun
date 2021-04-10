@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.stream.conf;
 
-import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 /**
