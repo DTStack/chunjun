@@ -61,9 +61,9 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
-    protected LookupOptions lookupOptions;
+    protected final LookupOptions lookupOptions;
     /** 字段类型 */
-    protected String[] fieldsName;
+    protected final String[] fieldsName;
 
     public BaseAllTableFunction(
             String[] fieldNames,
@@ -178,6 +178,8 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
      */
     @Override
     public void close() throws Exception {
-
+        if (null != es && !es.isShutdown()) {
+            es.shutdown();
+        }
     }
 }
