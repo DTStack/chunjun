@@ -16,27 +16,14 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.lookup;
+package com.dtstack.flinkx.connector.jdbc.constants;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
-import com.dtstack.flinkx.lookup.BaseAllTableFunction;
+import com.dtstack.flinkx.lookup.constants.LookUpConstants;
 
 /**
  * @author chuixue
- * @create 2021-04-09 09:38
- * @description todo 参考flinkStreamSql v1.12的lookup模块
+ * @create 2021-04-10 16:14
+ * @description JdbcLookUp common
  **/
-public class StreamAllLookupFunctionAll extends BaseAllTableFunction {
-
-    public StreamAllLookupFunctionAll(
-            StreamLookupOptions lookupOptions,
-            String[] fieldNames,
-            String[] keyNames) {
-        super(fieldNames, keyNames, lookupOptions);
-    }
-
-    @Override
-    protected void loadData(Object cacheRef) {
-        // 具体的数据库加载数据
-    }
+public class JdbcLookUpConstants extends LookUpConstants {
 }

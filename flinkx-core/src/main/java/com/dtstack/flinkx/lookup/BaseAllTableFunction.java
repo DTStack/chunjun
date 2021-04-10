@@ -26,7 +26,7 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.factory.DTThreadFactory;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -54,12 +54,6 @@ import static org.apache.flink.util.Preconditions.checkArgument;
  **/
 abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(BaseAllTableFunction.class);
-    /** 每次加载条数 */
-    protected static final int DEFAULT_FETCH_SIZE = 1000;
-    /** 重试 */
-    protected static final int CONN_RETRY_NUM = 3;
-    /** 和维表join字段的类型 */
-    protected final DataType[] keyTypes;
     /** 和维表join字段的名称 */
     protected final String[] keyNames;
     /** 缓存 */
@@ -67,39 +61,18 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
-    protected LookupConf lookupConf;
+    protected LookupOptions lookupOptions;
     /** 字段类型 */
-    private String[] fieldsType;
-    /** 字段类型 */
-    private String[] fieldsName;
+    protected String[] fieldsName;
 
     public BaseAllTableFunction(
             String[] fieldNames,
-            DataType[] fieldTypes,
             String[] keyNames,
-            LookupConf lookupConf
+            LookupOptions lookupOptions
     ) {
         this.keyNames = keyNames;
-        List<String> nameList = Arrays.asList(fieldNames);
-        this.keyTypes =
-                Arrays.stream(keyNames)
-                        .map(
-                                s -> {
-                                    checkArgument(
-                                            nameList.contains(s),
-                                            "keyName %s can't find in fieldNames %s.",
-                                            s,
-                                            nameList);
-                                    return fieldTypes[nameList.indexOf(s)];
-                                })
-                        .toArray(DataType[]::new);
-        this.lookupConf = lookupConf;
+        this.lookupOptions = lookupOptions;
         this.fieldsName = fieldNames;
-        List<String> list = Arrays
-                .stream(fieldTypes)
-                .map(x -> x.getLogicalType().toString())
-                .collect(Collectors.toList());
-        this.fieldsType = list.toArray(new String[0]);
     }
 
     /**
@@ -122,13 +95,12 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
         try {
             loadData(newCache);
         } catch (Exception e) {
-            LOG.error("", e);
             throw new RuntimeException(e);
         }
 
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupOptions.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime
                         .now());
     }
@@ -150,8 +122,8 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
         es = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
-                lookupConf.getPeriod(),
-                lookupConf.getPeriod(),
+                lookupOptions.getPeriod(),
+                lookupOptions.getPeriod(),
                 TimeUnit.MILLISECONDS);
     }
 
@@ -165,7 +137,7 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
             Map<String, Object> oneRow,
             Map<String, List<Map<String, Object>>> tmpCache) {
 
-        String cacheKey = new ArrayList<>(Arrays.asList(fieldsType))
+        String cacheKey = new ArrayList<>(Arrays.asList(keyNames))
                 .stream()
                 .map(oneRow::get)
                 .map(String::valueOf)
@@ -199,15 +171,6 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
         }
         row.setRowKind(RowKind.INSERT);
         return row;
-    }
-
-    /**
-     * 每次获取的条数
-     *
-     * @return
-     */
-    public int getFetchSize() {
-        return DEFAULT_FETCH_SIZE;
     }
 
     /**

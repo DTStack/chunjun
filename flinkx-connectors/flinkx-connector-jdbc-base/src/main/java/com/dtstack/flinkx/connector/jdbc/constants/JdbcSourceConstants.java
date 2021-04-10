@@ -16,50 +16,17 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.table;
+package com.dtstack.flinkx.connector.jdbc.constants;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
-import java.time.Duration;
-
 /**
- * Copy from flink 1.12 source
- * @program: flinkx
- * @author: wuren
- * @create: 2021/03/23
+ * @author chuixue
+ * @create 2021-04-10 16:19
+ * @description
  **/
-public class JdbcDdlOptions {
-    private JdbcDdlOptions() {}
-
-    public static final ConfigOption<String> URL =
-            ConfigOptions.key("url")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("the jdbc database url.");
-    public static final ConfigOption<String> TABLE_NAME =
-            ConfigOptions.key("table-name")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("the jdbc table name.");
-    public static final ConfigOption<String> USERNAME =
-            ConfigOptions.key("username")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("the jdbc user name.");
-    public static final ConfigOption<String> PASSWORD =
-            ConfigOptions.key("password")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("the jdbc password.");
-    public static final ConfigOption<String> DRIVER =
-            ConfigOptions.key("driver")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription(
-                            "the class name of the JDBC driver to use to connect to this URL. "
-                                    + "If not set, it will automatically be derived from the URL.");
-
+public class JdbcSourceConstants {
     // read config options
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
@@ -96,26 +63,4 @@ public class JdbcDdlOptions {
                     .withDescription(
                             "sets whether the driver is in auto-commit mode. The default value is true, per"
                                     + " the JDBC spec.");
-
-    // write config options
-    public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
-            ConfigOptions.key("sink.buffer-flush.max-rows")
-                    .intType()
-                    .defaultValue(100)
-                    .withDescription(
-                            "the flush max size (includes all append, upsert and delete records), over this number"
-                                    + " of records, will flush data. The default value is 100.");
-    public static final ConfigOption<Duration> SINK_BUFFER_FLUSH_INTERVAL =
-            ConfigOptions.key("sink.buffer-flush.interval")
-                    .durationType()
-                    .defaultValue(Duration.ofSeconds(1))
-                    .withDescription(
-                            "the flush interval mills, over this time, asynchronous threads will flush data. The "
-                                    + "default value is 1s.");
-    public static final ConfigOption<Integer> SINK_MAX_RETRIES =
-            ConfigOptions.key("sink.max-retries")
-                    .intType()
-                    .defaultValue(3)
-                    .withDescription("the max retry times if writing records to database failed.");
-
 }

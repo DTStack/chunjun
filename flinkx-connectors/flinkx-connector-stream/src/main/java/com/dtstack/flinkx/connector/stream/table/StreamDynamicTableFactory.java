@@ -28,7 +28,7 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
@@ -98,7 +98,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         validateConfigOptions(config);
 
         // 3.封装参数
-        StreamLookupConf lookupConf = (StreamLookupConf) StreamLookupConf
+        StreamLookupOptions lookupConf = (StreamLookupOptions) StreamLookupOptions
                 .build()
                 .setTableName(context.getObjectIdentifier().getObjectName())
                 .setCache(config.get(LookupConstant.CACHE))

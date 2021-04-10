@@ -13,4 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-com.dtstack.flink.connector.mysql.table.DtMysqlDynamicTableFactory
+com.dtstack.flinkx.connector.mysql.table.DtMysqlDynamicTableFactory
+com.dtstack.flinkx.connector.mysql.table.MysqlDynamicTableFactory

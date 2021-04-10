@@ -33,7 +33,7 @@ import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.cache.AbstractSideCache;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.cache.LRUSideCache;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.dtstack.flinkx.metrics.MetricConstant;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -56,8 +56,6 @@ import static org.apache.flink.util.Preconditions.checkArgument;
  **/
 abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(BaseLruTableFunction.class);
-    /** 每次加载条数 */
-    protected static final int DEFAULT_FETCH_SIZE = 1000;
     /** 和维表join字段的类型 */
     protected final DataType[] keyTypes;
     /** 和维表join字段的名称 */
@@ -67,7 +65,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     /** 缓存 */
     protected AbstractSideCache sideCache;
     /** 维表配置 */
-    protected LookupConf lookupConf;
+    protected LookupOptions lookupOptions;
     /** 字段类型 */
     private String[] fieldsType;
     /** 字段类型 */
@@ -77,7 +75,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
             String[] fieldNames,
             DataType[] fieldTypes,
             String[] keyNames,
-            LookupConf lookupConf
+            LookupOptions lookupOptions
     ) {
         this.keyNames = keyNames;
         List<String> nameList = Arrays.asList(fieldNames);
@@ -93,7 +91,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
                                     return fieldTypes[nameList.indexOf(s)];
                                 })
                         .toArray(DataType[]::new);
-        this.lookupConf = lookupConf;
+        this.lookupOptions = lookupOptions;
         this.fieldsName = fieldNames;
         List<String> list = Arrays
                 .stream(fieldTypes)
@@ -107,7 +105,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
         super.open(context);
         initCache();
         initMetric(context);
-        LOG.info("async dim table config info: {} ", lookupConf.toString());
+        LOG.info("async dim table config info: {} ", lookupOptions.toString());
     }
 
     /**
@@ -116,15 +114,15 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private void initCache() {
         if (CacheType.NONE
                 .name()
-                .equalsIgnoreCase(lookupConf.getCache())) {
+                .equalsIgnoreCase(lookupOptions.getCache())) {
             return;
         }
 
-        if (CacheType.LRU.name().equalsIgnoreCase(lookupConf.getCache())) {
-            sideCache = new LRUSideCache(lookupConf.getCacheSize(), lookupConf.getTimeOut());
+        if (CacheType.LRU.name().equalsIgnoreCase(lookupOptions.getCache())) {
+            sideCache = new LRUSideCache(lookupOptions.getCacheSize(), lookupOptions.getCacheTtl());
         } else {
             throw new RuntimeException(
-                    "not support side cache with type:" + lookupConf.getCache());
+                    "not support side cache with type:" + lookupOptions.getCache());
         }
 
         sideCache.initCache();
@@ -311,7 +309,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
      */
     protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
         parseErrorRecords.inc();
-        if (parseErrorRecords.getCount() > lookupConf.getErrorLimit()) {
+        if (parseErrorRecords.getCount() > lookupOptions.getErrorLimit()) {
             LOG.info("dealFillDataError", e);
             future.completeExceptionally(e);
         } else {
@@ -319,14 +317,6 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
         }
     }
 
-    /**
-     * 每次获取的条数
-     *
-     * @return
-     */
-    public int getFetchSize() {
-        return DEFAULT_FETCH_SIZE;
-    }
 
     /**
      * 资源释放
