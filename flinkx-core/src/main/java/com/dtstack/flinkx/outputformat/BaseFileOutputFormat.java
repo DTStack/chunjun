@@ -97,6 +97,20 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     protected long lastWriteTime = System.currentTimeMillis();
 
     @Override
+    public void initializeGlobal(int parallelism) {
+        //TODO
+        //1、创建.data目录或者删除.data目录中的数据
+        //2、overwrite模式将原有数据移动至创建的.temData目录中
+    }
+
+    @Override
+    public void finalizeGlobal(int parallelism) {
+        //TODO
+        //1、将.data目录中的数据文件移动到正式目录中，删除.data目录
+        //2、删除.temData目录
+    }
+
+    @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         initFileIndex();
         initPath();
@@ -261,8 +275,26 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 //            return formatState;
 //        }
 
+        //todo 通道文件压缩，标记需要移动到正式目录的数据文件，并将数据文件移动到正式目录
+
         return null;
     }
+
+    /**
+     * checkpoint成功时操作
+     * @param checkpointId
+     */
+    public void notifyCheckpointComplete(long checkpointId){
+        //todo 移动成功，清空标记
+    };
+
+    /**
+     * checkpoint失败时操作
+     * @param checkpointId
+     */
+    public void notifyCheckpointAborted(long checkpointId){
+        //todo 根据标记检测是否已经有文件被移动到正式目录，若有，则移动回.data目录，然后清空标记
+    };
 
     @Override
     public void closeInternal() throws IOException {
@@ -328,11 +360,6 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 //            LOG.info("Clean temporary data in method tryCleanupOnError");
 //            clearTemporaryDataFiles();
 //        }
-    }
-
-    @Override
-    protected boolean needWaitAfterCloseInternal() {
-        return true;
     }
 
     public String getPath() {

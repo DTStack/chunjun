@@ -20,6 +20,9 @@ package com.dtstack.flinkx.outputformat;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.api.common.io.FinalizeOnMaster;
+import org.apache.flink.api.common.io.InitializeOnMaster;
+import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
@@ -53,7 +56,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<RowData> implements CleanupWhenUnsuccessful {
+public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster  {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -129,8 +132,18 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
     protected boolean initAccumulatorAndDirty = true;
 
     @Override
+    public void initializeGlobal(int parallelism) {
+        //任务开始前操作，在configure前调用，overwrite by subclass
+    }
+
+    @Override
     public void configure(Configuration parameters) {
         // do nothing
+    }
+
+    @Override
+    public void finalizeGlobal(int parallelism) {
+        //任务结束后操作，overwrite by subclass
     }
 
     /**
@@ -167,17 +180,17 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
 
         initRestoreInfo();
 
-        if(needWaitBeforeOpenInternal()) {
-            beforeOpenInternal();
-            waitWhile("#1");
-        }
+//        if(needWaitBeforeOpenInternal()) {
+//            beforeOpenInternal();
+//            waitWhile("#1");
+//        }
 
 
         openInternal(taskNumber, numTasks);
-        if(needWaitBeforeWriteRecords()) {
-            beforeWriteRecords();
-            waitWhile("#2");
-        }
+//        if(needWaitBeforeWriteRecords()) {
+//            beforeWriteRecords();
+//            waitWhile("#2");
+//        }
     }
 
     private void initAccumulatorCollector(){
@@ -269,14 +282,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         }
     }
 
-    protected boolean needWaitBeforeOpenInternal() {
-        return false;
-    }
-
-    protected void beforeOpenInternal() {
-
-    }
-
     protected void writeSingleRecord(RowData rowData) {
         if(errorLimiter != null) {
             errorLimiter.acquire();
@@ -363,10 +368,6 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
-    protected void notSupportBatchWrite(String writerName) {
-        throw new UnsupportedOperationException(writerName + "不支持批量写入");
-    }
-
     protected void writeRecordInternal() {
         try {
             writeMultipleRecords();
@@ -407,17 +408,17 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
                 updateDuration();
             }
 
-            if(needWaitBeforeCloseInternal()) {
-                beforeCloseInternal();
-                waitWhile("#3");
-            }
+//            if(needWaitBeforeCloseInternal()) {
+//                beforeCloseInternal();
+//                waitWhile("#3");
+//            }
         }finally {
             try{
                 closeInternal();
-                if(needWaitAfterCloseInternal()) {
-                    afterCloseInternal();
-                    waitWhile("#4");
-                }
+//                if(needWaitAfterCloseInternal()) {
+//                    afterCloseInternal();
+//                    waitWhile("#4");
+//                }
 
                 if (outputMetric != null) {
                     outputMetric.waitForReportMetrics();
@@ -516,28 +517,20 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
         return formatState;
     }
 
+    /**
+     * checkpoint成功时操作
+     * @param checkpointId
+     */
+    public abstract void notifyCheckpointComplete(long checkpointId) throws Exception;
+
+    /**
+     * checkpoint失败时操作
+     * @param checkpointId
+     */
+    public abstract void notifyCheckpointAborted(long checkpointId) throws Exception;
+
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
-    }
-
-    protected boolean needWaitBeforeWriteRecords() {
-        return false;
-    }
-
-    protected void beforeWriteRecords() {
-        // nothing
-    }
-
-    protected boolean needWaitBeforeCloseInternal() {
-        return false;
-    }
-
-    protected void beforeCloseInternal()  {
-        // nothing
-    }
-
-    protected boolean needWaitAfterCloseInternal() {
-        return false;
     }
 
     protected void afterCloseInternal()  {

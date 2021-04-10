@@ -81,6 +81,16 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         return super.getFormatState();
     }
 
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) {
+        // do nothing
+    }
+
+    @Override
+    public void notifyCheckpointAborted(long checkpointId) {
+        // do nothing
+    }
+
     public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
         this.streamSinkConf = streamSinkConf;
     }

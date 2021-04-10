@@ -23,6 +23,7 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.io.RichOutputFormat;
+import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.OperatorStateStore;
@@ -53,7 +54,7 @@ import java.util.Map;
  * @author jiangbo
  */
 @PublicEvolving
-public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implements CheckpointedFunction, InputTypeConfigurable {
+public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
 
     private static final long serialVersionUID = 1L;
 
@@ -163,5 +164,15 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
         }
 
         LOG.info("End initialize output format state");
+    }
+
+    @Override
+    public void notifyCheckpointComplete(long checkpointId) throws Exception {
+        ((BaseRichOutputFormat) format).notifyCheckpointComplete(checkpointId);
+    }
+
+    @Override
+    public void notifyCheckpointAborted(long checkpointId) throws Exception {
+        ((BaseRichOutputFormat) format).notifyCheckpointAborted(checkpointId);
     }
 }
