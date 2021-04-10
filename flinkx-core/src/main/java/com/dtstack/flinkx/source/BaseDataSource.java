@@ -108,12 +108,4 @@ public abstract class BaseDataSource {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
     }
-
-    public SyncConf getSyncConf() {
-        return syncConf;
-    }
-
-    public void setSyncConf(SyncConf syncConf) {
-        this.syncConf = syncConf;
-    }
 }

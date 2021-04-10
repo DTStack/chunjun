@@ -37,6 +37,8 @@ import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.expressions.Expression;
+import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
@@ -135,8 +137,10 @@ public class Main {
             DataStream<RowData> dataStream;
             boolean transformer = config.getTransformer() != null && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
             if(transformer){
-                Table sourceTable = tableEnv.fromDataStream(sourceDataStream, String.join(",", config.getReader().getFieldNameList()));
-                tableEnv.registerTable(config.getReader().getTable().getTableName(), sourceTable);
+                String fieldNames = String.join(",", config.getReader().getFieldNameList());
+                List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
+                Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
+                tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
                 Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
                 TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(adaptTable.getSchema().getFieldDataTypes(), adaptTable.getSchema().getFieldNames());
