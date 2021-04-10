@@ -18,23 +18,26 @@
 
 package com.dtstack.flinkx.launcher.perJob;
 
-import com.dtstack.flinkx.launcher.YarnConfLoader;
-import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.util.MapUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.yarn.YarnClusterDescriptor;
+
+import com.dtstack.flinkx.launcher.YarnConfLoader;
+import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.util.MapUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Properties;
 
-import static com.dtstack.flinkx.launcher.Launcher.*;
+import static com.dtstack.flinkx.launcher.Launcher.MAIN_CLASS;
+import static com.dtstack.flinkx.launcher.Launcher.getCoreJarFileName;
 
 /**
  * Date: 2019/09/11
@@ -61,7 +64,7 @@ public class PerJobSubmitter {
         String pluginRoot = launcherOptions.getPluginRoot();
         File jarFile = new File(pluginRoot + File.separator + getCoreJarFileName(pluginRoot));
         clusterSpecification.setConfiguration(launcherOptions.loadFlinkConfiguration());
-        clusterSpecification.setClasspaths(analyzeUserClasspath(launcherOptions.getJob(), pluginRoot));
+        clusterSpecification.setClasspaths(Collections.emptyList());
         clusterSpecification.setEntryPointClass(MAIN_CLASS);
         clusterSpecification.setJarFile(jarFile);
 

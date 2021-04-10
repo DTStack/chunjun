@@ -18,9 +18,6 @@
 
 package org.apache.flink.yarn;
 
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.launcher.perJob.FlinkPerJobUtil;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -67,6 +64,9 @@ import org.apache.flink.yarn.entrypoint.YarnApplicationClusterEntryPoint;
 import org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint;
 import org.apache.flink.yarn.entrypoint.YarnSessionClusterEntrypoint;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.launcher.perJob.FlinkPerJobUtil;
 import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -108,7 +108,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -531,15 +530,14 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 			jobGraph = PackagedProgramUtils.createJobGraph(program, clusterSpecification.getConfiguration(), clusterSpecification.getParallelism(), false);
 			String pluginLoadMode = clusterSpecification.getConfiguration().getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
 			if(org.apache.commons.lang3.StringUtils.equalsIgnoreCase(pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)){
-				jobGraph.getClasspaths().forEach(jarFile -> {
-					try {
-						shipFiles.add(new File(jarFile.toURI()));
-					} catch (URISyntaxException e) {
-						throw new IllegalArgumentException("Couldn't add local user jar: " + jarFile
-								+ " Currently only file:/// URLs are supported.");
-					}
-				});
-				jobGraph.getClasspaths().clear();
+				List<File> fileList = jobGraph.getUserArtifacts()
+					.entrySet()
+					.stream()
+					.filter(tmp -> tmp.getKey().startsWith("class_path"))
+					.map(tmp -> new File(tmp.getValue().filePath))
+					.collect(Collectors.toList());
+				shipFiles.addAll(fileList);
+				jobGraph.getUserArtifacts().clear();
 			}
 			clusterSpecification.setJobGraph(jobGraph);
 		}

@@ -25,8 +25,6 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 
-import com.dtstack.flinkx.classloader.PluginUtil;
-import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
@@ -40,12 +38,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * FlinkX commandline Launcher
@@ -115,48 +113,44 @@ public class Launcher {
                 argList.add("-monitor");
                 argList.add("");
                 PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+                break;
+            default:
+                break;
         }
     }
 
     public static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
         String pluginRoot = launcherOptions.getPluginRoot();
-        String content = launcherOptions.getJob();
         String coreJarName = getCoreJarFileName(pluginRoot);
         File jarFile = new File(pluginRoot + File.separator + coreJarName);
-        List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
         SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
         if (StringUtils.isNotEmpty(launcherOptions.getS())) {
             savepointRestoreSettings = SavepointRestoreSettings.forPath(launcherOptions.getS());
         }
         PackagedProgram program = PackagedProgram.newBuilder()
                 .setJarFile(jarFile)
-                .setUserClassPaths(urlList)
                 .setEntryPointClassName(MAIN_CLASS)
                 .setConfiguration(launcherOptions.loadFlinkConfiguration())
                 .setSavepointRestoreSettings(savepointRestoreSettings)
                 .setArguments(remoteArgs)
                 .build();
-        return PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
-    }
-
-    public static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
-        List<URL> urlList = new ArrayList<>();
-
-        String jobJson = readJob(content);
-        SyncConf config;
-        try {
-            config = SyncConf.parseJob(jobJson);
-        }catch (Exception e){
-            return urlList;
-        }
-
-        Set<URL> sourceUrlList = PluginUtil.getJarFileDirPath(config.getReader().getName(), pluginRoot, null);
-        Set<URL> sinkUrlList = PluginUtil.getJarFileDirPath(config.getWriter().getName(), pluginRoot, null);
-
-        urlList.addAll(sourceUrlList);
-        urlList.addAll(sinkUrlList);
-
-        return urlList;
+        JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+        List<URL> pluginClassPath = jobGraph.getUserArtifacts()
+                .entrySet()
+                .stream()
+                .filter(tmp -> tmp.getKey().startsWith("class_path"))
+                .map(tmp -> new File(tmp.getValue().filePath))
+                .map(file -> {
+                    try {
+                        return file.toURI().toURL();
+                    } catch (MalformedURLException e) {
+                        LOG.error(e.getMessage());
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
+        jobGraph.setClasspaths(pluginClassPath);
+        return jobGraph;
     }
 
     private static void findDefaultConfigDir(Options launcherOptions) {
