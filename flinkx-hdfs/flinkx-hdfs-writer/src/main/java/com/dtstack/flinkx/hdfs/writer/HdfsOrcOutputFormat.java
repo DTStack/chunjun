@@ -25,6 +25,7 @@ import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
@@ -148,7 +149,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
             LOG.info("Current block file name:" + currentBlockTmpPath);
         } catch (Exception e){
-            throw new RuntimeException(e);
+            throw new RuntimeException(HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 
@@ -180,7 +181,9 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
                 lastRow = row;
             }
         } catch(IOException e) {
-            throw new WriteRecordException(String.format("数据写入hdfs异常，row:{%s}", row), e);
+            String errorMessage = HdfsUtil.parseErrorMsg(String.format("writer hdfs error，row:{%s}", row), ExceptionUtil.getErrorMessage(e));
+            LOG.error(errorMessage);
+            throw new WriteRecordException(errorMessage, e);
         }
     }
 
@@ -188,9 +191,13 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     public void flushDataInternal() throws IOException {
         LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
 
-        if (recordWriter != null){
-            recordWriter.close(Reporter.NULL);
-            recordWriter = null;
+        try {
+            if (recordWriter != null){
+                recordWriter.close(Reporter.NULL);
+                recordWriter = null;
+            }
+        } catch (IOException e) {
+            throw new IOException(HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 

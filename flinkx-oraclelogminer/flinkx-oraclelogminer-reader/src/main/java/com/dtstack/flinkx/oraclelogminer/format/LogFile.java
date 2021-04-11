@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -27,9 +28,14 @@ public class LogFile {
 
     private String fileName;
 
-    private Long firstChange;
+    private BigDecimal firstChange;
 
-    private Long nextChange;
+    private BigDecimal nextChange;
+
+    private Long thread;
+
+    /** 文件大小  **/
+    private Long bytes;
 
     public String getFileName() {
         return fileName;
@@ -39,20 +45,36 @@ public class LogFile {
         this.fileName = fileName;
     }
 
-    public Long getFirstChange() {
+    public BigDecimal getFirstChange() {
         return firstChange;
     }
 
-    public void setFirstChange(Long firstChange) {
+    public void setFirstChange(BigDecimal firstChange) {
         this.firstChange = firstChange;
     }
 
-    public Long getNextChange() {
+    public BigDecimal getNextChange() {
         return nextChange;
     }
 
-    public void setNextChange(Long nextChange) {
+    public void setNextChange(BigDecimal nextChange) {
         this.nextChange = nextChange;
+    }
+
+    public long getThread() {
+        return thread;
+    }
+
+    public void setThread(Long thread) {
+        this.thread = thread;
+    }
+
+    public Long getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(Long bytes) {
+        this.bytes = bytes;
     }
 
     @Override
@@ -61,6 +83,8 @@ public class LogFile {
                 "fileName='" + fileName + '\'' +
                 ", firstChange=" + firstChange +
                 ", nextChange=" + nextChange +
+                ", thread=" + thread +
+                ", bytes=" + bytes +
                 '}';
     }
 
@@ -77,11 +101,12 @@ public class LogFile {
         LogFile logFile = (LogFile) o;
         return Objects.equals(fileName, logFile.fileName) &&
                 Objects.equals(firstChange, logFile.firstChange) &&
+                Objects.equals(thread, logFile.thread) &&
                 Objects.equals(nextChange, logFile.nextChange);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileName, firstChange, nextChange);
+        return Objects.hash(fileName, firstChange, nextChange, thread, bytes);
     }
 }
