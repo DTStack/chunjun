@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.hdfs;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -205,5 +207,35 @@ public class HdfsUtil {
             bytes[i]=bytes[j];
             bytes[j]=t;
         }
+    }
+
+    /**
+     * 封装hdfs操作常见的异常并给出解决方法
+     * @param customizeMessage
+     * @param errorMsg
+     * @return
+     */
+    public static String parseErrorMsg(String customizeMessage, String errorMsg) {
+        StringBuilder str = new StringBuilder();
+        str.append(customizeMessage);
+        Pair<String, String> pair = null;
+        if (StringUtils.isNotBlank(customizeMessage)) {
+            str.append(customizeMessage);
+        }
+        if (StringUtils.isNotBlank(errorMsg)) {
+            if (errorMsg.contains("at org.apache.hadoop.hdfs.server.namenode.FSNamesystem.checkLease")) {
+                pair = Pair.of("The file or directory may not exist or may be inaccessible ",
+                        "make sure there is no other task operating same hdfs dir at same time");
+            }
+        }
+        if (pair != null) {
+            str.append("\nthe Cause maybe : ")
+                    .append(pair.getLeft())
+                    .append(", \nand the Solution maybe : ")
+                    .append(pair.getRight())
+                    .append(", ");
+        }
+
+        return str.toString();
     }
 }

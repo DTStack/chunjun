@@ -84,42 +84,12 @@ public class KuduInputFormat extends BaseRichInputFormat {
             if (column.getValue() != null) {
                 row.setField(i, KuduUtil.getValue(column.getValue(), type));
             } else {
-                row.setField(i, getValue(type, rowResult, column.getName()));
+                row.setField(i, rowResult.getObject(column.getName()));
             }
         }
 
         LOG.info("nextRecordInternal, numReadCounter = {}", numReadCounter.getLocalValue());
         return row;
-    }
-
-    private Object getValue(Type type, RowResult rowResult, String name) {
-        Object objValue;
-
-        if (Type.BOOL.equals(type)) {
-            objValue = rowResult.getBoolean(name);
-        } else if (Type.INT8.equals(type)) {
-            objValue = rowResult.getByte(name);
-        } else if (Type.INT16.equals(type)) {
-            objValue = rowResult.getShort(name);
-        } else if (Type.INT32.equals(type)) {
-            objValue = rowResult.getInt(name);
-        } else if (Type.INT64.equals(type)) {
-            objValue = rowResult.getLong(name);
-        } else if (Type.FLOAT.equals(type)) {
-            objValue = rowResult.getFloat(name);
-        } else if (Type.DOUBLE.equals(type)) {
-            objValue = rowResult.getDouble(name);
-        } else if (Type.DECIMAL.equals(type)) {
-            objValue = rowResult.getDecimal(name);
-        } else if (Type.BINARY.equals(type)) {
-            objValue = rowResult.getBinary(name);
-        } else if (Type.UNIXTIME_MICROS.equals(type)) {
-            objValue = rowResult.getTimestamp(name);
-        } else {
-            objValue = rowResult.getString(name);
-        }
-
-        return objValue;
     }
 
     @Override
