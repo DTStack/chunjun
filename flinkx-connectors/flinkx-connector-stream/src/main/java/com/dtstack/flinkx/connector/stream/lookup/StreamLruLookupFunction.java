@@ -39,7 +39,7 @@ public class StreamLruLookupFunction extends BaseLruTableFunction {
             String[] fieldNames,
             DataType[] fieldTypes,
             String[] keyNames) {
-        super(fieldNames, fieldTypes, keyNames, lookupOptions);
+        super(lookupOptions);
     }
 
     @Override

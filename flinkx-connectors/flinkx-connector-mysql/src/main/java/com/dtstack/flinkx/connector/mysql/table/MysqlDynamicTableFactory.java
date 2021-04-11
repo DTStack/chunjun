@@ -18,13 +18,11 @@
 
 package com.dtstack.flinkx.connector.mysql.table;
 
-import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
 import com.dtstack.flinkx.connector.mysql.source.MysqlDynamicTableSource;
@@ -44,19 +42,15 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     private static final String IDENTIFIER = "dtmysql";
 
     @Override
-    public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper =
-                FactoryUtil.createTableFactoryHelper(this, context);
-        // 1.所有的requiredOptions和optionalOptions参数
-        final ReadableConfig config = helper.getOptions();
+    protected Optional<String> getDriver() {
+        return Optional.of(MYSQL_DRIVER);
+    }
 
-        // 2.参数校验
-        helper.validate();
-        validateConfigOptions(config);
-
-        // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+    @Override
+    protected JdbcDynamicTableSource createTableSource(
+            FactoryUtil.TableFactoryHelper helper,
+            Context context,
+            TableSchema physicalSchema) {
         return new MysqlDynamicTableSource(
                 getJdbcOptions(helper.getOptions()),
                 getJdbcReadOptions(helper.getOptions()),
@@ -64,11 +58,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName()),
                 physicalSchema);
-    }
-
-    @Override
-    protected Optional<String> getDriver() {
-        return Optional.of(MYSQL_DRIVER);
     }
 
     @Override

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.jdbc.table;
 
 import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -31,6 +32,7 @@ import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbc.table.JdbcDynamicTableSink;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
@@ -70,6 +72,24 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @description
  **/
 public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+
+    @Override
+    public DynamicTableSource createDynamicTableSource(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
+        helper.validate();
+        validateConfigOptions(config);
+
+        // 3.封装参数
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
+        return createTableSource(helper, context, physicalSchema);
+    }
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
@@ -267,4 +287,18 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
      * @return
      */
     protected abstract Optional<String> getDriver();
+
+    /**
+     * create tablesource
+     *
+     * @param helper
+     * @param context
+     * @param physicalSchema
+     *
+     * @return
+     */
+    protected abstract JdbcDynamicTableSource createTableSource(
+            FactoryUtil.TableFactoryHelper helper,
+            Context context,
+            TableSchema physicalSchema);
 }
