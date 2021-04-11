@@ -209,7 +209,7 @@ bin/flinkx \
 
 <br />
 
-### Standalone模式运行
+### [Standalone模式运行任务](standaLoneQuickStart.md)
 
 命令模板：
 
