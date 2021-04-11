@@ -31,6 +31,8 @@ import com.dtstack.flinkx.connector.mysql.source.MysqlDynamicTableSource;
 
 import java.util.Optional;
 
+import static com.dtstack.flinkx.connector.mysql.constants.MysqlConstants.MYSQL_DRIVER;
+
 /**
  * @program: flinkx
  * @author: wuren
@@ -40,8 +42,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */
     private static final String IDENTIFIER = "dtmysql";
-    /** 驱动 */
-    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -68,7 +68,7 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected Optional<String> getDriver() {
-        return Optional.of(DRIVER);
+        return Optional.of(MYSQL_DRIVER);
     }
 
     @Override
