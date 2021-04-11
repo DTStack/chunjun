@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import org.apache.flink.connector.jdbc.dialect.JdbcDialects;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
@@ -103,14 +102,7 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
         this.query =
                 options.getDialect()
                         .getSelectFromStatement(options.getTableName(), fieldNames, keyNames);
-        // todo 子类重写
-        this.jdbcRowConverter = JdbcDialects
-                .get(options.getDbURL())
-                .orElseThrow(
-                        () ->
-                                new UnsupportedOperationException(
-                                        String.format("Unknown dbUrl:%s", options.getDbURL())))
-                .getRowConverter(rowType);
+        this.jdbcRowConverter = options.getDialect().getRowConverter(rowType);
     }
 
     @Override
@@ -367,7 +359,7 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
 
     @Override
     protected RowData fillDataWapper(
-            Object sideInput, String[] sideFieldNames, String[] sideFieldTypes) {
+            Object sideInput, String[] sideFieldNames) {
         GenericRowData genericRowData = new GenericRowData(sideFieldNames.length);
         JsonArray jsonArray = (JsonArray) sideInput;
         // todo 需要自定义jdbcRowConverter

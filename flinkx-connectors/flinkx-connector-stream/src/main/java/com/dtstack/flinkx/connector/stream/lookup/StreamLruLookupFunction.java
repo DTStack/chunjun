@@ -52,8 +52,7 @@ public class StreamLruLookupFunction extends BaseLruTableFunction {
     @Override
     protected RowData fillDataWapper(
             Object sideInput,
-            String[] sideFieldNames,
-            String[] sideFieldTypes) {
+            String[] sideFieldNames) {
         return null;
     }
 }

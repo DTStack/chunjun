@@ -73,8 +73,6 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     /** 维表配置 */
     protected LookupOptions lookupOptions;
     /** 字段类型 */
-    private final String[] fieldsType;
-    /** 字段类型 */
     private final String[] fieldsName;
     /** 运行环境 */
     private RuntimeContext runtimeContext;
@@ -104,11 +102,6 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
                         .toArray(DataType[]::new);
         this.lookupOptions = lookupOptions;
         this.fieldsName = fieldNames;
-        List<String> list = Arrays
-                .stream(fieldTypes)
-                .map(x -> x.getLogicalType().toString())
-                .collect(Collectors.toList());
-        this.fieldsType = list.toArray(new String[0]);
     }
 
     @Override
@@ -399,7 +392,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     }
 
     public RowData fillData(Object sideInput) {
-        return fillDataWapper(sideInput, fieldsName, fieldsType);
+        return fillDataWapper(sideInput, fieldsName);
     }
 
 
@@ -417,11 +410,9 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
      *  fill data
      * @param sideInput
      * @param sideFieldNames
-     * @param sideFieldTypes
      * @return
      */
     abstract protected RowData fillDataWapper(
             Object sideInput,
-            String[] sideFieldNames,
-            String[] sideFieldTypes);
+            String[] sideFieldNames);
 }
