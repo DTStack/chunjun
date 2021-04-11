@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.mysql;
 
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.connector.jdbc.internal.converter.MySQLRowConverter;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.util.Arrays;

@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
 import org.apache.flink.annotation.Internal;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialects;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.data.GenericRowData;
@@ -47,14 +46,7 @@ abstract public class JdbcAllTableFunction extends BaseAllTableFunction {
         this.query =
                 options.getDialect()
                         .getSelectFromStatement(options.getTableName(), fieldNames, new String[]{});
-        // todo 从子类获取
-        this.jdbcRowConverter = JdbcDialects
-                .get(options.getDbURL())
-                .orElseThrow(
-                        () ->
-                                new UnsupportedOperationException(
-                                        String.format("Unknown dbUrl:%s", options.getDbURL())))
-                .getRowConverter(rowType);
+        this.jdbcRowConverter = options.getDialect().getRowConverter(rowType);
     }
 
     @Override

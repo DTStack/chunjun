@@ -73,9 +73,9 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     /** 维表配置 */
     protected LookupOptions lookupOptions;
     /** 字段类型 */
-    private String[] fieldsType;
+    private final String[] fieldsType;
     /** 字段类型 */
-    private String[] fieldsName;
+    private final String[] fieldsName;
     /** 运行环境 */
     private RuntimeContext runtimeContext;
 
