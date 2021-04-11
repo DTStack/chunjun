@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
-import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
-
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -38,6 +34,10 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -58,10 +58,12 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SC
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_LOWER_BOUND;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_NUM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_UPPER_BOUND;
+import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_TYPE;
+import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_ERRORLIMIT;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_MAX_RETRIES;
 import static org.apache.flink.util.Preconditions.checkState;
@@ -149,7 +151,9 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL))
                 .setCache(readableConfig.get(LOOKUP_CACHE_TYPE))
                 .setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES))
-                .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE));
+                .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
+                .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
+                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT));
     }
 
     private JdbcExecutionOptions getJdbcExecutionOptions(ReadableConfig config) {

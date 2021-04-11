@@ -35,6 +35,7 @@ public class LookUpConstants {
                     .longType()
                     .defaultValue(3600 * 1000L)
                     .withDescription("all lookup type period time.");
+
     public static final ConfigOption<Long> LOOKUP_CACHE_MAX_ROWS =
             ConfigOptions.key("lookup.cache.max-rows")
                     .longType()
@@ -43,24 +44,40 @@ public class LookUpConstants {
                             "the max number of rows of lookup cache, over this value, the oldest rows will "
                                     + "be eliminated. \"cache.max-rows\" and \"cache.ttl\" options must all be specified if any of them is "
                                     + "specified. Cache is not enabled as default.");
+
     public static final ConfigOption<Long> LOOKUP_CACHE_TTL =
             ConfigOptions.key("lookup.cache.ttl")
                     .longType()
                     .defaultValue(60 * 1000L)
                     .withDescription("the cache time to live.");
+
     public static final ConfigOption<String> LOOKUP_CACHE_TYPE =
             ConfigOptions.key("lookup.cache-type")
                     .stringType()
                     .defaultValue(CacheType.LRU.name())
                     .withDescription("lookup type.");
+
     public static final ConfigOption<Integer> LOOKUP_MAX_RETRIES =
             ConfigOptions.key("lookup.max-retries")
                     .intType()
                     .defaultValue(3)
                     .withDescription("the max retry times if lookup database failed.");
+
+    public static final ConfigOption<Long> LOOKUP_ERRORLIMIT =
+            ConfigOptions.key("lookup.errorLimit")
+                    .longType()
+                    .defaultValue(Long.MAX_VALUE)
+                    .withDescription("errorLimit.");
+
     public static final ConfigOption<Integer> LOOKUP_FETCH_SIZE =
-            ConfigOptions.key("lookup.max-retries")
+            ConfigOptions.key("lookup.fetchSize")
                     .intType()
                     .defaultValue(1000)
-                    .withDescription("fetch size each times.");
+                    .withDescription("fetchSize.");
+
+    public static final ConfigOption<Integer> LOOKUP_ASYNCTIMEOUT =
+            ConfigOptions.key("lookup.asyncTimeout")
+                    .intType()
+                    .defaultValue(10000)
+                    .withDescription("asyncTimeout.");
 }
