@@ -18,15 +18,17 @@
 
 package com.dtstack.flinkx.lookup;
 
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.Counter;
+import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
-import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.enums.ECacheContentType;
@@ -35,16 +37,20 @@ import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.cache.LRUSideCache;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.dtstack.flinkx.metrics.MetricConstant;
+import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.util.Preconditions.checkArgument;
@@ -70,6 +76,11 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private String[] fieldsType;
     /** 字段类型 */
     private String[] fieldsName;
+    /** 运行环境 */
+    private RuntimeContext runtimeContext;
+
+    private static int TIMEOUT_LOG_FLUSH_NUM = 10;
+    private int timeOutNum = 0;
 
     public BaseLruTableFunction(
             String[] fieldNames,
@@ -103,8 +114,14 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
+
         initCache();
         initMetric(context);
+
+        Field field = FunctionContext.class.getDeclaredField("context");
+        field.setAccessible(true);
+        runtimeContext = (RuntimeContext) field.get(context);
+
         LOG.info("async dim table config info: {} ", lookupOptions.toString());
     }
 
@@ -216,6 +233,8 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     public void eval(
             CompletableFuture<Collection<RowData>> future,
             Object... keys) throws Exception {
+
+        // preInvoke(future, keys);
         String cacheKey = buildCacheKey(keys);
         // 缓存判断
         if (isUseCache(cacheKey)) {
@@ -318,6 +337,72 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     }
 
 
+    protected void preInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
+            throws InvocationTargetException, IllegalAccessException {
+        registerTimerAndAddToHandler(future, keys);
+    }
+
+    protected void registerTimerAndAddToHandler(
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys)
+            throws InvocationTargetException, IllegalAccessException {
+        ScheduledFuture<?> timeFuture = registerTimer(future, keys);
+        // resultFuture 是ResultHandler 的实例
+        Method setTimeoutTimer = ReflectionUtils.getDeclaredMethod(
+                future,
+                "setTimeoutTimer",
+                ScheduledFuture.class);
+        setTimeoutTimer.setAccessible(true);
+        setTimeoutTimer.invoke(future, timeFuture);
+    }
+
+    protected ScheduledFuture<?> registerTimer(
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys) {
+        long timeoutTimestamp = lookupOptions.getAsyncTimeout()
+                + getProcessingTimeService().getCurrentProcessingTime();
+        return getProcessingTimeService().registerTimer(
+                timeoutTimestamp,
+                timestamp -> timeout(future, keys));
+    }
+
+    private ProcessingTimeService getProcessingTimeService() {
+        // todo 类型不对，暂时无法设置回掉
+        return ((StreamingRuntimeContext) this.runtimeContext).getProcessingTimeService();
+    }
+
+    // todo 无法设置超时
+    public void timeout(
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys) throws Exception {
+        if (timeOutNum % TIMEOUT_LOG_FLUSH_NUM == 0) {
+            LOG.info(
+                    "Async function call has timed out. input:{}, timeOutNum:{}",
+                    keys,
+                    timeOutNum);
+        }
+        timeOutNum++;
+
+        if (timeOutNum > lookupOptions.getErrorLimit()) {
+            future.completeExceptionally(
+                    new SuppressRestartsException(
+                            new Throwable(
+                                    String.format(
+                                            "Async function call timedOutNum beyond limit. %s",
+                                            lookupOptions.getErrorLimit()
+                                    )
+                            )
+                    ));
+        } else {
+            future.complete(Collections.EMPTY_LIST);
+        }
+    }
+
+    public RowData fillData(Object sideInput) {
+        return fillDataWapper(sideInput, fieldsName, fieldsType);
+    }
+
+
     /**
      * 资源释放
      *
@@ -328,26 +413,15 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
         super.close();
     }
 
-    public RowData fillData(Object sideInput) {
-        GenericRowData row = new GenericRowData(fieldsName.length);
-        if (sideInput != null) {
-            fillDataWapper(sideInput, fieldsName, fieldsType, row);
-        }
-        row.setRowKind(RowKind.INSERT);
-        return row;
-    }
-
     /**
-     * 填充数据到Row中
-     *
-     * @param sideInput 维表数据
-     * @param sideFieldNames 维表字段名称
-     * @param sideFieldTypes 维表字段类型
-     * @param row 返回数据
+     *  fill data
+     * @param sideInput
+     * @param sideFieldNames
+     * @param sideFieldTypes
+     * @return
      */
-    abstract protected void fillDataWapper(
+    abstract protected RowData fillDataWapper(
             Object sideInput,
             String[] sideFieldNames,
-            String[] sideFieldTypes,
-            RowData row);
+            String[] sideFieldTypes);
 }

@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 /**
  * @program: flinkx
  * @author: wuren
@@ -77,6 +79,25 @@ public class MySQLDialect implements JdbcDialect {
                 getInsertIntoStatement(tableName, fieldNames)
                         + " ON DUPLICATE KEY UPDATE "
                         + updateClause);
+    }
+
+
+    @Override
+    public String getSelectFromStatement(
+            String tableName, String[] selectFields, String[] conditionFields) {
+        String selectExpressions =
+                Arrays.stream(selectFields)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        String fieldExpressions =
+                Arrays.stream(conditionFields)
+                        .map(f -> format("%s = ?", quoteIdentifier(f), f))
+                        .collect(Collectors.joining(" AND "));
+        return "SELECT "
+                + selectExpressions
+                + " FROM "
+                + quoteIdentifier(tableName)
+                + (conditionFields.length > 0 ? " WHERE " + fieldExpressions : "");
     }
 
 }

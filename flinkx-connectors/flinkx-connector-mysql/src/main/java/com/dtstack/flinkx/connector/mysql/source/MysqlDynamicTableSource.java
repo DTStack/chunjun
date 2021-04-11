@@ -18,16 +18,19 @@
 
 package com.dtstack.flinkx.connector.mysql.source;
 
+import com.dtstack.flinkx.connector.mysql.lookup.MysqlLruTableFunction;
+
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-import com.dtstack.flinkx.connector.mysql.lookup.MysqlRowDataLookupFunction;
+import com.dtstack.flinkx.connector.mysql.lookup.MysqlAllTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
@@ -59,16 +62,16 @@ public class MysqlDynamicTableSource extends JdbcDynamicTableSource {
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
         if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-//            return AsyncTableFunctionProvider.of(new MysqlRowDataLookupFunction(
-//                    options,
-//                    lookupOptions,
-//                    physicalSchema.getFieldNames(),
-//                    physicalSchema.getFieldDataTypes(),
-//                    keyNames,
-//                    rowType
-//            ));
+            return AsyncTableFunctionProvider.of(new MysqlLruTableFunction(
+                    options,
+                    lookupOptions,
+                    physicalSchema.getFieldNames(),
+                    physicalSchema.getFieldDataTypes(),
+                    keyNames,
+                    rowType
+            ));
         }
-        return TableFunctionProvider.of(new MysqlRowDataLookupFunction(
+        return TableFunctionProvider.of(new MysqlAllTableFunction(
                 options,
                 lookupOptions,
                 physicalSchema.getFieldNames(),

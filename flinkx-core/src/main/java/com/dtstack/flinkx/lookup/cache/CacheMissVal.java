@@ -16,23 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.constants;
 
-import com.dtstack.flinkx.lookup.constants.LookUpConstants;
+package com.dtstack.flinkx.lookup.cache;
 
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ConfigOptions;
+
+import com.dtstack.flinkx.enums.ECacheContentType;
 
 /**
- * @author chuixue
- * @create 2021-04-10 16:14
- * @description JdbcLookUp common
- **/
-public class JdbcLookUpConstants extends LookUpConstants {
-    // look up config options
-    public static final ConfigOption<Integer> LOOKUP_ASYNCPOOLSIZE =
-            ConfigOptions.key("lookup.asyncPoolSize")
-                    .intType()
-                    .defaultValue(5)
-                    .withDescription("all lookup type period time.");
+ * Only the data marked to dimension table miss
+ * Date: 2018/8/28
+ * Company: www.dtstack.com
+ *
+ * @author xuchao
+ */
+
+public class CacheMissVal {
+
+    private static CacheObj missObj = CacheObj.buildCacheObj(ECacheContentType.MissVal, null);
+
+    public static CacheObj getMissKeyObj() {
+        return missObj;
+    }
 }

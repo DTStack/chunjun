@@ -16,23 +16,14 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.constants;
-
-import com.dtstack.flinkx.lookup.constants.LookUpConstants;
-
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ConfigOptions;
+package com.dtstack.flinkx.connector.mysql.constants;
 
 /**
  * @author chuixue
- * @create 2021-04-10 16:14
- * @description JdbcLookUp common
+ * @create 2021-04-10 21:52
+ * @description
  **/
-public class JdbcLookUpConstants extends LookUpConstants {
-    // look up config options
-    public static final ConfigOption<Integer> LOOKUP_ASYNCPOOLSIZE =
-            ConfigOptions.key("lookup.asyncPoolSize")
-                    .intType()
-                    .defaultValue(5)
-                    .withDescription("all lookup type period time.");
+public class MysqlConstants {
+    public static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
+
 }

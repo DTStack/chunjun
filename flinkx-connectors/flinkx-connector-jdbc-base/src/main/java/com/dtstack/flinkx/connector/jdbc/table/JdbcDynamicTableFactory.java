@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -46,6 +48,7 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.PA
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.TABLE_NAME;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.URL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.USERNAME;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.LOOKUP_ASYNCPOOLSIZE;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_MAX_RETRIES;
@@ -119,8 +122,9 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
     }
 
     protected LookupOptions getJdbcLookupOptions(ReadableConfig readableConfig, String tableName) {
-        return LookupOptions
+        return JdbcLookupOptions
                 .build()
+                .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
                 .setCacheSize(readableConfig.get(LOOKUP_CACHE_MAX_ROWS))

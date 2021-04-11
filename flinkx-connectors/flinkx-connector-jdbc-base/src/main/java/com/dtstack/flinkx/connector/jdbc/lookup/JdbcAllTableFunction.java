@@ -21,18 +21,22 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
-/** A lookup function for {@link }. */
+/**
+ * A lookup function for {@link }.
+ *
+ * @author chuixue
+ */
 @Internal
-abstract public class JdbcRowDataLookupFunction extends BaseAllTableFunction {
+abstract public class JdbcAllTableFunction extends BaseAllTableFunction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcRowDataLookupFunction.class);
     private static final long serialVersionUID = 1L;
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
 
     private final JdbcOptions options;
     private final String query;
     private final JdbcRowConverter jdbcRowConverter;
 
-    public JdbcRowDataLookupFunction(
+    public JdbcAllTableFunction(
             JdbcOptions options,
             LookupOptions lookupOptions,
             String[] fieldNames,
@@ -43,6 +47,7 @@ abstract public class JdbcRowDataLookupFunction extends BaseAllTableFunction {
         this.query =
                 options.getDialect()
                         .getSelectFromStatement(options.getTableName(), fieldNames, new String[]{});
+        // todo 从子类获取
         this.jdbcRowConverter = JdbcDialects
                 .get(options.getDbURL())
                 .orElseThrow(

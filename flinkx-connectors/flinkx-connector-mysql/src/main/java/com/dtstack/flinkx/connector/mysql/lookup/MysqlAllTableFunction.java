@@ -21,7 +21,7 @@ package com.dtstack.flinkx.connector.mysql.lookup;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.lookup.JdbcRowDataLookupFunction;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.collect.Maps;
@@ -30,15 +30,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Map;
 
+import static com.dtstack.flinkx.connector.mysql.constants.MysqlConstants.MYSQL_DRIVER;
+
 /**
  * @author chuixue
  * @create 2021-04-10 14:06
  * @description
  **/
-public class MysqlRowDataLookupFunction extends JdbcRowDataLookupFunction {
-    private static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
+public class MysqlAllTableFunction extends JdbcAllTableFunction {
 
-    public MysqlRowDataLookupFunction(
+    public MysqlAllTableFunction(
             JdbcOptions options,
             LookupOptions lookupOptions,
             String[] fieldNames,

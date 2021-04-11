@@ -29,21 +29,23 @@ import java.io.Serializable;
  **/
 public class LookupOptions implements Serializable {
     /** 表名 */
-    private String tableName = "";
+    protected String tableName = "";
     /** 间隔加载时间 */
-    private long period = 3600 * 1000L;
+    protected long period = 3600 * 1000L;
     /** 缓存条数 */
-    private long cacheSize = 1000L;
+    protected long cacheSize = 1000L;
     /** 缓存时间 */
-    private long cacheTtl = 60 * 1000L;
+    protected long cacheTtl = 60 * 1000L;
     /** 缓存类型 */
-    private String cache = CacheType.LRU.name();
+    protected String cache = CacheType.LRU.name();
     /** 失败重试次数 */
-    private int maxRetryTimes = 3;
+    protected int maxRetryTimes = 3;
     /** 错误条数 */
-    private long errorLimit = Long.MAX_VALUE;
+    protected long errorLimit = Long.MAX_VALUE;
     /** 每批次加载条数 */
-    private int fetchSize = 1000;
+    protected int fetchSize = 1000;
+    /** 异步超时时长 */
+    protected int asyncTimeout = 10000;
 
     public String getTableName() {
         return tableName;
@@ -117,6 +119,15 @@ public class LookupOptions implements Serializable {
         return this;
     }
 
+    public int getAsyncTimeout() {
+        return asyncTimeout;
+    }
+
+    public LookupOptions setAsyncTimeout(int asyncTimeout) {
+        this.asyncTimeout = asyncTimeout;
+        return this;
+    }
+
     public static LookupOptions build() {
         return new LookupOptions();
     }
@@ -132,6 +143,7 @@ public class LookupOptions implements Serializable {
                 ", maxRetryTimes=" + maxRetryTimes +
                 ", errorLimit=" + errorLimit +
                 ", fetchSize=" + fetchSize +
+                ", asyncTimeout=" + asyncTimeout +
                 '}';
     }
 }

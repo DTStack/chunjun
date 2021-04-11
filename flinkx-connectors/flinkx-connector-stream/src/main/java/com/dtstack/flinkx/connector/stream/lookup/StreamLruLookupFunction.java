@@ -18,11 +18,11 @@
 
 package com.dtstack.flinkx.connector.stream.lookup;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.DataType;
-
 import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
 import com.dtstack.flinkx.lookup.BaseLruTableFunction;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.DataType;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -50,11 +50,10 @@ public class StreamLruLookupFunction extends BaseLruTableFunction {
     }
 
     @Override
-    protected void fillDataWapper(
+    protected RowData fillDataWapper(
             Object sideInput,
             String[] sideFieldNames,
-            String[] sideFieldTypes,
-            RowData row) {
-
+            String[] sideFieldTypes) {
+        return null;
     }
 }

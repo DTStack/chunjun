@@ -16,23 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.constants;
+package com.dtstack.flinkx.connector.jdbc.options;
 
-import com.dtstack.flinkx.lookup.constants.LookUpConstants;
-
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ConfigOptions;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 /**
  * @author chuixue
- * @create 2021-04-10 16:14
- * @description JdbcLookUp common
+ * @create 2021-04-10 22:10
+ * @description
  **/
-public class JdbcLookUpConstants extends LookUpConstants {
-    // look up config options
-    public static final ConfigOption<Integer> LOOKUP_ASYNCPOOLSIZE =
-            ConfigOptions.key("lookup.asyncPoolSize")
-                    .intType()
-                    .defaultValue(5)
-                    .withDescription("all lookup type period time.");
+public class JdbcLookupOptions extends LookupOptions {
+    /** vertx pool size */
+    protected int asyncPoolSize = 5;
+
+    public int getAsyncPoolSize() {
+        return asyncPoolSize;
+    }
+
+    public JdbcLookupOptions setAsyncPoolSize(int asyncPoolSize) {
+        this.asyncPoolSize = asyncPoolSize;
+        return this;
+    }
+
+    public static JdbcLookupOptions build() {
+        return new JdbcLookupOptions();
+    }
 }
