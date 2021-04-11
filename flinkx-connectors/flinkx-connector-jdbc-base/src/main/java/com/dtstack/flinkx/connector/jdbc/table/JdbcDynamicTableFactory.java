@@ -19,12 +19,12 @@
 package com.dtstack.flinkx.connector.jdbc.table;
 
 import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialects;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
@@ -36,8 +36,6 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -187,7 +185,7 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
     protected void validateConfigOptions(ReadableConfig config) {
         String jdbcUrl = config.get(URL);
-        final Optional<JdbcDialect> dialect = JdbcDialects.get(jdbcUrl);
+        final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.isPresent(), "Cannot handle such jdbc url: " + jdbcUrl);
 
         checkAllOrNone(config, new ConfigOption[]{USERNAME, PASSWORD});

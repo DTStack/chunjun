@@ -21,7 +21,6 @@ package com.dtstack.flinkx.connector.jdbc.lookup;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.DataType;
@@ -48,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
@@ -62,7 +62,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.*;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_DB_CONN_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_DB_CONN_POOL_SIZE_LIMIT;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_TASK_QUEUE_SIZE;
 /**
  * @author chuixue
  * @create 2021-04-10 21:15
@@ -130,6 +133,7 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
                 new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                 new DTThreadFactory("rdbAsyncExec"),
                 new ThreadPoolExecutor.CallerRunsPolicy());
+        LOG.info("async dim table JdbcOptions info: {} ", options.toString());
     }
 
     @Override
@@ -327,11 +331,15 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
                     List<RowData> rowList = Lists.newArrayList();
 
                     for (JsonArray line : rs.result().getResults()) {
-                        RowData row = fillData(line);
-                        if (openCache()) {
-                            cacheContent.add(line);
+                        try {
+                            RowData row = fillData(line);
+                            if (openCache()) {
+                                cacheContent.add(line);
+                            }
+                            rowList.add(row);
+                        }catch (Exception e) {
+                            LOG.error(e.getMessage() + ":" + line);
                         }
-                        rowList.add(row);
                     }
 
                     if (openCache()) {
@@ -358,13 +366,9 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
     }
 
     @Override
-    protected RowData fillDataWapper(
-            Object sideInput, String[] sideFieldNames) {
-        GenericRowData genericRowData = new GenericRowData(sideFieldNames.length);
-        JsonArray jsonArray = (JsonArray) sideInput;
-        // todo 需要自定义jdbcRowConverter
-//        GenericRowData rowData = (GenericRowData) jdbcRowConverter.toInternal(jsonArray);
-        return genericRowData;
+    protected RowData fillData(
+            Object sideInput) throws SQLException {
+        return jdbcRowConverter.toInternal((JsonArray) sideInput);
     }
 
     @Override

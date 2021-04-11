@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -115,7 +116,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
         field.setAccessible(true);
         runtimeContext = (RuntimeContext) field.get(context);
 
-        LOG.info("async dim table config info: {} ", lookupOptions.toString());
+        LOG.info("async dim table lookupOptions info: {} ", lookupOptions.toString());
     }
 
     /**
@@ -391,11 +392,6 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
         }
     }
 
-    public RowData fillData(Object sideInput) {
-        return fillDataWapper(sideInput, fieldsName);
-    }
-
-
     /**
      * 资源释放
      *
@@ -409,10 +405,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     /**
      *  fill data
      * @param sideInput
-     * @param sideFieldNames
      * @return
      */
-    abstract protected RowData fillDataWapper(
-            Object sideInput,
-            String[] sideFieldNames);
+    abstract protected RowData fillData(Object sideInput) throws SQLException ;
 }
