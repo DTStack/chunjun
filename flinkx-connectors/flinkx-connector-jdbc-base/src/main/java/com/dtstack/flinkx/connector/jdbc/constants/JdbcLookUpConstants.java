@@ -35,4 +35,65 @@ public class JdbcLookUpConstants extends LookUpConstants {
                     .intType()
                     .defaultValue(5)
                     .withDescription("all lookup type period time.");
+
+    public static final ConfigOption<Integer> MAX_TASK_QUEUE_SIZE =
+            ConfigOptions.key("MAX_TASK_QUEUE_SIZE")
+                    .intType()
+                    .defaultValue(100000)
+                    .withDescription(" lookup ");
+
+    public static final ConfigOption<Integer> DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE =
+            ConfigOptions.key("DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription(" lookup ");
+
+    public static final ConfigOption<Integer> DEFAULT_VERTX_WORKER_POOL_SIZE =
+            ConfigOptions.key("DEFAULT_VERTX_WORKER_POOL_SIZE")
+                    .intType()
+                    .defaultValue(Runtime.getRuntime().availableProcessors() * 2)
+                    .withDescription(" lookup ");
+
+
+    public static final ConfigOption<Integer> DEFAULT_DB_CONN_POOL_SIZE =
+            ConfigOptions.key("DEFAULT_DB_CONN_POOL_SIZE")
+                    .intType()
+                    .defaultValue(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE.defaultValue()
+                            + DEFAULT_VERTX_WORKER_POOL_SIZE.defaultValue())
+                    .withDescription(" lookup ");
+
+
+    public static final ConfigOption<Integer> MAX_DB_CONN_POOL_SIZE_LIMIT =
+            ConfigOptions.key("MAX_DB_CONN_POOL_SIZE_LIMIT")
+                    .intType()
+                    .defaultValue(5)
+                    .withDescription(" lookup ");
+
+
+    public static final ConfigOption<Integer> DEFAULT_IDLE_CONNECTION_TEST_PEROID =
+            ConfigOptions.key("DEFAULT_IDLE_CONNECTION_TEST_PEROID")
+                    .intType()
+                    .defaultValue(60)
+                    .withDescription(" lookup ");
+
+
+    public static final ConfigOption<Boolean> DEFAULT_TEST_CONNECTION_ON_CHECKIN =
+            ConfigOptions.key("DEFAULT_TEST_CONNECTION_ON_CHECKIN")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription(" lookup ");
+
+
+    public static final ConfigOption<String> DT_PROVIDER_CLASS =
+            ConfigOptions.key("DT_PROVIDER_CLASS")
+                    .stringType()
+                    .defaultValue(
+                            "com.dtstack.flinkx.connector.jdbc.provider.DTC3P0DataSourceProvider")
+                    .withDescription(" lookup ");
+
+    public static final ConfigOption<String> PREFERRED_TEST_QUERY_SQL =
+            ConfigOptions.key("PREFERRED_TEST_QUERY_SQL")
+                    .stringType()
+                    .defaultValue("SELECT 1 FROM DUAL")
+                    .withDescription(" lookup ");
 }

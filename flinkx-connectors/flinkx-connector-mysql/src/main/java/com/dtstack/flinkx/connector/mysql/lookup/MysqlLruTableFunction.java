@@ -18,14 +18,18 @@
 
 package com.dtstack.flinkx.connector.mysql.lookup;
 
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import io.vertx.core.json.JsonObject;
 
+import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.RowType;
+
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DT_PROVIDER_CLASS;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.PREFERRED_TEST_QUERY_SQL;
 import static com.dtstack.flinkx.connector.mysql.constants.MysqlConstants.MYSQL_DRIVER;
 
 /**
@@ -51,10 +55,14 @@ public class MysqlLruTableFunction extends JdbcLruTableFunction {
                 .put("max_pool_size", asyncPoolSize)
                 .put("user", options.getUsername().get())
                 .put("password", options.getPassword().get())
-                .put("provider_class", DT_PROVIDER_CLASS)
-                .put("preferred_test_query", PREFERRED_TEST_QUERY_SQL)
-                .put("idle_connection_test_period", DEFAULT_IDLE_CONNECTION_TEST_PEROID)
-                .put("test_connection_on_checkin", DEFAULT_TEST_CONNECTION_ON_CHECKIN);
+                .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
+                .put("preferred_test_query", PREFERRED_TEST_QUERY_SQL.defaultValue())
+                .put(
+                        "idle_connection_test_period",
+                        DEFAULT_IDLE_CONNECTION_TEST_PEROID.defaultValue())
+                .put(
+                        "test_connection_on_checkin",
+                        DEFAULT_TEST_CONNECTION_ON_CHECKIN.defaultValue());
 
         return mysqlClientConfig;
 

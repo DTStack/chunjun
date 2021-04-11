@@ -63,6 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.*;
 /**
  * @author chuixue
  * @create 2021-04-10 21:15
@@ -79,27 +80,9 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
     /**  */
     private transient SQLClient rdbSqlClient;
     /**  */
-    private final static int MAX_TASK_QUEUE_SIZE = 100000;
-    /**  */
     private final String query;
     /**  */
     private final JdbcRowConverter jdbcRowConverter;
-    /**  */
-    public final static int DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE = 1;
-
-    public final static int DEFAULT_VERTX_WORKER_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
-
-    public final static int DEFAULT_DB_CONN_POOL_SIZE = DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE + DEFAULT_VERTX_WORKER_POOL_SIZE;
-
-    public final static int MAX_DB_CONN_POOL_SIZE_LIMIT = 5;
-
-    public final static int DEFAULT_IDLE_CONNECTION_TEST_PEROID = 60;
-
-    public final static boolean DEFAULT_TEST_CONNECTION_ON_CHECKIN = true;
-
-    public final static String DT_PROVIDER_CLASS = "com.dtstack.flinkx.connector.jdbc.provider.DTC3P0DataSourceProvider";
-
-    public final static String PREFERRED_TEST_QUERY_SQL = "SELECT 1 FROM DUAL";
 
     private final int errorLogPrintNum = 3;
 
@@ -134,25 +117,25 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
 
-        int defaultAsyncPoolSize = Math.min(MAX_DB_CONN_POOL_SIZE_LIMIT, DEFAULT_DB_CONN_POOL_SIZE);
+        int defaultAsyncPoolSize = Math.min(MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(), DEFAULT_DB_CONN_POOL_SIZE.defaultValue());
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
         JsonObject jdbcConfig = buildJdbcConfig();
         System.setProperty("vertx.disableFileCPResolving", "true");
         vertxOptions
-                .setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE)
+                .setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE.defaultValue())
                 .setWorkerPoolSize(asyncPoolSize)
                 .setFileResolverCachingEnabled(false);
 
         this.rdbSqlClient = JDBCClient.createNonShared(Vertx.vertx(vertxOptions), jdbcConfig);
 
         executor = new ThreadPoolExecutor(
-                MAX_DB_CONN_POOL_SIZE_LIMIT,
-                MAX_DB_CONN_POOL_SIZE_LIMIT,
+                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
+                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
                 0,
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE),
+                new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                 new DTThreadFactory("rdbAsyncExec"),
                 new ThreadPoolExecutor.CallerRunsPolicy());
     }
