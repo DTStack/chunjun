@@ -4,7 +4,6 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.lookup.BaseAllTableFunction;
@@ -47,12 +46,6 @@ abstract public class JdbcAllTableFunction extends BaseAllTableFunction {
                 options.getDialect()
                         .getSelectFromStatement(options.getTableName(), fieldNames, new String[]{});
         this.jdbcRowConverter = options.getDialect().getRowConverter(rowType);
-    }
-
-    @Override
-    public void open(FunctionContext context) throws Exception {
-        super.open(context);
-
     }
 
     @Override
