@@ -66,7 +66,6 @@ public class MysqlDynamicTableSource extends JdbcDynamicTableSource {
                     options,
                     lookupOptions,
                     physicalSchema.getFieldNames(),
-                    physicalSchema.getFieldDataTypes(),
                     keyNames,
                     rowType
             ));

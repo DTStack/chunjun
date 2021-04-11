@@ -27,7 +27,6 @@ import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.enums.CacheType;
@@ -54,8 +53,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.util.Preconditions.checkArgument;
-
 /**
  * @author chuixue
  * @create 2021-04-09 14:40
@@ -63,18 +60,12 @@ import static org.apache.flink.util.Preconditions.checkArgument;
  **/
 abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(BaseLruTableFunction.class);
-    /** 和维表join字段的类型 */
-    protected final DataType[] keyTypes;
-    /** 和维表join字段的名称 */
-    protected final String[] keyNames;
     /** 指标 */
     protected transient Counter parseErrorRecords;
     /** 缓存 */
     protected AbstractSideCache sideCache;
     /** 维表配置 */
     protected LookupOptions lookupOptions;
-    /** 字段类型 */
-    private final String[] fieldsName;
     /** 运行环境 */
     private RuntimeContext runtimeContext;
 
@@ -82,27 +73,9 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private int timeOutNum = 0;
 
     public BaseLruTableFunction(
-            String[] fieldNames,
-            DataType[] fieldTypes,
-            String[] keyNames,
             LookupOptions lookupOptions
     ) {
-        this.keyNames = keyNames;
-        List<String> nameList = Arrays.asList(fieldNames);
-        this.keyTypes =
-                Arrays.stream(keyNames)
-                        .map(
-                                s -> {
-                                    checkArgument(
-                                            nameList.contains(s),
-                                            "keyName %s can't find in fieldNames %s.",
-                                            s,
-                                            nameList);
-                                    return fieldTypes[nameList.indexOf(s)];
-                                })
-                        .toArray(DataType[]::new);
         this.lookupOptions = lookupOptions;
-        this.fieldsName = fieldNames;
     }
 
     @Override
@@ -403,9 +376,11 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     }
 
     /**
-     *  fill data
+     * fill data
+     *
      * @param sideInput
+     *
      * @return
      */
-    abstract protected RowData fillData(Object sideInput) throws SQLException ;
+    abstract protected RowData fillData(Object sideInput) throws SQLException;
 }

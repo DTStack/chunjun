@@ -23,7 +23,6 @@ import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
@@ -96,10 +95,9 @@ abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
             JdbcOptions options,
             LookupOptions lookupOptions,
             String[] fieldNames,
-            DataType[] fieldTypes,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, fieldTypes, keyNames, lookupOptions);
+        super(lookupOptions);
         this.asyncPoolSize = ((JdbcLookupOptions) lookupOptions).getAsyncPoolSize();
         this.options = options;
         this.query =

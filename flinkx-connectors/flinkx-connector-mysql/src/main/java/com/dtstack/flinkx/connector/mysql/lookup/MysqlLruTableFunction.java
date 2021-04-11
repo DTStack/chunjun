@@ -18,13 +18,12 @@
 
 package com.dtstack.flinkx.connector.mysql.lookup;
 
+import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import io.vertx.core.json.JsonObject;
-
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.RowType;
 
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
@@ -42,9 +41,8 @@ public class MysqlLruTableFunction extends JdbcLruTableFunction {
             JdbcOptions options,
             LookupOptions lookupOptions,
             String[] fieldNames,
-            DataType[] fieldTypes,
             String[] keyNames, RowType rowType) {
-        super(options, lookupOptions, fieldNames, fieldTypes, keyNames, rowType);
+        super(options, lookupOptions, fieldNames, keyNames, rowType);
     }
 
     @Override
