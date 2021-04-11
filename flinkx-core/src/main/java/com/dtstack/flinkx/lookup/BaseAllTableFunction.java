@@ -62,7 +62,7 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     private ScheduledExecutorService es;
     /** 维表配置 */
     protected final LookupOptions lookupOptions;
-    /** 字段类型 */
+    /** 字段名称 */
     protected final String[] fieldsName;
 
     public BaseAllTableFunction(
@@ -78,9 +78,8 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     /**
      * 初始化加载数据库中数据
      *
-     * @throws SQLException
      */
-    protected void initCache() throws SQLException {
+    protected void initCache() {
         Map<String, List<Map<String, Object>>> newCache = Maps.newConcurrentMap();
         cacheRef.set(newCache);
         loadData(newCache);
