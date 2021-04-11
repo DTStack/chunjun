@@ -8,14 +8,20 @@ import org.apache.flink.connector.jdbc.split.JdbcNumericBetweenParametersProvide
 import org.apache.flink.connector.jdbc.table.JdbcRowDataInputFormat;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.InputFormatProvider;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
+import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import java.util.Objects;
@@ -41,6 +47,36 @@ abstract public class JdbcDynamicTableSource
         this.lookupOptions = lookupOptions;
         this.physicalSchema = physicalSchema;
         this.dialectName = options.getDialect().dialectName();
+    }
+
+    @Override
+    public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
+        String[] keyNames = new String[context.getKeys().length];
+        for (int i = 0; i < keyNames.length; i++) {
+            int[] innerKeyArr = context.getKeys()[i];
+            Preconditions.checkArgument(
+                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
+            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
+        }
+        // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
+        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+
+        if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
+            return AsyncTableFunctionProvider.of(createLruTableFunction(
+                    options,
+                    lookupOptions,
+                    physicalSchema.getFieldNames(),
+                    keyNames,
+                    rowType
+            ));
+        }
+        return TableFunctionProvider.of(createAllTableFunction(
+                options,
+                lookupOptions,
+                physicalSchema.getFieldNames(),
+                keyNames,
+                rowType
+        ));
     }
 
     @Override
@@ -122,4 +158,38 @@ abstract public class JdbcDynamicTableSource
     public int hashCode() {
         return Objects.hash(options, readOptions, lookupOptions, physicalSchema, dialectName);
     }
+
+    /**
+     * create all table function
+     *
+     * @param options
+     * @param lookupOptions
+     * @param fieldNames
+     * @param keyNames
+     * @param rowType
+     *
+     * @return
+     */
+    protected abstract JdbcAllTableFunction createAllTableFunction(
+            JdbcOptions options,
+            LookupOptions lookupOptions,
+            String[] fieldNames,
+            String[] keyNames, RowType rowType);
+
+    /**
+     * create lru table function
+     *
+     * @param options
+     * @param lookupOptions
+     * @param fieldNames
+     * @param keyNames
+     * @param rowType
+     *
+     * @return
+     */
+    protected abstract JdbcLruTableFunction createLruTableFunction(
+            JdbcOptions options,
+            LookupOptions lookupOptions,
+            String[] fieldNames,
+            String[] keyNames, RowType rowType);
 }

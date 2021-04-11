@@ -18,20 +18,17 @@
 
 package com.dtstack.flinkx.connector.mysql.source;
 
-import com.dtstack.flinkx.connector.mysql.lookup.MysqlLruTableFunction;
-
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.connector.source.TableFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.mysql.lookup.MysqlAllTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.connector.mysql.lookup.MysqlLruTableFunction;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 /**
@@ -50,33 +47,35 @@ public class MysqlDynamicTableSource extends JdbcDynamicTableSource {
     }
 
     @Override
-    public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        String[] keyNames = new String[context.getKeys().length];
-        for (int i = 0; i < keyNames.length; i++) {
-            int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(
-                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
-        }
-        // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-
-        if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return AsyncTableFunctionProvider.of(new MysqlLruTableFunction(
-                    options,
-                    lookupOptions,
-                    physicalSchema.getFieldNames(),
-                    keyNames,
-                    rowType
-            ));
-        }
-        return TableFunctionProvider.of(new MysqlAllTableFunction(
+    protected JdbcAllTableFunction createAllTableFunction(
+            JdbcOptions options,
+            LookupOptions lookupOptions,
+            String[] fieldNames,
+            String[] keyNames,
+            RowType rowType) {
+        return new MysqlAllTableFunction(
                 options,
                 lookupOptions,
                 physicalSchema.getFieldNames(),
                 keyNames,
                 rowType
-        ));
+        );
+    }
+
+    @Override
+    protected JdbcLruTableFunction createLruTableFunction(
+            JdbcOptions options,
+            LookupOptions lookupOptions,
+            String[] fieldNames,
+            String[] keyNames,
+            RowType rowType) {
+        return new MysqlLruTableFunction(
+                options,
+                lookupOptions,
+                physicalSchema.getFieldNames(),
+                keyNames,
+                rowType
+        );
     }
 
     @Override
