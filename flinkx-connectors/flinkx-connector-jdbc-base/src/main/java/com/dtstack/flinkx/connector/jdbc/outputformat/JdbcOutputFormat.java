@@ -66,6 +66,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final long serialVersionUID = 1L;
 
+    /** Options for the JDBC connector. */
     protected JdbcOptions jdbcOptions;
 
     protected Connection dbConn;
@@ -76,13 +77,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected List<String> postSql;
 
-    // protected DatabaseInterface databaseInterface;
-
+    /** insert mode (append , upsert ) */
     protected String mode = EWriteMode.INSERT.name();
 
     /** just for postgresql,use copy replace insert */
     protected String insertSqlMode;
 
+    /** table fields name */
     protected String[] column;
 
     protected String[] updateKey;
@@ -108,6 +109,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      */
     protected JdbcRowConverter jdbcRowConverter;
 
+    /** table fields type */
     protected RowType rowType;
 
     protected FieldNamedPreparedStatement fieldNamedPreparedStatement;

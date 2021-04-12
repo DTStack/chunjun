@@ -21,6 +21,8 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.enums.EWriteMode;
 
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
@@ -94,9 +96,9 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
                 .setRowType(rowType)
                 .setMode((dmlOptions.getKeyFields().isPresent()
                         && dmlOptions.getKeyFields().get().length
-                        > 0) ? EWriteMode.REPLACE.name() : EWriteMode.INSERT.name());
+                        > 0) ? EWriteMode.UPDATE.name() : EWriteMode.INSERT.name());
 
-        return SinkFunctionProvider.of(new JdbcSinkFunction(builder.finish()));
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
     }
 
     @Override

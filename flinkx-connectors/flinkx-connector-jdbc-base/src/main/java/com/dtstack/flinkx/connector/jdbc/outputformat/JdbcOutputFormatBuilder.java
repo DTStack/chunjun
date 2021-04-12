@@ -53,10 +53,6 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         return this;
     }
 
-//    public void setDatabaseInterface(DatabaseInterface databaseInterface) {
-//        format.databaseInterface = databaseInterface;
-//    }
-
     public JdbcOutputFormatBuilder setProperties(Properties properties) {
         format.properties = properties;
         return this;
