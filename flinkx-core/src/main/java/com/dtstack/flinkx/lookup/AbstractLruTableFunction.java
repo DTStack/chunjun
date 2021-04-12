@@ -397,7 +397,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     }
 
     /**
-     * fill data
+     * fill data,diff db need override
      *
      * @param sideInput
      *
