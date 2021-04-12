@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -25,7 +27,6 @@ import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
-import org.apache.flink.connector.jdbc.table.JdbcDynamicTableSink;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -97,11 +98,15 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
     public DynamicTableSink createDynamicTableSink(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
+        // 2.参数校验
         helper.validate();
         validateConfigOptions(config);
         JdbcOptions jdbcOptions = getJdbcOptions(config);
+
+        // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 

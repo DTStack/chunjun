@@ -26,8 +26,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
-
 /**
  * @program: flinkx
  * @author: wuren
@@ -80,23 +78,31 @@ public class MySQLDialect implements JdbcDialect {
                         + updateClause);
     }
 
-
     @Override
-    public String getSelectFromStatement(
-            String tableName, String[] selectFields, String[] conditionFields) {
-        String selectExpressions =
-                Arrays.stream(selectFields)
-                        .map(this::quoteIdentifier)
-                        .collect(Collectors.joining(", "));
-        String fieldExpressions =
-                Arrays.stream(conditionFields)
-                        .map(f -> format("%s = ?", quoteIdentifier(f), f))
-                        .collect(Collectors.joining(" AND "));
-        return "SELECT "
-                + selectExpressions
-                + " FROM "
-                + quoteIdentifier(tableName)
-                + (conditionFields.length > 0 ? " WHERE " + fieldExpressions : "");
+    public String getSqlQueryFields(String tableName) {
+        return "SELECT * FROM " + tableName + " LIMIT 0";
     }
 
+    @Override
+    public String quoteTable(String table) {
+        String[] parts = table.split("\\.");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; ++i) {
+            if (i != 0) {
+                sb.append(".");
+            }
+            sb.append(getStartQuote() + parts[i] + getEndQuote());
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String getStartQuote() {
+        return "\"";
+    }
+
+    @Override
+    public String getEndQuote() {
+        return "\"";
+    }
 }
