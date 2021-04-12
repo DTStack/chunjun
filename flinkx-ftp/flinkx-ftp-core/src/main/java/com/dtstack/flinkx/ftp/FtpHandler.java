@@ -54,12 +54,18 @@ public class FtpHandler implements IFtpHandler {
 
     private static final String SP = "/";
 
+    //设置命令传输编码
+    //https://wenku.baidu.com/view/9c495b24915f804d2b16c192.html  测试下数栈是否生效
+    private String controlEncoding;
+
     public FTPClient getFtpClient() {
         return ftpClient;
     }
 
     @Override
     public void loginFtpServer(FtpConfig ftpConfig) {
+        controlEncoding = ftpConfig.getControlEncoding();
+
         ftpClient = new FTPClient();
         try {
             // 连接
@@ -85,10 +91,8 @@ public class FtpHandler implements IFtpHandler {
                 LOG.error(message);
                 throw new RuntimeException(message);
             }
-            //设置命令传输编码
-            String fileEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
-            ftpClient.setControlEncoding(fileEncoding);
-            ftpClient.setListHiddenFiles(true);
+            ftpClient.setControlEncoding(controlEncoding);
+            ftpClient.setListHiddenFiles(ftpConfig.getListHiddenFiles());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -113,12 +117,20 @@ public class FtpHandler implements IFtpHandler {
         try {
             originDir = ftpClient.printWorkingDirectory();
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(StandardCharsets.UTF_8), FTP.DEFAULT_CONTROL_ENCODING));
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles.length == 0){
                 throw new FileNotFoundException("file or path is not exist, please check the path or the permissions of account, path = " + directoryPath);
-            }else {
-                return FTPReply.isPositiveCompletion(ftpClient.cwd(directoryPath));
             }
+                boolean positiveCompletion = FTPReply.isPositiveCompletion(ftpClient.cwd(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING)));
+                if(positiveCompletion && ftpFiles.length == 1 && ftpFiles[0].isFile()){
+                    String[] split = directoryPath.split(String.valueOf(IOUtils.DIR_SEPARATOR_UNIX));
+                    //还要再判断文件名相同 并且如果这是一个文件
+                    if(ftpFiles[0].getName().equals(split[split.length-1])){
+                      return  ftpClient.listFiles(new String((directoryPath + IOUtils.DIR_SEPARATOR_UNIX + ftpFiles[0].getName()).getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING)).length != 0;
+                    }
+                }
+                return positiveCompletion;
+
         } catch (IOException e) {
             String message = String.format("进入目录：[%s]时发生I/O异常,请确认与ftp服务器的连接正常", directoryPath);
             LOG.error(message);
@@ -150,7 +162,7 @@ public class FtpHandler implements IFtpHandler {
             path = path + SP;
         }
         try {
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
                     // .和..是特殊文件
@@ -181,7 +193,7 @@ public class FtpHandler implements IFtpHandler {
                 path = path + SP;
             }
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
             if(ftpFiles != null) {
                 for(FTPFile ftpFile : ftpFiles) {
                     if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
@@ -315,7 +327,7 @@ public class FtpHandler implements IFtpHandler {
     public InputStream getInputStream(String filePath) {
         try {
             ftpClient.enterLocalPassiveMode();
-            InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+            InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
             return is;
         } catch (IOException e) {
             String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
@@ -333,7 +345,7 @@ public class FtpHandler implements IFtpHandler {
             }
 
             try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(StandardCharsets.UTF_8),FTP.DEFAULT_CONTROL_ENCODING));
+                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
                 if(ftpFiles != null) {
                     for(FTPFile ftpFile : ftpFiles) {
                         if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
