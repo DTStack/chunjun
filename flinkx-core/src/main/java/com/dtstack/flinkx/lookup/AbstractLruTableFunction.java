@@ -21,13 +21,12 @@ package com.dtstack.flinkx.lookup;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
-import org.apache.flink.streaming.api.functions.async.ResultFuture;
+import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.enums.ECacheContentType;
@@ -178,17 +177,46 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         }
     }
 
+    // todo 无法设置超时
+    public void timeout(
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys) {
+        if (timeOutNum % TIMEOUT_LOG_FLUSH_NUM == 0) {
+            LOG.info(
+                    "Async function call has timed out. input:{}, timeOutNum:{}",
+                    keys,
+                    timeOutNum);
+        }
+        timeOutNum++;
+
+        if (timeOutNum > lookupOptions.getErrorLimit()) {
+            future.completeExceptionally(
+                    new SuppressRestartsException(
+                            new Throwable(
+                                    String.format(
+                                            "Async function call timedOutNum beyond limit. %s",
+                                            lookupOptions.getErrorLimit()
+                                    )
+                            )
+                    ));
+        } else {
+            future.complete(Collections.EMPTY_LIST);
+        }
+    }
+
     /**
-     * 查询前置
+     * pre invoke
      *
-     * @param input
-     * @param resultFuture
+     * @param future
+     * @param keys
      *
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    protected void preInvoke(Row input, ResultFuture<RowData> resultFuture)
+    protected void preInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
             throws InvocationTargetException, IllegalAccessException {
+        // todo 超时回掉
+        // registerTimerAndAddToHandler(future, keys);
     }
 
     /**
@@ -199,16 +227,20 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      */
     public void eval(
             CompletableFuture<Collection<RowData>> future,
-            Object... keys) throws Exception {
+            Object... keys) {
+        try {
+            preInvoke(future, keys);
 
-        // preInvoke(future, keys);
-        String cacheKey = buildCacheKey(keys);
-        // 缓存判断
-        if (isUseCache(cacheKey)) {
-            invokeWithCache(cacheKey, future);
-            return;
+            String cacheKey = buildCacheKey(keys);
+            // 缓存判断
+            if (isUseCache(cacheKey)) {
+                invokeWithCache(cacheKey, future);
+                return;
+            }
+            handleAsyncInvoke(future, keys);
+        } catch (Exception e) {
+            // todo 脏数据？
         }
-        handleAsyncInvoke(future, keys);
     }
 
     /**
@@ -287,26 +319,41 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                 .collect(Collectors.joining("_"));
     }
 
-    /**
-     * 发送异常
-     *
-     * @param future
-     * @param e
-     */
-    protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
-        parseErrorRecords.inc();
-        if (parseErrorRecords.getCount() > lookupOptions.getErrorLimit()) {
-            LOG.info("dealFillDataError", e);
-            future.completeExceptionally(e);
-        } else {
-            dealMissKey(future);
+    private ProcessingTimeService getProcessingTimeService() {
+        try {
+            Field runtimeContextField = RichAsyncFunction.RichAsyncFunctionRuntimeContext.class.getDeclaredField(
+                    "runtimeContext");
+            runtimeContextField.setAccessible(true);
+            RichAsyncFunction.RichAsyncFunctionRuntimeContext functionRuntimeContext = (RichAsyncFunction.RichAsyncFunctionRuntimeContext) runtimeContextField
+                    .get(runtimeContext);
+
+            Field streamingRuntimeContextField = RichAsyncFunction.RichAsyncFunctionRuntimeContext.class
+                    .getDeclaredField(
+                            "runtimeContext");
+            streamingRuntimeContextField.setAccessible(true);
+            StreamingRuntimeContext streamingRuntimeContext = (StreamingRuntimeContext) streamingRuntimeContextField
+                    .get(functionRuntimeContext);
+
+            Field processingTimeServiceField = StreamingRuntimeContext.class.getDeclaredField(
+                    "processingTimeService");
+            processingTimeServiceField.setAccessible(true);
+            ProcessingTimeService processingTimeService = (ProcessingTimeService) processingTimeServiceField
+                    .get(streamingRuntimeContext);
+            return processingTimeService;
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
         }
     }
 
-
-    protected void preInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
-            throws InvocationTargetException, IllegalAccessException {
-        registerTimerAndAddToHandler(future, keys);
+    protected ScheduledFuture<?> registerTimer(
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys) {
+        ProcessingTimeService processingTimeService = getProcessingTimeService();
+        long timeoutTimestamp = lookupOptions.getAsyncTimeout()
+                + processingTimeService.getCurrentProcessingTime();
+        return processingTimeService.registerTimer(
+                timeoutTimestamp,
+                timestamp -> timeout(future, keys));
     }
 
     protected void registerTimerAndAddToHandler(
@@ -323,45 +370,19 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         setTimeoutTimer.invoke(future, timeFuture);
     }
 
-    protected ScheduledFuture<?> registerTimer(
-            CompletableFuture<Collection<RowData>> future,
-            Object... keys) {
-        long timeoutTimestamp = lookupOptions.getAsyncTimeout()
-                + getProcessingTimeService().getCurrentProcessingTime();
-        return getProcessingTimeService().registerTimer(
-                timeoutTimestamp,
-                timestamp -> timeout(future, keys));
-    }
-
-    private ProcessingTimeService getProcessingTimeService() {
-        // todo 类型不对，暂时无法设置回掉
-        return ((StreamingRuntimeContext) this.runtimeContext).getProcessingTimeService();
-    }
-
-    // todo 无法设置超时
-    public void timeout(
-            CompletableFuture<Collection<RowData>> future,
-            Object... keys) throws Exception {
-        if (timeOutNum % TIMEOUT_LOG_FLUSH_NUM == 0) {
-            LOG.info(
-                    "Async function call has timed out. input:{}, timeOutNum:{}",
-                    keys,
-                    timeOutNum);
-        }
-        timeOutNum++;
-
-        if (timeOutNum > lookupOptions.getErrorLimit()) {
-            future.completeExceptionally(
-                    new SuppressRestartsException(
-                            new Throwable(
-                                    String.format(
-                                            "Async function call timedOutNum beyond limit. %s",
-                                            lookupOptions.getErrorLimit()
-                                    )
-                            )
-                    ));
+    /**
+     * 发送异常
+     *
+     * @param future
+     * @param e
+     */
+    protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
+        parseErrorRecords.inc();
+        if (parseErrorRecords.getCount() > lookupOptions.getErrorLimit()) {
+            LOG.info("dealFillDataError", e);
+            future.completeExceptionally(new SuppressRestartsException(e));
         } else {
-            future.complete(Collections.EMPTY_LIST);
+            dealMissKey(future);
         }
     }
 

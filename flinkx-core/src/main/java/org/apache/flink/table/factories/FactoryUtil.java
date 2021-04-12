@@ -18,8 +18,8 @@
 
 package org.apache.flink.table.factories;
 
-import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.enums.ConnectorLoadMode;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.util.PluginUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.annotation.PublicEvolving;
