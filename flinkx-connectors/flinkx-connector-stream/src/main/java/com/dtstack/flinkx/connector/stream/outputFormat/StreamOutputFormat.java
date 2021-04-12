@@ -19,14 +19,19 @@
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
 import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.binary.BinaryRowData;
+import org.apache.flink.types.Row;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.RowUtil;
+import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
  * OutputFormat for stream writer
@@ -41,7 +46,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     private StreamSinkConf streamSinkConf;
     // 该类内部自己的需要的变量
     private DynamicTableSink.DataStructureConverter converter;
-    private RowData lastRow;
+    private Row lastRow;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -50,17 +55,19 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) {
-        String rowKind = rowData.getRowKind().shortString();
-        if (Objects.nonNull(converter)) {
-            LOG.info(rowKind + "(" + converter.toExternal(rowData) + ")");
+        Row row = new Row(rowData.getArity());
+        if(rowData instanceof BinaryRowData){
+            row = (Row)converter.toExternal(rowData);
+        }else if(rowData instanceof GenericRowData){
+            GenericRowData data = (GenericRowData) rowData;
+            for (int i = 0; i < data.getArity(); i++) {
+                row.setField(i, data.getField(i));
+            }
         }
         if (streamSinkConf.getPrint()) {
-            LOG.info(
-                    "subTaskIndex[{}]:{}",
-                    taskNumber,
-                    RowUtil.rowToStringWithDelimiter(rowData, streamSinkConf.getWriteDelimiter()));
+            TablePrintUtil.printTable(row, getFieldNames());
         }
-        lastRow = rowData;
+        lastRow = row;
     }
 
     @Override
@@ -73,12 +80,18 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     public FormatState getFormatState() {
         if (lastRow != null) {
-            LOG.info(
-                    "subTaskIndex[{}]:{}",
-                    taskNumber,
-                    RowUtil.rowToStringWithDelimiter(lastRow, streamSinkConf.getWriteDelimiter()));
+            TablePrintUtil.printTable(lastRow, getFieldNames());
         }
         return super.getFormatState();
+    }
+
+    public String[] getFieldNames(){
+        String[] fieldNames = null;
+        List<FieldConf> fieldConfList = streamSinkConf.getColumn();
+        if(CollectionUtils.isNotEmpty(fieldConfList)){
+            fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
+        }
+        return fieldNames;
     }
 
     @Override

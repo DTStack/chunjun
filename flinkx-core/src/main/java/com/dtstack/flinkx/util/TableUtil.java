@@ -19,6 +19,7 @@ package com.dtstack.flinkx.util;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
@@ -63,11 +64,37 @@ public class TableUtil {
      * @return
      */
     public static TypeInformation<RowData> getTypeInformation(DataType[] dataTypes, String[] fieldNames){
-        return InternalTypeInfo.of(RowType.of(
+        return InternalTypeInfo.of(getRowType(dataTypes, fieldNames));
+    }
+
+    /**
+     * 获取RowType
+     * @param dataTypes
+     * @param fieldNames
+     * @return
+     */
+    public static RowType getRowType(DataType[] dataTypes, String[] fieldNames){
+        return RowType.of(
                 Arrays.stream(dataTypes)
                         .map(DataType::getLogicalType)
                         .toArray(LogicalType[]::new),
-                fieldNames));
+                fieldNames);
     }
 
+    /**
+     * 获取DataType
+     * @param fieldList
+     * @return
+     */
+    public static DataType getDataType(List<FieldConf> fieldList){
+        Class<?>[] fieldClasses = fieldList.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
+        DataType[] dataTypes = DataTypeUtil.getFieldTypes(Arrays.asList(fieldClasses));
+        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
+        DataTypes.Field[] fields = new DataTypes.Field[fieldList.size()];
+        for (int i = 0; i < fieldList.size(); i++) {
+            fields[i] = DataTypes.FIELD(fieldNames[i], dataTypes[i]);
+        }
+        // The row should be never null.
+        return DataTypes.ROW(fields).notNull();
+    }
 }

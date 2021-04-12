@@ -51,7 +51,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
 
         // 一些其他参数的封装,如果有
-        sinkConf.setPrint(false);
+        sinkConf.setPrint(true);
 
         StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
                 .builder()

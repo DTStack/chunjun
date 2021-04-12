@@ -28,15 +28,12 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Abstract specification of Reader Plugin
@@ -52,7 +49,6 @@ public abstract class BaseDataSource {
 
     protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
-        initColumn(syncConf);
         this.syncConf = syncConf;
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
@@ -85,19 +81,6 @@ public abstract class BaseDataSource {
 
     protected DataStream<RowData> createInput(InputFormat inputFormat) {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
-    }
-
-    /**
-     *
-     * getMetaColumns(columns, true); 默认对column里index为空时处理为对应数据在数组里的下标而不是-1
-     * 如果index为-1是有特殊逻辑 需要覆盖此方法使用 getMetaColumns(List columns, false) 代替
-     * @param config 配置信息
-     */
-    protected void initColumn(SyncConf config){
-        List<MetaColumn> readerColumnList = MetaColumn.getMetaColumns(config.getReader().getMetaColumn());
-        if(CollectionUtils.isNotEmpty(readerColumnList)){
-            config.getReader().getParameter().put(ConfigConstant.KEY_COLUMN, readerColumnList);
-        }
     }
 
     /**

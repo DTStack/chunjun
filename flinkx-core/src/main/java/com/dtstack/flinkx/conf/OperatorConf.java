@@ -68,10 +68,6 @@ public class OperatorConf implements Serializable {
         return fieldList;
     }
 
-    public List getMetaColumn(){
-        return (List) parameter.get(ConfigConstant.KEY_COLUMN);
-    }
-
     public List<String> getFieldNameList() {
         return fieldNameList;
     }

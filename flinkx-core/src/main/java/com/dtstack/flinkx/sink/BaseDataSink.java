@@ -25,11 +25,11 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.source.MetaColumn;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -53,17 +53,16 @@ public abstract class BaseDataSink {
     @SuppressWarnings("unchecked")
     public BaseDataSink(SyncConf syncConf) {
         //脏数据记录reader中的字段信息
-        List metaColumn = syncConf.getReader().getMetaColumn();
-        if(CollectionUtils.isNotEmpty(metaColumn)){
-            syncConf.getDirty().setReaderColumnNameList(MetaColumn.getColumnNameList(metaColumn));
+        List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
+        if(CollectionUtils.isNotEmpty(fieldList)){
+            syncConf.getDirty().setReaderColumnNameList(syncConf.getWriter().getFieldNameList());
         }
-        initColumn(syncConf);
         this.syncConf = syncConf;
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
+            typeInformation = TableUtil.getTypeInformation(fieldList);
         }
     }
 
@@ -93,19 +92,6 @@ public abstract class BaseDataSink {
 
     protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
-    }
-
-    /**
-     *
-     * getMetaColumns(columns, true); 默认对column里index为空时处理为对应数据在数组里的下标而不是-1
-     * 如果index为-1是有特殊逻辑 需要覆盖此方法使用 getMetaColumns(List columns, false) 代替
-     * @param config 配置信息
-     */
-    protected void initColumn(SyncConf config){
-        List<MetaColumn> writerColumnList = MetaColumn.getMetaColumns(config.getWriter().getMetaColumn());
-        if(CollectionUtils.isNotEmpty(writerColumnList)){
-            config.getWriter().getParameter().put(ConfigConstant.KEY_COLUMN, writerColumnList);
-        }
     }
 
     /**
