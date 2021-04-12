@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flink.api.java;
+package com.dtstack.flinkx.environment;
 
 import org.apache.flink.annotation.Public;
 import org.apache.flink.api.common.InvalidProgramException;

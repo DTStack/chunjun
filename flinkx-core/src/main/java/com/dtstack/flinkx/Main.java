@@ -41,7 +41,7 @@ import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
 
-import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.conf.RestartConf;
 import com.dtstack.flinkx.conf.SpeedConf;

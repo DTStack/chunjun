@@ -21,7 +21,7 @@ package com.dtstack.flinkx.classloader;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 
