@@ -74,7 +74,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @create 2021-04-10 12:54
  * @description
  **/
-public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -91,7 +91,13 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return createTableSource(helper, context, physicalSchema);
+        return new JdbcDynamicTableSource(
+                getJdbcOptions(helper.getOptions()),
+                getJdbcReadOptions(helper.getOptions()),
+                getJdbcLookupOptions(
+                        helper.getOptions(),
+                        context.getObjectIdentifier().getObjectName()),
+                physicalSchema) ;
     }
 
     @Override
@@ -296,18 +302,4 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
      * @return
      */
     protected abstract Optional<String> getDriver();
-
-    /**
-     * create tablesource
-     *
-     * @param helper
-     * @param context
-     * @param physicalSchema
-     *
-     * @return
-     */
-    protected abstract JdbcDynamicTableSource createTableSource(
-            FactoryUtil.TableFactoryHelper helper,
-            Context context,
-            TableSchema physicalSchema);
 }

@@ -63,31 +63,46 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_DB_CONN_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DT_PROVIDER_CLASS;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.ERRORLOG_PRINTNUM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_DB_CONN_POOL_SIZE_LIMIT;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_TASK_QUEUE_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.PREFERRED_TEST_QUERY_SQL;
+
 /**
  * @author chuixue
  * @create 2021-04-10 21:15
  * @description
  **/
-abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
+public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
-    /**  */
+    /**
+     *
+     */
     private AtomicBoolean connectionStatus = new AtomicBoolean(true);
-    /**  */
+    /**
+     *
+     */
     private transient ThreadPoolExecutor executor;
-    /**  */
+    /**
+     *
+     */
     private transient SQLClient rdbSqlClient;
-    /**  */
+    /**
+     *
+     */
     private final String query;
-    /**  */
+    /**
+     *
+     */
     private final JdbcRowConverter jdbcRowConverter;
 
-    protected JdbcOptions options ;
+    protected JdbcOptions options;
 
     protected int asyncPoolSize;
 
@@ -110,7 +125,9 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
 
-        int defaultAsyncPoolSize = Math.min(MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(), DEFAULT_DB_CONN_POOL_SIZE.defaultValue());
+        int defaultAsyncPoolSize = Math.min(
+                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
+                DEFAULT_DB_CONN_POOL_SIZE.defaultValue());
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
@@ -230,17 +247,18 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
      *
      * @param future
      * @param rdbSqlClient 数据库客户端
-     * @param failCounter  失败次数
-     * @param finishFlag   完成标识
-     * @param latch        同步标识
-     * @param keys         关联字段值
+     * @param failCounter 失败次数
+     * @param finishFlag 完成标识
+     * @param latch 同步标识
+     * @param keys 关联字段值
      */
-    protected void asyncQueryData(CompletableFuture<Collection<RowData>> future,
-                                  SQLClient rdbSqlClient,
-                                  AtomicLong failCounter,
-                                  AtomicBoolean finishFlag,
-                                  CountDownLatch latch,
-                                  Object... keys) {
+    protected void asyncQueryData(
+            CompletableFuture<Collection<RowData>> future,
+            SQLClient rdbSqlClient,
+            AtomicLong failCounter,
+            AtomicBoolean finishFlag,
+            CountDownLatch latch,
+            Object... keys) {
         doAsyncQueryData(
                 future,
                 rdbSqlClient,
@@ -301,9 +319,12 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
      *
      * @param connection 连接
      * @param future
-     * @param keys       关联健值
+     * @param keys 关联健值
      */
-    private void handleQuery(SQLConnection connection, CompletableFuture<Collection<RowData>> future, Object... keys) {
+    private void handleQuery(
+            SQLConnection connection,
+            CompletableFuture<Collection<RowData>> future,
+            Object... keys) {
         String cacheKey = buildCacheKey(keys);
         JsonArray params = new JsonArray();
         Stream.of(keys).forEach(params::add);
@@ -334,7 +355,7 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
                                 cacheContent.add(line);
                             }
                             rowList.add(row);
-                        }catch (Exception e) {
+                        } catch (Exception e) {
                             LOG.error(e.getMessage() + ":" + line);
                         }
                     }
@@ -385,7 +406,25 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     /**
      * get jdbc connection
+     *
      * @return
      */
-    abstract public JsonObject buildJdbcConfig() ;
+    public JsonObject buildJdbcConfig() {
+        JsonObject clientConfig = new JsonObject();
+        clientConfig.put("url", options.getDbURL())
+                .put("driver_class", options.getDriverName())
+                .put("max_pool_size", asyncPoolSize)
+                .put("user", options.getUsername().get())
+                .put("password", options.getPassword().get())
+                .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
+                .put("preferred_test_query", PREFERRED_TEST_QUERY_SQL.defaultValue())
+                .put(
+                        "idle_connection_test_period",
+                        DEFAULT_IDLE_CONNECTION_TEST_PEROID.defaultValue())
+                .put(
+                        "test_connection_on_checkin",
+                        DEFAULT_TEST_CONNECTION_ON_CHECKIN.defaultValue());
+
+        return clientConfig;
+    }
 }

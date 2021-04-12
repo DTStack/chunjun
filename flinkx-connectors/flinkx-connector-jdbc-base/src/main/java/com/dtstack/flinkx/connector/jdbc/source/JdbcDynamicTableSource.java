@@ -28,7 +28,7 @@ import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
 @Internal
-abstract public class JdbcDynamicTableSource
+public class JdbcDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     protected final JdbcOptions options;
@@ -62,7 +62,7 @@ abstract public class JdbcDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
         if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return AsyncTableFunctionProvider.of(createLruTableFunction(
+            return AsyncTableFunctionProvider.of(new JdbcLruTableFunction(
                     options,
                     lookupOptions,
                     physicalSchema.getFieldNames(),
@@ -70,7 +70,7 @@ abstract public class JdbcDynamicTableSource
                     rowType
             ));
         }
-        return TableFunctionProvider.of(createAllTableFunction(
+        return TableFunctionProvider.of(new JdbcAllTableFunction(
                 options,
                 lookupOptions,
                 physicalSchema.getFieldNames(),
@@ -134,6 +134,11 @@ abstract public class JdbcDynamicTableSource
     }
 
     @Override
+    public DynamicTableSource copy() {
+        return new JdbcDynamicTableSource(options, readOptions, lookupOptions, physicalSchema);
+    }
+
+    @Override
     public String asSummaryString() {
         return "JDBC:" + dialectName;
     }
@@ -158,38 +163,4 @@ abstract public class JdbcDynamicTableSource
     public int hashCode() {
         return Objects.hash(options, readOptions, lookupOptions, physicalSchema, dialectName);
     }
-
-    /**
-     * create all table function
-     *
-     * @param options
-     * @param lookupOptions
-     * @param fieldNames
-     * @param keyNames
-     * @param rowType
-     *
-     * @return
-     */
-    protected abstract JdbcAllTableFunction createAllTableFunction(
-            JdbcOptions options,
-            LookupOptions lookupOptions,
-            String[] fieldNames,
-            String[] keyNames, RowType rowType);
-
-    /**
-     * create lru table function
-     *
-     * @param options
-     * @param lookupOptions
-     * @param fieldNames
-     * @param keyNames
-     * @param rowType
-     *
-     * @return
-     */
-    protected abstract JdbcLruTableFunction createLruTableFunction(
-            JdbcOptions options,
-            LookupOptions lookupOptions,
-            String[] fieldNames,
-            String[] keyNames, RowType rowType);
 }
