@@ -6,7 +6,7 @@ import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.lookup.BaseAllTableFunction;
+import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import java.util.Map;
  * @author chuixue
  */
 @Internal
-abstract public class JdbcAllTableFunction extends BaseAllTableFunction {
+abstract public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);

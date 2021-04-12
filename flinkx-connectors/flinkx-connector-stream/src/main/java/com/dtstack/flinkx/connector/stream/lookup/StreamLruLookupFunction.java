@@ -22,7 +22,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.DataType;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
-import com.dtstack.flinkx.lookup.BaseLruTableFunction;
+import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
  * @create 2021-04-09 09:40
  * @description 异步lru维表
  **/
-public class StreamLruLookupFunction extends BaseLruTableFunction {
+public class StreamLruLookupFunction extends AbstractLruTableFunction {
 
     public StreamLruLookupFunction(
             StreamLookupOptions lookupOptions,

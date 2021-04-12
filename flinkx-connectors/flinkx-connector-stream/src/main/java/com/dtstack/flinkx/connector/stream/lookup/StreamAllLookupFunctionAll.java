@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.connector.stream.lookup;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
-import com.dtstack.flinkx.lookup.BaseAllTableFunction;
+import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 
 /**
  * @author chuixue
  * @create 2021-04-09 09:38
  * @description todo 参考flinkStreamSql v1.12的lookup模块
  **/
-public class StreamAllLookupFunctionAll extends BaseAllTableFunction {
+public class StreamAllLookupFunctionAll extends AbstractAllTableFunction {
 
     public StreamAllLookupFunctionAll(
             StreamLookupOptions lookupOptions,

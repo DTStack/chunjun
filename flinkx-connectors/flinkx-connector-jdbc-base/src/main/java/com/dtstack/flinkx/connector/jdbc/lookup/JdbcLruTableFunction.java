@@ -29,7 +29,7 @@ import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.exception.ExceptionTrace;
 import com.dtstack.flinkx.factory.DTThreadFactory;
-import com.dtstack.flinkx.lookup.BaseLruTableFunction;
+import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
@@ -70,7 +70,7 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MA
  * @create 2021-04-10 21:15
  * @description
  **/
-abstract public class JdbcLruTableFunction extends BaseLruTableFunction {
+abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);

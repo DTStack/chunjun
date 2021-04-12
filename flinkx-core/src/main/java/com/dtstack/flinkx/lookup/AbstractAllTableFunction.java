@@ -22,7 +22,6 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.functions.TableFunction;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.factory.DTThreadFactory;
@@ -33,7 +32,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,15 +43,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.util.Preconditions.checkArgument;
-
 /**
  * @author chuixue
  * @create 2021-04-09 14:30
  * @description
  **/
-abstract public class BaseAllTableFunction extends TableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(BaseAllTableFunction.class);
+abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractAllTableFunction.class);
     /** 和维表join字段的名称 */
     protected final String[] keyNames;
     /** 缓存 */
@@ -65,7 +61,7 @@ abstract public class BaseAllTableFunction extends TableFunction<RowData> {
     /** 字段名称 */
     protected final String[] fieldsName;
 
-    public BaseAllTableFunction(
+    public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
             LookupOptions lookupOptions

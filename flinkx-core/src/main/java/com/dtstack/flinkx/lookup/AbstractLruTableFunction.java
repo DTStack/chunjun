@@ -58,8 +58,8 @@ import java.util.stream.Collectors;
  * @create 2021-04-09 14:40
  * @description
  **/
-abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
-    private static final Logger LOG = LoggerFactory.getLogger(BaseLruTableFunction.class);
+abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowData> {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractLruTableFunction.class);
     /** 指标 */
     protected transient Counter parseErrorRecords;
     /** 缓存 */
@@ -72,7 +72,7 @@ abstract public class BaseLruTableFunction extends AsyncTableFunction<RowData> {
     private static int TIMEOUT_LOG_FLUSH_NUM = 10;
     private int timeOutNum = 0;
 
-    public BaseLruTableFunction(
+    public AbstractLruTableFunction(
             LookupOptions lookupOptions
     ) {
         this.lookupOptions = lookupOptions;
