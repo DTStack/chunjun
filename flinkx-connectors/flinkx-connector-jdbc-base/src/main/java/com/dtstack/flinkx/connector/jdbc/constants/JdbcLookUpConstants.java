@@ -96,4 +96,10 @@ public class JdbcLookUpConstants extends LookUpConstants {
                     .stringType()
                     .defaultValue("SELECT 1 FROM DUAL")
                     .withDescription(" lookup ");
+
+    public static final ConfigOption<Integer> ERRORLOG_PRINTNUM =
+            ConfigOptions.key("ERRORLOG_PRINTNUM")
+                    .intType()
+                    .defaultValue(3)
+                    .withDescription(" lookup ");
 }

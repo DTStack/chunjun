@@ -34,6 +34,7 @@ import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ThreadUtil;
 import com.google.common.collect.Lists;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -63,6 +64,7 @@ import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_DB_CONN_POOL_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.ERRORLOG_PRINTNUM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_DB_CONN_POOL_SIZE_LIMIT;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_TASK_QUEUE_SIZE;
 /**
@@ -84,8 +86,6 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private final String query;
     /**  */
     private final JdbcRowConverter jdbcRowConverter;
-
-    private final int errorLogPrintNum = 3;
 
     protected JdbcOptions options ;
 
@@ -220,11 +220,7 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 connectionStatus.set(false);
             }
             if (!finishFlag.get()) {
-                try {
-                    Thread.sleep(3000);
-                } catch (Exception e) {
-                    LOG.error("", e);
-                }
+                ThreadUtil.sleepSeconds(ThreadUtil.DEFAULT_SLEEP_TIME);
             }
         }
     }
@@ -265,8 +261,8 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
             try {
                 String errorMsg;
                 Integer retryMaxNum = lookupOptions.getMaxRetryTimes();
-                int logPrintTime = retryMaxNum / errorLogPrintNum == 0 ?
-                        retryMaxNum : retryMaxNum / errorLogPrintNum;
+                int logPrintTime = retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0 ?
+                        retryMaxNum : retryMaxNum / ERRORLOG_PRINTNUM.defaultValue();
                 if (conn.failed()) {
                     connectionStatus.set(false);
                     errorMsg = ExceptionTrace.traceOriginalCause(conn.cause());
@@ -287,6 +283,7 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
                     return;
                 }
                 connectionStatus.set(true);
+                // todo
                 // registerTimerAndAddToHandler(future, keys);
 
                 handleQuery(conn.result(), future, keys);
@@ -314,7 +311,9 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
             try {
                 if (rs.failed()) {
                     LOG.error(
-                            String.format("\nget data with sql [%s] failed! \ncause: [%s]",
+                            String.format(
+                                    "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
+                                    query,
                                     keys,
                                     rs.cause().getMessage()
                             )
@@ -356,7 +355,9 @@ abstract public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 // and close the connection
                 connection.close(done -> {
                     if (done.failed()) {
-                        throw new RuntimeException(done.cause());
+                        LOG.error("sql connection close failed! " +
+                                ExceptionTrace.traceOriginalCause(done.cause())
+                        );
                     }
                 });
             }
