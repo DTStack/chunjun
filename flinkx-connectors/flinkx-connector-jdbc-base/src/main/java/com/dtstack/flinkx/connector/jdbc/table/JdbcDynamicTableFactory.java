@@ -25,7 +25,6 @@ import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
-import org.apache.flink.connector.jdbc.table.JdbcDynamicTableSink;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -36,6 +35,7 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.lookup.options.LookupOptions;
 
@@ -49,6 +49,7 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.TA
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.URL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.USERNAME;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.LOOKUP_ASYNCPOOLSIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_ALLREPLACE;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_MAX_RETRIES;
@@ -73,7 +74,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @create 2021-04-10 12:54
  * @description
  **/
-public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -90,18 +91,28 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return createTableSource(helper, context, physicalSchema);
+        return new JdbcDynamicTableSource(
+                getJdbcOptions(helper.getOptions()),
+                getJdbcReadOptions(helper.getOptions()),
+                getJdbcLookupOptions(
+                        helper.getOptions(),
+                        context.getObjectIdentifier().getObjectName()),
+                physicalSchema);
     }
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
+        // 2.参数校验
         helper.validate();
         validateConfigOptions(config);
         JdbcOptions jdbcOptions = getJdbcOptions(config);
+
+        // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
@@ -118,6 +129,7 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 JdbcOptions.builder()
                         .setDBUrl(url)
                         .setTableName(readableConfig.get(TABLE_NAME))
+                        .setAllReplace(readableConfig.get(SINK_ALLREPLACE))
                         .setDialect(getDialect());
 
         getDriver().ifPresent(builder::setDriverName);
@@ -204,6 +216,7 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);
+        optionalOptions.add(SINK_ALLREPLACE);
         return optionalOptions;
     }
 
@@ -291,18 +304,4 @@ public abstract class JdbcDynamicTableFactory implements DynamicTableSourceFacto
      * @return
      */
     protected abstract Optional<String> getDriver();
-
-    /**
-     * create tablesource
-     *
-     * @param helper
-     * @param context
-     * @param physicalSchema
-     *
-     * @return
-     */
-    protected abstract JdbcDynamicTableSource createTableSource(
-            FactoryUtil.TableFactoryHelper helper,
-            Context context,
-            TableSchema physicalSchema);
 }

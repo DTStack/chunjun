@@ -82,6 +82,11 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
     }
 
     @Override
+    public Object toInternal(int pos, Object field) throws SQLException {
+        return toInternalConverters[pos].deserialize(field);
+    }
+
+    @Override
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws SQLException {
         for (int index = 0; index < rowData.getArity(); index++) {

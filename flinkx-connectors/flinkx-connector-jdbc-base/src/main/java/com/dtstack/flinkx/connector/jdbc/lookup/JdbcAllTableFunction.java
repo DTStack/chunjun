@@ -1,5 +1,7 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import com.dtstack.flinkx.util.DtStringUtil;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -25,7 +28,7 @@ import java.util.Map;
  * @author chuixue
  */
 @Internal
-abstract public class JdbcAllTableFunction extends AbstractAllTableFunction {
+public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
@@ -133,5 +136,16 @@ abstract public class JdbcAllTableFunction extends AbstractAllTableFunction {
      *
      * @return
      */
-    public abstract Connection getConn(String dbUrl, String userName, String password);
+    protected Connection getConn(String dbUrl, String userName, String password){
+        try {
+            Class.forName(options.getDriverName());
+            //add param useCursorFetch=true
+            Map<String, String> addParams = Maps.newHashMap();
+            addParams.put("useCursorFetch", "true");
+            String targetDbUrl = DtStringUtil.addJdbcParam(dbUrl, addParams, true);
+            return DriverManager.getConnection(targetDbUrl, userName, password);
+        } catch (Exception e) {
+            throw new RuntimeException("", e);
+        }
+    }
 }

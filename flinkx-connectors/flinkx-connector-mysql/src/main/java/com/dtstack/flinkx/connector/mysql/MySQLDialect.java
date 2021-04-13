@@ -72,34 +72,64 @@ public class MySQLDialect implements DtJdbcDialect {
      */
     @Override
     public Optional<String> getUpsertStatement(
-            String tableName, String[] fieldNames, String[] uniqueKeyFields) {
-        String updateClause =
-                Arrays.stream(fieldNames)
-                        .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
-                        .collect(Collectors.joining(", "));
-        return Optional.of(
-                getInsertIntoStatement(tableName, fieldNames)
-                        + " ON DUPLICATE KEY UPDATE "
-                        + updateClause);
+            String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
+        String updateClause;
+        if (allReplace) {
+            updateClause =
+                    Arrays.stream(fieldNames)
+                            .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
+                            .collect(Collectors.joining(", "));
+        } else {
+            updateClause = Arrays
+                    .stream(fieldNames)
+                    .map(f -> quoteIdentifier(f) + "=IFNULL(VALUES(" + quoteIdentifier(f) + "),"
+                            + quoteIdentifier(f) + ")")
+                    .collect(Collectors.joining(", "));
+        }
+
+        return Optional.of(getInsertIntoStatement(tableName, fieldNames)
+                + " ON DUPLICATE KEY UPDATE " + updateClause);
     }
 
+    @Override
+    public Optional<String> getReplaceStatement(
+            String tableName, String[] fieldNames) {
+        String columns = Arrays.stream(fieldNames)
+                .map(this::quoteIdentifier)
+                .collect(Collectors.joining(", "));
+        String placeholders = Arrays.stream(fieldNames)
+                .map(f -> "?")
+                .collect(Collectors.joining(", "));
+        return Optional.of("REPLACE INTO " + quoteIdentifier(tableName) +
+                "(" + columns + ")" + " VALUES (" + placeholders + ")");
+    }
 
     @Override
-    public String getSelectFromStatement(
-            String tableName, String[] selectFields, String[] conditionFields) {
-        String selectExpressions =
-                Arrays.stream(selectFields)
-                        .map(this::quoteIdentifier)
-                        .collect(Collectors.joining(", "));
-        String fieldExpressions =
-                Arrays.stream(conditionFields)
-                        .map(f -> format("%s = ?", quoteIdentifier(f), f))
-                        .collect(Collectors.joining(" AND "));
-        return "SELECT "
-                + selectExpressions
-                + " FROM "
-                + quoteIdentifier(tableName)
-                + (conditionFields.length > 0 ? " WHERE " + fieldExpressions : "");
+    public String getSqlQueryFields(String tableName) {
+        return "SELECT * FROM " + tableName + " LIMIT 0";
+    }
+
+    @Override
+    public String quoteTable(String table) {
+        String[] parts = table.split("\\.");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; ++i) {
+            if (i != 0) {
+                sb.append(".");
+            }
+            sb.append(getStartQuote() + parts[i] + getEndQuote());
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String getStartQuote() {
+        return "\"";
+    }
+
+    @Override
+    public String getEndQuote() {
+        return "\"";
     }
 
     @Override

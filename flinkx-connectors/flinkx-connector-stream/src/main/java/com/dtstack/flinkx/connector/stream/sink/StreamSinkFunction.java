@@ -34,9 +34,4 @@ public class StreamSinkFunction extends DtOutputFormatSinkFunction<RowData> {
     public StreamSinkFunction(OutputFormat<RowData> format) {
         super(format);
     }
-
-    @Override
-    public void invoke(RowData value, Context context) throws Exception {
-        format.writeRecord(value);
-    }
 }

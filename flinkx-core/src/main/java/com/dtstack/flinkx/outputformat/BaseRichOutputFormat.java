@@ -174,11 +174,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
         if (initAccumulatorAndDirty) {
             initAccumulatorCollector();
-            openErrorLimiter();
-            openDirtyDataManager();
+//            openErrorLimiter();
+//            openDirtyDataManager();
         }
 
-        initRestoreInfo();
+//        initRestoreInfo();
 
 //        if(needWaitBeforeOpenInternal()) {
 //            beforeOpenInternal();

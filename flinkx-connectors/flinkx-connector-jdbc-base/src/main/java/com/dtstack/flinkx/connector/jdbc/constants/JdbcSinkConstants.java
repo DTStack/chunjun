@@ -44,9 +44,16 @@ public class JdbcSinkConstants {
                     .withDescription(
                             "the flush interval mills, over this time, asynchronous threads will flush data. The "
                                     + "default value is 1s.");
+
     public static final ConfigOption<Integer> SINK_MAX_RETRIES =
             ConfigOptions.key("sink.max-retries")
                     .intType()
                     .defaultValue(3)
+                    .withDescription("the max retry times if writing records to database failed.");
+
+    public static final ConfigOption<Boolean> SINK_ALLREPLACE =
+            ConfigOptions.key("sink.allReplace")
+                    .booleanType()
+                    .defaultValue(true)
                     .withDescription("the max retry times if writing records to database failed.");
 }

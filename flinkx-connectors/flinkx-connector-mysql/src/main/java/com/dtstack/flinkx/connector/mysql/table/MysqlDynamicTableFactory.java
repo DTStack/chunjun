@@ -19,17 +19,11 @@
 package com.dtstack.flinkx.connector.mysql.table;
 
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.factories.FactoryUtil;
 
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
-import com.dtstack.flinkx.connector.mysql.source.MysqlDynamicTableSource;
 
 import java.util.Optional;
-
-import static com.dtstack.flinkx.connector.mysql.constants.MysqlConstants.MYSQL_DRIVER;
 
 /**
  * @program: flinkx
@@ -37,27 +31,14 @@ import static com.dtstack.flinkx.connector.mysql.constants.MysqlConstants.MYSQL_
  * @create: 2021/03/17
  **/
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
+    public static final String MYSQL_DRIVER = "com.mysql.cj.jdbc.Driver";
 
     /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "dtmysql";
+    private static final String IDENTIFIER = "dt-mysql";
 
     @Override
     protected Optional<String> getDriver() {
         return Optional.of(MYSQL_DRIVER);
-    }
-
-    @Override
-    protected JdbcDynamicTableSource createTableSource(
-            FactoryUtil.TableFactoryHelper helper,
-            Context context,
-            TableSchema physicalSchema) {
-        return new MysqlDynamicTableSource(
-                getJdbcOptions(helper.getOptions()),
-                getJdbcReadOptions(helper.getOptions()),
-                getJdbcLookupOptions(
-                        helper.getOptions(),
-                        context.getObjectIdentifier().getObjectName()),
-                physicalSchema);
     }
 
     @Override
