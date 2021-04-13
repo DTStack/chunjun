@@ -24,7 +24,6 @@ import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
-import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -98,7 +97,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
         return new JdbcDynamicTableSource(
                 getConnectionConf(helper.getOptions()),
-                getJdbcReadOptions(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName()),
@@ -161,21 +159,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         readableConfig.getOptional(USERNAME).ifPresent(conf::setUsername);
         readableConfig.getOptional(PASSWORD).ifPresent(conf::setPassword);
         return conf;
-    }
-
-    protected JdbcReadOptions getJdbcReadOptions(ReadableConfig readableConfig) {
-        final Optional<String> partitionColumnName =
-                readableConfig.getOptional(SCAN_PARTITION_COLUMN);
-        final JdbcReadOptions.Builder builder = JdbcReadOptions.builder();
-        if (partitionColumnName.isPresent()) {
-            builder.setPartitionColumnName(partitionColumnName.get());
-            builder.setPartitionLowerBound(readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
-            builder.setPartitionUpperBound(readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
-            builder.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
-        }
-        readableConfig.getOptional(SCAN_FETCH_SIZE).ifPresent(builder::setFetchSize);
-        builder.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
-        return builder.build();
     }
 
     protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
