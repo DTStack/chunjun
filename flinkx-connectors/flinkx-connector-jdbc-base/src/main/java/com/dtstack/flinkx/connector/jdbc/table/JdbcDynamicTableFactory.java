@@ -18,13 +18,11 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.options.JdbcOptions;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
-import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -98,7 +96,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
         return new JdbcDynamicTableSource(
                 getConnectionConf(helper.getOptions()),
-                getJdbcReadOptions(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName()),
@@ -127,7 +124,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return new JdbcDynamicTableSink(
                 getConnectionConf(helper.getOptions()),
                 jdbcDialect,
-                getJdbcExecutionOptions(config),
                 getJdbcDmlOptions(jdbcOptions, physicalSchema),
                 physicalSchema);
     }
@@ -163,21 +159,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return conf;
     }
 
-    protected JdbcReadOptions getJdbcReadOptions(ReadableConfig readableConfig) {
-        final Optional<String> partitionColumnName =
-                readableConfig.getOptional(SCAN_PARTITION_COLUMN);
-        final JdbcReadOptions.Builder builder = JdbcReadOptions.builder();
-        if (partitionColumnName.isPresent()) {
-            builder.setPartitionColumnName(partitionColumnName.get());
-            builder.setPartitionLowerBound(readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
-            builder.setPartitionUpperBound(readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
-            builder.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
-        }
-        readableConfig.getOptional(SCAN_FETCH_SIZE).ifPresent(builder::setFetchSize);
-        builder.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
-        return builder.build();
-    }
-
     protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
         return JdbcLookupConf
                 .build()
@@ -191,14 +172,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT));
-    }
-
-    private JdbcExecutionOptions getJdbcExecutionOptions(ReadableConfig config) {
-        final JdbcExecutionOptions.Builder builder = new JdbcExecutionOptions.Builder();
-        builder.withBatchSize(config.get(SINK_BUFFER_FLUSH_MAX_ROWS));
-        builder.withBatchIntervalMs(config.get(SINK_BUFFER_FLUSH_INTERVAL).toMillis());
-        builder.withMaxRetries(config.get(SINK_MAX_RETRIES));
-        return builder.build();
     }
 
     private JdbcDmlOptions getJdbcDmlOptions(JdbcOptions jdbcOptions, TableSchema schema) {

@@ -1,8 +1,10 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
 import org.apache.flink.annotation.Internal;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -35,7 +37,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private final SinkConnectionConf connectionConf;
     private final String query;
-    private final JdbcRowConverter jdbcRowConverter;
+    private final AbstractJdbcRowConverter jdbcRowConverter;
     private final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(

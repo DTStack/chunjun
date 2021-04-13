@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.GenericRowData;
@@ -67,9 +69,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
     protected JdbcConf jdbcConf;
     protected DtJdbcDialect jdbcDialect;
+    protected AbstractJdbcRowConverter jdbcRowConverter;
 
     protected Connection dbConn;
-    protected JdbcRowConverter jdbcRowConverter;
     protected FieldNamedPreparedStatement fieldNamedPreparedStatement;
     protected List<String> column;
     protected List<String> columnType;
@@ -141,7 +143,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             JdbcUtil.commit(dbConn);
         }
     }
-    
+
     @Override
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;

@@ -18,8 +18,9 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
 import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
@@ -101,7 +102,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     /**
      *
      */
-    private final JdbcRowConverter jdbcRowConverter;
+    private final AbstractJdbcRowConverter jdbcRowConverter;
 
     private final JdbcDialect jdbcDialect;
 
@@ -362,6 +363,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                             }
                             rowList.add(row);
                         } catch (Exception e) {
+                            // todo 在Converter中打印具体异常
                             LOG.error(e.getMessage() + ":" + line);
                         }
                     }
@@ -393,8 +395,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     protected RowData fillData(
-            Object sideInput) throws SQLException {
-        return jdbcRowConverter.toInternal((JsonArray) sideInput);
+            Object sideInput) throws Exception {
+        return jdbcRowConverter.toInternalLookup((JsonArray) sideInput);
     }
 
     @Override

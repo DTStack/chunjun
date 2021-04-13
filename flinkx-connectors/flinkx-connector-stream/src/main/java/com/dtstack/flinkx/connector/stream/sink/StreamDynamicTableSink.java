@@ -18,13 +18,21 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.DataType;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chuixue
@@ -36,10 +44,12 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
     private StreamSinkConf sinkConf;
     private DataType type;
+    private final TableSchema tableSchema;
 
-    public StreamDynamicTableSink(StreamSinkConf sinkConf, DataType type) {
+    public StreamDynamicTableSink(StreamSinkConf sinkConf, DataType type, TableSchema tableSchema) {
         this.sinkConf = sinkConf;
         this.type = type;
+        this.tableSchema = tableSchema;
     }
 
     @Override
@@ -52,18 +62,28 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
         // 一些其他参数的封装,如果有
         sinkConf.setPrint(true);
+        List<FieldConf> fieldList = Arrays
+                .stream(tableSchema.getFieldNames())
+                .map(e -> {
+                    FieldConf fieldConf = new FieldConf();
+                    fieldConf.setName(e);
+                    return fieldConf;
+                })
+                .collect(
+                        Collectors.toList());
+        sinkConf.setColumn(fieldList);
 
         StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
                 .builder()
                 .setStreamSinkConf(sinkConf)
                 .setConverter(context.createDataStructureConverter(type));
 
-        return SinkFunctionProvider.of(new StreamSinkFunction(builder.finish()), 1);
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), 1);
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new StreamDynamicTableSink(sinkConf, type);
+        return new StreamDynamicTableSink(sinkConf, type, tableSchema);
     }
 
     @Override

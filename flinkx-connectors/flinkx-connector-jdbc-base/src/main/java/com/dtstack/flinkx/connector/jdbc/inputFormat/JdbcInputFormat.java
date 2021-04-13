@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.jdbc.inputFormat;
 
+
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.splits.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -77,7 +78,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected JdbcConf jdbcConf;
     protected int numPartitions = 1;
-    protected DtJdbcDialect jdbcDialect;
+    protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
     protected transient Statement statement;
@@ -834,11 +835,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         this.numPartitions = numPartitions;
     }
 
-    public DtJdbcDialect getJdbcDialect() {
+    public JdbcDialect getJdbcDialect() {
         return jdbcDialect;
     }
 
-    public void setJdbcDialect(DtJdbcDialect jdbcDialect) {
+    public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
     }
 }

@@ -18,25 +18,23 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.table.types.logical.RowType;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 /**
  * @program: flinkx
  * @author: wuren
  * @create: 2021/03/17
  **/
-public class MySQLDialect implements DtJdbcDialect {
+public class MySQLDialect implements JdbcDialect {
 
     @Override
     public String dialectName() {
@@ -49,7 +47,7 @@ public class MySQLDialect implements DtJdbcDialect {
     }
 
     @Override
-    public JdbcRowConverter getRowConverter(RowType rowType) {
+    public AbstractJdbcRowConverter getRowConverter(RowType rowType) {
         return new MySQLRowConverter(rowType);
     }
 

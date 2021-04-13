@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -49,7 +50,7 @@ import java.util.Properties;
 public abstract class JdbcDataSource extends BaseDataSource {
 
     protected JdbcConf jdbcConf;
-    protected DtJdbcDialect dtJdbcDialect;
+    protected JdbcDialect jdbcDialect;
 
     public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -80,13 +81,13 @@ public abstract class JdbcDataSource extends BaseDataSource {
         JdbcInputFormatBuilder builder = getBuilder();
 
         int fetchSize = jdbcConf.getFetchSize();
-        jdbcConf.setFetchSize(fetchSize == 0 ? dtJdbcDialect.getFetchSize() : fetchSize);
+        jdbcConf.setFetchSize(fetchSize == 0 ? jdbcDialect.getFetchSize() : fetchSize);
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
-        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? dtJdbcDialect.getQueryTimeout() : queryTimeOut);
+        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? jdbcDialect.getQueryTimeout() : queryTimeOut);
 
         builder.setJdbcConf(jdbcConf);
-        builder.setDtJdbcDialect(dtJdbcDialect);
+        builder.setJdbcDialect(jdbcDialect);
         builder.setNumPartitions(jdbcConf.getParallelism());
 
         return createInput(builder.finish());
