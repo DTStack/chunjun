@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.jdbc.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.options.JdbcOptions;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -40,6 +41,7 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -144,7 +146,8 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return builder.build();
     }
 
-    protected SinkConnectionConf getConnectionConf(ReadableConfig readableConfig) {
+    protected JdbcConf getConnectionConf(ReadableConfig readableConfig) {
+        JdbcConf jdbcConf = new JdbcConf();
         SinkConnectionConf conf = new SinkConnectionConf();
 
         conf.setJdbcUrl(readableConfig.get(URL));
@@ -156,7 +159,11 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
         readableConfig.getOptional(USERNAME).ifPresent(conf::setUsername);
         readableConfig.getOptional(PASSWORD).ifPresent(conf::setPassword);
-        return conf;
+        jdbcConf.setConnection(Collections.singletonList(conf));
+        jdbcConf.setUsername(conf.getUsername());
+        jdbcConf.setPassword(conf.getPassword());
+        jdbcConf.setAllReplace(conf.getAllReplace());
+        return jdbcConf;
     }
 
     protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {

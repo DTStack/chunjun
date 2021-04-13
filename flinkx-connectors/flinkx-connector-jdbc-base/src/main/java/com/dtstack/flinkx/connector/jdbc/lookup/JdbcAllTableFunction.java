@@ -1,14 +1,12 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.util.DtStringUtil;
@@ -35,22 +33,22 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
 
-    private final SinkConnectionConf connectionConf;
+    private final JdbcConf jdbcConf;
     private final String query;
     private final AbstractJdbcRowConverter jdbcRowConverter;
     private final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(
-            SinkConnectionConf connectionConf,
+            JdbcConf jdbcConf,
             JdbcDialect jdbcDialect,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
         super(fieldNames, keyNames, lookupConf);
-        this.connectionConf = connectionConf;
+        this.jdbcConf = jdbcConf;
         this.query = jdbcDialect.getSelectFromStatement(
-                connectionConf.getTable().get(0),
+                jdbcConf.getTable(),
                 fieldNames,
                 new String[]{});
         this.jdbcDialect = jdbcDialect;
@@ -66,18 +64,18 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
                 try {
                     connection = getConn(
-                            connectionConf.obtainJdbcUrl(),
-                            connectionConf.getUsername(),
-                            connectionConf.getPassword());
+                            jdbcConf.getJdbcUrl(),
+                            jdbcConf.getUsername(),
+                            jdbcConf.getPassword());
                     break;
                 } catch (Exception e) {
                     if (i == lookupConf.getMaxRetryTimes() - 1) {
                         throw new RuntimeException("", e);
                     }
                     try {
-                        String connInfo = "url:" + connectionConf.obtainJdbcUrl() + ";userName:"
-                                + connectionConf.obtainJdbcUrl() + ",pwd:"
-                                + connectionConf.obtainJdbcUrl();
+                        String connInfo = "url:" + jdbcConf.getJdbcUrl() + ";userName:"
+                                + jdbcConf.getUsername() + ",pwd:"
+                                + jdbcConf.getPassword();
                         LOG.warn("get conn fail, wait for 5 sec and try again, connInfo:"
                                 + connInfo);
                         Thread.sleep(5 * 1000);

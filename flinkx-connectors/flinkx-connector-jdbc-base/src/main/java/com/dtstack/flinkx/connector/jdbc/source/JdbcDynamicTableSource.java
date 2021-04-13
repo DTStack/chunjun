@@ -2,6 +2,8 @@ package com.dtstack.flinkx.connector.jdbc.source;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -24,19 +26,19 @@ import java.util.Objects;
 public class JdbcDynamicTableSource
         implements LookupTableSource, SupportsProjectionPushDown {
 
-    protected final SinkConnectionConf connectionConf;
+    protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
     protected TableSchema physicalSchema;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
 
     public JdbcDynamicTableSource(
-            SinkConnectionConf connectionConf,
+            JdbcConf jdbcConf,
             LookupConf lookupConf,
             TableSchema physicalSchema,
             JdbcDialect jdbcDialect
     ) {
-        this.connectionConf = connectionConf;
+        this.jdbcConf = jdbcConf;
         this.lookupConf = lookupConf;
         this.physicalSchema = physicalSchema;
         this.jdbcDialect = jdbcDialect;
@@ -57,7 +59,7 @@ public class JdbcDynamicTableSource
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return AsyncTableFunctionProvider.of(new JdbcLruTableFunction(
-                    connectionConf,
+                    jdbcConf,
                     jdbcDialect,
                     lookupConf,
                     physicalSchema.getFieldNames(),
@@ -66,7 +68,7 @@ public class JdbcDynamicTableSource
             ));
         }
         return TableFunctionProvider.of(new JdbcAllTableFunction(
-                connectionConf,
+                jdbcConf,
                 jdbcDialect,
                 lookupConf,
                 physicalSchema.getFieldNames(),
@@ -89,7 +91,7 @@ public class JdbcDynamicTableSource
     @Override
     public DynamicTableSource copy() {
         return new JdbcDynamicTableSource(
-                connectionConf,
+                jdbcConf,
                 lookupConf,
                 physicalSchema,
                 jdbcDialect);
@@ -109,7 +111,7 @@ public class JdbcDynamicTableSource
             return false;
         }
         JdbcDynamicTableSource that = (JdbcDynamicTableSource) o;
-        return Objects.equals(connectionConf, that.connectionConf)
+        return Objects.equals(jdbcConf, that.jdbcConf)
                 && Objects.equals(lookupConf, that.lookupConf)
                 && Objects.equals(physicalSchema, that.physicalSchema)
                 && Objects.equals(dialectName, that.dialectName);
@@ -117,6 +119,6 @@ public class JdbcDynamicTableSource
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectionConf, lookupConf, physicalSchema, dialectName);
+        return Objects.hash(jdbcConf, lookupConf, physicalSchema, dialectName);
     }
 }
