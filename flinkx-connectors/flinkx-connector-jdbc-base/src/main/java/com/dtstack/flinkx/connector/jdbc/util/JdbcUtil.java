@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.util;
 import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -100,7 +100,7 @@ public class JdbcUtil {
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcConf jdbcConf, DtJdbcDialect jdbcDialect){
+    public static Connection getConnection(JdbcConf jdbcConf, JdbcDialect jdbcDialect){
         TelnetUtil.telnet(jdbcConf.getJdbcUrl());
         ClassUtil.forName(jdbcDialect.defaultDriverName().get(), Thread.currentThread().getContextClassLoader());
         Properties prop = jdbcConf.getProperties();

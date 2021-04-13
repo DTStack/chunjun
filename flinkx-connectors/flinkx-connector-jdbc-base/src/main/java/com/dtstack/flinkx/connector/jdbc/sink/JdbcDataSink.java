@@ -22,7 +22,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -42,7 +42,7 @@ import java.util.Properties;
  */
 public abstract class JdbcDataSink extends BaseDataSink {
     protected JdbcConf jdbcConf;
-    protected DtJdbcDialect dtJdbcDialect;
+    protected JdbcDialect JdbcDialect;
 
     public JdbcDataSink(SyncConf syncConf) {
         super(syncConf);
@@ -60,7 +60,7 @@ public abstract class JdbcDataSink extends BaseDataSink {
         JdbcOutputFormatBuilder builder = getBuilder();
 
         builder.setJdbcConf(jdbcConf);
-        builder.setDtJdbcDialect(dtJdbcDialect);
+        builder.setJdbcDialect(JdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
         return createOutput(dataSet, builder.finish());
     }

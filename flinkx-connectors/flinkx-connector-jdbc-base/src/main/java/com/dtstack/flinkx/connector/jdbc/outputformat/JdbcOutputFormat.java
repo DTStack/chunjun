@@ -17,17 +17,15 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
-
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -68,7 +66,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
     protected JdbcConf jdbcConf;
-    protected DtJdbcDialect jdbcDialect;
+    protected JdbcDialect jdbcDialect;
     protected AbstractJdbcRowConverter jdbcRowConverter;
 
     protected Connection dbConn;
@@ -360,11 +358,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         this.jdbcConf = jdbcConf;
     }
 
-    public void setJdbcDialect(DtJdbcDialect jdbcDialect) {
+    public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
     }
 
-    public void setJdbcRowConverter(JdbcRowConverter jdbcRowConverter) {
+    public void setJdbcRowConverter(AbstractJdbcRowConverter jdbcRowConverter) {
         this.jdbcRowConverter = jdbcRowConverter;
     }
 }

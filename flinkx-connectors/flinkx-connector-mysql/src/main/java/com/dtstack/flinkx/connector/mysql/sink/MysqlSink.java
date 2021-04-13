@@ -33,7 +33,7 @@ public class MysqlSink extends JdbcDataSink {
 
     public MysqlSink(SyncConf syncConf) {
         super(syncConf);
-        super.dtJdbcDialect = new MySQLDialect();
+        super.JdbcDialect = new MySQLDialect();
     }
 
     @Override
