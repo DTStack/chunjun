@@ -22,9 +22,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.collections.CollectionUtils;
+import com.dtstack.flinkx.connector.mysql.util.MysqlUtil;
 
 import java.io.IOException;
 
@@ -45,24 +43,9 @@ public class MysqlInputFormat extends JdbcInputFormat {
 
         try {
             for (int pos = 0; pos < genericRowData.getArity(); pos++) {
-                Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(columnTypeList)) {
-                        String columnType = columnTypeList.get(pos);
-                        if("year".equalsIgnoreCase(columnType)) {
-                            java.util.Date date = (java.util.Date) obj;
-                            obj = DateUtil.dateToYearString(date);
-                        } else if("tinyint".equalsIgnoreCase(columnType)
-                                || "bit".equalsIgnoreCase(columnType)) {
-                            if(obj instanceof Boolean) {
-                                obj = ((Boolean) obj ? 1 : 0);
-                            }
-                        }
-                    }
-                    obj = JdbcUtil.clobToString(obj);
-                }
+                Object obj = MysqlUtil.getFromResultSet(resultSet, pos + 1, columnTypeList.get(pos));
 
-                //todo 临时这样写
+                //todo 临时这样写，后续迁移到MysqlUtil中
                 if(obj instanceof String){
                     obj = StringData.fromString((String)obj);
                 }

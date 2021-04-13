@@ -178,7 +178,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public RowData nextRecordInternal(RowData rowData) throws IOException {
         try {
-            updateColumnCount();
+            // todo 抽到DB2插件里面
+//            updateColumnCount();
             List<FieldConf> metaColumns = jdbcConf.getColumn();
             if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
                 for (int i = 0; i < columnCount; i++) {

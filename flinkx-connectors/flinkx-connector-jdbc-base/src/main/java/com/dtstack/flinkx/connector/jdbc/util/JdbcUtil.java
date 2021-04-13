@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.jdbc.util;
 import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -396,28 +395,5 @@ public class JdbcUtil {
         }
 
         return sb.toString();
-    }
-
-    /**
-     * 构造select字段list
-     * @param dtJdbcDialect
-     * @param metaColumns
-     * @return
-     */
-    public static List<String> buildSelectColumns(DtJdbcDialect dtJdbcDialect, List<FieldConf> metaColumns){
-        List<String> selectColumns = new ArrayList<>();
-        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
-            selectColumns.add(ConstantValue.STAR_SYMBOL);
-        } else {
-            for (FieldConf metaColumn : metaColumns) {
-                if (metaColumn.getValue() != null){
-//                    selectColumns.add(dtJdbcDialect.quoteValue(metaColumn.getValue(),metaColumn.getName()));
-                } else {
-//                    selectColumns.add(dtJdbcDialect.quoteColumn(metaColumn.getName()));
-                }
-            }
-        }
-
-        return selectColumns;
     }
 }
