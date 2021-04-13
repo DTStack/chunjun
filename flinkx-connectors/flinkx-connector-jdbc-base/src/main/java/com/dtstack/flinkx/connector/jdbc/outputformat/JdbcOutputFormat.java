@@ -17,6 +17,13 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
+import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
+import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
+import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.types.Row;
+
 import com.dtstack.flinkx.connector.jdbc.util.DbUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -28,14 +35,6 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
-
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.types.Row;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,12 +158,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(mode)) {
             singleSql = jdbcOptions
                     .getDialect()
-                    .getReplaceStatement(jdbcOptions.getTableName(), column, fullColumn, updateKey)
+                    .getReplaceStatement(jdbcOptions.getTableName(), column)
                     .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
             singleSql = jdbcOptions
                     .getDialect()
-                    .getUpsertStatement(jdbcOptions.getTableName(), column, updateKey)
+                    .getUpsertStatement(jdbcOptions.getTableName(), column, updateKey, jdbcOptions.getAllReplace())
                     .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + mode);

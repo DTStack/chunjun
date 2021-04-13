@@ -90,16 +90,21 @@ public interface JdbcDialect extends Serializable {
      * Get dialect upsert statement, the database has its own upsert syntax, such as Mysql using
      * DUPLICATE KEY UPDATE, and PostgresSQL using ON CONFLICT... DO UPDATE SET..
      *
+     * @param tableName
+     * @param fieldNames
+     * @param uniqueKeyFields
+     * @param allReplace Whether to replace the original value with a null value ，if true replace else not replace
+     *
      * @return None if dialect does not support upsert statement, the writer will degrade to the use
      *         of select + update/insert, this performance is poor.
      */
     default Optional<String> getUpsertStatement(
-            String tableName, String[] fieldNames, String[] uniqueKeyFields) {
+            String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
         return Optional.empty();
     }
 
     default Optional<String> getReplaceStatement(
-            String tableName, String[] fieldNames, String[] fullColumn, String[] uniqueKeyFields) {
+            String tableName, String[] fieldNames) {
         return Optional.empty();
     }
 

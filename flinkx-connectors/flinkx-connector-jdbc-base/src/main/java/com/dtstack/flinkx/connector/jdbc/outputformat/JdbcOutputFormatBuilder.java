@@ -17,11 +17,11 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
-
 import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 import java.util.List;
 import java.util.Properties;

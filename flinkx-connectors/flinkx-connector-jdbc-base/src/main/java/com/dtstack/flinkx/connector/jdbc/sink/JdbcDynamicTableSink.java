@@ -135,6 +135,4 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     public int hashCode() {
         return Objects.hash(jdbcOptions, executionOptions, dmlOptions, tableSchema, dialectName);
     }
-
-
 }

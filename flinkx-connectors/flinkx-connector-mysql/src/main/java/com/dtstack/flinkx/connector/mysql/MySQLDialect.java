@@ -67,15 +67,36 @@ public class MySQLDialect implements JdbcDialect {
      */
     @Override
     public Optional<String> getUpsertStatement(
-            String tableName, String[] fieldNames, String[] uniqueKeyFields) {
-        String updateClause =
-                Arrays.stream(fieldNames)
-                        .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
-                        .collect(Collectors.joining(", "));
-        return Optional.of(
-                getInsertIntoStatement(tableName, fieldNames)
-                        + " ON DUPLICATE KEY UPDATE "
-                        + updateClause);
+            String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
+        String updateClause;
+        if (allReplace) {
+            updateClause =
+                    Arrays.stream(fieldNames)
+                            .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
+                            .collect(Collectors.joining(", "));
+        } else {
+            updateClause = Arrays
+                    .stream(fieldNames)
+                    .map(f -> quoteIdentifier(f) + "=IFNULL(VALUES(" + quoteIdentifier(f) + "),"
+                            + quoteIdentifier(f) + ")")
+                    .collect(Collectors.joining(", "));
+        }
+
+        return Optional.of(getInsertIntoStatement(tableName, fieldNames)
+                + " ON DUPLICATE KEY UPDATE " + updateClause);
+    }
+
+    @Override
+    public Optional<String> getReplaceStatement(
+            String tableName, String[] fieldNames) {
+        String columns = Arrays.stream(fieldNames)
+                .map(this::quoteIdentifier)
+                .collect(Collectors.joining(", "));
+        String placeholders = Arrays.stream(fieldNames)
+                .map(f -> "?")
+                .collect(Collectors.joining(", "));
+        return Optional.of("REPLACE INTO " + quoteIdentifier(tableName) +
+                "(" + columns + ")" + " VALUES (" + placeholders + ")");
     }
 
     @Override
