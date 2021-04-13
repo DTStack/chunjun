@@ -23,7 +23,6 @@ import com.dtstack.flinkx.connector.jdbc.options.JdbcOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -97,7 +96,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
         return new JdbcDynamicTableSource(
                 getConnectionConf(helper.getOptions()),
-                getJdbcReadOptions(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName()),

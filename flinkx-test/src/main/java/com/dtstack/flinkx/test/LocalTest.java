@@ -47,7 +47,8 @@ public class LocalTest {
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/mysql_stream.json";
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/test.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
@@ -71,10 +72,12 @@ public class LocalTest {
             argsList.add("flinkStreamSQLLocalTest");
             argsList.add("-pluginRoot");
 //            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+//            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+            argsList.add("/Users/luna/src/dtstack/flinkx/syncplugins");
             argsList.add("-remotePluginPath");
 //            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+//            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
+            argsList.add("/Users/luna/src/dtstack/flinkx/syncplugins");
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
             argsList.add("-confProp");
