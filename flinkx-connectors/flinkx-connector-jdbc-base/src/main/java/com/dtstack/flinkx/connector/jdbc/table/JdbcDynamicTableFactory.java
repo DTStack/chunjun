@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
-import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -39,6 +33,12 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,6 +117,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         // 2.参数校验
         helper.validate();
         validateConfigOptions(config);
+        JdbcDialect jdbcDialect = getDialect();
         JdbcOptions jdbcOptions = getJdbcOptions(config);
 
         // 3.封装参数
@@ -124,7 +125,8 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         return new JdbcDynamicTableSink(
-                jdbcOptions,
+                getConnectionConf(helper.getOptions()),
+                jdbcDialect,
                 getJdbcExecutionOptions(config),
                 getJdbcDmlOptions(jdbcOptions, physicalSchema),
                 physicalSchema);

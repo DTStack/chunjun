@@ -18,15 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.enums.EWriteMode;
-
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -34,6 +29,11 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
+
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.Objects;
 
@@ -46,18 +46,21 @@ import static org.apache.flink.util.Preconditions.checkState;
  **/
 public class JdbcDynamicTableSink implements DynamicTableSink {
 
-    private final JdbcOptions jdbcOptions;
+    private final SinkConnectionConf connectionConf;
+    private final JdbcDialect jdbcDialect;
     private final JdbcExecutionOptions executionOptions;
     private final JdbcDmlOptions dmlOptions;
     private final TableSchema tableSchema;
     private final String dialectName;
 
     public JdbcDynamicTableSink(
-            JdbcOptions jdbcOptions,
+            SinkConnectionConf connectionConf,
+            JdbcDialect jdbcDialect,
             JdbcExecutionOptions executionOptions,
             JdbcDmlOptions dmlOptions,
             TableSchema tableSchema) {
-        this.jdbcOptions = jdbcOptions;
+        this.connectionConf = connectionConf;
+        this.jdbcDialect = jdbcDialect;
         this.executionOptions = executionOptions;
         this.dmlOptions = dmlOptions;
         this.tableSchema = tableSchema;
@@ -91,7 +94,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
         JdbcOutputFormatBuilder builder = JdbcOutputFormatBuilder
                 .builder()
-                .setJdbcOptions(jdbcOptions)
+                .setSinkConnectionConf(connectionConf)
+                .setJdbcDialect(jdbcDialect)
                 .setColumn(tableSchema.getFieldNames())
                 .setRowType(rowType)
                 .setMode((dmlOptions.getKeyFields().isPresent()
@@ -103,8 +107,9 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new org.apache.flink.connector.jdbc.table.JdbcDynamicTableSink(
-                jdbcOptions,
+        return new JdbcDynamicTableSink(
+                connectionConf,
+                jdbcDialect,
                 executionOptions,
                 dmlOptions,
                 tableSchema);
@@ -124,7 +129,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
             return false;
         }
         JdbcDynamicTableSink that = (JdbcDynamicTableSink) o;
-        return Objects.equals(jdbcOptions, that.jdbcOptions)
+        return Objects.equals(connectionConf, that.connectionConf)
                 && Objects.equals(executionOptions, that.executionOptions)
                 && Objects.equals(dmlOptions, that.dmlOptions)
                 && Objects.equals(tableSchema, that.tableSchema)
@@ -133,6 +138,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
     @Override
     public int hashCode() {
-        return Objects.hash(jdbcOptions, executionOptions, dmlOptions, tableSchema, dialectName);
+        return Objects.hash(connectionConf, executionOptions, dmlOptions, tableSchema, dialectName);
     }
 }

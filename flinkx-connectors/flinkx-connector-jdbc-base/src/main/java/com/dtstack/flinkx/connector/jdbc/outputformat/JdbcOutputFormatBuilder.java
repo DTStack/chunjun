@@ -17,9 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
@@ -63,8 +64,13 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         return this;
     }
 
-    public JdbcOutputFormatBuilder setJdbcOptions(JdbcOptions jdbcOptions) {
-        format.jdbcOptions = jdbcOptions;
+    public JdbcOutputFormatBuilder setSinkConnectionConf(SinkConnectionConf connectionConf) {
+        format.connectionConf = connectionConf;
+        return this;
+    }
+
+    public JdbcOutputFormatBuilder setJdbcDialect(JdbcDialect jdbcDialect) {
+        format.jdbcDialect = jdbcDialect;
         return this;
     }
 
@@ -104,16 +110,16 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if (!format.jdbcOptions.getUsername().isPresent()) {
+        if (format.connectionConf.getUsername() == null) {
             LOG.info("Username was not supplied separately.");
         }
-        if (!format.jdbcOptions.getPassword().isPresent()) {
+        if (format.connectionConf.getPassword() == null) {
             LOG.info("Password was not supplied separately.");
         }
-        if (format.jdbcOptions.getDbURL() == null) {
+        if (format.connectionConf.obtainJdbcUrl() == null) {
             throw new IllegalArgumentException("No dababase URL supplied.");
         }
-        if (format.jdbcOptions.getDriverName() == null) {
+        if (!format.jdbcDialect.defaultDriverName().isPresent()) {
             throw new IllegalArgumentException("No driver supplied");
         }
 
@@ -124,7 +130,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     @Override
     public BaseRichOutputFormat finish() {
-        format.jdbcRowConverter = format.jdbcOptions.getDialect().getRowConverter(format.rowType);
+        format.jdbcRowConverter = format.jdbcDialect.getRowConverter(format.rowType);
         return super.finish();
     }
 }

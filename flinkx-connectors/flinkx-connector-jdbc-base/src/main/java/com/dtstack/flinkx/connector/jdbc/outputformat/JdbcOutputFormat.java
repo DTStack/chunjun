@@ -17,13 +17,14 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.Row;
 
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.util.DbUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -66,7 +67,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected static final long serialVersionUID = 1L;
 
     /** Options for the JDBC connector. */
-    protected JdbcOptions jdbcOptions;
+    protected SinkConnectionConf connectionConf;
+
+    protected JdbcDialect jdbcDialect;
 
     protected Connection dbConn;
 
@@ -152,18 +155,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
         String singleSql;
         if (EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
-            singleSql = jdbcOptions
-                    .getDialect()
-                    .getInsertIntoStatement(jdbcOptions.getTableName(), column);
+            singleSql = jdbcDialect
+                    .getInsertIntoStatement(connectionConf.getTable().get(0), column);
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(mode)) {
-            singleSql = jdbcOptions
-                    .getDialect()
-                    .getReplaceStatement(jdbcOptions.getTableName(), column)
+            singleSql = jdbcDialect
+                    .getReplaceStatement(connectionConf.getTable().get(0), column)
                     .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
-            singleSql = jdbcOptions
-                    .getDialect()
-                    .getUpsertStatement(jdbcOptions.getTableName(), column, updateKey, jdbcOptions.getAllReplace())
+            singleSql = jdbcDialect
+                    .getUpsertStatement(connectionConf.getTable().get(0), column, updateKey, connectionConf.getAllReplace())
                     .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + mode);
@@ -177,11 +177,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
-            ClassUtil.forName(jdbcOptions.getDriverName(), getClass().getClassLoader());
+            ClassUtil.forName(jdbcDialect.defaultDriverName().get(), getClass().getClassLoader());
             dbConn = DbUtil.getConnection(
-                    jdbcOptions.getDbURL(),
-                    jdbcOptions.getUsername().get(),
-                    jdbcOptions.getPassword().get());
+                    connectionConf.obtainJdbcUrl(),
+                    connectionConf.getUsername() ,
+                    connectionConf.getPassword());
 
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
@@ -230,10 +230,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(jdbcOptions
-                    .getDialect()
-                    .getSqlQueryFields(jdbcOptions.getDialect().quoteTable(
-                            jdbcOptions.getTableName())));
+            rs = stmt.executeQuery(jdbcDialect
+                    .getSqlQueryFields(jdbcDialect.quoteTable(
+                            connectionConf.getTable().get(0))));
             ResultSetMetaData rd = rs.getMetaData();
             for (int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i + 1));
@@ -497,7 +496,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      * @return
      */
     protected String getTable() {
-        return jdbcOptions.getTableName();
+        return connectionConf.getTable().get(0);
     }
 
     public void setSchema(String schema) {
