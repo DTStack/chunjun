@@ -125,7 +125,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return new JdbcDynamicTableSink(
                 getConnectionConf(helper.getOptions()),
                 jdbcDialect,
-                getJdbcExecutionOptions(config),
                 getJdbcDmlOptions(jdbcOptions, physicalSchema),
                 physicalSchema);
     }
@@ -174,14 +173,6 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT));
-    }
-
-    private JdbcExecutionOptions getJdbcExecutionOptions(ReadableConfig config) {
-        final JdbcExecutionOptions.Builder builder = new JdbcExecutionOptions.Builder();
-        builder.withBatchSize(config.get(SINK_BUFFER_FLUSH_MAX_ROWS));
-        builder.withBatchIntervalMs(config.get(SINK_BUFFER_FLUSH_INTERVAL).toMillis());
-        builder.withMaxRetries(config.get(SINK_MAX_RETRIES));
-        return builder.build();
     }
 
     private JdbcDmlOptions getJdbcDmlOptions(JdbcOptions jdbcOptions, TableSchema schema) {

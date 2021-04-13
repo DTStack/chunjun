@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.jdbc.sink;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.options.JdbcDmlOptions;
 import org.apache.flink.table.api.TableSchema;
@@ -48,7 +47,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
     private final SinkConnectionConf connectionConf;
     private final JdbcDialect jdbcDialect;
-    private final JdbcExecutionOptions executionOptions;
     private final JdbcDmlOptions dmlOptions;
     private final TableSchema tableSchema;
     private final String dialectName;
@@ -56,12 +54,10 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     public JdbcDynamicTableSink(
             SinkConnectionConf connectionConf,
             JdbcDialect jdbcDialect,
-            JdbcExecutionOptions executionOptions,
             JdbcDmlOptions dmlOptions,
             TableSchema tableSchema) {
         this.connectionConf = connectionConf;
         this.jdbcDialect = jdbcDialect;
-        this.executionOptions = executionOptions;
         this.dmlOptions = dmlOptions;
         this.tableSchema = tableSchema;
         this.dialectName = dmlOptions.getDialect().dialectName();
@@ -110,7 +106,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         return new JdbcDynamicTableSink(
                 connectionConf,
                 jdbcDialect,
-                executionOptions,
                 dmlOptions,
                 tableSchema);
     }
@@ -130,7 +125,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         }
         JdbcDynamicTableSink that = (JdbcDynamicTableSink) o;
         return Objects.equals(connectionConf, that.connectionConf)
-                && Objects.equals(executionOptions, that.executionOptions)
                 && Objects.equals(dmlOptions, that.dmlOptions)
                 && Objects.equals(tableSchema, that.tableSchema)
                 && Objects.equals(dialectName, that.dialectName);
@@ -138,6 +132,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectionConf, executionOptions, dmlOptions, tableSchema, dialectName);
+        return Objects.hash(connectionConf, dmlOptions, tableSchema, dialectName);
     }
 }
