@@ -72,6 +72,7 @@ public abstract class JdbcDataSource extends BaseDataSource {
             }
         }
         initIncrementConfig(jdbcConf);
+        super.initFlinkxCommonConf(jdbcConf);
     }
 
     @Override
@@ -83,7 +84,6 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
         jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? dtJdbcDialect.getQueryTimeout() : queryTimeOut);
-//        jdbcConf.setQueryTemplate(new QuerySqlBuilder(this).buildSql());
 
         builder.setJdbcConf(jdbcConf);
         builder.setDtJdbcDialect(dtJdbcDialect);
@@ -147,13 +147,5 @@ public abstract class JdbcDataSource extends BaseDataSource {
             jdbcConf.setIncreColumnType(type);
             jdbcConf.setIncreColumnIndex(index);
         }
-    }
-
-    public JdbcConf getJdbcConf() {
-        return jdbcConf;
-    }
-
-    public DtJdbcDialect getDtJdbcDialect() {
-        return dtJdbcDialect;
     }
 }

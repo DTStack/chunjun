@@ -107,6 +107,12 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
     int[] executeBatch() throws SQLException;
 
     /**
+     *
+     * @see PreparedStatement#clearBatch()
+     */
+    void clearBatch() throws SQLException;
+
+    /**
      * Submits a batch of commands to the database for execution and if all commands execute
      * successfully, returns an array of update counts. The <code>int</code> elements of the array
      * that is returned are ordered to correspond to the commands in the batch, which are ordered

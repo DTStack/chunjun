@@ -196,7 +196,7 @@ public class Main {
         }catch (IllegalArgumentException | NullPointerException e){
             throw e;
         }catch (Exception e){
-            LOG.info("parse json failed, current job is sql.");
+            LOG.info("parse json failed, current job is sql.", e);
         }
         return config;
     }

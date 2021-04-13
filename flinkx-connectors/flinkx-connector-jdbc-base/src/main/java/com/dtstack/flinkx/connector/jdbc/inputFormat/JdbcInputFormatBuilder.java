@@ -48,7 +48,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
     public void setDtJdbcDialect(DtJdbcDialect dtJdbcDialect) {
-        format.setDtJdbcDialect(dtJdbcDialect);
+        format.setJdbcDialect(dtJdbcDialect);
     }
 
     @Override

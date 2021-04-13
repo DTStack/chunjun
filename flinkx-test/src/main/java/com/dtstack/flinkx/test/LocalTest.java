@@ -44,10 +44,10 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/mysql_stream.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");

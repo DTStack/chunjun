@@ -31,8 +31,8 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.Objects;
@@ -92,15 +92,15 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        JdbcOutputFormatBuilder builder = JdbcOutputFormatBuilder
-                .builder()
-                .setSinkConnectionConf(connectionConf)
-                .setJdbcDialect(jdbcDialect)
-                .setColumn(tableSchema.getFieldNames())
-                .setRowType(rowType)
-                .setMode((dmlOptions.getKeyFields().isPresent()
-                        && dmlOptions.getKeyFields().get().length
-                        > 0) ? EWriteMode.UPDATE.name() : EWriteMode.INSERT.name());
+        //todo 这里需要被overwrite，传入实际插件的OutputFormat
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
+//                .builder()
+//                .setJdbcOptions(jdbcOptions)
+//                .setColumn(tableSchema.getFieldNames())
+//                .setRowType(rowType)
+//                .setMode((dmlOptions.getKeyFields().isPresent()
+//                        && dmlOptions.getKeyFields().get().length
+//                        > 0) ? EWriteMode.UPDATE.name() : EWriteMode.INSERT.name());
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
     }

@@ -22,7 +22,6 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -87,7 +86,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private List<String> preSql;
     private List<String> postSql;
     private int batchSize = 1024;
-    private Map<String, List<String>> updateKey;
+    private List<String> updateKey;
+
+    private boolean allReplace = false;
 
     public String getTable() {
         return connection.get(0).getTable().get(0);
@@ -334,11 +335,11 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.batchSize = batchSize;
     }
 
-    public Map<String, List<String>> getUpdateKey() {
+    public List<String> getUpdateKey() {
         return updateKey;
     }
 
-    public void setUpdateKey(Map<String, List<String>> updateKey) {
+    public void setUpdateKey(List<String> updateKey) {
         this.updateKey = updateKey;
     }
 
@@ -364,5 +365,13 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setRestoreColumnType(String restoreColumnType) {
         this.restoreColumnType = restoreColumnType;
+    }
+
+    public boolean isAllReplace() {
+        return allReplace;
+    }
+
+    public void setAllReplace(boolean allReplace) {
+        this.allReplace = allReplace;
     }
 }

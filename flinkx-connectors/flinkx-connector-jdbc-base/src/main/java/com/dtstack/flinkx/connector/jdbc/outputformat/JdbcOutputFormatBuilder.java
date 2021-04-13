@@ -17,15 +17,12 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 
-import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
-
-import java.util.List;
-import java.util.Properties;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author sishu.yss
@@ -35,102 +32,34 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private JdbcOutputFormat format;
 
-    public JdbcOutputFormatBuilder() {
-        super.format = this.format = new JdbcOutputFormat();
+    public JdbcOutputFormatBuilder(JdbcOutputFormat format) {
+        super.format = this.format = format;
     }
 
-    public JdbcOutputFormatBuilder setPreSql(List<String> preSql) {
-        format.preSql = preSql;
-        return this;
+    public void setJdbcConf(JdbcConf jdbcConf) {
+        format.setJdbcConf(jdbcConf);
     }
 
-    public JdbcOutputFormatBuilder setPostSql(List<String> postSql) {
-        format.postSql = postSql;
-        return this;
+    public void setDtJdbcDialect(DtJdbcDialect dtJdbcDialect) {
+        format.setJdbcDialect(dtJdbcDialect);
     }
 
-    public JdbcOutputFormatBuilder setUpdateKey(String[] updateKey) {
-        format.updateKey = updateKey;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setProperties(Properties properties) {
-        format.properties = properties;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setMode(String mode) {
-        format.mode = mode;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setSinkConnectionConf(SinkConnectionConf connectionConf) {
-        format.connectionConf = connectionConf;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setJdbcDialect(JdbcDialect jdbcDialect) {
-        format.jdbcDialect = jdbcDialect;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setRowType(RowType rowType) {
-        format.rowType = rowType;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setColumn(String[] column) {
-        format.column = column;
-        return this;
-    }
-
-    public JdbcOutputFormatBuilder setFullColumn(String[] fullColumn) {
-        format.fullColumn = fullColumn;
-        return this;
-    }
-
-//    public void setTypeConverter(TypeConverterInterface typeConverter ){
-//        format.typeConverter = typeConverter;
-//    }
-
-    public JdbcOutputFormatBuilder setInsertSqlMode(String insertSqlMode) {
-        format.insertSqlMode = insertSqlMode;
-        return this;
-    }
-
-
-    public JdbcOutputFormatBuilder setSchema(String schema) {
-        format.setSchema(schema);
-        return this;
-    }
-
-    public static JdbcOutputFormatBuilder builder() {
-        return new JdbcOutputFormatBuilder();
+    public void setJdbcRowConverter(JdbcRowConverter jdbcRowConverter) {
+        format.setJdbcRowConverter(jdbcRowConverter);
     }
 
     @Override
     protected void checkFormat() {
-        if (format.connectionConf.getUsername() == null) {
-            LOG.info("Username was not supplied separately.");
+        JdbcConf jdbcConf = format.getJdbcConf();
+        StringBuilder sb = new StringBuilder(256);
+        if (StringUtils.isBlank(jdbcConf.getUsername())) {
+            sb.append("No username supplied;\n");
         }
-        if (format.connectionConf.getPassword() == null) {
-            LOG.info("Password was not supplied separately.");
+        if (StringUtils.isBlank(jdbcConf.getPassword())) {
+            sb.append("No password supplied;\n");
         }
-        if (format.connectionConf.obtainJdbcUrl() == null) {
-            throw new IllegalArgumentException("No dababase URL supplied.");
+        if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
+            sb.append("No jdbc url supplied;\n");
         }
-        if (!format.jdbcDialect.defaultDriverName().isPresent()) {
-            throw new IllegalArgumentException("No driver supplied");
-        }
-
-//        if(format.getRestoreConfig().isRestore() && format.getBatchInterval() == 1){
-//            throw new IllegalArgumentException("Batch Size must greater than 1 when checkpoint is open");
-//        }
-    }
-
-    @Override
-    public BaseRichOutputFormat finish() {
-        format.jdbcRowConverter = format.jdbcDialect.getRowConverter(format.rowType);
-        return super.finish();
     }
 }

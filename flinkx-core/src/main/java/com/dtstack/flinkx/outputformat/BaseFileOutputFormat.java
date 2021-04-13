@@ -239,7 +239,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() {
+    public FormatState getFormatState() throws Exception{
 //        if (!config.getRestore().isRestore() || lastRow == null){
 //            return null;
 //        }
@@ -310,7 +310,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         numWriteCounter.add(sumRowsOfBlock);
     }
 
-    @Override
+//    @Override
     protected void afterCloseInternal()  {
         try {
             if(!isTaskEndsNormally()){

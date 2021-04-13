@@ -34,12 +34,10 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
-import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
@@ -54,7 +52,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,7 +77,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     protected JdbcConf jdbcConf;
     protected int numPartitions = 1;
-    protected DtJdbcDialect dtJdbcDialect;
+    protected DtJdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
     protected transient Statement statement;
@@ -105,7 +102,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         LOG.info("inputSplit = {}", inputSplit);
-        ClassUtil.forName(dtJdbcDialect.defaultDriverName().get(), getClass().getClassLoader());
         initMetric(inputSplit);
         if (!canReadData(inputSplit)) {
             LOG.warn("Not read data when the start location are equal to end location");
@@ -324,14 +320,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             String queryMaxValueSql;
             if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
                 queryMaxValueSql = String.format("select max(%s.%s) as max_value from ( %s ) %s", JdbcUtil.TEMPORARY_TABLE_NAME,
-                        dtJdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()), jdbcConf.getCustomSql(), JdbcUtil.TEMPORARY_TABLE_NAME);
+                        jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()), jdbcConf.getCustomSql(), JdbcUtil.TEMPORARY_TABLE_NAME);
             } else {
                 queryMaxValueSql = String.format("select max(%s) as max_value from %s",
-                        dtJdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()), dtJdbcDialect.quoteIdentifier(jdbcConf.getTable()));
+                        jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()), jdbcDialect.quoteIdentifier(jdbcConf.getTable()));
             }
 
             String startSql = buildStartLocationSql(jdbcConf.getIncreColumnType(),
-                    dtJdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                    jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
                     jdbcConf.getStartLocation(),
                     jdbcConf.isUseMaxFunc());
             if (StringUtils.isNotEmpty(startSql)) {
@@ -490,11 +486,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         if(jdbcConf.getParallelism() > 1 && StringUtils.isNotBlank(jdbcConf.getSplitPk())){
             sql.append(" ORDER BY ")
-                    .append(dtJdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()))
+                    .append(jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()))
                     .append(" ASC");
         }
 
-        String querySql = dtJdbcDialect.getSelectFromStatement(
+        String querySql = jdbcDialect.getSelectFromStatement(
                 jdbcConf.getSchema(),
                 jdbcConf.getTable(),
                 jdbcConf.getCustomSql(),
@@ -520,7 +516,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             sql.append(JdbcUtil.TEMPORARY_TABLE_NAME)
                     .append(".");
         }
-        sql.append(dtJdbcDialect.quoteIdentifier(columnName))
+        sql.append(jdbcDialect.quoteIdentifier(columnName))
                 .append(" ")
                 .append(operator)
                 .append(" ");
@@ -755,7 +751,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         builder = new StringBuilder(128);
         builder.append(jdbcConf.getQuerySql())
                 .append("and ")
-                .append(dtJdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" > ? ORDER BY \"")
                 .append(jdbcConf.getIncreColumn())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
@@ -771,8 +767,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 获取数据库连接，用于子类覆盖
      * @return connection
      */
-    protected Connection getConnection() throws SQLException {
-        return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword()), 3, 2000,false);
+    protected Connection getConnection() {
+        return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 
     /**
@@ -838,11 +834,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         this.numPartitions = numPartitions;
     }
 
-    public DtJdbcDialect getDtJdbcDialect() {
-        return dtJdbcDialect;
+    public DtJdbcDialect getJdbcDialect() {
+        return jdbcDialect;
     }
 
-    public void setDtJdbcDialect(DtJdbcDialect dtJdbcDialect) {
-        this.dtJdbcDialect = dtJdbcDialect;
+    public void setJdbcDialect(DtJdbcDialect jdbcDialect) {
+        this.jdbcDialect = jdbcDialect;
     }
 }

@@ -78,7 +78,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() {
+    public FormatState getFormatState() throws Exception{
         if (lastRow != null) {
             TablePrintUtil.printTable(lastRow, getFieldNames());
         }

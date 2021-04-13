@@ -93,6 +93,7 @@ public class ClassUtil {
             case "mediumintunsigned":
             case "integer":
             case "int":
+            case "id":
                 return Integer.class;
 
             case "blob":

@@ -65,6 +65,11 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
     }
 
     @Override
+    public void clearBatch() throws SQLException {
+        statement.clearBatch();
+    }
+
+    @Override
     public boolean execute() throws SQLException {
         return statement.execute();
     }

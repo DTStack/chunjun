@@ -30,8 +30,6 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.latch.BaseLatch;
-import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -114,6 +112,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** 环境上下文 */
     protected StreamingRuntimeContext context;
 
+    /** 是否开启了checkpoint */
+    protected boolean checkpointEnabled;
+
     /** 子任务数量 */
     protected int numTasks;
 
@@ -167,6 +168,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
         context = (StreamingRuntimeContext) getRuntimeContext();
+        this.checkpointEnabled = context.isCheckpointingEnabled();
         this.numTasks = numTasks;
 
         initStatisticsAccumulator();
@@ -308,10 +310,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         }
     }
 
-    protected boolean isStreamButNoWriteCheckpoint(){
-        return false;
-    }
-
     private void saveErrorData(RowData rowData, WriteRecordException e){
         errCounter.add(1);
 
@@ -440,8 +438,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     private void checkErrorLimit(){
         if(errorLimiter != null) {
             try{
-                waitWhile("#5");
-
                 errorLimiter.updateErrorInfo();
             } catch (Exception e){
                 LOG.warn("Update error info error when task closing: ", e);
@@ -510,7 +506,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * Get the recover point of current channel
      * @return DataRecoverPoint
      */
-    public FormatState getFormatState(){
+    public FormatState getFormatState() throws Exception {
         if (formatState != null){
             formatState.setMetric(outputMetric.getMetricCounters());
         }
@@ -531,25 +527,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
-    }
-
-    protected void afterCloseInternal()  {
-        // nothing
-    }
-
-    protected void waitWhile(String latchName){
-        BaseLatch latch = newLatch(latchName);
-        latch.addOne();
-        latch.waitUntil(numTasks);
-    }
-
-    protected BaseLatch newLatch(String latchName) {
-//        if(StringUtils.isNotBlank(config.getMonitorUrls())) {
-//            return new MetricLatch(getRuntimeContext(), config.getMonitorUrls(), latchName);
-//        } else {
-//            return new LocalLatch(jobId + latchName);
-//        }
-        return new LocalLatch(jobId + latchName);
     }
 
     public int getBatchSize() {

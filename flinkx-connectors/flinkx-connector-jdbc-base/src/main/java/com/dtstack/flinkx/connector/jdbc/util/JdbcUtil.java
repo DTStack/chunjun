@@ -20,13 +20,15 @@ package com.dtstack.flinkx.connector.jdbc.util;
 import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.SysUtil;
+import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +42,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 /**
@@ -91,67 +95,67 @@ public class JdbcUtil {
     private static int FORMAT_TIME_NANOS_LENGTH = 29;
 
     /**
-     * 获取jdbc连接(超时10S)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
+     * 获取JDBC连接
+     * @param jdbcConf
+     * @param jdbcDialect
      * @return
-     * @throws SQLException
      */
-    private static Connection getConnectionInternal(String url, String username, String password) throws SQLException {
-        Connection dbConn;
-        synchronized (ClassUtil.LOCK_STR){
-            DriverManager.setLoginTimeout(10);
-
-            // telnet
-            TelnetUtil.telnet(url);
-
-            if (username == null) {
-                dbConn = DriverManager.getConnection(url);
-            } else {
-                dbConn = DriverManager.getConnection(url, username, password);
-            }
+    public static Connection getConnection(JdbcConf jdbcConf, DtJdbcDialect jdbcDialect){
+        TelnetUtil.telnet(jdbcConf.getJdbcUrl());
+        ClassUtil.forName(jdbcDialect.defaultDriverName().get(), Thread.currentThread().getContextClassLoader());
+        Properties prop = jdbcConf.getProperties();
+        if(prop == null){
+            prop = new Properties();
         }
-
-        return dbConn;
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
+            prop.put("user", jdbcConf.getUsername());
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getPassword())) {
+            prop.put("password", jdbcConf.getPassword());
+        }
+        Properties finalProp = prop;
+        synchronized (ClassUtil.LOCK_STR){
+            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(
+                    jdbcConf.getJdbcUrl(),
+                    finalProp), 3, 2000, false);
+        }
     }
 
     /**
-     * 获取jdbc连接(重试3次)
-     * @param url       url
-     * @param username  账号
-     * @param password  密码
+     *
+     * @param tableName
+     * @param dbConn
      * @return
      * @throws SQLException
      */
-    public static Connection getConnection(String url, String username, String password) throws SQLException {
-        if (!url.startsWith(ConstantValue.PROTOCOL_JDBC_MYSQL)) {
-            return getConnectionInternal(url, username, password);
-        } else {
-            boolean failed = true;
-            Connection dbConn = null;
-            for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
-                try {
-                    dbConn = getConnectionInternal(url, username, password);
-                    try (Statement statement = dbConn.createStatement()){
-                        statement.execute("SELECT 1 FROM dual");
-                        failed = false;
-                    }
-                } catch (Exception e) {
-                    if (dbConn != null) {
-                        dbConn.close();
-                    }
-
-                    if (i == MAX_RETRY_TIMES - 1) {
-                        throw e;
-                    } else {
-                        SysUtil.sleep(3000);
-                    }
-                }
-            }
-
-            return dbConn;
+    public static Pair<List<String>, List<String>> getTableFullColumns(String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getColumns(null, null, tableName, null);
+        List<String> fullColumnList = new LinkedList<>();
+        List<String> fullColumnTypeList = new LinkedList<>();
+        while (rs.next()) {
+            //COLUMN_NAME
+            fullColumnList.add(rs.getString(4));
+            //TYPE_NAME
+            fullColumnTypeList.add(rs.getString(6));
         }
+        rs.close();
+        return Pair.of(fullColumnList, fullColumnTypeList);
+    }
+
+    /**
+     *
+     * @param tableName
+     * @param dbConn
+     * @return
+     * @throws SQLException
+     */
+    public static List<String> getTableIndex(String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, tableName, true, false);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()){
+            indexList.add(rs.getString(9));
+        }
+        return indexList;
     }
 
     /**
@@ -218,28 +222,6 @@ public class JdbcUtil {
             }
         } catch (SQLException e){
             LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
-        }
-    }
-
-    /**
-     * 批量执行sql
-     * @param dbConn Connection
-     * @param sqls   sql列表
-     */
-    public static void executeBatch(Connection dbConn, List<String> sqls) {
-        if(sqls == null || sqls.size() == 0) {
-            return;
-        }
-
-        try (Statement stmt = dbConn.createStatement()) {
-            for(String sql : sqls) {
-                stmt.addBatch(sql);
-            }
-            stmt.executeBatch();
-        } catch (SQLException e) {
-            throw new RuntimeException("execute batch sql error:{}",e);
-        } finally {
-            commit(dbConn);
         }
     }
 
