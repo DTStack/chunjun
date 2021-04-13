@@ -24,6 +24,7 @@ import com.dtstack.flinkx.pgwal.Table;
 import com.dtstack.flinkx.pgwal.format.PgWalInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.jdbc.PgConnection;
@@ -56,6 +57,8 @@ public class PgWalListener implements Runnable {
     private PGReplicationStream stream;
     private PgDecoder decoder;
 
+    private SnowflakeIdWorker idWorker;
+
     public PgWalListener(PgWalInputFormat format) {
         this.format = format;
         this.conn = format.getConn();
@@ -65,6 +68,7 @@ public class PgWalListener implements Runnable {
             cat.add(type.toLowerCase());
         }
         this.pavingData = format.isPavingData();
+        idWorker = new SnowflakeIdWorker(1, 1);
     }
 
     public void init() throws Exception{
@@ -115,8 +119,7 @@ public class PgWalListener implements Runnable {
                 map.put("schema", table.getSchema());
                 map.put("table", table.getTable());
                 map.put("lsn", table.getCurrentLsn());
-                map.put("ts", table.getTs());
-                map.put("ingestion", System.nanoTime());
+                map.put("ts", idWorker.nextId());
                 if(pavingData){
                     int i = 0;
                     for (MetaColumn column : table.getColumnList()) {
