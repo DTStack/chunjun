@@ -81,9 +81,13 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
                 .setPrintIdentifier(config.get(PRINT_IDENTIFIER))
                 .setStdErr(config.get(STANDARD_ERROR));
 
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
         return new StreamDynamicTableSink(
                 sinkConf,
-                context.getCatalogTable().getSchema().toPhysicalRowDataType());
+                context.getCatalogTable().getSchema().toPhysicalRowDataType(),
+                physicalSchema);
     }
 
     @Override

@@ -362,6 +362,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                             }
                             rowList.add(row);
                         } catch (Exception e) {
+                            // todo 在Converter中打印具体异常
                             LOG.error(e.getMessage() + ":" + line);
                         }
                     }

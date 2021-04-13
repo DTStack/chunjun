@@ -239,7 +239,8 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
             }
             handleAsyncInvoke(future, keys);
         } catch (Exception e) {
-            // todo 脏数据？
+            // todo 优化
+            LOG.error(e.getMessage());
         }
     }
 
