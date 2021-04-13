@@ -84,7 +84,6 @@ public class PgwalReader extends BaseDataReader {
         builder.setAllowCreateSlot(allowCreateSlot);
         builder.setTemporary(temporary);
         builder.setDataTransferConfig(dataTransferConfig);
-        builder.setJobId(env);
         return createInput(builder.finish(), "pgwalreader");
     }
 }

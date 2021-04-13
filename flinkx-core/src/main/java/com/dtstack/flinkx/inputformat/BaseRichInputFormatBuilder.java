@@ -76,9 +76,4 @@ public abstract class BaseRichInputFormatBuilder {
         }
         return format;
     }
-
-    public void setJobId(StreamExecutionEnvironment env) {
-        //TODO check the job id exist in the evn, otherwise generate job id under uuid
-        format.jobId = UUID.randomUUID().toString().replace("-", "");
-    }
 }
