@@ -32,16 +32,25 @@ public class JdbcCommonConstants {
                     .stringType()
                     .noDefaultValue()
                     .withDescription("the jdbc database url.");
+
+    public static final ConfigOption<String> SCHEMA =
+            ConfigOptions.key("schema")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the jdbc table name.");
+
     public static final ConfigOption<String> TABLE_NAME =
             ConfigOptions.key("table-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("the jdbc table name.");
+
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("the jdbc user name.");
+
     public static final ConfigOption<String> PASSWORD =
             ConfigOptions.key("password")
                     .stringType()

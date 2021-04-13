@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.exception.ExceptionTrace;
 import com.dtstack.flinkx.factory.DTThreadFactory;
@@ -102,23 +103,28 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
      */
     private final JdbcRowConverter jdbcRowConverter;
 
-    protected JdbcOptions options;
+    private final JdbcDialect jdbcDialect;
+
+    private final SinkConnectionConf connectionConf;
 
     protected int asyncPoolSize;
 
     public JdbcLruTableFunction(
-            JdbcOptions options,
+            SinkConnectionConf connectionConf,
+            JdbcDialect jdbcDialect,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
         super(lookupConf);
+        this.connectionConf = connectionConf;
+        this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
-        this.options = options;
-        this.query =
-                options.getDialect()
-                        .getSelectFromStatement(options.getTableName(), fieldNames, keyNames);
-        this.jdbcRowConverter = options.getDialect().getRowConverter(rowType);
+        this.query = jdbcDialect.getSelectFromStatement(
+                connectionConf.getTable().get(0),
+                fieldNames,
+                keyNames);
+        this.jdbcRowConverter = jdbcDialect.getRowConverter(rowType);
     }
 
     @Override
@@ -148,7 +154,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
                 new DTThreadFactory("rdbAsyncExec"),
                 new ThreadPoolExecutor.CallerRunsPolicy());
-        LOG.info("async dim table JdbcOptions info: {} ", options.toString());
+        LOG.info("async dim table JdbcOptions info: {} ", connectionConf.toString());
     }
 
     @Override
@@ -411,11 +417,11 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
      */
     public JsonObject buildJdbcConfig() {
         JsonObject clientConfig = new JsonObject();
-        clientConfig.put("url", options.getDbURL())
-                .put("driver_class", options.getDriverName())
+        clientConfig.put("url", connectionConf.obtainJdbcUrl())
+                .put("driver_class", jdbcDialect.defaultDriverName().get())
                 .put("max_pool_size", asyncPoolSize)
-                .put("user", options.getUsername().get())
-                .put("password", options.getPassword().get())
+                .put("user", connectionConf.getUsername())
+                .put("password", connectionConf.getPassword())
                 .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
                 .put("preferred_test_query", PREFERRED_TEST_QUERY_SQL.defaultValue())
                 .put(

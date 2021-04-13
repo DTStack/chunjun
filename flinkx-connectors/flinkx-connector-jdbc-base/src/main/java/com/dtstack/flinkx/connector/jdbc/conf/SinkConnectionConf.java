@@ -27,8 +27,10 @@ public class SinkConnectionConf extends ConnectionConf{
 
     protected String jdbcUrl;
 
+    protected boolean allReplace;
+
     @Override
-    public String ObtainJdbcUrl() {
+    public String obtainJdbcUrl() {
         return jdbcUrl;
     }
 
@@ -45,14 +47,23 @@ public class SinkConnectionConf extends ConnectionConf{
         this.jdbcUrl = jdbcUrl;
     }
 
+    public boolean getAllReplace() {
+        return allReplace;
+    }
+
+    public void setAllReplace(boolean allReplace) {
+        this.allReplace = allReplace;
+    }
+
     @Override
     public String toString() {
         return "SinkConnectionConf{" +
-                "jdbcUrl='" + jdbcUrl + '\'' +
-                ", table=" + table +
+                "table=" + table +
                 ", schema='" + schema + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", jdbcUrl='" + jdbcUrl + '\'' +
+                ", allReplace=" + allReplace +
                 '}';
     }
 }

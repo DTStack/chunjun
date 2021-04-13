@@ -102,7 +102,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     }
 
     public String getJdbcUrl() {
-        return connection.get(0).ObtainJdbcUrl();
+        return connection.get(0).obtainJdbcUrl();
     }
 
     public void setJdbcUrl(String url){

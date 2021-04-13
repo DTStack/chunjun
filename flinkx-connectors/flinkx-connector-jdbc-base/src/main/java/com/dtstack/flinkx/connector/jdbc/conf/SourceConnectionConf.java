@@ -30,7 +30,7 @@ public class SourceConnectionConf extends ConnectionConf{
     protected List<String> jdbcUrl;
 
     @Override
-    public String ObtainJdbcUrl() {
+    public String obtainJdbcUrl() {
         return jdbcUrl.get(0);
     }
 

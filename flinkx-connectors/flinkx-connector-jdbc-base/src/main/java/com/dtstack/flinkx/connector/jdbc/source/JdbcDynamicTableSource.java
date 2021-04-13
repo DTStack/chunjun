@@ -2,7 +2,6 @@ package com.dtstack.flinkx.connector.jdbc.source;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbc.split.JdbcNumericBetweenParametersProvider;
 import org.apache.flink.connector.jdbc.table.JdbcRowDataInputFormat;
@@ -19,6 +18,7 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
@@ -31,22 +31,26 @@ import java.util.Objects;
 public class JdbcDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected final JdbcOptions options;
+    protected final SinkConnectionConf connectionConf;
     protected final JdbcReadOptions readOptions;
     protected final LookupConf lookupConf;
     protected TableSchema physicalSchema;
     protected final String dialectName;
+    protected final JdbcDialect jdbcDialect;
 
     public JdbcDynamicTableSource(
-            JdbcOptions options,
+            SinkConnectionConf connectionConf,
             JdbcReadOptions readOptions,
             LookupConf lookupConf,
-            TableSchema physicalSchema) {
-        this.options = options;
+            TableSchema physicalSchema,
+            JdbcDialect jdbcDialect
+    ) {
+        this.connectionConf = connectionConf;
         this.readOptions = readOptions;
         this.lookupConf = lookupConf;
         this.physicalSchema = physicalSchema;
-        this.dialectName = options.getDialect().dialectName();
+        this.jdbcDialect = jdbcDialect;
+        this.dialectName = jdbcDialect.dialectName();
     }
 
     @Override
@@ -63,7 +67,8 @@ public class JdbcDynamicTableSource
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return AsyncTableFunctionProvider.of(new JdbcLruTableFunction(
-                    options,
+                    connectionConf,
+                    jdbcDialect,
                     lookupConf,
                     physicalSchema.getFieldNames(),
                     keyNames,
@@ -71,7 +76,8 @@ public class JdbcDynamicTableSource
             ));
         }
         return TableFunctionProvider.of(new JdbcAllTableFunction(
-                options,
+                connectionConf,
+                jdbcDialect,
                 lookupConf,
                 physicalSchema.getFieldNames(),
                 keyNames,
@@ -83,19 +89,20 @@ public class JdbcDynamicTableSource
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         final JdbcRowDataInputFormat.Builder builder =
                 JdbcRowDataInputFormat.builder()
-                        .setDrivername(options.getDriverName())
-                        .setDBUrl(options.getDbURL())
-                        .setUsername(options.getUsername().orElse(null))
-                        .setPassword(options.getPassword().orElse(null))
+                        .setDrivername(jdbcDialect.defaultDriverName().get())
+                        .setDBUrl(connectionConf.obtainJdbcUrl())
+                        .setUsername(connectionConf.getUsername())
+                        .setPassword(connectionConf.getPassword())
                         .setAutoCommit(readOptions.getAutoCommit());
 
         if (readOptions.getFetchSize() != 0) {
             builder.setFetchSize(readOptions.getFetchSize());
         }
-        final JdbcDialect dialect = options.getDialect();
         String query =
-                dialect.getSelectFromStatement(
-                        options.getTableName(), physicalSchema.getFieldNames(), new String[0]);
+                jdbcDialect.getSelectFromStatement(
+                        connectionConf.obtainJdbcUrl(),
+                        physicalSchema.getFieldNames(),
+                        new String[0]);
         if (readOptions.getPartitionColumnName().isPresent()) {
             long lowerBound = readOptions.getPartitionLowerBound().get();
             long upperBound = readOptions.getPartitionUpperBound().get();
@@ -105,12 +112,14 @@ public class JdbcDynamicTableSource
                             .ofBatchNum(numPartitions));
             query +=
                     " WHERE "
-                            + dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
+                            + jdbcDialect.quoteIdentifier(readOptions
+                            .getPartitionColumnName()
+                            .get())
                             + " BETWEEN ? AND ?";
         }
         builder.setQuery(query);
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        builder.setRowConverter(dialect.getRowConverter(rowType));
+        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
         builder.setRowDataTypeInfo(
                 runtimeProviderContext.createTypeInformation(physicalSchema.toRowDataType()));
 
@@ -135,7 +144,12 @@ public class JdbcDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(options, readOptions, lookupConf, physicalSchema);
+        return new JdbcDynamicTableSource(
+                connectionConf,
+                readOptions,
+                lookupConf,
+                physicalSchema,
+                jdbcDialect);
     }
 
     @Override
@@ -152,7 +166,7 @@ public class JdbcDynamicTableSource
             return false;
         }
         JdbcDynamicTableSource that = (JdbcDynamicTableSource) o;
-        return Objects.equals(options, that.options)
+        return Objects.equals(connectionConf, that.connectionConf)
                 && Objects.equals(readOptions, that.readOptions)
                 && Objects.equals(lookupConf, that.lookupConf)
                 && Objects.equals(physicalSchema, that.physicalSchema)
@@ -161,6 +175,6 @@ public class JdbcDynamicTableSource
 
     @Override
     public int hashCode() {
-        return Objects.hash(options, readOptions, lookupConf, physicalSchema, dialectName);
+        return Objects.hash(connectionConf, readOptions, lookupConf, physicalSchema, dialectName);
     }
 }

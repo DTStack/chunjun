@@ -1,15 +1,15 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import com.dtstack.flinkx.util.DtStringUtil;
-
 import org.apache.flink.annotation.Internal;
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,22 +33,26 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAllTableFunction.class);
 
-    private final JdbcOptions options;
+    private final SinkConnectionConf connectionConf;
     private final String query;
     private final JdbcRowConverter jdbcRowConverter;
+    private final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(
-            JdbcOptions options,
+            SinkConnectionConf connectionConf,
+            JdbcDialect jdbcDialect,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
         super(fieldNames, keyNames, lookupConf);
-        this.options = options;
-        this.query =
-                options.getDialect()
-                        .getSelectFromStatement(options.getTableName(), fieldNames, new String[]{});
-        this.jdbcRowConverter = options.getDialect().getRowConverter(rowType);
+        this.connectionConf = connectionConf;
+        this.query = jdbcDialect.getSelectFromStatement(
+                connectionConf.getTable().get(0),
+                fieldNames,
+                new String[]{});
+        this.jdbcDialect = jdbcDialect;
+        this.jdbcRowConverter = jdbcDialect.getRowConverter(rowType);
     }
 
     @Override
@@ -60,18 +64,18 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
                 try {
                     connection = getConn(
-                            options.getDbURL(),
-                            options.getUsername().get(),
-                            options.getPassword().get());
+                            connectionConf.obtainJdbcUrl(),
+                            connectionConf.getUsername(),
+                            connectionConf.getPassword());
                     break;
                 } catch (Exception e) {
                     if (i == lookupConf.getMaxRetryTimes() - 1) {
                         throw new RuntimeException("", e);
                     }
                     try {
-                        String connInfo = "url:" + options.getDbURL() + ";userName:" + options
-                                .getUsername()
-                                .get() + ",pwd:" + options.getPassword().get();
+                        String connInfo = "url:" + connectionConf.obtainJdbcUrl() + ";userName:"
+                                + connectionConf.obtainJdbcUrl() + ",pwd:"
+                                + connectionConf.obtainJdbcUrl();
                         LOG.warn("get conn fail, wait for 5 sec and try again, connInfo:"
                                 + connInfo);
                         Thread.sleep(5 * 1000);
@@ -136,9 +140,9 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
      *
      * @return
      */
-    protected Connection getConn(String dbUrl, String userName, String password){
+    protected Connection getConn(String dbUrl, String userName, String password) {
         try {
-            Class.forName(options.getDriverName());
+            Class.forName(jdbcDialect.defaultDriverName().get());
             //add param useCursorFetch=true
             Map<String, String> addParams = Maps.newHashMap();
             addParams.put("useCursorFetch", "true");

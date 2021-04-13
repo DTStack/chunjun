@@ -38,7 +38,7 @@ public abstract class ConnectionConf implements Serializable {
      * 获取JDBC URL连接
      * @return
      */
-    public abstract String ObtainJdbcUrl();
+    public abstract String obtainJdbcUrl();
 
     /**
      * 设置JDBC URL连接

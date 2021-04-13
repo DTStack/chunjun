@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -34,17 +40,15 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.PASSWORD;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.SCHEMA;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.TABLE_NAME;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.URL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.USERNAME;
@@ -90,14 +94,17 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        JdbcDialect jdbcDialect = getDialect();
 
         return new JdbcDynamicTableSource(
-                getJdbcOptions(helper.getOptions()),
+                getConnectionConf(helper.getOptions()),
                 getJdbcReadOptions(helper.getOptions()),
-                getJdbcLookupOptions(
+                getJdbcLookupConf(
                         helper.getOptions(),
                         context.getObjectIdentifier().getObjectName()),
-                physicalSchema);
+                physicalSchema,
+                jdbcDialect
+        );
     }
 
     @Override
@@ -139,6 +146,21 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return builder.build();
     }
 
+    protected SinkConnectionConf getConnectionConf(ReadableConfig readableConfig) {
+        SinkConnectionConf conf = new SinkConnectionConf();
+
+        conf.setJdbcUrl(readableConfig.get(URL));
+        List<String> tableNames = new ArrayList<>();
+        tableNames.add(readableConfig.get(TABLE_NAME));
+        conf.setTable(tableNames);
+        conf.setSchema(readableConfig.get(SCHEMA));
+        conf.setAllReplace(readableConfig.get(SINK_ALLREPLACE));
+
+        readableConfig.getOptional(USERNAME).ifPresent(conf::setUsername);
+        readableConfig.getOptional(PASSWORD).ifPresent(conf::setPassword);
+        return conf;
+    }
+
     protected JdbcReadOptions getJdbcReadOptions(ReadableConfig readableConfig) {
         final Optional<String> partitionColumnName =
                 readableConfig.getOptional(SCAN_PARTITION_COLUMN);
@@ -154,7 +176,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return builder.build();
     }
 
-    protected LookupConf getJdbcLookupOptions(ReadableConfig readableConfig, String tableName) {
+    protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
         return JdbcLookupConf
                 .build()
                 .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
