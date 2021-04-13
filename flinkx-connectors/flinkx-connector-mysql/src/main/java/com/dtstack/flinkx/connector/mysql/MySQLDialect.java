@@ -18,9 +18,12 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -33,7 +36,7 @@ import static java.lang.String.format;
  * @author: wuren
  * @create: 2021/03/17
  **/
-public class MySQLDialect implements JdbcDialect {
+public class MySQLDialect implements DtJdbcDialect {
 
     @Override
     public String dialectName() {
@@ -99,4 +102,47 @@ public class MySQLDialect implements JdbcDialect {
                 + (conditionFields.length > 0 ? " WHERE " + fieldExpressions : "");
     }
 
+    @Override
+    public String getSelectFromStatement(
+            String schemaName,
+            String tableName,
+            String customSql,
+            String[] selectFields,
+            String where) {
+        String selectExpressions =
+                Arrays.stream(selectFields)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        StringBuilder sql = new StringBuilder(128);
+        sql.append("SELECT ");
+        if(StringUtils.isNotBlank(customSql)){
+            sql.append("* FROM (")
+                    .append(customSql)
+                    .append(") ")
+                    .append(JdbcUtil.TEMPORARY_TABLE_NAME);
+        }else{
+            sql.append(selectExpressions)
+                    .append(" FROM ");
+            if(StringUtils.isNotBlank(schemaName)){
+                sql.append(quoteIdentifier(schemaName))
+                    .append(" .");
+            }
+            sql.append(quoteIdentifier(tableName));
+        }
+        if(StringUtils.isNotBlank(where)){
+            sql.append( " WHERE ")
+                    .append(where);
+        }
+        return sql.toString();
+    }
+
+    @Override
+    public int getFetchSize() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
+    public int getQueryTimeout() {
+        return 300;
+    }
 }

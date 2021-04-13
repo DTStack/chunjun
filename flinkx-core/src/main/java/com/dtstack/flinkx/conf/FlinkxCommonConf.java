@@ -55,6 +55,8 @@ public class FlinkxCommonConf implements Serializable {
     private List<String> fieldNameList = Collections.emptyList();
     /** 是否校验format */
     private boolean checkFormat = true;
+    /** 并行度 */
+    private int parallelism = 1;
 
     public long getBytes() {
         return bytes;
@@ -144,6 +146,14 @@ public class FlinkxCommonConf implements Serializable {
         this.checkFormat = checkFormat;
     }
 
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(int parallelism) {
+        this.parallelism = parallelism;
+    }
+
     @Override
     public String toString() {
         return "FlinkxCommonConf{" +
@@ -158,6 +168,7 @@ public class FlinkxCommonConf implements Serializable {
                 ", dirtyDataHadoopConf=" + dirtyDataHadoopConf +
                 ", fieldNameList=" + fieldNameList +
                 ", checkFormat=" + checkFormat +
+                ", parallelism=" + parallelism +
                 '}';
     }
 }

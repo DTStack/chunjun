@@ -27,6 +27,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
@@ -90,5 +91,7 @@ public abstract class BaseDataSource {
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
+        SpeedConf speed = this.syncConf.getSpeed();
+        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 }

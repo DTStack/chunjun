@@ -27,6 +27,7 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
@@ -101,5 +102,7 @@ public abstract class BaseDataSink {
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
+        SpeedConf speed = this.syncConf.getSpeed();
+        flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }

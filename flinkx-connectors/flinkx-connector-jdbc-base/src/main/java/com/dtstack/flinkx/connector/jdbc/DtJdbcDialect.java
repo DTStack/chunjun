@@ -15,24 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.connector.jdbc;
 
-package com.dtstack.flinkx.connector.jdbc.sync;
-
-import java.io.Serializable;
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 
 /**
- * @program: flinkx-test
- * @author: wuren
- * @create: 2021/04/08
- **/
-public interface TypeConverterInterface extends Serializable {
-
+ * Date: 2021/04/12
+ * Company: www.dtstack.com
+ *
+ * @author tudou
+ */
+public interface DtJdbcDialect extends JdbcDialect {
     /**
-     * 类型转换，将数据库数据某类型的对象转换为对应的Java基本数据对象实例
-     * @param data      数据记录
-     * @param typeName  数据类型
+     * Get select fields statement by condition fields. Default use SELECT.
+     * @param schemaName
+     * @param tableName
+     * @param customSql
+     * @param selectFields
+     * @param where
      * @return
      */
-    Object convert(Object data,String typeName);
+    String getSelectFromStatement(String schemaName, String tableName, String customSql, String[] selectFields, String where);
+    /**
+     * 获取fetchSize，用以指定一次读取数据条数
+     *
+     * @return fetchSize
+     */
+    int getFetchSize();
 
+    /**
+     * 获取查询超时时间
+     *
+     * @return 超时时间
+     */
+    int getQueryTimeout();
 }

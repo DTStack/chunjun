@@ -193,8 +193,10 @@ public class Main {
             if (StringUtils.isNotEmpty(options.getRemotePluginPath())) {
                 config.setRemotePluginPath(options.getRemotePluginPath());
             }
+        }catch (IllegalArgumentException | NullPointerException e){
+            throw e;
         }catch (Exception e){
-           LOG.info("parse json failed, current job is sql.");
+            LOG.info("parse json failed, current job is sql.");
         }
         return config;
     }
