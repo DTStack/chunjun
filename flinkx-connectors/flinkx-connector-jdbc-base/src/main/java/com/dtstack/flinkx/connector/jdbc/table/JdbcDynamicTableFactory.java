@@ -34,10 +34,10 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -125,14 +125,15 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
 
     protected JdbcOptions getJdbcOptions(ReadableConfig readableConfig) {
         final String url = readableConfig.get(URL);
+        JdbcDialect dialect = getDialect();
         final JdbcOptions.Builder builder =
                 JdbcOptions.builder()
                         .setDBUrl(url)
                         .setTableName(readableConfig.get(TABLE_NAME))
                         .setAllReplace(readableConfig.get(SINK_ALLREPLACE))
-                        .setDialect(getDialect());
+                        .setDialect(dialect);
 
-        getDriver().ifPresent(builder::setDriverName);
+        dialect.defaultDriverName().ifPresent(builder::setDriverName);
         readableConfig.getOptional(USERNAME).ifPresent(builder::setUsername);
         readableConfig.getOptional(PASSWORD).ifPresent(builder::setPassword);
         return builder.build();
@@ -153,8 +154,8 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return builder.build();
     }
 
-    protected LookupOptions getJdbcLookupOptions(ReadableConfig readableConfig, String tableName) {
-        return JdbcLookupOptions
+    protected LookupConf getJdbcLookupOptions(ReadableConfig readableConfig, String tableName) {
+        return JdbcLookupConf
                 .build()
                 .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
                 .setTableName(tableName)
@@ -297,11 +298,4 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
      * @return
      */
     protected abstract JdbcDialect getDialect();
-
-    /**
-     * 不同数据库不同驱动
-     *
-     * @return
-     */
-    protected abstract Optional<String> getDriver();
 }

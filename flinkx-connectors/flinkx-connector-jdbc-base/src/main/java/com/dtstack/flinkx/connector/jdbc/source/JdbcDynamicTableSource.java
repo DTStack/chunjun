@@ -22,7 +22,7 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.Objects;
 
@@ -33,18 +33,18 @@ public class JdbcDynamicTableSource
 
     protected final JdbcOptions options;
     protected final JdbcReadOptions readOptions;
-    protected final LookupOptions lookupOptions;
+    protected final LookupConf lookupConf;
     protected TableSchema physicalSchema;
     protected final String dialectName;
 
     public JdbcDynamicTableSource(
             JdbcOptions options,
             JdbcReadOptions readOptions,
-            LookupOptions lookupOptions,
+            LookupConf lookupConf,
             TableSchema physicalSchema) {
         this.options = options;
         this.readOptions = readOptions;
-        this.lookupOptions = lookupOptions;
+        this.lookupConf = lookupConf;
         this.physicalSchema = physicalSchema;
         this.dialectName = options.getDialect().dialectName();
     }
@@ -61,10 +61,10 @@ public class JdbcDynamicTableSource
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
-        if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return AsyncTableFunctionProvider.of(new JdbcLruTableFunction(
                     options,
-                    lookupOptions,
+                    lookupConf,
                     physicalSchema.getFieldNames(),
                     keyNames,
                     rowType
@@ -72,7 +72,7 @@ public class JdbcDynamicTableSource
         }
         return TableFunctionProvider.of(new JdbcAllTableFunction(
                 options,
-                lookupOptions,
+                lookupConf,
                 physicalSchema.getFieldNames(),
                 keyNames,
                 rowType
@@ -135,7 +135,7 @@ public class JdbcDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(options, readOptions, lookupOptions, physicalSchema);
+        return new JdbcDynamicTableSource(options, readOptions, lookupConf, physicalSchema);
     }
 
     @Override
@@ -154,13 +154,13 @@ public class JdbcDynamicTableSource
         JdbcDynamicTableSource that = (JdbcDynamicTableSource) o;
         return Objects.equals(options, that.options)
                 && Objects.equals(readOptions, that.readOptions)
-                && Objects.equals(lookupOptions, that.lookupOptions)
+                && Objects.equals(lookupConf, that.lookupConf)
                 && Objects.equals(physicalSchema, that.physicalSchema)
                 && Objects.equals(dialectName, that.dialectName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(options, readOptions, lookupOptions, physicalSchema, dialectName);
+        return Objects.hash(options, readOptions, lookupConf, physicalSchema, dialectName);
     }
 }

@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.options;
+package com.dtstack.flinkx.connector.jdbc.conf;
 
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 /**
  * @author chuixue
  * @create 2021-04-10 22:10
  * @description
  **/
-public class JdbcLookupOptions extends LookupOptions {
+public class JdbcLookupConf extends LookupConf {
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 
@@ -33,12 +33,12 @@ public class JdbcLookupOptions extends LookupOptions {
         return asyncPoolSize;
     }
 
-    public JdbcLookupOptions setAsyncPoolSize(int asyncPoolSize) {
+    public JdbcLookupConf setAsyncPoolSize(int asyncPoolSize) {
         this.asyncPoolSize = asyncPoolSize;
         return this;
     }
 
-    public static JdbcLookupOptions build() {
-        return new JdbcLookupOptions();
+    public static JdbcLookupConf build() {
+        return new JdbcLookupConf();
     }
 }

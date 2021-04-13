@@ -25,14 +25,14 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.exception.ExceptionTrace;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ThreadUtil;
 import com.google.common.collect.Lists;
@@ -108,12 +108,12 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     public JdbcLruTableFunction(
             JdbcOptions options,
-            LookupOptions lookupOptions,
+            LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(lookupOptions);
-        this.asyncPoolSize = ((JdbcLookupOptions) lookupOptions).getAsyncPoolSize();
+        super(lookupConf);
+        this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
         this.options = options;
         this.query =
                 options.getDialect()
@@ -278,7 +278,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         rdbSqlClient.getConnection(conn -> {
             try {
                 String errorMsg;
-                Integer retryMaxNum = lookupOptions.getMaxRetryTimes();
+                Integer retryMaxNum = lookupConf.getMaxRetryTimes();
                 int logPrintTime = retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0 ?
                         retryMaxNum : retryMaxNum / ERRORLOG_PRINTNUM.defaultValue();
                 if (conn.failed()) {

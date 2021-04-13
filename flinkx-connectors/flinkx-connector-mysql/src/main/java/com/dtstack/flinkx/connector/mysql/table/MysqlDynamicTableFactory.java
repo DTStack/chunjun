@@ -23,23 +23,15 @@ import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
 
-import java.util.Optional;
-
 /**
  * @program: flinkx
  * @author: wuren
  * @create: 2021/03/17
  **/
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
-    public static final String MYSQL_DRIVER = "com.mysql.cj.jdbc.Driver";
 
     /** 通过该值查找具体插件 */
     private static final String IDENTIFIER = "dt-mysql";
-
-    @Override
-    protected Optional<String> getDriver() {
-        return Optional.of(MYSQL_DRIVER);
-    }
 
     @Override
     public String factoryIdentifier() {

@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.lookup;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
+import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 
 /**
@@ -29,7 +29,7 @@ import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 public class StreamAllLookupFunctionAll extends AbstractAllTableFunction {
 
     public StreamAllLookupFunctionAll(
-            StreamLookupOptions lookupOptions,
+            StreamLookupConf lookupOptions,
             String[] fieldNames,
             String[] keyNames) {
         super(fieldNames, keyNames, lookupOptions);

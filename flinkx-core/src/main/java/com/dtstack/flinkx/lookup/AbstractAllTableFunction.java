@@ -25,7 +25,7 @@ import org.apache.flink.table.functions.TableFunction;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.factory.DTThreadFactory;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -57,17 +57,17 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
-    protected final LookupOptions lookupOptions;
+    protected final LookupConf lookupConf;
     /** 字段名称 */
     protected final String[] fieldsName;
 
     public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
-            LookupOptions lookupOptions
+            LookupConf lookupConf
     ) {
         this.keyNames = keyNames;
-        this.lookupOptions = lookupOptions;
+        this.lookupConf = lookupConf;
         this.fieldsName = fieldNames;
     }
 
@@ -95,7 +95,7 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
 
         cacheRef.set(newCache);
         LOG.info(
-                "----- " + lookupOptions.getTableName() + ": all cacheRef reload end:{}",
+                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
                 LocalDateTime
                         .now());
     }
@@ -117,8 +117,8 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
         es = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
-                lookupOptions.getPeriod(),
-                lookupOptions.getPeriod(),
+                lookupConf.getPeriod(),
+                lookupConf.getPeriod(),
                 TimeUnit.MILLISECONDS);
     }
 

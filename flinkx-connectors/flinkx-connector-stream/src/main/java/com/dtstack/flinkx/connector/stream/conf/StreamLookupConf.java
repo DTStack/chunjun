@@ -17,17 +17,17 @@
  */
 package com.dtstack.flinkx.connector.stream.conf;
 
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 /**
  * @author chuixue
  * @create 2021-04-09 10:08
  * @description 这里是StreamLookup特有的参数
  **/
-public class StreamLookupOptions extends LookupOptions {
+public class StreamLookupConf extends LookupConf {
 
-    public static StreamLookupOptions build() {
-        return new StreamLookupOptions();
+    public static StreamLookupConf build() {
+        return new StreamLookupConf();
     }
 
 }

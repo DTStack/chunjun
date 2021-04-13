@@ -33,7 +33,7 @@ import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.cache.AbstractSideCache;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.cache.LRUSideCache;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.metrics.MetricConstant;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.google.common.collect.Lists;
@@ -64,7 +64,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     /** 缓存 */
     protected AbstractSideCache sideCache;
     /** 维表配置 */
-    protected LookupOptions lookupOptions;
+    protected LookupConf lookupConf;
     /** 运行环境 */
     private RuntimeContext runtimeContext;
 
@@ -72,9 +72,9 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     private int timeOutNum = 0;
 
     public AbstractLruTableFunction(
-            LookupOptions lookupOptions
+            LookupConf lookupConf
     ) {
-        this.lookupOptions = lookupOptions;
+        this.lookupConf = lookupConf;
     }
 
     @Override
@@ -88,7 +88,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         field.setAccessible(true);
         runtimeContext = (RuntimeContext) field.get(context);
 
-        LOG.info("async dim table lookupOptions info: {} ", lookupOptions.toString());
+        LOG.info("async dim table lookupOptions info: {} ", lookupConf.toString());
     }
 
     /**
@@ -97,15 +97,15 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     private void initCache() {
         if (CacheType.NONE
                 .name()
-                .equalsIgnoreCase(lookupOptions.getCache())) {
+                .equalsIgnoreCase(lookupConf.getCache())) {
             return;
         }
 
-        if (CacheType.LRU.name().equalsIgnoreCase(lookupOptions.getCache())) {
-            sideCache = new LRUSideCache(lookupOptions.getCacheSize(), lookupOptions.getCacheTtl());
+        if (CacheType.LRU.name().equalsIgnoreCase(lookupConf.getCache())) {
+            sideCache = new LRUSideCache(lookupConf.getCacheSize(), lookupConf.getCacheTtl());
         } else {
             throw new RuntimeException(
-                    "not support side cache with type:" + lookupOptions.getCache());
+                    "not support side cache with type:" + lookupConf.getCache());
         }
 
         sideCache.initCache();
@@ -189,13 +189,13 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
         }
         timeOutNum++;
 
-        if (timeOutNum > lookupOptions.getErrorLimit()) {
+        if (timeOutNum > lookupConf.getErrorLimit()) {
             future.completeExceptionally(
                     new SuppressRestartsException(
                             new Throwable(
                                     String.format(
                                             "Async function call timedOutNum beyond limit. %s",
-                                            lookupOptions.getErrorLimit()
+                                            lookupConf.getErrorLimit()
                                     )
                             )
                     ));
@@ -349,7 +349,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
             CompletableFuture<Collection<RowData>> future,
             Object... keys) {
         ProcessingTimeService processingTimeService = getProcessingTimeService();
-        long timeoutTimestamp = lookupOptions.getAsyncTimeout()
+        long timeoutTimestamp = lookupConf.getAsyncTimeout()
                 + processingTimeService.getCurrentProcessingTime();
         return processingTimeService.registerTimer(
                 timeoutTimestamp,
@@ -378,7 +378,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      */
     protected void dealFillDataError(CompletableFuture<Collection<RowData>> future, Throwable e) {
         parseErrorRecords.inc();
-        if (parseErrorRecords.getCount() > lookupOptions.getErrorLimit()) {
+        if (parseErrorRecords.getCount() > lookupConf.getErrorLimit()) {
             LOG.info("dealFillDataError", e);
             future.completeExceptionally(new SuppressRestartsException(e));
         } else {

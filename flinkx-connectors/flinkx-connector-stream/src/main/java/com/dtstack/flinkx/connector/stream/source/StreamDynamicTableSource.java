@@ -30,7 +30,7 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupOptions;
+import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
 import com.dtstack.flinkx.connector.stream.lookup.StreamAllLookupFunctionAll;
 import com.dtstack.flinkx.connector.stream.lookup.StreamLruLookupFunction;
 import com.dtstack.flinkx.enums.CacheType;
@@ -44,9 +44,9 @@ import com.dtstack.flinkx.enums.CacheType;
 public class StreamDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private TableSchema physicalSchema;
-    private StreamLookupOptions lookupOptions;
+    private StreamLookupConf lookupOptions;
 
-    public StreamDynamicTableSource(StreamLookupOptions lookupOptions, TableSchema physicalSchema) {
+    public StreamDynamicTableSource(StreamLookupConf lookupOptions, TableSchema physicalSchema) {
         this.lookupOptions = lookupOptions;
         this.physicalSchema = physicalSchema;
     }

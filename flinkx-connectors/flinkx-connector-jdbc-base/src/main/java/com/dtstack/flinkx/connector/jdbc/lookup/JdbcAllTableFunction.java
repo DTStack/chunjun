@@ -9,7 +9,7 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
-import com.dtstack.flinkx.lookup.options.LookupOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +39,11 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     public JdbcAllTableFunction(
             JdbcOptions options,
-            LookupOptions lookupOptions,
+            LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, keyNames, lookupOptions);
+        super(fieldNames, keyNames, lookupConf);
         this.options = options;
         this.query =
                 options.getDialect()
@@ -57,7 +57,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            for (int i = 0; i < lookupOptions.getMaxRetryTimes(); i++) {
+            for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
                 try {
                     connection = getConn(
                             options.getDbURL(),
@@ -65,7 +65,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
                             options.getPassword().get());
                     break;
                 } catch (Exception e) {
-                    if (i == lookupOptions.getMaxRetryTimes() - 1) {
+                    if (i == lookupConf.getMaxRetryTimes() - 1) {
                         throw new RuntimeException("", e);
                     }
                     try {
@@ -108,7 +108,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             Connection connection) throws SQLException {
         //load data from table
         Statement statement = connection.createStatement();
-        statement.setFetchSize(lookupOptions.getFetchSize());
+        statement.setFetchSize(lookupConf.getFetchSize());
         ResultSet resultSet = statement.executeQuery(query);
 
         while (resultSet.next()) {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.lookup.options;
+package com.dtstack.flinkx.lookup.conf;
 
 import com.dtstack.flinkx.enums.CacheType;
 
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * @create 2021-04-10 13:11
  * @description
  **/
-public class LookupOptions implements Serializable {
+public class LookupConf implements Serializable {
     /** 表名 */
     protected String tableName = "";
     /** 间隔加载时间 */
@@ -51,7 +51,7 @@ public class LookupOptions implements Serializable {
         return tableName;
     }
 
-    public LookupOptions setTableName(String tableName) {
+    public LookupConf setTableName(String tableName) {
         this.tableName = tableName;
         return this;
     }
@@ -60,7 +60,7 @@ public class LookupOptions implements Serializable {
         return period;
     }
 
-    public LookupOptions setPeriod(long period) {
+    public LookupConf setPeriod(long period) {
         this.period = period;
         return this;
     }
@@ -69,7 +69,7 @@ public class LookupOptions implements Serializable {
         return cache;
     }
 
-    public LookupOptions setCache(String cache) {
+    public LookupConf setCache(String cache) {
         this.cache = cache;
         return this;
     }
@@ -78,7 +78,7 @@ public class LookupOptions implements Serializable {
         return cacheSize;
     }
 
-    public LookupOptions setCacheSize(long cacheSize) {
+    public LookupConf setCacheSize(long cacheSize) {
         this.cacheSize = cacheSize;
         return this;
     }
@@ -87,7 +87,7 @@ public class LookupOptions implements Serializable {
         return errorLimit;
     }
 
-    public LookupOptions setErrorLimit(long errorLimit) {
+    public LookupConf setErrorLimit(long errorLimit) {
         this.errorLimit = errorLimit;
         return this;
     }
@@ -96,7 +96,7 @@ public class LookupOptions implements Serializable {
         return cacheTtl;
     }
 
-    public LookupOptions setCacheTtl(long cacheTtl) {
+    public LookupConf setCacheTtl(long cacheTtl) {
         this.cacheTtl = cacheTtl;
         return this;
     }
@@ -105,7 +105,7 @@ public class LookupOptions implements Serializable {
         return maxRetryTimes;
     }
 
-    public LookupOptions setMaxRetryTimes(int maxRetryTimes) {
+    public LookupConf setMaxRetryTimes(int maxRetryTimes) {
         this.maxRetryTimes = maxRetryTimes;
         return this;
     }
@@ -114,7 +114,7 @@ public class LookupOptions implements Serializable {
         return fetchSize;
     }
 
-    public LookupOptions setFetchSize(int fetchSize) {
+    public LookupConf setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
         return this;
     }
@@ -123,13 +123,13 @@ public class LookupOptions implements Serializable {
         return asyncTimeout;
     }
 
-    public LookupOptions setAsyncTimeout(int asyncTimeout) {
+    public LookupConf setAsyncTimeout(int asyncTimeout) {
         this.asyncTimeout = asyncTimeout;
         return this;
     }
 
-    public static LookupOptions build() {
-        return new LookupOptions();
+    public static LookupConf build() {
+        return new LookupConf();
     }
 
     @Override
