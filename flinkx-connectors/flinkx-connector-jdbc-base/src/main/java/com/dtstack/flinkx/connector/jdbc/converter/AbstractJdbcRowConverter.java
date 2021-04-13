@@ -36,6 +36,7 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -50,11 +51,13 @@ import java.time.LocalTime;
 public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {
 
     protected final DeserializationConverter<Object>[] toInternalConverters;
+    protected final JdbcDeserializationConverter[] toJdbcInternalConverters;
     protected final SerializationConverter<FieldNamedPreparedStatement>[] toExternalConverters;
 
     public AbstractJdbcRowConverter(RowType rowType) {
         super(rowType);
         this.toInternalConverters = new DeserializationConverter[rowType.getFieldCount()];
+        this.toJdbcInternalConverters = new JdbcDeserializationConverter[rowType.getFieldCount()];
         this.toExternalConverters = new SerializationConverter[rowType.getFieldCount()];
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] = createNullableInternalConverter(rowType.getTypeAt(i));
@@ -69,6 +72,9 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
             Object field = resultSet.getObject(pos + 1);
             genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
         }
+//        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+//            genericRowData.setField(pos, toJdbcInternalConverters[pos].deserialize(resultSet, pos + 1));
+//        }
         return genericRowData;
     }
 
@@ -80,6 +86,11 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
             genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
         }
         return genericRowData;
+    }
+
+    @FunctionalInterface
+    protected interface JdbcDeserializationConverter extends Serializable {
+        Object deserialize(ResultSet resultSet, int pos) throws Exception;
     }
 
     @Override
@@ -247,4 +258,6 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
+
+    public abstract JdbcDeserializationConverter createJdbcInternalConverter(String type) throws SQLException;
 }

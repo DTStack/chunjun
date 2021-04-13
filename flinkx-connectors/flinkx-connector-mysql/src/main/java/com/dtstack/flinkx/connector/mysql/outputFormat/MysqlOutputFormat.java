@@ -18,6 +18,15 @@
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.mysql.MySQLRowConverter;
+
+import org.apache.flink.table.types.logical.IntType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.VarCharType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Date: 2021/04/13
@@ -26,4 +35,26 @@ import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
  * @author tudou
  */
 public class MysqlOutputFormat extends JdbcOutputFormat {
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        List<RowType.RowField> fields = new ArrayList<>();
+        for (int i = 0; i < columnType.size(); i++) {
+            String name = column.get(i);
+            LogicalType type;
+            if (columnType.get(i).equalsIgnoreCase("INT")) {
+                type = new IntType();
+            } else if (columnType.get(i).equalsIgnoreCase("STRING")) {
+                type = new VarCharType();
+            } else {
+                // TODO 现在就支持INT 和 STRING
+                type = new VarCharType();
+            }
+            fields.add(new RowType.RowField(name, type));
+        }
+        RowType type = new RowType(fields);
+        MySQLRowConverter converter = new MySQLRowConverter(type);
+        setJdbcRowConverter(converter);
+    }
 }
