@@ -23,8 +23,11 @@ import com.dtstack.flinkx.config.LogConfig;
 import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.TestConfig;
 import com.google.common.base.Preconditions;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 /**
  * Abstract specification for all the InputFormatBuilder implementation
@@ -74,4 +77,8 @@ public abstract class BaseRichInputFormatBuilder {
         return format;
     }
 
+    public void setJobId(StreamExecutionEnvironment env) {
+        //TODO check the job id exist in the evn, otherwise generate job id under uuid
+        format.jobId = UUID.randomUUID().toString().replace("-", "");
+    }
 }

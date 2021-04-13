@@ -526,6 +526,11 @@
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-pgwal-reader</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-sqlserver-reader</artifactId>
             <version>1.6</version>
         </dependency>
