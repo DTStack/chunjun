@@ -1,14 +1,35 @@
-# PostgreSQL实时采集方案
+# FlinkX PostgreSQL WAL实时采集基本原理
 
-<a name="yK0Mt"></a>
-## PostgreSQL实时采集原理
+<!-- TOC -->
+
+- [FlinkX PostgreSQL WAL实时采集基本原理](#flinkx-postgresql-wal实时采集基本原理)
+    - [版本限制](#版本限制)
+    - [主要涉及模块说明](#主要涉及模块说明)
+    - [逻辑复制](#逻辑复制)
+    - [创建发布](#创建发布)
+    - [WAL日志](#wal日志)
+        - [WAL何时被写入](#wal何时被写入)
+        - [WAL主要配置](#wal主要配置)
+    - [复制槽](#复制槽)
+    - [局限性](#局限性)
+    - [FlinkX PostgreSQL WAL实时采集配置](#flinkx-postgresql-wal实时采集配置)
+        - [postgresql.conf设置](#postgresqlconf设置)
+    - [部分核心代码分析](#部分核心代码分析)
+        - [执行发布SQL](#执行发布sql)
+        - [创建一个逻辑复制流](#创建一个逻辑复制流)
+        - [业务处理](#业务处理)
+
+<!-- /TOC -->
+
+<br />
+
 PostgreSQL 实时采集是基于 PostgreSQL的逻辑复制以及逻辑解码功能来完成的。逻辑复制同步数据的原理是，在wal日志产生的数据库上，由逻辑解析模块对wal日志进行初步的解析,它的解析结果为ReorderBufferChange（可以简单理解为HeapTupleData），再由pgoutput plugin对中间结果进行过滤和消息化拼接后，然后将其发送到订阅端，订阅端通过逻辑解码功能进行解析。
 <a name="xQDDG"></a>
-### 版本限制
+## 版本限制
 逻辑复制是pgsql10.0版本之后才支持的，因此此方案只支持10.0之后版本
 
 <a name="nmlSP"></a>
-### 主要涉及模块说明
+## 主要涉及模块说明
 | Logical Decoding | PostgreSQL 的逻辑日志来源于解析物理 WAL 日志。<br />解析 WAL 成为逻辑数据的过程叫 Logical Decoding。 |
 | :--- | :--- |
 | Replication Slots | 保存逻辑或物理流复制的基础信息。类似 Mysql 的位点信息。<br />一个 逻辑 slot 创建后，它的相关信息可以通过 pg_replication_slots 系统视图获取。<br />如果它在 active 状态，则可以通过系统视图 pg_stat_replication 看到一些 slot 的实时的状态信息。 |
@@ -37,13 +58,13 @@ PostgreSQL 实时采集是基于 PostgreSQL的逻辑复制以及逻辑解码功�
 <br />
 
 <a name="p8phn"></a>
-### 逻辑复制
+## 逻辑复制
 逻辑复制使用_发布_和_订阅_模型， 其中一个或多个_订阅者_订阅_发布者_ 节点上的一个或多个_发布_。 订阅者从他们订阅的发布中提取数据,逻辑复制是根据复制标识（通常是主键）复制数据对象及其更改的一种方法，因此在上面订阅端收到消息数据实例中可以发现 具备数据库以及表信息外 还具备修改前数据，修改后数据信息以及执行的type和对应的WAL日志ID
 
 发布可以选择将它们所产生的改变限制在`INSERT`， `UPDATE`和`DELETE`的任意组合上， 类似于触发器被特定事件类型触发。默认情况下，复制所有操作类型。<br />已发布的table必须配置一个“副本标识”以便能够复制 `UPDATE`和`DELETE`操作， 这样可以在订阅者端识别适当的行来更新或删除。默认情况下，这是主键， 如果有的话。另外唯一的索引（有一些额外的要求）也可以被设置为副本标识。 如果表没有任何合适的键，那么它可以设置为复制标识“full”， 这意味着整个行成为键。但是，这是非常低效的， 并且只能在没有其他可能的解决方案时用作后备<br />
 
 <a name="6cbmC"></a>
-### 创建发布
+## 创建发布
 为哪些表设置创建一个发布
 ```sql
 CREATE PUBLICATION name
@@ -54,15 +75,15 @@ CREATE PUBLICATION name
 
 
 <a name="w5seT"></a>
-### WAL日志
+## WAL日志
 WAL 是 Write Ahead Log的缩写,中文称之为预写式日志。WAL log也被简称为xlog，每一次change操作都是先写日志再写数据,保证了事务持久性和数据完整性同时又尽量地避免了频繁IO对性能的影响。WAL的中心概念是**数据文件（存储着表和索引）的修改必须在这些动作被日志记录之后才被写入**<br />WAL日志保存在pg_xlog下，每个xlog文件默认是16MB,为了满足恢复需求，在xlog目录下会产生多个WAL日志，不需要的WAL日志将会被覆盖<br />WAL具备归档功能，通过归档的WAL文件可以恢复数据库到WAL日志覆盖时间内的任意一个时间点的状态并且有了WAL日志之后，逻辑复制就可以在WAL日志生成之后，对其进行一系列操作之后传递给订阅客户端，使得订阅客户端能实时获取到源服务器上的修改数据<br />
 
 <a name="h6CtE"></a>
-#### WAL何时被写入
+### WAL何时被写入
 WAL也有个内存缓冲区WAL Buffer，WAL都是先写入缓存中，对于事务操作，缓存的WAL日志是在事务提交的时候写入磁盘的，对于非事务型的由一个异步线程追加进日志文件或者在checkPoint(数据脏页缓存写入磁盘需要先刷新WAL缓存)的时候写入。<br />
 
 <a name="o0UWg"></a>
-#### WAL主要配置
+### WAL主要配置
 ```
 wal_level 可以选择为minimal, replica, or logical 使用逻辑复制需要设置为logical
 
@@ -92,7 +113,7 @@ Wal_writer_delay 指定wal writer process 把WAL日志写入磁盘的周期 在�
 
 
 <a name="72pK9"></a>
-### 复制槽
+## 复制槽
 每个订阅都将通过一个复制槽接收更改，记录某个订阅者的WAL接收情况。<br />在源数据库写入修改频繁导致WAL日志的写入速度很快，导致大量WAL日志生成，或者订阅者接受日志很慢，在消费远远小于生产的时候,会导致源数据库上的WAL日志还没有传递到备库就被回卷覆盖掉了，如果被覆盖掉的WAL日志文件又没有归档备份，那么订阅者就再也无法消费到此数据。<br />复制槽则保存了此订阅的接收信息，使得未被接收的WAL日日志不会被回收
 
 注意 <br />数据库会记录slot的wal复制位点，并在wal文件夹中保留所有未发送的wal文件，如果客户创建了slot但是后期不再使用就有可能导致数据库的wal日志爆仓，需要及时删除不用的slot<br />
@@ -101,7 +122,7 @@ Wal_writer_delay 指定wal writer process 把WAL日志写入磁盘的周期 在�
 select * from pg_replication_slots;
 ```
 字段含义
-```sql
+```text
 Name            Type        References  Description
 slot_name       name        复制槽的唯一的集群范围标识符
 plugin          name        正在使用的包含逻辑槽输出插件的共享对象的基本名称，对于物理插槽则为null。
@@ -117,7 +138,7 @@ restart_lsn     pg_lsn      最老的WAL的地址（LSN）仍然可能是该插�
 
 
 <a name="fZCyt"></a>
-### 局限性
+## 局限性
 
 - 不复制数据库模式和DDL命令。初始模式可以使用`pg_dump --schema-only` 手动复制。后续的模式更改需要手动保持同步。（但是请注意， 两端的架构不需要完全相同。）当实时数据库中的模式定义更改时，逻辑复制是健壮的： 当模式在发布者上发生更改并且复制的数据开始到达订阅者但不符合表模式， 复制将错误，直到模式更新。在很多情况下， 间歇性错误可以通过首先将附加模式更改应用于订阅者来避免。<br />
 - 不复制序列数据。序列支持的序列或标识列中的数据当然会作为表的一部分被复制， 但序列本身仍然会显示订阅者的起始值。如果订阅者被用作只读数据库， 那么这通常不成问题。但是，如果打算对订阅者数据库进行某种切换或故障切换， 则需要将序列更新为最新值，方法是从发布者复制当前数据 （可能使用`pg_dump`）或者从表中确定足够高的值。<br />
@@ -126,11 +147,12 @@ restart_lsn     pg_lsn      最老的WAL的地址（LSN）仍然可能是该插�
 - 复制只能从基表到基表。也就是说，发布和订阅端的表必须是普通表，而不是视图， 物化视图，分区根表或外部表。对于分区，您可以一对一地复制分区层次结构， 但目前不能复制到不同的分区设置。尝试复制基表以外的表将导致错误
 
 
+<br/>
 
 <a name="eBoG2"></a>
-### PostgreSQL实时采集配置
+## FlinkX PostgreSQL WAL实时采集配置
 <a name="OUZEb"></a>
-#### postgresql.conf设置
+### postgresql.conf设置
 ```
 wal_level = logical
 ```
@@ -140,19 +162,13 @@ wal_level = logical
 ```
 host replication all 10.0.3.0/24 md5
 ```
-<br />
-<a name="Lge77"></a>
-## PostgreSQL实时采集模块使用
-
-
-[flinkx-pgwal模块使用](https://dtstack.yuque.com/rd-center/sm6war/xxurvx)<br />
 
 <a name="9oFg3"></a>
-### 部分核心代码分析
+## 部分核心代码分析
 
 
 <a name="H1ixL"></a>
-#### 执行发布SQL
+### 执行发布SQL
 逻辑复制流是发布/订阅模型，因此生成流之前 先进行发布
 ```java
 public static final String PUBLICATION_NAME = "dtstack_flinkx";
@@ -167,8 +183,8 @@ conn.createStatement()
 
 
 <a name="1VWgR"></a>
-#### 创建一个逻辑复制流
-```sql
+### 创建一个逻辑复制流
+```java
  ChainedLogicalStreamBuilder builder = conn.getReplicationAPI()
                 .replicationStream() //定义一个逻辑复制流
                 .logical() //级别是logical
@@ -185,7 +201,7 @@ conn.createStatement()
         stream = builder.start();
 ```
 <a name="mHJLy"></a>
-#### 业务处理
+### 业务处理
 逻辑复制流接收到订阅的消息后 进行编码 获取到相应信息处理
 ```java
   public void run() {
@@ -219,4 +235,3 @@ conn.createStatement()
 ```
 
 <br />
-

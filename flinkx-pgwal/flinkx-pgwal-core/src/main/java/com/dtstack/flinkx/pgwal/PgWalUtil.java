@@ -42,12 +42,9 @@ import java.util.Properties;
  */
 public class PgWalUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PgWalUtil.class);
-
     public static final String DRIVER = "org.postgresql.Driver";
     public static final String SLOT_PRE = "flinkx_";
     public static final String PUBLICATION_NAME = "dtstack_flinkx";
-
     public static final String QUERY_LEVEL = "SHOW wal_level;";
     public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
     public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots;";
@@ -56,6 +53,7 @@ public class PgWalUtil {
     public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
     public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
     public static final String QUERY_TYPES = "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
+    private static final Logger LOG = LoggerFactory.getLogger(PgWalUtil.class);
 
     public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList) throws Exception{
         ResultSet resultSet;

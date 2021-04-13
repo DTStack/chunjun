@@ -54,6 +54,49 @@ public class PgDecoder {
         this.pgTypeMap = pgTypeMap;
     }
 
+    private static String readColumnValueAsString(ByteBuffer buffer) {
+        //Int32 列值的长度
+        int length = buffer.getInt();
+        byte[] value = new byte[length];
+        //Byte(n) 该列的值，以文本格式显示。n是上面的长度
+        buffer.get(value, 0, length);
+        return new String(value);
+    }
+
+    private static String readString(ByteBuffer buffer) {
+        StringBuilder sb = new StringBuilder();
+        byte b = 0;
+        while ((b = buffer.get()) != 0) {
+            sb.append((char) b);
+        }
+        return sb.toString();
+    }
+
+    public static String unquoteIdentifierPart(String identifierPart) {
+        if (identifierPart == null || identifierPart.length() < 2) {
+            return identifierPart;
+        }
+
+        Character quotingChar = deriveQuotingChar(identifierPart);
+        if (quotingChar != null) {
+            identifierPart = identifierPart.substring(1, identifierPart.length() - 1);
+            identifierPart = identifierPart.replace(quotingChar.toString() + quotingChar.toString(), quotingChar.toString());
+        }
+
+        return identifierPart;
+    }
+
+    private static Character deriveQuotingChar(String identifierPart) {
+        char first = identifierPart.charAt(0);
+        char last = identifierPart.charAt(identifierPart.length() - 1);
+
+        if (first == last && (first == '"' || first == '\'' || first == '`')) {
+            return first;
+        }
+
+        return null;
+    }
+
     public Table decode(ByteBuffer buffer) throws SQLException {
         Table table = new Table();
         PgMessageTypeEnum type = PgMessageTypeEnum.forType((char) buffer.get());
@@ -206,7 +249,6 @@ public class PgDecoder {
         return table;
     }
 
-
     private Object[] resolveColumnsFromStreamTupleData(ByteBuffer buffer) {
         //Int16 列数
         short numberOfColumns = buffer.getShort();
@@ -226,49 +268,6 @@ public class PgDecoder {
             }
         }
         return data;
-    }
-
-    private static String readColumnValueAsString(ByteBuffer buffer) {
-        //Int32 列值的长度
-        int length = buffer.getInt();
-        byte[] value = new byte[length];
-        //Byte(n) 该列的值，以文本格式显示。n是上面的长度
-        buffer.get(value, 0, length);
-        return new String(value);
-    }
-
-    private static String readString(ByteBuffer buffer) {
-        StringBuilder sb = new StringBuilder();
-        byte b = 0;
-        while ((b = buffer.get()) != 0) {
-            sb.append((char) b);
-        }
-        return sb.toString();
-    }
-
-    public static String unquoteIdentifierPart(String identifierPart) {
-        if (identifierPart == null || identifierPart.length() < 2) {
-            return identifierPart;
-        }
-
-        Character quotingChar = deriveQuotingChar(identifierPart);
-        if (quotingChar != null) {
-            identifierPart = identifierPart.substring(1, identifierPart.length() - 1);
-            identifierPart = identifierPart.replace(quotingChar.toString() + quotingChar.toString(), quotingChar.toString());
-        }
-
-        return identifierPart;
-    }
-
-    private static Character deriveQuotingChar(String identifierPart) {
-        char first = identifierPart.charAt(0);
-        char last = identifierPart.charAt(identifierPart.length() - 1);
-
-        if (first == last && (first == '"' || first == '\'' || first == '`')) {
-            return first;
-        }
-
-        return null;
     }
 
 

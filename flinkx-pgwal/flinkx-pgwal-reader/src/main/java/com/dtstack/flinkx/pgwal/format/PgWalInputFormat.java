@@ -54,7 +54,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     protected String cat;
     protected Integer statusInterval;
     protected Long lsn;
-    protected String slotName = "slot2";
+    protected String slotName;
     protected boolean allowCreateSlot;
     protected boolean temporary;
 
