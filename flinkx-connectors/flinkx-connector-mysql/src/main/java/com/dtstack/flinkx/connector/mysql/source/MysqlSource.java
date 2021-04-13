@@ -36,7 +36,7 @@ public class MysqlSource extends JdbcDataSource {
 
     public MysqlSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
-        super.dtJdbcDialect = new MySQLDialect();
+        super.jdbcDialect = new MySQLDialect();
         // 避免result.next阻塞
         if(jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())

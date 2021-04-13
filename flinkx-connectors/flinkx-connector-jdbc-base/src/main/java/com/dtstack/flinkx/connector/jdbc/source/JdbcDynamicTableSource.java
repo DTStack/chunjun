@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
-import org.apache.flink.annotation.Internal;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -21,7 +21,6 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
-@Internal
 public class JdbcDynamicTableSource
         implements LookupTableSource, SupportsProjectionPushDown {
 

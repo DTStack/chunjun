@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
+import io.vertx.core.json.JsonArray;
+
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.DecimalData;
@@ -33,11 +36,9 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -45,26 +46,16 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import static org.apache.flink.util.Preconditions.checkNotNull;
-
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
+public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {
 
-    protected final RowType rowType;
-    protected final JdbcDeserializationConverter[] toInternalConverters;
-    protected final JdbcSerializationConverter[] toExternalConverters;
-    protected final LogicalType[] fieldTypes;
-
-    public abstract String converterName();
+    protected final DeserializationConverter<Object>[] toInternalConverters;
+    protected final SerializationConverter<FieldNamedPreparedStatement>[] toExternalConverters;
 
     public AbstractJdbcRowConverter(RowType rowType) {
-        this.rowType = checkNotNull(rowType);
-        this.fieldTypes =
-                rowType.getFields().stream()
-                        .map(RowType.RowField::getType)
-                        .toArray(LogicalType[]::new);
-        this.toInternalConverters = new JdbcDeserializationConverter[rowType.getFieldCount()];
-        this.toExternalConverters = new JdbcSerializationConverter[rowType.getFieldCount()];
+        super(rowType);
+        this.toInternalConverters = new DeserializationConverter[rowType.getFieldCount()];
+        this.toExternalConverters = new SerializationConverter[rowType.getFieldCount()];
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] = createNullableInternalConverter(rowType.getTypeAt(i));
             toExternalConverters[i] = createNullableExternalConverter(fieldTypes[i]);
@@ -72,7 +63,7 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
     }
 
     @Override
-    public RowData toInternal(ResultSet resultSet) throws SQLException {
+    public RowData toInternal(ResultSet resultSet) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = resultSet.getObject(pos + 1);
@@ -82,50 +73,36 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
     }
 
     @Override
-    public Object toInternal(int pos, Object field) throws SQLException {
-        return toInternalConverters[pos].deserialize(field);
+    public RowData toInternalLookup(JsonArray jsonArray) throws Exception {
+        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+            Object field = jsonArray.getValue(pos);
+            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+        }
+        return genericRowData;
     }
 
     @Override
-    public FieldNamedPreparedStatement toExternal(
-            RowData rowData, FieldNamedPreparedStatement statement) throws SQLException {
+    public FieldNamedPreparedStatement toExternalWithType(
+            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, statement);
         }
         return statement;
     }
 
-    /** Runtime converter to convert JDBC field to {@link RowData} type object. */
-    @FunctionalInterface
-    interface JdbcDeserializationConverter extends Serializable {
-        /**
-         * Convert a jdbc field object of {@link ResultSet} to the internal data structure object.
-         *
-         * @param jdbcField
-         */
-        Object deserialize(Object jdbcField) throws SQLException;
+    @Override
+    public FieldNamedPreparedStatement toExternalWithoutType(
+            GenericRowData genericRowData, FieldNamedPreparedStatement statement) throws SQLException {
+        for (int pos = 0; pos < genericRowData.getArity(); pos++) {
+            statement.setObject(pos, genericRowData.getField(pos));
+        }
+        return statement;
     }
 
-    /**
-     * Runtime converter to convert {@link RowData} field to java object and fill into the {@link
-     * PreparedStatement}.
-     */
-    @FunctionalInterface
-    interface JdbcSerializationConverter extends Serializable {
-        void serialize(RowData rowData, int index, FieldNamedPreparedStatement statement)
-                throws SQLException;
-    }
-
-    /**
-     * Create a nullable runtime {@link JdbcDeserializationConverter} from given {@link
-     * LogicalType}.
-     */
-    protected JdbcDeserializationConverter createNullableInternalConverter(LogicalType type) {
-        return wrapIntoNullableInternalConverter(createInternalConverter(type));
-    }
-
-    protected JdbcDeserializationConverter wrapIntoNullableInternalConverter(
-            JdbcDeserializationConverter jdbcDeserializationConverter) {
+    @Override
+    protected DeserializationConverter wrapIntoNullableInternalConverter(
+            DeserializationConverter jdbcDeserializationConverter) {
         return val -> {
             if (val == null) {
                 return null;
@@ -135,7 +112,8 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
         };
     }
 
-    protected JdbcDeserializationConverter createInternalConverter(LogicalType type) {
+    @Override
+    protected DeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -190,13 +168,9 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
         }
     }
 
-    /** Create a nullable JDBC f{@link JdbcSerializationConverter} from given sql type. */
-    protected JdbcSerializationConverter createNullableExternalConverter(LogicalType type) {
-        return wrapIntoNullableExternalConverter(createExternalConverter(type), type);
-    }
-
-    protected JdbcSerializationConverter wrapIntoNullableExternalConverter(
-            JdbcSerializationConverter jdbcSerializationConverter, LogicalType type) {
+    @Override
+    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter, LogicalType type) {
         final int sqlType =
                 JdbcTypeUtil.typeInformationToSqlType(
                         TypeConversions.fromDataTypeToLegacyInfo(
@@ -207,12 +181,13 @@ public abstract class AbstractJdbcRowConverter implements JdbcRowConverter {
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 statement.setNull(index, sqlType);
             } else {
-                jdbcSerializationConverter.serialize(val, index, statement);
+                serializationConverter.serialize(val, index, statement);
             }
         };
     }
 
-    protected JdbcSerializationConverter createExternalConverter(LogicalType type) {
+    @Override
+    protected SerializationConverter<FieldNamedPreparedStatement> createExternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, statement) ->

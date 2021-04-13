@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
-import org.apache.flink.connector.jdbc.internal.converter.AbstractJdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
 import org.apache.flink.table.types.logical.RowType;
 
 /**
@@ -30,7 +31,7 @@ public class MySQLRowConverter extends AbstractJdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
 
-    @Override
+    // TODO 是否需要删除
     public String converterName() {
         return "MySQL";
     }

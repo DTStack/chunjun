@@ -404,5 +404,5 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      *
      * @return
      */
-    abstract protected RowData fillData(Object sideInput) throws SQLException;
+    abstract protected RowData fillData(Object sideInput) throws Exception;
 }

@@ -17,8 +17,9 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.connector.jdbc.internal.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
@@ -109,7 +110,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     /**
      *
      */
-    protected JdbcRowConverter jdbcRowConverter;
+    protected AbstractJdbcRowConverter jdbcRowConverter;
 
     /** table fields type */
     protected RowType rowType;

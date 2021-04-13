@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.table;
+package com.dtstack.flinkx.converter;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -38,14 +38,14 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @author: wuren
  * @create: 2021/04/10
  **/
-public abstract class AbstractRowDataConverter<SourceT, SinkT> implements Serializable {
+public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements Serializable {
 
     protected final RowType rowType;
     protected final DeserializationConverter[] toInternalConverters;
     protected final SerializationConverter[] toExternalConverters;
     protected final LogicalType[] fieldTypes;
 
-    public AbstractRowDataConverter(RowType rowType) {
+    public AbstractRowConverter(RowType rowType) {
         this.rowType = checkNotNull(rowType);
         this.fieldTypes =
                 rowType.getFields().stream()
@@ -59,27 +59,50 @@ public abstract class AbstractRowDataConverter<SourceT, SinkT> implements Serial
         }
     }
 
+// TODO 这个converterName需要吗？
+//    public abstract String converterName();
+
     /**
      * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
      *
      * @param input from JDBC
      */
-    public abstract RowData toInternal(SourceT input);
+    public abstract RowData toInternal(SourceT input) throws Exception;
+
+    public abstract RowData toInternalLookup(LookupT input) throws Exception;
 
     /**
-     * Convert data retrieved from Flink internal RowData to JDBC Object.
+     * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
      *
      * @param rowData The given internal {@link RowData}.
      *
      * @return The filled statement.
      */
-    public abstract SinkT toExternal(RowData rowData);
+    public SinkT toExternal(RowData rowData, SinkT output) throws Exception {
+        if (rowType != null) {
+            // 有LogicType就走精准模式
+            return toExternalWithType(rowData, output);
+        } else if (rowData instanceof GenericRowData) {
+            // 没有LogicType 走 instanceof模式
+            return toExternalWithoutType((GenericRowData) rowData, output);
+        } else {
+            // 没有LogicType还不是GenricRowData。则报错
+            throw new RuntimeException(
+                    "Sink connector do not serialize data, " +
+                    "since data integration job writer don't set data type");
+        }
+    }
 
+    public abstract SinkT toExternalWithType(RowData rowData, SinkT output) throws Exception;
+
+    public abstract SinkT toExternalWithoutType(GenericRowData rowData, SinkT output) throws Exception;
+
+    // TODO 这里抛出Exception太粗糙了，如何改进？
 
     /** Runtime converter to convert field to {@link RowData} type object. */
     @FunctionalInterface
-    interface DeserializationConverter<T> extends Serializable {
-        Object deserialize(T field) throws SQLException;
+    protected interface DeserializationConverter<T> extends Serializable {
+        Object deserialize(T field) throws Exception;
     }
 
     /**
@@ -87,8 +110,8 @@ public abstract class AbstractRowDataConverter<SourceT, SinkT> implements Serial
      * @param <T>
      */
     @FunctionalInterface
-    interface SerializationConverter<T> extends Serializable {
-        T serialize(RowData rowData, int pos);
+    protected interface SerializationConverter<T> extends Serializable {
+        void serialize(RowData rowData, int pos, T output) throws Exception;
     }
 
     /**

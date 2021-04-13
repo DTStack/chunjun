@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.jdbc.inputFormat;
 
 import com.dtstack.flinkx.connector.jdbc.DtJdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
@@ -47,8 +48,8 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setNumPartitions(numPartitions);
     }
 
-    public void setDtJdbcDialect(DtJdbcDialect dtJdbcDialect) {
-        format.setDtJdbcDialect(dtJdbcDialect);
+    public void setJdbcDialect(JdbcDialect jdbcDialect) {
+        format.setJdbcDialect(jdbcDialect);
     }
 
     @Override

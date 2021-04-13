@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.flink.connector.jdbc.internal.options;
+package com.dtstack.flinkx.connector.jdbc.options;
+
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialects;
 
 import java.util.Objects;
@@ -150,15 +151,6 @@ public class JdbcOptions extends JdbcConnectionOptions {
         public JdbcOptions build() {
             checkNotNull(dbURL, "No dbURL supplied.");
             checkNotNull(tableName, "No tableName supplied.");
-            if (this.dialect == null) {
-                Optional<JdbcDialect> optional = JdbcDialects.get(dbURL);
-                this.dialect =
-                        optional.orElseGet(
-                                () -> {
-                                    throw new NullPointerException(
-                                            "Unknown dbURL,can not find proper dialect.");
-                                });
-            }
             if (this.driverName == null) {
                 Optional<String> optional = dialect.defaultDriverName();
                 this.driverName =
