@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.converter;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -101,7 +102,49 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      *
      * @return The filled statement.
      */
-    public abstract SinkT toExternal(RowData rowData, SinkT output) throws Exception;
+    /**
+     * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
+     *
+     * @param rowData The given internal {@link RowData}.
+     *
+     * @return The filled statement.
+     */
+    public SinkT toExternal(RowData rowData, SinkT output) throws Exception {
+        if (rowType != null) {
+            // 有LogicType就走精准模式
+            return toExternalWithType(rowData, output);
+        } else if (rowData instanceof GenericRowData) {
+            // 没有LogicType 走 instanceof模式
+            return toExternalWithoutType((GenericRowData) rowData, output);
+        } else {
+            // 没有LogicType还不是GenricRowData。则报错
+            throw new RuntimeException(
+                    "Sink connector do not serialize data, " +
+                            "since data integration job writer don't set data type");
+        }
+    }
+
+    /**
+     * GenericRowData
+     *
+     * @param rowData
+     * @param output
+     *
+     * @return
+     */
+    protected abstract SinkT toExternalWithoutType(
+            GenericRowData rowData,
+            SinkT output) throws Exception;
+
+    /**
+     * BinaryRowData
+     *
+     * @param rowData
+     * @param output
+     *
+     * @return
+     */
+    protected abstract SinkT toExternalWithType(RowData rowData, SinkT output) throws Exception;
 
     /** Runtime converter to convert field to {@link RowData} type object. */
     @FunctionalInterface
