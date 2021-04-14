@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.FinalizeOnMaster;
@@ -118,6 +119,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** 是否开启了checkpoint */
     protected boolean checkpointEnabled;
 
+    /** 虽然开启cp，是否采用定时器让下游数据可见。false：是，true：只要数据条数或者超时即可见 */
+    protected boolean commitEnabled;
+
     /** 子任务数量 */
     protected int numTasks;
 
@@ -182,6 +186,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.taskNumber = taskNumber;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
+
+        ExecutionConfig executionConfig = context.getExecutionConfig();
+        commitEnabled = Boolean.parseBoolean(executionConfig
+                .getGlobalJobParameters()
+                .toMap()
+                .get("sql.checkpoint.commitEnabled"));
+
         this.numTasks = numTasks;
 
         initStatisticsAccumulator();
@@ -205,7 +216,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //            beforeWriteRecords();
 //            waitWhile("#2");
 //        }
-
+        // 是否开启定时提交数据
         if (batchSize > 1 && flushIntervalMills > 0) {
             this.scheduler = new ScheduledThreadPoolExecutor(
                     1,

@@ -17,11 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.Row;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -39,6 +34,12 @@ import com.dtstack.flinkx.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
+import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.Row;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +171,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 lastRow = row;
             }
 
-            if (checkpointEnabled) {
+            // 开启了cp，但是并没有使用2pc方式让下游数据可见
+            if (checkpointEnabled && !commitEnabled) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
                 //手动提交事务
