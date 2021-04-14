@@ -64,6 +64,7 @@ public class LocalTest {
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){
             argsList.add("-connectorLoadMode");
+//            argsList.add("classloader");
             argsList.add("spi");
             argsList.add("-job");
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.util.PluginUtil;
 import org.apache.commons.lang.StringUtils;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -41,6 +42,7 @@ import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,50 +71,50 @@ public final class FactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
-    /**插件路径 */
+    /** 插件路径 */
     private static String pluginPath = null;
 
-    /**上下文环境 */
+    /** 上下文环境 */
     private static StreamExecutionEnvironment env = null;
 
-    /**插件加载方式，默认走CLASSLOADER方式 */
+    /** 插件加载方式，默认走CLASSLOADER方式 */
     private static String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
 
-    /**shipfile需要的jar */
+    /** shipfile需要的jar */
     private static List<URL> classPathSet = new ArrayList<>();
 
-    /**shipfile需要的jar的classPath index */
+    /** shipfile需要的jar的classPath index */
     private static int CLASS_FILE_NAME_INDEX = 0;
 
-    /**shipfile需要的jar的classPath name */
+    /** shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
             ConfigOptions.key("class_file_name_fmt")
                     .stringType()
                     .defaultValue("class_path_%d")
                     .withDescription("");
 
-    /**factory包名前缀 */
+    /** factory包名前缀 */
     public static final ConfigOption<String> CONNECTORS_PACKAGE_PREFIX =
             ConfigOptions.key("CONNECTORS_PACKAGE_PREFIX")
                     .stringType()
                     .defaultValue("com.dtstack.flinkx.connector.")
                     .withDescription("");
 
-    /**format包名前缀 */
+    /** format包名前缀 */
     public static final ConfigOption<String> FORMAT_PACKAGE_PREFIX =
             ConfigOptions.key("FORMAT_PACKAGE_PREFIX")
                     .stringType()
                     .defaultValue("org.apache.flink.formats.")
                     .withDescription("");
 
-    /**factory包名后缀 */
+    /** factory包名后缀 */
     public static final ConfigOption<String> CONNECTORS_PACKAGE_SUFFIX =
             ConfigOptions.key("CONNECTORS_PACKAGE_SUFFIX")
                     .stringType()
                     .defaultValue("DynamicTableFactory")
                     .withDescription("");
 
-    /**format包名后缀 */
+    /** format包名后缀 */
     public static final ConfigOption<String> FORMAT_PACKAGE_SUFFIX =
             ConfigOptions.key("FORMAT_PACKAGE_SUFFIX")
                     .stringType()
@@ -294,18 +296,38 @@ public final class FactoryUtil {
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
         if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
-            String jarDirectorySuffix = factoryIdentifier;
+            // syncplugins后面jar包的路径比如 kafka、mysql
+            String jarDirectorySuffix;
             String fullClassName;
-            if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass) || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
-                fullClassName = CONNECTORS_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + ".table." + StringUtils.capitalize(factoryIdentifier) + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
-            } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass) || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+            if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
+                    || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
+                String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(
+                        0,
+                        factoryIdentifier.length() - 2);
+
+                fullClassName = CONNECTORS_PACKAGE_PREFIX.defaultValue() + factoryIdentifierPrefix
+                        + ".table." + StringUtils.capitalize(factoryIdentifierPrefix)
+                        + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
+
+            } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
+                    || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+
                 // format都放到sqlplugins下的format目录下
-                fullClassName = FORMAT_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + "." + StringUtils.capitalize(factoryIdentifier) + FORMAT_PACKAGE_SUFFIX.defaultValue();
+                fullClassName =
+                        FORMAT_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + "." + StringUtils
+                                .capitalize(factoryIdentifier)
+                                + FORMAT_PACKAGE_SUFFIX.defaultValue();
+
                 jarDirectorySuffix = FORMATS.key();
             } else {
                 throw new RuntimeException(factoryClass + " can not Identify");
             }
-            factories = loadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
+
+            factories = loadFactories(
+                    classLoader,
+                    jarDirectorySuffix,
+                    factoryIdentifier,
+                    fullClassName);
         } else {
             factories = discoverFactories(classLoader);
         }
@@ -507,7 +529,19 @@ public final class FactoryUtil {
         }
     }
 
-    private static List<Factory> loadFactories(ClassLoader classLoader, String jarDircetoySuffix,String factoryIdentifier, String fullClassName) {
+    /**
+     * 通过classloader方式加载 Factory
+     * @param classLoader
+     * @param jarDircetoySuffix
+     * @param factoryIdentifier 用来区分是否是format，插件不会使用该参数
+     * @param fullClassName
+     * @return
+     */
+    private static List<Factory> loadFactories(
+            ClassLoader classLoader,
+            String jarDircetoySuffix,
+            String factoryIdentifier,
+            String fullClassName) {
         try {
             final List<Factory> result = new LinkedList<>();
 
@@ -521,8 +555,9 @@ public final class FactoryUtil {
             Object currentClassloader = classLoader;
 
             // 非local模式下需要使用FlinkUserCodeClassLoader来加载jar
-            if(!(env instanceof MyLocalStreamEnvironment)){
-                Field field = FlinkUserCodeClassLoaders.SafetyNetWrapperClassLoader.class.getDeclaredField("inner");
+            if (!(env instanceof MyLocalStreamEnvironment)) {
+                Field field = FlinkUserCodeClassLoaders.SafetyNetWrapperClassLoader.class.getDeclaredField(
+                        "inner");
                 field.setAccessible(true);
                 currentClassloader = field.get(classLoader);
             }
@@ -535,7 +570,9 @@ public final class FactoryUtil {
             for (URL pluginJarUrl : pluginJarUrls) {
                 if (!classPathSet.contains(pluginJarUrl)) {
                     classPathSet.add(pluginJarUrl);
-                    String classFileName = String.format(CLASS_FILE_NAME_FMT.defaultValue(), CLASS_FILE_NAME_INDEX);
+                    String classFileName = String.format(
+                            CLASS_FILE_NAME_FMT.defaultValue(),
+                            CLASS_FILE_NAME_INDEX);
                     env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
                     CLASS_FILE_NAME_INDEX++;
                 }

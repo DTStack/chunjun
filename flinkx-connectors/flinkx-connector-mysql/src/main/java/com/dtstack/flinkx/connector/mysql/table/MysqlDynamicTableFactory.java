@@ -30,7 +30,7 @@ import com.dtstack.flinkx.connector.mysql.MySQLDialect;
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "dt-mysql";
+    private static final String IDENTIFIER = "mysql-x";
 
     @Override
     public String factoryIdentifier() {

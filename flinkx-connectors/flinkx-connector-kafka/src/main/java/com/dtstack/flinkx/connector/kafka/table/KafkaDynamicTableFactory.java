@@ -66,7 +66,7 @@ import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.val
 public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
-    public static final String IDENTIFIER = "kafka";
+    public static final String IDENTIFIER = "kafka-x";
 
     @Override
     public String factoryIdentifier() {
