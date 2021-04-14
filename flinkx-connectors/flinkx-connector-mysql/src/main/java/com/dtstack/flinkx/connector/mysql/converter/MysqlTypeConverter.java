@@ -1,9 +1,16 @@
 package com.dtstack.flinkx.connector.mysql.converter;
 
 import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.api.TableColumn;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import org.slf4j.Logger;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -79,5 +86,19 @@ public class MysqlTypeConverter {
             default:
                 throw new SQLException("不支持" + type + "类型");
         }
+    }
+
+    // TODO 这个方法要下沉到Core 模块中。我还不知道放在哪
+    public static LogicalType createRowType(List<String> types, List<String> fieldNames) throws SQLException {
+        TableSchema.Builder builder = TableSchema.builder();
+        for(int i = 0; i < types.size(); i++) {
+            DataType dataType = convertToDataType(types.get(i));
+            builder.add(TableColumn.physical(fieldNames.get(i), dataType));
+        }
+
+        return builder
+                .build()
+                .toRowDataType()
+                .getLogicalType();
     }
 }
