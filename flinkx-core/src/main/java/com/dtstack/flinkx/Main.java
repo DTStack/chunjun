@@ -41,13 +41,13 @@ import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
 
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.conf.RestartConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.exec.ExecuteProcessHelper;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.parser.SqlParser;
@@ -55,8 +55,10 @@ import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.sink.DataSinkFactory;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.source.DataSourceFactory;
+import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.StreamEnvConfigManagerUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.Charsets;
@@ -75,29 +77,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
-import static com.dtstack.flinkx.exec.ExecuteProcessHelper.checkRemoteSqlPluginPath;
-import static com.dtstack.flinkx.exec.ExecuteProcessHelper.getExternalJarUrls;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.disableChainOperator;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.enableUnalignedCheckpoints;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getAutoWatermarkInterval;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getBufferTimeoutMillis;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getCheckpointCleanup;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getCheckpointInterval;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getCheckpointTimeout;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getCheckpointingMode;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getDelayInterval;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getEnvParallelism;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getFailureInterval;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getMaxConcurrentCheckpoints;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getMaxEnvParallelism;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getStateBackend;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.getStreamTimeCharacteristic;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.isCheckpointingEnabled;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.isRestore;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentName;
-import static com.dtstack.flinkx.util.StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig;
 
 /**
  * The main class entry
@@ -165,7 +144,7 @@ public class Main {
                 PrintUtil.printResult(result);
             }
         }else{
-            List<URL> jarUrlList = getExternalJarUrls(options.getAddjar());
+            List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
             StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
             statementSet.execute();
         }
@@ -182,9 +161,6 @@ public class Main {
         SyncConf config = null;
         try {
             config = SyncConf.parseJob(job);
-            if(StringUtils.isNotEmpty(options.getMonitor())) {
-                config.setMonitorUrls(options.getMonitor());
-            }
 
             if(StringUtils.isNotEmpty(options.getPluginRoot())) {
                 config.setPluginRoot(options.getPluginRoot());
@@ -196,7 +172,9 @@ public class Main {
         }catch (IllegalArgumentException | NullPointerException e){
             throw e;
         }catch (Exception e){
-            LOG.info("parse json failed, current job is sql.", e);
+            if(!e.getMessage().contains("Expected BEGIN_OBJECT but was STRING at line 1 column 1 path $")){
+                LOG.info("parse json failed, current job is sql.", e);
+            }
         }
         return config;
     }
@@ -256,7 +234,7 @@ public class Main {
                 }
             }
         }else{
-            Preconditions.checkArgument(checkRemoteSqlPluginPath(options.getRemotePluginPath(), options.getMode(), options.getPluginLoadMode()),
+            Preconditions.checkArgument(ExecuteProcessHelper.checkRemoteSqlPluginPath(options.getRemotePluginPath(), options.getMode(), options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
             FactoryUtil.setPluginPath(StringUtils.isNotEmpty(options.getPluginRoot()) ? options.getPluginRoot() : options.getRemotePluginPath());
             FactoryUtil.setEnv(env);
@@ -271,9 +249,9 @@ public class Main {
      * @param jobName
      */
     private static void configStreamExecutionEnvironment(StreamTableEnvironment tableEnv, Properties properties, String jobName){
-        streamTableEnvironmentStateTTLConfig(tableEnv, properties);
-        streamTableEnvironmentEarlyTriggerConfig(tableEnv, properties);
-        streamTableEnvironmentName(tableEnv, jobName);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig(tableEnv, properties);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig(tableEnv, properties);
+        StreamEnvConfigManagerUtil.streamTableEnvironmentName(tableEnv, jobName);
     }
 
 
@@ -301,11 +279,11 @@ public class Main {
                 env.setRestartStrategy(RestartStrategies.noRestart());
             }
         }else{
-            if (isRestore(properties).get()) {
+            if (StreamEnvConfigManagerUtil.isRestore(properties).get()) {
                 env.setRestartStrategy(RestartStrategies.failureRateRestart(
                         ConfigConstant.FAILUEE_RATE,
-                        Time.of(getFailureInterval(properties).get(), TimeUnit.MINUTES),
-                        Time.of(getDelayInterval(properties).get(), TimeUnit.SECONDS)
+                        Time.of(StreamEnvConfigManagerUtil.getFailureInterval(properties).get(), TimeUnit.MINUTES),
+                        Time.of(StreamEnvConfigManagerUtil.getDelayInterval(properties).get(), TimeUnit.SECONDS)
                 ));
             } else {
                 env.setRestartStrategy(RestartStrategies.noRestart());
@@ -340,13 +318,13 @@ public class Main {
             exeConfig.setGlobalJobParameters(globalJobParameters);
         }
 
-        disableChainOperator(streamEnv, globalJobParameters);
+        StreamEnvConfigManagerUtil.disableChainOperator(streamEnv, globalJobParameters);
 
-        getEnvParallelism(confProperties).ifPresent(streamEnv::setParallelism);
-        getMaxEnvParallelism(confProperties).ifPresent(streamEnv::setMaxParallelism);
-        getBufferTimeoutMillis(confProperties).ifPresent(streamEnv::setBufferTimeout);
-        getStreamTimeCharacteristic(confProperties).ifPresent(streamEnv::setStreamTimeCharacteristic);
-        getAutoWatermarkInterval(confProperties).ifPresent(op -> {
+        StreamEnvConfigManagerUtil.getEnvParallelism(confProperties).ifPresent(streamEnv::setParallelism);
+        StreamEnvConfigManagerUtil.getMaxEnvParallelism(confProperties).ifPresent(streamEnv::setMaxParallelism);
+        StreamEnvConfigManagerUtil.getBufferTimeoutMillis(confProperties).ifPresent(streamEnv::setBufferTimeout);
+        StreamEnvConfigManagerUtil.getStreamTimeCharacteristic(confProperties).ifPresent(streamEnv::setStreamTimeCharacteristic);
+        StreamEnvConfigManagerUtil.getAutoWatermarkInterval(confProperties).ifPresent(op -> {
             if (streamEnv.getStreamTimeCharacteristic().equals(TimeCharacteristic.EventTime)) {
                 streamEnv.getConfig().setAutoWatermarkInterval(op);
             }
@@ -360,15 +338,15 @@ public class Main {
      * @return
      */
     private static void configCheckpoint(StreamExecutionEnvironment env, Properties properties) throws IOException {
-        Optional<Boolean> checkpointingEnabled = isCheckpointingEnabled(properties);
+        Optional<Boolean> checkpointingEnabled = StreamEnvConfigManagerUtil.isCheckpointingEnabled(properties);
         if (checkpointingEnabled.get()) {
-            getCheckpointInterval(properties).ifPresent(env::enableCheckpointing);
-            getCheckpointingMode(properties).ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
-            getCheckpointTimeout(properties).ifPresent(env.getCheckpointConfig()::setCheckpointTimeout);
-            getMaxConcurrentCheckpoints(properties).ifPresent(env.getCheckpointConfig()::setMaxConcurrentCheckpoints);
-            getCheckpointCleanup(properties).ifPresent(env.getCheckpointConfig()::enableExternalizedCheckpoints);
-            enableUnalignedCheckpoints(properties).ifPresent(event -> env.getCheckpointConfig().enableUnalignedCheckpoints(event));
-            getStateBackend(properties).ifPresent(env::setStateBackend);
+            StreamEnvConfigManagerUtil.getCheckpointInterval(properties).ifPresent(env::enableCheckpointing);
+            StreamEnvConfigManagerUtil.getCheckpointingMode(properties).ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
+            StreamEnvConfigManagerUtil.getCheckpointTimeout(properties).ifPresent(env.getCheckpointConfig()::setCheckpointTimeout);
+            StreamEnvConfigManagerUtil.getMaxConcurrentCheckpoints(properties).ifPresent(env.getCheckpointConfig()::setMaxConcurrentCheckpoints);
+            StreamEnvConfigManagerUtil.getCheckpointCleanup(properties).ifPresent(env.getCheckpointConfig()::enableExternalizedCheckpoints);
+            StreamEnvConfigManagerUtil.enableUnalignedCheckpoints(properties).ifPresent(event -> env.getCheckpointConfig().enableUnalignedCheckpoints(event));
+            StreamEnvConfigManagerUtil.getStateBackend(properties).ifPresent(env::setStateBackend);
         }
     }
 }

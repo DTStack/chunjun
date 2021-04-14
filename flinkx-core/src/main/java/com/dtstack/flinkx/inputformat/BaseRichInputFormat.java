@@ -25,6 +25,7 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -81,6 +82,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
 
+    /** 环境上下文 */
+    protected StreamingRuntimeContext context;
+
     /**
      * 有子类实现，打开数据连接
      *
@@ -134,6 +138,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     @Override
     public void open(InputSplit inputSplit) throws IOException {
+        this.context = (StreamingRuntimeContext) getRuntimeContext();
         checkIfCreateSplitFailed(inputSplit);
 
         if(!inited){
@@ -172,7 +177,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
         String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
-        accumulatorCollector = new AccumulatorCollector(jobId, "", getRuntimeContext(), 2,
+        accumulatorCollector = new AccumulatorCollector(context,
                 Arrays.asList(Metrics.NUM_READS,
                         Metrics.READ_BYTES,
                         Metrics.READ_DURATION,

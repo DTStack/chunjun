@@ -96,8 +96,6 @@ public class Launcher {
             case standalone:
             case yarn:
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
-                argList.add("-monitor");
-                argList.add(clusterClient.getWebInterfaceURL());
                 JobID jobID = (JobID)clusterClient.submitJob(buildJobGraph(launcherOptions, argList.toArray(new String[0]))).get();
                 LOG.info("submit job successfully, jobID = {}", jobID);
                 break;
@@ -110,8 +108,6 @@ public class Launcher {
                 if (StringUtils.isBlank(libJar)) {
                     throw new IllegalArgumentException("per-job mode must have flink lib path!");
                 }
-                argList.add("-monitor");
-                argList.add("");
                 PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
                 break;
             default:

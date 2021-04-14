@@ -39,10 +39,6 @@ public class SyncConf implements Serializable {
     /** FlinkX job */
     private JobConf job;
 
-    /** FlinkX jobId */
-    private String jobId;
-    /** FlinkX on yarn时的monitorUrl */
-    private String monitorUrls;
     /** FlinkX提交端的插件包路径 */
     private String pluginRoot;
     /** FlinkX运行时服务器上的远程端插件包路径 */
@@ -165,22 +161,6 @@ public class SyncConf implements Serializable {
         this.job = job;
     }
 
-    public String getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(String jobId) {
-        this.jobId = jobId;
-    }
-
-    public String getMonitorUrls() {
-        return monitorUrls;
-    }
-
-    public void setMonitorUrls(String monitorUrls) {
-        this.monitorUrls = monitorUrls;
-    }
-
     public String getPluginRoot() {
         return pluginRoot;
     }
@@ -201,8 +181,6 @@ public class SyncConf implements Serializable {
     public String toString() {
         return "FlinkxConf{" +
                 "job=" + job +
-                ", jobId='" + jobId + '\'' +
-                ", monitorUrls='" + monitorUrls + '\'' +
                 ", pluginRoot='" + pluginRoot + '\'' +
                 ", remotePluginPath='" + remotePluginPath + '\'' +
                 '}';
@@ -214,8 +192,6 @@ public class SyncConf implements Serializable {
      */
     public String asString() {
         return "FlinkxConf{" +
-                "jobId='" + jobId + '\'' +
-                ", monitorUrls='" + monitorUrls + '\'' +
                 ", pluginRoot='" + pluginRoot + '\'' +
                 ", remotePluginPath='" + remotePluginPath + '\'' +
                 '}';

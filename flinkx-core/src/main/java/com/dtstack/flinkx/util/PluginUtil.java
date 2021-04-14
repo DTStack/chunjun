@@ -19,15 +19,26 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.enums.EPluginLoadMode;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.factories.FactoryUtil;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.enums.OperatorType;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Reason:
@@ -38,10 +49,21 @@ import java.util.List;
  */
 
 public class PluginUtil {
-
+    public static final String READER_SUFFIX = "reader";
     private static final String SP = File.separator;
 
     private static final String JAR_SUFFIX = ".jar";
+    public static final String SOURCE_SUFFIX = "source";
+    public static final String WRITER_SUFFIX = "writer";
+    public static final String SINK_SUFFIX = "sink";
+    private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
+    private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
+
+    private static final String JAR_PREFIX = "flinkx";
+
+    private static final String FILE_PREFIX = "file:";
+
+    private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     public static String getJarFileDirPath(String type, String sqlRootDir) {
         String jarPath = sqlRootDir + SP + type;
@@ -100,22 +122,110 @@ public class PluginUtil {
         return urlList.toArray(new URL[0]);
     }
 
-    public static String getCoreJarFileName(String path, String prefix, String pluginLoadMode) throws Exception {
-        String coreJarFileName = null;
-        File pluginDir = new File(path);
-        if (pluginDir.exists() && pluginDir.isDirectory()) {
-            File[] jarFiles = pluginDir.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith(prefix) && name.toLowerCase().endsWith(".jar"));
+    /**
+     * 根据插件名称查找插件路径
+     * @param pluginName 插件名称，如: kafkareader、kafkasource等
+     * @param pluginRoot
+     * @param remotePluginPath
+     * @return
+     */
+    public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
+        Set<URL> urlList = new HashSet<>();
 
-            if (jarFiles != null && jarFiles.length > 0) {
-                coreJarFileName = jarFiles[0].getName();
+        String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
+        String name = pluginName.replace(READER_SUFFIX, "")
+                .replace(SOURCE_SUFFIX, "")
+                .replace(WRITER_SUFFIX, "")
+                .replace(SINK_SUFFIX, "");
+
+        try {
+            String pluginJarPath = pluginRoot + SP + name;
+            // 获取jar包名字，构建对应的URL地址
+            for (String jarName : getJarNames(new File(pluginJarPath))) {
+                urlList.add(new URL(FILE_PREFIX + pluginPath + SP + name + SP + jarName));
+            }
+            return urlList;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<String> getJarNames(File pluginPath) {
+        List<String> jarNames = new ArrayList<>();
+        if (pluginPath.exists() && pluginPath.isDirectory()) {
+            File[] jarFiles = pluginPath.listFiles((dir, name) ->
+                    name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
+
+            if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
+                Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
             }
         }
+        return jarNames;
+    }
 
-        if (StringUtils.isEmpty(coreJarFileName) && !pluginLoadMode.equalsIgnoreCase(EPluginLoadMode.LOCALTEST.name())) {
-            throw new Exception("Can not find core jar file in path:" + path);
+    /**
+     * 根据插件名称查找插件入口类
+     * @param pluginName 如：kafkareader
+     * @param operatorType 算子类型
+     * @return
+     */
+    public static String getPluginClassName(String pluginName, OperatorType operatorType) {
+        String pluginClassName;
+        switch (operatorType){
+            case source:
+                String sourceName = pluginName.replace(READER_SUFFIX, SOURCE_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sourceName, SOURCE_SUFFIX);
+                break;
+            case sink:
+                String sinkName = pluginName.replace(WRITER_SUFFIX, SINK_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sinkName, SINK_SUFFIX);
+                break;
+            default:
+                throw new IllegalArgumentException("Plugin Name should end with reader, writer, current plugin name is: " + pluginName);
         }
 
-        return coreJarFileName;
+        return pluginClassName;
+    }
+
+    private static String camelize(String pluginName, String suffix) {
+        int pos = pluginName.indexOf(suffix);
+        String left = pluginName.substring(0, pos);
+        left = left.toLowerCase();
+        suffix = suffix.toLowerCase();
+        StringBuffer sb = new StringBuffer();
+        sb.append(left).append(".").append(suffix).append(".");
+        sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
+        sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
+        return sb.toString();
+    }
+
+    public static void registerPluginUrlToCachedFile(SyncConf config, StreamExecutionEnvironment env) {
+        Set<URL> urlSet = new HashSet<>();
+        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
+
+        urlSet.addAll(coreUrlList);
+        urlSet.addAll(sourceUrlList);
+        urlSet.addAll(sinkUrlList);
+
+        int i = 0;
+        for (URL url : urlSet) {
+            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+            env.registerCachedFile(url.getPath(), classFileName, true);
+            i++;
+        }
+
+        if (env instanceof MyLocalStreamEnvironment) {
+            ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
+            try {
+                ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                add.setAccessible(true);
+                add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
+            }catch (Exception e){
+                LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+            }
+        }
     }
 }

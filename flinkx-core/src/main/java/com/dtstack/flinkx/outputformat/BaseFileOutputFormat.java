@@ -300,22 +300,22 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     public void closeInternal() throws IOException {
         readyCheckpoint = false;
         //最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
-        if(isTaskEndsNormally()){
-            flushData();
+//        if(isTaskEndsNormally()){
+//            flushData();
             //restore == false 需要主动执行
 //            if (!config.getRestore().isRestore()) {
 //                moveTemporaryDataBlockFileToDirectory();
 //            }
-        }
+//        }
         numWriteCounter.add(sumRowsOfBlock);
     }
 
 //    @Override
     protected void afterCloseInternal()  {
         try {
-            if(!isTaskEndsNormally()){
-                return;
-            }
+//            if(!isTaskEndsNormally()){
+//                return;
+//            }
 
 //            if (!config.getRestore().isStream()) {
 //                createFinishedTag();
@@ -336,22 +336,6 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    protected boolean isTaskEndsNormally() throws IOException{
-        String state = getTaskState();
-        LOG.info("State of current task is:[{}]", state);
-        if(!RUNNING_STATE.equals(state)){
-//            if (!config.getRestore().isRestore()){
-//                LOG.info("The task does not end normally, clear the temporary data file");
-//                clearTemporaryDataFiles();
-//            }
-
-            closeSource();
-            return false;
-        }
-
-        return true;
     }
 
     @Override

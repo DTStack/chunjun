@@ -17,19 +17,14 @@
  */
 package com.dtstack.flinkx.launcher.perJob;
 
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.ValueUtil;
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.PackagedProgram;
-import org.apache.hadoop.yarn.client.api.YarnClient;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+
+import com.dtstack.flinkx.util.ValueUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.Properties;
-
-import static com.dtstack.flinkx.constants.ConfigConstant.YARN_RESOURCE_MANAGER_WEBAPP_ADDRESS_KEY;
 
 /**
  * Date: 2019/09/11
@@ -79,62 +74,8 @@ public class FlinkPerJobUtil {
                 .createClusterSpecification();
     }
 
-    public static String getUrlFormat(YarnConfiguration yarnConf, YarnClient yarnClient) {
-        String url = "";
-        try {
-            Field rmClientField = yarnClient.getClass().getDeclaredField("rmClient");
-            rmClientField.setAccessible(true);
-            Object rmClient = rmClientField.get(yarnClient);
-
-            Field hField = rmClient.getClass().getSuperclass().getDeclaredField("h");
-            hField.setAccessible(true);
-            //获取指定对象中此字段的值
-            Object h = hField.get(rmClient);
-            Object currentProxy = null;
-
-            try {
-                Field currentProxyField = h.getClass().getDeclaredField("currentProxy");
-                currentProxyField.setAccessible(true);
-                currentProxy = currentProxyField.get(h);
-            } catch (Exception e) {
-                //兼容Hadoop 2.7.3.2.6.4.91-3
-                LOG.warn("get currentProxy error:{}", ExceptionUtil.getErrorMessage(e));
-                Field proxyDescriptorField = h.getClass().getDeclaredField("proxyDescriptor");
-                proxyDescriptorField.setAccessible(true);
-                Object proxyDescriptor = proxyDescriptorField.get(h);
-                Field currentProxyField = proxyDescriptor.getClass().getDeclaredField("proxyInfo");
-                currentProxyField.setAccessible(true);
-                currentProxy = currentProxyField.get(proxyDescriptor);
-            }
-
-            Field proxyInfoField = currentProxy.getClass().getDeclaredField("proxyInfo");
-            proxyInfoField.setAccessible(true);
-            String proxyInfoKey = (String) proxyInfoField.get(currentProxy);
-
-            String key = YARN_RESOURCE_MANAGER_WEBAPP_ADDRESS_KEY + "." + proxyInfoKey;
-            String addr = yarnConf.get(key);
-
-            if (addr == null) {
-                addr = yarnConf.get(YARN_RESOURCE_MANAGER_WEBAPP_ADDRESS_KEY);
-            }
-
-            return String.format("http://%s/proxy", addr);
-        } catch (Exception e) {
-            LOG.warn("get monitor error:{}", ExceptionUtil.getErrorMessage(e));
-        }
-
-        return url;
-    }
-
-    public static PackagedProgram buildProgram(String monitorUrl, ClusterSpecification clusterSpecification) throws Exception {
+    public static PackagedProgram buildProgram(ClusterSpecification clusterSpecification) throws Exception {
         String[] args = clusterSpecification.getProgramArgs();
-        for (int i = 0; i < args.length; i++) {
-            if ("-monitor".equals(args[i])) {
-                args[i + 1] = monitorUrl;
-                break;
-            }
-        }
-
         return PackagedProgram.newBuilder()
                 .setJarFile(clusterSpecification.getJarFile())
                 .setUserClassPaths(clusterSpecification.getClasspaths())

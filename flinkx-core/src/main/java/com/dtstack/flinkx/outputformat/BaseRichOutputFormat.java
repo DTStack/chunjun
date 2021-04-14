@@ -18,6 +18,15 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.api.common.io.FinalizeOnMaster;
+import org.apache.flink.api.common.io.InitializeOnMaster;
+import org.apache.flink.api.common.io.RichOutputFormat;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
@@ -31,22 +40,11 @@ import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
-import org.apache.flink.api.common.io.FinalizeOnMaster;
-import org.apache.flink.api.common.io.InitializeOnMaster;
-import org.apache.flink.api.common.io.RichOutputFormat;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,8 +64,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected String formatId;
-
-    public static final String RUNNING_STATE = "RUNNING";
 
     public static final int LOG_PRINT_INTERNAL = 2000;
 
@@ -184,7 +180,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void open(int taskNumber, int numTasks) throws IOException {
         LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
-        context = (StreamingRuntimeContext) getRuntimeContext();
+        this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
         this.numTasks = numTasks;
 
@@ -197,7 +193,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //            openDirtyDataManager();
         }
 
-//        initRestoreInfo();
+        initRestoreInfo();
 
 //        if(needWaitBeforeOpenInternal()) {
 //            beforeOpenInternal();
@@ -230,17 +226,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     private void initAccumulatorCollector() {
-        accumulatorCollector = new AccumulatorCollector(jobId, "", getRuntimeContext(), 2,
-                Arrays.asList(
-                        Metrics.NUM_ERRORS,
-                        Metrics.NUM_NULL_ERRORS,
-                        Metrics.NUM_DUPLICATE_ERRORS,
-                        Metrics.NUM_CONVERSION_ERRORS,
-                        Metrics.NUM_OTHER_ERRORS,
-                        Metrics.NUM_WRITES,
-                        Metrics.WRITE_BYTES,
-                        Metrics.NUM_READS,
-                        Metrics.WRITE_DURATION));
+        accumulatorCollector = new AccumulatorCollector(context, Metrics.METRIC_LIST);
         accumulatorCollector.start();
     }
 
@@ -513,49 +499,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     @Override
     public void tryCleanupOnError() throws Exception {
-    }
-
-    protected String getTaskState() throws IOException {
-//        if (StringUtils.isEmpty(config.getMonitorUrls())) {
-//            return RUNNING_STATE;
-//        }
-//
-//        String taskState = null;
-//        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-//        String monitors = String.format("%s/jobs/overview", config.getMonitorUrls());
-//        LOG.info("Monitor url:{}", monitors);
-//
-//        int retryNumber = 5;
-//        for (int i = 0; i < retryNumber; i++) {
-//            try{
-//                String response = UrlUtil.get(httpClient, monitors);
-//                LOG.info("response:{}", response);
-//                HashMap<String, ArrayList<HashMap<String, Object>>> map = GsonUtil.GSON.fromJson(response, new TypeToken<HashMap<String, ArrayList<HashMap<String, Object>>>>() {}.getType());
-//                List<HashMap<String, Object>> list = map.get("jobs");
-//
-//                for (HashMap<String, Object> hashMap : list) {
-//                    String jid = (String)hashMap.get("jid");
-//                    if(Objects.equals(jid, jobId)){
-//                        taskState = (String) hashMap.get("state");
-//                        break;
-//                    }
-//                }
-//                LOG.info("Job state is:{}", taskState);
-//
-//                if(taskState != null){
-//                    httpClient.close();
-//                    return taskState;
-//                }
-//
-//                Thread.sleep(500);
-//            }catch (Exception e){
-//                LOG.info("Get job state error:{}", e.getMessage());
-//            }
-//        }
-//
-//        httpClient.close();
-
-        return RUNNING_STATE;
     }
 
     /**

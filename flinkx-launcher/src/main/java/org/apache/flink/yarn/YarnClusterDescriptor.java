@@ -524,8 +524,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 		Resource maxRes = appResponse.getMaximumResourceCapability();
 
 		if(clusterSpecification.isCreateProgramDelay()){
-			String url = FlinkPerJobUtil.getUrlFormat(clusterSpecification.getYarnConfiguration(), yarnClient) + "/" + appResponse.getApplicationId().toString();
-			PackagedProgram program = FlinkPerJobUtil.buildProgram(url,clusterSpecification);
+			PackagedProgram program = FlinkPerJobUtil.buildProgram(clusterSpecification);
 			clusterSpecification.setProgram(program);
 			jobGraph = PackagedProgramUtils.createJobGraph(program, clusterSpecification.getConfiguration(), clusterSpecification.getParallelism(), false);
 			String pluginLoadMode = clusterSpecification.getConfiguration().getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);

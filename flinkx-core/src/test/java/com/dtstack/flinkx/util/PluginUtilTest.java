@@ -18,12 +18,8 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.classloader.PluginUtil;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.net.URL;
-import java.util.Set;
 
 /**
  * @author tiezhu

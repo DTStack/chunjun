@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.test;
 
-import org.apache.flink.configuration.Configuration;
-
 import com.dtstack.flinkx.Main;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.lang.StringUtils;
@@ -40,14 +38,13 @@ import java.util.Properties;
 public class LocalTest {
 
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
-    public static Configuration conf = new Configuration();
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch2.sql";
+//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream.json";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
@@ -58,8 +55,8 @@ public class LocalTest {
             argsList.add(content);
             argsList.add("-flinkconf");
             argsList.add(System.getProperty("user.dir") + "/flinkconf/");
-//            argsList.add("-pluginRoot");
-//            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
+            argsList.add("-pluginRoot");
+            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){

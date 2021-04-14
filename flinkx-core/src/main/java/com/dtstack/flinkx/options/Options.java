@@ -17,16 +17,17 @@
  */
 package com.dtstack.flinkx.options;
 
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
+
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.enums.ConnectorLoadMode;
+import org.apache.commons.lang.StringUtils;
 
 
 /**
@@ -42,9 +43,6 @@ public class Options {
 
     @OptionRequired(description = "Job config")
     private String job;
-
-    @OptionRequired(description = "Monitor Addresses")
-    private String monitor;
 
     @OptionRequired(description = "Flink Job Name")
     private String jobName = "Flink Job";
@@ -141,14 +139,6 @@ public class Options {
 
     public void setJob(String job) {
         this.job = job;
-    }
-
-    public String getMonitor() {
-        return monitor;
-    }
-
-    public void setMonitor(String monitor) {
-        this.monitor = monitor;
     }
 
     public String getFlinkconf() {

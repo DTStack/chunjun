@@ -40,8 +40,6 @@ import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.UrlUtil;
-import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -295,11 +293,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
-            maxValue = getMaxValueFromApi();
-        }
-
-        if (StringUtils.isEmpty(maxValue)) {
-            throw new RuntimeException("Can't get the max value from accumulator");
+            //todo 需要等一段时间，不过增量任务并行度一般不会大于1，这里逻辑需要后续去梳理
+            maxValue = String.valueOf(accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE));
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
@@ -361,58 +356,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } finally {
             JdbcUtil.closeDbResources(rs, st, conn, false);
         }
-    }
-
-    /**
-     * 从flink rest api中获取累加器最大值
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public String getMaxValueFromApi(){
-        String monitorUrls = "";
-        if(StringUtils.isEmpty(monitorUrls)){
-            return null;
-        }
-
-        String url = monitorUrls;
-        if (monitorUrls.startsWith(ConstantValue.PROTOCOL_HTTP)) {
-            url = String.format("%s/jobs/%s/accumulators", monitorUrls, jobId);
-        }
-
-        //The extra 10 times is to ensure that accumulator is updated
-        int maxAcquireTimes = (jdbcConf.getQueryTimeOut() / jdbcConf.getRequestAccumulatorInterval()) + 10;
-
-        final String[] maxValue = new String[1];
-        Gson gson = new Gson();
-        UrlUtil.get(url, jdbcConf.getRequestAccumulatorInterval() * 1000, maxAcquireTimes, new UrlUtil.Callback() {
-
-            @Override
-            public void call(String response) {
-                Map map = gson.fromJson(response, Map.class);
-
-                LOG.info("Accumulator data:" + gson.toJson(map));
-
-                List<Map> userTaskAccumulators = (List<Map>) map.get("user-task-accumulators");
-                for (Map accumulator : userTaskAccumulators) {
-                    if (Metrics.MAX_VALUE.equals(accumulator.get("name"))) {
-                        maxValue[0] = (String) accumulator.get("value");
-                        break;
-                    }
-                }
-            }
-
-            @Override
-            public boolean isReturn() {
-                return StringUtils.isNotEmpty(maxValue[0]);
-            }
-
-            @Override
-            public void processError(Exception e) {
-                LOG.warn(ExceptionUtil.getErrorMessage(e));
-            }
-        });
-
-        return maxValue[0];
     }
 
     /**
