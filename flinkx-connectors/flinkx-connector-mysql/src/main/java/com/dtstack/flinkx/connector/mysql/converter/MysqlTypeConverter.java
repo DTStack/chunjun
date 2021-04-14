@@ -89,7 +89,7 @@ public class MysqlTypeConverter {
     }
 
     // TODO 这个方法要下沉到Core 模块中。我还不知道放在哪
-    public static LogicalType createRowType(List<String> types, List<String> fieldNames) throws SQLException {
+    public static LogicalType createRowType(List<String> fieldNames, List<String> types) throws SQLException {
         TableSchema.Builder builder = TableSchema.builder();
         for(int i = 0; i < types.size(); i++) {
             DataType dataType = convertToDataType(types.get(i));

@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
+import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
+
 import org.apache.flink.table.types.logical.BigIntType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -24,7 +26,10 @@ import org.apache.flink.table.types.logical.VarCharType;
 
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.mysql.MySQLRowConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,26 +40,18 @@ import java.util.List;
  * @author tudou
  */
 public class MysqlOutputFormat extends JdbcOutputFormat {
+    protected static final Logger LOG = LoggerFactory.getLogger(MysqlOutputFormat.class);
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        List<RowType.RowField> fields = new ArrayList<>();
-        for (int i = 0; i < columnType.size(); i++) {
-            String name = column.get(i);
-            LogicalType type;
-            if (columnType.get(i).equalsIgnoreCase("BIGINT")) {
-                type = new BigIntType();
-            } else if (columnType.get(i).equalsIgnoreCase("VARCHAR")) {
-                type = new VarCharType(40);
-            } else {
-                // TODO 现在就支持INT 和 STRING
-                type = new VarCharType(40);
-            }
-            fields.add(new RowType.RowField(name, type));
+        try {
+            RowType rowType = (RowType) MysqlTypeConverter.createRowType(column ,columnType);
+            MySQLRowConverter converter = new MySQLRowConverter(rowType);
+            setJdbcRowConverter(converter);
+        } catch (SQLException e) {
+            LOG.error("", e);
         }
-        RowType type = new RowType(fields);
-        MySQLRowConverter converter = new MySQLRowConverter(type);
-        setJdbcRowConverter(converter);
+
     }
 }
