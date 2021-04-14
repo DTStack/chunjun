@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.converter;
 
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -59,61 +58,6 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
         }
     }
 
-// TODO 这个converterName需要吗？
-//    public abstract String converterName();
-
-    /**
-     * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
-     *
-     * @param input from JDBC
-     */
-    public abstract RowData toInternal(SourceT input) throws Exception;
-
-    public abstract RowData toInternalLookup(LookupT input) throws Exception;
-
-    /**
-     * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
-     *
-     * @param rowData The given internal {@link RowData}.
-     *
-     * @return The filled statement.
-     */
-    public SinkT toExternal(RowData rowData, SinkT output) throws Exception {
-        if (rowType != null) {
-            // 有LogicType就走精准模式
-            return toExternalWithType(rowData, output);
-        } else if (rowData instanceof GenericRowData) {
-            // 没有LogicType 走 instanceof模式
-            return toExternalWithoutType((GenericRowData) rowData, output);
-        } else {
-            // 没有LogicType还不是GenricRowData。则报错
-            throw new RuntimeException(
-                    "Sink connector do not serialize data, " +
-                    "since data integration job writer don't set data type");
-        }
-    }
-
-    public abstract SinkT toExternalWithType(RowData rowData, SinkT output) throws Exception;
-
-    public abstract SinkT toExternalWithoutType(GenericRowData rowData, SinkT output) throws Exception;
-
-    // TODO 这里抛出Exception太粗糙了，如何改进？
-
-    /** Runtime converter to convert field to {@link RowData} type object. */
-    @FunctionalInterface
-    protected interface DeserializationConverter<T> extends Serializable {
-        Object deserialize(T field) throws Exception;
-    }
-
-    /**
-     * 类型T一般是 Object，HBase这种特殊的就是byte[]
-     * @param <T>
-     */
-    @FunctionalInterface
-    protected interface SerializationConverter<T> extends Serializable {
-        void serialize(RowData rowData, int pos, T output) throws Exception;
-    }
-
     /**
      * Create a nullable runtime {@link DeserializationConverter} from given {@link
      * LogicalType}.
@@ -133,6 +77,48 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
         };
     }
 
+    /** Create a nullable JDBC f{@link SerializationConverter} from given sql type. */
+    protected SerializationConverter createNullableExternalConverter(LogicalType type) {
+        return wrapIntoNullableExternalConverter(createExternalConverter(type), type);
+    }
+
+    protected abstract SerializationConverter wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter, LogicalType type);
+
+    /**
+     * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
+     *
+     * @param input from JDBC
+     */
+    public abstract RowData toInternal(SourceT input) throws Exception;
+
+    public abstract RowData toInternalLookup(LookupT input) throws Exception;
+
+    /**
+     * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
+     *
+     * @param rowData The given internal {@link RowData}.
+     *
+     * @return The filled statement.
+     */
+    public abstract SinkT toExternal(RowData rowData, SinkT output) throws Exception;
+
+    /** Runtime converter to convert field to {@link RowData} type object. */
+    @FunctionalInterface
+    protected interface DeserializationConverter<T> extends Serializable {
+        Object deserialize(T field) throws Exception;
+    }
+
+    /**
+     * 类型T一般是 Object，HBase这种特殊的就是byte[]
+     *
+     * @param <T>
+     */
+    @FunctionalInterface
+    protected interface SerializationConverter<T> extends Serializable {
+        void serialize(RowData rowData, int pos, T output) throws Exception;
+    }
+
     /**
      * 先调用这个
      *
@@ -141,14 +127,6 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      * @return
      */
     protected abstract DeserializationConverter createInternalConverter(LogicalType type);
-
-    /** Create a nullable JDBC f{@link SerializationConverter} from given sql type. */
-    protected SerializationConverter createNullableExternalConverter(LogicalType type) {
-        return wrapIntoNullableExternalConverter(createExternalConverter(type), type);
-    }
-
-    protected abstract SerializationConverter wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type);
 
     /**
      * 先调用这个

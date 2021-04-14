@@ -42,6 +42,10 @@ public abstract class BaseRichOutputFormatBuilder {
         this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
+    public void setFlushIntervalMillse(long flushIntervalMills) {
+        format.flushIntervalMills = flushIntervalMills;
+    }
+
     public void setBatchSize(int batchSize) {
         format.batchSize = batchSize;
     }

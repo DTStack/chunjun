@@ -18,18 +18,10 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
-import org.apache.flink.api.common.io.FinalizeOnMaster;
-import org.apache.flink.api.common.io.InitializeOnMaster;
-import org.apache.flink.api.common.io.RichOutputFormat;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -39,6 +31,16 @@ import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.flink.api.common.io.FinalizeOnMaster;
+import org.apache.flink.api.common.io.InitializeOnMaster;
+import org.apache.flink.api.common.io.RichOutputFormat;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.table.data.RowData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,14 +49,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster  {
+public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -132,6 +139,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     protected boolean initAccumulatorAndDirty = true;
 
+    private transient ScheduledExecutorService scheduler;
+
+    private transient ScheduledFuture scheduledFuture;
+
+    protected long flushIntervalMills;
+
+    private transient volatile boolean closed = false;
+
     @Override
     public void initializeGlobal(int parallelism) {
         //任务开始前操作，在configure前调用，overwrite by subclass
@@ -152,6 +167,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param taskNumber 通道索引
      * @param numTasks 通道数量
+     *
      * @throws IOException
      */
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
@@ -161,6 +177,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param taskNumber The number of the parallel instance.
      * @param numTasks The number of parallel tasks.
+     *
      * @throws IOException
      */
     @Override
@@ -187,17 +204,35 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //            waitWhile("#1");
 //        }
 
-
         openInternal(taskNumber, numTasks);
 //        if(needWaitBeforeWriteRecords()) {
 //            beforeWriteRecords();
 //            waitWhile("#2");
 //        }
+
+        if (batchSize > 1) {
+            this.scheduler = new ScheduledThreadPoolExecutor(
+                    1,
+                    new DTThreadFactory("jdbc-upsert-output-format"));
+            this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
+                synchronized (BaseRichOutputFormat.this) {
+                    if (closed) {
+                        return;
+                    }
+                    try {
+                        writeRecordInternal();
+                    } catch (Exception e) {
+                        throw new RuntimeException("Writing records to JDBC failed.", e);
+                    }
+                }
+            }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
+        }
     }
 
-    private void initAccumulatorCollector(){
+    private void initAccumulatorCollector() {
         accumulatorCollector = new AccumulatorCollector(jobId, "", getRuntimeContext(), 2,
-                Arrays.asList(Metrics.NUM_ERRORS,
+                Arrays.asList(
+                        Metrics.NUM_ERRORS,
                         Metrics.NUM_NULL_ERRORS,
                         Metrics.NUM_DUPLICATE_ERRORS,
                         Metrics.NUM_CONVERSION_ERRORS,
@@ -209,8 +244,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         accumulatorCollector.start();
     }
 
-    protected void initRestoreInfo(){
-        if(formatState == null){
+    protected void initRestoreInfo() {
+        if (formatState == null) {
             formatState = new FormatState(taskNumber, null);
         } else {
             initState = formatState.getState();
@@ -230,18 +265,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         }
     }
 
-    protected void initJobInfo(){
+    protected void initJobInfo() {
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
-        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
+        if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
-        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
+        if (vars != null && vars.get(Metrics.JOB_ID) != null) {
             jobId = vars.get(Metrics.JOB_ID);
         }
     }
 
-    protected void initStatisticsAccumulator(){
+    protected void initStatisticsAccumulator() {
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
         duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
@@ -266,26 +301,30 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         startTime = System.currentTimeMillis();
     }
 
-    private void openErrorLimiter(){
-        if(config.getRecord() >= 0 || config.getPercentage() > 0) {
+    private void openErrorLimiter() {
+        if (config.getRecord() >= 0 || config.getPercentage() > 0) {
             Double errorRatio = null;
-            if(config.getPercentage() > 0){
+            if (config.getPercentage() > 0) {
                 errorRatio = (double) config.getPercentage();
             }
             errorLimiter = new ErrorLimiter(accumulatorCollector, config.getRecord(), errorRatio);
         }
     }
 
-    private void openDirtyDataManager(){
-        if(StringUtils.isNotBlank(config.getDirtyDataPath())) {
-            dirtyDataManager = new DirtyDataManager(config.getDirtyDataPath(), config.getDirtyDataHadoopConf(), config.getFieldNameList().toArray(new String[0]), jobId);
+    private void openDirtyDataManager() {
+        if (StringUtils.isNotBlank(config.getDirtyDataPath())) {
+            dirtyDataManager = new DirtyDataManager(
+                    config.getDirtyDataPath(),
+                    config.getDirtyDataHadoopConf(),
+                    config.getFieldNameList().toArray(new String[0]),
+                    jobId);
             dirtyDataManager.open();
             LOG.info("init dirtyDataManager, {}", this.dirtyDataManager);
         }
     }
 
     protected void writeSingleRecord(RowData rowData) {
-        if(errorLimiter != null) {
+        if (errorLimiter != null) {
             errorLimiter.acquire();
         }
 
@@ -294,23 +333,26 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
             numWriteCounter.add(1);
 //            snapshotWriteCounter.add(1);
-        } catch(WriteRecordException e) {
+        } catch (WriteRecordException e) {
             saveErrorData(rowData, e);
             updateStatisticsOfDirtyData(rowData, e);
             // 总记录数加1
             numWriteCounter.add(1);
             snapshotWriteCounter.add(1);
 
-            if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
+            if (dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
                 LOG.error(e.getMessage());
             }
-            if(DtLogger.isEnableTrace()){
-                LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
+            if (DtLogger.isEnableTrace()) {
+                LOG.trace(
+                        "write error rowData, rowData = {}, e = {}",
+                        rowData.toString(),
+                        ExceptionUtil.getErrorMessage(e));
             }
         }
     }
 
-    private void saveErrorData(RowData rowData, WriteRecordException e){
+    private void saveErrorData(RowData rowData, WriteRecordException e) {
         errCounter.add(1);
 
         String errMsg = ExceptionUtil.getErrorMessage(e);
@@ -319,20 +361,20 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             errMsg += recordConvertDetailErrorMessage(pos, e.getRowData());
         }
 
-        if(errorLimiter != null) {
+        if (errorLimiter != null) {
             errorLimiter.setErrMsg(errMsg);
             errorLimiter.setErrorData(rowData);
         }
     }
 
-    private void updateStatisticsOfDirtyData(RowData rowData, WriteRecordException e){
-        if(dirtyDataManager != null) {
+    private void updateStatisticsOfDirtyData(RowData rowData, WriteRecordException e) {
+        if (dirtyDataManager != null) {
             String errorType = dirtyDataManager.writeData(rowData, e);
-            if (WriteErrorTypes.ERR_NULL_POINTER.equals(errorType)){
+            if (WriteErrorTypes.ERR_NULL_POINTER.equals(errorType)) {
                 nullErrCounter.add(1);
-            } else if(WriteErrorTypes.ERR_FORMAT_TRANSFORM.equals(errorType)){
+            } else if (WriteErrorTypes.ERR_FORMAT_TRANSFORM.equals(errorType)) {
                 conversionErrCounter.add(1);
-            } else if(WriteErrorTypes.ERR_PRIMARY_CONFLICT.equals(errorType)){
+            } else if (WriteErrorTypes.ERR_PRIMARY_CONFLICT.equals(errorType)) {
                 duplicateErrCounter.add(1);
             } else {
                 otherErrCounter.add(1);
@@ -341,20 +383,22 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
-        return getClass().getName() + " WriteRecord error: when converting field[" + pos + "] in Row(" + rowData + ")";
+        return getClass().getName() + " WriteRecord error: when converting field[" + pos
+                + "] in Row(" + rowData + ")";
     }
 
     /**
      * 写出单条数据
      *
      * @param rowData 数据
+     *
      * @throws WriteRecordException
      */
     protected abstract void writeSingleRecordInternal(RowData rowData) throws WriteRecordException;
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-        if(numWriteCounter != null){
+        if (numWriteCounter != null) {
             numWriteCounter.add(rows.size());
         }
     }
@@ -366,10 +410,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
-    protected void writeRecordInternal() {
+    protected synchronized void writeRecordInternal() {
         try {
             writeMultipleRecords();
-        } catch(Exception e) {
+        } catch (Exception e) {
             rows.forEach(this::writeSingleRecord);
         }
         rows.clear();
@@ -378,17 +422,17 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     @Override
     public void writeRecord(RowData rowData) {
 //        Row internalRow = setChannelInfo(row);
-        if(batchSize <= 1) {
+        if (batchSize <= 1) {
             writeSingleRecord(rowData);
         } else {
             rows.add(rowData);
-            if(rows.size() == batchSize) {
+            if (rows.size() == batchSize) {
                 writeRecordInternal();
             }
         }
 
         updateDuration();
-        if(bytesWriteCounter != null){
+        if (bytesWriteCounter != null) {
             bytesWriteCounter.add(rowData.toString().getBytes().length);
         }
     }
@@ -397,12 +441,22 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void close() throws IOException {
         LOG.info("subtask[{}}] close()", taskNumber);
 
-        try{
-            if(rows.size() != 0) {
+        try {
+            // close scheduler
+            if (closed) {
+                return;
+            }
+            closed = true;
+            if (this.scheduledFuture != null) {
+                scheduledFuture.cancel(false);
+                this.scheduler.shutdown();
+            }
+            // when exist data
+            if (rows.size() != 0) {
                 writeRecordInternal();
             }
 
-            if(durationCounter != null){
+            if (durationCounter != null) {
                 updateDuration();
             }
 
@@ -410,8 +464,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //                beforeCloseInternal();
 //                waitWhile("#3");
 //            }
-        }finally {
-            try{
+        } finally {
+            try {
                 closeInternal();
 //                if(needWaitAfterCloseInternal()) {
 //                    afterCloseInternal();
@@ -421,13 +475,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 if (outputMetric != null) {
                     outputMetric.waitForReportMetrics();
                 }
-            }finally {
-                if(dirtyDataManager != null) {
+            } finally {
+                if (dirtyDataManager != null) {
                     dirtyDataManager.close();
                 }
 
                 checkErrorLimit();
-                if(accumulatorCollector != null){
+                if (accumulatorCollector != null) {
                     accumulatorCollector.close();
                 }
             }
@@ -435,11 +489,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         }
     }
 
-    private void checkErrorLimit(){
-        if(errorLimiter != null) {
-            try{
+    private void checkErrorLimit() {
+        if (errorLimiter != null) {
+            try {
                 errorLimiter.updateErrorInfo();
-            } catch (Exception e){
+            } catch (Exception e) {
                 LOG.warn("Update error info error when task closing: ", e);
             }
 
@@ -447,19 +501,21 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         }
     }
 
-    private void updateDuration(){
-        if(durationCounter != null){
+    private void updateDuration() {
+        if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
     }
 
-    public void closeInternal() throws IOException {}
+    public void closeInternal() throws IOException {
+    }
 
     @Override
-    public void tryCleanupOnError() throws Exception {}
+    public void tryCleanupOnError() throws Exception {
+    }
 
-    protected String getTaskState() throws IOException{
+    protected String getTaskState() throws IOException {
 //        if (StringUtils.isEmpty(config.getMonitorUrls())) {
 //            return RUNNING_STATE;
 //        }
@@ -504,10 +560,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * Get the recover point of current channel
+     *
      * @return DataRecoverPoint
      */
     public FormatState getFormatState() throws Exception {
-        if (formatState != null){
+        if (formatState != null) {
             formatState.setMetric(outputMetric.getMetricCounters());
         }
         return formatState;
@@ -515,12 +572,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * checkpoint成功时操作
+     *
      * @param checkpointId
      */
     public abstract void notifyCheckpointComplete(long checkpointId) throws Exception;
 
     /**
      * checkpoint失败时操作
+     *
      * @param checkpointId
      */
     public abstract void notifyCheckpointAborted(long checkpointId) throws Exception;
@@ -533,7 +592,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         return batchSize;
     }
 
-    public void setBatchSize(int batchSize){
+    public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
     }
 
@@ -559,5 +618,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
+    }
+
+    public long getFlushIntervalMills() {
+        return flushIntervalMills;
+    }
+
+    public void setFlushIntervalMills(long flushIntervalMills) {
+        this.flushIntervalMills = flushIntervalMills;
     }
 }
