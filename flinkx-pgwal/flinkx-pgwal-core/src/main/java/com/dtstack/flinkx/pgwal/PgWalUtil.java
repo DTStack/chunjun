@@ -47,7 +47,7 @@ public class PgWalUtil {
     public static final String PUBLICATION_NAME = "dtstack_flinkx";
     public static final String QUERY_LEVEL = "SHOW wal_level;";
     public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
-    public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots;";
+    public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots where slot_name = '%s';";
     public static final String QUERY_TABLE_REPLICA_IDENTITY = "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
     public static final String UPDATE_REPLICA_IDENTITY = "ALTER TABLE %s REPLICA IDENTITY FULL;";
     public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
@@ -69,19 +69,22 @@ public class PgWalUtil {
 
         //2. check postgres wal_level
         resultSet = conn.execSQLQuery(QUERY_LEVEL);
-        resultSet.next();
-        String wal_level = resultSet.getString(1);
-        if(!"logical".equalsIgnoreCase(wal_level)){
-            LOG.error("postgres wal_level must be logical, current = [{}]", wal_level);
-            throw new UnsupportedOperationException("postgres wal_level must be logical, current = " + wal_level);
+        if(resultSet.next()) {
+            String wal_level = resultSet.getString(1);
+            if (!"logical".equalsIgnoreCase(wal_level)) {
+                LOG.error("postgres wal_level must be logical, current = [{}]", wal_level);
+                throw new UnsupportedOperationException("postgres wal_level must be logical, current = " + wal_level);
+            }
         }
 
         //3.check postgres slot
         resultSet = conn.execSQLQuery(QUERY_MAX_SLOT);
-        resultSet.next();
-        int maxSlot = resultSet.getInt(1);
+        int maxSlot = 0;
+        if(resultSet.next()) {
+            maxSlot = resultSet.getInt(1);
+        }
         int slotCount = 0;
-        resultSet = conn.execSQLQuery(QUERY_SLOT);
+        resultSet = conn.execSQLQuery(String.format(QUERY_SLOT, slotName));
         while(resultSet.next()){
             PgRelicationSlot slot = new PgRelicationSlot();
             String name = resultSet.getString("slot_name");
@@ -121,10 +124,8 @@ public class PgWalUtil {
             //schema.tableName
             String[] tables = table.split("\\.");
             resultSet = conn.execSQLQuery(String.format(QUERY_TABLE_REPLICA_IDENTITY, tables[0], tables[1]));
-            resultSet.next();
-            int size = resultSet.getRow();
             boolean needCreate = false;
-            if(size > 0) {
+            if(resultSet.next()) {
                 String identity = parseReplicaIdentity(resultSet.getString(1));
                 if(!"full".equals(identity)){
                     LOG.warn("update {} replica identity, set {} to full", table, identity);
@@ -139,11 +140,12 @@ public class PgWalUtil {
 
         //5.check publication
         resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, PUBLICATION_NAME));
-        resultSet.next();
-        long count = resultSet.getLong(1);
-        if(count == 0L){
-            LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
-            conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
+        if(resultSet.next()) {
+            long count = resultSet.getLong(1);
+            if (count == 0L) {
+                LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
+                conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
+            }
         }
 
         closeDBResources(resultSet, null, null, false);
