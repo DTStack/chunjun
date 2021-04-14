@@ -17,14 +17,13 @@
  */
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.mysql.MySQLRowConverter;
-
 import org.apache.flink.table.types.logical.BigIntType;
-import org.apache.flink.table.types.logical.IntType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.VarCharType;
+
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.mysql.MySQLRowConverter;
 
 import java.util.ArrayList;
 import java.util.List;

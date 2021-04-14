@@ -18,117 +18,151 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
+import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.DecimalType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
+
 import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 
-import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.types.logical.RowType;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Date;
 import java.sql.Time;
-import java.util.Locale;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
- * @program: luna-flink
- * @author: wuren
- * @create: 2021/03/29
+ * @author chuixue
+ * @create 2021-04-14 11:45
+ * @description
  **/
 public class MySQLRowConverter extends AbstractJdbcRowConverter {
-
-    private static final long serialVersionUID = 1L;
-
-    // TODO 是否需要删除
-    public String converterName() {
-        return "MySQL";
-    }
-
     public MySQLRowConverter(RowType rowType) {
         super(rowType);
     }
 
     @Override
-    public JdbcDeserializationConverter createJdbcInternalConverter(String type) throws SQLException {
-        if(StringUtils.isBlank(type)){
-            return (resultSet, pos) -> resultSet.getObject(pos);
+    protected SerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
+            LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
+                return (val, index, statement) ->
+                        statement.setBoolean(index, val.getBoolean(index));
+            case TINYINT:
+                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
+            case SMALLINT:
+                return (val, index, statement) -> statement.setShort(index, val.getShort(index));
+            case INTEGER:
+            case INTERVAL_YEAR_MONTH:
+                return (val, index, statement) -> statement.setInt(index, val.getInt(index));
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                return (val, index, statement) -> statement.setLong(index, val.getLong(index));
+            case FLOAT:
+                return (val, index, statement) -> statement.setFloat(index, val.getFloat(index));
+            case DOUBLE:
+                return (val, index, statement) -> statement.setDouble(index, val.getDouble(index));
+            case CHAR:
+            case VARCHAR:
+                // value is BinaryString
+                return (val, index, statement) ->
+                        statement.setString(index, val.getString(index).toString());
+            case BINARY:
+            case VARBINARY:
+                return (val, index, statement) -> statement.setBytes(index, val.getBinary(index));
+            case DATE:
+                return (val, index, statement) ->
+                        statement.setDate(
+                                index, Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))));
+            case TIME_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTime(
+                                index,
+                                Time.valueOf(
+                                        LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)));
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                final int timestampPrecision = ((TimestampType) type).getPrecision();
+                return (val, index, statement) ->
+                        statement.setTimestamp(
+                                index, val.getTimestamp(index, timestampPrecision).toTimestamp());
+            case DECIMAL:
+                final int decimalPrecision = ((DecimalType) type).getPrecision();
+                final int decimalScale = ((DecimalType) type).getScale();
+                return (val, index, statement) ->
+                        statement.setBigDecimal(
+                                index,
+                                val.getDecimal(index, decimalPrecision, decimalScale)
+                                        .toBigDecimal());
+            case ARRAY:
+            case MAP:
+            case MULTISET:
+            case ROW:
+            case RAW:
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-        return null;
-        //MySQL支持的数据类型: com.mysql.jdbc.MysqlDefs
-        //com.mysql.jdbc.ResultSetImpl.getObject(int)
-        //TODO 仔细梳理每个数据库支持的数据类型
-//        switch (type.toUpperCase(Locale.ENGLISH)){
-//            case "BIT":
-//                return (resultSet, pos) -> resultSet.getBoolean(pos) ? 1 : 0;
-//            case "TINYINT":
-//                return (int)resultSet.getByte(index);
-//            case "SMALLINT":
-//                return resultSet.getInt(index);
-//            case "MEDIUMINT":
-//                return resultSet.getInt(index);
-//            case "INT":
-//                return resultSet.getObject(index);
-//            case "INTEGER":
-//                return resultSet.getObject(index);
-//            case "BIGINT":
-//                return resultSet.getObject(index);
-//            case "INT24":
-//                return resultSet.getInt(index);
-//            case "REAL":
-//                return resultSet.getFloat(index);
-//            case "FLOAT":
-//                return resultSet.getDouble(index);
-//            case "DECIMAL":
-//            case "NUMERIC":
-//                return resultSet.getObject(index);
-//            case "DOUBLE":
-//                return resultSet.getDouble(index);
-//            case "CHAR":
-//            case "VARCHAR":
-//                return resultSet.getObject(index);
-//            case "DATE":
-//                return resultSet.getObject(index);
-//            case "TIME":
-//                return resultSet.getTime(index);
-//            case "YEAR":
-//                Time time = resultSet.getTime(index);
-//                return StringData.fromString(DateUtil.dateToYearString(time));
-//            case "TIMESTAMP":
-//                return resultSet.getTimestamp(index);
-//            case "DATETIME":
-//                return resultSet.getString(index);
-//            case "TINYBLOB":
-//                return resultSet.getObject(index);
-//            case "BLOB":
-//                return resultSet.getObject(index);
-//            case "MEDIUMBLOB":
-//                return resultSet.getObject(index);
-//            case "LONGBLOB":
-//                return resultSet.getObject(index);
-//            case "TINYTEXT":
-//                return resultSet.getObject(index);
-//            case "TEXT":
-//                return resultSet.getObject(index);
-//            case "MEDIUMTEXT":
-//                return resultSet.getObject(index);
-//            case "LONGTEXT":
-//                return resultSet.getObject(index);
-//            case "ENUM":
-//                return resultSet.getObject(index);
-//            case "SET":
-//                return resultSet.getObject(index);
-//            case "GEOMETRY":
-//                return resultSet.getObject(index);
-//            case "BINARY":
-//                return resultSet.getObject(index);
-//            case "VARBINARY":
-//                return resultSet.getObject(index);
-//            case "JSON":
-//                return resultSet.getObject(index);
-//
-//            default:
-//                return resultSet.getString(index);
-//        }
+    }
+
+    @Override
+    protected DeserializationConverter createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case NULL:
+                return val -> null;
+            case BOOLEAN:
+            case FLOAT:
+            case DOUBLE:
+            case INTERVAL_YEAR_MONTH:
+            case INTERVAL_DAY_TIME:
+                return val -> val;
+            case TINYINT:
+                return val -> ((Integer) val).byteValue();
+            case SMALLINT:
+                // Converter for small type that casts value to int and then return short value,
+                // since
+                // JDBC 1.0 use int type for small values.
+                return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
+            case INTEGER:
+                return val -> val;
+            case BIGINT:
+                return val -> val;
+            case DECIMAL:
+                final int precision = ((DecimalType) type).getPrecision();
+                final int scale = ((DecimalType) type).getScale();
+                // using decimal(20, 0) to support db type bigint unsigned, user should define
+                // decimal(20, 0) in SQL,
+                // but other precision like decimal(30, 0) can work too from lenient consideration.
+                return val ->
+                        val instanceof BigInteger
+                                ? DecimalData.fromBigDecimal(
+                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
+            case DATE:
+                return val -> (int) (((Date) val).toLocalDate().toEpochDay());
+            case TIME_WITHOUT_TIME_ZONE:
+                return val -> (int) (((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return val -> TimestampData.fromTimestamp((Timestamp) val);
+            case CHAR:
+            case VARCHAR:
+                return val -> StringData.fromString((String) val);
+            case BINARY:
+            case VARBINARY:
+                return val -> (byte[]) val;
+            case ARRAY:
+            case ROW:
+            case MAP:
+            case MULTISET:
+            case RAW:
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
     }
 }
