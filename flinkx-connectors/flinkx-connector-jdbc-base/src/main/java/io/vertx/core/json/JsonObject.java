@@ -16,6 +16,9 @@ import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.core.spi.json.JsonCodec;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
@@ -1101,6 +1104,15 @@ public class JsonObject implements Iterable<Map.Entry<String, Object>>, ClusterS
             val = Base64.getEncoder().encodeToString((byte[])val);
         } else if (val instanceof Instant) {
             val = ISO_INSTANT.format((Instant) val);
+        } else if(val instanceof Timestamp){
+            // DTSTACK fix remove timestamp check
+            // ok
+        } else if(val instanceof Date){
+            // DTSTACK fix remove timestamp check
+            // ok
+        } else if(val instanceof Time){
+            // DTSTACK fix remove timestamp check
+            // ok
         } else {
             throw new IllegalStateException("Illegal type in JsonObject: " + val.getClass());
         }

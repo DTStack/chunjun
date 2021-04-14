@@ -39,7 +39,6 @@ import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,9 +47,6 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
@@ -213,16 +209,9 @@ public final class JDBCStatementHelper {
         }
 
         // temporal values
-        if (value instanceof Time) {
-            return ((Time) value).toLocalTime().atOffset(ZoneOffset.UTC).format(ISO_LOCAL_TIME);
-        }
-
-        if (value instanceof Date) {
-            return ((Date) value).toLocalDate().format(ISO_LOCAL_DATE);
-        }
-
-        if (value instanceof Timestamp) {
-            return OffsetDateTime.ofInstant(((Timestamp) value).toInstant(), ZoneOffset.UTC).format(ISO_OFFSET_DATE_TIME);
+        if (value instanceof Time || value instanceof Date || value instanceof Timestamp) {
+            // DTSTACK fix remove timestamp check
+            return value;
         }
 
         // large objects
