@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDmlOptions;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -29,12 +26,18 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
+import org.apache.flink.util.CollectionUtil;
 
-import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.apache.flink.util.Preconditions.checkState;
@@ -46,22 +49,19 @@ import static org.apache.flink.util.Preconditions.checkState;
  **/
 public class JdbcDynamicTableSink implements DynamicTableSink {
 
-    private final SinkConnectionConf connectionConf;
+    private final JdbcConf jdbcConf;
     private final JdbcDialect jdbcDialect;
-    private final JdbcDmlOptions dmlOptions;
     private final TableSchema tableSchema;
     private final String dialectName;
 
     public JdbcDynamicTableSink(
-            SinkConnectionConf connectionConf,
+            JdbcConf jdbcConf,
             JdbcDialect jdbcDialect,
-            JdbcDmlOptions dmlOptions,
             TableSchema tableSchema) {
-        this.connectionConf = connectionConf;
+        this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
-        this.dmlOptions = dmlOptions;
         this.tableSchema = tableSchema;
-        this.dialectName = dmlOptions.getDialect().dialectName();
+        this.dialectName = jdbcDialect.dialectName();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     private void validatePrimaryKey(ChangelogMode requestedMode) {
         checkState(
                 ChangelogMode.insertOnly().equals(requestedMode)
-                        || dmlOptions.getKeyFields().isPresent(),
+                        || CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()),
                 "please declare primary key for sink table when query contains update/delete record.");
     }
 
@@ -91,13 +91,22 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
         //todo 这里需要被overwrite，传入实际插件的OutputFormat
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
-//                .builder()
-//                .setJdbcOptions(jdbcOptions)
-//                .setColumn(tableSchema.getFieldNames())
-//                .setRowType(rowType)
-//                .setMode((dmlOptions.getKeyFields().isPresent()
-//                        && dmlOptions.getKeyFields().get().length
-//                        > 0) ? EWriteMode.UPDATE.name() : EWriteMode.INSERT.name());
+        builder.setJdbcDialect(jdbcDialect);
+
+        String[] fieldNames = tableSchema.getFieldNames();
+        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        for (String name : fieldNames) {
+            FieldConf field = new FieldConf();
+            field.setName(name);
+            columnList.add(field);
+        }
+        jdbcConf.setColumn(columnList);
+        jdbcConf.setMode((CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey())) ? EWriteMode.INSERT
+                .name() : EWriteMode.UPDATE.name());
+        jdbcConf.setUpdateKey(jdbcConf.getUpdateKey());
+
+        builder.setJdbcConf(jdbcConf);
+        builder.setJdbcRowConverter(jdbcDialect.getRowConverter(rowType));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
     }
@@ -105,9 +114,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     @Override
     public DynamicTableSink copy() {
         return new JdbcDynamicTableSink(
-                connectionConf,
+                jdbcConf,
                 jdbcDialect,
-                dmlOptions,
                 tableSchema);
     }
 
@@ -125,14 +133,13 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
             return false;
         }
         JdbcDynamicTableSink that = (JdbcDynamicTableSink) o;
-        return Objects.equals(connectionConf, that.connectionConf)
-                && Objects.equals(dmlOptions, that.dmlOptions)
+        return Objects.equals(jdbcConf, that.jdbcConf)
                 && Objects.equals(tableSchema, that.tableSchema)
                 && Objects.equals(dialectName, that.dialectName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectionConf, dmlOptions, tableSchema, dialectName);
+        return Objects.hash(jdbcConf, tableSchema, dialectName);
     }
 }

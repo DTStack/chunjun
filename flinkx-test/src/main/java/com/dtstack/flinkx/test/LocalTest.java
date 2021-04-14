@@ -44,10 +44,10 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
+//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
+//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch2.sql";
         // 不要删，注释就行。
-//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
@@ -77,9 +77,9 @@ public class LocalTest {
             argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
-            argsList.add("-confProp");
+//            argsList.add("-confProp");
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
-            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+//            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
         }
 
         // Main.main(argsList.toArray(new String[0]));
