@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.mysql.outputFormat;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.mysql.MySQLRowConverter;
 
+import org.apache.flink.table.types.logical.BigIntType;
 import org.apache.flink.table.types.logical.IntType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -43,13 +44,13 @@ public class MysqlOutputFormat extends JdbcOutputFormat {
         for (int i = 0; i < columnType.size(); i++) {
             String name = column.get(i);
             LogicalType type;
-            if (columnType.get(i).equalsIgnoreCase("INT")) {
-                type = new IntType();
-            } else if (columnType.get(i).equalsIgnoreCase("STRING")) {
-                type = new VarCharType();
+            if (columnType.get(i).equalsIgnoreCase("BIGINT")) {
+                type = new BigIntType();
+            } else if (columnType.get(i).equalsIgnoreCase("VARCHAR")) {
+                type = new VarCharType(40);
             } else {
                 // TODO 现在就支持INT 和 STRING
-                type = new VarCharType();
+                type = new VarCharType(40);
             }
             fields.add(new RowType.RowField(name, type));
         }

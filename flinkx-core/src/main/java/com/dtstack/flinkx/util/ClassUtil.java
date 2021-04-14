@@ -103,6 +103,7 @@ public class ClassUtil {
             case "intunsigned":
             case "integerunsigned":
             case "bigintunsigned":
+            case "long":
                 return Long.class;
 
             case "varchar":
