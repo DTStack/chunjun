@@ -14,7 +14,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
