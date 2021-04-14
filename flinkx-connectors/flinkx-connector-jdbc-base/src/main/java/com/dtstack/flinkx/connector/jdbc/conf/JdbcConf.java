@@ -87,6 +87,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private List<String> postSql;
     private int batchSize = 1024;
     private List<String> updateKey;
+    private long flushIntervalMills;
 
     private boolean allReplace = false;
 
@@ -373,5 +374,13 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setAllReplace(boolean allReplace) {
         this.allReplace = allReplace;
+    }
+
+    public long getFlushIntervalMills() {
+        return flushIntervalMills;
+    }
+
+    public void setFlushIntervalMills(long flushIntervalMills) {
+        this.flushIntervalMills = flushIntervalMills;
     }
 }

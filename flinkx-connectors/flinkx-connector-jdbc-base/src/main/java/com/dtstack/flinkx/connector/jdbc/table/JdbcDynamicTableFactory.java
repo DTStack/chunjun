@@ -142,13 +142,17 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         jdbcConf.setConnection(Collections.singletonList(conf));
         jdbcConf.setUsername(conf.getUsername());
         jdbcConf.setPassword(conf.getPassword());
+
         jdbcConf.setAllReplace(conf.getAllReplace());
+        jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
+        jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
 
         List<String> keyFields =
                 schema.getPrimaryKey()
                         .map(pk -> pk.getColumns())
                         .orElse(null);
         jdbcConf.setUpdateKey(keyFields);
+
         return jdbcConf;
     }
 

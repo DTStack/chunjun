@@ -91,7 +91,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
         //todo 这里需要被overwrite，传入实际插件的OutputFormat
         JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
-        builder.setJdbcDialect(jdbcDialect);
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
@@ -105,8 +104,11 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
                 .name() : EWriteMode.UPDATE.name());
         jdbcConf.setUpdateKey(jdbcConf.getUpdateKey());
 
+        builder.setJdbcDialect(jdbcDialect);
+        builder.setBatchSize(jdbcConf.getBatchSize());
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcRowConverter(jdbcDialect.getRowConverter(rowType));
+        builder.setFlushIntervalMillse(jdbcConf.getFlushIntervalMills());
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
     }

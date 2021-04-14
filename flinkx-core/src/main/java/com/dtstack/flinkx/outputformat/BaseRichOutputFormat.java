@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.factory.DTThreadFactory;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.FinalizeOnMaster;
@@ -47,6 +49,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
@@ -132,6 +138,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     protected boolean initAccumulatorAndDirty = true;
 
+    private transient ScheduledExecutorService scheduler;
+
+    private transient ScheduledFuture scheduledFuture;
+
+    protected long flushIntervalMills;
+
+    private transient volatile boolean closed = false;
+
     @Override
     public void initializeGlobal(int parallelism) {
         //任务开始前操作，在configure前调用，overwrite by subclass
@@ -187,12 +201,28 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //            waitWhile("#1");
 //        }
 
-
         openInternal(taskNumber, numTasks);
 //        if(needWaitBeforeWriteRecords()) {
 //            beforeWriteRecords();
 //            waitWhile("#2");
 //        }
+
+        if(batchSize>1){
+            this.scheduler = new ScheduledThreadPoolExecutor(1,
+                    new DTThreadFactory("jdbc-upsert-output-format"));
+            this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
+                synchronized (BaseRichOutputFormat.this) {
+                    if (closed) {
+                        return;
+                    }
+                    try {
+                        writeRecordInternal();
+                    } catch (Exception e) {
+                        throw new RuntimeException("Writing records to JDBC failed.", e);
+                    }
+                }
+            }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
+        }
     }
 
     private void initAccumulatorCollector(){
@@ -366,7 +396,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
-    protected void writeRecordInternal() {
+    protected synchronized void writeRecordInternal() {
         try {
             writeMultipleRecords();
         } catch(Exception e) {
@@ -398,6 +428,16 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         LOG.info("subtask[{}}] close()", taskNumber);
 
         try{
+            // close scheduler
+            if (closed) {
+                return;
+            }
+            closed = true;
+            if (this.scheduledFuture != null) {
+                scheduledFuture.cancel(false);
+                this.scheduler.shutdown();
+            }
+            // when exist data
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
@@ -559,5 +599,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
+    }
+
+    public long getFlushIntervalMills() {
+        return flushIntervalMills;
+    }
+
+    public void setFlushIntervalMills(long flushIntervalMills) {
+        this.flushIntervalMills = flushIntervalMills;
     }
 }

@@ -165,6 +165,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             for (RowData row : rows) {
                 fieldNamedPreparedStatement = jdbcRowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+                fieldNamedPreparedStatement.addBatch();
                 fieldNamedPreparedStatement.executeBatch();
                 lastRow = row;
             }
