@@ -206,7 +206,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 //            waitWhile("#2");
 //        }
 
-        if (batchSize > 1) {
+        if (batchSize > 1 && flushIntervalMills > 0) {
             this.scheduler = new ScheduledThreadPoolExecutor(
                     1,
                     new DTThreadFactory("jdbc-upsert-output-format"));

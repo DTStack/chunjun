@@ -93,7 +93,6 @@ public class ClassUtil {
             case "mediumintunsigned":
             case "integer":
             case "int":
-            case "id":
                 return Integer.class;
 
             case "blob":
@@ -104,6 +103,7 @@ public class ClassUtil {
             case "integerunsigned":
             case "bigintunsigned":
             case "long":
+            case "id":
                 return Long.class;
 
             case "varchar":

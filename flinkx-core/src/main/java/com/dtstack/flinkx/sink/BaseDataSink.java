@@ -29,8 +29,6 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -80,9 +78,6 @@ public abstract class BaseDataSink {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
-
-        ((BaseRichOutputFormat)outputFormat).setBatchSize((int) syncConf
-                .getWriter().getParameter().getOrDefault(ConfigConstant.KEY_BATCH_SIZE, 1));
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
         DataStreamSink<RowData> dataStreamSink = dataSet.addSink(sinkFunction);

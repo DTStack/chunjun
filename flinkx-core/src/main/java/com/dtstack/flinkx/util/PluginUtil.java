@@ -25,6 +25,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,13 +219,15 @@ public class PluginUtil {
 
         if (env instanceof MyLocalStreamEnvironment) {
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
-            try {
-                ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-                Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-                add.setAccessible(true);
-                add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
-            }catch (Exception e){
-                LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+            if(CollectionUtils.isNotEmpty(coreUrlList)){
+                try {
+                    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                    Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                    add.setAccessible(true);
+                    add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
+                }catch (Exception e){
+                    LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+                }
             }
         }
     }
