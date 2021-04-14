@@ -61,7 +61,7 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
     }
 
     @Override
-    public FieldNamedPreparedStatement toExternal(
+    public FieldNamedPreparedStatement toExternalWithType(
             RowData rowData,
             FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
@@ -70,9 +70,10 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
         return statement;
     }
 
-    private FieldNamedPreparedStatement toExternalWithoutType(
+    @Override
+    protected FieldNamedPreparedStatement toExternalWithoutType(
             GenericRowData genericRowData,
-            FieldNamedPreparedStatement statement) throws SQLException {
+            FieldNamedPreparedStatement statement) throws Exception {
         for (int pos = 0; pos < genericRowData.getArity(); pos++) {
             statement.setObject(pos, genericRowData.getField(pos));
         }
