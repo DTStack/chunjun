@@ -231,9 +231,9 @@
                 </executions>
                 <configuration>
                     <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-                    <verbose>true</verbose>
-                    <runOnlyOnce>true</runOnlyOnce>
+<!--                    <runOnlyOnce>true</runOnlyOnce>-->
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <injectAllReactorProjects>true</injectAllReactorProjects>
                     <gitDescribe>
                         <always>false</always>
                         <dirty>-dirty</dirty>
