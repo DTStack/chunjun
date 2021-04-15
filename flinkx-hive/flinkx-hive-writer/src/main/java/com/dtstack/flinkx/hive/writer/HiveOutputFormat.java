@@ -30,6 +30,7 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.math3.util.Pair;
@@ -194,7 +195,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     event = (Map) tempObj;
                 } else if (tempObj instanceof String) {
                     try {
-                        event = GsonUtil.GSON.fromJson((String) tempObj, GsonUtil.gsonMapTypeToken);
+                        event = MapUtil.jsonStrToObject((String) tempObj,Map.class);
                     }catch (JsonSyntaxException e){
                         // is not a json string
                         //tempObj 不是map类型 则event直接往下传递
