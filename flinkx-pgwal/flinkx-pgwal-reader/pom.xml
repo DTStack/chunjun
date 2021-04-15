@@ -57,7 +57,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../syncplugins/pgwalreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/pgwalreader/${project.name}-${package.name}.jar" />
+                                      tofile="${basedir}/../../syncplugins/pgwalreader/${project.name}-${git.branch}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
