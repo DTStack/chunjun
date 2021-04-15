@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-connector-jdbc-base</artifactId>
+	<name>FlinkX : Connectors : JDBC</name>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
