@@ -6,7 +6,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.util.DtStringUtil;
@@ -35,7 +34,6 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private final JdbcConf jdbcConf;
     private final String query;
-    private final AbstractJdbcRowConverter jdbcRowConverter;
     private final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(
@@ -45,14 +43,13 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(fieldNames, keyNames, lookupConf);
+        super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
         this.query = jdbcDialect.getSelectFromStatement(
                 jdbcConf.getTable(),
                 fieldNames,
                 new String[]{});
         this.jdbcDialect = jdbcDialect;
-        this.jdbcRowConverter = jdbcDialect.getRowConverter(rowType);
     }
 
     @Override
@@ -119,7 +116,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             Map<String, Object> oneRow = Maps.newHashMap();
             // 防止一条数据有问题，后面数据无法加载
             try {
-                GenericRowData rowData = (GenericRowData) jdbcRowConverter.toInternal(resultSet);
+                GenericRowData rowData = (GenericRowData) rowConverter.toInternal(resultSet);
                 for (int i = 0; i < fieldsName.length; i++) {
                     Object object = rowData.getField(i);
                     oneRow.put(fieldsName[i].trim(), object);

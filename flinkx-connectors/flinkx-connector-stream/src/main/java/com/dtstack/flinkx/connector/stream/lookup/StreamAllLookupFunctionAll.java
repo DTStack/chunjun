@@ -32,7 +32,7 @@ public class StreamAllLookupFunctionAll extends AbstractAllTableFunction {
             StreamLookupConf lookupOptions,
             String[] fieldNames,
             String[] keyNames) {
-        super(fieldNames, keyNames, lookupOptions);
+        super(fieldNames, keyNames, lookupOptions, null);
     }
 
     @Override

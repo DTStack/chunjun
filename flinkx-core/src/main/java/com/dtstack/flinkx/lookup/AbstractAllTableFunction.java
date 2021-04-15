@@ -24,6 +24,7 @@ import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.functions.TableFunction;
 import org.apache.flink.types.RowKind;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.collect.Lists;
@@ -60,20 +61,24 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
     protected final LookupConf lookupConf;
     /** 字段名称 */
     protected final String[] fieldsName;
+    /** 数据类型转换器 */
+    protected final AbstractRowConverter rowConverter;
+
 
     public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
-            LookupConf lookupConf
+            LookupConf lookupConf,
+            AbstractRowConverter rowConverter
     ) {
         this.keyNames = keyNames;
         this.lookupConf = lookupConf;
         this.fieldsName = fieldNames;
+        this.rowConverter = rowConverter;
     }
 
     /**
      * 初始化加载数据库中数据
-     *
      */
     protected void initCache() {
         Map<String, List<Map<String, Object>>> newCache = Maps.newConcurrentMap();
