@@ -49,8 +49,6 @@ public class MockDataUtil {
         Object mockData;
         switch (type.trim().toLowerCase()){
             case "id": mockData = id.incrementAndGet();break;
-            case "tinyint":
-                mockData = 1;break;
             case "int":
             case "integer": mockData = JMockData.mock(int.class);break;
             case "byte": mockData = JMockData.mock(byte.class);break;
@@ -61,8 +59,8 @@ public class MockDataUtil {
             case "long": mockData = JMockData.mock(long.class);break;
             case "float": mockData = JMockData.mock(float.class);break;
             case "double": mockData = JMockData.mock(double.class);break;
-            case "date": mockData="2020-09-09";break;
-            case "timestamp": mockData="2010-03-26 15:56:00";break;
+            case "date": mockData = JMockData.mock(Date.class);break;
+            case "timestamp": mockData = JMockData.mock(Timestamp.class);break;
             case "bigdecimal": mockData = JMockData.mock(BigDecimal.class);break;
             case "biginteger": mockData = JMockData.mock(BigInteger.class);break;
             case "int[]": mockData = JMockData.mock(int[].class);break;
