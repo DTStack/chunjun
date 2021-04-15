@@ -15,16 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.mysql.inputFormat;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
+
+import com.dtstack.flinkx.util.TableTypeUtils;
+
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.StringData;
 
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
-import com.dtstack.flinkx.connector.mysql.util.MysqlUtil;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Date: 2021/04/12
@@ -35,26 +45,49 @@ import java.io.IOException;
 public class MysqlInputFormat extends JdbcInputFormat {
 
     @Override
+    public void openInternal(InputSplit inputSplit) {
+        super.openInternal(inputSplit);
+        try {
+            LogicalType rowType = TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, MysqlTypeConverter::apply);
+            setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
+        } catch (SQLException e) {
+            LOG.error("", e);
+        }
+    }
+
+    @Override
     public RowData nextRecordInternal(RowData rowData) throws IOException {
         if (!hasNext) {
             return null;
         }
-        GenericRowData genericRowData = new GenericRowData(columnCount);
 
         try {
-            for (int pos = 0; pos < genericRowData.getArity(); pos++) {
-                Object obj = MysqlUtil.getFromResultSet(resultSet, pos + 1, columnTypeList.get(pos));
-
-                //todo 临时这样写，后续迁移到MysqlUtil中
-                if(obj instanceof String){
-                    obj = StringData.fromString((String)obj);
-                }
-
-                genericRowData.setField(pos, obj);
-            }
-            return super.nextRecordInternal(genericRowData);
+            // TODO 如果没常量可以不调用
+            GenericRowData rawRowData = (GenericRowData) jdbcRowConverter.toInternal(resultSet);
+            GenericRowData finalRowData = loadConstantData(rawRowData);
+            return super.nextRecordInternal(finalRowData);
         }catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 填充常量
+     * @param rawRowData
+     * @return
+     */
+    protected GenericRowData loadConstantData(GenericRowData rawRowData) {
+        int len = finalFieldTypes.size();
+        List<FieldConf> fieldConfs = jdbcConf.getColumn();
+        GenericRowData finalRowData = new GenericRowData(len);
+        for (int i = 0; i < len; i++) {
+            String val = fieldConfs.get(i).getValue();
+            if (val != null) {
+                finalRowData.setField(i, val);
+            } else {
+                finalRowData.setField(i, rawRowData.getField(i));
+            }
+        }
+        return finalRowData;
     }
 }
