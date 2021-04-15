@@ -284,6 +284,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      * checkpoint成功时操作
      * @param checkpointId
      */
+    @Override
     public void notifyCheckpointComplete(long checkpointId){
         //todo 移动成功，清空标记
     };
@@ -292,6 +293,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      * checkpoint失败时操作
      * @param checkpointId
      */
+    @Override
     public void notifyCheckpointAborted(long checkpointId){
         //todo 根据标记检测是否已经有文件被移动到正式目录，若有，则移动回.data目录，然后清空标记
     };

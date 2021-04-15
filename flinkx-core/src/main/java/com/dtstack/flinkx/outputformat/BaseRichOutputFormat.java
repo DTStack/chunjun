@@ -548,29 +548,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     public abstract void notifyCheckpointAborted(long checkpointId) throws Exception;
 
-    /**
-     * create LogicalType
-     * @param fieldNames field Names
-     * @param types field types
-     * @return
-     */
-    protected LogicalType createRowType(List<String> fieldNames, List<String> types) {
-        TableSchema.Builder builder = TableSchema.builder();
-        for(int i = 0; i < types.size(); i++) {
-            DataType dataType = convertToDataType(types.get(i));
-            builder.add(TableColumn.physical(fieldNames.get(i), dataType));
-        }
-
-        return builder
-                .build()
-                .toRowDataType()
-                .getLogicalType();
-    }
-
-    protected DataType convertToDataType(String s) {
-        throw new RuntimeException("sub class must override");
-    }
-
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
     }
