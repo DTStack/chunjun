@@ -386,6 +386,6 @@ public abstract class BaseInceptorOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        notSupportBatchWrite("HdfsWriter");
+        notSupportBatchWrite("inceptorWriter");
     }
 }

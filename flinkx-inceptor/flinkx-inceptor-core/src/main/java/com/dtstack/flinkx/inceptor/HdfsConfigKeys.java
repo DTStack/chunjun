@@ -68,4 +68,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_ENABLE_DICTIONARY = "enableDictionary";
 
+    public static final String KEY_TABLE = "table";
+
+    public static final String KEY_SCHEMA = "schema";
+
 }
