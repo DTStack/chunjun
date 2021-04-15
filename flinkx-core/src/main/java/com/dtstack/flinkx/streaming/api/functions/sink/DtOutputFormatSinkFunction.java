@@ -34,7 +34,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
-import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
@@ -49,12 +49,16 @@ import java.util.Map;
  * Simple implementation of the SinkFunction writing tuples in the specified
  * OutputFormat format.
  *
+ * {@link org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction} can not be replaced
+ * because {@link org.apache.flink.streaming.api.operators.SimpleOperatorFactory} use it to create
+ * {@link org.apache.flink.streaming.api.operators.SimpleOutputFormatOperatorFactory}
+ *
  * @param <IN> Input type
  *
  * @author jiangbo
  */
 @PublicEvolving
-public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
+public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
 
     private static final long serialVersionUID = 1L;
 
@@ -70,6 +74,7 @@ public class DtOutputFormatSinkFunction<IN> extends RichSinkFunction<IN> impleme
     protected Map<Integer, FormatState> formatStateMap;
 
     public DtOutputFormatSinkFunction(OutputFormat<IN> format) {
+        super(format);
         this.format = format;
     }
 

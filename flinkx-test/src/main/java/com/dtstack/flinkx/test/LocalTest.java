@@ -41,8 +41,8 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream.json";
-        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
+        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
+//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
 //        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
         // 任务配置参数
@@ -55,8 +55,8 @@ public class LocalTest {
             argsList.add(content);
             argsList.add("-flinkconf");
             argsList.add(System.getProperty("user.dir") + "/flinkconf/");
-            argsList.add("-pluginRoot");
-            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
+//            argsList.add("-pluginRoot");
+//            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         }else if(StringUtils.endsWith(jobPath, "sql")){

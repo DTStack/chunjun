@@ -17,6 +17,11 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
+import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.Row;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -34,12 +39,6 @@ import com.dtstack.flinkx.util.JsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.Row;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,12 +243,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     String[] strings = sql.split(";");
                     for (String s : strings) {
                         if(StringUtils.isNotBlank(s)){
+                            LOG.info("add sql to batch, sql = {}", sql);
                             stmt.addBatch(sql);
                         }
                     }
                 }
+                stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error("execute preSql failed, preSql = {}, e = {}", JsonUtil.toPrintJson(sqlList), e);
+                LOG.error("execute sql failed, sqlList = {}, e = {}", JsonUtil.toPrintJson(sqlList), e);
             }
         }
     }
