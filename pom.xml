@@ -75,6 +75,7 @@
         <module>flinkx-metadata-vertica</module>
         <module>flinkx-socket</module>
         <module>flinkx-pgwal</module>
+        <module>flinkx-inceptor</module>
     </modules>
 
     <properties>
