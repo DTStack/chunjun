@@ -28,6 +28,8 @@ import org.apache.flink.api.common.io.InitializeOnMaster;
 import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.table.api.TableColumn;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -43,6 +45,10 @@ import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -541,6 +547,29 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      */
     public abstract void notifyCheckpointAborted(long checkpointId) throws Exception;
+
+    /**
+     * create LogicalType
+     * @param fieldNames field Names
+     * @param types field types
+     * @return
+     */
+    protected LogicalType createRowType(List<String> fieldNames, List<String> types) {
+        TableSchema.Builder builder = TableSchema.builder();
+        for(int i = 0; i < types.size(); i++) {
+            DataType dataType = convertToDataType(types.get(i));
+            builder.add(TableColumn.physical(fieldNames.get(i), dataType));
+        }
+
+        return builder
+                .build()
+                .toRowDataType()
+                .getLogicalType();
+    }
+
+    protected DataType convertToDataType(String s) {
+        throw new RuntimeException("sub class must override");
+    }
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
