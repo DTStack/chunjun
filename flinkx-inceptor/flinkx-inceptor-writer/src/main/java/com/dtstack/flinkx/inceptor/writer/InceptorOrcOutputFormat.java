@@ -119,17 +119,6 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
         connection = builder.connect();
     }
 
-    private void checkTransactionParams() {
-        if (hadoopConfig.get("table") == null) {
-            throw new RuntimeException("table param is must");
-        }
-        table = String.valueOf(hadoopConfig.get("table"));
-        if (hadoopConfig.get("schema") == null) {
-            throw new RuntimeException("schema param is must");
-        }
-        schema = String.valueOf(hadoopConfig.get("schema"));
-    }
-
     private void setFullColumns() throws Exception{
         fullColumnNames.clear();
         fullColumnTypes.clear();
@@ -147,7 +136,8 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
     protected void openSource() throws IOException {
         super.openSource();
         if (isTransaction) {
-            checkTransactionParams();
+            table = String.valueOf(hadoopConfig.get("table"));
+            schema = String.valueOf(hadoopConfig.get("schema"));
             ugi.doAs(new PrivilegedAction<Void>() {
                 public Void run() {
                     try {

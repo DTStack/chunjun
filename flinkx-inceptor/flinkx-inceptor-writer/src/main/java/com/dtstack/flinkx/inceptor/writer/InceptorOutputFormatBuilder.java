@@ -25,6 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_SCHEMA;
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_TABLE;
+
 /**
  * The builder class of HdfsOutputFormat
  * <p>
@@ -38,14 +41,8 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
 
     public InceptorOutputFormatBuilder(String type) {
         switch (type.toUpperCase()) {
-            case "TEXT":
-                format = new InceptorTextOutputFormat();
-                break;
             case "ORC":
                 format = new InceptorOrcOutputFormat();
-                break;
-            case "PARQUET":
-                format = new InceptorParquetOutputFormat();
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported HDFS file type: " + type);
@@ -101,19 +98,29 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
-
         StringBuilder errorMessage = new StringBuilder(256);
-
-        if (format.getPath() == null || format.getPath().length() == 0) {
+        if (format.hadoopConfig.get(KEY_TABLE) == null || StringUtils.isEmpty(format.hadoopConfig.get(KEY_TABLE).toString())) {
+            errorMessage.append("table param is must");
+        }
+        if (format.hadoopConfig.get(KEY_SCHEMA) == null || StringUtils.isEmpty(format.hadoopConfig.get(KEY_SCHEMA).toString())) {
+            errorMessage.append("schema param is must");
+        }
+        if (format.isTransaction) {
+            format.setRestoreState(null);
+        }
+        if ((format.getPath() == null || format.getPath().length() == 0) && (!format.isTransaction)) {
             errorMessage.append("No path supplied. \n");
         }
-
         if (StringUtils.isBlank(format.defaultFs)) {
             errorMessage.append("No defaultFS supplied. \n");
         } else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
         }
+        if (errorMessage.length() > 0) {
+            throw new IllegalArgumentException(errorMessage.toString());
+        }
     }
+
+
 
 }
