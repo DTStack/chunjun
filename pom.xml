@@ -45,6 +45,7 @@
 
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
+        <module>flinkx-inceptor</module>
 
         <!--******实时******-->
         <module>flinkx-binlog</module>
@@ -59,6 +60,7 @@
         <module>flinkx-oraclelogminer</module>
         <module>flinkx-restapi</module>
         <module>flinkx-websocket</module>
+        <module>flinkx-pgwal</module>
 
         <!--******元数据******-->
         <module>flinkx-metadata-hive</module>
@@ -74,7 +76,7 @@
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
         <module>flinkx-socket</module>
-        <module>flinkx-pgwal</module>
+
     </modules>
 
     <properties>
