@@ -19,7 +19,7 @@ package com.dtstack.flinkx.connector.jdbc.outputformat;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 
@@ -43,8 +43,8 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.setJdbcDialect(JdbcDialect);
     }
 
-    public void setJdbcRowConverter(AbstractJdbcRowConverter jdbcRowConverter) {
-        format.setJdbcRowConverter(jdbcRowConverter);
+    public void setRowConverter(AbstractRowConverter rowConverter) {
+        format.setRowConverter(rowConverter);
     }
 
     @Override

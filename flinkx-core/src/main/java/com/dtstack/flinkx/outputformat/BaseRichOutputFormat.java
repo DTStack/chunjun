@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -146,6 +148,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected long flushIntervalMills;
 
     private transient volatile boolean closed = false;
+
+    protected AbstractRowConverter rowConverter;
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -580,5 +584,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setFlushIntervalMills(long flushIntervalMills) {
         this.flushIntervalMills = flushIntervalMills;
+    }
+
+    public AbstractRowConverter getRowConverter() {
+        return rowConverter;
+    }
+
+    public void setRowConverter(AbstractRowConverter rowConverter) {
+        this.rowConverter = rowConverter;
     }
 }

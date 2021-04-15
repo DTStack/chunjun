@@ -25,7 +25,6 @@ import org.apache.flink.types.Row;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -67,7 +66,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
-    protected AbstractJdbcRowConverter jdbcRowConverter;
 
     protected Connection dbConn;
     protected FieldNamedPreparedStatement fieldNamedPreparedStatement;
@@ -146,7 +144,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
-            fieldNamedPreparedStatement = jdbcRowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+            fieldNamedPreparedStatement = (FieldNamedPreparedStatement) rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
             fieldNamedPreparedStatement.execute();
             JdbcUtil.commit(dbConn);
         } catch (Exception e) {
@@ -164,7 +162,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (RowData row : rows) {
-                fieldNamedPreparedStatement = jdbcRowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+                fieldNamedPreparedStatement = (FieldNamedPreparedStatement) rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
                 fieldNamedPreparedStatement.addBatch();
                 fieldNamedPreparedStatement.executeBatch();
                 lastRow = row;
@@ -364,9 +362,5 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
-    }
-
-    public void setJdbcRowConverter(AbstractJdbcRowConverter jdbcRowConverter) {
-        this.jdbcRowConverter = jdbcRowConverter;
     }
 }
