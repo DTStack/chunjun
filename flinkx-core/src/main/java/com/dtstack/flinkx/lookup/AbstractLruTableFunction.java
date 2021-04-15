@@ -28,6 +28,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.cache.AbstractSideCache;
@@ -43,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,14 +67,18 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     protected LookupConf lookupConf;
     /** 运行环境 */
     private RuntimeContext runtimeContext;
+    /** 数据类型转换器 */
+    protected final AbstractRowConverter rowConverter;
 
     private static int TIMEOUT_LOG_FLUSH_NUM = 10;
     private int timeOutNum = 0;
 
     public AbstractLruTableFunction(
-            LookupConf lookupConf
+            LookupConf lookupConf,
+            AbstractRowConverter rowConverter
     ) {
         this.lookupConf = lookupConf;
+        this.rowConverter = rowConverter;
     }
 
     @Override

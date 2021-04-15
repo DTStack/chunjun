@@ -18,15 +18,9 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import org.apache.flink.runtime.execution.SuppressRestartsException;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.exception.ExceptionTrace;
 import com.dtstack.flinkx.factory.DTThreadFactory;
@@ -44,6 +38,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
+
+import org.apache.flink.runtime.execution.SuppressRestartsException;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,10 +97,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
      *
      */
     private final String query;
-    /**
-     *
-     */
-    private final AbstractJdbcRowConverter jdbcRowConverter;
 
     private final JdbcDialect jdbcDialect;
 
@@ -115,7 +111,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(lookupConf);
+        super(lookupConf, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
@@ -123,7 +119,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 jdbcConf.getTable(),
                 fieldNames,
                 keyNames);
-        this.jdbcRowConverter = jdbcDialect.getRowConverter(rowType);
     }
 
     @Override
@@ -394,7 +389,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     @Override
     protected RowData fillData(
             Object sideInput) throws Exception {
-        return jdbcRowConverter.toInternalLookup((JsonArray) sideInput);
+        return rowConverter.toInternalLookup((JsonArray) sideInput);
     }
 
     @Override
