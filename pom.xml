@@ -74,6 +74,7 @@
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
         <module>flinkx-socket</module>
+        <module>flinkx-inceptor</module>
     </modules>
 
     <properties>

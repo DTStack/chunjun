@@ -62,6 +62,30 @@ public class FileSystemUtil {
         return FileSystem.get(getConfiguration(hadoopConfigMap, defaultFs));
     }
 
+    public static FileSystem getFileSystem(Map<String, Object> hadoopConfigMap, String defaultFs, String user) throws Exception {
+        if (isOpenKerberos(hadoopConfigMap)) {
+            return getFsWithKerberos(hadoopConfigMap, defaultFs);
+        }
+        return getFsWithUser(hadoopConfigMap, defaultFs, user);
+    }
+
+    private static FileSystem getFsWithUser(Map<String, Object> hadoopConfig, String defaultFs, String user) throws Exception {
+        if (StringUtils.isEmpty(user)) {
+            return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
+        }
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
+        return ugi.doAs(new PrivilegedAction<FileSystem>() {
+            @Override
+            public FileSystem run() {
+                try {
+                    return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
+                } catch (Exception e) {
+                    throw new RuntimeException("Get FileSystem  error:", e);
+                }
+            }
+        });
+    }
+
     public static void setHadoopUserName(Configuration conf){
         String hadoopUserName = conf.get(KEY_HADOOP_USER_NAME);
         if(StringUtils.isEmpty(hadoopUserName)){
