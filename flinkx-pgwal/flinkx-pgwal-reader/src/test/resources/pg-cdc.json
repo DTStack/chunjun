@@ -5,11 +5,11 @@
         "parameter" : {
           "username" : "dtstack_rep",
           "password" : "abc123",
-            "url" : "jdbc:postgresql://172.16.101.246:5432/postgres?useUnicode=true&characterEncoding=utf8&currentSchema=public&stringtype=unspecified",
+            "url" : "jdbc:postgresql://172.16.101.246:5432/postgres?useUnicode=true&characterEncoding=utf8",
           "databaseName" : "postgres",
           "cat" : "update,insert,delete",
           "tableList" : [
-            "public.large_user"
+            "public.data"
           ],
           "statusInterval" : 10000,
           "lsn" : 0,

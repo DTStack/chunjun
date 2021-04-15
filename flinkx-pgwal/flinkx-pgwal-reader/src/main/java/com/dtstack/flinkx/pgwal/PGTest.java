@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.test;
+package com.dtstack.flinkx.pgwal;
 
 import java.sql.*;
 
