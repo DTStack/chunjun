@@ -29,6 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -95,8 +96,7 @@ public class LogMinerListener implements Runnable {
         logMinerConnection.connect();
         logMinerConnection.checkPrivileges();
 
-        Long startScn = logMinerConnection.getStartScn(positionManager.getPosition());
-        logMinerConnection.setPreScn(startScn);
+        BigDecimal startScn = logMinerConnection.getStartScn(positionManager.getPosition());
         positionManager.updatePosition(startScn);
 
         logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
@@ -135,7 +135,7 @@ public class LogMinerListener implements Runnable {
                 String msg = sb.toString();
                 LOG.warn(msg);
                 try {
-                    queue.put(new QueueData(0L, Collections.singletonMap("e", msg)));
+                    queue.put(new QueueData(BigDecimal.ZERO, Collections.singletonMap("e", msg)));
                     Thread.sleep(2000L);
                 } catch (InterruptedException ex) {
                     LOG.warn("error to put exception message into queue, e = {}", ExceptionUtil.getErrorMessage(ex));
@@ -169,7 +169,7 @@ public class LogMinerListener implements Runnable {
     public Map<String, Object> getData() {
         try {
             QueueData data = queue.take();
-            if (data.getScn() != 0L) {
+            if (data.getScn().compareTo(BigDecimal.ZERO)!= 0) {
                 positionManager.updatePosition(data.getScn());
                 failedTimes = 0;
                 return data.getData();

@@ -15,39 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.oraclelogminer.entity;
 
-import java.math.BigDecimal;
-import java.util.Map;
+package com.dtstack.flinkx.pgwal;
 
 /**
- * Date: 2020/06/01
+ * Date: 2019/12/13
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class QueueData {
-    private BigDecimal scn;
-    private Map<String, Object> data;
+public class PgWalConfigKeys {
+    public static final String KEY_USER_NAME = "username";
 
-    public QueueData(BigDecimal lsn, Map<String, Object> data) {
-        this.scn = lsn;
-        this.data = data;
-    }
+    public static final String KEY_PASSWORD = "password";
 
-    public BigDecimal getScn() {
-        return scn;
-    }
+    public static final String KEY_URL = "url";
 
-    public Map<String, Object> getData() {
-        return data;
-    }
+    public final static String KEY_DATABASE_NAME = "databaseName";
 
-    @Override
-    public String toString() {
-        return "QueueData{" +
-                "scn=" + scn +
-                ", data=" + data +
-                '}';
-    }
+    public final static String KEY_CATALOG = "cat";
+
+    public final static String KEY_PAVING_DATA = "pavingData";
+
+    public final static String KEY_TABLE_LIST = "tableList";
+
+    public final static String KEY_STATUS_INTERVAL = "statusInterval";
+
+    public final static String KEY_LSN = "lsn";
+
+    public final static String KEY_SLOT_NAME = "slotName";
+
+    public final static String KEY_ALLOW_CREATE_SLOT = "allowCreateSlot";
+
+    public final static String KEY_TEMPORARY = "temporary";
 }

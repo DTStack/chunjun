@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-        <!--<module>flinkx-test</module>-->
+<!--        <module>flinkx-test</module>-->
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -74,6 +74,7 @@
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
         <module>flinkx-socket</module>
+        <module>flinkx-pgwal</module>
     </modules>
 
     <properties>
@@ -174,6 +175,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -230,6 +232,7 @@
                 <configuration>
                     <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
                     <verbose>true</verbose>
+                    <runOnlyOnce>true</runOnlyOnce>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <gitDescribe>
                         <always>false</always>
