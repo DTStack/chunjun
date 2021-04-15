@@ -221,9 +221,10 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.6</version>
+                <version>4.0.4</version>
                 <executions>
                     <execution>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>revision</goal>
                         </goals>
@@ -231,8 +232,8 @@
                 </executions>
                 <configuration>
                     <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-<!--                    <runOnlyOnce>true</runOnlyOnce>-->
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <runOnlyOnce>true</runOnlyOnce>
+                    <injectIntoSysProperties>true</injectIntoSysProperties>
                     <injectAllReactorProjects>true</injectAllReactorProjects>
                     <gitDescribe>
                         <always>false</always>
