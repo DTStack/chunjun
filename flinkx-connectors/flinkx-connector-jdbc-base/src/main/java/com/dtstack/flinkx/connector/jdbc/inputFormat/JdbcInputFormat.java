@@ -44,6 +44,7 @@ import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -240,10 +241,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     } else {
                         val = ((GenericRowData) rowData).getField(i);
                     }
-
-                    if (val instanceof String) {
+                    // TODO 改成StringData类型才能判断
+                    if (val instanceof StringData) {
                         val = StringUtil.string2col(
-                                String.valueOf(val),
+                                val.toString(),
                                 metaColumns.get(i).getType(),
                                 metaColumns.get(i).getTimeFormat());
                         ((GenericRowData) rowData).setField(i, val);
