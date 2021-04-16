@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-test</artifactId>
-	<name>FlinkX : Test</name>
+    <artifactId>flinkx-local-test</artifactId>
+	<name>FlinkX : Local : Test</name>
 
     <dependencies>
 		<dependency>
