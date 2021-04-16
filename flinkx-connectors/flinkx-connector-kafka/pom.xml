@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-connector-kafka</artifactId>
+	<name>FlinkX : Connectors : Kafka</name>
 
     <dependencies>
         <dependency>
