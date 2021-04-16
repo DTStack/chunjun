@@ -46,7 +46,7 @@ import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.STAN
  * @description
  **/
 public class StreamDynamicTableFactory implements DynamicTableSinkFactory, DynamicTableSourceFactory {
-    public static final String IDENTIFIER = "stream";
+    public static final String IDENTIFIER = "stream-x";
 
     @Override
     public String factoryIdentifier() {
