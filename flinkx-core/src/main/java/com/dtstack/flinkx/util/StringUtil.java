@@ -79,6 +79,7 @@ public class StringUtil {
         return str;
     }
 
+    // TODO 类型可以改成使用LogicalType
     public static Object string2col(String str, String type, SimpleDateFormat customTimeFormat) {
         if(str == null || str.length() == 0 || type == null){
             return str;

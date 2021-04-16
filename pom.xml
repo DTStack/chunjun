@@ -15,7 +15,7 @@
         <module>flinkx-connectors</module>
 
         <module>flinkx-launcher</module>
-        <module>flinkx-test</module>
+        <module>flinkx-local-test</module>
         <module>flinkx-formats</module>
         <!--        <module>flinkx-stream</module>-->
 
