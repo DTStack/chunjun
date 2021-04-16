@@ -99,15 +99,15 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
     @Override
     protected void checkFormat() {
         StringBuilder errorMessage = new StringBuilder(256);
-        String table = (String)format.hadoopConfig.getOrDefault(KEY_TABLE, "");
-        if (StringUtils.isEmpty(table)) {
-            errorMessage.append("table param is must");
-        }
-        String schema = (String)format.hadoopConfig.getOrDefault(KEY_SCHEMA, "");
-        if (StringUtils.isEmpty(schema)) {
-            errorMessage.append("schema param is must");
-        }
         if (format.isTransaction) {
+            String table = (String) format.hadoopConfig.getOrDefault(KEY_TABLE, "");
+            if (StringUtils.isBlank(table)) {
+                errorMessage.append("table param is must");
+            }
+            String schema = (String) format.hadoopConfig.getOrDefault(KEY_SCHEMA, "");
+            if (StringUtils.isBlank(schema)) {
+                errorMessage.append("schema param is must");
+            }
             format.setRestoreState(null);
         }
         if ((format.getPath() == null || format.getPath().length() == 0) && (!format.isTransaction)) {
