@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.launcher.perJob;
+package com.dtstack.flinkx.client.perJob;
 
-import com.dtstack.flinkx.launcher.KerberosInfo;
-import com.dtstack.flinkx.launcher.YarnConfLoader;
+import com.dtstack.flinkx.client.KerberosInfo;
+import com.dtstack.flinkx.client.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;

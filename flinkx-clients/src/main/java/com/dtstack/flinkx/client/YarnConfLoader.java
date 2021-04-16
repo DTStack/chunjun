@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher;
+package com.dtstack.flinkx.client;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.hadoop.conf.Configuration;

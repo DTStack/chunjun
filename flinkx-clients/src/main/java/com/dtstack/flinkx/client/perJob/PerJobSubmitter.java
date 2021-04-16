@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher.perJob;
+package com.dtstack.flinkx.client.perJob;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClientProvider;
@@ -24,7 +24,7 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 
-import com.dtstack.flinkx.launcher.YarnConfLoader;
+import com.dtstack.flinkx.client.YarnConfLoader;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.lang.StringUtils;
@@ -36,8 +36,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 
-import static com.dtstack.flinkx.launcher.Launcher.MAIN_CLASS;
-import static com.dtstack.flinkx.launcher.Launcher.getCoreJarFileName;
+import static com.dtstack.flinkx.client.Launcher.MAIN_CLASS;
+import static com.dtstack.flinkx.client.Launcher.getCoreJarFileName;
 
 /**
  * Date: 2019/09/11

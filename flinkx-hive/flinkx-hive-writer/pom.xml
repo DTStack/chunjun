@@ -23,7 +23,7 @@ under the License.
     <parent>
         <artifactId>flinkx-hive</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -37,13 +37,13 @@ under the License.
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hive-core</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hdfs-writer</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

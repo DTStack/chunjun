@@ -66,7 +66,7 @@ import org.apache.flink.yarn.entrypoint.YarnSessionClusterEntrypoint;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.launcher.perJob.FlinkPerJobUtil;
+import com.dtstack.flinkx.client.perJob.FlinkPerJobUtil;
 import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

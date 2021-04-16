@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flinkx-metadata-hive1</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-reader</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hive</groupId>
@@ -126,7 +126,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-metadata-hive2-reader</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hive</groupId>
