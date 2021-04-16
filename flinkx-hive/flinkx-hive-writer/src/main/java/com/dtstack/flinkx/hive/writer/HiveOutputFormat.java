@@ -196,7 +196,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 } else if (tempObj instanceof String) {
                     try {
                         event = MapUtil.jsonStrToObject((String) tempObj,Map.class);
-                    }catch (JsonSyntaxException e){
+                    }catch (IOException e){
                         // is not a json string
                         //tempObj 不是map类型 则event直接往下传递
                        // LOG.warn("bad json string:【{}】", tempObj);
