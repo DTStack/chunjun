@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-test</artifactId>
+	<name>FlinkX : Test</name>
 
     <dependencies>
 		<dependency>

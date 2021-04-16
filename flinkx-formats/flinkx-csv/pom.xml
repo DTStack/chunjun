@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-csv</artifactId>
+	<name>FlinkX : Formats : Csv</name>
 
     <dependencies>
         <dependency>
@@ -53,12 +54,12 @@
                             <tasks>
                                 <copy todir="${basedir}/../../syncplugins/formats">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar"/>
+                                        <include name="${artifactId}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/formats/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/formats/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/formats/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/formats/${artifactId}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

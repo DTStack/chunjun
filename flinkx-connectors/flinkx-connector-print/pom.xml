@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-connector-print</artifactId>
+	<name>FlinkX : Connectors : Print</name>
 
     <build>
         <plugins>
@@ -45,12 +46,12 @@
                             <tasks>
                                 <copy todir="${basedir}/../../syncplugins/print">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar"/>
+                                        <include name="${artifactId}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/print/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/print/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/print/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/print/${artifactId}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

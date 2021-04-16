@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>flinkx-connectors</artifactId>
+	<name>FlinkX : Connectors : </name>
     <packaging>pom</packaging>
 
     <modules>

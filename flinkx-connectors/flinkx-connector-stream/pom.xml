@@ -54,12 +54,12 @@
                             <tasks>
                                 <copy todir="${basedir}/../../syncplugins/stream">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar"/>
+                                        <include name="${artifactId}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/stream/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/stream/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/stream/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/stream/${artifactId}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

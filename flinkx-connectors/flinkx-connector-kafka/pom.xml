@@ -78,12 +78,12 @@
                             <tasks>
                                 <copy todir="${basedir}/../../syncplugins/kafka">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar"/>
+                                        <include name="${artifactId}-${project.version}.jar"/>
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/kafka/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/kafka/${project.name}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../syncplugins/kafka/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/kafka/${artifactId}-${git.branch}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

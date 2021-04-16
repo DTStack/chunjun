@@ -401,11 +401,11 @@
                                 <delete dir = "${basedir}/../syncplugins"/>
                                 <copy todir="${basedir}/../syncplugins/">
                                     <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar" />
+                                        <include name="${artifactId}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../syncplugins/${project.name}-${project.version}.jar"
+                                <move file="${basedir}/../syncplugins/${artifactId}-${project.version}.jar"
                                       tofile="${basedir}/../syncplugins/flinkx-${git.branch}.jar" />
                             </tasks>
                         </configuration>
