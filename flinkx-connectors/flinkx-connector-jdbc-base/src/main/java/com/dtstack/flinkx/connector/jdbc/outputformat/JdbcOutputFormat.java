@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.Row;
@@ -168,8 +169,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 lastRow = row;
             }
 
-            // 开启了cp，但是并没有使用2pc方式让下游数据可见
-            if (checkpointEnabled && !commitEnabled) {
+            if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE
+                    .name()
+                    .equalsIgnoreCase(checkpointMode)) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
                 //手动提交事务
