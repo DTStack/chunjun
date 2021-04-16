@@ -164,10 +164,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             for (RowData row : rows) {
                 fieldNamedPreparedStatement = (FieldNamedPreparedStatement) rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
                 fieldNamedPreparedStatement.addBatch();
-                fieldNamedPreparedStatement.executeBatch();
                 lastRow = row;
             }
-
+            fieldNamedPreparedStatement.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (checkpointEnabled && !commitEnabled) {
                 rowsOfCurrentTransaction += rows.size();
