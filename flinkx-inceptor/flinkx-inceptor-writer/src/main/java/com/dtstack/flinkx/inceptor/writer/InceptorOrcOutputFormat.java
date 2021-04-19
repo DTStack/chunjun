@@ -28,17 +28,13 @@ import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.Dialect;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.common.type.HiveVarchar;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
@@ -138,47 +134,28 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
         }
     }
 
-    private void checkPartition() {
-        if (StringUtils.isBlank(fileName)) {
-            return;
-        }
-        try {
-            StorageDescriptor sd = hiveMetaStoreClient.getTable(schema, table).getSd();
-            String partitionValue = fileName.split("=")[1];
-            List<String> values = new ArrayList<>();
-            values.add(partitionValue);
-            Partition partition = new Partition(values, schema, table, 0, 0, sd, sd.getParameters(), null);
-            hiveMetaStoreClient.add_partition(partition);
-        } catch (Exception e) {
-            LOG.error("partition already exists", e);
-        }
-    }
-
     @Override
     protected void openSource() throws IOException {
         super.openSource();
-        ugi.doAs(new PrivilegedAction<Void>() {
-            public Void run() {
-                try {
-                    hiveConf = new HiveConf();
-                    hiveConf.addResource(conf);
-                    hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
-                    table = String.valueOf(hadoopConfig.get(KEY_TABLE));
-                    schema = String.valueOf(hadoopConfig.get(KEY_SCHEMA));
-                    checkPartition();
-                    if (isTransaction) {
-                        wr = StrictDelimitedInputWriter.newBuilder()
-                                .withFieldDelimiter(COLUMN_FIELD_DELIMITER.charAt(0))
-                                .build();
-                        setFullColumns();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("init client failed", e);
-                }
-                return null;
-            }
-        });
         if (isTransaction) {
+            table = String.valueOf(hadoopConfig.get(KEY_TABLE));
+            schema = String.valueOf(hadoopConfig.get(KEY_SCHEMA));
+            ugi.doAs(new PrivilegedAction<Void>() {
+                public Void run() {
+                    try {
+                        hiveConf = new HiveConf();
+                        hiveConf.addResource(conf);
+                        wr = StrictDelimitedInputWriter.newBuilder()
+                                .withFieldDelimiter(',')
+                                .build();
+                        hiveMetaStoreClient = new HiveMetaStoreClient(hiveConf);
+                        setFullColumns();
+                    } catch (Exception e) {
+                        throw new RuntimeException("init client failed", e);
+                    }
+                    return null;
+                }
+            });
             return;
         }
         orcSerde = new OrcSerde();
