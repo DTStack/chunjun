@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -107,7 +108,11 @@ public class GsonUtil {
                                                     try {
                                                         return Integer.valueOf(s);
                                                     } catch (Exception e) {
-                                                        return Long.valueOf(s);
+                                                        try{
+                                                            return Long.valueOf(s);
+                                                        }catch (Exception e1){
+                                                            return new BigInteger(s);
+                                                        }
                                                     }
                                                 }
                                             case BOOLEAN:
