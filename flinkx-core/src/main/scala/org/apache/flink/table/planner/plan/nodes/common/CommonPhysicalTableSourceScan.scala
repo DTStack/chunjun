@@ -72,8 +72,9 @@ abstract class CommonPhysicalTableSourceScan(
     val outRowType = FlinkTypeFactory.toLogicalRowType(tableSourceTable.getRowType)
     val outTypeInfo = InternalTypeInfo.of(outRowType)
 
-    // DTStack fixed customized parallelism
+    // DTStack fixed customized parallelism start
     val transformation = runtimeProvider match {
+    // DTStack fixed customized parallelism end
       case provider: SourceFunctionProvider =>
         val sourceFunction = provider.createSourceFunction()
         env
@@ -90,7 +91,7 @@ abstract class CommonPhysicalTableSourceScan(
         provider.produceDataStream(env).getTransformation
     }
 
-    // DTStack fixed customized parallelism
+    // DTStack fixed customized parallelism start
     if (runtimeProvider.isInstanceOf[ParallelismProvider]) {
       val parallelismOptional = runtimeProvider.asInstanceOf[ParallelismProvider].getParallelism
       if (parallelismOptional.isPresent) {
@@ -103,6 +104,7 @@ abstract class CommonPhysicalTableSourceScan(
       }
     }
     transformation
+    // DTStack fixed customized parallelism end
   }
 
   /**

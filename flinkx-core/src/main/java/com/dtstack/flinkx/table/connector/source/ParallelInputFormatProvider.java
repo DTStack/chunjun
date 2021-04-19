@@ -16,29 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.table.connector.sink;
+package com.dtstack.flinkx.table.connector.source;
 
-import org.apache.flink.annotation.PublicEvolving;
-import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.table.connector.sink.OutputFormatProvider;
+import org.apache.flink.api.common.io.InputFormat;
+import org.apache.flink.table.connector.ParallelismProvider;
+import org.apache.flink.table.connector.source.InputFormatProvider;
 import org.apache.flink.table.data.RowData;
 
 import java.util.Optional;
 
 /**
- * @program: luna-flink
+ * @program: flinkx
  * @author: wuren
- * @create: 2021/04/02
+ * @create: 2021/04/19
  **/
-@PublicEvolving
-public interface ParallelismOutputFormatProvider extends OutputFormatProvider {
+public interface ParallelInputFormatProvider extends InputFormatProvider, ParallelismProvider {
 
-    /** Helper method for creating a OutputFormat provider with a provided sink parallelism. */
-    static OutputFormatProvider of(OutputFormat<RowData> outputFormat, Integer parallelism) {
-        return new OutputFormatProvider() {
+    /** Helper method for creating a InputFormat provider with a provided source parallelism. */
+    static InputFormatProvider of(InputFormat<RowData, ?> inputFormat, Integer parallelism) {
+        return new ParallelInputFormatProvider() {
             @Override
-            public OutputFormat<RowData> createOutputFormat() {
-                return outputFormat;
+            public InputFormat<RowData, ?>  createInputFormat() {
+                return inputFormat;
+            }
+
+            @Override
+            public boolean isBounded() {
+                return true;
             }
 
             @Override
@@ -47,5 +51,4 @@ public interface ParallelismOutputFormatProvider extends OutputFormatProvider {
             }
         };
     }
-
 }
