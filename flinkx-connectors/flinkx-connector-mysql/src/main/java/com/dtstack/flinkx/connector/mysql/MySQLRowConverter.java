@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;

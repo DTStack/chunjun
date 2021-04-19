@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -31,7 +31,6 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import io.vertx.core.json.JsonArray;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {

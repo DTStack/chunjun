@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.connector.jdbc.statement;
+package com.dtstack.flinkx.connector.jdbc.statement;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
