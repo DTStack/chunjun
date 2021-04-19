@@ -236,7 +236,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                         return;
                     }
                     try {
-                        writeRecordInternal();
+                        if(!rows.isEmpty()){
+                            writeRecordInternal();
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException("Writing records to JDBC failed.", e);
                     }
