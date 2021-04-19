@@ -44,8 +44,8 @@ public class LocalTest {
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
-//        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
-        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/read_format_mysql.json";
+//        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/test.sql";
+        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/read_cast_mysql.json";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");

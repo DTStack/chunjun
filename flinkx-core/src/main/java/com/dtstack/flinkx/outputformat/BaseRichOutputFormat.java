@@ -18,7 +18,11 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+
+import com.dtstack.flinkx.util.TableTypeUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -53,6 +57,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -599,4 +605,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void setRowConverter(AbstractRowConverter rowConverter) {
         this.rowConverter = rowConverter;
     }
+
+    public abstract LogicalType getLogicalType() throws SQLException;
 }

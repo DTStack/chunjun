@@ -18,12 +18,15 @@
 
 package com.dtstack.flinkx.source;
 
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -34,6 +37,7 @@ import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.SQLException;
 import java.util.Collections;
 
 /**
@@ -94,4 +98,6 @@ public abstract class BaseDataSource {
         SpeedConf speed = this.syncConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
+
+    public abstract LogicalType getLogicalType() throws SQLException;
 }

@@ -33,6 +33,9 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.flink.table.types.logical.LogicalType;
+
+import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -80,4 +83,10 @@ public class KafkaSource extends BaseDataSource {
         consumer.setCommitOffsetsOnCheckpoints(kafkaConf.getGroupId() != null);
         return createInput(consumer, syncConf.getReader().getName());
     }
+
+    // TODO kafka 还不知道咋实现
+    @Override
+    public LogicalType getLogicalType() throws SQLException {
+        return null;
+    };
 }

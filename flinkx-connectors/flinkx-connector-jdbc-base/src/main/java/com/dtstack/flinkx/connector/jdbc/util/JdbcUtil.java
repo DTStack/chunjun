@@ -128,18 +128,18 @@ public class JdbcUtil {
      * @return
      * @throws SQLException
      */
-    public static Pair<List<String>, List<String>> getTableFullColumns(String tableName, Connection dbConn) throws SQLException {
+    public static Pair<List<String>, List<String>> getTableMetaData(String tableName, Connection dbConn) throws SQLException {
         ResultSet rs = dbConn.getMetaData().getColumns(null, null, tableName, null);
-        List<String> fullColumnList = new LinkedList<>();
-        List<String> fullColumnTypeList = new LinkedList<>();
+        List<String> rawFieldNames = new LinkedList<>();
+        List<String> rawFieldTypes = new LinkedList<>();
         while (rs.next()) {
             //COLUMN_NAME
-            fullColumnList.add(rs.getString(4));
+            rawFieldNames.add(rs.getString(4));
             //TYPE_NAME
-            fullColumnTypeList.add(rs.getString(6));
+            rawFieldTypes.add(rs.getString(6));
         }
         rs.close();
-        return Pair.of(fullColumnList, fullColumnTypeList);
+        return Pair.of(rawFieldNames, rawFieldTypes);
     }
 
     /**

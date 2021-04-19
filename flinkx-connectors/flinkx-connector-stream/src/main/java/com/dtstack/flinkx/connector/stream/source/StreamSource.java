@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.stream.source;
 
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -26,6 +28,9 @@ import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
 
 /**
  * Date: 2021/04/07
@@ -48,5 +53,12 @@ public class StreamSource extends BaseDataSource {
         builder.setStreamConf(streamConf);
 
         return createInput(builder.finish());
+    }
+
+    // TODO 和 StreamSource重复了，看看如何删减
+    @Override
+    public LogicalType getLogicalType() {
+        DataType dataType = TableUtil.getDataType(streamConf.getColumn());
+        return dataType.getLogicalType();
     }
 }
