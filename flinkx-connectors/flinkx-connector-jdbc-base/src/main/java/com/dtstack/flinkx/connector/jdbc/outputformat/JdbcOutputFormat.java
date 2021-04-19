@@ -17,7 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
