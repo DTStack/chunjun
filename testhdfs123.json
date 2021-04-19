@@ -1,0 +1,83 @@
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "path": "/inceptor1/user/hive/warehouse/tudou.db/hive/hd_shifang",
+                        "defaultFS": "hdfs://ns1",
+                        "hadoopConfig": {
+                            "dfs.ha.namenodes.ns1": "nn1,nn2",
+                            "dfs.namenode.rpc-address.ns1.nn2": "172.16.101.180:8020",
+                            "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                            "dfs.namenode.rpc-address.ns1.nn1": "172.16.101.105:8020",
+                            "dfs.nameservices": "ns1",
+                            "HADOOP_USER_NAME": "hive"
+                        },
+                        "column" : [ {
+                            "name": "clear_date",
+                            "index" : 0,
+                            "type" : "DATE"
+                        }, {
+                            "name": "business_code",
+                            "index" : 1,
+                            "type" : "String"
+                        }, {
+                            "name": "application_share",
+                            "index": 2,
+                            "type": "Decimal"
+                        },{
+                            "name": "confirm_date",
+                            "index": 3,
+                            "type": "TimeStamp"
+                        }
+                        ],
+                        "fileType": "text"
+                    },
+                    "name": "inceptorreader"
+                },
+                "writer": {
+                    "parameter": {
+                        "path": "/dtInsight/hive/warehouse/test_partition88/id=4/",
+                        "defaultFS": "hdfs://ns1",
+                        "hadoopConfig": {
+                            "dfs.ha.namenodes.ns1": "nn1,nn2",
+                            "dfs.namenode.rpc-address.ns1.nn2": "flinkx1:9000",
+                            "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                            "dfs.namenode.rpc-address.ns1.nn1": "flinkx2:9000",
+                            "dfs.nameservices": "ns1",
+                            "HADOOP_USER_NAME": "root"
+                        },
+                        "column" : [ {
+                            "name": "clear_date",
+                            "index" : 0,
+                            "type" : "DATE"
+                        }, {
+                            "name": "business_code",
+                            "index" : 1,
+                            "type" : "String"
+                        }, {
+                            "name": "application_share",
+                            "index": 2,
+                            "type": "Decimal"
+                        },{
+                            "name": "confirm_date",
+                            "index": 3,
+                            "type": "TimeStamp"
+                        }
+                        ],
+                        "fieldDelimiter": ",",
+                        "fileType": "orc"
+                    },
+                    "name": "hdfswriter"
+                }
+            }
+        ],
+        "setting": {
+            "speed": {
+                "bytes": 0,
+                "channel": 1
+            }
+        }
+    }
+}
