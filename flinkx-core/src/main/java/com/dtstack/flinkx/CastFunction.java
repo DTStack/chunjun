@@ -58,12 +58,10 @@ public class CastFunction extends RichMapFunction<RowData, RowData> {
     }
 
     private Casting createNumericCasting (LogicalType sourceType, LogicalType targetType) throws Exception {
-        LogicalTypeRoot sourceTypeRoot = sourceType.getTypeRoot();
         LogicalTypeRoot targetTypeRoot = targetType.getTypeRoot();
         // TODO 这个地方可能需要改成枚举， 一次匹配 Source 和 Target两种类型，inspired by flink
-        if (sourceTypeRoot.equals(LogicalTypeRoot.INTEGER) &&
-                targetTypeRoot.equals(LogicalTypeRoot.BIGINT)) {
-            return (rowData, pos) -> new Integer(rowData.getInt(pos)).longValue();
+        if (targetTypeRoot.equals(LogicalTypeRoot.BIGINT)) {
+            return sourceType.accept(new CastBigIntLogicalTypeVisitor());
         } else {
             throw new Exception("Unsupported cast from to");
         }
