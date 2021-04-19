@@ -18,11 +18,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-
-import com.dtstack.flinkx.util.TableTypeUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -37,7 +33,6 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.log.DtLogger;
@@ -50,14 +45,12 @@ import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
