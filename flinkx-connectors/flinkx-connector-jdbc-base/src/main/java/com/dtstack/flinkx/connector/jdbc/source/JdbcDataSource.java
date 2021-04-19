@@ -18,20 +18,20 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-
-import com.dtstack.flinkx.connector.jdbc.JdbcLogicalTypeFactory;
-
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -39,9 +39,6 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import org.apache.flink.table.types.logical.LogicalType;
-
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -56,7 +53,6 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
-    protected JdbcLogicalTypeFactory jdbcLogicalTypeFactory;
 
     public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -100,9 +96,19 @@ public abstract class JdbcDataSource extends BaseDataSource {
     }
 
     @Override
-    public LogicalType getLogicalType() throws SQLException {
-        return jdbcLogicalTypeFactory.createLogicalType();
+    public LogicalType getLogicalType() {
+        return JdbcUtil.getLogicalTypeFromJdbcMetaData(
+                jdbcConf,
+                jdbcDialect,
+                getRawTypeConverter());
     }
+
+    /**
+     * 具体数据库类型的映射器
+     *
+     * @return
+     */
+    public abstract RawTypeConverter getRawTypeConverter();
 
     /**
      * 获取JDBC插件的具体inputFormatBuilder

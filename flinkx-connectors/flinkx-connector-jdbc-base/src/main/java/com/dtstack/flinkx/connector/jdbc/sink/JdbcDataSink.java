@@ -17,26 +17,24 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcLogicalTypeFactory;
-
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.apache.flink.table.types.logical.LogicalType;
-
-import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -49,7 +47,6 @@ public abstract class JdbcDataSink extends BaseDataSink {
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
-    protected JdbcLogicalTypeFactory jdbcLogicalTypeFactory;
 
     public JdbcDataSink(SyncConf syncConf) {
         super(syncConf);
@@ -73,9 +70,19 @@ public abstract class JdbcDataSink extends BaseDataSink {
     }
 
     @Override
-    public LogicalType getLogicalType() throws SQLException {
-        return jdbcLogicalTypeFactory.createLogicalType();
+    public LogicalType getLogicalType() {
+        return JdbcUtil.getLogicalTypeFromJdbcMetaData(
+                jdbcConf,
+                jdbcDialect,
+                getRawTypeConverter());
     }
+
+    /**
+     * 具体数据库类型的映射器
+     *
+     * @return
+     */
+    public abstract RawTypeConverter getRawTypeConverter();
 
     /**
      * 获取JDBC插件的具体outputFormatBuilder

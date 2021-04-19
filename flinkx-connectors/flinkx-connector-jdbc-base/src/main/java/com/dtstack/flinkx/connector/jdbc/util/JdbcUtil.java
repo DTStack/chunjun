@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
+import com.dtstack.flinkx.RawTypeConverter;
+import com.dtstack.flinkx.util.TableTypeUtils;
+
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -377,5 +381,23 @@ public class JdbcUtil {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * 获取数据库的LogicalType
+     * @param jdbcConf 连接信息
+     * @param jdbcDialect 方言
+     * @param converter 数据库数据类型到flink内部类型的映射
+     * @return
+     */
+    public static LogicalType getLogicalTypeFromJdbcMetaData(JdbcConf jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter){
+        try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getTable(), conn);
+            List<String> rawFieldNames =  pair.getLeft();
+            List<String> rawFieldTypes = pair.getRight();
+            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, converter);
+        } catch (SQLException throwables) {
+            throw new RuntimeException(throwables);
+        }
     }
 }

@@ -17,14 +17,14 @@
  */
 package com.dtstack.flinkx.connector.mysql.source;
 
-import com.dtstack.flinkx.connector.mysql.MysqlLogicalTypeFactory;
-
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDataSource;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import com.dtstack.flinkx.connector.mysql.inputFormat.MysqlInputFormat;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,7 +45,11 @@ public class MysqlSource extends JdbcDataSource {
                 && jdbcConf.getFetchSize() == 0){
             jdbcConf.setFetchSize(1000);
         }
-        jdbcLogicalTypeFactory = new MysqlLogicalTypeFactory(jdbcConf, jdbcDialect);
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return MysqlTypeConverter::apply;
     }
 
     @Override
