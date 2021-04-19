@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.mysql.source;
 
+import com.dtstack.flinkx.connector.mysql.MysqlLogicalTypeFactory;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
@@ -43,6 +45,7 @@ public class MysqlSource extends JdbcDataSource {
                 && jdbcConf.getFetchSize() == 0){
             jdbcConf.setFetchSize(1000);
         }
+        jdbcLogicalTypeFactory = new MysqlLogicalTypeFactory(jdbcConf, jdbcDialect);
     }
 
     @Override

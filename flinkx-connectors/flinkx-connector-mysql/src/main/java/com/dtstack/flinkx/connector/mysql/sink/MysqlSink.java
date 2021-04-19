@@ -21,6 +21,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcDataSink;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
+import com.dtstack.flinkx.connector.mysql.MysqlLogicalTypeFactory;
 import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
 
 /**
@@ -33,7 +34,8 @@ public class MysqlSink extends JdbcDataSink {
 
     public MysqlSink(SyncConf syncConf) {
         super(syncConf);
-        super.JdbcDialect = new MySQLDialect();
+        super.jdbcDialect = new MySQLDialect();
+        jdbcLogicalTypeFactory = new MysqlLogicalTypeFactory(jdbcConf, jdbcDialect);
     }
 
     @Override

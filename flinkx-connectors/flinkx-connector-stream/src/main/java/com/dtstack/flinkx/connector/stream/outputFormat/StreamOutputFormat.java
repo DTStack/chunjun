@@ -18,14 +18,10 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
-import com.dtstack.flinkx.util.TableUtil;
-
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.binary.BinaryRowData;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -114,12 +110,5 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     public void setConverter(DynamicTableSink.DataStructureConverter converter) {
         this.converter = converter;
-    }
-
-    // TODO 和 StreamSink重复了，看看如何删减
-    @Override
-    public LogicalType getLogicalType() {
-        DataType dataType = TableUtil.getDataType(streamSinkConf.getColumn());
-        return dataType.getLogicalType();
     }
 }

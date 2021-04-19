@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.mysql.inputFormat;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 
@@ -91,10 +90,5 @@ public class MysqlInputFormat extends JdbcInputFormat {
             }
         }
         return finalRowData;
-    }
-
-    @Override
-    public LogicalType getLogicalType() throws SQLException {
-        return super.getLogicalType(MysqlTypeConverter::apply);
     }
 }

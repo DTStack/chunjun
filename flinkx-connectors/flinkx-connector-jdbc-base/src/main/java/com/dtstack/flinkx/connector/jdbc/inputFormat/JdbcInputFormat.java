@@ -49,7 +49,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;

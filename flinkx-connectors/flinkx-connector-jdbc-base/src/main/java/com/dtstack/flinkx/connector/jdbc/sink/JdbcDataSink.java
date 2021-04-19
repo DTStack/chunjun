@@ -17,9 +17,7 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
-
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.JdbcLogicalTypeFactory;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -48,8 +46,10 @@ import java.util.Properties;
  * @author tudou
  */
 public abstract class JdbcDataSink extends BaseDataSink {
+
     protected JdbcConf jdbcConf;
-    protected JdbcDialect JdbcDialect;
+    protected JdbcDialect jdbcDialect;
+    protected JdbcLogicalTypeFactory jdbcLogicalTypeFactory;
 
     public JdbcDataSink(SyncConf syncConf) {
         super(syncConf);
@@ -67,19 +67,14 @@ public abstract class JdbcDataSink extends BaseDataSink {
         JdbcOutputFormatBuilder builder = getBuilder();
 
         builder.setJdbcConf(jdbcConf);
-        builder.setJdbcDialect(JdbcDialect);
+        builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public LogicalType getLogicalType() throws SQLException {
-        JdbcOutputFormatBuilder builder = getBuilder();
-        builder.setJdbcConf(jdbcConf);
-        builder.setJdbcDialect(JdbcDialect);
-        builder.setBatchSize(jdbcConf.getBatchSize());
-        BaseRichOutputFormat format = builder.finish();
-        return format.getLogicalType();
+        return jdbcLogicalTypeFactory.createLogicalType();
     }
 
     /**

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.source;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.connector.jdbc.JdbcLogicalTypeFactory;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -56,6 +56,7 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
+    protected JdbcLogicalTypeFactory jdbcLogicalTypeFactory;
 
     public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -100,19 +101,7 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
     @Override
     public LogicalType getLogicalType() throws SQLException {
-        JdbcInputFormatBuilder builder = getBuilder();
-
-        int fetchSize = jdbcConf.getFetchSize();
-        jdbcConf.setFetchSize(fetchSize == 0 ? jdbcDialect.getFetchSize() : fetchSize);
-
-        int queryTimeOut = jdbcConf.getQueryTimeOut();
-        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? jdbcDialect.getQueryTimeout() : queryTimeOut);
-
-        builder.setJdbcConf(jdbcConf);
-        builder.setJdbcDialect(jdbcDialect);
-        builder.setNumPartitions(jdbcConf.getParallelism());
-        BaseRichInputFormat inputFormat = builder.finish();
-        return inputFormat.getLogicalType();
+        return jdbcLogicalTypeFactory.createLogicalType();
     }
 
     /**

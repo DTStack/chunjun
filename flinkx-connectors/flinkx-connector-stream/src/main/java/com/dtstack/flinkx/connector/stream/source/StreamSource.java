@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.stream.source;
 
 import com.dtstack.flinkx.util.TableUtil;
@@ -55,7 +56,7 @@ public class StreamSource extends BaseDataSource {
         return createInput(builder.finish());
     }
 
-    // TODO 和 StreamSource重复了，看看如何删减
+    // TODO Stream是否抽象一个LogicalTypeFactory类
     @Override
     public LogicalType getLogicalType() {
         DataType dataType = TableUtil.getDataType(streamConf.getColumn());

@@ -45,13 +45,10 @@ import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.flink.table.types.logical.LogicalType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -601,6 +598,4 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void setRowConverter(AbstractRowConverter rowConverter) {
         this.rowConverter = rowConverter;
     }
-
-    public abstract LogicalType getLogicalType() throws SQLException;
 }

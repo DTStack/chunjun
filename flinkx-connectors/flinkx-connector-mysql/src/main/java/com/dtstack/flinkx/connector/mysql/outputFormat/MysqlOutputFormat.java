@@ -17,13 +17,8 @@
  */
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
-import com.dtstack.flinkx.RawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.util.TableTypeUtils;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -32,9 +27,7 @@ import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Date: 2021/04/13
@@ -55,11 +48,5 @@ public class MysqlOutputFormat extends JdbcOutputFormat {
         } catch (SQLException e) {
             LOG.error("", e);
         }
-
-    }
-
-    @Override
-    public LogicalType getLogicalType() throws SQLException {
-        return super.getLogicalType(MysqlTypeConverter::apply);
     }
 }

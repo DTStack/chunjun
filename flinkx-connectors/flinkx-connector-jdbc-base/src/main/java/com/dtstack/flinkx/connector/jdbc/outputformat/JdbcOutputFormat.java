@@ -17,14 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
-import com.dtstack.flinkx.RawTypeConverter;
-import com.dtstack.flinkx.util.TableTypeUtils;
-
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -95,7 +91,7 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
-            this.dbConn = getConnection();
+            dbConn = getConnection();
 
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
@@ -132,7 +128,7 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
             }
 
 
-            this.fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
+            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
                     dbConn,
                     prepareTemplates(),
                     this.column.toArray(new String[0]));
@@ -142,16 +138,6 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
             JdbcUtil.commit(dbConn);
-        }
-    }
-
-    public LogicalType getLogicalType(RawTypeConverter rawTypeConverter) throws SQLException {
-        // TODO 从元数据中获取数据类型，如果获取不到元数据信息应该从用户JSON配置中获取
-        try (Connection conn = getConnection()) {
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), conn);
-            List<String> rawFieldNames =  pair.getLeft();
-            List<String> rawFieldTypes = pair.getRight();
-            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
         }
     }
 
