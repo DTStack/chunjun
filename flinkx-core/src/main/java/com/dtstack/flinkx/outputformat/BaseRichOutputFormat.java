@@ -84,7 +84,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected int batchSize = 1;
 
     /** 存储用于批量写入的数据 */
-    protected List<RowData> rows = new ArrayList<>();
+    protected transient List<RowData> rows;
 
     /** 总记录数 */
     protected LongCounter numWriteCounter;
@@ -195,6 +195,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.taskNumber = taskNumber;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
+        this.rows = new ArrayList<>();
 
         ExecutionConfig executionConfig = context.getExecutionConfig();
         checkpointMode = executionConfig

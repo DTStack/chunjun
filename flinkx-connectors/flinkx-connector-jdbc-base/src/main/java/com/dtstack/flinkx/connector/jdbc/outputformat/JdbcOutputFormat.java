@@ -72,8 +72,8 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    protected Connection dbConn;
-    protected FieldNamedPreparedStatement fieldNamedPreparedStatement;
+    protected transient Connection dbConn;
+    protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
     protected List<String> column;
     protected List<String> columnType;
     protected List<String> fullColumnType;
@@ -95,7 +95,7 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
-            dbConn = getConnection();
+            this.dbConn = getConnection();
 
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
@@ -132,7 +132,7 @@ public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
             }
 
 
-            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
+            this.fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
                     dbConn,
                     prepareTemplates(),
                     this.column.toArray(new String[0]));
